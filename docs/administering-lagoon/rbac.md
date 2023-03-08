@@ -44,158 +44,519 @@ The guest role has the same privileges as the reporter role listed above.
 Here is a table that lists the roles and the access they have:
 
 ### Lagoon 1.0.0 RBAC Permission Matrix
-!!! Note "Note: *"
-    Includes all of the lower-level role's permissions. e.g. The developer role includes all of the permissions for the guest/reporter etc in addition to its own.
 
+=== "Self"
 
-#### Self
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| addSshKey | ssh\_key | add | userId |
-| updateSshKey | ssh\_key | update | userId |
-| deleteSshKey | ssh\_key | delete | userId |
-| getUserSshKeys | ssh\_key | view:user | userID |
-| updateUser | user | update | userId |
-| deleteUser | user | delete | userId |
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | addSshKey | ssh\_key | add | userID |
+    | updateSshKey | ssh\_key | update | userID |
+    | deleteSshKey | ssh\_key | delete | userID |
+    | getUserSshKeys | ssh\_key | view:user | userID |
+    | updateUser | user | update | userID |
+    | deleteUser | user | delete | userID |
 
-#### Guest/Reporter [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| getBackupsByEnvironmentId | deployment | view | projectID |
-| getEnvironmentsByProjectId | environment | view | projectID |
-| getEnvironmentServicesByEnvironmentId | environment | view | projectID |
-| getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
-| getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
-| getEnvVarsByProjectId | env\_var | project:view | projectID |
-| addGroup | group | add |  |
-| getOpenshiftByProjectId | openshift | view | projectID |
-| addProject | project | add |  |
-| getProjectByEnvironmentId | project | view | projectID |
-| getProjectByGitUrl | project | view | projectID |
-| getProjectByName | project | view | projectID |
-| addRestore | restore | add | projectID |
-| updateRestore | restore | update | projectID |
-| taskDrushCacheClear | task | drushCacheClear:development | projectID |
-| taskDrushCacheClear | task | drushCacheClear:production | projectID |
-| taskDrushCron | task | drushCron:development | projectID |
-| taskDrushCron | task | drushCron:production | projectID |
-| getFilesByTaskId | task | view | projectID |
-| getTasksByEnvironmentId | task | view | projectID |
-| getTaskByRemoteId | task | view | projectID |
-| getTaskById | task | view | projectID |
-| addUser | user | add |  |
+=== "Guest"
 
-#### Developer [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| addBackup | backup | add | projectID |
-| getBackupsByEnvironmentId | backup | view | projectID |
-| addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID |
-| deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
-| getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
-| addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
-| updateEnvironment | environment | update:development | projectID |
-| deleteEnvironment | environment | delete:development | projectID |
-| addDeployment | environment | deploy:development | projectID |
-| setEnvironmentServices | environment | update:development | projectID |
-| deployEnvironmentLatest | environment | deploy:development | projectID |
-| deployEnvironmentBranch | environment | deploy:development | projectID |
-| deployEnvironmentPullrequest | environment | deploy:development | projectID |
-| deployEnvironmentPromote | environment | deploy:development | projectID |
-| getNotificationsByProjectId | notification | view | projectID |
-| addTask | task | add:development | projectID |
-| taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
-| taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
-| taskDrushSqlDump | task | drushSqlDump:development | projectID |
-| taskDrushSqlDump | task | drushSqlDump:production | projectID |
-| taskDrushUserLogin | task | drushUserLogin:destination:development | EnvironmentID |
-| taskDrushSqlSync | task | drushSqlSync:source:development | ProjectID |
-| taskDrushSqlSync | task | drushSqlSync:source:production | ProjectID |
-| taskDrushSqlSync | task | drushSqlSync:destination:development | ProjectID |
-| taskDrushRsyncFiles | task | drushRsync:source:development | ProjectID |
-| taskDrushRsyncFiles | task | drushRsync:source:production | ProjectID |
-| taskDrushRsyncFiles | task | drushRsync:destination:development | ProjectID |
-| deleteTask | task | delete | ProjectID |
-| updateTask | task | update | ProjectID |
-| uploadFilesForTask | task | update | projectID |
-| deleteFilesForTask | task | delete | projectID |
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServicesByEnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
 
-#### Maintainer [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| deleteBackup | backup | delete | projectID |
-| addEnvVariable \(to Project\) | env\_var | project:add | projectID |
-| addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID |
-| deleteEnvVariable | env\_var | delete | projectID ||
-| deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID |
-| deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID |
-| getEnvVarsByProjectId | env\_var | project:viewValue | projectID |
-| getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
-| addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
-| updateEnvironment | environment | update:production | projectID |
-| addDeployment | environment | deploy:production | projectID |
-| deleteDeployment | deployment | delete | projectID |
-| updateDeployment | deployment | update | projectID |
-| setEnvironmentServices | environment | update:production | projectID |
-| deployEnvironmentLatest | environment | deploy:production | projectID |
-| deployEnvironmentBranch | environment | deploy:production | projectID |
-| deployEnvironmentPullrequest | environment | deploy:production | projectID |
-| deployEnvironmentPromote | environment | deploy:production | projectID |
-| updateGroup | group | update | groupID |
-| deleteGroup | group | delete | groupID |
-| addUserToGroup | group | addUser | groupID |
-| removeUserFromGroup | group | removeUser | groupID |
-| addNotificationToProject | project | addNotification | projectID |
-| removeNotificationFromProject | project | removeNotification | projectID |
-| updateProject | project | update | projectID |
-| addGroupsToProject | project | addGroup | projectID |
-| removeGroupsFromProject | project | removeGroup | projectID |
-| addTask | task | add:production | projectID |
-| taskDrushUserLogin | task | drushUserLogin:destination:production | EnvironmentID |
-| taskDrushSqlSync | task | drushSqlSync:destination:production | ProjectID |
-| taskDrushRsyncFiles | task | drushRsync:destination:production | ProjectID |
+=== "Developer"
 
-#### Owner [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| deleteEnvironment | environment | delete:production | projectID |
-| deleteProject | project | delete | projectID |
-| getProjectByEnvironmentId | project | viewPrivateKey | projectID |
-| getProjectByGitUrl | project | viewPrivateKey | projectID |
-| getProjectByName | project | viewPrivateKey | projectID |
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | addBackup | backup | add | projectID |
+    | getBackupsByEnvironmentId | backup | view | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
+    | updateEnvironment | environment | update:development | projectID |
+    | deleteEnvironment | environment | delete:development | projectID |
+    | addDeployment | environment | deploy:development | projectID |
+    | setEnvironmentServices | environment | update:development | projectID |
+    | deployEnvironmentLatest | environment | deploy:development | projectID |
+    | deployEnvironmentBranch | environment | deploy:development | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:development | projectID |
+    | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | getNotificationsByProjectId | notification | view | projectID |
+    | addTask | task | add:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:development | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:development | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:source:development | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:source:production | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:development | projectID |
+    | deleteTask | task | delete | projectID |
+    | updateTask | task | update | projectID |
+    | uploadFilesForTask | task | update | projectID |
+    | deleteFilesForTask | task | delete | projectID |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServicesBy<br />EnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
 
-#### Platform-Wide Owner [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| addOrUpdateEnvironmentStorage | environment | storage |  |
-| addNotificationSlack | notification | add |  |
-| updateNotificationSlack | notification | update |  |
-| deleteNotificationSlack | notification | delete |  |
-| addKubernetes | kubernetes | add |  |
-| updateKubernetes | kubernetes | update |  |
-| deleteKubernetes | kubernetes | delete |  |
-| deleteAllKubernetes| kubernetes | deleteAll |  |
-| getAllProjects | project | viewAll |  |
-| addSshKey | ssh\_key | add | userId |
-| updateSshKey | ssh\_key | update | userId |
-| deleteSshKey | ssh\_key | delete | userId |
-| getUserSshKeys | ssh\_key | view:user | userID |
-| updateUser | user | update | userId |
-| deleteUser | user | delete | userId |
+=== "Maintainer"
 
-#### Platform-Wide Admin [*](/administering-lagoon/rbac/#lagoon-100-rbac-permission-matrix)
-| **Name** | **Resource** | **Scope** | **Attributes** |
-| :--- | :--- | :--- | :--- |
-| deleteAllBackups | backup | deleteAll |  |
-| deleteAllEnvironments | environment | deleteAll |  |
-| getEnvironmentStorageMonthByEnvironmentId | environment | storage |  |
-| getEnvironmentHoursMonthByEnvironmentId | environment | storage |  |
-| getEnvironmentHitsMonthByEnvironmentId | environment | storage |  |
-| deleteAllGroups | group | deleteAll |  |
-| deleteAllNotificationSlacks | notification | deleteAll |  |
-| removeAllNotificationsFromAllProjects | notification | removeAll |  |
-| getAllOpenshifts | openshift | viewAll |  |
-| deleteAllProjects | project | deleteAll |  |
-| deleteAllSshKeys | ssh\_key | deleteAll |  |
-| removeAllSshKeysFromAllUsers | ssh\_key | removeAll |  |
-| deleteAllUsers | user | deleteAll |  |
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | deleteBackup | backup | delete | projectID |
+    | addEnvVariable \(to Project\) | env\_var | project:add | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID |
+    | deleteEnvVariable | env\_var | delete | projectID ||
+    | deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:viewValue | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
+    | updateEnvironment | environment | update:production | projectID |
+    | addDeployment | environment | deploy:production | projectID |
+    | deleteDeployment | deployment | delete | projectID |
+    | updateDeployment | deployment | update | projectID |
+    | setEnvironmentServices | environment | update:production | projectID |
+    | deployEnvironmentLatest | environment | deploy:production | projectID |
+    | deployEnvironmentBranch | environment | deploy:production | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:production | projectID |
+    | deployEnvironmentPromote | environment | deploy:production | projectID |
+    | updateGroup | group | update | groupID |
+    | deleteGroup | group | delete | groupID |
+    | addUserToGroup | group | addUser | groupID |
+    | removeUserFromGroup | group | removeUser | groupID |
+    | addNotificationToProject | project | addNotification | projectID |
+    | removeNotificationFromProject | project | removeNotification | projectID |
+    | updateProject | project | update | projectID |
+    | addGroupsToProject | project | addGroup | projectID |
+    | removeGroupsFromProject | project | removeGroup | projectID |
+    | addTask | task | add:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:production | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:production | projectID |
+    | addBackup | backup | add | projectID |
+    | getBackupsByEnvironmentId | backup | view | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
+    | updateEnvironment | environment | update:development | projectID |
+    | deleteEnvironment | environment | delete:development | projectID |
+    | addDeployment | environment | deploy:development | projectID |
+    | setEnvironmentServices | environment | update:development | projectID |
+    | deployEnvironmentLatest | environment | deploy:development | projectID |
+    | deployEnvironmentBranch | environment | deploy:development | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:development | projectID |
+    | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | getNotificationsByProjectId | notification | view | projectID |
+    | addTask | task | add:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:development | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:development | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:source:development | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:source:production | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:development | projectID |
+    | deleteTask | task | delete | projectID |
+    | updateTask | task | update | projectID |
+    | uploadFilesForTask | task | update | projectID |
+    | deleteFilesForTask | task | delete | projectID |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServicesBy<br />EnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
+
+=== "Owner"
+
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | deleteEnvironment | environment | delete:production | projectID |
+    | deleteProject | project | delete | projectID |
+    | getProjectByEnvironmentId | project | viewPrivateKey | projectID |
+    | getProjectByGitUrl | project | viewPrivateKey | projectID |
+    | getProjectByName | project | viewPrivateKey | projectID |
+    | deleteBackup | backup | delete | projectID |
+    | addEnvVariable \(to Project\) | env\_var | project:add | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID |
+    | deleteEnvVariable | env\_var | delete | projectID ||
+    | deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:viewValue | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
+    | updateEnvironment | environment | update:production | projectID |
+    | addDeployment | environment | deploy:production | projectID |
+    | deleteDeployment | deployment | delete | projectID |
+    | updateDeployment | deployment | update | projectID |
+    | setEnvironmentServices | environment | update:production | projectID |
+    | deployEnvironmentLatest | environment | deploy:production | projectID |
+    | deployEnvironmentBranch | environment | deploy:production | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:production | projectID |
+    | deployEnvironmentPromote | environment | deploy:production | projectID |
+    | updateGroup | group | update | groupID |
+    | deleteGroup | group | delete | groupID |
+    | addUserToGroup | group | addUser | groupID |
+    | removeUserFromGroup | group | removeUser | groupID |
+    | addNotificationToProject | project | addNotification | projectID |
+    | removeNotificationFromProject | project | removeNotification | projectID |
+    | updateProject | project | update | projectID |
+    | addGroupsToProject | project | addGroup | projectID |
+    | removeGroupsFromProject | project | removeGroup | projectID |
+    | addTask | task | add:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:production | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:production | projectID |
+    | addBackup | backup | add | projectID |
+    | getBackupsByEnvironmentId | backup | view | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
+    | updateEnvironment | environment | update:development | projectID |
+    | deleteEnvironment | environment | delete:development | projectID |
+    | addDeployment | environment | deploy:development | projectID |
+    | setEnvironmentServices | environment | update:development | projectID |
+    | deployEnvironmentLatest | environment | deploy:development | projectID |
+    | deployEnvironmentBranch | environment | deploy:development | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:development | projectID |
+    | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | getNotificationsByProjectId | notification | view | projectID |
+    | addTask | task | add:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:development | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:development | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:source:development | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:source:production | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:development | projectID |
+    | deleteTask | task | delete | projectID |
+    | updateTask | task | update | projectID |
+    | uploadFilesForTask | task | update | projectID |
+    | deleteFilesForTask | task | delete | projectID |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServices<br />ByEnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
+
+=== "Platform-Wide Owner"
+
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | addOrUpdateEnvironment<br />Storage | environment | storage |  |
+    | addNotificationSlack | notification | add |  |
+    | updateNotificationSlack | notification | update |  |
+    | deleteNotificationSlack | notification | delete |  |
+    | addKubernetes | kubernetes | add |  |
+    | updateKubernetes | kubernetes | update |  |
+    | deleteKubernetes | kubernetes | delete |  |
+    | deleteAllKubernetes| kubernetes | deleteAll |  |
+    | getAllProjects | project | viewAll |  |
+    | addSshKey | ssh\_key | add | userID |
+    | updateSshKey | ssh\_key | update | userID |
+    | deleteSshKey | ssh\_key | delete | userID |
+    | getUserSshKeys | ssh\_key | view:user | userID |
+    | updateUser | user | update | userID |
+    | deleteUser | user | delete | userID |
+    | deleteEnvironment | environment | delete:production | projectID |
+    | deleteProject | project | delete | projectID |
+    | getProjectByEnvironmentId | project | viewPrivateKey | projectID |
+    | getProjectByGitUrl | project | viewPrivateKey | projectID |
+    | getProjectByName | project | viewPrivateKey | projectID |
+    | deleteBackup | backup | delete | projectID |
+    | addEnvVariable \(to Project\) | env\_var | project:add | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID |
+    | deleteEnvVariable | env\_var | delete | projectID ||
+    | deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:viewValue | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
+    | updateEnvironment | environment | update:production | projectID |
+    | addDeployment | environment | deploy:production | projectID |
+    | deleteDeployment | deployment | delete | projectID |
+    | updateDeployment | deployment | update | projectID |
+    | setEnvironmentServices | environment | update:production | projectID |
+    | deployEnvironmentLatest | environment | deploy:production | projectID |
+    | deployEnvironmentBranch | environment | deploy:production | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:production | projectID |
+    | deployEnvironmentPromote | environment | deploy:production | projectID |
+    | updateGroup | group | update | groupID |
+    | deleteGroup | group | delete | groupID |
+    | addUserToGroup | group | addUser | groupID |
+    | removeUserFromGroup | group | removeUser | groupID |
+    | addNotificationToProject | project | addNotification | projectID |
+    | removeNotificationFromProject | project | removeNotification | projectID |
+    | updateProject | project | update | projectID |
+    | addGroupsToProject | project | addGroup | projectID |
+    | removeGroupsFromProject | project | removeGroup | projectID |
+    | addTask | task | add:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:production | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:production | projectID |
+    | addBackup | backup | add | projectID |
+    | getBackupsByEnvironmentId | backup | view | projectID |
+    | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
+    | updateEnvironment | environment | update:development | projectID |
+    | deleteEnvironment | environment | delete:development | projectID |
+    | addDeployment | environment | deploy:development | projectID |
+    | setEnvironmentServices | environment | update:development | projectID |
+    | deployEnvironmentLatest | environment | deploy:development | projectID |
+    | deployEnvironmentBranch | environment | deploy:development | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:development | projectID |
+    | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | getNotificationsByProjectId | notification | view | projectID |
+    | addTask | task | add:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:development | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:development | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:source:development | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:source:production | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:development | projectID |
+    | deleteTask | task | delete | projectID |
+    | updateTask | task | update | projectID |
+    | uploadFilesForTask | task | update | projectID |
+    | deleteFilesForTask | task | delete | projectID |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServices<br />ByEnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
+
+=== "Platform-Wide Admin"
+
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | deleteAllBackups | backup | deleteAll |  |
+    | deleteAllEnvironments | environment | deleteAll |  |
+    | getEnvironmentStorageMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHoursMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHitsMonthBy<br />EnvironmentId | environment | storage |  |
+    | deleteAllGroups | group | deleteAll |  |
+    | deleteAllNotificationSlacks | notification | deleteAll |  |
+    | removeAllNotificationsFrom<br />AllProjects | notification | removeAll |  |
+    | getAllOpenshifts | openshift | viewAll |  |
+    | deleteAllProjects | project | deleteAll |  |
+    | deleteAllSshKeys | ssh\_key | deleteAll |  |
+    | removeAllSshKeysFromAllUsers | ssh\_key | removeAll |  |
+    | deleteAllUsers | user | deleteAll |  |
+    | addOrUpdateEnvironment<br />Storage | environment | storage |  |
+    | addNotificationSlack | notification | add |  |
+    | updateNotificationSlack | notification | update |  |
+    | deleteNotificationSlack | notification | delete |  |
+    | addKubernetes | kubernetes | add |  |
+    | updateKubernetes | kubernetes | update |  |
+    | deleteKubernetes | kubernetes | delete |  |
+    | deleteAllKubernetes| kubernetes | deleteAll |  |
+    | getAllProjects | project | viewAll |  |
+    | addSshKey | ssh\_key | add | userID |
+    | updateSshKey | ssh\_key | update | userID |
+    | deleteSshKey | ssh\_key | delete | userID |
+    | getUserSshKeys | ssh\_key | view:user | userID |
+    | updateUser | user | update | userID |
+    | deleteUser | user | delete | userID |
+    | deleteEnvironment | environment | delete:production | projectID |
+    | deleteProject | project | delete | projectID |
+    | getProjectByEnvironmentId | project | viewPrivateKey | projectID |
+    | getProjectByGitUrl | project | viewPrivateKey | projectID |
+    | getProjectByName | project | viewPrivateKey | projectID |
+    | deleteBackup | backup | delete | projectID |
+    | addEnvVariable \(to Project\) | env\_var | project:add | projectID |
+    | addEnvVariable \(to <br />Environment\) | env\_var | environment:add:production | projectID |
+    | deleteEnvVariable | env\_var | delete | projectID ||
+    | deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:viewValue | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
+    | updateEnvironment | environment | update:production | projectID |
+    | addDeployment | environment | deploy:production | projectID |
+    | deleteDeployment | deployment | delete | projectID |
+    | updateDeployment | deployment | update | projectID |
+    | setEnvironmentServices | environment | update:production | projectID |
+    | deployEnvironmentLatest | environment | deploy:production | projectID |
+    | deployEnvironmentBranch | environment | deploy:production | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:production | projectID |
+    | deployEnvironmentPromote | environment | deploy:production | projectID |
+    | updateGroup | group | update | groupID |
+    | deleteGroup | group | delete | groupID |
+    | addUserToGroup | group | addUser | groupID |
+    | removeUserFromGroup | group | removeUser | groupID |
+    | addNotificationToProject | project | addNotification | projectID |
+    | removeNotificationFromProject | project | removeNotification | projectID |
+    | updateProject | project | update | projectID |
+    | addGroupsToProject | project | addGroup | projectID |
+    | removeGroupsFromProject | project | removeGroup | projectID |
+    | addTask | task | add:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:production | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:production | projectID |
+    | addBackup | backup | add | projectID |
+    | getBackupsByEnvironmentId | backup | view | projectID |
+    | addEnvVariable \(to <br />Environment\) | env\_var | environment:add:development | projectID |
+    | deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:development | projectID |
+    | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID |
+    | updateEnvironment | environment | update:development | projectID |
+    | deleteEnvironment | environment | delete:development | projectID |
+    | addDeployment | environment | deploy:development | projectID |
+    | setEnvironmentServices | environment | update:development | projectID |
+    | deployEnvironmentLatest | environment | deploy:development | projectID |
+    | deployEnvironmentBranch | environment | deploy:development | projectID |
+    | deployEnvironmentPullrequest | environment | deploy:development | projectID |
+    | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | getNotificationsByProjectId | notification | view | projectID |
+    | addTask | task | add:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
+    | taskDrushArchiveDump | task | drushArchiveDump:production | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:development | projectID |
+    | taskDrushSqlDump | task | drushSqlDump:production | projectID |
+    | taskDrushUserLogin | task | drushUserLogin:destination:development | environmentID |
+    | taskDrushSqlSync | task | drushSqlSync:source:development | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:source:production | projectID |
+    | taskDrushSqlSync | task | drushSqlSync:destination:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:development | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:source:production | projectID |
+    | taskDrushRsyncFiles | task | drushRsync:destination:development | projectID |
+    | deleteTask | task | delete | projectID |
+    | updateTask | task | update | projectID |
+    | uploadFilesForTask | task | update | projectID |
+    | deleteFilesForTask | task | delete | projectID |
+    | getBackupsByEnvironmentId | deployment | view | projectID |
+    | getEnvironmentsByProjectId | environment | view | projectID |
+    | getEnvironmentServices<br />ByEnvironmentId | environment | view | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID |
+    | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID |
+    | getEnvVarsByProjectId | env\_var | project:view | projectID |
+    | addGroup | group | add |  |
+    | getOpenshiftByProjectId | openshift | view | projectID |
+    | addProject | project | add |  |
+    | getProjectByEnvironmentId | project | view | projectID |
+    | getProjectByGitUrl | project | view | projectID |
+    | getProjectByName | project | view | projectID |
+    | addRestore | restore | add | projectID |
+    | updateRestore | restore | update | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:development | projectID |
+    | taskDrushCacheClear | task | drushCacheClear:production | projectID |
+    | taskDrushCron | task | drushCron:development | projectID |
+    | taskDrushCron | task | drushCron:production | projectID |
+    | getFilesByTaskId | task | view | projectID |
+    | getTasksByEnvironmentId | task | view | projectID |
+    | getTaskByRemoteId | task | view | projectID |
+    | getTaskById | task | view | projectID |
+    | addUser | user | add |  |
