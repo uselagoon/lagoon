@@ -22,6 +22,7 @@ export class TaskRegistration {
   deleted: string;
   image: string;
   permission: string;
+  diff?: string;
 }
 
 export interface AdvancedTaskDefinitionInterface {
@@ -42,6 +43,7 @@ export interface AdvancedTaskDefinitionInterface {
   projectKeyInjection?: boolean;
   adminOnlyView?: boolean;
   advancedTaskDefinitionArguments?: Partial<AdvancedTaskDefinitionArguments>;
+  diff?: string;
 }
 
 

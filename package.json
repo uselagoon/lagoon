@@ -23,5 +23,10 @@
   },
   "scripts": {
     "glow": "glow check"
+  },
+  "dependencies": {
+    "@types/json-diff": "^0.9.1",
+    "graphql-clean-diff": "^1.0.4",
+    "json-diff": "^1.0.3"
   }
 }

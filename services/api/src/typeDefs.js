@@ -163,6 +163,7 @@ const typeDefs = gql`
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
+    diff: JSON
   }
 
   type AdvancedTaskDefinitionCommand {
@@ -185,6 +186,7 @@ const typeDefs = gql`
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
+    diff: JSON
   }
 
   union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand

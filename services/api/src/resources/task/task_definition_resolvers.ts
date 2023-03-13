@@ -22,6 +22,7 @@ import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/a
 import { Environment } from '../../resolvers';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { logger } from '../../loggers/logger';
+import {DiffPatchChangesAgainstCurrentObj} from './DiffObject';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -286,7 +287,7 @@ export const addAdvancedTaskDefinition = async (
     // At this point, `taskDefMatchedIncoming` will indicate
     // whether the incoming details for a similarly named
     // task _scoped to the system/group/project/environment_
-    // exists. If it does, we return its id instead of creating it.
+    // exists.
     const taskDefMatchesIncoming =
       taskDef.description == description &&
       taskDef.image == image &&
@@ -298,19 +299,31 @@ export const addAdvancedTaskDefinition = async (
     // not match the existing definition, we have to reject this request.
     // A user should delete the task before creating a similarly named, identically scoped
     // task
-    if (!taskDefMatchesIncoming) {
-      let errorMessage = `Task '${name}' with different definition already exists `;
-      if (projectObj) {
-        errorMessage += ` for Project ${projectObj.name}`;
-      }
-      if (environment) {
-        errorMessage += ` on environment number ${environment}`;
-      }
-      if (groupName) {
-        errorMessage += ` and group ${groupName}`;
-      }
-      throw Error(errorMessage);
-    }
+    // if (!taskDefMatchesIncoming) {
+    //   let errorMessage = `Task '${name}' with different definition already exists `;
+    //   if (projectObj) {
+    //     errorMessage += ` for Project ${projectObj.name}`;
+    //   }
+    //   if (environment) {
+    //     errorMessage += ` on environment number ${environment}`;
+    //   }
+    //   if (groupName) {
+    //     errorMessage += ` and group ${groupName}`;
+    //   }
+    //   throw Error(errorMessage);
+    // }
+
+    // if there is a task def match, then we update and align with the desired incoming state.
+    // we use a merge strategy here, that will update only the fields that have changed.
+    // first, we need to a comparison to see what has changed.
+    let diffAgainstExistingObj = DiffPatchChangesAgainstCurrentObj(input, taskDef);
+
+    taskDef.diff = [diffAgainstExistingObj];
+
+    //todo: how to handle conflicts?
+
+    //dry-run mode - showing changes only
+
     return taskDef;
   }
 

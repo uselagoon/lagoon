@@ -23,6 +23,7 @@
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "@supercharge/request-ip": "^1.1.2",
+    "@types/json-diff": "^0.9.1",
     "@types/redis": "^2.8.22",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
@@ -45,6 +46,8 @@
     "graphql-tools": "^4.0.6",
     "graphql-type-json": "^0.3.0",
     "graphql-upload": "^12.0.0",
+    "json-diff": "^1.0.3",
+    "json-types": "^1.0.2",
     "jsonwebtoken": "^8.0.1",
     "keycloak-admin": "https://github.com/amazeeio/keycloak-admin.git#bd015d2e34634f262c0827f00620657427e3c252",
     "keycloak-connect": "^5.0.0",
@@ -60,6 +63,7 @@
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
+    "types-json": "^4.0.1",
     "validator": "^10.8.0",
     "winston": "^3",
     "winston-transport": "^4.4.0"
