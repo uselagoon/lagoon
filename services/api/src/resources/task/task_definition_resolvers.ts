@@ -23,6 +23,7 @@ import { Environment } from '../../resolvers';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { logger } from '../../loggers/logger';
 import {DiffPatchChangesAgainstCurrentObj} from './DiffObject';
+const yaml = require('js-yaml');
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -217,6 +218,29 @@ export const advancedTaskDefinitionArgumentById = async (
   return R.prop(0, rows);
 };
 
+export const addAdvancedTaskFromFile = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, models, userActivityLogger }
+) => {
+  const { tasksYaml } = input;
+
+  let response = [];
+
+  if (tasksYaml) {
+    const tasksObject = yaml.load(tasksYaml);
+    const promises = tasksObject.tasks.map(async input => {
+      return addAdvancedTaskDefinition(root, { input }, { sqlClientPool, hasPermission, models, userActivityLogger })
+    });
+
+    response = await Promise.all(promises);
+  }
+
+  console.log(response);
+  return response;
+
+}
+
 export const addAdvancedTaskDefinition = async (
   root,
   {
@@ -248,6 +272,8 @@ export const addAdvancedTaskDefinition = async (
     sqlClientPool, models, hasPermission
   );
 
+console.log('project: ', project);
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
@@ -267,7 +293,6 @@ export const addAdvancedTaskDefinition = async (
   if(environment && groupName || environment && project || project && groupName) {
     throw Error("Only one of `environment`, `project`, or `groupName` should be set when creating a custom task.");
   }
-
 
   //let's see if there's already an advanced task definition with this name ...
   // Note: this will all be scoped to either System, group, project, or environment
@@ -318,7 +343,7 @@ export const addAdvancedTaskDefinition = async (
     // first, we need to a comparison to see what has changed.
     let diffAgainstExistingObj = DiffPatchChangesAgainstCurrentObj(input, taskDef);
 
-    taskDef.diff = [diffAgainstExistingObj];
+    taskDef.diff = diffAgainstExistingObj;
 
     //todo: how to handle conflicts?
 

@@ -1438,6 +1438,10 @@ const typeDefs = gql`
     adminOnlyView: Boolean
   }
 
+  input AdvancedTaskDefinitionFromFileInput {
+    tasksYaml: String!
+  }
+
   input UpdateAdvancedTaskDefinitionInput {
     id: Int!
     patch: UpdateAdvancedTaskDefinitionPatchInput!
@@ -2061,6 +2065,7 @@ const typeDefs = gql`
     deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    addAdvancedTaskFromFile(input: AdvancedTaskDefinitionFromFileInput!): [AdvancedTaskDefinition]
     updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String

@@ -81,6 +81,7 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  addAdvancedTaskFromFile,
   updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
@@ -573,6 +574,7 @@ const resolvers = {
     deleteEnvVariableByName,
     addTask,
     addAdvancedTaskDefinition,
+    addAdvancedTaskFromFile,
     updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
