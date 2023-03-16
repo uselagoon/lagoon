@@ -1004,15 +1004,25 @@ const typeDefs = gql`
     environments: [Environment]
   }
 
+  type OrgUser {
+    id: String
+    email: String
+    firstName: String
+    lastName: String
+    owner: Boolean
+  }
+
   type Organization {
     id: Int
     name: String
     description: String
     quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
     deployTargets: [Openshift]
     projects: [OrgProject]
     groups: [GroupInterface]
-    owners: [User]
+    owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
   }
 
@@ -1021,12 +1031,16 @@ const typeDefs = gql`
     name: String!
     description: String
     quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
   }
 
   input UpdateOrganizationPatchInput {
     name: String
     description: String
     quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
   }
 
   input UpdateOrganizationInput {
@@ -1682,9 +1696,10 @@ const typeDefs = gql`
     user: UserInput!
   }
 
-  input addOwnerToOrganizationInput {
+  input addUserToOrganizationInput {
     user: UserInput!
     organization: Int!
+    owner: Boolean
   }
 
   input DeleteProjectInput {
@@ -2117,7 +2132,8 @@ const typeDefs = gql`
     """
     Add a user to an organization as an owner of the organization
     """
-    addOwnerToOrganization(input: addOwnerToOrganizationInput!): User
+    addUserToOrganization(input: addUserToOrganizationInput!): User
+    removeUserFromOrganization(input: addUserToOrganizationInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment

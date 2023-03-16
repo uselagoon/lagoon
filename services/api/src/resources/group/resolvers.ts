@@ -80,21 +80,32 @@ export const getGroupsByProjectId: ResolverFn = async (
 
     // if this user is an owner of an organization, then also display org based groups to this user
     // when listing project groups
-    let newProjectGroups = []
-    const usersOrgs = user.attributes['lagoon-organizations'].toString()
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
       for (const userOrg of usersOrgsArr) {
         const project = await projectHelpers(sqlClientPool).getProjectById(pid);
         if (project.organization == userOrg) {
-          newProjectGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+          const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+          for (const pGroup of orgGroups) {
+            userGroups.push(pGroup)
+          }
         }
       }
     }
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    if (newProjectGroups.length > 0) {
-      for (const pGroup of newProjectGroups) {
-        userGroups.push(pGroup)
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const project = await projectHelpers(sqlClientPool).getProjectById(pid);
+        if (project.organization == userOrg) {
+          const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+          for (const pGroup of orgViewerGroups) {
+            userGroups.push(pGroup)
+          }
+        }
       }
     }
     const userProjectGroups = R.intersection(projectGroups, userGroups);
@@ -190,6 +201,22 @@ export const addGroup: ResolverFn = async (
     await hasPermission('organization', 'addGroup', {
       organization: input.organization
     });
+
+    const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(input.organization);
+    let groupCount = 0
+    for (const pGroup in orgGroups) {
+      // project-default-groups don't count towards group quotas
+      if (orgGroups[pGroup].attributes["type"] != "project-default-group") {
+        groupCount++
+      }
+    }
+
+    if (groupCount >= organizationData.quotaGroup) {
+      throw new Error(
+        `This would exceed this organizations group quota; ${groupCount}/${organizationData.quotaGroup}`
+      );
+    }
+
     attributes = {
       attributes: {
         "lagoon-organization": [input.organization]
@@ -574,18 +601,25 @@ export const getAllProjectsInGroup: ResolverFn = async (
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
-    let newProjectGroups = []
-    const usersOrgs = user.attributes['lagoon-organizations'].toString()
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
       for (const userOrg of usersOrgsArr) {
-        newProjectGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+        const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
+        }
       }
     }
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    if (newProjectGroups != []) {
-      for (const pGroup of newProjectGroups) {
-        userGroups.push(pGroup)
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+        for (const pGroup of orgViewerGroups) {
+          userGroups.push(pGroup)
+        }
       }
     }
     // @ts-ignore

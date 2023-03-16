@@ -173,6 +173,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userGroupRole?: [string];
       organizationQuery?: [string];
       userOrganizations?: [string];
+      userOrganizationsView?: [string];
     } = {
       currentUser: [currentUserId]
     };
@@ -196,6 +197,13 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       claims = {
         ...claims,
         userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+      };
+    }
+    // check organization viewer attributes
+    if (R.prop('lagoon-organizations-viewer', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`]
       };
     }
     if (R.prop('organization', attributes)) {

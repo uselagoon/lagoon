@@ -217,14 +217,14 @@ export const getOwnersByOrganizationId: ResolverFn = async (
   _input,
   { hasPermission, models, keycloakGrant }
 ) => {
-  const projectGroups = await models.UserModel.loadUsersByOrganizationId(oid);
+  const orgUsers = await models.UserModel.loadUsersByOrganizationId(oid);
 
   try {
     await hasPermission('organization', 'view', {
       organization: oid,
     });
 
-    return projectGroups;
+    return orgUsers;
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getOwnersByOrganizationId');
@@ -235,9 +235,9 @@ export const getOwnersByOrganizationId: ResolverFn = async (
       keycloakGrant.access_token.content.sub
     );
     const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
+    const orgOwners = R.intersection(orgUsers, userGroups);
 
-    return userProjectGroups;
+    return orgOwners;
   }
 };
 
@@ -247,28 +247,13 @@ export const getGroupsByOrganizationId: ResolverFn = async (
   _input,
   { hasPermission, models, keycloakGrant }
 ) => {
-  const projectGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
 
-  try {
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
+  await hasPermission('organization', 'viewGroup', {
+    organization: oid,
+  });
 
-    return projectGroups;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getGroupsByOrganizationId');
-      return [];
-    }
-
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
-
-    return userProjectGroups;
-  }
+  return orgGroups;
 };
 
 // list all groups by organization id
@@ -278,7 +263,7 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   { hasPermission, models, keycloakGrant }
 ) => {
   try {
-    await hasPermission('organization', 'view', {
+    await hasPermission('organization', 'viewGroup', {
       organization: organization,
     });
 
@@ -303,7 +288,7 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
   _input,
   { hasPermission, sqlClientPool, models, keycloakGrant }
 ) => {
-  const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
+  const orgProjectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
   if (!keycloakGrant) {
     logger.warn('No grant available for getGroupsByOrganizationsProject');
     return [];
@@ -315,24 +300,35 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
 
   // if this user is an owner of an organization, then also display org based groups to this user
   // when listing project groups
-  let newProjectGroups = []
-  const usersOrgs = user.attributes['lagoon-organizations'].toString()
+  const userGroups = await models.UserModel.getAllGroupsForUser(user);
+  const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+  const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+
   if (usersOrgs != "" ) {
     const usersOrgsArr = usersOrgs.split(',');
     for (const userOrg of usersOrgsArr) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pid);
       if (project.organization == userOrg) {
-        newProjectGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+        const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
+        }
       }
     }
   }
-  const userGroups = await models.UserModel.getAllGroupsForUser(user);
-  if (newProjectGroups.length > 0) {
-    for (const pGroup of newProjectGroups) {
-      userGroups.push(pGroup)
+  if (usersOrgsViewer != "" ) {
+    const usersOrgsArr = usersOrgsViewer.split(',');
+    for (const userOrg of usersOrgsArr) {
+      const project = await projectHelpers(sqlClientPool).getProjectById(pid);
+      if (project.organization == userOrg) {
+        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+        for (const pGroup of orgViewerGroups) {
+          userGroups.push(pGroup)
+        }
+      }
     }
   }
-  const userProjectGroups = R.intersection(projectGroups, userGroups);
+  const userProjectGroups = R.intersection(orgProjectGroups, userGroups);
 
   return userProjectGroups;
 };

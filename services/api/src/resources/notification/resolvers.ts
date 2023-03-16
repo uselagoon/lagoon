@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -28,9 +29,21 @@ export const addNotificationMicrosoftTeams: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    await hasPermission('organization', 'addProject', {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
       organization: input.organization
     });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
   } else {
     await hasPermission('notification', 'add');
   }
@@ -43,9 +56,21 @@ export const addNotificationEmail: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    await hasPermission('organization', 'addProject', {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
       organization: input.organization
     });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
   } else {
     await hasPermission('notification', 'add');
   }
@@ -58,9 +83,21 @@ export const addNotificationRocketChat: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    await hasPermission('organization', 'addProject', {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
       organization: input.organization
     });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
   } else {
     await hasPermission('notification', 'add');
   }
@@ -73,9 +110,21 @@ export const addNotificationSlack: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    await hasPermission('organization', 'addProject', {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
       organization: input.organization
     });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
   } else {
     await hasPermission('notification', 'add');
   }
@@ -84,9 +133,21 @@ export const addNotificationSlack: ResolverFn = async (
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
   if (input.organization != null) {
-    await hasPermission('organization', 'addProject', {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
       organization: input.organization
     });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
   } else {
     await hasPermission('notification', 'add');
   }
@@ -133,7 +194,7 @@ export const addNotificationToProject: ResolverFn = async (
     });
   } catch (err) {
     if (projectNotification.oid != null) {
-      await hasPermission('organization', 'addProject', {
+      await hasPermission('organization', 'addNotification', {
         organization: projectNotification.oid
       });
     }
@@ -191,7 +252,7 @@ export const deleteNotificationMicrosoftTeams: ResolverFn = async (
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'removeNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -224,7 +285,7 @@ export const deleteNotificationEmail: ResolverFn = async (
     Sql.selectNotificationEmailByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'removeNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -257,7 +318,7 @@ export const deleteNotificationRocketChat: ResolverFn = async (
     Sql.selectNotificationRocketChatByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'removeNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -290,7 +351,7 @@ export const deleteNotificationSlack: ResolverFn = async (
     Sql.selectNotificationSlackByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'removeNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -327,7 +388,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
     Sql.selectNotificationWebhookByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'removeNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -372,7 +433,7 @@ export const removeNotificationFromProject: ResolverFn = async (
     });
   } catch (err) {
     if (project.organization != null) {
-      await hasPermission('organization', 'addProject', {
+      await hasPermission('organization', 'removeNotification', {
         organization: project.organization
       });
     }
@@ -451,7 +512,7 @@ export const getNotificationsByOrganizationId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
 
-  await hasPermission('organization', 'addProject', {
+  await hasPermission('organization', 'viewNotification', {
     organization: oid
   });
 
@@ -520,7 +581,7 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'updateNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -553,7 +614,7 @@ export const updateNotificationWebhook: ResolverFn = async (
       Sql.selectNotificationWebhookByName(name)
     );
     if (R.prop(0, check).organization != null) {
-      await hasPermission('organization', 'addProject', {
+      await hasPermission('organization', 'updateNotification', {
         organization: R.prop(0, check).organization
       });
     } else {
@@ -583,7 +644,7 @@ export const updateNotificationEmail: ResolverFn = async (
     Sql.selectNotificationEmailByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'updateNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -613,7 +674,7 @@ export const updateNotificationRocketChat: ResolverFn = async (
     Sql.selectNotificationRocketChatByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'updateNotification', {
       organization: R.prop(0, check).organization
     });
   } else {
@@ -643,7 +704,7 @@ export const updateNotificationSlack: ResolverFn = async (
     Sql.selectNotificationSlackByName(name)
   );
   if (R.prop(0, check).organization != null) {
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'updateNotification', {
       organization: R.prop(0, check).organization
     });
   } else {

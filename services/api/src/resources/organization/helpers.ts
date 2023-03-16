@@ -14,6 +14,36 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationProjects(id));
     return rows;
   };
+  const getNotificationsForOrganizationId = async (id: number) => {
+    let input = {id: id, type: "slack"}
+    // get all the notifications for the projects
+    const slacks = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByOrganizationId(input)
+    );
+    input.type = "rocketchat"
+    const rcs = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByOrganizationId(input)
+    );
+    input.type = "microsoftteams"
+    const teams = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByOrganizationId(input)
+    );
+    input.type = "email"
+    const email = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByOrganizationId(input)
+    );
+    input.type = "webhook"
+    const webhook = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByOrganizationId(input)
+    );
+    const result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
+    return result
+  };
   const getDeployTargetsByOrganizationId = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationDeployTargets(id));
     return rows;
@@ -22,5 +52,6 @@ export const Helpers = (sqlClientPool: Pool) => {
     getOrganizationById,
     getProjectsByOrganizationId,
     getDeployTargetsByOrganizationId,
+    getNotificationsForOrganizationId,
   }
 };

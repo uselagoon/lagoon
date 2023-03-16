@@ -121,9 +121,19 @@ export const getProjectByEnvironmentId: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  try {
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  } catch (err) {
+    // if the user hasn't got permission to view the project, but the project is in the organization
+    // allow the user to get the project
+    if (project.organization != null) {
+      await hasPermission('organization', 'viewProject', {
+        organization: project.organization
+      });
+    }
+  }
 
   return project;
 };
@@ -145,9 +155,19 @@ export const getProjectById: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  try {
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  } catch (err) {
+    // if the user hasn't got permission to view the project, but the project is in the organization
+    // allow the user to get the project
+    if (project.organization != null) {
+      await hasPermission('organization', 'viewProject', {
+        organization: project.organization
+      });
+    }
+  }
 
   return project;
 };
@@ -169,9 +189,19 @@ export const getProjectByGitUrl: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  try {
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  } catch (err) {
+    // if the user hasn't got permission to view the project, but the project is in the organization
+    // allow the user to get the project
+    if (project.organization != null) {
+      await hasPermission('organization', 'viewProject', {
+        organization: project.organization
+      });
+    }
+  }
 
   return project;
 };
@@ -203,7 +233,7 @@ export const getProjectByName: ResolverFn = async (
     // if the user hasn't got permission to view the project, but the project is in the organization
     // allow the user to get the project
     if (project.organization != null) {
-      await hasPermission('organization', 'addProject', {
+      await hasPermission('organization', 'viewProject', {
         organization: project.organization
       });
     }
@@ -268,7 +298,7 @@ export const addProject = async (
     // check the project quota before adding the project
     const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
-    if (organization.quotaProject == projects.length) {
+    if (projects.length >= organization.quotaProject) {
       throw new Error(
         `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
       );

@@ -1997,7 +1997,7 @@ function add_organization_permissions {
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
   "resources": ["organization"],
-  "scopes": ["add","update","addOwner","delete","deleteAll"],
+  "scopes": ["add","update","delete","deleteAll"],
   "policies": ["[Lagoon] Users role for realm is Platform Owner"]
 }
 
@@ -2020,7 +2020,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "AFFIRMATIVE",
   "resources": ["organization"],
-  "scopes": ["addProject","updateProject","deleteProject","addGroup","removeGroup","addNotification","updateNotification","removeNotification","addViewer"],
+  "scopes": ["addProject","updateProject","deleteProject","addGroup","removeGroup","addNotification","updateNotification","removeNotification","addOwner","addViewer"],
   "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization"]
 }
 EOF

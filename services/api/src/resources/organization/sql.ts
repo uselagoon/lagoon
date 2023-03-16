@@ -6,18 +6,24 @@ export const Sql = {
     name,
     description,
     quotaProject,
+    quotaGroup,
+    quotaNotification,
   }: {
     id?: number;
     name: string;
     description: string;
     quotaProject?: number;
+    quotaGroup?: number;
+    quotaNotification?: number;
   }) =>
     knex('organization')
       .insert({
         id,
         name,
         description,
-        quotaProject
+        quotaProject,
+        quotaGroup,
+        quotaNotification,
       })
       .toString(),
   updateProjectOrganization: ({
@@ -90,6 +96,15 @@ export const Sql = {
         'nt.*',
         'pn.type',
       )
+      .toString();
+  },
+  selectNotificationsByTypeByOrganizationId: (input) =>{
+    const {
+      type,
+      id,
+    } = input;
+    return knex(`notification_${type}`)
+      .where('organization', '=', id)
       .toString();
   },
 

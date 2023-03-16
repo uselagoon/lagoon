@@ -10,7 +10,9 @@ exports.up = async function(knex) {
             table.increments('id').notNullable().primary();
             table.string('name', 300).notNullable();
             table.specificType('description', 'text').defaultTo('').notNullable();
-            table.integer('quota_project', 1).notNullable();
+            table.integer('quota_project').defaultTo(1).notNullable();
+            table.integer('quota_group').defaultTo(10).notNullable();
+            table.integer('quota_notification').defaultTo(10).notNullable();
         })
         .createTable('organization_deploy_target', function (table) {
             table.integer('orgid');

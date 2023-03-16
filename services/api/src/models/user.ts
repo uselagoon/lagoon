@@ -19,6 +19,7 @@ export interface User {
   comment?: string;
   gitlabId?: string;
   attributes?: IUserAttributes;
+  owner?: boolean;
 }
 
 interface UserEdit {
@@ -71,11 +72,27 @@ const attrLens = R.lensPath(['attributes']);
 const commentLens = R.lensPath(['comment']);
 
 const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
+const lagoonOrganizationsViewerLens = R.lensPath(['lagoon-organizations-viewer']);
 
 const attrLagoonProjectsLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsLens,
+  lagoonOrganizationsViewerLens,
+  R.lensPath([0])
+);
+
+const attrLagoonOrgOwnerLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsLens,
+  R.lensPath([0])
+);
+
+const attrLagoonOrgViewerLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsViewerLens,
   R.lensPath([0])
 );
 
@@ -137,7 +154,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'owner']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -245,8 +262,18 @@ export const User = (clients: {
 
   // used to list onwers of organizations
   const loadUsersByOrganizationId = async (organizationId: number): Promise<User[]> => {
-    const filterFn = attribute => {
+    const ownerFilter = attribute => {
       if (attribute.name === 'lagoon-organizations') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+    const viewerFilter = attribute => {
+      if (attribute.name === 'lagoon-organizations-viewer') {
         const value = R.is(Array, attribute.value)
           ? R.path(['value', 0], attribute)
           : attribute.value;
@@ -257,15 +284,6 @@ export const User = (clients: {
     };
 
     let userIds = [];
-
-    // This function is called often and is expensive to compute so prefer
-    // performance over DRY
-    // try {
-    //   userIds = await redisClient.getUsersOrganizationCache(organizationId);
-    // } catch (err) {
-    //   logger.warn(`Error loading organization users from cache: ${err.message}`);
-    //   userIds = [];
-    // }
 
     if (R.isEmpty(userIds)) {
       const keycloakUsers = await keycloakAdminClient.users.find();
@@ -282,15 +300,14 @@ export const User = (clients: {
       fullUsers = [...fullUsers, fullUser];
     }
 
-    const filteredUsers = filterUsersByAttribute(fullUsers, filterFn);
-    try {
-      const filteredUsersIds = R.pluck('id', filteredUsers);
-      // await redisClient.saveUsersOrganizationCache(organizationId, filteredUsersIds);
-    } catch (err) {
-      logger.warn(`Error saving organization users to cache: ${err.message}`);
+    let filteredOwners = filterUsersByAttribute(fullUsers, ownerFilter);
+    let filteredViewers = filterUsersByAttribute(fullUsers, viewerFilter);
+    for (const f1 in filteredOwners) {
+      filteredOwners[f1].owner = true
     }
+    const orgUsers = [...filteredOwners, ...filteredViewers]
 
-    const users = await transformKeycloakUsers(filteredUsers);
+    const users = await transformKeycloakUsers(orgUsers);
 
     return users;
   };
@@ -412,9 +429,36 @@ export const User = (clients: {
     };
   };
 
+  const removeOrgFromAttr = (attr, organization, user) => {
+    return R.pipe(
+      // @ts-ignore
+      R.view(attr),
+      R.defaultTo(`${organization}`),
+      R.split(','),
+      R.without(`${organization}`),
+      R.uniq,
+      R.join(',')
+      // @ts-ignore
+    )(user);
+  }
+
+  const addOrgToAttr = (attr, organization, user) => {
+    return R.pipe(
+      // @ts-ignore
+      R.view(attr),
+      R.defaultTo(`${organization}`),
+      R.split(','),
+      R.append(`${organization}`),
+      R.uniq,
+      R.join(',')
+      // @ts-ignore
+    )(user);
+  }
+
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // comments used to be removed when updating a user, now they aren't
     let organizations = null;
+    let organizationsView = null;
     let comment = null;
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
@@ -426,16 +470,18 @@ export const User = (clients: {
       }
       // set the organization if provided
       if (R.prop('organization', userInput)) {
-        const newOrganizations = R.pipe(
-          // @ts-ignore
-          R.view(attrLagoonProjectsLens),
-          R.defaultTo(`${R.prop('organization', userInput)}`),
-          R.split(','),
-          R.append(`${R.prop('organization', userInput)}`),
-          R.uniq,
-          R.join(',')
-        )(user);
-        organizations = {'lagoon-organizations': [newOrganizations]}
+        if (R.prop('remove', userInput)) {
+          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        }
+        // owner is an option, default is view
+        if (R.prop('owner', userInput)) {
+          organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        } else {
+          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        }
         try {
           // when adding a user to organizations, if this is an organization based user, purge the cache so the users are updated
           // in the api
@@ -457,6 +503,7 @@ export const User = (clients: {
           attributes: {
             ...user.attributes,
             ...organizations,
+            ...organizationsView,
             ...comment
           }
         }
@@ -508,9 +555,16 @@ export const User = (clients: {
 
     const user = await loadUserById(userInput.id);
     const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
 
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        organizations = [...organizations, userOrg]
+      }
+    }
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
       for (const userOrg of usersOrgsArr) {
         organizations = [...organizations, userOrg]
       }
