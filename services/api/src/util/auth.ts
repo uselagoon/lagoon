@@ -1,12 +1,10 @@
 import * as R from 'ramda';
-import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
 const { userActivityLogger } = require('../loggers/userActivityLogger');
-import { User } from '../models/user';
 import { Group } from '../models/group';
 
 interface ILegacyToken {
@@ -39,6 +37,52 @@ const sortRolesByWeight = (a, b) => {
   }
 
   return 0;
+};
+
+export const getUserProjectIdsFromRoleProjectIds = (
+  roleProjectIds
+): number[] => {
+  // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+  // the structure of this payload is:
+  /*
+    {"guest":[13],"devloper":[20,14],"maintainer":[13,18,19,12]}
+  */
+  let upids = [];
+  for (const r in roleProjectIds) {
+    for (const pid in roleProjectIds[r]) {
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
+    }
+  }
+  return R.uniq(upids);
+};
+
+export const getUserRoleForProjectFromRoleProjectIds = (
+  roleProjectIds, projectId
+): [string, number[]] => {
+  let upids = [];
+  let roles = [];
+  for (const r in roleProjectIds) {
+    for (const pid in roleProjectIds[r]) {
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
+      if (projectId == roleProjectIds[r][pid]) {
+        roles.push(r)
+      }
+    }
+  }
+
+  const highestRoleForProject = getHighestRole(roles);
+
+  return [highestRoleForProject, R.uniq(upids)];
+};
+
+const getHighestRole = (roles) => {
+  return R.pipe(
+    R.uniq,
+    R.reject(R.isEmpty),
+    R.reject(R.isNil),
+    R.sort(sortRolesByWeight),
+    R.last
+  )(roles);
 };
 
 export const isLegacyToken = R.pathSatisfies(isNotNil, ['payload', 'role']);
@@ -101,65 +145,10 @@ export class KeycloakUnauthorizedError extends Error {
   }
 }
 
-export const keycloakHasPermission = (grant, requestCache, modelClients) => {
-  const UserModel = User(modelClients);
+export const keycloakHasPermission = (grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
   const GroupModel = Group(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
-    const currentUserId: string = grant.access_token.content.sub;
-
-    // Check if the same set of permissions has been granted already for this
-    // api query.
-    // TODO Is it possible to ask keycloak for ALL permissions (given a project
-    // or group context) and cache a single query instead?
-    const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(
-      attributes
-    )}`;
-    const cachedPermissions = requestCache.get(cacheKey);
-    if (cachedPermissions === true) {
-      return true;
-    } else if (!cachedPermissions === false) {
-      userActivityLogger.user_info(
-        `User does not have permission to '${scope}' on '${resource}'`,
-        {
-          user: grant ? grant.access_token.content : null
-        }
-      );
-      throw new KeycloakUnauthorizedError(
-        `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-          attributes
-        )}`
-      );
-    }
-
-    // Check the redis cache before doing a full keycloak lookup.
-    const resourceScope = { resource, scope, currentUserId, ...attributes };
-    let redisCacheResult: number;
-    try {
-      const data = await getRedisCache(resourceScope);
-      redisCacheResult = parseInt(data, 10);
-    } catch (err) {
-      logger.warn(`Couldn't check redis authz cache: ${err.message}`);
-    }
-
-    if (redisCacheResult === 1) {
-      return true;
-    } else if (redisCacheResult === 0) {
-      userActivityLogger.user_info(
-        `User does not have permission to '${scope}' on '${resource}'`,
-        {
-          user: grant.access_token.content
-        }
-      );
-      throw new KeycloakUnauthorizedError(
-        `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-          attributes
-        )}`
-      );
-    }
-
-    const currentUser = await UserModel.loadUserById(currentUserId);
-    const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
     let claims: {
       currentUser: [string];
@@ -169,8 +158,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userProjectRole?: [string];
       userGroupRole?: [string];
     } = {
-      currentUser: [currentUserId]
+      currentUser: [currentUser.id]
     };
+
 
     const usersAttribute = R.prop('users', attributes);
     if (usersAttribute && usersAttribute.length) {
@@ -182,7 +172,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
             R.prop('users')
           )(attributes)
         ],
-        currentUser: [currentUserId]
+        currentUser: [currentUser.id]
       };
     }
 
@@ -197,29 +187,13 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
           projectQuery: [`${projectId}`]
         };
 
-        const userProjects = await UserModel.getAllProjectsIdsForUser(
-          currentUser
-        );
-
-        if (userProjects.length) {
+        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        if (upids.length) {
           claims = {
             ...claims,
-            userProjects: [userProjects.join('-')]
+            userProjects: [upids.join('-')]
           };
         }
-
-        const roles = await UserModel.getUserRolesForProject(
-          currentUser,
-          projectId
-        );
-
-        const highestRoleForProject = R.pipe(
-          R.uniq,
-          R.reject(R.isEmpty),
-          R.reject(R.isNil),
-          R.sort(sortRolesByWeight),
-          R.last
-        )(roles);
 
         if (highestRoleForProject) {
           claims = {
@@ -242,7 +216,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
 
         const groupRoles = R.pipe(
           R.filter(membership =>
-            R.pathEq(['user', 'id'], currentUserId, membership)
+            R.pathEq(['user', 'id'], currentUser.id, membership)
           ),
           R.pluck('role')
         )(group.members);
@@ -308,13 +282,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       );
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
-        requestCache.set(cacheKey, true);
-        try {
-          await saveRedisCache(resourceScope, 1);
-        } catch (err) {
-          logger.warn(`Couldn't save redis authz cache: ${err.message}`);
-        }
-
         return;
       }
     } catch (err) {
@@ -323,18 +290,11 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userActivityLogger.user_info(
         `User does not have permission to '${scope}' on '${resource}'`,
         {
-          user: currentUser
+          user: currentUser.id
         }
       );
     }
 
-    requestCache.set(cacheKey, false);
-    // TODO: Re-enable when we can distinguish between error and access denied
-    // try {
-    //   await saveRedisCache(resourceScope, 0);
-    // } catch (err) {
-    //   logger.warn(`Couldn't save redis authz cache: ${err.message}`);
-    // }
     userActivityLogger.user_info(
       `User does not have permission to '${scope}' on '${resource}'`,
       {
