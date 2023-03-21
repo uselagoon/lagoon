@@ -228,11 +228,17 @@ export const User = (clients: {
       for (const roleSubgroup of roleSubgroups) {
         for (const fullSubgroup of fullGroup.subGroups) {
           if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
-            groups.push(fullSubgroup)
+            let group = fullSubgroup
+            let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
+            group.subGroups = filtergroup
+            groups.push(group)
           }
         }
         if (roleSubgroup.name.replace(regexp, "") == fullGroup.name) {
-          groups.push(fullGroup)
+          let group = fullGroup
+          let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
+          group.subGroups = filtergroup
+          groups.push(group)
         }
       }
     }
