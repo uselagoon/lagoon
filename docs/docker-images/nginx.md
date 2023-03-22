@@ -47,15 +47,21 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 ### Basic Authentication
 
-If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../using-lagoon-advanced/environment-variables.md).
+Basic authentication is enabled automatically when the `BASIC_AUTH_USERNAME`
+and `BASIC_AUTH_PASSWORD` [environment
+variables](../using-lagoon-advanced/environment-variables.md) are set.
+
+!!! warning "Warning:"
+    Automatic basic auth configuration is provided for convenience. It should not be considered a secure method of protecting your website or private data.
 
 ## Environment Variables
 
-Environment variables are meant to contain common information for the `nginx` container.
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `BASIC_AUTH` | `restricted` | By not setting `BASIC_AUTH` this will instruct Lagoon to automatically enable basic authentication if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set. To disable basic authentication even if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set, set `BASIC_AUTH` to `off`. |
-| `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
-| `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |
-| `FAST_HEALTH_CHECK` | \(not set\) | If set to `true` this will redirect GET requests from certain user agents \(StatusCake, Pingdom, Site25x7, Uptime, nagios\) to the lightweight Lagoon service healthcheck. |
+| Environment Variable | Default    | Description |
+| :------------------- | :--------- | :--- |
+| BASIC_AUTH           | restricted | Set to `off` to disable basic authentication.                                                                                                                  |
+| BASIC_AUTH_USERNAME  | (not set)  | Username for basic authentication.                                                                                                                             |
+| BASIC_AUTH_PASSWORD  | (not set)  | Password for basic authentication (unencrypted).                                                                                                               |
+| FAST_HEALTH_CHECK    | (not set)  | Set to `true` to redirect GET requests from certain user agents (StatusCake, Pingdom, Site25x7, Uptime, nagios) to the lightweight Lagoon service healthcheck. |

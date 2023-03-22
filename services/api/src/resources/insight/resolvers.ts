@@ -119,9 +119,9 @@ export const getInsightsFileData: ResolverFn = async (
 };
 
 export const getInsightsFilesByEnvironmentId: ResolverFn = async (
-  { id: eid, environmentAuthz },
+  { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
 
   if (!eid) {
@@ -132,7 +132,7 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(parseInt(eid));
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('environment', 'view', {
       project: environmentData.project
     });

@@ -101,14 +101,17 @@ export const getTaskLog: ResolverFn = async (
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
   { id: filterId, taskName: taskName, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
-  await hasPermission('task', 'view', {
-    project: environment.project
-  });
+
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('task', 'view', {
+      project: environment.project
+    });
+  }
 
   let queryBuilder = knex('task')
     .where('environment', eid)

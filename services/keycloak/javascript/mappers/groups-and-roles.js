@@ -24,6 +24,9 @@ forEach.call(user.getGroups().toArray(), function(group) {
       }
     } else {
       if(projectIds !== null) {
+        // add the group so group-tenant association works properly
+        groupsAndRoles.add(groupName);
+        // calculate the groupprojectids
         forEach.call(projectIds.split(","), function(g) {
           groupProjectIds.put(g, groupName)
         });
@@ -34,13 +37,12 @@ forEach.call(user.getGroups().toArray(), function(group) {
   return;
 });
 
-// add all the unique project ids roles the user has, that aren't in an already existing group
+// remove all the groupprojectids from the individual projectgroupprojectids so that all
+// that remains are project ids that are not already associated to an existing group
 projectGroupProjectIds.keySet().removeAll(groupProjectIds.keySet());
-for each (var e in projectGroupProjectIds.keySet()) groupsAndRoles.add("p"+e);
-
-// now add all the users groups
-var uniqueGroups = new HashSet(groupProjectIds.values());
-for each (var e in uniqueGroups) groupsAndRoles.add(e);
+for each (var e in projectGroupProjectIds.keySet()) {
+    groupsAndRoles.add("p"+e);
+}
 
 // add all roles the user is part of
 forEach.call(user.getRoleMappings().toArray(), function(role) {
