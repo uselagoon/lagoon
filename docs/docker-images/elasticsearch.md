@@ -11,9 +11,12 @@
 
 ## Environment Variables
 
-| Environment Variable |      Default      |                                                           Description                                                            |
-| :------------------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| `ES_JAVA_OPTS`       | -Xms400m -Xmx400m | Sets the memory usage of the Elasticsearch container. Both values need be the same value or Elasticsearch will not start cleanly |
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
+
+| Environment Variable | Default           | Description                                                                                                                       |
+| :------------------- | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| ES_JAVA_OPTS         | -Xms400m -Xmx400m | Sets the memory usage of the Elasticsearch container. Both values need be the same value or Elasticsearch will not start cleanly. |
 
 ## Known issues
 

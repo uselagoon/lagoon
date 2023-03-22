@@ -40,11 +40,12 @@ For further information and custom configuration, please refer to [official Rabb
 
 ## Environment Variables
 
-Environment variables defined in RabbitMQ base image:
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `RABBITMQ_DEFAULT_USER` | guest | Username for management UI access. |
-| `RABBITMQ_DEFAULT_PASS` | guest | Password for management UI access. |
-| `RABBITMQ_DEFAULT_VHOST` | / | RabbitMQ main virtualhost. |
-| `RABBITMQ_DEFAULT_HA_PATTERN` | ^$ | Regular expression to match for mirrored queues. |
+| Environment Variable        | Default | Description                                      |
+| :-------------------------- | :------ | :----------------------------------------------- |
+| RABBITMQ_DEFAULT_USER       | guest   | Username for management UI access.               |
+| RABBITMQ_DEFAULT_PASS       | guest   | Password for management UI access.               |
+| RABBITMQ_DEFAULT_VHOST      | /       | RabbitMQ main virtualhost.                       |
+| RABBITMQ_DEFAULT_HA_PATTERN | ^$      | Regular expression to match for mirrored queues. |

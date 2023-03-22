@@ -25,19 +25,20 @@ The image ships a _default_ `vcl` configuration file, optimized to work on Lagoo
 
 ## Environment Variables
 
-Environment variables defined in Varnish base image
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `VARNISH_BACKEND_HOST` | NGINX | Default backend host. |
-| `VARNISH_BACKEND_PORT` | 8080 | Default listening varnish port. |
-| `VARNISH_SECRET` | lagoon\_default\_secret | Varnish secret used to connect to management. |
-| `LIBVMOD_DYNAMIC_VERSION` | 5.2 | Default version of `vmod-dynamic` module. |
-| `LIBVMOD_BODYACCESS_VERSION` | 5.0 | Default version of `vmod-bodyaccess` module. |
-| `HTTP_RESP_HDR_LEN` | 8k | Maximum length of any HTTP backend response header. |
-| `HTTP_RESP_SIZE` | 32k | Maximum number of bytes of HTTP backend response we will deal with. |
-| `NUKE_LIMIT` | 150 | Maximum number of objects we attempt to nuke in order to make space for an object body. |
-| `CACHE_TYPE` | malloc | Type of varnish cache. |
-| `CACHE_SIZE` | 100M | Cache size. |
-| `LISTEN` | 8080 | Default backend server port. |
-| `MANAGEMENT_LISTEN` | 6082 | Default management listening port. |
+| Environment Variable       | Default               | Description                                                                             |
+| :------------------------- | :-------------------- | :-------------------------------------------------------------------------------------- |
+| VARNISH_BACKEND_HOST       | NGINX                 | Default backend host.                                                                   |
+| VARNISH_BACKEND_PORT       | 8080                  | Default listening varnish port.                                                         |
+| VARNISH_SECRET             | lagoon_default_secret | Varnish secret used to connect to management.                                           |
+| LIBVMOD_DYNAMIC_VERSION    | 5.2                   | Default version of `vmod-dynamic` module.                                               |
+| LIBVMOD_BODYACCESS_VERSION | 5.0                   | Default version of `vmod-bodyaccess` module.                                            |
+| HTTP_RESP_HDR_LEN          | 8k                    | Maximum length of any HTTP backend response header.                                     |
+| HTTP_RESP_SIZE             | 32k                   | Maximum number of bytes of HTTP backend response we will deal with.                     |
+| NUKE_LIMIT                 | 150                   | Maximum number of objects we attempt to nuke in order to make space for an object body. |
+| CACHE_TYPE                 | malloc                | Type of varnish cache.                                                                  |
+| CACHE_SIZE                 | 100M                  | Cache size.                                                                             |
+| LISTEN                     | 8080                  | Default backend server port.                                                            |
+| MANAGEMENT_LISTEN          | 6082                  | Default management listening port.                                                      |

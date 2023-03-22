@@ -50,23 +50,10 @@ RUN apk del nodejs-current \
 
 ## Environment variables
 
-Environment variables allow some configuration to be customised in a repeatable way.
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md). The [php-fpm
+environment variables](php-fpm.md#environment-variables) also apply.
 
-| Name | Default | Description |
-| :--- | :--- | :--- |
-| `MARIADB_MAX_ALLOWED_PACKET` | 64M | Controls the max allowed packet for the MySql client. |
-
-### Changing an environment variable
-
-Environment variables can be changed in the `docker-compose.yml` file.
-
-```text
-x-environment:
-  &default-environment
-    MARIADB_MAX_ALLOWED_PACKET: 128M
-
-service:
-  cli:
-    environment:
-    << : *default-environment
-```
+| Name                       | Default | Description                                           |
+| :------------------------- | :------ | :---------------------------------------------------- |
+| MARIADB_MAX_ALLOWED_PACKET | 64M     | Controls the max allowed packet for the MySql client. |

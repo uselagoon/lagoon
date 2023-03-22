@@ -52,11 +52,3 @@ If you have multiple services that share the same storage, use this
 				# mounts a named volume (files) at the defined path for this service to replicate production
 				- files:/app/files
     ```
-
-## Environment Variables
-
-Environment variables are meant to contain common information for the PHP container.
-
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `LAGOON_LOCALDEV_HTTP_PORT` | 3000 | tells the local development environment on which port we are running |
