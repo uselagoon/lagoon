@@ -12,48 +12,93 @@ import { logger } from '../../loggers/logger';
 export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
+  info
 ) => {
   if (!adminScopes.projectViewAll) {
-    await hasPermission('env_var', 'project:view', {
-      project: pid
-    });
+    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
+    if (index != -1) {
+      await hasPermission('env_var', 'project:viewValue', {
+        project: pid
+      });
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsByProjectId(pid)
+      );
+
+      return rows;
+    } else {
+      await hasPermission('env_var', 'project:view', {
+        project: pid
+      });
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsWithoutValueByProjectId(pid)
+      );
+
+      return rows;
+    }
+  } else {
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectEnvVarsByProjectId(pid)
+    );
+
+    return rows;
   }
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectEnvVarsByProjectId(pid)
-  );
-
-  return rows;
-};
+}
 
 export const getEnvVarsByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
+  info
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
-  ).getEnvironmentById(eid);
+  ).getEnvironmentById(eid)
 
   if (!adminScopes.projectViewAll) {
-    await hasPermission(
-      'env_var',
-      `environment:view:${environment.environmentType}`,
-      {
-        project: environment.project
-      }
+    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
+    if (index != -1) {
+      await hasPermission(
+        'env_var',
+        `environment:viewValue:${environment.environmentType}`,
+        {
+          project: environment.project
+        }
+      );
+
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsByEnvironmentId(eid)
+      );
+
+      return rows;
+    } else {
+      await hasPermission(
+        'env_var',
+        `environment:view:${environment.environmentType}`,
+        {
+          project: environment.project
+        }
+      );
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsWithoutValueByEnvironmentId(eid)
+      );
+
+      return rows;
+    }
+  } else {
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectEnvVarsByEnvironmentId(eid)
     );
+
+    return rows;
   }
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectEnvVarsByEnvironmentId(eid)
-  );
-
-  return rows;
-};
+}
 
 export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   const {
@@ -228,7 +273,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
     const projectVariable = await query(
       sqlClientPool,
       Sql.selectEnvVarByNameAndProjectId(name, projectId)
-      );
+    );
 
     await hasPermission('env_var', 'project:delete', {
       project: projectId
@@ -339,8 +384,10 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
 export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   root,
   { input: { project: projectName, environment: environmentName } },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
+  info
 ) => {
+  const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
   );
@@ -354,34 +401,73 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     const environment = environmentRows[0];
 
     if (!adminScopes.projectViewAll) {
-      await hasPermission(
-        'env_var',
-        `environment:view:${environment.environmentType}`,
-        {
-          project: projectId
-        }
-      );
-    }
+      if (index != -1) {
+        await hasPermission(
+          'env_var',
+          `environment:viewValue:${environment.environmentType}`,
+          {
+            project: projectId
+          }
+        );
 
-    const environmentVariables = await query(
-      sqlClientPool,
-      Sql.selectEnvVarsByEnvironmentId(environment.id)
-      );
-    return environmentVariables
-  } else {
+        const environmentVariables = await query(
+          sqlClientPool,
+          Sql.selectEnvVarsByEnvironmentId(environment.id)
+        );
+        return environmentVariables
 
-    if (!adminScopes.projectViewAll) {
-      await hasPermission('env_var', 'project:view', {
-        project: projectId
-      });
+      } else {
+        await hasPermission(
+          'env_var',
+          `environment:view:${environment.environmentType}`,
+          {
+            project: projectId
+          }
+        );
+
+        const environmentVariables = await query(
+          sqlClientPool,
+          Sql.selectEnvVarsWithoutValueByEnvironmentId(environment.id)
+        );
+        return environmentVariables
+      }
+    } else {
+      const environmentVariables = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsByEnvironmentId(environment.id)
+      );
+      return environmentVariables
     }
+  } else if (projectName) {
     // is project
-    const projectVariables = await query(
-      sqlClientPool,
-      Sql.selectEnvVarsByProjectId(projectId)
-      );
-    return projectVariables
-  }
+    if (!adminScopes.projectViewAll) {
+      if (index != -1) {
+        await hasPermission('env_var', 'project:viewValue', {
+          project: projectId
+        });
+        const projectVariables = await query(
+          sqlClientPool,
+          Sql.selectEnvVarsByProjectId(projectId)
+        );
+        return projectVariables
 
+      } else {
+        await hasPermission('env_var', 'project:view', {
+          project: projectId
+        });
+        const projectVariables = await query(
+          sqlClientPool,
+          Sql.selectEnvVarsWithoutValueByProjectId(projectId)
+        );
+        return projectVariables
+      }
+    } else {
+      const projectVariables = await query(
+        sqlClientPool,
+        Sql.selectEnvVarsByProjectId(projectId)
+      );
+      return projectVariables
+    }
+  }
   return [];
 };
