@@ -258,6 +258,17 @@ export const addProject = async (
     throw new Error('Must provide kubernetes or openshift field');
   }
 
+  // check if project already exists before doing anything else
+  const pidResult = await query(
+    sqlClientPool,
+    Sql.selectProjectIdByName(input.name)
+  );
+  if (R.length(pidResult) >= 1) {
+    throw new Error(
+      `Error creating project '${input.name}'. Project already exists.`
+    );
+  }
+
   let keyPair: any = {};
   try {
     const privateKey = R.cond([
