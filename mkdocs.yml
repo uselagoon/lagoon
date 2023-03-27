@@ -170,6 +170,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - tables
+  - mdx_truly_sane_lists
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.superfences
