@@ -6,7 +6,7 @@ This image has no functionality itself, but is instead a base image, intended to
 
 ## Included tooling
 
-- `docker-sleep` - standardised one-hour sleep
+- `docker-sleep` - standardized one-hour sleep
 - `fix-permissions` - automatically fixes permissions on a given directory to all group read-write
 - `wait-for` - a small script to ensure that services are up and running in the correct order - based off https://github.com/eficode/wait-for
 - `entrypoint-readiness` - checks to make sure that long-running entrypoints have completed

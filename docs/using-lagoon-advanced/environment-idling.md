@@ -2,7 +2,7 @@
 
 ## What is the Environment Idler?
 
-Lagoon can utilise the [Aergia controller](https://github.com/amazeeio/aergia-controller), (installed in the lagoon-remote) to automatically idle environments if they have been unused for a defined period of time. This is done in order to reduce the load on the Kubernetes clusters and improve the overall performance of production environments and development environments that are actually in use.
+Lagoon can utilize the [Aergia controller](https://github.com/amazeeio/aergia-controller), (installed in the lagoon-remote) to automatically idle environments if they have been unused for a defined period of time. This is done in order to reduce the load on the Kubernetes clusters and improve the overall performance of production environments and development environments that are actually in use.
 
 ### How does an environment get idled?
 

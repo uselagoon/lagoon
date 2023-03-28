@@ -18,11 +18,11 @@ Lagoon provides access to the following logs via Kibana:
     * `stdout` and `stderr` messages
     * Container name
     * Project
-* Lagoon logs:
+  * Lagoon logs:
     * Webhooks parsing
     * Build logs
     * Build errors
-    * Any other Lagoon related logs
+    * Any other Lagoon-related logs
 * Application logs:
     * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
     * For Laravel: install the [Lagoon Logs for Laravel](https://github.com/amazeeio/laravel_lagoon_logs) package.

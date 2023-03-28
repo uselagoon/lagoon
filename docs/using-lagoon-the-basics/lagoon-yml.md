@@ -438,7 +438,6 @@ cronjobs:
 * `schedule`: The schedule for executing the cron job. Lagoon uses an extended
   version of the crontab format. If you're not sure about the syntax, use a
   [crontab generator](https://crontab.guru/).
-
     * You can specify `M` for the minute, and your cron job will run once per
       hour at a random minute (the same minute each hour), or `M/15` to run it
       every 15 mins, but with a random offset from the hour (like
@@ -454,7 +453,6 @@ cronjobs:
             * Native cron jobs use the timezone of the node, which is UTC.
             * In-pod cron jobs use the timezone of the defined service, which
               can be configured to something other than UTC.
-
 
 * `command`: The command to execute. This executes in the `WORKDIR` of the
   service. For Lagoon images, this is `/app`.
@@ -473,7 +471,7 @@ cronjobs:
 
 In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
-To utilise this, you will need to:
+To utilize this, you will need to:
 
 1. Create two (or more) projects in Lagoon, each configured with the same gitUrl and production branch, **named as per the .lagoon.yml** (i.e `poly-project1` and `poly-project2` below)
 2. Add the deploy keys from each project to the git repo

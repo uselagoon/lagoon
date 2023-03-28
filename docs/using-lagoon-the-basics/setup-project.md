@@ -7,7 +7,7 @@ Until then, the setup of a new project involves talking to your Lagoon administr
 
 Please have the following information ready for your Lagoon administrator:
 
-* A name you would like the project to be know by
+* A name you would like the project to be known by
   * This name can only contain lowercase characters, numbers and dashes
   * Double dashes (`--`) are not allowed within a project name
 * SSH public keys, email addresses and the names of everybody that will work on this project. Here are instructions for generating and copying SSH keys for [GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh), [GitLab](https://docs.gitlab.com/ee/ssh/), and [Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html).
@@ -38,4 +38,3 @@ As Lagoon supports many different Git hosts, we have split off those instruction
 ## 4. Next: First deployment
 
 Congratulations, you are now ready to run your [first deployment](first-deployment.md).
-

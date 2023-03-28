@@ -27,7 +27,7 @@ Before going in to how to configure a project to leverage DeployTarget configura
     3. kubernetesNamespacePattern
     4. kubernetes
 4. As soon as any DeployTarget configurations are added to a project, then all future deployments for this project will use these configurations. What is defined in the project is ignored, and overwritten to inform users that DeployTarget configurations are in use.
-5. DeployTarget configurations are weighted, which means that a DeployTarget configuration with a larger weight is prioritised over one with lower weight.
+5. DeployTarget configurations are weighted, which means that a DeployTarget configuration with a larger weight is prioritized over one with lower weight.
     1. The order in which they are returned by the query is the order they are used to determine where an environment should be deployed.
 6. Active/Standby environments can only be deployed to the same cluster, so your DeployTarget configuration must be able to deploy both those environments to the same target.
 7. Projects that leverage the `promote` feature of Lagoon must be aware that DeployTarget configurations are ignored for the `destination` environment.

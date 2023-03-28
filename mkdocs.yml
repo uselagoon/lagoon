@@ -159,17 +159,23 @@ extra:
     property: G-W1SJFEVFDB
 
 markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - pymdownx.caret
+  - pymdownx.highlight:
+      auto_title: true
+      anchor_linenums: true
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences
+  - tables
   - toc:
       permalink: "#"
       baselevel: 1
-  - def_list
-  - admonition
-  - attr_list
-  - tables
-  - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.tasklist:
-      custom_checkbox: true
+
 
 plugins:
   - search

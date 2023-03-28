@@ -8,22 +8,29 @@ description: >-
 
 | Term | Definition |
 | :--- | :--- |
+| Ansible| An open-source suite of software tools that enables infrastructure as code|
 | AWS | Amazon Web Services |
 | AWS Glacier | A secure and inexpensive S3 storage for long-term backup. |
+| Brew | Homebrew is a package manager for OSX |
+| CDN | Content Delivery Network - distributes content via caching |
 | CI | Continuous Integration |
+| CIDR | Classess Inter-Domain Routing - a method of assigning IP addresses |
 | CLI | Command Line Interface |
 | Cluster | A unified group of servers or VMs, distributed and managed together, which serves one entity to ensure high availability, load balancing, and scalability. |
 | CMS | Content Management System |
+| Cron job | The cron command-line utility is a job scheduler on Unix-like operating systems. Users who set up and maintain software environments use cron to schedule jobs, also known as cron jobs, to run periodically at fixed times, dates, or intervals.|
 | Composer | A package manager |
 | DDoS | Distributed Denial of Service |
 | DNS | Domain Name System |
 | Docker | A container engine using Linux features and automating application deployment. |
+| Docker Compose | A tool for defining and running Docker applications via YAML files. |
 | Drupal | Open-source Content Management System |
 | Drush |  |
 | EC2 | Amazon Elastic Compute Cloud |
 | Elasticsearch | An open-source search engine. It provides a distributed, multi-tenant-capable full-text search engine with a web interface and schema-free JSON documents. |
 | Galera | A generic synchronous multi-master replication library for transactional databases. |
 | Git | A free and open-source distributed version control system. |
+| Git Hash/SHA | A generated string that identifies each commit. Uses the SHA-1 algorithm |
 | GitHub | A proprietary version control hosting company using Git. A subsidiary of Microsoft, it offers all of the distributed version control and source code management functionality of Git as well as additional features. |
 | GitLab | A web-based Git repository manager with CI capabilities. |
 | GraphQL | An open-source data query and manipulation language for APIs, and a runtime for fulfilling queries with existing data. |
@@ -37,8 +44,11 @@ description: >-
 | k3d | k3d is a lightweight wrapper to run k3s in Docker. |
 | k8s | Numeronym for Kubernetes \(K + 8 letters + s\) |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |
+| KinD | Kubernetes in Docker - a tool for running local Kubernetes clusters using Docker container “nodes”. Kind was primarily designed for testing Kubernetes itself, but may be used for local development or CI.|
 | Kubernetes | An open-source system for automating deployment, scaling, and management of containerized applications. |
 | Lagoon | An open-source application delivery platform for Kubernetes. |
+| Lagoonize | Configuration changes to allow your app to run on Lagoon. |
+| Lando | A free, open source, cross-platform, local development environment and DevOps tool built on Docker. |
 | Laravel | A free, open-source PHP web framework, following the model–view–controller \(MVC\) architectural pattern and based on Symfony. |
 | MariaDB | A community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU General Public License. |
 | Master node | A single node in the cluster on which a collection of processes which manage the cluster state are running. |
@@ -60,6 +70,9 @@ description: >-
 | RabbitMQ | An open-source message-broker software. |
 | RBAC | Role-Based Access Control |
 | RDS | Relational Database Service |
+| Redis | An open source, in-memory data store used as a database, cache, streaming engine, and message broker. |
+| Ruby | An interpreted, high-level, general-purpose programming language which supports multiple programming paradigms. It was designed with an emphasis on programming productivity and simplicity. In Ruby, everything is an object, including primitive data types.|
+| SHA-1 | Secure Hash Algorithm 1, a hash function which takes an input and produces a 160-bit hash value known as a message digest – typically rendered as 40 hexadecimal digits. It was designed by the United States National Security Agency, and is a U.S. Federal Information Processing Standard |
 | Solr | An open-source enterprise-search platform, written in Java. |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |
 | SSL | Secure Socket Layer |
@@ -68,7 +81,8 @@ description: >-
 | TLS | Transport Layer Security |
 | Trivy | A simple and comprehensive vulnerability scanner for containers, suitable for CI. |
 | TTL | Time to live or hop limit is a mechanism that limits the lifespan or lifetime of data in a computer or network. |
+| Uptime Robot | Uptime monitoring service. |
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |
 | VM | Virtual Machine |
 | Webhook | A webhook is a way for an app like GitHub, GitLab, Bitbucket, etc, to provide other applications with immediate data and act upon something, like a pull request. |
-
+| YAML | Yet Another Markup Language - YAML is a human-readable data-serialization language. It is commonly used for configuration files and in applications where data is being stored or transmitted.|

@@ -28,7 +28,7 @@ Unfortunately the Drupal community has not decided on a standardized `WEBROOT` f
 
 If you installed Drupal via composer, please check your `composer.json` and make sure that the `name` is NOT `drupal/drupal`, as this could confuse Drush and other tools of the Drupal universe, just rename it to something like `myproject/drupal`
 
-## 2. Customise `docker-compose.yml`
+## 2. Customize `docker-compose.yml`
 
 Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:
 

@@ -17,5 +17,4 @@ When we reference any repositories for use on Lagoon, we usually refer to them i
 - **Examples** - These are fully functional repositories, maintained and updated regularly, but may require some effort to make work for your individual project.
 - **Demos** - These are repositories that have been built as a demonstration, and are usable for some of the concepts within, but aren't routinely maintained or updated.
 
-For a more complete list, checkout out our GitHub repository: [https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) and our website [https://lagoon.sh/applications](https://lagoon.sh/applications)
-
+For a more complete list, checkout out our GitHub repository: [https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) and our website [https://lagoon.sh/application/](https://lagoon.sh/applications/)
