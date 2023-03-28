@@ -11,12 +11,19 @@ We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://s
 From the root of the Lagoon repo (you'll need Docker), run:
 
 ```bash
-docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material
 ```
 
 <!-- markdown-link-check-disable-next-line -->
 This will start a development server on [http://127.0.0.1:8000](http://127.0.0.1:8000), configured to live-reload on any updates.
-The Docker image contains all the necessary extensions.
+The customised Docker image contains all the necessary extensions.
+
+Alternatively, to run the mkdocs package locally, you'll need to install mkdocs, and then install all the necessary plugins
+
+```bash
+pip3 install -r docs/requirements.txt
+mkdocs serve
+```
 
 ## Editing in the cloud
 
