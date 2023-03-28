@@ -34,7 +34,7 @@ If you have any questions, reach out to us on [Discord](https://discord.gg/te5hH
 
 We take security very seriously. If you discover a security issue or think you found one, please bring it to the maintainers' attention.
 
-!!! Danger "Danger:"
+!!! Danger
     Please send your findings to [security@amazee.io](mailto:security@amazee.io). Please **DO NOT** file a GitHub issue for them.
 
 Security reports are greatly appreciated and will receive public karma and swag! We're also working on a Bug Bounty system.

@@ -10,7 +10,7 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (Security Support until November 2026) - `uselagoon/postgres-14`
 * 15 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/15.Dockerfile) (Security Support until November 2027) - `uselagoon/postgres-15`
 
-!!! Note "Note:"
+!!! Note
     We stop updating EOL PostgreSQL images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
 
 ## Lagoon adaptions
@@ -21,23 +21,23 @@ To allow Lagoon to select the best way to run the postgres container, use `lagoo
 
 ## docker-compose.yml snippet
 
-    ```yaml title="docker-compose.yml snippet"
-		postgres:
-		  image: uselagoon/postgres-14-drupal:latest
-		  labels:
-		    # tells Lagoon this is a postgres database
-		    lagoon.type: postgres
-		  ports:
-		    # exposes the port 5432 with a random local port, find it with `docker-compose port postgres 5432`
-		    - "5432"
-		  volumes:
-		   	# mounts a named volume at the default path for postgres
-		    - db:/var/lib/postgresql/data
-    ```
+```yaml title="docker-compose.yml"
+postgres:
+  image: uselagoon/postgres-14-drupal:latest
+  labels:
+    # tells Lagoon this is a postgres database
+    lagoon.type: postgres
+  ports:
+    # exposes the port 5432 with a random local port, find it with `docker-compose port postgres 5432`
+    - "5432"
+  volumes:
+   	# mounts a named volume at the default path for postgres
+    - db:/var/lib/postgresql/data
+```
 
 ## Tips & Tricks
 
 If you have SQL statements that need to be run immediately after container startup to initialize the database, you can place those `.sql` files in the container's `docker-entrypoint-initdb.d` directory. Any `.sql` files contained in that directory are run automatically at startup, as part of bringing the PostgreSQL container up.
 
-!!! Note "Note:"
-    Take note that these scripts are only run if the container is started with an empty database.
+!!! Note
+    These scripts are only run if the container is started with an empty database.

@@ -71,10 +71,10 @@ For typical installations, this is the ideal configuration, as Drupal may not se
 
 More information on Redis' maxmemory policies can be found in Redis' [official documentation](https://redis.io/docs/manual/eviction/#eviction-policies).
 
-!!! danger
-    Proceed with caution: Chaging this setting can lead to redis becoming completely full and cause outages as a result.
+!!! danger "Proceed with Caution"
+    Chaging this setting can lead to redis becoming completely full and cause outages as a result.
 
-### Tuning Redis' maxmemory value
+### Tuning Redis' `maxmemory` value
 
 Finding the optimal amount of memory to give Redis can be quite the difficult task. Before attempting to tune your Redis cache's memory size, it is prudent to let it run normally for as long as practical, with at least a day of typical usage being the ideal minimum timeframe.
 

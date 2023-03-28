@@ -38,6 +38,7 @@ description: >-
 | Helm | A package manager for Kubernetes, it helps you manage Kubernetes applications. |
 | Helm Charts | Helm Charts help you define, install, and upgrade even the most complex Kubernetes application. |
 | HTTP | HyperText Transfer Protocol. HTTP is the underlying protocol used by the World Wide Web and this protocol defines how messages are formatted and transmitted, and what actions Web servers and browsers should take in response to various commands. |
+| IDE | An integrated development environment is a software application that provides comprehensive facilities to computer programmers for software development. An IDE normally consists of at least a source code editor, build automation tools, and a debugger.|
 | IPTables | A command line utility for configuring Linux kernel firewall. |
 | Jenkins | An open-source automation server. |
 | k3s | A highly available, certified Kubernetes distribution. |
@@ -51,6 +52,7 @@ description: >-
 | Lando | A free, open source, cross-platform, local development environment and DevOps tool built on Docker. |
 | Laravel | A free, open-source PHP web framework, following the model–view–controller \(MVC\) architectural pattern and based on Symfony. |
 | MariaDB | A community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU General Public License. |
+| MongoDB| A general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB is a document database, which means it stores data in JSON-like documents. |
 | Master node | A single node in the cluster on which a collection of processes which manage the cluster state are running. |
 | Microservice | The practice of breaking up an application into a series of smaller, more specialized parts, each of which communicate with one another across common interfaces such as APIs and REST interfaces like HTTP |
 | MongoDB | MongoDB is a cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with schema. |
@@ -59,9 +61,10 @@ description: >-
 | NGINX | NGINX is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |
 | Node | Single EC2 instance \(AWS virtual machine\) |
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |
+| OpenSearch | A community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data.|
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |
 | PHP | PHP \(Personal Home Page\) is a general-purpose programming language originally designed for web development. |
-| PHPStorm |  |
+| PHPStorm | A development tool (IDE) for PHP and web projects.|
 | Pod | A group of containers that are deployed together on the same host. The basic unit that Kubernetes works with. |
 | PostgreSQL | A free and open-source relational database management system emphasizing extensibility and technical standards compliance. |
 | Public/Private Key | Public-key encryption is a cryptographic system that uses two keys -- a public key known to everyone and a private or secret key known only to the recipient of the message. |

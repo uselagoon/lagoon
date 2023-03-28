@@ -2,7 +2,7 @@
 
 The [Lagoon `commons` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/commons). Based on [the official Alpine images](https://hub.docker.com/_/alpine/).
 
-This image has no functionality itself, but is instead a base image, intended to be extended and utilised to build other images. All the alpine-based images in Lagoon inherit components from commons.
+This image has no functionality itself, but is instead a base image, intended to be extended and utilized to build other images. All the alpine-based images in Lagoon inherit components from commons.
 
 ## Included tooling
 
@@ -14,4 +14,4 @@ This image has no functionality itself, but is instead a base image, intended to
 
 ## Included entrypoints
 
-The list of default entrypoints in this image is found at https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints. Subsequent downstream images will also contribute entrypoints under /lagoon that are run in the eventual image.
+The list of default entrypoints in this image is found at [https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints](https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints). Subsequent downstream images will also contribute entrypoints under `/lagoon` that are run in the eventual image.

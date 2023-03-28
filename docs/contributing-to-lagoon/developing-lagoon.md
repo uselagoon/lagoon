@@ -2,7 +2,7 @@
 
 Development of Lagoon locally can now be performed on a local Kubernetes cluster, or via Docker Compose \(as a fallback\).
 
-!!! Note "Note:"
+!!! Note
     The full Lagoon stack relies on a range of upstream projects which are currently incompatible with ARM-based architectures, such as the the M1/M2 Apple Silicon-based machines. For this reason, running or developing `lagoon-core` or `lagoon-remote` locally on these architectures is not currently supported. See https://github.com/uselagoon/lagoon/issues/3189 for more information.
 
 ## Docker
@@ -25,7 +25,7 @@ Running a Lagoon, Kubernetes, or Docker cluster on your local machine consumes a
 
 ## Build Lagoon Locally
 
-!!! warning "Warning:"
+!!! warning
     Only consider building Lagoon this way if you intend to develop features or functionality for it, or want to debug internal processes. We will also be providing instruction to install Lagoon without building it \(i.e. by using the published releases\).
 
 We're using `make` \(see the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile)\) in order to build the needed Docker images, configure Kubernetes and run tests.
@@ -37,17 +37,17 @@ We have provided a number of routines in the [Makefile](https://github.com/usela
 1. Here `-j8` tells **make** to run 8 tasks in parallel to speed the build up. Adjust as necessary.
 2. We have set `SCAN_IMAGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
 
-```bash
+```bash title="Build images"
 make -j8 build
 ```
 
 1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
-```bash
+```bash title="Start tests"
 make kind/test
 ```
 
-!!! warning "Warning:"
+!!! warning
     There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This can be done by specifying or removing tests from the `TESTS` variable in the Makefile.
 
 This process will:
@@ -76,7 +76,7 @@ The test routine creates a local Kubeconfig file \(called `kubeconfig.kind.lagoo
 
 In order to use kubectl with the local cluster, you will need to use the correct Kubeconfig. This can be done for every command or it can be added to your preferred tool:
 
-```bash
+```bash title="kubeconfig.kind.lagoon"
 KUBECONFIG=./kubeconfig.kind.lagoon kubectl get pods -n lagoon
 ```
 
@@ -86,13 +86,13 @@ The Helm charts used to build the local Lagoon are cloned into a local folder an
 
 The Makefile includes a few simple routines that will make interacting with the installed Lagoon simpler:
 
-```bash
+```bash title="Create local ports"
 make kind/port-forwards
 ```
 
 This will create local ports to expose the UI \(6060\), API \(7070\) and Keycloak \(8080\). Note that this logs to `stdout`, so it should be performed in a secondary terminal/window.
 
-```bash
+```bash title="Retrieve admin creds"
 make kind/get-admin-creds
 ```
 
@@ -102,13 +102,13 @@ This will retrieve the necessary credentials to interact with the Lagoon.
 * There is a token for use with the "admin" user in Keycloak, who can access all users, groups, roles, etc.
 * There is also a token for use with the "lagoonadmin" user in Lagoon, which can be allocated default groups, permissions, etc.
 
-```bash
+```bash title="Re-push images"
 make kind/dev
 ```
 
 This will re-push the images listed in `KIND_SERVICES` with the correct tag, and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`.
 
-```bash
+```bash title="Build typescript services"
 make kind/local-dev-patch
 ```
 
@@ -119,13 +119,13 @@ This will build the typescript services, using your locally installed Node.js \(
 * This will facilitate "live" development on Lagoon.
 * Note that occasionally the pod in Kubernetes may require redeployment for a change to show. Clean any build artifacts from those services if you're rebuilding different branches with `git clean -dfx` as the dist folders are ignored by Git.
 
-```bash
+```bash title="Initiate logging"
 make kind/local-dev-logging
 ```
 
 This will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs \(Lagoon and project\) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging).
 
-```bash
+```bash title="Re-run tests."
 make kind/retest
 # OR
 make kind/retest TESTS='[features-kubernetes]'
@@ -135,7 +135,7 @@ This will re-run a suite of tests \(defined in the `TESTS` variable\) against th
 
 If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g `rm build/tests && make build/tests && make kind/push-images IMAGES='tests' && make kind/retest TESTS='[api]'`
 
-```bash
+```bash title="Push all images"
 make kind/push-images
 # OR
 make kind/push-images IMAGES='tests local-git'
@@ -143,7 +143,7 @@ make kind/push-images IMAGES='tests local-git'
 
 This will push all the images up to the image registry. Specifying `IMAGES` will tag and push specific images.
 
-```bash
+```bash title="Remove cluster"
 make kind/clean
 ```
 
@@ -185,7 +185,7 @@ The services not only share many Node.js packages, but also share actual custom 
 
 ## Troubleshooting
 
-#### ⚠I can't build a docker image for any Node.js based service
+### I can't build a Docker image for any Node.js based service
 
 Rebuild the images via:
 
@@ -194,13 +194,13 @@ make clean
 make build
 ```
 
-#### ⚠ I get errors about missing `node_modules` content when I try to build / run a Node.js based image
+### I get errors about missing `node_modules` content when I try to build / run a Node.js based image
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
-#### ⚠ I get an error resolving the `nip.io` domains
+### I get an error resolving the `nip.io` domains
 
-```text
+```text title="Error"
 Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
 ```
 
@@ -210,25 +210,25 @@ This can happen if your local resolver filters private IPs from results. You can
 
 Here are some development scenarios and useful workflows for getting things done.
 
-#### Add tests
+### Add tests
 
 1. Repeat the first step above.
 2. Edit `tests/tests/features-variables.yaml` and add a test case.
 3. Rebuild the `tests` image.
 
-```bash
+```bash title="Build tests"
 rm build/tests
 make -j8 build/tests
 ```
 
 1. Push the new `tests` image into the cluster registry.
 
-```bash
+```bash title="Push test image"
 make kind/push-images IMAGES=tests
 ```
 
 1. Rerun the tests.
 
-```bash
+```bash title="Re-run tests"
 make kind/retest TESTS='[features-variables]'
 ```

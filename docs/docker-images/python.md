@@ -11,7 +11,7 @@ The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tr
 * 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.10.Dockerfile) (Security Support until October 2026) - `uselagoon/python-3.10`
 * 3.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.11.Dockerfile) (Security Support until October 2027) - `uselagoon/python-3.11`
 
-!!! Note "Note:"
+!!! Note
     We stop updating and publishing EOL Python images usually with the Lagoon release that comes after the officially communicated EOL date: [https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions). Previous published versions will remain available.
 
 ## Lagoon adaptions
@@ -29,23 +29,23 @@ If you have multiple services that share the same storage, use this
 
 ## docker-compose.yml snippet
 
-    ```yaml title="docker-compose.yml snippet"
-		python:
-            build:
-                # this configures a build from a Dockerfile in the root folder
-                context: .
-                dockerfile: Dockerfile
-            labels:
-				# tells Lagoon this is a python service, configured with 500MB of persistent storage at /app/files
-                lagoon.type: python-persistent
-                lagoon.persistent: /app/files
-                lagoon.persistent.size: 500Mi
-            ports:
-				# local development only
-                # this exposes the port 8800 with a random local port - find it with docker-compose port python 8800
-				- "8800"
-			volumes:
-				# local development only
-				# mounts a named volume (files) at the defined path for this service to replicate production
-				- files:/app/files
-    ```
+```yaml title="docker-compose.yml"
+python:
+    build:
+    # this configures a build from a Dockerfile in the root folder
+        context: .
+        dockerfile: Dockerfile
+    labels:
+    # tells Lagoon this is a python service, configured with 500MB of persistent storage at /app/files
+        lagoon.type: python-persistent
+        lagoon.persistent: /app/files
+        lagoon.persistent.size: 500Mi
+    ports:
+    # local development only
+          # this exposes the port 8800 with a random local port - find it with docker-compose port python 8800
+        - "8800"
+    volumes:
+    # local development only
+        # mounts a named volume (files) at the defined path for this service to replicate production
+        - files:/app/files
+```

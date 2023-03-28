@@ -28,7 +28,7 @@ Runtime environment variables are automatically made available in all containers
 
 This defines a project wide runtime variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Add runtime variable"
 mutation addRuntimeEnv {
   addEnvVariable(
     input:{
@@ -46,7 +46,7 @@ mutation addRuntimeEnv {
 
 This defines a environment ID `546` specific runtime variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID."
 mutation addRuntimeEnv {
   addEnvVariable(
     input:{
@@ -66,13 +66,13 @@ mutation addRuntimeEnv {
 
 Build-time environment variables are only available during a build and need to be consumed in Dockerfiles via:
 
-```graphql
+```graphql title="Using build-time environment variables."
 ARG MYVARIABLENAME
 ```
 
 This defines a project-wide build-time variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Define a project-wide build-time variable."
 mutation addBuildtimeEnv {
   addEnvVariable(
     input:{
@@ -89,7 +89,7 @@ mutation addBuildtimeEnv {
 
 This defines an environment ID `546`specific build-time variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID."
 mutation addBuildtimeEnv {
   addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:BUILD, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
     id
@@ -101,7 +101,7 @@ Container registry environment variables are only available during a build and a
 
 This defines a project-wide container registry variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Define project-wide container registry variable."
 mutation addContainerRegistryEnv {
   addEnvVariable(
     input:{
@@ -118,7 +118,7 @@ mutation addContainerRegistryEnv {
 
 This defines a environment id `546` specific container registry variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID."
 mutation addContainerRegistryEnv {
   addEnvVariable(
     input:{

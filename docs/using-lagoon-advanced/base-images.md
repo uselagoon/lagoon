@@ -16,10 +16,10 @@ Further, the derived image includes a call to the script `/build/pre_composer`, 
 
 ## Anatomy of a base image
 
-!!! Note "Note:"
-    **Note**: this document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.
+!!! Note
+    This document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.
 
-Base images are managed with [Composer](https://getcomposer.org/) and hosted in [Bitbucket](https://bitbucket.org/), [Github](https://github.com/), or [GitLab](https://gitlab.com/) \(whatever your team is using\). Each base image has its own repository.
+Base images are managed with [Composer](https://getcomposer.org/) and hosted in [BitBucket](https://bitbucket.org/), [GitHub](https://github.com/), or [GitLab](https://gitlab.com/) \(whatever your team is using\). Each base image has its own repository.
 
 ### Metapackages
 
@@ -35,7 +35,7 @@ Here’s an example from the `composer.json` in a Laravel base image:
 
 We only require this metapackage, which points to a GitHub repository.
 
-### **`docker-compose.yml`**
+### `docker-compose.yml`
 
 Other pieces of your project are defined in [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
 
@@ -101,7 +101,7 @@ Variables injected into the base image build process and where to find them.
 
 In practice, this means that if you're running any of the `make` targets on your local machine, you'll want to ensure that these are available in the environment - even if this is just setting them when running make from the command line, as an example:
 
-```bash
+```bash title="Setting make targets locally"
 GIT_BRANCH=example_branch_name DOCKER_HUB=the_docker_hub_the_images_are_pushed_to DOCKER_REPO=your_docker_repo_here BUILD_NUMBER=<some_integer> make images_remove
 ```
 
@@ -139,7 +139,7 @@ In this section we will demonstrate the process of updating and tagging a new re
 
 This is just pulling down the Git repository locally. In the case of the Drupal 8 base image. In this example, we're using Bitbucket, so we will run:
 
-```bash
+```bash title="Clone Git repo."
 git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 ```
 
@@ -147,26 +147,26 @@ git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 
 #### Step 2 - Make the changes to the repository
 
-!!! Note "Note:"
-    **Note:** What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
+!!! Note
+    What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
 
 In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`.
 
 Here we run:
 
-```bash
+```bash title="Install package with Composer require."
 composer require drupal/clamav
 ```
 
 ![Running \`composer require drupal/clamav\`](../step2_require.gif)
 
-When the composer require process completes, the package should then appear in the `composer.json` file.
+When the Composer require process completes, the package should then appear in the `composer.json` file.
 
 Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:
 
 ![Opening composer.json to check that ClamAV is now required.](../2.gif)
 
-#### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images.
+#### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images
 
 For any modules now added to the base image, we need to ensure that they’re enabled on the template-based derived images. This is done by adding the module to the Lagoon Bundle module located at `./web/modules/lagoon/lagoon_bundle`. Specifically, it requires you to add it as a dependency to the `dependencies` section of the `lagoon_bundle.info.yml` file. The Lagoon Bundle module is a utility module that exists only to help enforce dependencies across derived images.
 
@@ -186,24 +186,24 @@ Here we check that the module is downloaded to `/app/web/modules/contrib`:
 
 And then we check that when we enable the `lagoon_bundle` module, it enables `clamav` by running:
 
-```bash
+```bash title="Enable module with Drush."
 drush pm-enable lagoon_bundle -y
 ```
 
 ![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../5.gif)
 
-!!! warning "Warning:"
-    **Note:** You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
+!!! warning
+    You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
 
 With our testing done, we can now tag and build the images.
 
-**Step 3 - Tagging images**
+#### Step 3 - Tagging images
 
 Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning](https://semver.org/) \(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
 
 In this example we will be tagging a new version of the Drupal 8 base image indicating that we have added ClamAV.
 
-**Here we demonstrate how to tag an image.**
+#### Here we demonstrate how to tag an image
 
 We check that we have committed \(but not pushed\) our changes, just as you would do for any regular commit and push, using `git log`.
 
@@ -214,15 +214,15 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 4. Next, we push our tags with `git push --tags`.
 5. And finally, push all of our changes with `git push`.
 
-!!! Danger "Danger:"
-    **Note:** The tags must be pushed explicitly in their own step!
+!!! Danger
+    The tags must be pushed explicitly in their own step!
 
 ![Demonstrating how to tag and push a base image.](../6.gif)
 
 #### How Git tags map to image tags
 
-!!! Danger "Danger:"
-    **Important note:** Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
+!!! Danger "Important Note"
+    Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
 
 An important point to remember here is that the Jenkins base image build process will tag _images_ based on the _most recent commit’s tag_.
 
@@ -235,8 +235,8 @@ Images are tagged using the following rules, and images will be built for each o
 
 #### Step 4 - Building the new base images
 
-!!! Note "Note:"
-    **Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
+!!! Note
+    Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 
 1. Visit your Lagoon Jenkins instance.
 2. Select the project you are working on \(in this case, AIOBI Drupal 8 Base\).

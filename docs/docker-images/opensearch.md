@@ -21,7 +21,7 @@ variables](../using-lagoon-advanced/environment-variables.md).
 
 On Linux-based systems, the start of the OpenSearch container may fail due to a low `vm.max_map_count` setting.
 
-```bash
+```bash title="Error"
 opensearch_1  | ERROR: [1] bootstrap checks failed
 opensearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```

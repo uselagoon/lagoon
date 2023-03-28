@@ -68,7 +68,6 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
 
-
 #### Example post-rollout tasks
 
 Here are some useful examples of post-rollout tasks that you may want to use or adapt for your projects.
@@ -523,7 +522,7 @@ Create an environment variable in the Lagoon API with the type `container_regist
 
 The name of the variable you create can then be set as the password:
 
-```yaml
+```yaml title=".lagoon.yml"
 container-registries:
   my-custom-registry:
     username: myownregistryuser
@@ -554,7 +553,7 @@ services:
 
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
 
-```text
+```yaml title=".lagoon.yml"
 FROM dockerhubuser/my-private-database:tag
 ```
 
@@ -627,6 +626,7 @@ environments:
         command: drush cron
         service: cli
 ```
+
 ## Deprecated
 
 These settings have been deprecated and should be removed from use in your `.lagoon.yml`.

@@ -6,7 +6,7 @@ Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
 In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
-```bash
+```bash title="Generate JWT token."
 ./create_jwt.py
 ```
 
@@ -27,7 +27,7 @@ Press ESC to close the HTTP header overlay and now we are ready to send the firs
 
 Enter this in the left panel
 
-```graphql
+```graphql title="Running a query"
 query allProjects{
   allProjects {
     name
@@ -60,7 +60,7 @@ In Lagoon, each developer authenticates via their SSH key\(s\). This determines 
 
 To allow access to the project, we first need to add a new group to the API:
 
-```graphql
+```graphql title="Add group to API"
 mutation {
   addGroup (
     input: {
@@ -76,7 +76,7 @@ mutation {
 
 Then we need to add a new user to the API:
 
-```graphql
+```graphql title="Add new user to API"
 mutation {
   addUser(
     input: {
@@ -94,7 +94,7 @@ mutation {
 
 Then we can add an SSH public key for the user to the API:
 
-```graphql
+```graphql title="Add SSH public key for the user to API"
 mutation {
   addSshKey(
     input: {
@@ -122,7 +122,7 @@ mutation {
 
 After we add the key, we need to add the user to a group:
 
-```graphql
+```graphql title="Add user to group"
 mutation {
   addUserToGroup (
     input: {
@@ -160,7 +160,7 @@ As notifications can be quite different in terms of the information they need, e
 
 As with users, we first add the notification:
 
-```graphql
+```graphql title="Add notification"
 mutation {
   addNotificationSlack(
     input: {
@@ -182,7 +182,7 @@ mutation {
 
 After the notification is created, we can now assign it to our project:
 
-```graphql
+```graphql title="Assign notification to project"
 mutation {
   addNotificationToProject(
     input: {
@@ -213,12 +213,12 @@ Now for every deployment you will receive messages in your defined channel.
 
 ### Adding a new Kubernetes target
 
-!!! Note "Note:"
+!!! Note
     In Lagoon, both `addKubernetes` and `addOpenshift` can be used for both Kubernetes and OpenShift targets - either will work interchangeably.
 
 The cluster to which Lagoon should deploy.
 
-```graphql
+```graphql title="Add Kubernetes target"
 mutation {
   addKubernetes(
     input: {
@@ -243,7 +243,7 @@ mutation {
 
 This query will add a group to a project. Users of that group will be able to access the project. They will be able to make changes, based on their role in that group.
 
-```graphql
+```graphql title="Add a group to a project"
 mutation {
   addGroupsToProject (
     input: {
@@ -270,7 +270,7 @@ If you omit the `privateKey` field, a new SSH key for the project will be genera
 
 If you would like to reuse a key from another project. you will need to supply the key in the `addProject` mutation.
 
-```graphql
+```graphql title="Add a new project"
 mutation {
   addProject(
     input: {
@@ -310,7 +310,7 @@ mutation {
 
 This is a good query to see an overview of all projects, clusters and groups that exist within our Lagoon.
 
-```graphql
+```graphql title="Get an overview of all projects, clusters, and groups"
 query {
   allProjects {
     name
@@ -344,7 +344,7 @@ query {
 
 If you want a detailed look at a single project, this query has been proven quite good:
 
-```graphql
+```graphql title="Take a detailed look at one project"
 query {
   projectByName(
     # TODO: Fill in the project name.
@@ -379,7 +379,7 @@ query {
 
 Don't remember the name of a project, but know the Git URL? Search no longer, there is a GraphQL query for that:
 
-```graphql
+```graphql title="Query project by Git URL"
 query {
   projectByGitUrl(gitUrl: "git@server.com:org/repo.git") {
     name
@@ -393,7 +393,7 @@ The Lagoon GraphQL API can not only display objects and create objects, it also 
 
 Update the branches to deploy within a project:
 
-```graphql
+```graphql title="Update deploy branches."
 mutation {
   updateProject(
     input: { id: 109, patch: { branches: "^(prod|stage|dev|update)$" } }
@@ -405,10 +405,10 @@ mutation {
 
 Update the production environment within a project:
 
-!!! warning "Warning:"
+!!! warning
     This requires a redeploy in order for the changes to be reflected in the containers.
 
-```graphql
+```graphql title="Update prod environment"
  mutation {
    updateProject(
     input: { id: 109, patch: { productionEnvironment: "main" } }
@@ -420,7 +420,7 @@ Update the production environment within a project:
 
 You can also combine multiple changes at once:
 
-```graphql
+```graphql title="Update prod environment and set deploy branches."
 mutation {
   updateProject(
     input: {
@@ -440,7 +440,7 @@ mutation {
 
 You can also use the Lagoon GraphQL API to delete an environment. You'll need to know the project name and the environment name in order to run the command.
 
-```graphql
+```graphql title="Delete environment."
 mutation {
   deleteEnvironment(
     input: {
@@ -460,7 +460,7 @@ mutation {
 
 Want to see what groups and users have access to a project? Want to know what their roles are? Do I have a query for you! Using the query below you can search for a project and display the groups, users, and roles that are assigned to that project.
 
-```graphql
+```graphql title="Query groups, users, and roles assigned to project"
 query search{
   projectByName(
     #TODO: Enter the name of the project.
@@ -503,7 +503,7 @@ Updates to metadata expect a key/value pair. It operates as an `UPSERT`, meaning
 
 You may have any number of k/v pairs stored against a project.
 
-```graphql
+```graphql title="Add a key/value pair to metadata"
 mutation {
   updateProjectMetadata(
     input: { id: 1,  patch: { key: "type", value: "saas" } }
@@ -520,7 +520,7 @@ Queries may be by `key` only \(e.g return all projects where a specific key exis
 
 All projects that have the `version` tag:
 
-```graphql
+```graphql title="Query by metadata"
 query projectsByMetadata {
   projectsByMetadata(metadata: [{key: "version"] ) {
     id
@@ -531,7 +531,7 @@ query projectsByMetadata {
 
 All projects that have the `version` tag, specifically version `8`:
 
-```graphql
+```graphql title="Query by metadata"
 query projectsByMetadata {
   projectsByMetadata(metadata: [{key: "version", value: "8"] ) {
     id
@@ -544,7 +544,7 @@ query projectsByMetadata {
 
 Metadata can be removed on a per-key basis. Other metadata key/value pairs will persist.
 
-```graphql
+```graphql title="Remove metadata"
 mutation {
   removeProjectMetadataByKey (
     input: { id: 1,  key: "version" }

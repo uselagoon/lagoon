@@ -10,7 +10,7 @@
 
 Use Composer to get the latest version of the module:
 
-```text
+```bash title="Install Fastly"
 composer require drupal/fastly drupal/http_cache_control drupal/purge
 ```
 
@@ -42,7 +42,7 @@ A `site ID` is required, the module will generate one for you when you first ins
 
 A `4` character cache tag is plenty for most sites, a `5` character cache tag is likely better for sites with _millions_ of entities \(to reduce cache tag collisions\).
 
-**Soft purging** should be used, this means the item in Fastly is marked as stale, rather than being purged so that it can be used in the event the origin is down \(with the feature 'serve while stale'\).
+##### Soft purging should be used, this means the item in Fastly is marked as stale, rather than being purged so that it can be used in the event the origin is down \(with the feature 'serve while stale'\).
 
 ![Fastly admin UI for purging](https://camo.githubusercontent.com/8d0fb54560570966c2387c9b88c76d366f5d85e2f8901b644a06ca3f41210ed2/68747470733a2f2f692e6962622e636f2f34677777644c762f666173746c792d70757267652e706e67)
 
@@ -65,12 +65,12 @@ Visit the purge page `/admin/config/development/performance/purge`
 
 Set up the following options:
 
-**Cache Invalidation**
+#### Cache Invalidation
 
 * Drupal Origin: Tag
 * Fastly: E, Tag, URL
 
-**Queue**
+#### Queue
 
 * Queuers: Core tags queuer, Purge block\(s\)
 * Queue: Database
@@ -85,7 +85,7 @@ What this means is that we will be using Drupal's built in core tag queuer \(add
 
 In order for the cron processor to run, you need to ensure that cron is running on your site. Ideally every minute. You can manually run it in your `cli` pod, to ensure that `purge_processor_cron_cron()` is being executed without errors.
 
-```text
+```bash title="start cron"
 [drupal8]production@cli-drupal:/app$ drush cron -v
  ...
  [notice] Starting execution of purge_processor_cron_cron(), execution of node_cron() took 21.16ms.
@@ -108,17 +108,18 @@ For most sites, a sensible default could be
 * 301 cache maximum age: 1 hour
 * 5xx cache maximum age: no cache
 
-\***Note**: this relies on your site having accurate cache tags represented for all the content that exists on the page.
+!!! Note
+    This relies on your site having accurate cache tags represented for all the content that exists on the page.
 
 ### Viewing caching headers using cURL
 
-Use this function \(works in Linux and Mac OSX\)
+Use this function: \(works in Linux and Mac OSX\)
 
-```text
+```bash title="cURL function"
 function curlf() { curl -sLIXGET -H 'Fastly-Debug:1' "$@" | grep -iE 'X-Cache|Cache-Control|Set-Cookie|X-Varnish|X-Hits|Vary|Fastly-Debug|X-Served|surrogate-control|surrogate-key' }
 ```
 
-```text
+```bash title="Using cURL"
 $ curlf https://www.example-site-fastly.com
 cache-control: max-age=601, public, s-maxage=2764800
 surrogate-control: max-age=2764800, public, stale-while-revalidate=3600, stale-if-error=3600
@@ -145,19 +146,19 @@ If you ever want to remove a specific page from cache manually, there are ways t
 
 For a single page, you do not need any authentication:
 
-```text
+```bash title="Single page cURL"
 curl -Ssi -XPURGE -H 'Fastly-Soft-Purge:1' https://www.example.com/subpage
 ```
 
 For cache tags, you need to supply your API token for authentication:
 
-```text
+```bash title="Cache tags"
 curl -XPOST -H "Fastly-Key:<Fastly API Key>" https://api.fastly.com/service/<serviceID>/purge/<surrogatekey>
 ```
 
 You can always find what your site ID cache tag is by using PHP
 
-```text
+```php title="Find site ID cache tag"
 php > var_dump(substr(base64_encode(md5('bananasite', true)), 0, 4));
 string(4) "DTRk"
 ```
@@ -168,17 +169,17 @@ So you can purge your entire site from Fastly fairly easily.
 
 We configure Fastly to send the actual client IP back on the HTTP header `True-Client-IP`, you can make Drupal respect this header with the following changes in `settings.php`:
 
-```text
+```php title="settings.php"
 $settings['reverse_proxy'] = TRUE;
 $settings['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 ```
 
 ### Drush integration
 
-```text
- fastly:                                                                                                                             
-   fastly:purge:all (fpall)                                                    Purge whole service.                                  
-   fastly:purge:key (fpkey)                                                    Purge cache by key.                                   
+```php title="settings.php"
+ fastly:
+   fastly:purge:all (fpall)                                                    Purge whole service.
+   fastly:purge:key (fpkey)                                                    Purge cache by key.
    fastly:purge:url (fpurl)                                                    Purge cache by Url.
 ```
 
@@ -190,6 +191,6 @@ $settings['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 4. Only URL based purging can be done in Drupal 7 \(simple purging\).
 5. Alter Drupal's client IP in `settings.php`:
 
-```text
+```php title="settings.php"
 $conf['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 ```
