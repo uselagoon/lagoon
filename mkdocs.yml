@@ -158,6 +158,10 @@ extra:
     provider: google
     property: G-W1SJFEVFDB
 
+extra_javascript:
+  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+  - javascript/tablesort.js
+
 markdown_extensions:
   - admonition
   - attr_list
@@ -167,6 +171,8 @@ markdown_extensions:
       auto_title: true
       anchor_linenums: true
   - pymdownx.mark
+  - pymdownx.tabbed:
+    alternate_style: true
   - pymdownx.tilde
   - pymdownx.tasklist:
       custom_checkbox: true
@@ -175,7 +181,6 @@ markdown_extensions:
   - toc:
       permalink: "#"
       baselevel: 1
-
 
 plugins:
   - search

@@ -979,8 +979,6 @@ export const createRemoveTask = async function(removeData: any) {
 // creates the restore job configuration for use in the misc task
 const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   let config = {
-    apiVersion: 'backup.appuio.ch/v1alpha1',
-    kind: 'Restore',
     metadata: {
       name
     },
