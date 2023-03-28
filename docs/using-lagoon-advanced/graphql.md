@@ -66,7 +66,7 @@ _Mutation queries in GraphQL modify the data in the data store, and return a val
 
 Update the branches to deploy within a project:
 
-```graphql
+```graphql title="Update deploy branches"
 mutation editProjectBranches {
   updateProject(input:{id:109, patch:{branches:"^(prod|stage|dev|update)$"}}) {
     id
@@ -76,10 +76,10 @@ mutation editProjectBranches {
 
 Update the production environment within a project:
 
-!!! Note "Note:"
+!!! Note
     Important: This requires a redeploy in order for all changes to be reflected in the containers.
 
-```graphql
+```graphql title="Update production environment"
 mutation editProjectProductionEnvironment {
   updateProject(input:{id:109, patch:{productionEnvironment:"prod"}}) {
     id
@@ -89,7 +89,7 @@ mutation editProjectProductionEnvironment {
 
 You can also combine multiple changes into a single query:
 
-```graphql
+```graphql title="Multiple changes"
 mutation editProjectProductionEnvironmentAndBranches {
   updateProject(input:{id:109, patch:{productionEnvironment:"prod", branches:"^(prod|stage|dev|update)$"}}) {
     id

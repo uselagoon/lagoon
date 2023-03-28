@@ -4,7 +4,7 @@ Have you seen [the Kibana getting started video](https://www.elastic.co/webinars
 
 Ready to get started? Good!
 
-!!! Note "Note:"
+!!! Note
     Make sure that you have selected your tenant before starting! You can do that by on the `Tenant` icon on the left-hand menu. Once you have selected your tenant, click on the `Discover` icon again to get started.
 
 ## Router Logs
@@ -86,7 +86,7 @@ Kibana will also give you the option to create visualizations or graphs. We are 
 5. Click on X-Axis under Buckets and select Date Histogram, with the interval set to daily
 6. Success!! You should now see a nice bar graph showing your daily traffic.
 
-!!! Note "Note:"
+!!! Note
     Make sure that you select an appropriate time frame for the data in the upper right hand corner.
 
 Here is an example of a daily hits visualization chart:

@@ -9,13 +9,14 @@
     3. In your home directory, the Lagoon CLI has created a `.lagoon.yml` file. Copy the token from that file and use it for the value here.
     4. Save.
 4. Now you’re ready to run some queries. Run the following test query to ensure everything is working correctly:
-    ```text
+
+    ```text title="Get all projects"
     query allProjects {allProjects {name } }
     ```
 
 5. This should give you the following response:
 
-    ```text
+    ```text title="API Response"
     {
       "data": {
         "allProjects": []
@@ -28,7 +29,7 @@
 6. Once you get the correct response, we need to add a mutation.
    1. Run the following query:
 
-      ```text
+      ```text title="Add mutation"
        mutation addKubernetes {
          addKubernetes(input:
          {
@@ -41,16 +42,20 @@
       ```
 
       1. consoleUrl: API Endpoint of Kubernetes Cluster
+
       2. token: create a token for the lagoon-build-deploy service account
-        ```
+
+        ```bash title="Create token"
         kubectl -n lagoon create token lagoon-build-deploy --duration 3h
         ```
+
 !!! Warning "Prior to Kubernetes 1.21:"
       use the lagoon-build-deploy token installed by lagoon-remote
-        ```
+
+      ```bash title="Use deploy token"
         kubectl -n lagoon describe secret \
           $(kubectl -n lagoon get secret | grep lagoon-build-deploy | awk '{print $1}') | grep token: | awk '{print $2}'
-        ```
+      ```
 
-!!! Note "Note:"
-    Note: Authorization tokens for GraphQL are very short term so you may need to generate a new one. Run `lagoon login` and then cat the `.lagoon.yml` file to get the new token, and replace the old token in the HTTP header with the new one.
+!!! Note
+  Authorization tokens for GraphQL are very short term so you may need to generate a new one. Run `lagoon login` and then cat the `.lagoon.yml` file to get the new token, and replace the old token in the HTTP header with the new one.

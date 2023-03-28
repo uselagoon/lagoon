@@ -1,6 +1,6 @@
 # DeployTarget Configurations
 
-!!! Danger "Danger:"
+!!! Danger
     This is an alpha feature in Lagoon.
     The way DeployTarget Configurations work could change in future releases.
     If you decide to use this feature, you do at your own risk.
@@ -68,7 +68,7 @@ mutation addDeployTargetConfig{
 }
 ```
 
-!!! Note "Note:"
+!!! Note
     `deployTarget` is an alias the Kubernetes or Openshift ID in the Lagoon API
 
 It is also possible to configure multiple DeployTarget configurations.

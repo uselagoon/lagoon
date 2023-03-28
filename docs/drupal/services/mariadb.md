@@ -30,7 +30,7 @@ To get the published port via `docker`:
 
 Run: `docker port [container_name]`.
 
-```text
+```text title="Get port"
 $ docker port drupal_example_mariadb_1
 3306/tcp -> 0.0.0.0:32797
 ```
@@ -39,7 +39,7 @@ Or via `docker-compose` inside a Drupal repository:
 
 Run: `docker-compose port [service_name] [interal_port]`.
 
-```text
+```text title="Set ports"
 $ docker-compose port mariab 3306
 0.0.0.0:32797
 ```
@@ -57,7 +57,7 @@ To set a static port, edit your service definition in your `docker-compose.yml`.
       - "33772:3306" # Exposes port 3306 with a 33772 on the host port. Note by doing this you are responsible for managing port collisions`.
 ```
 
-!!! warning "Warning:"
+!!! warning
     By setting a static port you become responsible for managing port collisions.
 
 ### Connect to MySQL
