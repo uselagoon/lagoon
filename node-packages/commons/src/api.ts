@@ -1103,6 +1103,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         standbyAlias
         productionBuildPriority
         developmentBuildPriority
+        buildImage
         envVariables {
           name
           value
@@ -1156,6 +1157,7 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           disabled
         }
         project {
+          buildImage
           envVariables {
             name
             value

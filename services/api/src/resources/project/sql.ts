@@ -119,7 +119,8 @@ export const Sql = {
       productionBuildPriority = 5,
       developmentBuildPriority = 6,
       deploymentsDisabled = 0,
-      developmentEnvironmentsLimit = 5
+      developmentEnvironmentsLimit = 5,
+      buildImage
     } = input;
 
     return knex('project').insert({
@@ -152,7 +153,8 @@ export const Sql = {
     pullrequests,
     openshift,
     openshiftProjectPattern,
-    developmentEnvironmentsLimit
+    developmentEnvironmentsLimit,
+    buildImage
   }).toString();
  }
 };
