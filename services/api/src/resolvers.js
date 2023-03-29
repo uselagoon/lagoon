@@ -229,6 +229,7 @@ const {
   removeUserFromGroup,
   addGroupsToProject,
   removeGroupsFromProject,
+  getMembersByGroupId,
 } = require('./resources/group/resolvers');
 
 const {
@@ -384,7 +385,8 @@ const resolvers = {
     },
   },
   Group: {
-    projects: getAllProjectsByGroupId
+    projects: getAllProjectsByGroupId,
+    members: getMembersByGroupId
   },
   DeployTargetConfig: {
     project: getProjectById,

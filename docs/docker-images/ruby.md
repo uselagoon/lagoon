@@ -34,11 +34,3 @@ Lagoon has no "pre-defined" type for Ruby services, they should be configured wi
                 # this exposes the port 3000 with a random local port - find it with docker-compose port ruby 3000
 				- "3000"
     ```
-
-## Environment Variables
-
-Environment variables are meant to contain common information for the PHP container.
-
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `LAGOON_LOCALDEV_HTTP_PORT` | 3000 | tells the local development environment on which port we are running |

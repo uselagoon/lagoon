@@ -78,7 +78,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return parseInt(pid, 10);
     },
-    getProjectByProjectInput: async projectInput => {
+    getProjectByProjectInput: async (projectInput) => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));

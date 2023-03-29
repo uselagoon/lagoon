@@ -13,10 +13,14 @@ import (
 
 // WebhookData .
 type WebhookData struct {
-	Type        string `json:"type"`
-	Event       string `json:"event"`
-	Project     string `json:"project"`
-	Environment string `json:"environment"`
+	Type        string   `json:"type"`
+	Event       string   `json:"event"`
+	Project     string   `json:"project"`
+	Environment string   `json:"environment"`
+	BuildName   string   `json:"buildName,omitempty"`
+	Route       string   `json:"route,omitempty"`
+	Routes      []string `json:"routes,omitempty"`
+	LogLink     string   `json:"logLink,omitempty"`
 }
 
 // SendToWebhook .
@@ -66,6 +70,10 @@ func (h *Messaging) processWebhookTemplate(notification *Notification) (*Webhook
 		Event:       notification.Event,
 		Project:     notification.Meta.ProjectName,
 		Environment: notification.Meta.BranchName,
+		BuildName:   notification.Meta.BuildName,
+		Route:       notification.Meta.Route,
+		Routes:      notification.Meta.Routes,
+		LogLink:     notification.Meta.LogLink,
 	}
 
 	switch tpl {
