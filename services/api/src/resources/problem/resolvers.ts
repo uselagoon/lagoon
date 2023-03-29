@@ -98,17 +98,15 @@ export const getProblemSources: ResolverFn = async (
 export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { severity, source },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  if (!adminScopes.projectViewAll) {
-    await hasPermission('problem', 'view', {
-      project: environment.project
-    });
-  }
+  await hasPermission('problem', 'view', {
+    project: environment.project
+  });
 
   const rows = await query(
     sqlClientPool,
@@ -198,6 +196,82 @@ export const addProblem: ResolverFn = async (
   });
 
   return R.prop(0, rows);
+};
+
+export const addProblems: ResolverFn = async (
+  root,
+  { input: { problems } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const environments = problems.reduce((environmentList, problem) => {
+    if (problem.environment == undefined) {
+      logger.error(`No environment ID given for problem: ${problem.identifier}`);
+      throw new Error(`No environment ID given for problem: ${problem.identifier}`);
+    }
+
+    let { environment } = problem;
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
+    }
+    return environmentList;
+  }, []);
+
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environments[i]
+    );
+    await hasPermission('problem', 'add', {
+      project: env.project
+    });
+  };
+
+  const problemsArr = [];
+  for (let i = 0; i < problems.length; i++) {
+    const {
+      severity,
+      severity_score: severity_score,
+      service: lagoon_service,
+      identifier,
+      environment,
+      source,
+      associatedPackage: associated_package,
+      description,
+      version: version,
+      fixedVersion: fixed_version,
+      links: links,
+      data,
+      created
+    } = problems[i];
+
+    const {
+      insertId
+    } = await query(
+      sqlClientPool,
+      Sql.insertProblem({
+        severity, severity_score, lagoon_service, identifier, environment, source, associated_package,
+        description, version, fixed_version, links, data, created
+      })
+    );
+
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectProblemByDatabaseId(insertId)
+    );
+
+    problemsArr.push(R.prop(0, rows));
+  }
+
+  userActivityLogger(`User added problems to environments'`, {
+    project: '',
+    event: 'api:addProblems',
+    payload: {
+      data: {
+        problemsArr
+      }
+    }
+  });
+
+  return problemsArr;
 };
 
 export const deleteProblem: ResolverFn = async (

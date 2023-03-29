@@ -295,6 +295,12 @@ const typeDefs = gql`
     created: String
   }
 
+  input AddProblemsInput {
+    project: String
+    environment: String
+    problems: [AddProblemInput]!
+  }
+
   input BulkProblem {
     severity: ProblemSeverityRating
     severityScore: SeverityScore
@@ -2037,6 +2043,7 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
+    addProblems(input: AddProblemsInput!): [Problem]
     addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
