@@ -189,9 +189,9 @@ The services not only share many Node.js packages, but also share actual custom 
 
 Rebuild the images via:
 
-```bash
-make clean
-make build
+```bash title="Rebuild images"
+    make clean
+    make build
 ```
 
 ### I get errors about missing `node_modules` content when I try to build / run a Node.js based image

@@ -3,7 +3,8 @@
 ## Add the project to Lagoon
 
 1. Run this command:
-    ```bash
+
+    ```bash title="Add project"
     lagoon add project \
       --gitUrl <YOUR-GITHUB-REPO-URL> \
       --openshift 1 \
@@ -11,6 +12,7 @@
       --branches <THE-BRANCHES-YOU-WANT-TO-DEPLOY> \
       --project <YOUR-PROJECT-NAME>
     ```
+
       * The value for `--openshift` is the ID of your Kubernetes cluster.
       * Your production environment should be the name of the branch you want to have as your production   environment.
       * The branches you want to deploy might look like this: “^(main|develop)$”
@@ -22,9 +24,11 @@
 Lagoon creates a deploy key for each project. You now need to add it as a deploy key in your Git repository to allow Lagoon to download the code.
 
 1. Run the following command to get the deploy key:
-    ```bash
+
+    ```bash title="Get project-key"
     lagoon get project-key --project <YOUR-PROJECT-NAME>
     ```
+
 2. Copy the key and save it as a deploy key in your Git repository.
 
 [GitHub](https://docs.github.com/en/developers/overview/managing-deploy-keys#deploy-keys){ .md-button }

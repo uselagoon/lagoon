@@ -7,7 +7,7 @@ Even though Lagoon has only a hard dependency on Docker and [Docker Compose](htt
 * SSH agents to use SSH keys within containers.
 * A system that receives and displays mail locally.
 
-!!! warning "Warning:"
+!!! warning
     You do not need to _install_ Lagoon locally to _use_ it locally! That sounds confusing but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
 
 ## pygmy or Lando - the choice is yours

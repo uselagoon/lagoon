@@ -1,7 +1,7 @@
 # Set Up a New Project
 
-!!! Note "Note:"
-    NOTE: We are working hard on getting our CLI and GraphQL API set up to allow everyone using Lagoon to setup and configure their projects themselves. Right now, it needs more testing before we can release those features, so hold tight!
+!!! Note
+    We are working hard on getting our CLI and GraphQL API set up to allow everyone using Lagoon to setup and configure their projects themselves. Right now, it needs more testing before we can release those features, so hold tight!
 
 Until then, the setup of a new project involves talking to your Lagoon administrator, which is ok, as they are much friendlier than APIs. 😊
 

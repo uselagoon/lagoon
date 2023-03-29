@@ -3,24 +3,34 @@
 Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../docker-images/rabbitmq.md) service is the broker.
 
 1. Create `lagoon-remote-values.yml` in your config directory as you did the previous two files, and update the values.
-    * **rabbitMQPassword**
-    ```
+
+    1. **rabbitMQPassword**
+
+    ```bash title="Get secret"
     kubectl -n lagoon-core get secret lagoon-core-broker -o jsonpath="{.data.RABBITMQ_PASSWORD}" | base64 --decode
     ```
-    * **rabbitMQHostname**
-    ```
+
+    2. **rabbitMQHostname**
+
+    ```YAML title="lagoon-remote-values.yml"
     lagoon-core-broker.lagoon-core.svc.local
     ```
-    * **taskSSHHost**
-    ```
+
+    3. **taskSSHHost**
+
+    ```bash title="Get value"
     kubectl get service lagoon-core-broker-amqp-ext \
       -o custom-columns="NAME:.metadata.name,IP ADDRESS:.status.loadBalancer.ingress[*].ip,HOSTNAME:.status.loadBalancer.ingress[*].hostname"
     ```
-    * **harbor-password**
-    ```
+
+    4. **harbor-password**
+
+    ```bash title="Get secret"
     kubectl -n harbor get secret harbor-harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode
     ```
+
 2. Add the Harbor configuration from the [Install Harbor](./install-harbor.md) step.
+
     ```yaml title="lagoon-remote-values.yml"
     lagoon-build-deploy:
       enabled: true
@@ -59,8 +69,10 @@ Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../d
           port: '3306'
           user: root
     ```
+
 3. Install Lagoon Remote:
-    ```
+
+    ```bash title="Install Lagoon remote"
     helm upgrade --install --create-namespace \
       --namespace lagoon \
       -f remote-values.yaml \

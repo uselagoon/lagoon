@@ -34,7 +34,7 @@ Here you can specify tasks which will run against your project _after_ all image
 This feature enables you to, for example, create a database dump before updating your application.
 This can make it easier to roll back in case of a problem with the deploy.
 
-!!! Note "Note:"
+!!! Note
     The pre-rollout tasks run in the _existing pods before they are updated_, which means:
 
     * Changes made to your `Dockerfile` since the last deploy will not be visible when pre-rollout tasks run.
@@ -75,14 +75,14 @@ Here are some useful examples of post-rollout tasks that you may want to use or 
 Run only if Drupal not installed:
 
 ```yaml title=".lagoon.yml"
-    - run:
-        name: IF no Drupal installed
-        command: |
-            if tables=$(drush sqlq "show tables like 'node';") && [ -z "$tables" ]; then
-                #### whatever you like
-            fi
-        service: cli
-        shell: bash
+  - run:
+    name: IF no Drupal installed
+    command: |
+      if tables=$(drush sqlq "show tables like 'node';") && [ -z "$tables" ]; then
+        #### whatever you like
+      fi
+    service: cli
+    shell: bash
 ```
 
 Different tasks based on branch name:
@@ -219,7 +219,7 @@ routes](#routesautogenerate) by default, it is typical that manual routes are
 only setup for the production environment, using the main domain of the
 projects website like `www.example.com`.
 
-!!! Note "Note:"
+!!! Note
     Since Lagoon has no control over the manual routes, you'll need to ensure
     the DNS records are configured properly at your DNS provider. You can likely
     set a `CNAME` record to point to the automatic route.
@@ -259,7 +259,7 @@ that's important!):
 * `hstsIncludeSubdomains`: Sets the `includeSubDomains` directive. Default is
   `false`.
 
-!!! Note "Note:"
+!!! Note
     If you plan to switch from a SSL certificate signed by a Certificate
     Authority (CA) to a Let's Encrypt certificate, it's best to get in touch
     with your Lagoon administrator to oversee the transition. There are [known
@@ -278,7 +278,7 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Ku
 
 ### **Ingress annotations**
 
-!!! Note "Note:"
+!!! Note
     Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
 
 * `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects and other configurations.
@@ -320,7 +320,7 @@ You can of course also redirect to any other URL not hosted on Lagoon, this will
 
 #### Trusted Reverse Proxies
 
-!!! warning "Warning:"
+!!! warning
     Kubernetes will only process a single `nginx.ingress.kubernetes.io/server-snippet` annotation. Please ensure that if you use this annotation on a non-production environment route that you also include the `add_header X-Robots-Tag "noindex, nofollow";` annotation as part of your server-snippet. This is needed to stop robots from crawling development environments as the default server-snippet set to prevent this in development environments in the ingress templates will get overwritten with any `server-snippets` set in .lagoon.yml.
 
 Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header.
@@ -456,8 +456,7 @@ cronjobs:
 * `command`: The command to execute. This executes in the `WORKDIR` of the
   service. For Lagoon images, this is `/app`.
 
-    !!! warning "Warning:"
-
+    !!! warning
         Cronjobs may run in-pod, via crontab, which [doesn't support multiline
         commands](https://www.man7.org/linux/man-pages/man5/crontab.5.html). If
         you need a complex or multiline cron command, you must put it in a
@@ -497,14 +496,14 @@ poly-project2:
 
 ### `api`
 
-!!! Note "Note:"
+!!! Note
     If you run directly on amazee.io hosted Lagoon you will not need this key set.
 
 With the key `api` you can define another URL that should be used by the Lagoon CLI and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
 ### `ssh`
 
-!!! Note "Note:"
+!!! Note
     If you run directly on amazee.io hosted Lagoon you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.

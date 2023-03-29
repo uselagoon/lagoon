@@ -1,4 +1,4 @@
-# Gitlab
+# GitLab
 
 Not needed for \*most\* installs, but this is configured to integrate Lagoon with GitLab for user and group authentication.
 
@@ -29,6 +29,6 @@ Not needed for \*most\* installs, but this is configured to integrate Lagoon wit
 5. If you've already created users in Keycloak, delete them.
 6. Run the following command in an API pod
 
-    ```bash
+    ```bash title="Sync with GitLab"
       yarn sync:gitlab:all
     ```
