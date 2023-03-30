@@ -207,6 +207,18 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission) => {
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
     const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
+
+    // check if fact already exists before doing anything else
+    const factResult = await query(
+      sqlClientPool,
+      Sql.selectFactByNameSourceAndEnvironmentId(name, source, environment)
+    );
+    if (R.length(factResult) >= 1) {
+      throw new Error(
+        `Error adding fact. Fact already exists.`
+      );
+    }
+
     const {
       insertId
     } = await query(
@@ -247,6 +259,17 @@ export const addFact: ResolverFn = async (
   await hasPermission('fact', 'add', {
     project: environment.project
   });
+
+  // check if fact already exists before doing anything else
+  const factResult = await query(
+    sqlClientPool,
+    Sql.selectFactByNameSourceAndEnvironmentId(name, source, environmentId)
+  );
+  if (R.length(factResult) >= 1) {
+    throw new Error(
+      `Error adding fact. Fact already exists.`
+    );
+  }
 
   const { insertId } = await query(
     sqlClientPool,
@@ -420,6 +443,17 @@ export const addFactReference: ResolverFn = async (
   await hasPermission('fact', 'add', {
     project: environment.project
   });
+
+  // check if fact already exists before doing anything else
+  const factResult = await query(
+    sqlClientPool,
+    Sql.selectFactReferencesByFactId(fid)
+  );
+  if (R.length(factResult) >= 1) {
+    throw new Error(
+      `Error adding fact reference. Fact reference already exists.`
+    );
+  }
 
   const { insertId } = await query(
     sqlClientPool,

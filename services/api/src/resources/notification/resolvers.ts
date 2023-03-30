@@ -14,8 +14,17 @@ import {
   notificationContentTypeToInt
 } from '@lagoon/commons/dist/notificationCommons';
 import { sqlClientPool } from '../../clients/sqlClient';
+import { logger } from '../../loggers/logger';
 
 const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
+  // check if notification with this name already exists before doing anything else
+  const selectSql = knex(notificationTable).select('id').where('name', '=', input.name).toString();
+  const notifResult = await query(sqlClientPool, selectSql);
+  if (R.length(notifResult) >= 1) {
+    throw new Error(
+      `Error adding notification ${input.name}. Notification already exists`
+    );
+  }
   const createSql = knex(notificationTable).insert(input).toString();
   let { insertId } = await query(sqlClientPool, createSql);
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
@@ -358,6 +367,17 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
+  if (input.patch.name) {
+    // check if notification with this name already exists before doing anything else
+    const selectSql = knex('notification_microsoftteams').select('id').where('name', '=', input.patch.name).toString();
+    const notifResult = await query(sqlClientPool, selectSql);
+    if (R.length(notifResult) >= 1) {
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      );
+    }
+  }
+
   await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   const rows = await query(
     sqlClientPool,
@@ -383,6 +403,17 @@ export const updateNotificationWebhook: ResolverFn = async (
       throw new Error('input.patch requires at least 1 attribute');
     }
 
+    if (input.patch.name) {
+      // check if notification with this name already exists before doing anything else
+      const selectSql = knex('notification_webhook').select('id').where('name', '=', input.patch.name).toString();
+      const notifResult = await query(sqlClientPool, selectSql);
+      if (R.length(notifResult) >= 1) {
+        throw new Error(
+          `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+        );
+      }
+    }
+
     await query(sqlClientPool, Sql.updateNotificationWebhook(input));
     const rows = await query(
       sqlClientPool,
@@ -403,6 +434,17 @@ export const updateNotificationEmail: ResolverFn = async (
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  if (input.patch.name) {
+    // check if notification with this name already exists before doing anything else
+    const selectSql = knex('notification_email').select('id').where('name', '=', input.patch.name).toString();
+    const notifResult = await query(sqlClientPool, selectSql);
+    if (R.length(notifResult) >= 1) {
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      );
+    }
   }
 
   await query(sqlClientPool, Sql.updateNotificationEmail(input));
@@ -427,6 +469,17 @@ export const updateNotificationRocketChat: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
+  if (input.patch.name) {
+    // check if notification with this name already exists before doing anything else
+    const selectSql = knex('notification_rocketchat').select('id').where('name', '=', input.patch.name).toString();
+    const notifResult = await query(sqlClientPool, selectSql);
+    if (R.length(notifResult) >= 1) {
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      );
+    }
+  }
+
   await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
   const rows = await query(
     sqlClientPool,
@@ -447,6 +500,17 @@ export const updateNotificationSlack: ResolverFn = async (
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
+  }
+
+  if (input.patch.name) {
+    // check if notification with this name already exists before doing anything else
+    const selectSql = knex('notification_slack').select('id').where('name', '=', input.patch.name).toString();
+    const notifResult = await query(sqlClientPool, selectSql);
+    if (R.length(notifResult) >= 1) {
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      );
+    }
   }
 
   await query(sqlClientPool, Sql.updateNotificationSlack(input));

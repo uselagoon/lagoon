@@ -178,6 +178,17 @@ export const addBackup: ResolverFn = async (
     project: environment.project
   });
 
+  // check if backup with this id already exists before doing anything else
+  const backupResult = await query(
+    sqlClientPool,
+    Sql.selectBackupByBackupId(backupId)
+  );
+  if (R.length(backupResult) >= 1) {
+    throw new Error(
+      `Error adding backup. Backup already exists.`
+    );
+  }
+
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertBackup({
@@ -261,6 +272,17 @@ export const addRestore: ResolverFn = async (
   await hasPermission('restore', 'add', {
     project: R.path(['0', 'pid'], perms)
   });
+
+  // check if backup with this id already exists before doing anything else
+  const backupResult = await query(
+    sqlClientPool,
+    Sql.selectBackupByBackupId(backupId)
+  );
+  if (R.length(backupResult) >= 1) {
+    throw new Error(
+      `Error adding restore. Restore already exists.`
+    );
+  }
 
   const { insertId } = await query(
     sqlClientPool,
