@@ -614,7 +614,6 @@ export const User = (clients: {
   const getAllOrganizationIdsForUser = async (
     userInput: User
   ): Promise<number[]> => {
-    const GroupModel = Group(clients);
     let organizations = [];
 
     const user = await loadUserById(userInput.id);

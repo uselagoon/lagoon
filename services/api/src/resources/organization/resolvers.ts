@@ -138,6 +138,7 @@ export const getAllOrganizations: ResolverFn = async (
         id: keycloakGrant.access_token.content.sub
       });
     }
+
     let queryBuilder = knex('organization');
 
     if (userOrganizationIds) {
@@ -215,7 +216,7 @@ export const getNotificationsForOrganizationProjectId: ResolverFn = async (
 export const getOwnersByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, keycloakGrant }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   const orgUsers = await models.UserModel.loadUsersByOrganizationId(oid);
 
@@ -234,7 +235,7 @@ export const getOwnersByOrganizationId: ResolverFn = async (
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+    const userGroups = keycloakUsersGroups;
     const orgOwners = R.intersection(orgUsers, userGroups);
 
     return orgOwners;
@@ -286,7 +287,7 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, sqlClientPool, models, keycloakGrant }
+  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   const orgProjectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
   if (!keycloakGrant) {
@@ -297,10 +298,9 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
   const user = await models.UserModel.loadUserById(
     keycloakGrant.access_token.content.sub
   );
-
   // if this user is an owner of an organization, then also display org based groups to this user
   // when listing project groups
-  const userGroups = await models.UserModel.getAllGroupsForUser(user);
+  const userGroups = keycloakUsersGroups;
   const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
   const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
 
