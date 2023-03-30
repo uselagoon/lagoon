@@ -152,6 +152,7 @@ theme:
     repo: fontawesome/brands/github
   features:
     - content.action.edit
+    - content.code.copy
 
 extra:
   analytics:
