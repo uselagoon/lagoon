@@ -284,10 +284,17 @@ export const addProject = async (
   { input },
   { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
+
+  // Add the user who submitted this request to the project
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
   if (input.organization != null) {
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
+    userAlreadyHasAccess = true
     // check the project quota before adding the project
     const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
@@ -472,12 +479,6 @@ export const addProject = async (
     logger.error(
       `Could not link user to default project group for ${project.name}: ${err.message}`
     );
-  }
-
-  // Add the user who submitted this request to the project
-  let userAlreadyHasAccess = false;
-  if (adminScopes.projectViewAll) {
-    userAlreadyHasAccess = true
   }
 
   if (!userAlreadyHasAccess && keycloakGrant) {
