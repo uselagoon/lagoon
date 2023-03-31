@@ -43,7 +43,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   ) => {
     const rows = await query(
       sqlClientPool,
-      Sql.selectProjectsByOrganizationIds(organizationId)
+      Sql.selectProjectsByOrganizationId(organizationId)
     );
     return rows;
   };

@@ -592,7 +592,6 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   }
 
   return "success"
-
 };
 
 // add an existing group to an organization
