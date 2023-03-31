@@ -2,7 +2,11 @@
 
 Lagoon provides access to the following logs via Kibana:
 
+<<<<<<< HEAD
 1. Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
+=======
+* Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
+>>>>>>> c5708ed6d405ed33273a925012b66d0fe1156036
   * Source IP
   * URL
   * Path
@@ -14,16 +18,16 @@ Lagoon provides access to the following logs via Kibana:
   * Container name
   * Response size
   * Response time
-2. Logs from containers:
+* Logs from containers:
   * `stdout` and `stderr` messages
   * Container name
   * Project
-  * Lagoon logs:
-    * Webhooks parsing
-    * Build logs
-    * Build errors
-    * Any other Lagoon-related logs
-3.  Application logs:
+* Lagoon logs:
+  * Webhooks parsing
+  * Build logs
+  * Build errors
+  * Any other Lagoon related logs
+* Application logs:
   * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
   * For Laravel: install the [Lagoon Logs for Laravel](https://github.com/amazeeio/laravel_lagoon_logs) package.
   * For other workloads:

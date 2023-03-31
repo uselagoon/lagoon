@@ -13,50 +13,50 @@ Your Lagoon administrator will also give you the route to the `webhook-handler`.
 
 1. Proceed to Settings -&gt; Webhooks -&gt; `Add webhook` in your GitHub repository.
 
-    ![Adding webhook in GitHub.](./webhooks-2020-01-23-12-40-16.png)
+  ![Adding webhook in GitHub.](./webhooks-2020-01-23-12-40-16.png)
 
-1. The `Payload URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
-1. Set `Content type` to `application/json`.
+2. The `Payload URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
+3. Set `Content type` to `application/json`.
 
-    ![Add the Payload URL and set the Content type.](./gh_webhook_1.png)
+  ![Add the Payload URL and set the Content type.](./gh_webhook_1.png)
 
-1. Choose "`Let me select individual events`."
-1. Choose which events will trigger your webhook. We suggest that you send `Push` and `Pull request` events, and then filter further in the Lagoon configuration of your project.
+4. Choose "`Let me select individual events`."
+5. Choose which events will trigger your webhook. We suggest that you send `Push` and `Pull request` events, and then filter further in the Lagoon configuration of your project.
 
-    ![Select the webhook event triggers in GitHub.](./gh_webhook_2.png)
+  ![Select the webhook event triggers in GitHub.](./gh_webhook_2.png)
 
-1. Make sure the webhook is set to `Active`.
-1. Click `Add webhook` to save your configuration.
+6. Make sure the webhook is set to `Active`.
+7. Click `Add webhook` to save your configuration.
 
 ## GitLab
 
 1. Navigate to Settings -&gt; Integrations in your GitLab repository.
 
-    ![Go to Settings &amp;gt; Integrations in your GitLab repository.](./gitlab-settings.png)
+  ![Go to Settings &amp;gt; Integrations in your GitLab repository.](./gitlab-settings.png)
 
-1. The `URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
-1. Select the `Trigger` events which will send a notification to Lagoon. We suggest that you send `Push events` and `Merge request events`, and then filter further in the Lagoon configuration of your project.
+2. The `URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
+3. Select the `Trigger` events which will send a notification to Lagoon. We suggest that you send `Push events` and `Merge request events`, and then filter further in the Lagoon configuration of your project.
 
-    ![Selecting Trigger events in GitLab.](./gitlab_webhook.png)
+  ![Selecting Trigger events in GitLab.](./gitlab_webhook.png)
 
-1. Click `Add webhook`to save your configuration.
+4. Click `Add webhook`to save your configuration.
 
 ## Bitbucket
 
 1. Navigate to Settings -&gt; Webhooks -&gt; Add new webhook in your repository.
-1. `Title` is for your reference.
-1. `URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
-1. `Choose from a full list of triggers` and select the following:
-    * Repository
-        * Push
-    * Pull Request
-        * Created
-        * Updated
-        * Approved
-        * Approval removed
-        * Merged
-        * Declined
+2. `Title` is for your reference.
+3. `URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
+4. `Choose from a full list of triggers` and select the following:
+  * Repository
+    * Push
+  * Pull Request
+    * Created
+    * Updated
+    * Approved
+    * Approval removed
+    * Merged
+    * Declined
 
-    ![Select the Bitbucket Triggers for your webhook. ](./bb_webhook_1.png)
+  ![Select the Bitbucket Triggers for your webhook. ](./bb_webhook_1.png)
 
-1. Click `Save` to save the webhook configurations for Bitbucket.
+5. Click `Save` to save the webhook configurations for Bitbucket.

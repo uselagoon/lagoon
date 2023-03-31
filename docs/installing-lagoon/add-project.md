@@ -40,10 +40,10 @@ Lagoon creates a deploy key for each project. You now need to add it as a deploy
 In order for Lagoon to be able to deploy on code updates, it needs to be connected to your git repository
 
 1. Add your Lagoon cluster's webhook endpoint to your git repository
-    * Payload URL: `<LAGOON-WEBHOOK-INGRESS>`
-    * Content Type: JSON
-    * Active: Active (allows you to enable/disable as required)
-    * Events: Select the relevant events, or choose All.  Usually Push, Branch Create/Delete are required
+  * Payload URL: `<LAGOON-WEBHOOK-INGRESS>`
+  * Content Type: JSON
+  * Active: Active (allows you to enable/disable as required)
+  * Events: Select the relevant events, or choose All.  Usually Push, Branch Create/Delete are required
 
 [GitHub](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks){ .md-button }
 [GitLab](https://docs.gitlab.com/ee/user/project/integrations/webhooks.html){ .md-button }

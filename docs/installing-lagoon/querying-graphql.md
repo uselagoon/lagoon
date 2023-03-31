@@ -1,13 +1,13 @@
 # Querying with GraphQL
 
 1. You’ll need an app for sending and receiving GraphQL queries. We recommend GraphiQL.
-    1. If you’re using Homebrew, you can install it with `brew install --cask graphiql`.
+  1. If you’re using Homebrew, you can install it with `brew install --cask graphiql`.
 2. We need to tell Lagoon Core about the Kubernetes cluster. The GraphQL endpoint is: `https://<YOUR-API-URL>/graphql`
 3. Go to **Edit HTTP Headers**, and **Add Header**.
-    1. Header Name: `Authorization`
-    2. Value: `Bearer YOUR-TOKEN-HERE`
-    3. In your home directory, the Lagoon CLI has created a `.lagoon.yml` file. Copy the token from that file and use it for the value here.
-    4. Save.
+  1. Header Name: `Authorization`
+  2. Value: `Bearer YOUR-TOKEN-HERE`
+  3. In your home directory, the Lagoon CLI has created a `.lagoon.yml` file. Copy the token from that file and use it for the value here.
+  4. Save.
 4. Now you’re ready to run some queries. Run the following test query to ensure everything is working correctly:
 
     ```text title="Get all projects"
@@ -16,18 +16,18 @@
 
 5. This should give you the following response:
 
-    ```text title="API Response"
+  ```text title="API Response"
     {
       "data": {
         "allProjects": []
       }
     }
-    ```
+  ```
 
-    [Read more about GraphQL here in our documentation.](../using-lagoon-advanced/graphql.md)
+  [Read more about GraphQL here in our documentation.](../using-lagoon-advanced/graphql.md)
 
 6. Once you get the correct response, we need to add a mutation.
-   1. Run the following query:
+  1. Run the following query:
 
       ```text title="Add mutation"
        mutation addKubernetes {
