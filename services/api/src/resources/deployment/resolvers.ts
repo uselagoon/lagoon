@@ -33,6 +33,7 @@ import sha1 from 'sha1';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 // @ts-ignore
 import uuid4 from 'uuid4';
 
@@ -115,7 +116,7 @@ export const getBuildLog: ResolverFn = async (
 export const getDeploymentsByBulkId: ResolverFn = async (
   root,
   { bulkId },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
   /*
@@ -135,9 +136,10 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('deployment')
@@ -162,7 +164,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -184,9 +186,10 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
@@ -214,15 +217,15 @@ export const getDeploymentsByFilter: ResolverFn = async (
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
-  { id: eid, environmentAuthz },
+  { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('deployment', 'view', {
       project: environment.project
     });
@@ -1237,7 +1240,7 @@ export const switchActiveStandby: ResolverFn = async (
 export const bulkDeployEnvironmentLatest: ResolverFn = async (
   _root,
   { input: { environments: environmentsInput, buildVariables, name: bulkName } },
-  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger }
+  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger, keycloakUsersGroups }
 ) => {
 
     /*
@@ -1257,9 +1260,10 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let bulkId = uuid4();

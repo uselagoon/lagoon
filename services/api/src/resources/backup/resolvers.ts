@@ -138,14 +138,17 @@ export const getRestoreLocation: ResolverFn = async (
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { includeDeleted, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
-  await hasPermission('backup', 'view', {
-    project: environment.project
-  });
+
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('backup', 'view', {
+      project: environment.project
+    });
+  }
 
   let queryBuilder = knex('environment_backup')
     .where('environment', environmentId)
