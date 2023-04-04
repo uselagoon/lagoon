@@ -67,10 +67,10 @@ The recommended method of pointing your domain's DNS records at Lagoon is via a 
 
 If your DNS provider does not support the use of CNAME records, you can use these A records instead. Please ensure you set up individual records for each IP listed below:
 
-`A`: `151.101.2.191`
-`A`: `151.101.66.191`
-`A`: `151.101.130.191`
-`A`: `151.101.194.191`
+* `A`: `151.101.2.191`
+* `A`: `151.101.66.191`
+* `A`: `151.101.130.191`
+* `A`: `151.101.194.191`
 
 !!! Note
     We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.

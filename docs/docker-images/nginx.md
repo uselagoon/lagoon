@@ -6,7 +6,7 @@ This Dockerfile is intended to be used as a base for any web servers within Lago
 
 ## Lagoon adaptions
 
-The default exposed port of nginx containers is port `8080`.
+The default exposed port of NGINX containers is port `8080`.
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
