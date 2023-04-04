@@ -5,7 +5,7 @@ import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { saveRedisKeycloakCache, deleteRedisKeycloakCache } from '../clients/redisClient';
+import { saveRedisKeycloakCache } from '../clients/redisClient';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];

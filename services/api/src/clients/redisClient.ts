@@ -82,8 +82,6 @@ export const saveRedisKeycloakCache = async (
   );
 };
 
-export const deleteRedisKeycloakCache = del("cache:keycloak");
-
 export const deleteRedisUserCache = userId => del(`cache:authz:${userId}`);
 
 export const getProjectGroupsCache = async projectId =>
@@ -98,7 +96,6 @@ export default {
   saveRedisCache,
   getRedisKeycloakCache,
   saveRedisKeycloakCache,
-  deleteRedisKeycloakCache,
   deleteRedisUserCache,
   getProjectGroupsCache,
   saveProjectGroupsCache
