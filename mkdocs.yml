@@ -152,6 +152,8 @@ theme:
     repo: fontawesome/brands/github
   features:
     - content.action.edit
+    - content.code.copy
+
 
 extra:
   analytics:
@@ -169,9 +171,13 @@ markdown_extensions:
   - mdx_truly_sane_lists
   - pymdownx.caret
   - pymdownx.highlight:
-      auto_title: true
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      auto_title: true
+  - pymdownx.inlinehilite
   - pymdownx.mark
+  - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tilde
