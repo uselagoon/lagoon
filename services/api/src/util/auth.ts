@@ -214,12 +214,14 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           R.prop('group', attributes)
         );
 
+        const groupMembers = await GroupModel.getGroupMembership(group)
+
         const groupRoles = R.pipe(
           R.filter(membership =>
             R.pathEq(['user', 'id'], currentUser.id, membership)
           ),
           R.pluck('role')
-        )(group.members);
+        )(groupMembers);
 
         const highestRoleForGroup = R.pipe(
           R.uniq,
