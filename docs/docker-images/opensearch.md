@@ -1,6 +1,6 @@
 # OpenSearch
 
-> [_Opensearch_](https://opensearch.org/) _OpenSearch is a community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data._
+> [_OpenSearch_](https://opensearch.org/) _is a community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data._
 >
 > * from [https://opensearch.org/](https://opensearch.org/)
 

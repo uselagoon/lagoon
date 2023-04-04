@@ -7,14 +7,20 @@ Even though Lagoon has only a hard dependency on Docker and [Docker Compose](htt
 * SSH agents to use SSH keys within containers.
 * A system that receives and displays mail locally.
 
-!!! warning
+???+ warning
     You do not need to _install_ Lagoon locally to _use_ it locally! That sounds confusing but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
 
 ## pygmy or Lando - the choice is yours
 
 Lagoon has traditionally worked best with `pygmy` , which is the amazee.io flavored system of the above tools and works out of the box with Lagoon. It lives at [https://github.com/pygmystack/pygmy](https://github.com/pygmystack/pygmy)
 
-`pygmy` is written in Golang, so to install it, run: `brew tap pygmystack/pygmy && brew install pygmy`. For detailed usage or installation info on pygmy, see its [documentation](https://pygmy.readthedocs.io/en/master/).
+`pygmy` is written in Golang, so to install it, run:
+
+```bash title="Install with HomeBrew"
+brew tap pygmystack/pygmy && brew install pygmy
+```
+
+For detailed usage or installation info on pygmy, see its [documentation](https://pygmy.readthedocs.io/en/master/).
 
 As announced in our [blog post](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon), Lagoon is now also compatible with Lando! For more information, please see the documentation at [https://docs.lando.dev/config/lagoon.html](https://docs.lando.dev/config/lagoon.html) to get yourself up and running.
 

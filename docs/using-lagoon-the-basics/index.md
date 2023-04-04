@@ -11,10 +11,12 @@ To run a Lagoon Project, your system must meet the requirements to run Docker. W
 TL;DR: install and start `pygmy`:
 
 ```bash
-brew tap pygmystack/pygmy;
+brew tap pygmystack/pygmy; # (1)
 brew install pygmy;
 pygmy up
 ```
+
+1. HomeBrew is the easiest way to install Pygmy, see the docs for more info.
 
 [Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 
