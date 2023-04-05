@@ -8,7 +8,7 @@ The [Lagoon `ruby` Docker image](https://github.com/uselagoon/lagoon-images/tree
 * 3.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.1.Dockerfile) (Security Support until March 2025) - `uselagoon/ruby-3.1`
 * 3.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.2.Dockerfile) (Security Support until March 2026) - `uselagoon/ruby-3.2`
 
-!!! Note
+!!! Tip
     We stop updating and publishing EOL Ruby images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.ruby-lang.org/en/downloads/releases/](https://www.ruby-lang.org/en/downloads/releases/). Previous versions will remain available.
 
 ## Lagoon adaptions
@@ -17,7 +17,7 @@ The default exposed port of ruby containers is port `3000`.
 
 Lagoon has no "pre-defined" type for Ruby services, they should be configured with the `lagoon.type: generic` and a port set with `lagoon.port: 3000`
 
-## docker-compose.yml snippet
+## `docker-compose.yml` snippet
 
 ```yaml title="docker-compose.yml"
 ruby:

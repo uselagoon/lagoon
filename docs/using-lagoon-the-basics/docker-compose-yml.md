@@ -50,7 +50,7 @@ services:
       context: .
       dockerfile: nginx.dockerfile
     labels:
-      lagoon.type: nginx-php-persistent
+      lagoon.type: nginx-php-persistent # (1)
       lagoon.persistent: /app/web/sites/default/files/
 
   php:
@@ -58,7 +58,7 @@ services:
       context: .
       dockerfile: php.dockerfile
     labels:
-      lagoon.type: nginx-php-persistent
+      lagoon.type: nginx-php-persistent # (2)
       lagoon.name: nginx
       lagoon.persistent: /app/web/sites/default/files/
 
@@ -67,6 +67,9 @@ services:
     labels:
       lagoon.type: mariadb
 ```
+
+1. Note the [multi-container pods](docker-compose-yml.md#multi-container-pods) here.
+2. Note the [multi-container pods](docker-compose-yml.md#multi-container-pods) here.
 
 ## Basic settings
 

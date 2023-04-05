@@ -10,12 +10,12 @@ This Dockerfile is intended to be used to set up a standalone MariaDB database s
 * 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 Support until May 2023) - `uselagoon/mariadb-10.5`
 * 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 Support until May 2024) - `uselagoon/mariadb-10.6`
 
-!!! Note
+!!! Info
     As these images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/) for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
 
 ## Lagoon adaptions
 
-The default exposed port of MriaDB containers is port `3306`.
+The default exposed port of MariaDB containers is port `3306`.
 
 To allow Lagoon to select the best way to run the MariaDB container, use `lagoon.type: mariadb` - this allows the DBaaS operator to provision a cloud database if available in the cluster. Use `lagoon.type: mariadb-single` to specifically request MariaDB in a container. Persistent storage is always provisioned for MariaDB containers at `/var/lib/mysql`.
 
@@ -24,19 +24,19 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * `readiness-probe.sh` script to check when MariaDB container is ready.
 
-## docker-compose.yml snippet
+## `docker-compose.yml` snippet
 
 ```yaml title="docker-compose.yml"
 	mariadb:
 		image: uselagoon/mariadb-10.6-drupal:latest
 		labels:
-		# tells Lagoon this is a mariadb database
+		# tells Lagoon this is a MariaDB database
 			lagoon.type: mariadb
 		ports:
 			# exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
 			- "3306"
 		volumes:
-			# mounts a named volume at the default path for mariadb
+			# mounts a named volume at the default path for MariaDB
 			- db:/var/lib/mysql
 ```
 

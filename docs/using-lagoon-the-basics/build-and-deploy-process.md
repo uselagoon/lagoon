@@ -12,7 +12,7 @@ First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given
 
 ## 2. Git Checkout & Merge
 
-Next, Lagoon will check out your code from Git. It needs that to be able to read the `.lagoon.yml` ,`docker-compose.yml` and any `.env` files, but also to build the Docker images.
+Next, Lagoon will check out your code from Git. It needs that to be able to read the `.lagoon.yml`, `docker-compose.yml` and any `.env` files, but also to build the Docker images.
 
 Note that Lagoon will only process these actions if the branch/PR matches the branch regex set in Lagoon. Based on how the deployment has been triggered, different things will happen:
 
@@ -94,7 +94,7 @@ This is probably the most important step. Based on the defined service type, Lag
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
-Creation of these objects will also automatically cause Kubernetes or Openshift to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
+Creation of these objects will also automatically cause Kubernetes or OpenShift to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
 ## 10. Wait for all rollouts to be done
 

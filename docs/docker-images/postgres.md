@@ -10,16 +10,16 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (Security Support until November 2026) - `uselagoon/postgres-14`
 * 15 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/15.Dockerfile) (Security Support until November 2027) - `uselagoon/postgres-15`
 
-!!! Note
+!!! Tip
     We stop updating EOL PostgreSQL images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
 
 ## Lagoon adaptions
 
-The default exposed port of postgres containers is port `5432`.
+The default exposed port of Postgres containers is port `5432`.
 
-To allow Lagoon to select the best way to run the postgres container, use `lagoon.type: postgres` - this allows DBaaS operator to provision a cloud database if available in the cluster. Use `lagoon.type: postgres-single` to specifically request postgres in a container. Persistent storage is always provisioned for postgres containers at /var/lib/postgresql/data.
+To allow Lagoon to select the best way to run the Postgres container, use `lagoon.type: postgres` - this allows DBaaS operator to provision a cloud database if available in the cluster. Use `lagoon.type: postgres-single` to specifically request Postgres in a container. Persistent storage is always provisioned for postgres containers at /var/lib/postgresql/data.
 
-## docker-compose.yml snippet
+## `docker-compose.yml` snippet
 
 ```yaml title="docker-compose.yml"
 postgres:

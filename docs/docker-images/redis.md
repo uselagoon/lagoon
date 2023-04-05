@@ -17,11 +17,13 @@ There are 2 different flavors of Redis Images: **Ephemeral** and **Persistent**.
 ### Ephemeral
 
 The ephemeral image is intended to be used as an in-memory cache for applications and will not retain data across container restarts.
+
 When being used as an in-memory (RAM) cache, the first thing you might want to tune if you have large caches is to adapt the `MAXMEMORY` variable. This variable controls the maximum amount of memory (RAM) which redis will use to store cached items.
 
 ### Persistent
 
 The persistent Redis image will persist data across container restarts and can be used for queues or application data that will need persistence.
+
 We don't typically suggest using a persistent Redis for in-memory cache scenarios as this might have unintended side-effects on your application while a Redis container is restarting and loading data from disk.
 
 ## Lagoon adaptions
@@ -72,7 +74,7 @@ For typical installations, this is the ideal configuration, as Drupal may not se
 More information on Redis' maxmemory policies can be found in Redis' [official documentation](https://redis.io/docs/manual/eviction/#eviction-policies).
 
 !!! danger "Proceed with Caution"
-    Chaging this setting can lead to redis becoming completely full and cause outages as a result.
+    Changing this setting can lead to Redis becoming completely full and cause outages as a result.
 
 ### Tuning Redis' `maxmemory` value
 

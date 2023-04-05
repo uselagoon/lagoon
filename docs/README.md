@@ -8,9 +8,12 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 
 ## Who are you?
 
-* If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
-* If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+<div class="grid cards" markdown>
 
+- If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
+- If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+
+</div>
 ## TL;DR: How Lagoon Works
 
 1. Developers define and configure needed services within YAML files.

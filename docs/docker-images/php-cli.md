@@ -6,7 +6,7 @@ Containers \(or pods\) started from `cli` images are responsible for building co
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-!!! Note
+!!! Info
     This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 
 ## Supported versions

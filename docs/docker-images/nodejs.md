@@ -13,7 +13,7 @@ The builder variant of those images comes with additional tooling that is needed
 * 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/16.Dockerfile) (Security Support until September 2023) - `uselagoon/node-16`
 * 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (Security Support until April 2025) - `uselagoon/node-18`
 
-!!! Note
+!!! Tip
     We stop updating EOL Node.js images usually with the Lagoon release that comes after the officially communicated EOL date: [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
 
 ## Lagoon adaptions
@@ -29,7 +29,7 @@ Use the following labels in your `docker-compose.yml` file to configure it:
 * If you have multiple services that share the same storage, use this
 `lagoon.persistent.name` = (optional) use this to tell Lagoon to use the storage defined in another named service.
 
-## docker-compose.yml snippet
+## `docker-compose.yml` snippet
 
 ```yaml title="docker-compose.yml"
     node:
