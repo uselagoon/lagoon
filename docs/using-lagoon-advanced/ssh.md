@@ -110,9 +110,23 @@ scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [local_
 rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222' [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
 ```
 
+### tar
+
+```bash
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [project_name]-[environment_name]@ssh.lagoon.amazee.io tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+```
+
 ### Specifying non-CLI pod/service
 
-In the rare case that you need to specify a non-CLI service this can be acheived with `rsync` using a `ssh` wrapper script to reorder the arguments in the manner required by Lagoon's SSH service:
+In the rare case that you need to specify a non-CLI service you can specify the `service=...` and/or `container=...` arguments in the copy command.
+
+Piping `tar` through the `ssh` connection is the simplest method, and can be used to copy a file or directory using the usual `tar` flags:
+
+```bash
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [project_name]-[environment_name]@ssh.lagoon.amazee.io service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+```
+
+You can also use `rsync` with a wrapper script to reorder the arguments to `ssh` in the manner required by Lagoon's SSH service:
 
 ```bash
 #!/usr/bin/env sh
