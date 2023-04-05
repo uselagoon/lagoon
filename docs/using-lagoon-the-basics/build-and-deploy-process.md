@@ -56,9 +56,9 @@ Also, if this is a pull request build:
 
 Additionally, for each already built image, its name is also injected. If your `docker-compose.yml` is configured to first build the `cli` image and then the `nginx` image, the name of the `nginx` image is injected as `NGINX_IMAGE`.
 
-## 4. Configure Kubernetes or Openshift Services and Routes
+## 4. Configure Kubernetes or OpenShift Services and Routes
 
-Next, Lagoon will configure Kubernetes or Openshift with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
+Next, Lagoon will configure Kubernetes or OpenShift with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
 
 In this step it will expose all defined routes in the `LAGOON_ROUTES` as comma separated URLs. It will also define one route as the "main" route, in this order:
 

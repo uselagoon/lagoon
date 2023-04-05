@@ -281,7 +281,7 @@ mutation {
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
       # TODO: Fill in the Kubernetes field.
-      # This is the id of the Kubernetes or Openshift to assign to the project.
+      # This is the ID of the Kubernetes or OpenShift to assign to the project.
       kubernetes: 0
       # TODO: Fill in the name field.
       # This is the project name.

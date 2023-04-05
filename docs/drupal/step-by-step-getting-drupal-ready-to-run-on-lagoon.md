@@ -4,7 +4,7 @@
 
 In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP files into your Git repository.
 
-If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repo that best suits your needs to get started!
+If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repository that best suits your needs to get started!
 
 Here is a summary of the Lagoon- and Drupal-specific files you will find:
 

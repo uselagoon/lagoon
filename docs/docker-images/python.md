@@ -42,7 +42,8 @@ python:
         lagoon.persistent.size: 500Mi
     ports:
     # local development only
-          # this exposes the port 8800 with a random local port - find it with docker-compose port python 8800
+          # this exposes the port 8800 with a random local port
+          # find it with `docker-compose port python 8800`
         - "8800"
     volumes:
     # local development only

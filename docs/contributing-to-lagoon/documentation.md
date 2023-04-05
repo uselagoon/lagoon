@@ -8,7 +8,7 @@ We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://s
 
 ## Viewing and updating docs locally
 
-From the root of the Lagoon repo (you'll need Docker), run:
+From the root of the Lagoon repository (you'll need Docker), run:
 
 ```bash title="Get local docs up and running."
 docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material

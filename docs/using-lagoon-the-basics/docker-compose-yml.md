@@ -6,12 +6,12 @@ The `docker-compose.yml` file is used by Lagoon to:
 * Define how the images for the containers are built.
 * Define additional configurations like persistent volumes.
 
-Docker-compose \(the tool\) is very strict in validating the content of the YAML file, so we can only do configuration within `labels` of a service definition.
+Docker Compose \(the tool\) is very strict in validating the content of the YAML file, so we can only do configuration within `labels` of a service definition.
 
 !!! warning
     Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED.
 
-This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
+This is intentional, as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
 
 Here a straightforward example of a `docker-compose.yml` file for Drupal:
 
@@ -33,14 +33,14 @@ x-environment:
     LAGOON_PROJECT: *lagoon-project
     # Route that should be used locally, if you are using pygmy, this route *must* end with .docker.amazee.io
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
-    # Uncomment if you like to have the system behave like in production
+    # Uncomment if you want to have the system behave as it will in production
     #LAGOON_ENVIRONMENT_TYPE: production
-    # Uncomment to enable xdebug and then restart via `docker-compose up -d`
+    # Uncomment to enable Xdebug and then restart via `docker-compose up -d`
     #XDEBUG_ENABLE: "true"
 
 x-user:
   &default-user
-    # The default user under which the containers should run. Change this if you are on linux and run with another user than id `1000`
+    # The default user under which the containers should run. Change this if you are on linux and run with another user than ID `1000`
     user: '1000'
 
 services:
@@ -83,9 +83,9 @@ This tells Lagoon what to mount into the container. Your web application lives i
 
 `x-environment`:
 
-1. Here you can set your local development url. If you are using pygmy, it must end with `.docker.amazee.io`.
+1. Here you can set your local development URL. If you are using pygmy, it must end with `.docker.amazee.io`.
 2. If you want to exactly mimic the production environment, uncomment `LAGOON_ENVIRONMENT_TYPE: production`.
-3. If you want to enable xd-ebug, uncomment `DEBUG_ENABLE: "true"`.
+3. If you want to enable Xdebug, uncomment `DEBUG_ENABLE: "true"`.
 
 `x-user`:
 
@@ -93,7 +93,7 @@ You are unlikely to need to change this, unless you are on Linux and would like 
 
 ## **`services`**
 
-This defines all the services you want to deploy. _Unfortunately,_ `docker-compose` calls them services, even though they are actually containers. Going forward we'll be calling them services, and throughout this documentation.
+This defines all the services you want to deploy. _Unfortunately,_ Docker Compose calls them services, even though they are actually containers. Going forward we'll be calling them services, and throughout this documentation.
 
 The name of the service \(`nginx`, `php`, and `mariadb` in the example above\) is used by Lagoon as the name of the Kubernetes pod \(yet another term - again, we'll be calling them services\) that is generated, plus also any additional Kubernetes objects that are created based on the defined `lagoon.type`, which could be things like services, routes, persistent storage, etc.
 
@@ -189,7 +189,7 @@ php:
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
-      lagoon.name: nginx # We want this service be part of the nginx pod in Lagoon.
+      lagoon.name: nginx # We want this service to be part of the NGINX pod in Lagoon.
       lagoon.deployment.servicetype: php
 ```
 
@@ -203,7 +203,7 @@ Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a
 
 ## Custom Rollout Monitor Types
 
-By default , Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Kubernetes or Openshift. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
+By default, Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Kubernetes or Openshift. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
 
 * `deploymentconfig` - This is the default. Expects a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object in the template for the service.
 * `statefulset` - Expects a [`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) object in the template for the service.
@@ -218,7 +218,8 @@ BuildKit is a toolkit for converting source code to build artifacts in an effici
 
 With the release of Lagoon v2.11.0, Lagoon now provides support for BuildKit-based docker-compose builds. To enable BuildKit for your Project or Environment, add `DOCKER_BUILDKIT=1` as a build-time variable.
 
-Note that whilst using BuildKit locally, you may experience some known issues:
+!!! bug
+    Note that while using BuildKit locally, you may experience some known issues.
 
-* `Failed to solve with frontend dockerfile.v0: failed to create LLB definition: pull access denied, repository does not exist or may require authorization`: This message means that your build has tried to access a docker image that hasn't been built yet - as BuildKit builds in parallel, if you have a docker image that inherits another one (as we do in Drupal with the CLI). You can use the [target](https://docs.docker.com/compose/compose-file/build/#target) field inside the build to reconfigure as a multi-stage build
-* issues with `volumes_from` in Docker Compose v2 - this service (that provides SSH access into locally running containers) has been deprecated by Docker Compose. The section can be removed from your docker-compose.yaml file if you don't require ssh access from inside your local environment, or can be worked around on a project-by-project basis - see https://github.com/pygmystack/pygmy/issues/333#issuecomment-1274091375 for more information
+* `Failed to solve with frontend dockerfile.v0: failed to create LLB definition: pull access denied, repository does not exist or may require authorization`: This message means that your build has tried to access a Docker image that hasn't been built yet. As BuildKit builds in parallel, if you have a Docker image that inherits another one (as we do in Drupal with the CLI). You can use the [target](https://docs.docker.com/compose/compose-file/build/#target) field inside the build to reconfigure as a multi-stage build
+* issues with `volumes_from` in Docker Compose v2 - this service (that provides SSH access into locally running containers) has been deprecated by Docker Compose. The section can be removed from your `docker-compose.yml` file if you don't require SSH access from inside your local environment, or can be worked around on a project-by-project basis - see https://github.com/pygmystack/pygmy/issues/333#issuecomment-1274091375 for more information.

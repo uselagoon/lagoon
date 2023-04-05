@@ -24,7 +24,7 @@ In order to be able to use `drush site:alias-convert` , you need to do the follo
 
 You can now convert your Drush aliases by running the following command in your project using the `cli` container:
 
-```text title="Generate Site Aliases"
+```bash title="Generate Site Aliases"
 docker-compose exec cli drush site:alias-convert /app/drush/sites --yes
 ```
 

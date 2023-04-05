@@ -39,8 +39,8 @@ Or via `docker-compose` inside a Drupal repository:
 
 Run: `docker-compose port [service_name] [interal_port]`.
 
-```text title="Set ports"
-$ docker-compose port mariab 3306
+```bash title="Set ports"
+docker-compose port mariab 3306
 0.0.0.0:32797
 ```
 

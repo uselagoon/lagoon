@@ -96,7 +96,7 @@ debugging.
 - Verify that Docker for Mac networking is not broken. On your host machine, run
   `nc -l 9003`, then in a new terminal window, run:
 
-  ```text
+  ```bash
   docker-compose run cli nc -zv host.docker.internal 9003
   ```
 

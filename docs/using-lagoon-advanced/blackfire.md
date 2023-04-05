@@ -16,7 +16,7 @@ In order to use Blackfire in Lagoon, these three environment variables need to b
 
 For local usage of Blackfire with Lagoon Images, set the above environment variables for the PHP container. Here is an example for a Drupal application:
 
-```
+```yaml title="lagoon.yml"
 
 services:
 
@@ -24,7 +24,7 @@ services:
 
   php:
     [[snip]]
-    
+
     environment:
       << : *default-environment # loads the defined environment variables from the top
       BLACKFIRE_ENABLED: TRUE
@@ -36,8 +36,7 @@ After restarting the containers, you should be able to profile via the [Blackfir
 
 ## Remote Usage of Blackfire
 
-In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](environment-variables.md). Important: Environment variables set in the `docker-compose.yaml` for local development are not used by Lagoon in remote environments! 
-
+In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](environment-variables.md). Important: Environment variables set in the `docker-compose.yml` for local development are not used by Lagoon in remote environments!
 
 ## Debugging
 

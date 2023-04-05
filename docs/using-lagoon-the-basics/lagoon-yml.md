@@ -14,7 +14,7 @@ The `.lagoon.yml` file must be placed at the root of your Git repository.
 
 ### `docker-compose-yaml`
 
-Tells the build script which docker-compose YAML file should be used, in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml`, but could be used for a specific Lagoon docker-compose YAML file if needed.
+Tells the build script which Docker Compose YAML file should be used, in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml`, but could be used for a specific Lagoon Docker Compose YAML file if needed.
 
 ### `environment_variables.git_sha`
 

@@ -16,7 +16,7 @@ Further, the derived image includes a call to the script `/build/pre_composer`, 
 
 ## Anatomy of a base image
 
-!!! Note
+!!! Info
     This document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.
 
 Base images are managed with [Composer](https://getcomposer.org/) and hosted in [BitBucket](https://bitbucket.org/), [GitHub](https://github.com/), or [GitLab](https://gitlab.com/) \(whatever your team is using\). Each base image has its own repository.
@@ -147,7 +147,7 @@ git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 
 #### Step 2 - Make the changes to the repository
 
-!!! Note
+!!! Info
     What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
 
 In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`.
@@ -221,7 +221,7 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 
 #### How Git tags map to image tags
 
-!!! Danger "Important Note"
+!!! Danger
     Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
 
 An important point to remember here is that the Jenkins base image build process will tag _images_ based on the _most recent commit’s tag_.
@@ -235,7 +235,7 @@ Images are tagged using the following rules, and images will be built for each o
 
 #### Step 4 - Building the new base images
 
-!!! Note
+!!! Info
     Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 
 1. Visit your Lagoon Jenkins instance.

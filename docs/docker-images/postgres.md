@@ -25,13 +25,14 @@ To allow Lagoon to select the best way to run the Postgres container, use `lagoo
 postgres:
   image: uselagoon/postgres-14-drupal:latest
   labels:
-    # tells Lagoon this is a postgres database
+    # tells Lagoon this is a Postgres database
     lagoon.type: postgres
   ports:
-    # exposes the port 5432 with a random local port, find it with `docker-compose port postgres 5432`
+    # exposes the port 5432 with a random local port
+    # find it with `docker-compose port postgres 5432`
     - "5432"
   volumes:
-   	# mounts a named volume at the default path for postgres
+   	# mounts a named volume at the default path for Postgres
     - db:/var/lib/postgresql/data
 ```
 
@@ -39,5 +40,5 @@ postgres:
 
 If you have SQL statements that need to be run immediately after container startup to initialize the database, you can place those `.sql` files in the container's `docker-entrypoint-initdb.d` directory. Any `.sql` files contained in that directory are run automatically at startup, as part of bringing the PostgreSQL container up.
 
-!!! Note
+!!! Warning
     These scripts are only run if the container is started with an empty database.

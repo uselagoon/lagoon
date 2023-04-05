@@ -44,6 +44,7 @@ description: >-
 | k3s | A highly available, certified Kubernetes distribution. |
 | k3d | k3d is a lightweight wrapper to run k3s in Docker. |
 | k8s | Numeronym for Kubernetes \(K + 8 letters + s\) |
+| k8up | K8up is a backup operator that will handle storage and app backups on a k8s/OpenShift cluster. |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |
 | KinD | Kubernetes in Docker - a tool for running local Kubernetes clusters using Docker container “nodes”. Kind was primarily designed for testing Kubernetes itself, but may be used for local development or CI.|
 | Kubernetes | An open-source system for automating deployment, scaling, and management of containerized applications. |
@@ -74,6 +75,7 @@ description: >-
 | RBAC | Role-Based Access Control |
 | RDS | Relational Database Service |
 | Redis | An open source, in-memory data store used as a database, cache, streaming engine, and message broker. |
+| Restic |An open-source backup program. |
 | Ruby | An interpreted, high-level, general-purpose programming language which supports multiple programming paradigms. It was designed with an emphasis on programming productivity and simplicity. In Ruby, everything is an object, including primitive data types.|
 | SHA-1 | Secure Hash Algorithm 1, a hash function which takes an input and produces a 160-bit hash value known as a message digest – typically rendered as 40 hexadecimal digits. It was designed by the United States National Security Agency, and is a U.S. Federal Information Processing Standard |
 | Solr | An open-source enterprise-search platform, written in Java. |

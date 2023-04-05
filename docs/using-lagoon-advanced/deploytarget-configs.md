@@ -74,7 +74,7 @@ mutation addDeployTargetConfig{
 ```
 
 !!! Note
-    `deployTarget` is an alias the Kubernetes or Openshift ID in the Lagoon API
+    `deployTarget` is an alias the Kubernetes or OpenShift ID in the Lagoon API
 
 It is also possible to configure multiple DeployTarget configurations.
 

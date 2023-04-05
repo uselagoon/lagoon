@@ -18,7 +18,7 @@ As there can be environment variables defined in either the Dockerfile or during
 
 ## Environment Variables \(Lagoon API\)
 
-We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repo \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment or on the internet, etc.
+We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repository \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment or on the internet, etc.
 
 The Lagoon API allows you to define project-wide or environment-specific variables. Additionally, they can be defined for a scope-only build-time or runtime. They are all created via the Lagoon GraphQL API. Read more on how to use the GraphQL API [in our GraphQL API](graphql.md) documentation.
 
@@ -116,7 +116,7 @@ mutation addContainerRegistryEnv {
 }
 ```
 
-This defines a environment id `546` specific container registry variable \(available only in that specific environment\):
+This defines a environment ID `546` specific container registry variable \(available only in that specific environment\):
 
 ```graphql title="Define environment ID."
 mutation addContainerRegistryEnv {
