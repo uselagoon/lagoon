@@ -3,6 +3,7 @@
 Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../docker-images/rabbitmq.md) service is the broker.
 
 1. Create `lagoon-remote-values.yml` in your config directory as you did the previous two files, and update the values.
+
   * **rabbitMQPassword**
 
   ``` bash title="Get RabbitMQ password"

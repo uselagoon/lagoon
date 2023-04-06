@@ -42,6 +42,7 @@ description: >-
 | Helm | A package manager for Kubernetes, it helps you manage Kubernetes applications. |
 | Helm Charts | Helm Charts help you define, install, and upgrade even the most complex Kubernetes application. |
 | HTTP | HyperText Transfer Protocol. HTTP is the underlying protocol used by the World Wide Web and this protocol defines how messages are formatted and transmitted, and what actions Web servers and browsers should take in response to various commands. |
+| IAM | AWS Identity and Access Management (IAM) is a web service that helps you securely control access to AWS resources.|
 | IDE | An integrated development environment is a software application that provides comprehensive facilities to computer programmers for software development. An IDE normally consists of at least a source code editor, build automation tools, and a debugger.|
 | Ingress controller | An Ingress controller is a specialized load balancer for Kubernetes (and other containerized) environments. |
 | IPTables | A command line utility for configuring Linux kernel firewall. |
