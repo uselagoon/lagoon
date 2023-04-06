@@ -2,7 +2,7 @@
 
 ## How do I contact my Lagoon administrator?
 
-You should have either a private Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
+You should have a private Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
 
 ## I found a bug! 🐞
 

@@ -45,7 +45,7 @@ Lagoon has built in configuration for the [K8up](https://k8up.io/k8up/1.2/index.
 !!! bug "K8up v2:"
     Lagoon does not currently support K8up v2 onwards due to a namespace change [here](https://github.com/uselagoon/build-deploy-tool/issues/121).
 
-We recommend installing K8up version [1.2.0](https://github.com/k8up-io/k8up/releases/tag/v1.2.0) with helm chart [1.1.0](https://github.com/appuio/charts/releases/tag/k8up-1.1.0)
+We recommend installing K8up version [1.2.0](https://github.com/k8up-io/k8up/releases/tag/v1.2.0) with Helm Chart [1.1.0](https://github.com/appuio/charts/releases/tag/k8up-1.1.0)
 
 ### Storage provisioners
 

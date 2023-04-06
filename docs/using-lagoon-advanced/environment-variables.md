@@ -167,7 +167,7 @@ On development environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_
 
 Lagoon supports custom backup locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-Please note that any use of these variables means that all environment and db backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
+Please note that any use of these variables means that all environment and database backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
 
 | Environment variable name              | Purpose                                                                                                                                                               |
 |:---------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -184,7 +184,7 @@ Lagoon will automatically prune the files in these S3 buckets, so no object rete
 
 Lagoon supports custom restore locations and credentials for any project when all four of the following variables are set as `BUILD` type environment variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-Please note that any use of these variables means that all environment and db snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.
+Please note that any use of these variables means that all environment and database snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.
 
 | Environment variable name               | Purpose                                                                                                                                                                |
 |:----------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
