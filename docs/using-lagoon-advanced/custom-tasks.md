@@ -26,11 +26,11 @@ There are three levels of permissions to the task system corresponding to projec
 
 ## Defining a task
 
-Tasks are defined by calling the "addAdvancedTaskDefinition" mutation. Importantly, this simply _defines_ the task, it does not invoke it. It simply makes it avaliable to be run in an environment.
+Tasks are defined by calling the `addAdvancedTaskDefinition` mutation. Importantly, this simply _defines_ the task, it does not invoke it. It simply makes it avaliable to be run in an environment.
 
 Schematically, the call looks like this
 
-```text
+```graphql title="Define a new task"
 mutation addAdvancedTask {
     addAdvancedTaskDefinition(input:{
     name: string,
@@ -95,7 +95,7 @@ In order to give more flexibility to the users invoking the tasks via the Lagoon
 
 Here is an example of how we might set up two arguments.
 
-```
+```graphql title="Define task arguments"
 advancedTaskDefinitionArguments: [
       {
         name: "ENV_VAR_NAME_SOURCE",
@@ -118,9 +118,7 @@ The second `ENV_VAR_NAME_STRING` is of type `STRING` and will present the user w
 
 The values that the user selects will be available as environment variables in the `COMMAND` type tasks when the task is run.
 
-
 ![Task Arguments](./custom-task-arguments.png)
-
 
 ### Confirmation
 
@@ -134,7 +132,7 @@ With the task now defined, the task should now show up in the tasks dropdown in 
 
 We are also able to invoke it via the GraphQL api by using the `invokeTask` mutation.
 
-```text
+```graphql title="Invoke task"
 mutation invokeTask {
   invokeRegisteredTask(advancedTaskDefinition: int, environment: int) {
     status
@@ -148,7 +146,7 @@ Note that `invokeTask` will always invoke a task on a _specific environment_.
 
 Let's now setup our `yarn audit` example.
 
-```text
+```graphql title="Define task mutation"
 mutation runYarnAudit {
  addAdvancedTaskDefinition(input:{
     name:"Run yarn audit",

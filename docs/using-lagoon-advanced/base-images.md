@@ -129,7 +129,7 @@ There are several steps to the build process. Most of these are shared among the
 
 #### Releasing a new version of a base image
 
-There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
+There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc. images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
 
 The images that your project's base images are built on are the managed images maintained by the Lagoon team. We release updates to these underlying images on a monthly (or more fequent) basus. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the upstream images.
 

@@ -6,13 +6,13 @@ API interactions in Lagoon are done via GraphQL. In order to authenticate to the
 
 To generate this token, use the remote shell via the `token` command:
 
-```bash
+```bash title="Get token"
 ssh -p [PORT] -t lagoon@[HOST] token
 ```
 
 Example for amazee.io:
 
-```bash
+```bash title="Get amazee.io token"
 ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
 ```
 
@@ -35,7 +35,7 @@ Close the HTTP Header overlay \(press ESC\) and now you are ready to make your f
 
 Enter this on the left window:
 
-```graphql
+```graphql title="Get all projects"
 query whatIsThere {
   allProjects {
     id
@@ -76,8 +76,8 @@ mutation editProjectBranches {
 
 Update the production environment within a project:
 
-!!! Note
-    Important: This requires a redeploy in order for all changes to be reflected in the containers.
+!!! Warning
+    This requires a redeploy in order for all changes to be reflected in the containers.
 
 ```graphql title="Update production environment"
 mutation editProjectProductionEnvironment {

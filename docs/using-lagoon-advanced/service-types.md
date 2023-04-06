@@ -2,7 +2,7 @@
 
 The below lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](../using-lagoon-the-basics/docker-compose-yml.md).
 
-!!! Note
+!!! Warning
     Once a `lagoon.type` is defined and the environment is deployed, changing it to a different type is not supported and could result in a broken environment.
 
 ## `basic`
@@ -23,7 +23,7 @@ Like `basic`. Will also generate persistent storage, defines mount location via 
 
 ## `cli`
 
-Use for any kind of CLI container \(like PHP, Node.js, etc.\). Automatically gets the customer SSH private key that is mounted in `/var/run/secrets/lagoon/sshkey/ssh-privatekey`.
+Use for any kind of CLI container \(like PHP, Node.js, etc\). Automatically gets the customer SSH private key that is mounted in `/var/run/secrets/lagoon/sshkey/ssh-privatekey`.
 
 | Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
 | :--- | :--- | :--- | :--- | :--- |

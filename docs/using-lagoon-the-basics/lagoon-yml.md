@@ -98,7 +98,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `service`
   * The service in which to run the task. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
 * `container`
-  * If the service has multiple containers (eg `nginx-php`), you will need to specify which container in the pod to connect to (e.g. the `php` container within the `nginx` pod).
+  * If the service has multiple containers (e.g. `nginx-php`), you will need to specify which container in the pod to connect to (e.g. the `php` container within the `nginx` pod).
 * `shell`
   * In which shell the task should be run. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. [See the example below](#example-post-rollout-tasks) to learn how to write a script with multiple lines.
 * `when`

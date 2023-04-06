@@ -2,7 +2,7 @@
 
 ## Enable Xdebug Extension
 
-The uselagoon base images are pre-configured with Xdebug but, for performance
+The Lagoon base images are pre-configured with Xdebug but, for performance
 reasons, the extension is not loaded by default. To enable the extension, the
 `XDEBUG_ENABLE` environment variable must be set to `true`:
 
@@ -56,7 +56,7 @@ debugging.
    to create a basic `launch.json` for PHP.
 3. Add correct path mappings. For a typical Drupal site, an example would be:
 
-   ```text
+   ```json title="launch.json"
    "pathMappings": {
      "/app": "${workspaceFolder}",
    },
@@ -96,7 +96,7 @@ debugging.
 - Verify that Docker for Mac networking is not broken. On your host machine, run
   `nc -l 9003`, then in a new terminal window, run:
 
-  ```bash
+  ```bash title="Verify Docker for Mac networking"
   docker-compose run cli nc -zv host.docker.internal 9003
   ```
 
@@ -104,7 +104,7 @@ debugging.
   `host.docker.internal (192.168.65.2:9003) open`.
 
 - When using Lando locally, in order to debug scripts run from the CLI you must
-  first SSH into the cli container via `lando ssh`. You won’t be able to debug
+  first SSH into the CLI container via `lando ssh`. You won’t be able to debug
   things by running `lando drush` or `lando php`.
 - You can enable the Xdebug log by setting the `XDEBUG_LOG` environment
   variable. Logs will be saved to `/tmp/xdebug.log`.

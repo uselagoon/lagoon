@@ -156,7 +156,7 @@ The docker-compose.yml file also supports per-service enabling and disabling of 
 
 ## Multi-Container Pods
 
-Kubernetes and OpenShift don't deploy plain containers. Instead, they deploy pods, with each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and Nginx containers that both contain PHP code of a web application like Drupal.
+Kubernetes and OpenShift don't deploy plain containers. Instead, they deploy pods, with each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and NGINX containers that both contain PHP code of a web application like Drupal.
 
 For these cases, it is possible to tell Lagoon which services should stay together, which is done in the following way \(remember that we are calling containers `services` because of `docker-compose`:
 

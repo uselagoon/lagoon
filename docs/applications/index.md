@@ -34,4 +34,4 @@ These are fully functional repositories, maintained and updated regularly, but m
 
 These are repositories that have been built as a demonstration, and are usable for some of the concepts within, but aren't routinely maintained or updated.
 
-For a more complete list, checkout out our GitHub repository: [https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) and our website [https://lagoon.sh/application/](https://lagoon.sh/applications/)
+For a more complete list, check out out our GitHub repository: [https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) and our website [https://lagoon.sh/application/](https://lagoon.sh/applications/)

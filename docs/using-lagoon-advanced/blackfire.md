@@ -16,7 +16,7 @@ In order to use Blackfire in Lagoon, these three environment variables need to b
 
 For local usage of Blackfire with Lagoon Images, set the above environment variables for the PHP container. Here is an example for a Drupal application:
 
-```yaml title="lagoon.yml"
+```yaml title="docker-compose.yml"
 
 services:
 

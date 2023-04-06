@@ -9,7 +9,7 @@ To change an existing project to support active/standby you'll need to configure
 * `productionEnviromment` should be set to the branch name of the current active environment.
 * `standbyProductionEnvironment` should be set to the branch name of the current environment that is in standby.
 
-```graphql
+```graphql title="Update project settings"
 mutation updateProject {
   updateProject(input:{
     id:1234

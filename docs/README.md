@@ -23,7 +23,7 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 5. Lagoon pushes them to a Docker registry.
 6. Lagoon creates the needed resources in Kubernetes.
 7. Lagoon monitors the deployment of the containers.
-8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc.\).
+8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc\).
 
 ## Help?
 

@@ -44,7 +44,7 @@ This file is used by `Docker Compose` to start your local development environmen
 
 Some Docker images and containers need additional customizations from the provided images. This usually has two reasons:
 
-1. **Application code**: Containers like NGINX, PHP, Node.js, etc., need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
+1. **Application code**: Containers like NGINX, PHP, Node.js, etc, need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
 2. **Customization of images**: Lagoon also allows you to customize the base images according to your needs. This can be to inject an additional environment variable, change a service configuration, or even install additional tools. We advise caution with installing additional tools to the Docker images, as you will need to maintain any adaptions in the future!
 
 ## Supported Services & Base Images by Lagoon

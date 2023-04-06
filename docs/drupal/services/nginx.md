@@ -67,7 +67,7 @@ If you're using the core Statistics module, you may run into an issue that needs
 
 With the default NGINX configuration, the request to the tracking endpoint `/core/modules/statistics/statistics.php` is denied \(404\).
 
-This is related to the default Nginx configuration:
+This is related to the default NGINX configuration:
 
 ```text title="drupal.conf"
 location ~* ^.+\.php$ {
