@@ -15,9 +15,10 @@
     ```
 
 3. Access Lagoon by authenticating with your SSH key.
-    1. In the Lagoon UI (the URL is in `values.yml` if you forget), go to **Settings**.
-    2. Add your public SSH key.
-    3. You need to set the default Lagoon to _your_ Lagoon so that it doesn’t try to use the amazee.io defaults:
+
+   1. In the Lagoon UI (the URL is in `values.yml` if you forget), go to **Settings**.
+   2. Add your public SSH key.
+   3. You need to set the default Lagoon to _your_ Lagoon so that it doesn’t try to use the amazee.io defaults:
 
     ```bash title="Lagoon config"
         lagoon config default --lagoon <YOUR-LAGOON-NAME>
@@ -27,5 +28,5 @@
 
 5. Verify via `lagoon whoami` that you are logged in.
 
-!!! Note
+!!! Info
      We don’t generally recommend using the Lagoon Admin role, but you’ll need to create an admin account at first to get started. Ideally, you’ll immediately create another account to work from which is _not_ an admin.

@@ -2,14 +2,14 @@
 
 ## Install the Helm chart
 
-1. Add Lagoon Charts repository to your Helm Repos:
+1. Add Lagoon Charts repository to your Helm Repositories:
 
-    ```bash title="Add Lagoon Charts repo"
+    ```bash title="Add Lagoon Charts repository"
     helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
     ```
 
 2. Create a directory for the configuration files we will create, and make sure that it’s version controlled. Ensure that you reference this path in commands referencing your `values.yml` files.
-3. Create `values.yml` in the directory you’ve just created. Update the endpoint URLs (change them from api.lagoon.example.com to your values).
+3. Create `values.yml` in the directory you’ve just created. Update the endpoint URLs (change them from `api.lagoon.example.com` to your values).
    Example: [https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml](https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml)
 4. Now run `helm upgrade --install` command, pointing to `values.yml`, like so:
 
@@ -20,13 +20,13 @@
 5. Lagoon Core is now installed!
 
 !!! warning
-    Note: Sometimes we run into Docker Hub pull limits. We are considering moving our images elsewhere if this continues to be a problem.
+    Sometimes we run into Docker Hub pull limits. We are considering moving our images elsewhere if this continues to be a problem.
 
 ## Configure Keycloak
 
 Visit the Keycloak dashboard at the URL you defined in the `values.yml` for Keycloak.
 
-1. Click Administration Console
+1. Click "Administration Console"
 2. Username: `admin`
 3. Password: use `lagoon-core-keycloak` secret, key-value `KEYCLOAK_ADMIN_PASSWORD`
 4. Retrieve the secret like so:
@@ -54,5 +54,5 @@ You should now be able to visit the Lagoon UI at the URL you defined in the `val
 3. Retrieve the secret:
 
     ```bash title="Retrieve secret"
-   kubectl -n lagoon-core get secret lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_LAGOON_ADMIN_PASSWORD}" | base64 --decode
-   ```
+        kubectl -n lagoon-core get secret lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_LAGOON_ADMIN_PASSWORD}" | base64 --decode
+    ```

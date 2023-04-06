@@ -1,6 +1,6 @@
 # EFS Provisioner
 
-!!! Note
+!!! Info
     This is only applicable to AWS installations.
 
 1. Add Helm repository:
