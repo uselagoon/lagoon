@@ -6,6 +6,8 @@ import { isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { Group } from '../models/group';
+import { User } from '../models/user';
+import { saveRedisKeycloakCache } from '../clients/redisClient';
 
 interface ILegacyToken {
   iat: string;
@@ -147,6 +149,7 @@ export class KeycloakUnauthorizedError extends Error {
 
 export const keycloakHasPermission = (grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
   const GroupModel = Group(modelClients);
+  const UserModel = User(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
 
@@ -187,7 +190,18 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           projectQuery: [`${projectId}`]
         };
 
-        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        let [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+
+        if (!highestRoleForProject) {
+          // if no role is detected, fall back to checking the slow way. this is usually only going to be on project creation
+          // but could happen elsewhere
+          const keycloakUsersGroups = await UserModel.getAllGroupsForUser(currentUser.id);
+          // grab the users project ids and roles in the first request
+          groupRoleProjectIds = await UserModel.getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+
+          [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        }
+
         if (upids.length) {
           claims = {
             ...claims,
@@ -214,12 +228,14 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           R.prop('group', attributes)
         );
 
+        const groupMembers = await GroupModel.getGroupMembership(group)
+
         const groupRoles = R.pipe(
           R.filter(membership =>
             R.pathEq(['user', 'id'], currentUser.id, membership)
           ),
           R.pluck('role')
-        )(group.members);
+        )(groupMembers);
 
         const highestRoleForGroup = R.pipe(
           R.uniq,
