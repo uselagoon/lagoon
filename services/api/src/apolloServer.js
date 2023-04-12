@@ -25,6 +25,7 @@ const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 const { keycloakGrantManager } = require('./clients/keycloakClient');
+const { getRedisKeycloakCache, saveRedisKeycloakCache } = require('./clients/redisClient');
 
 const User = require('./models/user');
 const Group = require('./models/group');
@@ -171,12 +172,30 @@ const apolloServer = new ApolloServer({
 
       // get all keycloak groups, do this early to reduce the number of times this is called otherwise
       // but doing this early and once is pretty cheap
-      let allGroups = await Group.Group(modelClients).loadAllGroups();
-      let keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
+      let keycloakGroups = []
+      try {
+        // check redis for the allgroups cache value
+        const data = await getRedisKeycloakCache("allgroups");
+        let buff = new Buffer(data, 'base64');
+        keycloakGroups = JSON.parse(buff.toString('utf-8'));
+      } catch (err) {
+        logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
+        // if it can't be recalled from redis, get the data from keycloak
+        const allGroups = await Group.Group(modelClients).loadAllGroups();
+        keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
+        const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
+        try {
+          // then attempt to save it to redis
+          await saveRedisKeycloakCache("allgroups", data);
+        } catch (err) {
+          logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+        }
+      }
 
       let currentUser = {};
       let serviceAccount = {};
       // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
+      // legacy accounts don't do this
       let keycloakUsersGroups = []
       let groupRoleProjectIds = []
       const keycloakGrant = req.kauth ? req.kauth.grant : null
