@@ -58,7 +58,7 @@ export const getAllGroups: ResolverFn = async (
 };
 
 // TODO: recursive lookups for groups in groups?
-export const getGroupFromGroups = async (id, groups) => {
+export const getGroupFromGroupsById = async (id, groups) => {
   const d = R.filter(R.propEq('id', id), groups);
   if (d.length) {
     return d[0];
@@ -66,6 +66,22 @@ export const getGroupFromGroups = async (id, groups) => {
   for (const group in groups) {
     if (groups[group].groups.length) {
       const d = R.filter(R.propEq('id', id), groups[group].groups)
+      if (d.length) {
+        return d[0];
+      }
+    }
+  }
+  return {};
+}
+
+export const getGroupFromGroupsByName = async (id, groups) => {
+  const d = R.filter(R.propEq('name', id), groups);
+  if (d.length) {
+    return d[0];
+  }
+  for (const group in groups) {
+    if (groups[group].groups.length) {
+      const d = R.filter(R.propEq('name', id), groups[group].groups)
       if (d.length) {
         return d[0];
       }
@@ -82,7 +98,7 @@ export const getMembersByGroupId: ResolverFn = async (
   try {
     // members resolver is only called by group, no need to check the permissions on the group
     // as the group resolver will have already checked permission
-    const group = await getGroupFromGroups(id, keycloakGroups);
+    const group = await getGroupFromGroupsById(id, keycloakGroups);
     const members = await models.GroupModel.getGroupMembership(group);
     return members;
   } catch (err) {
@@ -611,7 +627,13 @@ export const getAllProjectsInGroup: ResolverFn = async (
   if (adminScopes.groupViewAll) {
     try {
       // get group from all keycloak groups apollo context
-      const group = await getGroupFromGroups(groupInput.id, keycloakGroups)
+      let group = [];
+      if (groupInput.name) {
+        group = await getGroupFromGroupsByName(groupInput.name, keycloakGroups);
+      }
+      if (groupInput.id) {
+        group = await getGroupFromGroupsById(groupInput.id, keycloakGroups);
+      }
       const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
       return projectIdsArray.map(async id =>
         projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
@@ -633,7 +655,13 @@ export const getAllProjectsInGroup: ResolverFn = async (
     return [];
   } else {
     // get group from all keycloak groups apollo context
-    const group = await getGroupFromGroups(groupInput.id, keycloakGroups)
+    let group = [];
+    if (groupInput.name) {
+      group = await getGroupFromGroupsByName(groupInput.name, keycloakGroups);
+    }
+    if (groupInput.id) {
+      group = await getGroupFromGroupsById(groupInput.id, keycloakGroups);
+    }
     // get users groups from users keycloak groups apollo context
     const userGroups = keycloakUsersGroups;
     const user = await models.UserModel.loadUserById(

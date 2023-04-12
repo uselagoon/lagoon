@@ -72,6 +72,23 @@ export const saveRedisCache = async (
   );
 };
 
+export const getRedisKeycloakCache = async (key: string) => {
+  const redisHash = await hgetall(`cache:keycloak`);
+
+  return R.prop(key, redisHash);
+};
+
+export const saveRedisKeycloakCache = async (
+  key: string,
+  value: number | string
+) => {
+  await redisClient.hmset(
+    `cache:keycloak`,
+    key,
+    value
+  );
+};
+
 export const deleteRedisUserCache = userId => del(`cache:authz:${userId}`);
 
 export const getProjectGroupsCache = async projectId =>
@@ -98,6 +115,8 @@ export const deleteUsersOrganizationCache = async (organizationId, userIds) =>
 export default {
   getRedisCache,
   saveRedisCache,
+  getRedisKeycloakCache,
+  saveRedisKeycloakCache,
   deleteRedisUserCache,
   getProjectGroupsCache,
   saveProjectGroupsCache,
