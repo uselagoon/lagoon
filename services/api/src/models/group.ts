@@ -323,15 +323,6 @@ export const Group = (clients: {
 
     let groupIds = [];
 
-    // This function is called often and is expensive to compute so prefer
-    // performance over DRY
-    // try {
-    //   groupIds = await redisClient.getOrganizationGroupsCache(organizationId);
-    // } catch (err) {
-    //   logger.warn(`Error loading project groups from cache: ${err.message}`);
-    //   groupIds = [];
-    // }
-
     if (R.isEmpty(groupIds)) {
       const keycloakGroups = await keycloakAdminClient.groups.find();
       // @ts-ignore
@@ -352,19 +343,12 @@ export const Group = (clients: {
 
     try {
       const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
-      try {
-        const filteredGroupIds = R.pluck('id', filteredGroups);
-        // await redisClient.saveOrganizationGroupsCache(organizationId, filteredGroupIds);
-      } catch (err) {
-        logger.warn(`Error saving organization groups to cache: ${err.message}`);
-      }
       const groups = await transformKeycloakGroups(filteredGroups);
       return groups;
     } catch (err) {
       // if the groups don't exist, then purge this organizations redis cache
       // this would be better handled in the `deleteGroup` function, but promises and stuff don't seem to work properly
       // TODO: SEARCH AND SEE -> DELETEGROUPORGCACHE
-      // await redisClient.deleteOrganizationGroupsCache(organizationId);
       return null
     }
 
