@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
@@ -309,27 +310,43 @@ export const addFacts: ResolverFn = async (
 export const addFactsByName: ResolverFn = async (
   root,
   { input: { project, environment, facts } },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models, adminScopes }
 ) => {
   if (project && environment) {
-    let lagoonProject = await api.getProjectByName(project);
-    let environments = await getEnvironmentsByProjectId(lagoonProject, {}, { sqlClientPool, hasPermission, keycloakGrant, userActivityLogger, models })
+
+    if (!adminScopes.projectViewAll) {
+      await hasPermission('environment', 'view', {
+        project: project
+      });
+    }
+
+    let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+    let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
 
     let envId;
     if (environments) {
       for (let i = 0; i < environments.length; i++) {
         if (environments[i].name === environment) {
           envId = environments[i].id
+          break;
         }
       }
+    } else {
+      throw new Error(`No environments found for project '${project}'`);
     }
 
-    if (envId) {
+    if (!envId) {
+      throw new Error(`No environment '${environment}' found for project '${project}'`);
+    }
       for (let i = 0; i < facts.length; i++) {
         facts[i].environment = envId;
       }
-    }
+
+  } else {
+    throw new Error("Both 'project' and 'environment' require values"); //Presumably this'll be taken care of via the schema, but let's check either way.
   }
+
+
 
   const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission);
 

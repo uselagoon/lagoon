@@ -49,6 +49,13 @@ export const Helpers = (sqlClientPool: Pool) => {
         Sql.deleteEnvironment(name, pid)
       );
     },
+    getEnvironmentsByProjectId: async (projectId) => {
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectEnvironmentsByProjectID(projectId)
+      );
+      return aliasOpenshiftToK8s(rows);
+    },
     getEnvironmentsByEnvironmentInput: async environmentInput => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
