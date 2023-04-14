@@ -1102,6 +1102,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         standbyRoutes
         standbyAlias
         productionBuildPriority
+        storageCalc
         developmentBuildPriority
         envVariables {
           name
