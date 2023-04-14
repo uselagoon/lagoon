@@ -122,12 +122,13 @@ nav:
     - HarborRegistry: administering-lagoon/using-harbor/harbor-settings/harborregistry.md
     - HarborRegistryCtl: administering-lagoon/using-harbor/harbor-settings/harborregistryctl.md
 - Contributing to Lagoon:
+  - Documentation: contributing-to-lagoon/documentation.md
+  - Code of Conduct: code-of-conduct.md
   - Contributing: contributing.md
   - Developing Lagoon: contributing-to-lagoon/developing-lagoon.md
-  - Code of Conduct: code-of-conduct.md
-  - Documentation: contributing-to-lagoon/documentation.md
   - Tests: contributing-to-lagoon/tests.md
   - API Debugging: contributing-to-lagoon/api-debugging.md
+  - Releasing: contributing-to-lagoon/releasing.md
 - Community:
   - Code of Conduct: code-of-conduct.md
   - Discord: community/discord.md
