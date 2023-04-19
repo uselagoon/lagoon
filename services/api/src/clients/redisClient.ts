@@ -1,8 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import redis, { ClientOpts } from 'redis';
-// @ts-ignore
 import { promisify } from 'util';
 import { toNumber } from '../util/func';
 import { getConfigFromEnv, envHasConfig } from '../util/config';
@@ -27,7 +24,6 @@ const redisClient = redis.createClient({
 });
 
 redisClient.on('error', function(error) {
-  // @ts-ignore
   console.error(error);
 });
 
@@ -41,17 +37,14 @@ interface IUserResourceScope {
   scope: string;
   currentUserId: string;
   project?: number;
-  organization?: number;
   group?: string;
   users?: number[];
 }
 
-const hashKey = ({ resource, project, organization, group, scope }: IUserResourceScope) =>
-  `${resource}:
-  ${project ? `${project}:` : ''}
-  ${group ? `${group}:` : ''}
-  ${organization ? `${organization}:` : ''}
-  ${scope}`;
+const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
+  `${resource}:${project ? `${project}:` : ''}${
+    group ? `${group}:` : ''
+  }${scope}`;
 
 export const getRedisCache = async (resourceScope: IUserResourceScope) => {
   const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
@@ -98,20 +91,6 @@ export const saveProjectGroupsCache = async (projectId, groupIds) =>
 export const deleteProjectGroupsCache = async projectId =>
   del(`project-groups:${projectId}`);
 
-export const getOrganizationGroupsCache = async organizationId =>
-  smembers(`organization-groups:${organizationId}`);
-export const saveOrganizationGroupsCache = async (organizationId, groupIds) =>
-  sadd(`organization-groups:${organizationId}`, groupIds);
-export const deleteOrganizationGroupsCache = async (organizationId, groupIds) =>
-  del(`organization-groups:${organizationId}`);
-
-export const getUsersOrganizationCache = async organizationId =>
-  smembers(`organization-users:${organizationId}`);
-export const saveUsersOrganizationCache = async (organizationId, userIds) =>
-  sadd(`organization-users:${organizationId}`, userIds);
-export const deleteUsersOrganizationCache = async (organizationId, userIds) =>
-  del(`organization-users:${organizationId}`);
-
 export default {
   getRedisCache,
   saveRedisCache,
@@ -119,11 +98,5 @@ export default {
   saveRedisKeycloakCache,
   deleteRedisUserCache,
   getProjectGroupsCache,
-  saveProjectGroupsCache,
-  getOrganizationGroupsCache,
-  saveOrganizationGroupsCache,
-  deleteOrganizationGroupsCache,
-  getUsersOrganizationCache,
-  saveUsersOrganizationCache,
-  deleteUsersOrganizationCache
+  saveProjectGroupsCache
 };
