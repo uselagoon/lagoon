@@ -457,10 +457,19 @@ const typeDefs = gql`
     gitlabId: Int
     sshKeys: [SshKey]
     groups: [GroupInterface]
+    # This just returns the group name, id and the role the user has in that group.
+    # This is a neat way to visualize a users specific access without having to get all members of a group
+    groupRoles: [GroupRoleInterface]
   }
 
   type GroupMembership {
     user: User
+    role: GroupRole
+  }
+
+  type GroupRoleInterface {
+    id: String
+    name: String
     role: GroupRole
   }
 
@@ -1075,6 +1084,10 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
+    Returns User Object by a given email address
+    """
+    userByEmail(email: String!): User
+    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
@@ -1148,6 +1161,10 @@ const typeDefs = gql`
     """
     allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
     problemSources: [String]
+    """
+    Returns all Users
+    """
+    allUsers(id: String, email: String, gitlabId: Int): [User]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
