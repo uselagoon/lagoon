@@ -13,7 +13,6 @@ import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
-import { logger } from '../../loggers/logger';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
