@@ -1,24 +1,24 @@
 # Install the Lagoon CLI
 
 1. Check [https://github.com/uselagoon/lagoon-cli#install](https://github.com/uselagoon/lagoon-cli#install) on how to install for your operating system. For macOS and Linux, you can use Homebrew:
-    1. `brew tap uselagoon/lagoon-cli`
-    2. `brew install lagoon`
+  1. `brew tap uselagoon/lagoon-cli`
+  2. `brew install lagoon`
 2. The CLI needs to know how to communicate with Lagoon, so run the following command:
-    ```bash
-    lagoon config add \
-        --graphql https://YOUR-API-URL/graphql \
-        --ui https://YOUR-UI-URL \
-        --hostname YOUR.SSH.IP \
-        --lagoon YOUR-LAGOON-NAME \
-        --port 22
-    ```
+  ```bash
+  lagoon config add \
+      --graphql https://YOUR-API-URL/graphql \
+      --ui https://YOUR-UI-URL \
+      --hostname YOUR.SSH.IP \
+      --lagoon YOUR-LAGOON-NAME \
+      --port 22
+  ```
 
 3. Access Lagoon by authenticating with your SSH key.
-    1. In the Lagoon UI (the URL is in `values.yml` if you forget), go to **Settings**.
-    2. Add your public SSH key.
-    3. You need to set the default Lagoon to _your_ Lagoon so that it doesn’t try to use the amazee.io defaults:
-        ```
-        lagoon config default --lagoon <YOUR-LAGOON-NAME>
+  1. In the Lagoon UI (the URL is in `values.yml` if you forget), go to **Settings**.
+  2. Add your public SSH key.
+  3. You need to set the default Lagoon to _your_ Lagoon so that it doesn’t try to use the amazee.io defaults:
+      ```
+      lagoon config default --lagoon <YOUR-LAGOON-NAME>
         ```
 
 4. Now run `lagoon login`. Lagoon talks to SSH and authenticates against your public/private key pair, and gets a token for your username.

@@ -545,6 +545,69 @@ mutation PopulateApi {
     id
   }
 
+  UIProjectAdvancedTask1: addAdvancedTaskDefinition(
+    input:{
+      name: "Admin only task"
+      description: "A task that only admins can see and run (logs also only visible to admin)"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: MAINTAINER
+      project: 18
+      adminOnlyView: true
+      deployTokenInjection: true
+      projectKeyInjection: true
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
+  }
+
+  UIProjectAdvancedTask2: addAdvancedTaskDefinition(
+    input:{
+      name: "Mainter task"
+      description: "A task that maintainers can run"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: MAINTAINER
+      project: 18
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
+  }
+
+  UIProjectAdvancedTask3: addAdvancedTaskDefinition(
+    input:{
+      name: "Developer task"
+      description: "A task that developers can run"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: DEVELOPER
+      project: 18
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
+  }
+
   UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
     id
   }
@@ -783,4 +846,142 @@ mutation PopulateApi {
     id
   }
 
+  ## Create some general users with specific role against high-cotton for permissions validations in local testing easily
+  UserExampleGuest: addUser(
+    input: {
+      email: "guest@example.com"
+      comment: "guest user"
+    }
+  ) {
+    id
+  }
+
+  UserExampleReporter: addUser(
+    input: {
+      email: "reporter@example.com"
+      comment: "reporter user"
+    }
+  ) {
+    id
+  }
+
+  UserExampleDeveloper: addUser(
+    input: {
+      email: "developer@example.com"
+      comment: "developer user"
+    }
+  ) {
+    id
+  }
+
+  UserExampleMaintainer: addUser(
+    input: {
+      email: "maintainer@example.com"
+      comment: "maintainer user"
+    }
+  ) {
+    id
+  }
+
+  UserExampleOwner: addUser(
+    input: {
+      email: "owner@example.com"
+      comment: "owner user"
+    }
+  ) {
+    id
+  }
+
+  HighCottonGroup: addGroup(
+    input: {
+      name: "high-cotton"
+    }
+  ) {
+    id
+  }
+
+  HighCottonProjectToGroup: addGroupsToProject(
+    input: {
+      project: {
+        name: "high-cotton"
+      }
+      groups: [
+        {
+          name: "high-cotton"
+        }
+      ]
+    }
+  ) {
+    id
+  }
+
+  UserExampleGuestGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"guest@example.com"
+      }
+      group: {
+        name: "high-cotton"
+      }
+      role: GUEST
+    }
+  ) {
+    name
+  }
+
+  UserExampleReporterGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"reporter@example.com"
+      }
+      group: {
+        name: "high-cotton"
+      }
+      role: REPORTER
+    }
+  ) {
+    name
+  }
+
+  UserExampleDeveloperGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"developer@example.com"
+      }
+      group: {
+        name: "high-cotton"
+      }
+      role: DEVELOPER
+    }
+  ) {
+    name
+  }
+
+  UserExampleMaintainerGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"maintainer@example.com"
+      }
+      group: {
+        name: "high-cotton"
+      }
+      role: MAINTAINER
+    }
+  ) {
+    name
+  }
+
+  UserExampleOwnerGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"owner@example.com"
+      }
+      group: {
+        name: "high-cotton"
+      }
+      role: OWNER
+    }
+  ) {
+    name
+  }
 }

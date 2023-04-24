@@ -62,7 +62,7 @@ Also, `php-fpm` error logging happens in `stderr`.
       2. PHP values with the [`PHP_INI_SYSTEM` changeable mode](https://www.php.net/manual/en/configuration.changes.modes.php) cannot be changed via an `fpm-pool` config. They need to be changed either via already provided environment variables or:
 3. Provide your own `php.ini` or `php-fpm.conf` file \(this is the least preferred method\).
 
-## default fpm-pool
+## Default fpm-pool
 
 This image is shipped with an `fpm-pool` config \([`php-fpm.d/www.conf`](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/php-fpm.d/www.conf)\) that creates an `fpm-pool` and listens on port 9000. This is because we try to provide an image which already covers most needs for PHP, so you don't need to create your own. You are welcome to do so if you like, though!
 
@@ -77,30 +77,32 @@ Here a short description of what this file does:
 
 ## Environment Variables
 
-Environment variables are meant to contain common information for the PHP container.
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-| Environment Variable | Default | Description |
-| :--- | :--- | :--- |
-| `NEWRELIC_ENABLED` | `false` | Enable NewRelic performance monitoring, needs `NEWRELIC_LICENSE` be configured. |
-| `NEWRELIC_LICENSE` | \(not set\) | NewRelic license to be used, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
-| `NEWRELIC_BROWSER_MONITORING_ENABLED` | `true` | This enables auto-insertion of the JavaScript fragments for NewRelic browser monitoring, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
-| `PHP_APC_ENABLED` | `1` | Can be set to 0 to disable APC. [See php.net](https://www.php.net/manual/en/apcu.configuration.php#ini.apcu.enabled). |
-| `PHP_APC_SHM_SIZE` | `32m` | The size of each shared memory segment given. [See php.net](https://www.php.net/manual/en/apcu.configuration.php#ini.apcu.shm-size). |
-| `PHP_DISPLAY_ERRORS` | `Off` | This determines whether errors should be printed to the screen as part of the output or if they should be hidden from the user. [See php.net](https://www.php.net/display-errors). |
-| `PHP_DISPLAY_STARTUP_ERRORS` | `Off` | Even when `PHP_DISPLAY_ERRORS` is on, errors that occur during PHP's startup sequence are not displayed. It's strongly recommended to keep it off, except for debugging. [See php.net](https://www.php.net/display-startup-errors). |
-| `PHP_ERROR_REPORTING` | Production: `E_ALL & ~E_DEPRECATED & ~E_STRICT` Development: `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE` | The desired logging level you'd like PHP to use. [See php.net](https://www.php.net/manual/en/function.error-reporting.php). |
-| `PHP_FPM_PM_MAX_CHILDREN` | `50` | The the maximum number of child processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_FPM_PM_MAX_REQUESTS` | `500` | The number of requests each child process should execute before re-spawning. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_FPM_PM_MAX_SPARE_SERVERS` | `2` | The desired maximum number of idle server processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_FPM_PM_MIN_SPARE_SERVERS` | `2` | The desired minimum number of idle server processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_FPM_PM_PROCESS_IDLE_TIMEOUT` | `60s` | The number of seconds after which an idle process will be killed. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_FPM_PM_START_SERVERS` | `2` | The number of child processes created on startup. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
-| `PHP_MAX_EXECUTION_TIME` | `900` | Maximum execution time of each script, in seconds. [See php.net](https://www.php.net/max-execution-time). |
-| `PHP_MAX_FILE_UPLOADS` | `20` | The maximum number of files allowed to be uploaded simultaneously. [See php.net](https://www.php.net/manual/en/ini.core.php#ini.max-file-uploads). |
-| `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](https://www.php.net/manual/en/info.configuration.php#ini.max-input-vars). |
-| `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](https://www.php.net/memory-limit). |
-| `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. |
-| `BLACKFIRE_ENABLED` | \(not set\) | Used to enable `blackfire` extension with setting variable to `TRUE` or `true` |
-| `BLACKFIRE_SERVER_ID` | \(not set\) | Set to Blackfire Server ID provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
-| `BLACKFIRE_SERVER_TOKEN` | \(not set\) | Set to Blackfire Server Token provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
-| `BLACKFIRE_LOG_LEVEL` | `3` | Change the log level of the blackfire agent. By default set to `3`, available values: `log verbosity level (4: debug, 3: info, 2: warning, 1: error)` [See blackfire.io](https://blackfire.io/docs/up-and-running/configuration/agent). |
+| Environment Variable                 | Default   | Description                                                                                                                                              |
+| :----------------------------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NEWRELIC_ENABLED                     | false     | Enable NewRelic performance monitoring, needs `NEWRELIC_LICENSE` be configured.                                                                          |
+| NEWRELIC_LICENSE                     | (not set) | NewRelic license to be used. Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled.                                 |
+| NEWRELIC_BROWSER_MONITORING_ENABLED  | true      | This enables auto-insertion of the JavaScript fragments for NewRelic browser monitoring. Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
+| NEWRELIC_DISTRIBUTED_TRACING_ENABLED | false     | This enables distributed tracing. Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled.                            |
+| PHP_APC_ENABLED                      | 1         | Can be set to `0` to disable [APC](https://www.php.net/manual/en/apcu.configuration.php).                                                                |
+| PHP_APC_SHM_SIZE                     | 32m       | The size of each shared memory segment given.                                                                                                            |
+| PHP_DISPLAY_ERRORS                   | Off       | Configures whether errors are printed or hidden. [See php.net](https://www.php.net/display-errors).                                                      |
+| PHP_DISPLAY_STARTUP_ERRORS           | Off       | Configures whether startup errors are printed or hidden. [See php.net](https://www.php.net/display-startup-errors).                                      |
+| PHP_ERROR_REPORTING                  | Production `E_ALL & ~E_DEPRECATED & ~E_STRICT` Development: `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE` | The desired logging level you'd like PHP to use. [See php.net](https://www.php.net/manual/en/function.error-reporting.php). |
+| PHP_FPM_PM_MAX_CHILDREN              | 50        | The the maximum number of child processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php).                                   |
+| PHP_FPM_PM_MAX_REQUESTS              | 500       | The number of requests each child process should execute before re-spawning. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php). |
+| PHP_FPM_PM_MAX_SPARE_SERVERS         | 2         | The desired maximum number of idle server processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php).                         |
+| PHP_FPM_PM_MIN_SPARE_SERVERS         | 2         | The desired minimum number of idle server processes. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php).                         |
+| PHP_FPM_PM_PROCESS_IDLE_TIMEOUT      | 60s       | The number of seconds after which an idle process will be killed. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php).            |
+| PHP_FPM_PM_START_SERVERS             | 2         | The number of child processes created on startup. [See php.net](https://www.php.net/manual/en/install.fpm.configuration.php).                            |
+| PHP_MAX_EXECUTION_TIME               | 900       | Maximum execution time of each script, in seconds. [See php.net](https://www.php.net/max-execution-time).                                                |
+| PHP_MAX_FILE_UPLOADS                 | 20        | The maximum number of files allowed to be uploaded simultaneously. [See php.net](https://www.php.net/manual/en/ini.core.php#ini.max-file-uploads).       |
+| PHP_MAX_INPUT_VARS                   | 2000      | How many input variables will be accepted. [See php.net](https://www.php.net/manual/en/info.configuration.php#ini.max-input-vars).                       |
+| PHP_MEMORY_LIMIT                     | 400M      | Maximum amount of memory a script may consume. [See php.net](https://www.php.net/memory-limit).                                                          |
+| XDEBUG_ENABLE                        | (not set) | Set to `true` to enable `xdebug` extension.                                                                                                              |
+| BLACKFIRE_ENABLED                    | (not set) | Set to `true` to enable `blackfire` extension.                                                                                                           |
+| BLACKFIRE_SERVER_ID                  | (not set) | Set to Blackfire Server ID provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true`.                                                             |
+| BLACKFIRE_SERVER_TOKEN               | (not set) | Set to Blackfire Server Token provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true`.                                                          |
+| BLACKFIRE_LOG_LEVEL                  | 3         | Change the log level of the blackfire agent. Available values: `log verbosity level (4: debug, 3: info, 2: warning, 1: error)` [See blackfire.io](https://blackfire.io/docs/up-and-running/configuration/agent). |

@@ -15,7 +15,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
 
       const openshiftFromId = asyncPipe(R.prop('id'), async id => {
-        const rows = await query(sqlClientPool, Sql.selectOpenshiftById(id));
+        const rows = await query(sqlClientPool, Sql.selectOpenshift(id));
         const openshift = R.prop(0, rows);
 
         if (!openshift) {

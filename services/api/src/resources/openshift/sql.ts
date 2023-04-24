@@ -55,7 +55,7 @@ export const Sql = {
       .where('id', '=', id)
       .update(patch)
       .toString(),
-  selectOpenshiftById: (id: number) =>
+  selectOpenshift: (id: number) =>
     knex('openshift')
       .where('id', '=', id)
       .toString(),

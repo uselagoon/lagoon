@@ -155,8 +155,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -174,8 +177,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -764,6 +770,10 @@ const typeDefs = gql`
     DeployTargetConfigs are a way to define which deploy targets are used for a project\n
     """
     deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Build image this project will use if set
+    """
+    buildImage: String
   }
 
   """
@@ -848,7 +858,7 @@ const typeDefs = gql`
     envVariables: [EnvKeyValue]
     route: String
     routes: String
-    monitoringUrls: String
+    monitoringUrls: String @deprecated(reason: "No longer in use")
     deployments(name: String, limit: Int): [Deployment]
     insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
@@ -960,6 +970,9 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
@@ -1272,6 +1285,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input AddEnvironmentInput {
@@ -1432,8 +1446,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1454,7 +1469,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input DeleteTaskInput {
@@ -1647,6 +1664,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input UpdateProjectInput {

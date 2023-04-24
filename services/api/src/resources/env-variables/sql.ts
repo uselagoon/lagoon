@@ -45,31 +45,39 @@ export const Sql = {
   selectEnvVarByNameAndProjectId: (name: string, projectId: number) =>
     knex('env_vars')
       .select('env_vars.*')
-      .leftJoin('project', 'env_vars.project', '=', 'project.id')
       .where('env_vars.name', '=', name)
       .andWhere('env_vars.project', '=', projectId)
       .toString(),
   selectEnvVarByNameAndEnvironmentId: (name: string,  environmentId: number) =>
     knex('env_vars')
       .select('env_vars.*')
-      .leftJoin('environment', 'env_vars.environment', '=', 'environment.id')
       .where('env_vars.name', '=', name)
       .andWhere('env_vars.environment', '=', environmentId)
       .toString(),
   selectEnvVarsByProjectId: (projectId: number) =>
     knex('env_vars')
       .select('env_vars.*')
-      .leftJoin('project', 'env_vars.project', '=', 'project.id')
       .where('env_vars.project', '=', projectId)
       .orderBy('env_vars.name', 'asc')
       .toString(),
+  selectEnvVarsWithoutValueByProjectId: (projectId: number) =>
+      knex('env_vars')
+        .select('id', 'name', 'scope')
+        .where('env_vars.project', '=', projectId)
+        .orderBy('env_vars.name', 'asc')
+        .toString(),
   selectEnvVarsByEnvironmentId: (environmentId: number) =>
     knex('env_vars')
       .select('env_vars.*')
-      .leftJoin('environment', 'env_vars.environment', '=', 'environment.id')
       .where('env_vars.environment', '=', environmentId)
       .orderBy('env_vars.name', 'asc')
       .toString(),
+  selectEnvVarsWithoutValueByEnvironmentId: (environmentId: number) =>
+      knex('env_vars')
+        .select('id', 'name', 'scope')
+        .where('env_vars.environment', '=', environmentId)
+        .orderBy('env_vars.name', 'asc')
+        .toString(),
   selectPermsForEnvVariable: (id: number) =>
     knex('env_vars')
       .select({ pid: 'project.id' })

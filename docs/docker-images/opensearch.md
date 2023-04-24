@@ -10,11 +10,12 @@
 
 ## Environment Variables
 
-| Environment Variable |      Default      |                                                           Description                                                            |
-| :------------------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENSEARCH_JAVA_OPTS`       | -Xms512m -Xmx512m | Sets the memory usage of the OpenSearch container. Both values need be the same value or OpenSearch will not start cleanly |
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-
+| Environment Variable | Default           | Description                                                                                                                 |
+| :------------------- | :---------------- | :-------------------------------------------------------------------------------------------------------------------------  |
+| OPENSEARCH_JAVA_OPTS | -Xms512m -Xmx512m | Sets the memory usage of the OpenSearch container. Both values need be the same value or OpenSearch will not start cleanly. |
 
 ## Known issues
 

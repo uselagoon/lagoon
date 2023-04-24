@@ -15,7 +15,8 @@ environments:
           insecure: None
       - moving-route.com
       - hsts-header.com:
-          hsts: max-age=15768000
+          hstsEnabled: true
+          hstsMaxAge: 15768000
       - hsts-header-null.com
     - nginx-basic-auth:
       - nginx-basic-auth.com

@@ -14,9 +14,9 @@ describe('Sql', () => {
       expect(ret).toMatchSnapshot();
     });
   });
-  describe('selectOpenshiftById', () => {
+  describe('selectOpenshift', () => {
     it('should create a proper statement', () => {
-      const ret = Sql.selectOpenshiftById(1);
+      const ret = Sql.selectOpenshift(1);
       expect(ret).toMatchSnapshot();
     });
   });

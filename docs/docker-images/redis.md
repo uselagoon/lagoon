@@ -37,15 +37,16 @@ The image ships a _default_ Redis configuration file, optimized to work on Lagoo
 
 ### Environment Variables
 
-Some options in this default configuration are configurable via [runtime environment variables](../using-lagoon-advanced/environment-variables.md#runtime-environment-variables-lagoon-api).
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md).
 
-| Environment Variable | Default     |                                        Description                                        |
-| :------------------- | :---------- | :---------------------------------------------------------------------------------------- |
-| `DATABASES`          | -1          | Default number of databases created at startup                                            |
-| `LOGLEVEL`           | notice      | Define the level of logs                                                                  |
-| `MAXMEMORY`          | 100mb       | Maximum amount of memory                                                                  |
-| `MAXMEMORYPOLICY`    | allkeys-lru | The policy to use when evicting keys if redis reaches its maximum memory usage            |
-| `REDIS_PASSWORD`     | disabled    | Enables [authentication feature](https://redis.io/topics/security#authentication-feature) |
+| Environment Variable | Default     |                                        Description                                         |
+| :------------------- | :---------- | :----------------------------------------------------------------------------------------- |
+| DATABASES            | -1          | Default number of databases created at startup.                                            |
+| LOGLEVEL             | notice      | Define the level of logs.                                                                  |
+| MAXMEMORY            | 100mb       | Maximum amount of memory.                                                                  |
+| MAXMEMORYPOLICY      | allkeys-lru | The policy to use when evicting keys if redis reaches its maximum memory usage.            |
+| REDIS_PASSWORD       | disabled    | Enables [authentication feature](https://redis.io/topics/security#authentication-feature). |
 
 ## Custom configuration
 
