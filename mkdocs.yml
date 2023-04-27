@@ -169,7 +169,6 @@ theme:
     - content.code.copy
     - content.code.annotate
 
-
 extra:
   analytics:
     provider: google
