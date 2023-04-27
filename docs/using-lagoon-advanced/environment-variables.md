@@ -69,6 +69,7 @@ Build-time environment variables are only available during a build and need to b
 ```graphql title="Using build-time environment variables"
 ARG MYVARIABLENAME
 ```
+Typically the `ARG` will go after the FROM. Read [the docker documentation about ARG and FROM](https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact).
 
 This defines a project-wide build-time variable \(available in all environments\) for the project with ID `463`:
 
