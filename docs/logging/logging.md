@@ -2,7 +2,11 @@
 
 Lagoon provides access to the following logs via Kibana:
 
+<<<<<<< HEAD
+1. Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
+=======
 * Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
+>>>>>>> c5708ed6d405ed33273a925012b66d0fe1156036
   * Source IP
   * URL
   * Path
@@ -31,7 +35,7 @@ Lagoon provides access to the following logs via Kibana:
     * Ensure logs are structured as JSON encoded objects.
     * Ensure the `type` field contains the name of the Kubernetes namespace (`$LAGOON_PROJECT-$LAGOON_ENVIRONMENT`).
 
-To access the logs, please check with your Lagoon administrator to get the URL for the Kibana route \(for amazee.io this is [https://logs.amazeeio.cloud/](https://logs.amazeeio.cloud/)\).
+To access the logs, please check with your Lagoon administrator to get the URL for the Kibana route \(for amazee.io, this is [https://logs.amazeeio.cloud/](https://logs.amazeeio.cloud/)\).
 
 Each Lagoon user account has their own login and will see the logs only for the projects to which they have access.
 

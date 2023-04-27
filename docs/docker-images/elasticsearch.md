@@ -22,7 +22,7 @@ variables](../using-lagoon-advanced/environment-variables.md).
 
 On Linux-based systems, the start of the Elasticsearch container may fail due to a low `vm.max_map_count` setting.
 
-```bash
+```bash title="Error"
 elasticsearch_1  | ERROR: [1] bootstrap checks failed
 elasticsearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```

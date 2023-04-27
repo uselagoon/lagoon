@@ -32,7 +32,7 @@ In order to fully use Varnish with Drupal 8 cache tags, you need to install the 
 
 Grab them all at once:
 
-```bash
+```bash title="Install Purge and Varnish Purge"
 composer require drupal/purge drupal/varnish_purge
 
 drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_processor_lateruntime purge_queuer_coretags varnish_purger varnish_purge_tags
@@ -47,7 +47,7 @@ drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_proc
 5. Give it a nice name, `Lagoon Varnish` sounds good.
 6. Configure it with:
 
-   ```text
+   ```text title="Configure Varnish Purge"
     TYPE: Tag
 
     REQUEST:

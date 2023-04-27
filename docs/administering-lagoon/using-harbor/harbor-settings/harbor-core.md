@@ -74,7 +74,7 @@ The configmap from which this config file is generated is stored within Lagoon i
   * The default value is `admin` when run locally or during CI testing.
   * This value is retreived from a secret created when Harbor is first set up on a running Lagoon.
 * `HARBOR_NGINX_ENDPOINT`
-  * This environment variable tells harborregistry where its Nginx ingress controller, harbor-nginx, is running in order to construct proper push and pull instructions in the UI, among other things.
+  * This environment variable tells harborregistry where its NGINX ingress controller, harbor-nginx, is running in order to construct proper push and pull instructions in the UI, among other things.
   * The default value is set to `http://harbor-nginx:8080` when run locally or during CI testing.
   * Lagoon attempts to obtain and set this variable automagically when run in production. If that process fails, this service will fail to run.
 * `HTTP_PROXY`

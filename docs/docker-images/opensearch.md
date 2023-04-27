@@ -1,6 +1,6 @@
 # OpenSearch
 
-> [_Opensearch_](https://opensearch.org/) _OpenSearch is a community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data._
+> [_OpenSearch_](https://opensearch.org/) _is a community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data._
 >
 > * from [https://opensearch.org/](https://opensearch.org/)
 
@@ -21,7 +21,7 @@ variables](../using-lagoon-advanced/environment-variables.md).
 
 On Linux-based systems, the start of the OpenSearch container may fail due to a low `vm.max_map_count` setting.
 
-```bash
+```bash title="Error"
 opensearch_1  | ERROR: [1] bootstrap checks failed
 opensearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```

@@ -18,7 +18,7 @@ The image includes a full NGINX working configuration for Drupal 7, 8 and 9. It 
 * Support for [`robotstxt` Drupal module](https://www.drupal.org/project/robotstxt).
 * Disallow access to `vagrant` directory for local development.
 
-## Drupal.conf customization
+## `Drupal.conf` customization
 
 The `drupal.conf` file is a customized version of the `nginx` configuration file, optimized for Drupal. Customers have different ways of customizing it:
 
@@ -67,7 +67,7 @@ If you're using the core Statistics module, you may run into an issue that needs
 
 With the default NGINX configuration, the request to the tracking endpoint `/core/modules/statistics/statistics.php` is denied \(404\).
 
-This is related to the default Nginx configuration:
+This is related to the default NGINX configuration:
 
 ```text title="drupal.conf"
 location ~* ^.+\.php$ {

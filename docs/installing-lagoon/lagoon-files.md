@@ -3,7 +3,8 @@
 Lagoon files are used to store the file output of tasks, such as backups, and can be hosted on any S3-compatible storage.
 
 1. Create new AWS User with policies:
-    ```json title="example files IAM user"
+
+    ```json title="Example files IAM user"
     {
       "Version":"2012-10-17",
       "Statement":[
@@ -31,8 +32,9 @@ Lagoon files are used to store the file output of tasks, such as backups, and ca
     }
     ```
 
-2. Update `lagoon-core-values.yaml`:
-    ```yaml title="lagoon-core-values.yaml"
+2. Update `lagoon-core-values.yml`:
+
+    ```yaml title="lagoon-core-values.yml"
     s3FilesAccessKeyID: <<Access Key ID>>
     s3FilesBucket: <<Bucket Name for Lagoon Files>>
     s3FilesHost: <<S3 endpoint like "https://s3.eu-west-1.amazonaws.com" >>
@@ -41,7 +43,8 @@ Lagoon files are used to store the file output of tasks, such as backups, and ca
     ```
 
 3. If you use `ingress-nginx` in front of `lagoon-core`, we suggest setting this configuration which will allow for bigger file uploads:
-    ```yaml title="lagoon-core-values.yaml"
+
+    ```yaml title="lagoon-core-values.yml"
     controller:
     config:
       client-body-timeout: '600' # max 600 secs fileuploads

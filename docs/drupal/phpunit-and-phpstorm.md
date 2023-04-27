@@ -1,19 +1,21 @@
 # PHPUnit and PhpStorm
 
-!!! Note "Note:"
+!!! Note
     This document assumes the following:
 
-      * You are using Docker.
-      * You are using a standard Amazee/Lagoon project with a [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md) file.
-      * You are on a Mac - it should work for other operating systems but folder structure and some configuration settings may be different.
+      - You are using Docker.
+
+      - You are using a standard Amazee/Lagoon project with a [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md) file.
+
+      - You are on a Mac - it should work for other operating systems but folder structure and some configuration settings may be different.
 
 ## Configuring the project
 
 1. Duplicate\* the `/core/phpunit.xml.dist` file to `/core/phpunit.xml`
 2. Edit\* `/core/phpunit.xml` and fill in the following variables:
 
-* **SIMPLETEST\_DB**: `mysql://drupal:drupal@mariadb:3306/drupal#db`
-* **SIMPLETEST\_BASE\_URL**: `<PROJECT_URL>`
+   * **SIMPLETEST\_DB**: `mysql://drupal:drupal@mariadb:3306/drupal#db`
+   * **SIMPLETEST\_BASE\_URL**: `<PROJECT_URL>`
 
 ## Configuring PhpStorm
 
@@ -21,7 +23,7 @@
 
 1. In PhpStorm, go to **File &gt; Settings &gt; Build, Execution, Deployment &gt; Docker**
 2. Click: `+`
-3. Select\*: `Docker for Mac`
+3. Select: `Docker for Mac`
 
 ![Set Up Docker](./1-docker-setup.png)
 
@@ -63,16 +65,19 @@
 1. **Configure runner:**
    1. In PhpStorm, go to **Run &gt; Edit Configurations... &gt; Templates &gt; PHPUnit**
    2. Use the following configurations:
-      * Test scope: `Defined in the configuration file`
-      * Interpreter: `<CLI_INTERPRETER>`
+
+      1. Test scope: `Defined in the configuration file`
+
+      2. Interpreter: `<CLI_INTERPRETER>`
 
 ![Configure runner](./4-configure-runner.png)
 
-**\***If you are not on a Mac, this may vary.
+!!! Note
+      If you are not on a Mac, this may vary.
 
 ## Final checks
 
-**Some final checks to run before you run a test!**
+### Some final checks to run before you run a test!
 
 1. You have the project up and running:  `$ docker-compose up -d`
 2. The project is working without any errors, visit the site just to make sure it all works as expected - this is not 100% necessary, but nice to know it is working normally.
@@ -82,6 +87,6 @@
 
 Now you have the above configuration set up it should be as straightforward as going to the test you want to run and pressing the green arrow!
 
-Once you press this PhpStorm will use docker to enter the cli container than start running PHPUnit based upon the config, exciting right?
+Once you press this PhpStorm will use Docker to enter the CLI container, then start running PHPUnit based upon the config.
 
 ![Here it is in action, look at it go!!](./5-going-green-1-.gif)

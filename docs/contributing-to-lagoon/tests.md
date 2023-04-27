@@ -15,7 +15,7 @@ Lagoon is mostly tested in 3 different ways:
 
 During local development, the best way to test is locally. All tests are started via `make`. Make will download and build all the required dependencies.
 
-```text
+```bash title="Make tests"
 make tests
 ```
 
@@ -25,13 +25,13 @@ For example, `make tests/node` will run the Node.js Docker images tests.
 
 In order to actually see what is happening inside the microservices, we can use `make logs`:
 
-```text
+```bash title="Make logs"
 make logs
 ```
 
 Or only for a specific service:
 
-```text
+```bash title="Make logs"
 make logs service=webhook-handler
 ```
 
@@ -44,5 +44,5 @@ This will build all images, start a Kubernetes cluster and run a series of tests
 The tests can be found here:
 
 <!-- markdown-link-check-disable -->
-* https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/activity
+* [https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/activity](https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/activity)
 <!-- markdown-link-check-enable -->

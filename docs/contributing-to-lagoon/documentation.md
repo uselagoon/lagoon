@@ -8,29 +8,29 @@ We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://s
 
 ## Viewing and updating docs locally
 
-From the root of the Lagoon repo (you'll need Docker), run:
+From the root of the Lagoon repository (you'll need Docker), run:
 
-```bash
+```bash title="Get local docs up and running."
 docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material
 ```
 
 <!-- markdown-link-check-disable-next-line -->
 This will start a development server on [http://127.0.0.1:8000](http://127.0.0.1:8000), configured to live-reload on any updates.
-The customised Docker image contains all the necessary extensions.
 
-Alternatively, to run the mkdocs package locally, you'll need to install mkdocs, and then install all the necessary plugins
+The customized Docker image contains all the necessary extensions.
 
-```bash
+Alternatively, to run the `mkdocs` package locally, you'll need to install mkdocs, and then install all of the necessary plugins.
+
+```bash title="Install mkdocs"
 pip3 install -r docs/requirements.txt
 mkdocs serve
 ```
 
-## Editing in the cloud
+## Editing in the Cloud
 
-Each documentation page also has an "edit" pencil in the top right, that will take you to the correct page in the git repository.
+Each documentation page also has an "edit" pencil in the top right, that will take you to the correct page in the Git repository.
 
-Feel free to contribute here too - you can always use the inbuilt [github.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
-It's got basic markdown previews, but none of the mkdocs loveliness
+Feel free to contribute here, too - you can always use the built-in [github.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor). It's got basic Markdown previews, but none of the mkdocs loveliness.
 
 ## How we deploy documentation
 

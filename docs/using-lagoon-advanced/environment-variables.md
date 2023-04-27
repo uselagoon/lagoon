@@ -18,7 +18,7 @@ As there can be environment variables defined in either the Dockerfile or during
 
 ## Environment Variables \(Lagoon API\)
 
-We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repo \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment or on the internet, etc.
+We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repository \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment or on the internet, etc.
 
 The Lagoon API allows you to define project-wide or environment-specific variables. Additionally, they can be defined for a scope-only build-time or runtime. They are all created via the Lagoon GraphQL API. Read more on how to use the GraphQL API [in our GraphQL API](graphql.md) documentation.
 
@@ -28,7 +28,7 @@ Runtime environment variables are automatically made available in all containers
 
 This defines a project wide runtime variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Add runtime variable"
 mutation addRuntimeEnv {
   addEnvVariable(
     input:{
@@ -46,7 +46,7 @@ mutation addRuntimeEnv {
 
 This defines a environment ID `546` specific runtime variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID"
 mutation addRuntimeEnv {
   addEnvVariable(
     input:{
@@ -66,13 +66,13 @@ mutation addRuntimeEnv {
 
 Build-time environment variables are only available during a build and need to be consumed in Dockerfiles via:
 
-```graphql
+```graphql title="Using build-time environment variables"
 ARG MYVARIABLENAME
 ```
 
 This defines a project-wide build-time variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Define a project-wide build-time variable"
 mutation addBuildtimeEnv {
   addEnvVariable(
     input:{
@@ -89,7 +89,7 @@ mutation addBuildtimeEnv {
 
 This defines an environment ID `546`specific build-time variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID"
 mutation addBuildtimeEnv {
   addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:BUILD, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
     id
@@ -101,7 +101,7 @@ Container registry environment variables are only available during a build and a
 
 This defines a project-wide container registry variable \(available in all environments\) for the project with ID `463`:
 
-```graphql
+```graphql title="Define project-wide container registry variable"
 mutation addContainerRegistryEnv {
   addEnvVariable(
     input:{
@@ -116,9 +116,9 @@ mutation addContainerRegistryEnv {
 }
 ```
 
-This defines a environment id `546` specific container registry variable \(available only in that specific environment\):
+This defines a environment ID `546` specific container registry variable \(available only in that specific environment\):
 
-```graphql
+```graphql title="Define environment ID"
 mutation addContainerRegistryEnv {
   addEnvVariable(
     input:{
@@ -147,7 +147,7 @@ DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if yo
 
 ### `.lagoon.env.$BRANCHNAME`
 
-If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the main branch `.lagoon.env.main`. This helps you keeping environment variables apart between environments.
+If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the main branch `.lagoon.env.main`. This helps you keep environment variables apart between environments.
 
 ### `.env` and `.env.defaults`
 
@@ -167,7 +167,7 @@ On development environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_
 
 Lagoon supports custom backup locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-Please note that any use of these variables means that all environment and db backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
+Please note that any use of these variables means that all environment and database backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
 
 | Environment variable name              | Purpose                                                                                                                                                               |
 |:---------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -184,7 +184,7 @@ Lagoon will automatically prune the files in these S3 buckets, so no object rete
 
 Lagoon supports custom restore locations and credentials for any project when all four of the following variables are set as `BUILD` type environment variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-Please note that any use of these variables means that all environment and db snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.
+Please note that any use of these variables means that all environment and database snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.
 
 | Environment variable name               | Purpose                                                                                                                                                                |
 |:----------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
