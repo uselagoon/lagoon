@@ -9,8 +9,8 @@
 2. Consider the optimal configuration of Harbor for your particular circumstances - see [their docs](https://goharbor.io/docs/latest/install-config/harbor-ha-helm/#configuration) for more recommendations:
 
   1. We recommend using S3-compatible storage for image blobs (`imageChartStorage`).
-  2. We recomment using a managed database service for the Postgres service (`database.type`).
-  3. In high-usage scenarious we recommend using a managed Redis service. (`redis.type`)
+  2. We recommend using a managed database service for the Postgres service (`database.type`).
+  3. In high-usage scenarios we recommend using a managed Redis service. (`redis.type`)
 
 3. Create the file `harbor-values.yml` inside of your config directory. The proxy-buffering annotations help with large image pushes:
 
