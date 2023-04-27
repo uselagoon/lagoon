@@ -770,6 +770,10 @@ const typeDefs = gql`
     DeployTargetConfigs are a way to define which deploy targets are used for a project\n
     """
     deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Build image this project will use if set
+    """
+    buildImage: String
   }
 
   """
@@ -1271,6 +1275,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input AddEnvironmentInput {
@@ -1649,6 +1654,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input UpdateProjectInput {

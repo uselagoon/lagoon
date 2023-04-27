@@ -299,6 +299,15 @@ export const addProject = async (
     }
   }
 
+  let buildImage = null;
+  if (input.buildImage) {
+    if (adminScopes.projectViewAll) {
+      buildImage = input.buildImage
+    } else {
+      throw new Error('Setting build image is only available to administrators.');
+    }
+  }
+
   const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
@@ -541,7 +550,8 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     }
   },
@@ -554,7 +564,14 @@ export const updateProject: ResolverFn = async (
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
     if (!adminScopes.projectViewAll) {
-      deploymentsDisabled = 0;
+      throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  // check if a user has permission to change the build image of a project or not
+  if (buildImage) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -652,7 +669,8 @@ export const updateProject: ResolverFn = async (
         pullrequests,
         openshift,
         openshiftProjectPattern,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     })
   );
@@ -753,7 +771,8 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     }
   });
