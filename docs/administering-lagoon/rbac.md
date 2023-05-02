@@ -340,6 +340,7 @@ Here is a table that lists the roles and the access they have:
     | updateKubernetes | kubernetes | update |  |
     | deleteKubernetes | kubernetes | delete |  |
     | deleteAllKubernetes| kubernetes | deleteAll |  |
+    | getAllOpenshifts | openshift | viewAll |  |
     | getAllProjects | project | viewAll |  |
     | addSshKey | ssh\_key | add | userID |
     | updateSshKey | ssh\_key | update | userID |
@@ -362,6 +363,11 @@ Here is a table that lists the roles and the access they have:
     | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
     | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
     | updateEnvironment | environment | update:production | projectID |
+    | allEnvironments | environment | viewAll | |
+    | getEnvironmentStorageMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHoursMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHitsMonthBy<br />EnvironmentId | environment | storage |  |
+    | addOrUpdateEnvironment<br />Storage | environment | storage |  |
     | addDeployment | environment | deploy:production | projectID |
     | deleteDeployment | deployment | delete | projectID |
     | updateDeployment | deployment | update | projectID |
