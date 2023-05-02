@@ -447,7 +447,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -471,7 +471,29 @@ export const deleteProject: ResolverFn = async (
 
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
-  // Remove the default group and user
+  // Remove the project from all groups it is associated to
+  try {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    for (const groupInput of projectGroups) {
+      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+      await models.GroupModel.removeProjectFromGroup(project.id, group);
+      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+        group.name,
+        projectIds
+      );
+    }
+  } catch (err) {
+    logger.error(
+      `Could not remove project from associated groups ${project.name}: ${err.message}`
+    );
+
+  }
+
+  // Remove the default project group
   try {
     const group = await models.GroupModel.loadGroupByName(
       `project-${project.name}`
@@ -487,6 +509,7 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // Remove the default user
   try {
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`

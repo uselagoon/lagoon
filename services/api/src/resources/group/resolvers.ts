@@ -552,7 +552,6 @@ export const getAllProjectsInGroup: ResolverFn = async (
       return [];
     }
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-
     return projectIdsArray.map(async id =>
       projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
     );
