@@ -8,9 +8,9 @@ export const Sql = {
     };
 
     return knex('environment')
-    .where('id', '=', id)
-    .update(updatePatch)
-    .toString();
+      .where('id', '=', id)
+      .update(updatePatch)
+      .toString();
   },
   selectEnvironmentById: (id: number) =>
     knex('environment')
@@ -22,6 +22,17 @@ export const Sql = {
       .andWhere('project', '=', projectId)
       .andWhere('deleted', '0000-00-00 00:00:00')
       .toString(),
+  selectEnvironmentByNameAndProjectWithArgs: (name: string, projectId: number, includeDeleted: boolean) => {
+    const query = knex('environment')
+      .where('name', '=', name)
+      .andWhere('project', '=', projectId)
+
+    if (includeDeleted) {
+      return query.toString();
+    }
+
+    return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
+  },
   selectEnvironmentsByProjectID: (projectId: number) =>
     knex('environment')
       .select('id', 'name')
@@ -56,10 +67,51 @@ export const Sql = {
       .where('name', name)
       .andWhere('project', projectId)
       .andWhere('deleted', '0000-00-00 00:00:00')
-      .update({deleted: knex.fn.now()}).toString(),
+      .update({ deleted: knex.fn.now() }).toString(),
   deleteServices: (id: number) =>
     knex('environment_service')
       .where('environment', '=', id)
       .delete()
+      .toString(),
+  selectEnvironmentByDeploymentId: (id: number) =>
+    knex('deployment')
+      .select('e.*')
+      .join('environment AS e', 'deployment.environment', '=', 'e.id')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('deployment.id = ?', id))
+      .limit(1)
+      .toString(),
+  selectEnvironmentByTaskId: (id: number) =>
+    knex('task')
+      .select('e.*')
+      .join('environment AS e', 'task.environment', '=', 'e.id')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('task.id = ?', id))
+      .limit(1)
+      .toString(),
+  selectEnvironmentByBackupId: (id: number) =>
+    knex('environment_backup')
+      .select('e.*')
+      .join('environment AS e', 'environment_backup.environment', '=', 'e.id')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('environment_backup.id = ?', id))
+      .limit(1)
+      .toString(),
+  selectEnvironmentStorageByEnvironmentId: (id: number) =>
+    knex('environment_storage')
+      .where('environment_storage.environment', '=', id)
+      .toString(),
+  selectEnvironmentByOpenshiftProjectName: (openshiftProjectName: string) =>
+    knex('environment AS e')
+      .select('e.*')
+      .join('project', 'e.project', '=', 'project.id')
+      .where('e.openshift_project_name', '=', openshiftProjectName)
+      .andWhere('e.deleted', '0000-00-00 00:00:00')
+      .toString(),
+  canSshToEnvironment: (openshiftProjectName: string) =>
+    knex('environment AS e')
+      .select('e.*')
+      .join('project', 'e.project', '=', 'project.id')
+      .where('e.openshift_project_name', '=', openshiftProjectName)
       .toString(),
 };
