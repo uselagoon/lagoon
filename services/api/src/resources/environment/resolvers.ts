@@ -309,67 +309,70 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
     ctx
   );
 
-  export const getEnvironmentsByKubernetes: ResolverFn = async (
-    _,
-    { kubernetes, order, createdAfter },
-    { sqlClientPool, hasPermission, models, keycloakGrant }
-  ) => {
-    const openshift = await openshiftHelpers(
-      sqlClientPool
-    ).getOpenshiftByOpenshiftInput(kubernetes);
+export const getEnvironmentsByKubernetes: ResolverFn = async (
+  _,
+  { kubernetes, order, createdAfter, type },
+  { sqlClientPool, hasPermission, models, keycloakGrant }
+) => {
+  const openshift = await openshiftHelpers(
+    sqlClientPool
+  ).getOpenshiftByOpenshiftInput(kubernetes);
 
-    let userProjectIds: number[];
-    try {
-      await hasPermission('project', 'viewAll');
-      await hasPermission('openshift', 'viewAll');
-    } catch (err) {
-      if (!keycloakGrant) {
-        logger.warn('No grant available for getEnvironmentsByKubernetes');
-        return [];
-      }
-
-      // Only return projects the user can view
-      userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-        id: keycloakGrant.access_token.content.sub
-      });
+  let userProjectIds: number[];
+  try {
+    await hasPermission('openshift', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getEnvironmentsByKubernetes');
+      return [];
     }
 
-    let queryBuilder = knex('environment').where('openshift', openshift.id);
+    // Only return projects the user can view
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
 
-    if (userProjectIds) {
-      // A user that can view a project might not be able to view an openshift
-      let projectsWithOpenshiftViewPermission: number[] = [];
-      for (const pid of userProjectIds) {
-        try {
-          await hasPermission('openshift', 'view', {
-            project: pid
-          });
-          projectsWithOpenshiftViewPermission = [
-            ...projectsWithOpenshiftViewPermission,
-            pid
-          ];
-        } catch {}
-      }
+  let queryBuilder = knex('environment').where('openshift', openshift.id);
 
-      queryBuilder = queryBuilder.whereIn(
-        'project',
-        projectsWithOpenshiftViewPermission
-      );
+  if (userProjectIds) {
+    // A user that can view a project might not be able to view an openshift
+    let projectsWithOpenshiftViewPermission: number[] = [];
+    for (const pid of userProjectIds) {
+      try {
+        await hasPermission('openshift', 'view', {
+          project: pid
+        });
+        projectsWithOpenshiftViewPermission = [
+          ...projectsWithOpenshiftViewPermission,
+          pid
+        ];
+      } catch { }
     }
 
-    if (createdAfter) {
-      queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
-    }
+    queryBuilder = queryBuilder.whereIn(
+      'project',
+      projectsWithOpenshiftViewPermission
+    );
+  }
 
-    if (order) {
-      queryBuilder = queryBuilder.orderBy(order);
-    }
+  if (type) {
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
+  }
 
-    const rows = await query(sqlClientPool, queryBuilder.toString());
-    const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
 
-    return withK8s;
-  };
+  if (order) {
+    queryBuilder = queryBuilder.orderBy(order);
+  }
+
+  const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
+};
 
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
@@ -510,7 +513,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .andWhere("environment", input.environment)
       .andWhere("updated", input.updated)
       .toString()
-    );
+  );
 
   const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);

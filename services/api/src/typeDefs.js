@@ -1089,9 +1089,9 @@ const typeDefs = gql`
     """
     projectByName(name: String!): Project
     """
-    Returns all Environment Objects for a specified Kubernetes
+    Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
     """
-    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String): [Environment]
+    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String, type: EnvType): [Environment]
     """
     Returns Group Object by a given name
     """
