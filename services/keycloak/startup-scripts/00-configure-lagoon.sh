@@ -2085,6 +2085,19 @@ function add_update_additional_platform_owner_permissions {
 }
 EOF
 
+  echo Configuring user:getBySshKey
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Get User By SSH Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["getBySshKey"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
   echo Re-configuring openshift:viewAll
   #Delete existing permissions
   view_all_openshifts=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Openshifts --config $CONFIG_PATH | jq -r '.[0]["id"]')
