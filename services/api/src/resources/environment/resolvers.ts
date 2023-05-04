@@ -13,6 +13,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -312,7 +313,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const getEnvironmentsByKubernetes: ResolverFn = async (
   _,
   { kubernetes, order, createdAfter, type },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   const openshift = await openshiftHelpers(
     sqlClientPool
@@ -328,9 +329,10 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
     }
 
     // Only return projects the user can view
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('environment').where('openshift', openshift.id);
