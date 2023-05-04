@@ -19,7 +19,7 @@ export const Helpers = (sqlClientPool: Pool) => {
         const openshift = R.prop(0, rows);
 
         if (!openshift) {
-          throw new Error('Unauthorized');
+          throw new Error('Invalid input for kubernetes');
         }
 
         return openshift;
