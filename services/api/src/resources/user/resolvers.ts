@@ -83,10 +83,7 @@ export const getUserByEmail: ResolverFn = async (
 ) => {
   await hasPermission('user', 'viewAll');
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
-    id: R.prop('id', {}),
-    username: R.prop('email', {email: email}),
-  });
+  const user = await models.UserModel.loadUserByUsername(email);
 
   return user;
 };
