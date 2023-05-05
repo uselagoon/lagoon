@@ -2176,10 +2176,16 @@ EOF
 }
 EOF
 
-  echo Re-configuring advanced_task:delete:advanced
-  #Delete existing permissions
+}
+
+function create_or_update_delete_advanced_task_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+
+  if [ "$delete_advanced_task" != "[ ]" ]; then
+    #Delete existing permissions
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+    echo re-configuring advanced_task:delete:advanced
 
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
@@ -2192,6 +2198,23 @@ EOF
   "policies": ["[Lagoon] Users role for realm is Platform Owner"]
 }
 EOF
+      return 0
+  fi
+
+  echo configuring advanced_task:delete:advanced
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Advanced Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["delete:advanced"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
 }
 
 ##################
@@ -2234,6 +2257,8 @@ function configure_keycloak {
     update_env_var_view_permissions
     add_user_viewall
     add_update_additional_platform_owner_permissions
+    create_or_update_delete_advanced_task_permissions
+
 
     # always run last
     sync_client_secrets
