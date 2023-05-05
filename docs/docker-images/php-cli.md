@@ -6,7 +6,7 @@ Containers \(or pods\) started from `cli` images are responsible for building co
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-!!! Note "Note:"
+!!! Info
     This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 
 ## Supported versions
@@ -28,9 +28,9 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
 * `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
 
-## Included cli tools
+## Included CLI tools
 
-The included cli tools are:
+The included CLI tools are:
 
 * [`composer` version 1.9.0](https://getcomposer.org/) \(changeable via `COMPOSER_VERSION` and `COMPOSER_HASH_SHA256`\)
 * [`node.js` verison 17](https://nodejs.org/en/) \(as of Mar 2022\)
@@ -43,7 +43,7 @@ The included cli tools are:
 
 By default this image ships with the `nodejs-current` package \(v17 as of Mar 2022\). If you need another version you can remove the current version and install the one of your choice. For example, to install Node.js 16, modify your dockerfile to include:
 
-```
+```bash title="Update Node.js version"
 RUN apk del nodejs-current \
     && apk add --no-cache nodejs=~16
 ```

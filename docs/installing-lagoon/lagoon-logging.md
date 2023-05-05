@@ -47,7 +47,7 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
 
 2. Install `lagoon-logging`:
 
-    ```
+    ```bash title="Install lagoon-logging"
     helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
 
     helm upgrade --install --create-namespace \
@@ -61,7 +61,7 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
 If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
 
 1. The ingress controller must be installed in the namespace `ingress-nginx`
-2. Add the content of this file to ingress-nginx:
+2. Add the content of this file to `ingress-nginx`:
 
     ```yaml title="ingress-nginx log-format-upstream"
     controller:
@@ -92,4 +92,5 @@ If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
           "service_port": "$service_port"
           }
     ```
+
 3. Your logs should start flowing!

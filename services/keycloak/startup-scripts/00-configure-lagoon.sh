@@ -2063,6 +2063,33 @@ EOF
 EOF
 }
 
+function add_user_viewall {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_users=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Users --config $CONFIG_PATH)
+
+  if [ "$view_all_users" != "[ ]" ]; then
+      echo "user:viewAll already configured"
+      return 0
+  fi
+
+  echo Configuring user:viewAll
+
+  GROUP_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=user --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Users",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+}
+
 function add_update_additional_platform_owner_permissions {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   view_all_environments=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Environments --config $CONFIG_PATH)
@@ -2205,6 +2232,7 @@ function configure_keycloak {
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
     update_env_var_view_permissions
+    add_user_viewall
     add_update_additional_platform_owner_permissions
 
     # always run last
