@@ -8,8 +8,8 @@ This is an example of how to add SimpleSAMLphp to your project and then modify c
 
 Add SimpleSAMLphp to your project:
 
-```text
-$ composer req simplesamlphp/simplesamlphp
+```bash title="Add SimpleSAMLphp to your project via Composer"
+composer req simplesamlphp/simplesamlphp
 ```
 
 ### Modify configuration for SimpleSAMLphp
@@ -20,13 +20,13 @@ In `config.php` set following values for Lagoon:
 
 Base URL path where SimpleSAMLphp is accessed:
 
-```text
+```php title="config.php"
   'baseurlpath' => 'https://YOUR_DOMAIN.TLD/simplesaml/',
 ```
 
 Store sessions to database:
 
-```text
+```php title="config.php"
   'store.type'                    => 'sql',
 
   'store.sql.dsn'                 => vsprintf('mysql:host=%s;port=%s;dbname=%s', [
@@ -39,13 +39,13 @@ Store sessions to database:
 Alter other settings to your liking:
 
 * Check the paths for logs and certs.
-* Secure SimpleSAMLphp dashboard
-* Set up level of logging
-* Set technicalcontact and timezone
+* Secure SimpleSAMLphp dashboard.
+* Set up level of logging.
+* Set `technicalcontact` and `timezone`.
 
 Add authsources \(IdPs\) to `authsources.php`, see example:
 
-```text title="authsources.php"
+```php title="authsources.php"
   'default-sp' => [
     'saml:SP',
 
@@ -90,7 +90,7 @@ Add authsources \(IdPs\) to `authsources.php`, see example:
 
 Add IdP metadata to `saml20-idp-remote.php`, see example:
 
-```text
+```php title="saml20-idp-remote.php"
 <?php
 /**
  * SAML 2.0 remote IdP metadata for SimpleSAMLphp.
@@ -109,14 +109,13 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
     'en' => 'Some IdP',
   ],
   'description' => 'Some IdP',
-  
+
   ...
 
 ];
 ```
 
-
-In your build process, copy config files to SimpleSAMLphp:
+In your build process, copy configuration files to SimpleSAMLphp:
 
 * `vendor/simplesamlphp/simplesamlphp/config/authsources.php`
 * `vendor/simplesamlphp/simplesamlphp/config/config.php`
@@ -126,7 +125,7 @@ In your build process, copy config files to SimpleSAMLphp:
 
 Create file  `lagoon/nginx/location_prepend_simplesamlphp.conf`:
 
-```text title="location\_prepend\_simplesamlphp.conf" 
+```bash title="location_prepend_simplesamlphp.conf"
 location ^~ /simplesaml {
     alias /app/vendor/simplesamlphp/simplesamlphp/www;
 
@@ -143,11 +142,11 @@ location ^~ /simplesaml {
 
 This will route `/simplesaml` URLs to SimpleSAMLphp in vendor.
 
-### Add additional Nginx conf to Nginx image
+### Add additional NGINX conf to NGINX image
 
 Modify `nginx.dockerfile` and add `location_prepend_simplesamlphp.conf` to the image:
 
-```text title="nginx.dockerfile"
+```bash title="nginx.dockerfile"
 ARG CLI_IMAGE
 FROM ${CLI_IMAGE} as cli
 

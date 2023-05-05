@@ -18,9 +18,9 @@ We've got another section that outlines how to install Lagoon from Helm charts a
 
 Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal.
 
-If you can spin up an open source CMS or framework that we don’t currently have as a docker-compose stack, send us a PR. Look at the existing examples at [https://github.com/uselagoon/lagoon-examples](https://github.com/uselagoon/lagoon-examples) for tips, pointers and starter issues.
+If you can spin up an open source CMS or framework that we don’t currently have as a Docker Compose stack, send us a PR. Look at the existing examples at [https://github.com/uselagoon/lagoon-examples](https://github.com/uselagoon/lagoon-examples) for tips, pointers and starter issues.
 
-One small catch – wherever possible, we’d like them to be built using our base Docker hub images [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon) – if we don’t have a suitable image, or our images need modifying – throw us a PR \(if you can\) or create an issue \(so someone else can\) at [https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images).
+One small catch – wherever possible, we’d like them to be built using our base Docker Hub images [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon) – if we don’t have a suitable image, or our images need modifying – throw us a PR \(if you can\) or create an issue \(so someone else can\) at [https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images).
 
 Help us improve our existing examples, if you can - are we following best practices, is there something we’re doing that doesn’t make sense?
 
@@ -34,7 +34,7 @@ If you have any questions, reach out to us on [Discord](https://discord.gg/te5hH
 
 We take security very seriously. If you discover a security issue or think you found one, please bring it to the maintainers' attention.
 
-!!! Danger "Danger:"
+!!! Danger
     Please send your findings to [security@amazee.io](mailto:security@amazee.io). Please **DO NOT** file a GitHub issue for them.
 
 Security reports are greatly appreciated and will receive public karma and swag! We're also working on a Bug Bounty system.

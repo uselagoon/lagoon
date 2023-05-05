@@ -8,7 +8,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 >
 > FastCGI is a way of having server scripts execute time-consuming code just once instead of every time the script is loaded, reducing overhead.
 
-!!! Note "Note:"
+!!! Info
     This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
 
 ## Supported versions
@@ -21,7 +21,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 
 All PHP versions use their own Dockerfiles.
 
-!!! Note "Note:"
+!!! Tip
     We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php). Previous published versions will remain available.
 
 ## Lagoon adaptions
