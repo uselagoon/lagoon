@@ -81,6 +81,7 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  customTaskDefinitionResolver,
   updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
@@ -499,6 +500,10 @@ const resolvers = {
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
     getEnvVariablesByProjectEnvironmentName,
   },
+  CustomTaskMutations: {
+    createImage: customTaskDefinitionResolver.image,
+    createCommand: customTaskDefinitionResolver.command,
+  },
   Mutation: {
     addProblem,
     addProblemHarborScanMatch,
@@ -581,6 +586,7 @@ const resolvers = {
     deleteEnvVariableByName,
     addTask,
     addAdvancedTaskDefinition,
+    customTasks: () => ({}),
     updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
