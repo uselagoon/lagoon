@@ -2183,29 +2183,22 @@ function create_or_update_delete_advanced_task_permissions {
   delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
   if [ "$delete_advanced_task" != "[ ]" ]; then
-    #Delete existing permissions
+    #Delete existing permissions because it is being renamed
+    echo deleting existing advanced_task:delete:advanced
     /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
-    echo re-configuring advanced_task:delete:advanced
-
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Advanced Task",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["advanced_task"],
-  "scopes": ["delete:advanced"],
-  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
-}
-EOF
+  fi
+  
+  # now check if the renamed Delete Advanced Tasks exists, and create it if not
+  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Tasks --config $CONFIG_PATH)
+  if [ "$delete_advanced_tasks" != "[ ]" ]; then
+      echo "advanced_task:delete:advanced already configured"
       return 0
   fi
-
-  echo configuring advanced_task:delete:advanced
+  echo re-configuring advanced_task:delete:advanced
 
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Delete Advanced Task",
+  "name": "Delete Advanced Tasks",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
