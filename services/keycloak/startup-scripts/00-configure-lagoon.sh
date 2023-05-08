@@ -2176,14 +2176,29 @@ EOF
 }
 EOF
 
-  echo Re-configuring advanced_task:delete:advanced
-  #Delete existing permissions
+}
+
+function create_or_update_delete_advanced_task_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+
+  if [ "$delete_advanced_task" != "[ ]" ]; then
+    #Delete existing permissions because it is being renamed
+    echo deleting existing advanced_task:delete:advanced
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+  fi
+  
+  # now check if the renamed Delete Advanced Tasks exists, and create it if not
+  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Tasks --config $CONFIG_PATH)
+  if [ "$delete_advanced_tasks" != "[ ]" ]; then
+      echo "advanced_task:delete:advanced already configured"
+      return 0
+  fi
+  echo re-configuring advanced_task:delete:advanced
 
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Delete Advanced Task",
+  "name": "Delete Advanced Tasks",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
@@ -2192,6 +2207,7 @@ EOF
   "policies": ["[Lagoon] Users role for realm is Platform Owner"]
 }
 EOF
+
 }
 
 ##################
@@ -2234,6 +2250,8 @@ function configure_keycloak {
     update_env_var_view_permissions
     add_user_viewall
     add_update_additional_platform_owner_permissions
+    create_or_update_delete_advanced_task_permissions
+
 
     # always run last
     sync_client_secrets
