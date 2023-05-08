@@ -91,15 +91,8 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM environment e
-    JOIN project p ON e.project = p.id
-    WHERE e.id = :eid
-    LIMIT 1`,
-    { eid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
@@ -116,14 +109,8 @@ export const getProjectById: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM project p
-    WHERE p.id = :pid
-    LIMIT 1`,
-    { pid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectById(pid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
@@ -140,14 +127,8 @@ export const getProjectByGitUrl: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE git_url = :git_url
-    LIMIT 1`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByGitUrl(args.gitUrl));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
@@ -164,13 +145,8 @@ export const getProjectByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE name = :name`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 

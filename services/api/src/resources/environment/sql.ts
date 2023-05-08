@@ -22,17 +22,28 @@ export const Sql = {
       .andWhere('project', '=', projectId)
       .andWhere('deleted', '0000-00-00 00:00:00')
       .toString(),
+  selectEnvironmentByNameAndProjectWithArgs: (name: string, projectId: number, includeDeleted: boolean) => {
+    const query = knex('environment')
+      .where('name', '=', name)
+      .andWhere('project', '=', projectId)
+
+    if (includeDeleted) {
+      return query.toString();
+    }
+
+    return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
+  },
   selectEnvironmentsByProjectID: (projectId: number, includeDeleted: boolean = false) => {
     let select = knex('environment')
       .select('id', 'name')
       .where('project', '=', projectId)
       .orderBy('id', 'desc');
 
-      if(!includeDeleted) {
-        select = select.andWhere('deleted', '0000-00-00 00:00:00');
-      }
+    if (!includeDeleted) {
+      select = select.andWhere('deleted', '0000-00-00 00:00:00');
+    }
 
-      return select.toString()
+    return select.toString()
   },
   truncateEnvironment: () =>
     knex('environment')

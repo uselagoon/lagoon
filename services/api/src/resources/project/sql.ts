@@ -25,14 +25,31 @@ export const Sql = {
     knex('project')
       .where('name', name)
       .toString(),
+  selectProjectById: (id: number) =>
+    knex('project')
+      .where('id', id)
+      .limit(1)
+      .toString(),
   selectProjectIdByName: (name: string) =>
     knex('project')
       .where('name', name)
       .select('id')
       .toString(),
+  selectProjectByGitUrl: (git_url: string) =>
+    knex('project')
+      .where('git_url', git_url)
+      .limit(1)
+      .toString(),
   selectProjectsByIds: (projectIds: number[]) =>
-    knex('project as p')
+    knex('project AS p')
       .whereIn('p.id', projectIds)
+      .toString(),
+  selectProjectByEnvironmentID: (id: number) =>
+    knex('environment as e')
+      .select('project.*')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('e.id = ?', id))
+      .limit(1)
       .toString(),
   deleteEnvironmentVariables: (id: number) =>
     knex('env_vars')
