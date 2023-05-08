@@ -24,7 +24,7 @@ In order to be able to use `drush site:alias-convert` , you need to do the follo
 
 You can now convert your Drush aliases by running the following command in your project using the `cli` container:
 
-```text
+```bash title="Generate Site Aliases"
 docker-compose exec cli drush site:alias-convert /app/drush/sites --yes
 ```
 
@@ -34,13 +34,13 @@ It's good practice to commit the resulting YAML files into your Git repository, 
 
 In Drush 9, all site aliases are prefixed with a group. In our case, this is `lagoon`. You can show all site aliases with their prefix via:
 
-```text
+```bash title="Show all site aliases"
 drush sa --format=list
 ```
 
 and to use them:
 
-```text
+```bash title="Using Drush site alias"
 drush @lagoon.main ssh
 ```
 
@@ -52,7 +52,7 @@ If a new environment in Lagoon has been created, you can run `drush site:alias-c
 
 If you would like to sync files from a local environment to a remote environment, you need to pass additional parameters:
 
-```text
+```bash title="Drush rsync"
 drush rsync @self:%files @lagoon.main:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
@@ -62,11 +62,10 @@ For example, if you wanted to sync the files from `@lagoon.main` to `@lagoon.dev
 
 To resolve this, you would first need to SSH into your destination environment `drush @lagoon.dev ssh`, and then execute the `rsync` command with parameters similar to the above:
 
-```text
+```bash title="Drush rsync"
 drush rsync @lagoon.main:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
 This is not necessary if you `rsync` from a remote to a local environment.
 
 Also, we're [working with the Drush maintainers](https://github.com/drush-ops/drush/issues/3491) to find a way to inject this automatically.
-

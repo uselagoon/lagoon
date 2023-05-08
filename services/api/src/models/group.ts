@@ -6,6 +6,8 @@ import { logger } from '../loggers/logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 import { saveRedisKeycloakCache } from '../clients/redisClient';
+import { Helpers as projectHelpers } from '../resources/project/helpers';
+import { sqlClientPool } from '../clients/sqlClient';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
@@ -332,11 +334,16 @@ export const Group = (clients: {
         }
       }
 
-      return [
+      const projectIdsArray = [
         // @ts-ignore
         ...groupProjectIds,
         ...subGroupProjectIds
       ];
+      // remove deleted projects from the result to prevent null errors in user queries
+      const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(projectIdsArray);
+      let existingProjectsIds = [];
+      existingProjectsIds.push(...existingProjects.map(epi => epi.id));
+      return projectIdsArray.filter(item => existingProjectsIds.some(existingProjectsIds => existingProjectsIds === item))
     } catch (err) {
       return [];
     }

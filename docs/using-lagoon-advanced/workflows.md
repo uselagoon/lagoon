@@ -74,10 +74,10 @@ For this situation, Lagoon understands the concept of promoting Lagoon images fr
 In our example, we want to promote the Docker images from the `main` environment to the `production` environment:
 
 * First, we need a regular deployed environment with the name `main`. Make sure that the environment has deployed successfully.
-* Also, make sure that you don't have a branch called `production` in your Git repository. This could lead to weird confusions \(like people pushing into this branch, etc.\).
+* Also, make sure that you don't have a branch called `production` in your Git repository. This could lead to weird confusions \(like people pushing into this branch, etc\).
 * Now trigger a promotion deployment via this `curl` request:
 
-```bash
+```bash title="Trigger a promotion deployment"
   curl -X POST \
       https://rest.lagoon.amazeeio.cloud/promote \
       -H 'Content-Type: application/json' \
@@ -92,10 +92,9 @@ This tells Lagoon that you want to promote from the source `main` to the destina
 
 Lagoon will now do the following:
 
-* Checkout the Git branch `main` in order to load the `.lagoon.yml` and `docker-compose.yml` files \(Lagoon still needs these in order to fully work\).
+* Check out the Git branch `main` in order to load the `.lagoon.yml` and `docker-compose.yml` files \(Lagoon still needs these in order to fully work\).
 * Create all Kubernetes/OpenShift objects for the defined services in `docker-compose.yml` , but with `LAGOON_GIT_BRANCH=production` as environment variable.
-* Copy the newest Images from the `main` environment and use them \(instead of building Images or tagging them from upstream\).
+* Copy the newest images from the `main` environment and use them \(instead of building Images or tagging them from upstream\).
 * Run all post-rollout tasks like a normal deployment.
 
 You will receive the same notifications of success or failures like any other deployment.
-

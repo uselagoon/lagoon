@@ -11,10 +11,12 @@ To run a Lagoon Project, your system must meet the requirements to run Docker. W
 TL;DR: install and start `pygmy`:
 
 ```bash
-brew tap pygmystack/pygmy;
+brew tap pygmystack/pygmy; # (1)
 brew install pygmy;
 pygmy up
 ```
+
+1. HomeBrew is the easiest way to install Pygmy, see the docs for more info.
 
 [Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 
@@ -42,7 +44,7 @@ This file is used by `Docker Compose` to start your local development environmen
 
 Some Docker images and containers need additional customizations from the provided images. This usually has two reasons:
 
-1. **Application code**: Containers like NGINX, PHP, Node.js, etc., need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
+1. **Application code**: Containers like NGINX, PHP, Node.js, etc, need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
 2. **Customization of images**: Lagoon also allows you to customize the base images according to your needs. This can be to inject an additional environment variable, change a service configuration, or even install additional tools. We advise caution with installing additional tools to the Docker images, as you will need to maintain any adaptions in the future!
 
 ## Supported Services & Base Images by Lagoon
@@ -69,4 +71,3 @@ Some Docker images and containers need additional customizations from the provid
 All images are pushed to [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon). We suggest always using the latest tag \(like `uselagoon/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:14`\), as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `uselagoon/nginx:20.10.0` or `uselagoon/node-10:20.10.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-

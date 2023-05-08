@@ -598,9 +598,9 @@ export const invokeRegisteredTask = async (
           service: task.service || 'cli',
           image: task.image, //the return data here is basically what gets dropped into the DB.
           payload: payload,
-          deployTokenInjection: task.deployTokenInjection == true,
-          projectKeyInjection: task.projectKeyInjection == true,
-          adminOnlyView: task.adminOnlyView == false,
+          deployTokenInjection: task.deployTokenInjection,
+          projectKeyInjection: task.projectKeyInjection,
+          adminOnlyView: task.adminOnlyView,
           remoteId: undefined,
           execute: true
         });

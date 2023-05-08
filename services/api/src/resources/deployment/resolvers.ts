@@ -1135,7 +1135,7 @@ export const switchActiveStandby: ResolverFn = async (
     const environmentsForProject = await query(
       sqlClientPool,
       environmentSql.selectEnvironmentsByProjectID(
-        project.id
+        project.id, true
       )
     );
     for (const envForProject of environmentsForProject) {

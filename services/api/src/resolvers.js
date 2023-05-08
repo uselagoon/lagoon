@@ -209,6 +209,8 @@ const {
   updateUser,
   deleteUser,
   deleteAllUsers,
+  getAllUsers,
+  getUserByEmail,
 } = require('./resources/user/resolvers');
 
 const {
@@ -227,6 +229,7 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
   getMembersByGroupId,
+  getGroupRolesByUserId,
 } = require('./resources/group/resolvers');
 
 const {
@@ -442,6 +445,7 @@ const resolvers = {
   User: {
     sshKeys: getUserSshKeys,
     groups: getGroupsByUserId,
+    groupRoles: getGroupRolesByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,
@@ -485,6 +489,8 @@ const resolvers = {
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
+    allUsers: getAllUsers,
+    userByEmail: getUserByEmail,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
     workflowsForEnvironment: resolveWorkflowsForEnvironment,
