@@ -105,19 +105,19 @@ export const Sql = {
       .toString(),
   selectEnvironmentStorageByEnvironmentId: (id: number) =>
     knex('environment_storage')
-      .where('environment_storage.environment', '=', id)
+      .where(knex.raw('environment_storage.environment = ?', id))
       .toString(),
   selectEnvironmentByOpenshiftProjectName: (openshiftProjectName: string) =>
     knex('environment AS e')
       .select('e.*')
       .join('project', 'e.project', '=', 'project.id')
-      .where('e.openshift_project_name', '=', openshiftProjectName)
+      .where(knex.raw('e.openshift_project_name = ?', openshiftProjectName))
       .andWhere('e.deleted', '0000-00-00 00:00:00')
       .toString(),
   canSshToEnvironment: (openshiftProjectName: string) =>
     knex('environment AS e')
       .select('e.*')
       .join('project', 'e.project', '=', 'project.id')
-      .where('e.openshift_project_name', '=', openshiftProjectName)
+      .where(knex.raw('e.openshift_project_name = ?', openshiftProjectName))
       .toString(),
 };

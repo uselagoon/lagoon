@@ -67,23 +67,23 @@ export const Sql = {
     knex('project AS p')
       .select('openshift.*')
       .join('openshift', 'openshift.id', '=', 'p.openshift')
-      .where('p.id', '=', id)
+      .where(knex.raw('p.id = ?', id))
       .toString(),
   selectProjectIdByDeployTargetId: (id: number) =>
     knex('deploy_target_config AS d')
       .select('d.project')
-      .where('d.id', '=', id)
+      .where(knex.raw('d.id = ?', id))
       .toString(),
   selectOpenshiftByDeployTargetId: (id: number) =>
     knex('deploy_target_config AS d')
       .select('openshift.*')
       .join('openshift', 'openshift.id', '=', 'd.deploy_target')
-      .where('d.id', '=', id)
+      .where(knex.raw('d.id = ?', id))
       .toString(),
   selectOpenshiftByEnvironmentId: (id: number) =>
     knex('environment AS e')
       .select('openshift.*')
       .join('openshift', 'openshift.id', '=', 'e.openshift')
-      .where('e.id', '=', id)
+      .where(knex.raw('e.id = ?', id))
       .toString(),
 };
