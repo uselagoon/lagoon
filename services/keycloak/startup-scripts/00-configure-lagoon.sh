@@ -2195,8 +2195,12 @@ function create_or_update_delete_advanced_task_permissions {
       echo "advanced_task:delete:advanced already configured"
       return 0
   fi
-  echo re-configuring advanced_task:delete:advanced
 
+  echo re-configuring advanced_task scopes
+  ADVTASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=advanced_task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ADVTASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"invoke:guest"},{"name":"invoke:developer"},{"name":"invoke:maintainer"},{"name":"create:advanced"},{"name":"delete:advanced"}]'
+
+  echo re-configuring advanced_task:delete:advanced
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Advanced Tasks",
