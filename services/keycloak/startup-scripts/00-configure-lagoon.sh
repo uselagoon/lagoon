@@ -2189,8 +2189,8 @@ function create_or_update_delete_advanced_task_permissions {
     /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
   fi
 
-  # now check if the renamed Delete Advanced Tasks exists, and create it if not
-  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Tasks --config $CONFIG_PATH)
+  # now check if the renamed Advanced Task Delete exists, and create it if not
+  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Advanced+Task+Delete --config $CONFIG_PATH)
   if [ "$delete_advanced_tasks" != "[ ]" ]; then
       echo "advanced_task:delete:advanced already configured"
       return 0
@@ -2203,7 +2203,7 @@ function create_or_update_delete_advanced_task_permissions {
   echo re-configuring advanced_task:delete:advanced
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
-  "name": "Delete Advanced Tasks",
+  "name": "Advanced Task Delete",
   "type": "scope",
   "logic": "POSITIVE",
   "decisionStrategy": "UNANIMOUS",
