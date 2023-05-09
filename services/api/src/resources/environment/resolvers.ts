@@ -4,14 +4,16 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 // @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
+import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
-import { logger } from '../../loggers/logger';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -308,6 +310,72 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
     ctx
   );
 
+export const getEnvironmentsByKubernetes: ResolverFn = async (
+  _,
+  { kubernetes, order, createdAfter, type },
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+) => {
+  const openshift = await openshiftHelpers(
+    sqlClientPool
+  ).getOpenshiftByOpenshiftInput(kubernetes);
+
+  let userProjectIds: number[];
+  try {
+    await hasPermission('openshift', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getEnvironmentsByKubernetes');
+      return [];
+    }
+
+    // Only return projects the user can view
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
+  }
+
+  let queryBuilder = knex('environment').where('openshift', openshift.id);
+
+  if (userProjectIds) {
+    // A user that can view a project might not be able to view an openshift
+    let projectsWithOpenshiftViewPermission: number[] = [];
+    for (const pid of userProjectIds) {
+      try {
+        await hasPermission('openshift', 'view', {
+          project: pid
+        });
+        projectsWithOpenshiftViewPermission = [
+          ...projectsWithOpenshiftViewPermission,
+          pid
+        ];
+      } catch { }
+    }
+
+    queryBuilder = queryBuilder.whereIn(
+      'project',
+      projectsWithOpenshiftViewPermission
+    );
+  }
+
+  if (type) {
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
+  }
+
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
+
+  if (order) {
+    queryBuilder = queryBuilder.orderBy(order);
+  }
+
+  const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
+};
+
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
   { input },
@@ -447,7 +515,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .andWhere("environment", input.environment)
       .andWhere("updated", input.updated)
       .toString()
-    );
+  );
 
   const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);

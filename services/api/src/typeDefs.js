@@ -457,10 +457,19 @@ const typeDefs = gql`
     gitlabId: Int
     sshKeys: [SshKey]
     groups: [GroupInterface]
+    # This just returns the group name, id and the role the user has in that group.
+    # This is a neat way to visualize a users specific access without having to get all members of a group
+    groupRoles: [GroupRoleInterface]
   }
 
   type GroupMembership {
     user: User
+    role: GroupRole
+  }
+
+  type GroupRoleInterface {
+    id: String
+    name: String
     role: GroupRole
   }
 
@@ -774,6 +783,10 @@ const typeDefs = gql`
     DeployTargetConfigs are a way to define which deploy targets are used for a project\n
     """
     deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Build image this project will use if set
+    """
+    buildImage: String
   }
 
   """
@@ -1131,6 +1144,12 @@ const typeDefs = gql`
     project: String!
   }
 
+  # Must provide id OR name
+  input KubernetesInput {
+    id: Int
+    name: String
+  }
+
   type Query {
     """
     Returns the current user
@@ -1141,9 +1160,17 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
+    Returns User Object by a given email address
+    """
+    userByEmail(email: String!): User
+    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    """
+    Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
+    """
+    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String, type: EnvType): [Environment]
     """
     Returns Group Object by a given name
     """
@@ -1215,6 +1242,10 @@ const typeDefs = gql`
     """
     allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
     problemSources: [String]
+    """
+    Returns all Users
+    """
+    allUsers(id: String, email: String, gitlabId: Int): [User]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
@@ -1349,6 +1380,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     organization: Int
+    buildImage: String
   }
 
   input AddEnvironmentInput {
@@ -1738,7 +1770,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
-    organization: Int
+    buildImage: String
   }
 
   input UpdateProjectInput {

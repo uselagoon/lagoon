@@ -90,6 +90,36 @@ export const getGroupFromGroupsByName = async (id, groups) => {
   return {};
 }
 
+export const getGroupRolesByUserId: ResolverFn =async (
+  { id: uid },
+  _input,
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+) => {
+  // use the admin scope check instead of `hasPermission` for speed
+  if (adminScopes.groupViewAll) {
+    try {
+      const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
+      let groups = []
+      for (const g in queryUserGroups) {
+        groups.push({id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0]})
+      }
+
+      return groups;
+    } catch (err) {
+      if (!keycloakGrant) {
+        logger.debug('No grant available for getGroupsByUserId');
+        return [];
+      }
+    }
+  }
+  let groups = []
+  for (const g in keycloakUsersGroups) {
+    groups.push({id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0]})
+  }
+
+  return groups;
+}
+
 export const getMembersByGroupId: ResolverFn = async (
   { id },
   _input,
@@ -693,7 +723,6 @@ export const getAllProjectsInGroup: ResolverFn = async (
       return [];
     }
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-
     return projectIdsArray.map(async id =>
       projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
     );

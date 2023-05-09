@@ -116,6 +116,8 @@ export const Helpers = (sqlClientPool: Pool) => {
     getAllProjects: async () => query(sqlClientPool, Sql.selectAllProjects()),
     getAllProjectsNotIn: async ids =>
       query(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
+    getAllProjectsIn: async ids =>
+      query(sqlClientPool, Sql.selectAllProjectsIn(ids)),
     getAllProjectNames: async () =>
       R.map(
         R.prop('name'),

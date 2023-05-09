@@ -11,12 +11,19 @@ The kick is not a ban. There are times when disruptive or triggering comments an
 ## Tiered Responses
 
 1. Tier One Response
+
     User is welcomed in the channel, asked to read some scroll back, and given a link to participation guidelines.
+
 2. Tier Two Response
+
     User is gently reminded in channel to keep posts on topic, and/or of participation guidelines.
+
 3. Tier Three Response
+
     User is PM’d by available Moderator to explain the problem(s) with their posts and given suggestions of what to do differently.
+
 4. Tier Four Response
+
     If behavior continues, User is kicked for no less than 24 hours from the Discord.
 
 ## Non-Tiered Response Banning

@@ -30,8 +30,8 @@ The maintainer role can do everything within a group and its associated projects
 
 The developer role has SSH access only to development environments. This role cannot access, update or delete the production environment. They can run a sync task with the production environment as a source, but not as the destination. Cannot manage users of a group.
 
-!!! Danger "Danger:"
-    IMPORTANT: This role does not prevent the deployment of the production environment as a deployment is triggered via a Git push! You need to make sure that your Git server prevents these users from pushing into the branch defined as production environment.
+!!! Danger "IMPORTANT"
+    This role does not prevent the deployment of the production environment as a deployment is triggered via a Git push! You need to make sure that your Git server prevents these users from pushing into the branch defined as production environment.
 
 #### Reporter
 
@@ -340,6 +340,7 @@ Here is a table that lists the roles and the access they have:
     | updateKubernetes | kubernetes | update |  |
     | deleteKubernetes | kubernetes | delete |  |
     | deleteAllKubernetes| kubernetes | deleteAll |  |
+    | getAllOpenshifts | openshift | viewAll |  |
     | getAllProjects | project | viewAll |  |
     | addSshKey | ssh\_key | add | userID |
     | updateSshKey | ssh\_key | update | userID |
@@ -362,6 +363,11 @@ Here is a table that lists the roles and the access they have:
     | getEnvVarsByEnvironmentId | env\_var | environment:viewValue:production | projectID |
     | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID |
     | updateEnvironment | environment | update:production | projectID |
+    | allEnvironments | environment | viewAll | |
+    | getEnvironmentStorageMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHoursMonthBy<br />EnvironmentId | environment | storage |  |
+    | getEnvironmentHitsMonthBy<br />EnvironmentId | environment | storage |  |
+    | addOrUpdateEnvironment<br />Storage | environment | storage |  |
     | addDeployment | environment | deploy:production | projectID |
     | deleteDeployment | deployment | delete | projectID |
     | updateDeployment | deployment | update | projectID |

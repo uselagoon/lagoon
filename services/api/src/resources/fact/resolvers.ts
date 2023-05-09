@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
@@ -309,29 +310,39 @@ export const addFacts: ResolverFn = async (
 export const addFactsByName: ResolverFn = async (
   root,
   { input: { project, environment, facts } },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models, adminScopes }
 ) => {
-  if (project && environment) {
-    let lagoonProject = await api.getProjectByName(project);
-    let environments = await getEnvironmentsByProjectId(lagoonProject, {}, { sqlClientPool, hasPermission, keycloakGrant, userActivityLogger, models })
 
-    let envId;
-    if (environments) {
-      for (let i = 0; i < environments.length; i++) {
-        if (environments[i].name === environment) {
-          envId = environments[i].id
-        }
-      }
-    }
-
-    if (envId) {
-      for (let i = 0; i < facts.length; i++) {
-        facts[i].environment = envId;
-      }
-    }
+  if (!project || !environment) {
+    throw new Error("Both 'project' and 'environment' require values"); //Presumably this'll be taken care of via the schema, but let's check either way.
   }
 
-  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission);
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('environment', 'view', {
+      project: project
+    });
+  }
+
+  let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+  let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
+
+  if (environments.length == 0) {
+    throw new Error(`No environments found for project '${project}'`);
+  }
+
+  let envId = R.reduce((acc, e) => {
+   return e.name === environment ? e.id : acc;
+  }, null, environments);
+
+  if (!envId) {
+    throw new Error(`No environment '${environment}' found for project '${project}'`);
+  }
+
+  const returnFacts = await processAddFacts(
+    R.map((fact) => {return {environment: envId, ...fact};}, facts),
+    sqlClientPool,
+    hasPermission
+  );
 
   userActivityLogger(`User added facts to '${project}:${environment}'`, {
     project: project,

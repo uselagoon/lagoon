@@ -377,6 +377,15 @@ export const addProject = async (
     }
   }
 
+  let buildImage = null;
+  if (input.buildImage) {
+    if (adminScopes.projectViewAll) {
+      buildImage = input.buildImage
+    } else {
+      throw new Error('Setting build image is only available to administrators.');
+    }
+  }
+
   const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
@@ -515,7 +524,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -549,7 +558,29 @@ export const deleteProject: ResolverFn = async (
 
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
-  // Remove the default group and user
+  // Remove the project from all groups it is associated to
+  try {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    for (const groupInput of projectGroups) {
+      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+      await models.GroupModel.removeProjectFromGroup(project.id, group);
+      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+        group.name,
+        projectIds
+      );
+    }
+  } catch (err) {
+    logger.error(
+      `Could not remove project from associated groups ${project.name}: ${err.message}`
+    );
+
+  }
+
+  // Remove the default project group
   try {
     const group = await models.GroupModel.loadGroupByName(
       `project-${project.name}`
@@ -565,6 +596,7 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // Remove the default user
   try {
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`
@@ -629,7 +661,8 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit,
-        organization
+        organization,
+        buildImage
       }
     }
   },
@@ -642,7 +675,14 @@ export const updateProject: ResolverFn = async (
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
     if (!adminScopes.projectViewAll) {
-      deploymentsDisabled = 0;
+      throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  // check if a user has permission to change the build image of a project or not
+  if (buildImage) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -741,7 +781,8 @@ export const updateProject: ResolverFn = async (
         openshift,
         openshiftProjectPattern,
         developmentEnvironmentsLimit,
-        organization
+        organization,
+        buildImage
       }
     })
   );
@@ -843,7 +884,8 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit,
-        organization
+        organization,
+        buildImage
       }
     }
   });

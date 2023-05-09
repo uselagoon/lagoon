@@ -1,8 +1,8 @@
 # WordPress on Lagoon
 
-The [WordPress template](https://www.github.com/lagoon-examples/wordpress-base) is configured to use Composer to install WordPress, its dependencies and themes.
+The [WordPress template](https://www.github.com/lagoon-examples/wordpress-base) is configured to use Composer to install WordPress, its dependencies, and themes.
 
-THe WordPress template is based on the [https://github.com/roots/bedrock](https://github.com/roots/bedrock) boilerplate, but extended to match a standardized Lagoon deployment pattern.
+The WordPress template is based on the [https://github.com/roots/bedrock](https://github.com/roots/bedrock) boilerplate, but extended to match a standardized Lagoon deployment pattern.
 
 ## Composer Install
 

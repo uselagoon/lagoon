@@ -6,8 +6,8 @@ describe('Sql', () => {
       const input = {
         id: 1,
         patch: {
-          name: 'test',
-        },
+          name: 'test'
+        }
       };
 
       const ret = Sql.updateOpenshift(input);
