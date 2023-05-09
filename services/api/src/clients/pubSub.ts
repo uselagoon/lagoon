@@ -8,6 +8,12 @@ import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
 
+export const EVENTS = {
+  DEPLOYMENT: 'api.subscription.deployment',
+  BACKUP: 'api.subscription.backup',
+  TASK: 'api.subscription.task'
+};
+
 export const config = {
   host: getConfigFromEnv('RABBITMQ_HOST', 'broker'),
   user: getConfigFromEnv('RABBITMQ_USERNAME', 'guest'),
