@@ -59,6 +59,10 @@ export const Sql = {
     knex('openshift')
       .where('id', '=', id)
       .toString(),
+  selectOpenshiftByName: (name: string) =>
+    knex('openshift')
+      .where('name', '=', name)
+      .toString(),
   truncateOpenshift: () =>
     knex('openshift')
       .truncate()
