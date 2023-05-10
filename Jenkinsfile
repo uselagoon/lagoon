@@ -63,7 +63,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+        sh script: "make -O publish-testlagoon-images BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
       }
     }
     stage ('setup test cluster') {
@@ -157,7 +157,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
+        sh script: "make -O publish-testlagoon-images BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
       }
     }
     stage ('deploy to test environment') {
@@ -186,7 +186,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-uselagoon-baseimages publish-uselagoon-serviceimages publish-uselagoon-taskimages", label: "Publishing built images to uselagoon"
+        sh script: "make -O publish-uselagoon-images", label: "Publishing built images to uselagoon"
       }
     }
     stage ('scan built images') {

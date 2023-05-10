@@ -229,13 +229,14 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(service-images) $(task-images),build/$(image))
-# Outputs a list of all Images we manage
+build:
+	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
+	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
+
 .PHONY: build-list
 build-list:
-	@for number in $(foreach image,$(build-images),build/$(image)); do \
-			echo $$number ; \
-	done
+	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
+
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -279,111 +280,22 @@ broker-up: build/broker-single
 ####### All main&PR images are pushed to testlagoon repository
 #######
 
-# Publish command to testlagoon docker hub, done on any main branch or PR
-publish-testlagoon-baseimages = $(foreach image,$(base-images),[publish-testlagoon-baseimages]-$(image))
-# tag and push all images
-
-.PHONY: publish-testlagoon-baseimages
-publish-testlagoon-baseimages: $(publish-testlagoon-baseimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-baseimages)
-$(publish-testlagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-baseimages]-' first
-		$(eval image = $(subst [publish-testlagoon-baseimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-serviceimages
-publish-testlagoon-serviceimages: $(publish-testlagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-serviceimages)
-$(publish-testlagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-testlagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-taskimages
-publish-testlagoon-taskimages: $(publish-testlagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-taskimages)
-$(publish-testlagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-taskimages]-' first
-		$(eval image = $(subst [publish-testlagoon-taskimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-#######
-####### All tagged releases are pushed to uselagoon repository with new semantic tags
-#######
-
-# Publish command to uselagoon docker hub, only done on tags
-publish-uselagoon-baseimages = $(foreach image,$(base-images),[publish-uselagoon-baseimages]-$(image))
+.PHONY: publish-testlagoon-images
+publish-testlagoon-images:
+	PLATFORMS=linux/amd64 REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=linux/amd64 REPO=ghcr.io/uselagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
-.PHONY: publish-uselagoon-baseimages
-publish-uselagoon-baseimages: $(publish-uselagoon-baseimages)
 
-# tag and push of each image
-.PHONY: $(publish-uselagoon-baseimages)
-$(publish-uselagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-baseimages]-' first
-		$(eval image = $(subst [publish-uselagoon-baseimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-serviceimages
-publish-uselagoon-serviceimages: $(publish-uselagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-serviceimages)
-$(publish-uselagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-uselagoon-serviceimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-taskimages
-publish-uselagoon-taskimages: $(publish-uselagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-taskimages)
-$(publish-uselagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-taskimages]-' first
-		$(eval image = $(subst [publish-uselagoon-taskimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-# Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
-# still active, so this is a very safe command)
+.PHONY: publish-uselagoon-images
+publish-uselagoon-images:
+	PLATFORMS=linux/amd64,linux/arm64 REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=linux/amd64,linux/arm64 REPO=ghcr.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=linux/amd64,linux/arm64 REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=linux/amd64,linux/arm64 REPO=ghcr.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 clean:
 	rm -rf build/*
+	docker buildx rm $(CI_BUILD_TAG)
 
 # Conduct post-release scans on images
 .PHONY: scan-images
