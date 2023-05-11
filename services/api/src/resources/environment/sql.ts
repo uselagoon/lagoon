@@ -28,7 +28,7 @@ export const Sql = {
       .andWhere('project', '=', projectId)
 
     if (!includeDeleted) {
-      return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
+      return query.andWhere('deleted', '=', '0000-00-00 00:00:00').toString();
     }
 
     return query.toString();
