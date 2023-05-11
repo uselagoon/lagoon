@@ -27,11 +27,11 @@ export const Sql = {
       .where('name', '=', name)
       .andWhere('project', '=', projectId)
 
-    if (includeDeleted) {
-      return query.toString();
+    if (!includeDeleted) {
+      return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
     }
 
-    return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
+    return query.toString();
   },
   selectEnvironmentsByProjectID: (projectId: number, includeDeleted: boolean = false) => {
     let select = knex('environment')
