@@ -78,19 +78,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false);
   }
 
-  let queryBuilder = knex('environment')
-    .where(knex.raw('project = ?', pid))
-  if (!args.includeDeleted) {
-    queryBuilder = queryBuilder.andWhere('deleted', '0000-00-00 00:00:00')
-  }
-  if (args.type) {
-    queryBuilder = queryBuilder.andWhere(knex.raw('environment_type = ?', args.type))
-  }
-  if (filterEnvironments && filteredEnvironments.length !== 0) {
-    queryBuilder = queryBuilder.andWhere('id', 'in', filteredEnvironments.join(","))
-  }
-
-  const rows = await query(sqlClientPool, queryBuilder.toString());
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(args.type, pid, args.includeDeleted, filterEnvironments, filteredEnvironments));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
