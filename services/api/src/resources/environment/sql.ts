@@ -33,6 +33,21 @@ export const Sql = {
 
     return query.toString();
   },
+  selectEnvironmentsByProjectId: (type: string, projectId: number, includeDeleted: boolean, filterEnvironments: boolean, filteredEnvironments: string[]) => {
+    let query = knex('environment')
+      .where(knex.raw('project = ?', projectId))
+    if (!includeDeleted) {
+      query = query.andWhere('deleted', '0000-00-00 00:00:00')
+    }
+    if (type) {
+      query = query.andWhere(knex.raw('environment_type = ?', type))
+    }
+    if (filterEnvironments && filteredEnvironments.length !== 0) {
+      query = query.andWhere('id', 'in', filteredEnvironments.join(","))
+    }
+
+    return query.toString();
+  },
   selectEnvironmentsByProjectID: (projectId: number, includeDeleted: boolean = false) => {
     let select = knex('environment')
       .select('id', 'name')

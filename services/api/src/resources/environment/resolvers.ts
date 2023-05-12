@@ -80,8 +80,8 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   let queryBuilder = knex('environment')
     .where(knex.raw('project = ?', pid))
-  if (args.includeDeleted) {
-    queryBuilder = queryBuilder.andWhere('deleted', '=', '0000-00-00 00:00:00')
+  if (!args.includeDeleted) {
+    queryBuilder = queryBuilder.andWhere('deleted', '0000-00-00 00:00:00')
   }
   if (args.type) {
     queryBuilder = queryBuilder.andWhere(knex.raw('environment_type = ?', args.type))
