@@ -7,7 +7,7 @@ COPY . /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 
 # compile
-RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o actions-handler .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o actions-handler .
 
 # put the binary into container
 # use the commons image to get entrypoints
