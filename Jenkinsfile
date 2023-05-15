@@ -32,19 +32,19 @@ pipeline {
         sh script: "docker image prune -af", label: "Pruning images"
       }
     }
-    stage ('refresh upstream images') {
-      when {
-        not {
-          buildingTag()
-        }
-      }
-      steps {
-        sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
-      }
-    }
+    // stage ('refresh upstream images') {
+    //   when {
+    //     not {
+    //       buildingTag()
+    //     }
+    //   }
+    //   steps {
+    //     sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
+    //   }
+    // }
     stage ('build images') {
       steps {
-        sh script: "make -O -j$NPROC build", label: "Building images"
+        sh script: "make -O build", label: "Building images"
       }
     }
     stage ('show trivy scan results') {
