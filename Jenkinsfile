@@ -52,20 +52,6 @@ pipeline {
         sh script: "cat scan.txt", label: "Display scan results"
       }
     }
-    stage ('push images to testlagoon/*') {
-      when {
-        not {
-          environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
-        }
-      }
-      environment {
-        PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
-      }
-      steps {
-        sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O publish-testlagoon-images BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
-      }
-    }
     stage ('setup test cluster') {
       parallel {
         stage ('0: setup test cluster') {
@@ -83,6 +69,20 @@ pipeline {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
             }
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
+          }
+        }
+        stage ('push images to testlagoon/*') {
+          when {
+            not {
+              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+            }
+          }
+          environment {
+            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+          }
+          steps {
+            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+            sh script: "make -O publish-testlagoon-images BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
           }
         }
       }
