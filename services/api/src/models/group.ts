@@ -691,13 +691,16 @@ export const Group = (clients: {
     groupInput: any
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
-    const groupProjectIds = getProjectIdsFromGroup(group)
-    const newGroupProjects = R.pipe(
-      R.append(projectId),
-      R.uniq,
-      R.join(',')
-      // @ts-ignore
-    )(groupProjectIds);
+    let newGroupProjects = ""
+    if (projectId) {
+      const groupProjectIds = getProjectIdsFromGroup(group)
+      newGroupProjects = R.pipe(
+        R.append(projectId),
+        R.uniq,
+        R.join(',')
+        // @ts-ignore
+      )(groupProjectIds);
+    }
 
     try {
       await keycloakAdminClient.groups.update(

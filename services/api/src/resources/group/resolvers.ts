@@ -330,6 +330,7 @@ export const addGroup: ResolverFn = async (
     parentGroupId,
     ...attributes,
   });
+  await models.GroupModel.addProjectToGroup(null, group);
 
   // We don't have any projects yet. So just an empty string
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
