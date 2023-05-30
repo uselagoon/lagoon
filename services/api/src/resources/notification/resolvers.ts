@@ -23,27 +23,31 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
 
+const checkOrgNotificationPermission = async (hasPermission, input) => {
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  await hasPermission('organization', 'addNotification', {
+    organization: input.organization
+  });
+
+  const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+  if (orgNotifications.length >= organizationData.quotaNotification) {
+    throw new Error(
+      `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+    );
+  }
+}
+
 export const addNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-    if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
-    }
-
-    await hasPermission('organization', 'addNotification', {
-      organization: input.organization
-    });
-
-    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
-      throw new Error(
-        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-      );
-    }
+    await checkOrgNotificationPermission(hasPermission, input)
   } else {
     await hasPermission('notification', 'add');
   }
@@ -56,21 +60,7 @@ export const addNotificationEmail: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-    if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
-    }
-
-    await hasPermission('organization', 'addNotification', {
-      organization: input.organization
-    });
-
-    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
-      throw new Error(
-        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-      );
-    }
+    await checkOrgNotificationPermission(hasPermission, input)
   } else {
     await hasPermission('notification', 'add');
   }
@@ -83,21 +73,7 @@ export const addNotificationRocketChat: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-    if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
-    }
-
-    await hasPermission('organization', 'addNotification', {
-      organization: input.organization
-    });
-
-    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
-      throw new Error(
-        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-      );
-    }
+    await checkOrgNotificationPermission(hasPermission, input)
   } else {
     await hasPermission('notification', 'add');
   }
@@ -110,21 +86,7 @@ export const addNotificationSlack: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   if (input.organization != null) {
-    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-    if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
-    }
-
-    await hasPermission('organization', 'addNotification', {
-      organization: input.organization
-    });
-
-    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
-      throw new Error(
-        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-      );
-    }
+    await checkOrgNotificationPermission(hasPermission, input)
   } else {
     await hasPermission('notification', 'add');
   }
@@ -133,21 +95,7 @@ export const addNotificationSlack: ResolverFn = async (
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
   if (input.organization != null) {
-    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-    if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
-    }
-
-    await hasPermission('organization', 'addNotification', {
-      organization: input.organization
-    });
-
-    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
-      throw new Error(
-        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-      );
-    }
+    await checkOrgNotificationPermission(hasPermission, input)
   } else {
     await hasPermission('notification', 'add');
   }

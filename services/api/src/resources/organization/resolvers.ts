@@ -322,6 +322,61 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
 // check an existing project and the associated groups can be added to an organization
 // this will return errors if there are projects or groups that are part of different organizations
 // this is a helper function that is a WIP, not fully flushed out
+
+const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds,projectInOtherOrgs, sqlClientPool) => {
+    // get all the groups the requested project is in
+    for (const group of projectGroups) {
+      // for each group the project is in, check if it has an organization
+      if (R.prop('lagoon-organization', group.attributes)) {
+        // if it has an organization that is not the requested organization, add it to a list
+        if (R.prop('lagoon-organization', group.attributes) != oid) {
+          projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
+          otherOrgs.push(R.prop('lagoon-organization', group.attributes).toString())
+        }
+      }
+      // for each group the project is in, get the list of projects that are also in this group
+      if (R.prop('lagoon-projects', group.attributes)) {
+        const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
+        for (const project of groupProjects) {
+          groupProjectIds.push({group: group.name, project: project})
+        }
+      }
+    }
+
+    if (groupProjectIds.length > 0) {
+      // for all the groups->projects associations
+      for (const pGroup of groupProjectIds) {
+        const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
+        // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
+        if (project.organization != oid && project.organization != null) {
+          projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
+          otherOrgs.push(project.organization.toString())
+        }
+      }
+    }
+
+    // report errors here
+    const uniqOtherOrgs = new Set(otherOrgs)
+    if (projectInOtherOrgs.length > 0) {
+      if (uniqOtherOrgs.size > 1) {
+        throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
+      } else {
+        // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
+        // to the new organization
+        // throw new Error(`This project has groups that have projects in 1 other organizations: [${[...uniqOtherOrgs]}]`)
+      }
+    }
+    if (projectGroupNames.length > 0) {
+      if (uniqOtherOrgs.size > 1) {
+        throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
+      } else {
+        // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
+        // to the new organization
+        // throw new Error(`This project has groups that are in 1 other organizations: [${[...uniqOtherOrgs]}]`)
+      }
+    }
+}
+
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
@@ -340,56 +395,7 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
 
   // get all the groups the requested project is in
   const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
-  for (const group of projectGroups) {
-    // for each group the project is in, check if it has an organization
-    if (R.prop('lagoon-organization', group.attributes)) {
-      // if it has an organization that is not the requested organization, add it to a list
-      if (R.prop('lagoon-organization', group.attributes) != oid) {
-        projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
-        otherOrgs.push(R.prop('lagoon-organization', group.attributes).toString())
-      }
-    }
-    // for each group the project is in, get the list of projects that are also in this group
-    if (R.prop('lagoon-projects', group.attributes)) {
-      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-      for (const project of groupProjects) {
-        groupProjectIds.push({group: group.name, project: project})
-      }
-    }
-  }
-
-  if (groupProjectIds.length > 0) {
-    // for all the groups->projects associations
-    for (const pGroup of groupProjectIds) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
-      if (project.organization != oid && project.organization != null) {
-        projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
-        otherOrgs.push(project.organization.toString())
-      }
-    }
-  }
-
-  // report errors here
-  const uniqOtherOrgs = new Set(otherOrgs)
-  if (projectInOtherOrgs.length > 0) {
-    if (uniqOtherOrgs.size > 1) {
-      throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
-    } else {
-      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-      // to the new organization
-      // throw new Error(`This project has groups that have projects in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-    }
-  }
-  if (projectGroupNames.length > 0) {
-    if (uniqOtherOrgs.size > 1) {
-      throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
-    } else {
-      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-      // to the new organization
-      // throw new Error(`This project has groups that are in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-    }
-  }
+  await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
 
   return "success";
 };
@@ -414,56 +420,7 @@ export const addProjectToOrganization: ResolverFn = async (
 
   // get all the groups the requested project is in
   const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
-  for (const group of projectGroups) {
-    // for each group the project is in, check if it has an organization
-    if (R.prop('lagoon-organization', group.attributes)) {
-      // if it has an organization that is not the requested organization, add it to a list
-      if (R.prop('lagoon-organization', group.attributes) != oid) {
-        projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
-        otherOrgs.push(R.prop('lagoon-organization', group.attributes).toString())
-      }
-    }
-    // for each group the project is in, get the list of projects that are also in this group
-    if (R.prop('lagoon-projects', group.attributes)) {
-      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-      for (const project of groupProjects) {
-        groupProjectIds.push({group: group.name, project: project})
-      }
-    }
-  }
-
-  if (groupProjectIds.length > 0) {
-    // for all the groups->projects associations
-    for (const pGroup of groupProjectIds) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
-      if (project.organization != oid && project.organization != null) {
-        projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
-        otherOrgs.push(project.organization.toString())
-      }
-    }
-  }
-
-  // report errors here
-  const uniqOtherOrgs = new Set(otherOrgs)
-  if (projectInOtherOrgs.length > 0) {
-    if (uniqOtherOrgs.size > 1) {
-      throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
-    } else {
-      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-      // to the new organization
-      // throw new Error(`This project has groups that have projects in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-    }
-  }
-  if (projectGroupNames.length > 0) {
-    if (uniqOtherOrgs.size > 1) {
-      throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
-    } else {
-      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-      // to the new organization
-      // throw new Error(`This project has groups that are in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-    }
-  }
+  await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
 
   // check if project.organization is already set?
   // get all groups the project is in
