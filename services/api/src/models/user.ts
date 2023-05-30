@@ -285,9 +285,10 @@ export const User = (clients: {
       return false;
     };
 
+    let userIds = []
     const keycloakUsers = await keycloakAdminClient.users.find();
     // @ts-ignore
-    const userIds = R.pluck('id', keycloakUsers);
+    userIds = R.pluck('id', keycloakUsers);
 
     let fullUsers = [];
     for (const id of userIds) {

@@ -564,12 +564,10 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
     if (projectIdsByOrg.length == 0) {
       let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
       throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
     } else {
       if (groupProjectIds.length > 0) {
         let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
         if (filters.length > 0) {
           throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
         }
@@ -623,12 +621,10 @@ export const addGroupToOrganization: ResolverFn = async (
   if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
     if (projectIdsByOrg.length == 0) {
       let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
       throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
     } else {
       if (groupProjectIds.length > 0) {
         let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
         if (filters.length > 0) {
           throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
         }

@@ -323,10 +323,10 @@ export const Group = (clients: {
       return false;
     };
 
-
+    let groupIds = []
     const keycloakGroups = await keycloakAdminClient.groups.find();
     // @ts-ignore
-    const groupIds = R.pluck('id', keycloakGroups);
+    groupIds = R.pluck('id', keycloakGroups);
 
     let fullGroups = [];
     for (const id of groupIds) {
