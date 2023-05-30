@@ -285,13 +285,9 @@ export const User = (clients: {
       return false;
     };
 
-    let userIds = [];
-
-    if (R.isEmpty(userIds)) {
-      const keycloakUsers = await keycloakAdminClient.users.find();
-      // @ts-ignore
-      userIds = R.pluck('id', keycloakUsers);
-    }
+    const keycloakUsers = await keycloakAdminClient.users.find();
+    // @ts-ignore
+    const userIds = R.pluck('id', keycloakUsers);
 
     let fullUsers = [];
     for (const id of userIds) {
@@ -550,13 +546,6 @@ export const User = (clients: {
         } else {
           organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
           organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
-        }
-        try {
-          // when adding a user to organizations, if this is an organization based user, purge the cache so the users are updated
-          // in the api
-          // await redisClient.deleteUsersOrganizationCache(R.prop('organization', userInput));
-        } catch (err) {
-          logger.warn(`Error deleting organization groups cache: ${err.message}`);
         }
       }
 

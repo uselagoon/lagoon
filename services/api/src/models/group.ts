@@ -323,24 +323,17 @@ export const Group = (clients: {
       return false;
     };
 
-    let groupIds = [];
 
-    if (R.isEmpty(groupIds)) {
-      const keycloakGroups = await keycloakAdminClient.groups.find();
-      // @ts-ignore
-      groupIds = R.pluck('id', keycloakGroups);
-    }
+    const keycloakGroups = await keycloakAdminClient.groups.find();
+    // @ts-ignore
+    const groupIds = R.pluck('id', keycloakGroups);
 
     let fullGroups = [];
     for (const id of groupIds) {
-      try {
-        const fullGroup = await keycloakAdminClient.groups.findOne({
-          id
-        });
-        fullGroups = [...fullGroups, fullGroup];
-      } catch (err) {
-        //
-      }
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id
+      });
+      fullGroups = [...fullGroups, fullGroup];
     }
 
     try {
@@ -348,9 +341,6 @@ export const Group = (clients: {
       const groups = await transformKeycloakGroups(filteredGroups);
       return groups;
     } catch (err) {
-      // if the groups don't exist, then purge this organizations redis cache
-      // this would be better handled in the `deleteGroup` function, but promises and stuff don't seem to work properly
-      // TODO: SEARCH AND SEE -> DELETEGROUPORGCACHE
       return null
     }
 
