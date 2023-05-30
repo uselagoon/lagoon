@@ -28,18 +28,4 @@ export const jsonMerge = function(a, b, prop) {
 // a1 = [1,2,3,4]
 // a2 = [1,2,3,5]
 // arrayDiff(a1,a2) = [4]
-export const arrayDiff = (a1, a2) => {
-  var a = [], diff = [];
-  for (var i = 0; i < a1.length; i++) {
-      a[a1[i]] = true;
-  }
-  for (var i = 0; i < a2.length; i++) {
-      if (a[a2[i]]) {
-          delete a[a2[i]];
-      }
-  }
-  for (var k in a) {
-      diff.push(k);
-  }
-  return diff;
-}
+export const arrayDiff = (a:Array<any>, b:Array<any>) =>  a.filter(e => !b.includes(e));
