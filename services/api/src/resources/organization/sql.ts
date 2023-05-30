@@ -111,5 +111,11 @@ export const Sql = {
   selectOrganizationDeployTargets: (id: number) =>
     knex('organization_deploy_target')
       .where('orgid', '=', id)
+      .toString(),
+  selectDeployTargetsByOrganization: (id: number) =>
+    knex('openshift as dt')
+      .select('dt.*')
+      .join('organization_deploy_target as odt', 'dt.id', '=', 'odt.dtid')
+      .where('o.orgid', '=', id)
       .toString()
 };

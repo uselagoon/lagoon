@@ -53,21 +53,13 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
       organization: oid,
   });
 
-  const rows = await query(
-      sqlClientPool,
-      `SELECT dt.*
-      FROM openshift as dt
-      JOIN organization_deploy_target as odt ON dt.id=odt.dtid
-      WHERE orgid = :organization`,
-      { organization: oid }
-  );
-  const orgResult = rows;
+  const rows = await query(sqlClientPool, Sql.selectDeployTargetsByOrganization(oid));
 
-  if (!orgResult) {
+  if (!rows) {
       return null;
   }
 
-  return orgResult;
+  return rows;
 };
 
 export const updateOrganization: ResolverFn = async (
@@ -103,13 +95,7 @@ export const getOrganizationById: ResolverFn = async (
         organization: oid,
     });
 
-    const rows = await query(
-        sqlClientPool,
-        `SELECT *
-        FROM organization
-        WHERE id = :organization`,
-        { organization: oid }
-    );
+    const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
     const orgResult = rows[0];
 
     if (!orgResult) {
