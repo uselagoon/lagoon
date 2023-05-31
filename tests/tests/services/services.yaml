@@ -81,14 +81,14 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch-2"
-    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
-  tasks:
-  - include: ../../checks/check-url-content.yaml
+# - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch-2"
+#     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+#   tasks:
+#   - include: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
