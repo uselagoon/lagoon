@@ -86,6 +86,23 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   return withK8s;
 };
 
+// used to check if project within an organization has requested valid deploy target
+const checkProjectDeployTargetByOrg = async (project, deployTarget, sqlClientPool) => {
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(project)
+  if (projectdata.organization != null) {
+    let validDeployTarget = false
+    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
+    for (const dt of deploytargets) {
+      if (dt.dtid == deployTarget) {
+        validDeployTarget = true
+      }
+    }
+    if (!validDeployTarget) {
+      throw new Error('The provided deploytarget is not valid for this organization');
+    }
+  }
+}
+
 export const updateEnvironmentDeployTarget: ResolverFn = async (
   root,
   input,
@@ -104,19 +121,7 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
   });
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  const projectdata = await projectHelpers(sqlClientPool).getProjectById(environmentObj.project)
-  if (projectdata.organization != null) {
-    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
-    let validDeployTarget = false
-    for (const dt of deploytargets) {
-      if (dt.dtid == deployTarget) {
-        validDeployTarget = true
-      }
-    }
-    if (!validDeployTarget) {
-      throw new Error('The provided deploytarget is not valid for this organization');
-    }
-  }
+  await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
 
   const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
 
@@ -208,19 +213,7 @@ export const addDeployTargetConfig: ResolverFn = async (
   });
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  const projectdata = await projectHelpers(sqlClientPool).getProjectById(project)
-  if (projectdata.organization != null) {
-    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
-    let validDeployTarget = false
-    for (const dt of deploytargets) {
-      if (dt.dtid == deployTarget) {
-        validDeployTarget = true
-      }
-    }
-    if (!validDeployTarget) {
-      throw new Error('The provided deploytarget is not valid for this organization');
-    }
-  }
+  await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -316,19 +309,7 @@ export const updateDeployTargetConfig: ResolverFn = async (
   });
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  const projectdata = await projectHelpers(sqlClientPool).getProjectById(deployTargetConfig.project)
-  if (projectdata.organization != null) {
-    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
-    let validDeployTarget = false
-    for (const dt of deploytargets) {
-      if (dt.dtid == deployTarget) {
-        validDeployTarget = true
-      }
-    }
-    if (!validDeployTarget) {
-      throw new Error('The provided deploytarget is not valid for this organization');
-    }
-  }
+  await checkProjectDeployTargetByOrg(deployTargetConfig.project, deployTarget, sqlClientPool)
 
   await query(
     sqlClientPool,
