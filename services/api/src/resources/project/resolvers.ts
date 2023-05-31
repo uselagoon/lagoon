@@ -629,8 +629,48 @@ export const updateProject: ResolverFn = async (
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
-  // TODO If the privateKey changes, automatically remove the old one from the
+  // If the privateKey is changed, automatically remove the old one from the
   // default user and link the new one.
+  if (patch.privateKey) {
+    let keyPair: any = {};
+    try {
+      const privateKey = R.cond([
+        [R.isNil, generatePrivateKey],
+        [R.isEmpty, generatePrivateKey],
+        [R.T, sshpk.parsePrivateKey]
+      ])(R.prop('privateKey', patch));
+
+      const publicKey = privateKey.toPublic();
+
+      keyPair = {
+        ...keyPair,
+        private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
+        public: publicKey.toString()
+      };
+
+      const keyParts = keyPair.public.split(' ');
+
+      const { insertId } = await query(
+        sqlClientPool,
+        sshKeySql.insertSshKey({
+          id: null,
+          name: 'auto-add via api',
+          keyValue: keyParts[1],
+          keyType: keyParts[0],
+          keyFingerprint: getSshKeyFingerprint(keyPair.public)
+        })
+      );
+      const user = await models.UserModel.loadUserByUsername(
+        `default-user@${oldProject.name}`
+      );
+      await query(
+        sqlClientPool,
+        sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+      );
+    } catch (err) {
+      throw new Error(`There was an error with the privateKey: ${err.message}`);
+    }
+  }
 
   // const originalProject = await Helpers(sqlClientPool).getProjectById(id);
   // const originalName = R.prop('name', originalProject);
