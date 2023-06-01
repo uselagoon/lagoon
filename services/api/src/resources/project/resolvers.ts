@@ -634,12 +634,7 @@ export const updateProject: ResolverFn = async (
   if (patch.privateKey) {
     let keyPair: any = {};
     try {
-      const privateKey = R.cond([
-        [R.isNil, generatePrivateKey],
-        [R.isEmpty, generatePrivateKey],
-        [R.T, sshpk.parsePrivateKey]
-      ])(R.prop('privateKey', patch));
-
+      const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
       const publicKey = privateKey.toPublic();
 
       keyPair = {
