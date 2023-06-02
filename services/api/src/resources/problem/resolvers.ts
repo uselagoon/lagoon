@@ -207,7 +207,10 @@ export const addProblem: ResolverFn = async (
     }
   });
 
-  return R.prop(0, rows);
+  let ret = R.prop(0, rows);
+  ret.data = JSON.stringify(data);
+
+  return ret;
 };
 
 export const deleteProblem: ResolverFn = async (
