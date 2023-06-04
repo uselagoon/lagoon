@@ -645,23 +645,34 @@ export const updateProject: ResolverFn = async (
 
       const keyParts = keyPair.public.split(' ');
 
-      const { insertId } = await query(
-        sqlClientPool,
-        sshKeySql.insertSshKey({
-          id: null,
-          name: 'auto-add via api',
-          keyValue: keyParts[1],
-          keyType: keyParts[0],
-          keyFingerprint: getSshKeyFingerprint(keyPair.public)
-        })
-      );
-      const user = await models.UserModel.loadUserByUsername(
-        `default-user@${oldProject.name}`
-      );
-      await query(
-        sqlClientPool,
-        sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
-      );
+      try {
+        // since public keys can only be associated to a single user
+        // if a polysite tries for some reason uses the same key across all the polysites
+        // then only 1 of the default-users will be able to hold the public key
+        // ideally each project should have its own key and polysite repos should
+        // have the public key for each project added to it for pulls
+        const { insertId } = await query(
+          sqlClientPool,
+          sshKeySql.insertSshKey({
+            id: null,
+            name: 'auto-add via api',
+            keyValue: keyParts[1],
+            keyType: keyParts[0],
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
+        );
+        const user = await models.UserModel.loadUserByUsername(
+          `default-user@${oldProject.name}`
+        );
+        await query(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+        );
+      } catch (err) {
+        logger.error(
+          `Could not update default project user for ${oldProject.name}: ${err.message}`
+        );
+      }
     } catch (err) {
       throw new Error(`There was an error with the privateKey: ${err.message}`);
     }
