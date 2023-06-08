@@ -19,12 +19,40 @@
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "API {{ cluster_type|upper }} - deploy regular branch"
+    testname: "API {{ cluster_type|upper }} - deploy regular branch api/slash/branch"
     node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     branch: api/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/deploy-branch-once.yaml
+  vars:
+    testname: "API {{ cluster_type|upper }} - deploy regular branch, name contains --"
+    node_version: 16
+    git_repo_name: api.git
+    project: ci-api-{{ cluster_type }}
+    branch: api--branch
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/deploy-branch-once.yaml
+  vars:
+    testname: "API {{ cluster_type|upper }} - deploy regular branch, name contains only numbers"
+    node_version: 16
+    git_repo_name: api.git
+    project: ci-api-{{ cluster_type }}
+    branch: 1234567890
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/deploy-branch-once.yaml
+  vars:
+    testname: "API {{ cluster_type|upper }} - deploy regular branch, name ends with -"
+    node_version: 16
+    git_repo_name: api.git
+    project: ci-api-{{ cluster_type }}
+    branch: some-branch-name-
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
 
 - include: api/promote.yaml
   vars:
