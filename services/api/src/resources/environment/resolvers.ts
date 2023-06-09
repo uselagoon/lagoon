@@ -642,6 +642,14 @@ export const deleteEnvironment: ResolverFn = async (
     }
   });
 
+  // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
+  // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
+  const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
+  if (deploytarget.length == 0 || deploytarget[0].disabled) {
+    await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+    return 'success';
+  }
+
   await createRemoveTask(data);
   sendToLagoonLogs(
     'info',
