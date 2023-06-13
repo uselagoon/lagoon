@@ -42,6 +42,21 @@ export const getPrivateKey: ResolverFn = async (
   }
 };
 
+export const getProjectDeployKey: ResolverFn = async (
+  project,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
+
+    const keyParts = privateKey.toPublic().toString().split(' ');
+    return keyParts[0] + " " + keyParts[1]
+  } catch (err) {
+    return null;
+  }
+};
+
 export const getAllProjects: ResolverFn = async (
   root,
   { order, createdAfter, gitUrl },

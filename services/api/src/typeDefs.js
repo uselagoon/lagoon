@@ -615,6 +615,10 @@ const typeDefs = gql`
     """
     privateKey: String
     """
+    SSH Public Key for Project, can be added to git repositories to allow Lagoon read access.
+    """
+    publicKey: String
+    """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
     """

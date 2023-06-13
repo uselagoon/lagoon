@@ -39,7 +39,7 @@ services:
         soft: 65536
         hard: 65536
     labels:
-      lagoon.type: opensearch
+      lagoon.type: none # gets set to opensearch in a second deployment
     ports:
       - '9200'
 
