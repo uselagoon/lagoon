@@ -49,6 +49,13 @@ export const Helpers = (sqlClientPool: Pool) => {
         Sql.deleteEnvironment(name, pid)
       );
     },
+    getEnvironmentsDeploytarget: async (eid) => {
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectDeployTarget(eid)
+      );
+      return aliasOpenshiftToK8s(rows);
+    },
     getEnvironmentsByProjectId: async (projectId) => {
       const rows = await query(
         sqlClientPool,

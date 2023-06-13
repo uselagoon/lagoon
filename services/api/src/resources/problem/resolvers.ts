@@ -110,7 +110,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     });
   }
 
-  const rows = await query(
+  let rows = await query(
     sqlClientPool,
     Sql.selectProblemsByEnvironmentId({
       environmentId,
@@ -118,6 +118,16 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
       source
     })
   );
+
+  //With some changes in Mariadb, we now have to stringify outgoing json
+  interface hasData {
+    data: string
+  }
+
+  rows = R.map((e:hasData) => {
+    e.data = JSON.stringify(e.data);
+    return e
+  }, rows);
 
   return R.sort(R.descend(R.prop('created')), rows);
 };
@@ -191,13 +201,16 @@ export const addProblem: ResolverFn = async (
         version: version || '',
         fixed_version: fixedVersion,
         links: links,
-        data,
+        data: JSON.stringify(data),
         created,
       }
     }
   });
 
-  return R.prop(0, rows);
+  let ret = R.prop(0, rows);
+  ret.data = JSON.stringify(data);
+
+  return ret;
 };
 
 export const deleteProblem: ResolverFn = async (

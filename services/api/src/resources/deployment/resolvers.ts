@@ -502,7 +502,7 @@ export const cancelDeployment: ResolverFn = async (
   });
 
   // check if the deploytarget for this environment is disabled
-  const deploytarget = await query(sqlClientPool, Sql.selectDeployTarget(environment.openshift));
+  const deploytarget = await environmentHelpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
   if (deploytarget[0].disabled) {
     // if it is, proceed to mark the build as cancelled
     var date = new Date();

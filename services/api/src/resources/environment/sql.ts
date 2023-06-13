@@ -48,6 +48,10 @@ export const Sql = {
         name,
       })
       .toString(),
+  selectDeployTarget: (id: number) =>
+    knex('openshift')
+      .where('id', '=', id)
+      .toString(),
   selectServicesByEnvironmentId: (id: number) =>
     knex('environment_service')
       .where('environment', '=', id)
