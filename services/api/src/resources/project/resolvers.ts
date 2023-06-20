@@ -13,7 +13,7 @@ import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import sql from '../user/sql';
+import { Helpers as userHelpers } from '../user/helpers';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
@@ -529,6 +529,14 @@ export const deleteProject: ResolverFn = async (
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`
     );
+    // delete default-user ssh key
+    try {
+      await userHelpers(
+        sqlClientPool
+      ).deleteUserSshKeys(user.id);
+    } catch (err) {
+      throw new Error(`Could not delete user: ${err}`)
+    }
     await models.UserModel.deleteUser(user.id);
   } catch (err) {
     logger.error(
