@@ -6,7 +6,7 @@
 
 ## Supported Versions
 
-4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/Dockerfile) - `uselagoon/mongo-4`
+4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/4.Dockerfile) - `uselagoon/mongo-4`
 
 This Dockerfile is intended to be used to set up a standalone MongoDB database server.
 
@@ -14,4 +14,4 @@ This Dockerfile is intended to be used to set up a standalone MongoDB database s
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user, and therefore also on Kubernetes or Openshift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user, and therefore also on Kubernetes or OpenShift.

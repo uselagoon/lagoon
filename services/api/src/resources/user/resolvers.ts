@@ -44,6 +44,50 @@ export const getUserBySshKey: ResolverFn = async (
   return user;
 };
 
+// query to get all users, with some inputs to limit the search to specific email, id, or gitlabId
+export const getAllUsers: ResolverFn = async (
+  _root,
+  { id, email, gitlabId },
+  { sqlClientPool, models, hasPermission },
+) => {
+  await hasPermission('user', 'viewAll');
+
+  const users = await models.UserModel.loadAllUsers();
+  if (id) {
+    const filteredById = users.filter(function (item) {
+      return item.id === id;
+    });
+    return filteredById;
+  }
+  if (email) {
+    const filteredByEmail = users.filter(function (item) {
+      return item.email === email;
+    });
+    return filteredByEmail;
+  }
+  if (gitlabId) {
+    const filteredByGitlab = users.filter(function (item) {
+      return item.gitlabId === gitlabId;
+    });
+    return filteredByGitlab;
+  }
+
+  return users;
+};
+
+// query to get all users, with some inputs to limit the search to specific email, id, or gitlabId
+export const getUserByEmail: ResolverFn = async (
+  _root,
+  { email },
+  { sqlClientPool, models, hasPermission },
+) => {
+  await hasPermission('user', 'viewAll');
+
+  const user = await models.UserModel.loadUserByUsername(email);
+
+  return user;
+};
+
 export const addUser: ResolverFn = async (
   _root,
   { input },

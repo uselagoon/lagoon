@@ -143,6 +143,13 @@ class NoNeedToRemoveBranch extends Error {
   }
 }
 
+class DeployTargetDisabled extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DeployTargetDisabled';
+  }
+}
+
 class CannotDeleteProductionEnvironment extends Error {
   constructor(message) {
     super(message);
@@ -481,6 +488,11 @@ export const getControllerBuildData = async function(deployData: any) {
   // end working out the target information
   let openshiftId = deployTarget.openshift.id;
 
+  if (deployTarget.openshift.disabled) {
+    logger.error(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
+    throw new DeployTargetDisabled(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
+  }
+
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
   // set routerpattern to the routerpattern of what is defined in the project scope openshift
@@ -521,9 +533,14 @@ export const getControllerBuildData = async function(deployData: any) {
     buildImage = edgeBuildDeployImage
   }
   // otherwise work out the build image from the deploytarget if defined
-  if (deployTarget.openshift.buildImage != null) {
+  if (deployTarget.openshift.buildImage != null && deployTarget.openshift.buildImage != "") {
     // set the build image here if one is defined in the api
     buildImage = deployTarget.openshift.buildImage
+  }
+  // otherwise work out the build image from the project if defined
+  if (lagoonProjectData.buildImage != null && lagoonProjectData.buildImage != "") {
+    // set the build image here if one is defined in the api
+    buildImage = lagoonProjectData.buildImage
   }
   // if no build image is determined, the `remote-controller` defined default image will be used
   // once it reaches the remote cluster.
@@ -967,8 +984,6 @@ export const createRemoveTask = async function(removeData: any) {
 // creates the restore job configuration for use in the misc task
 const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   let config = {
-    apiVersion: 'backup.appuio.ch/v1alpha1',
-    kind: 'Restore',
     metadata: {
       name
     },

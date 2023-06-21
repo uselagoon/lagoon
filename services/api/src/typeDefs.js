@@ -51,6 +51,7 @@ const typeDefs = gql`
     ERROR
     FAILED
     COMPLETE
+    QUEUED
   }
 
   enum EnvVariableType {
@@ -67,15 +68,16 @@ const typeDefs = gql`
   }
 
   enum TaskStatusType {
-    ACTIVE
-    SUCCEEDED
-    FAILED
     NEW
     PENDING
     RUNNING
     CANCELLED
     ERROR
+    FAILED
     COMPLETE
+    QUEUED
+    ACTIVE
+    SUCCEEDED
   }
 
   enum RestoreStatusType {
@@ -153,6 +155,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -170,6 +177,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -445,10 +457,19 @@ const typeDefs = gql`
     gitlabId: Int
     sshKeys: [SshKey]
     groups: [GroupInterface]
+    # This just returns the group name, id and the role the user has in that group.
+    # This is a neat way to visualize a users specific access without having to get all members of a group
+    groupRoles: [GroupRoleInterface]
   }
 
   type GroupMembership {
     user: User
+    role: GroupRole
+  }
+
+  type GroupRoleInterface {
+    id: String
+    name: String
     role: GroupRole
   }
 
@@ -485,6 +506,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type Kubernetes {
@@ -502,6 +524,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type NotificationMicrosoftTeams {
@@ -587,6 +610,10 @@ const typeDefs = gql`
     \`\`\`
     """
     privateKey: String
+    """
+    SSH Public Key for Project, can be added to git repositories to allow Lagoon read access.
+    """
+    publicKey: String
     """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
@@ -756,6 +783,10 @@ const typeDefs = gql`
     DeployTargetConfigs are a way to define which deploy targets are used for a project\n
     """
     deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Build image this project will use if set
+    """
+    buildImage: String
   }
 
   """
@@ -840,7 +871,7 @@ const typeDefs = gql`
     envVariables: [EnvKeyValue]
     route: String
     routes: String
-    monitoringUrls: String
+    monitoringUrls: String @deprecated(reason: "No longer in use")
     deployments(name: String, limit: Int): [Deployment]
     insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
@@ -918,6 +949,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   type Insight {
@@ -951,6 +983,9 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
@@ -1047,6 +1082,12 @@ const typeDefs = gql`
     project: String!
   }
 
+  # Must provide id OR name
+  input KubernetesInput {
+    id: Int
+    name: String
+  }
+
   type Query {
     """
     Returns the current user
@@ -1057,9 +1098,17 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
+    Returns User Object by a given email address
+    """
+    userByEmail(email: String!): User
+    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    """
+    Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
+    """
+    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String, type: EnvType): [Environment]
     """
     Returns Group Object by a given name
     """
@@ -1130,6 +1179,10 @@ const typeDefs = gql`
     """
     allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
     problemSources: [String]
+    """
+    Returns all Users
+    """
+    allUsers(id: String, email: String, gitlabId: Int): [User]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
@@ -1253,6 +1306,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input AddEnvironmentInput {
@@ -1327,6 +1381,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input DeleteDeploymentInput {
@@ -1344,6 +1399,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input UpdateDeploymentInput {
@@ -1411,6 +1467,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1431,6 +1490,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input DeleteTaskInput {
@@ -1472,6 +1534,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input AddKubernetesInput {
@@ -1491,6 +1554,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input DeleteOpenshiftInput {
@@ -1621,6 +1685,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    buildImage: String
   }
 
   input UpdateProjectInput {
@@ -1644,6 +1709,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateOpenshiftInput {
@@ -1667,6 +1733,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateKubernetesInput {

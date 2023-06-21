@@ -96,11 +96,14 @@ export const getAllOpenshifts: ResolverFn = async (
 export const getOpenshiftByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  await hasPermission('openshift', 'view', {
-    project: pid
-  });
+
+  if (!adminScopes.openshiftViewAll) {
+    await hasPermission('openshift', 'view', {
+      project: pid
+    });
+  }
 
   const rows = await query(
     sqlClientPool,
@@ -157,7 +160,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
 export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   // get the project id for the environment
   const project = await projectHelpers(
@@ -165,9 +168,11 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   ).getProjectByEnvironmentId(eid);
 
   // check permissions on the project
-  await hasPermission('openshift', 'view', {
-    project: project.project
-  });
+  if (!adminScopes.openshiftViewAll) {
+    await hasPermission('openshift', 'view', {
+      project: project.project
+    });
+  }
 
   const rows = await query(
     sqlClientPool,

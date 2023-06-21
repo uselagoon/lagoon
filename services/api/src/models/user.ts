@@ -29,11 +29,12 @@ interface UserModel {
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
-  getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
-  getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
+  getAllGroupsForUser: (userId: string) => Promise<Group[]>;
+  getAllProjectsIdsForUser: (userInput: User, groups?: Group[]) => Promise<{}>;
   getUserRolesForProject: (
     userInput: User,
-    projectId: number
+    projectId: number,
+    userGroups: Group[]
   ) => Promise<string[]>;
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
@@ -70,7 +71,7 @@ export const User = (clients: {
   sqlClientPool: any;
   esClient: any;
 }): UserModel => {
-  const { keycloakAdminClient, redisClient } = clients;
+  const { keycloakAdminClient } = clients;
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
@@ -83,7 +84,7 @@ export const User = (clients: {
     );
 
     // @ts-ignore
-    return R.defaultTo('', R.prop('userId', gitlabIdentity));
+    return R.defaultTo(undefined, R.prop('userId', gitlabIdentity));
   };
 
   const transformKeycloakUsers = async (
@@ -153,19 +154,20 @@ export const User = (clients: {
   };
 
   const loadUserById = async (id: string): Promise<User> => {
-    const keycloakUser = await keycloakAdminClient.users.findOne({
+    let keycloakUser: User
+    keycloakUser = await keycloakAdminClient.users.findOne({
       id
     });
+    const users = await transformKeycloakUsers([keycloakUser]);
+    keycloakUser = users[0]
 
     if (R.isNil(keycloakUser)) {
-      throw new UserNotFoundError(`User not found: ${id}`);
+      throw new UserNotFoundError(`User not found a: ${id}`);
     }
-
-    const users = await transformKeycloakUsers([keycloakUser]);
-
-    return users[0];
+    return keycloakUser;
   };
 
+  // used by project resolver only, so leave this one out of redis for now
   const loadUserByUsername = async (username: string): Promise<User> => {
     const keycloakUsers = await keycloakAdminClient.users.find({
       username
@@ -210,55 +212,122 @@ export const User = (clients: {
     return users;
   };
 
-  const getAllGroupsForUser = async (userInput: User): Promise<Group[]> => {
+  const getAllGroupsForUser = async (userId: string): Promise<Group[]> => {
     const GroupModel = Group(clients);
     let groups = [];
 
     const roleSubgroups = await keycloakAdminClient.users.listGroups({
-      id: userInput.id
+      id: userId,
+      briefRepresentation: false
     });
+    const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
 
-    for (const roleSubgroup of roleSubgroups) {
-      const fullRoleSubgroup = await GroupModel.loadGroupById(roleSubgroup.id);
-      if (!isRoleSubgroup(fullRoleSubgroup)) {
-        continue;
+    const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
+
+    for (const fullGroup of fullGroups) {
+      for (const roleSubgroup of roleSubgroups) {
+        for (const fullSubgroup of fullGroup.subGroups) {
+          if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
+            let group = fullSubgroup
+            let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
+            group.subGroups = filtergroup
+            groups.push(group)
+          }
+        }
+        if (roleSubgroup.name.replace(regexp, "") == fullGroup.name) {
+          let group = fullGroup
+          let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
+          group.subGroups = filtergroup
+          groups.push(group)
+        }
       }
-
-      const roleSubgroupParent = await GroupModel.loadParentGroup(
-        fullRoleSubgroup
-      );
-
-      groups.push(roleSubgroupParent);
     }
 
-    return groups;
+    const retGroups = await GroupModel.transformKeycloakGroups(groups);
+    return retGroups;
   };
 
   const getAllProjectsIdsForUser = async (
-    userInput: User
-  ): Promise<number[]> => {
+    userInput: User,
+    groups?: Group[]
+  ): Promise<{}> => {
     const GroupModel = Group(clients);
-    let projects = [];
+    let roleProjectIds = {};
 
-    const userGroups = await getAllGroupsForUser(userInput);
+    if (groups) {
+      // if groups are provided (eg, the groups have previously been calculated in a prior step), then process those groups here and extract the project ids from them
+      for (const roleSubgroup of groups) {
+        for (const fullSubgroup of roleSubgroup.subGroups) {
+          // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+          // getProjectsFromGroupAndSubgroups already covers this fix
+          const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
+            roleSubgroup
+          );
+          if (!roleProjectIds[fullSubgroup.realmRoles[0]]) {
+            roleProjectIds[fullSubgroup.realmRoles[0]] = []
+          }
+          projectIds.forEach(pid => {
+            roleProjectIds[fullSubgroup.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[fullSubgroup.realmRoles[0]].push(pid) : ""
+          })
+        }
+      }
 
-    for (const group of userGroups) {
-      const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
-        group
-      );
-      projects = [...projects, ...projectIds];
+      return roleProjectIds;
+    } else {
+      // otherwise fall back to the previous method of getting groups and project ids which is an expensive call to keycloak if repeated often
+      const roleSubgroups = await keycloakAdminClient.users.listGroups({
+        id: userInput.id,
+        briefRepresentation: false
+      });
+
+      const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
+
+      // currently in lagoon groups with a role will have the role as a prefix, this regix can be used to identify and remove it to get the parent group name
+      const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
+
+      for (const fullGroup of fullGroups) {
+        for (const roleSubgroup of roleSubgroups) {
+          for (const fullSubgroup of fullGroup.subGroups) {
+            if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
+              // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+              // getProjectsFromGroupAndSubgroups already covers this fix
+              const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
+                fullSubgroup
+              );
+              if (!roleProjectIds[roleSubgroup.realmRoles[0]]) {
+                roleProjectIds[roleSubgroup.realmRoles[0]] = []
+              }
+              projectIds.forEach(pid => {
+                roleProjectIds[roleSubgroup.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[roleSubgroup.realmRoles[0]].push(pid) : ""
+              })
+            }
+          }
+          if (roleSubgroup.name.replace(regexp, "") == fullGroup.name) {
+            // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+            // getProjectsFromGroupAndSubgroups already covers this fix
+            const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
+              fullGroup
+            );
+            if (!roleProjectIds[roleSubgroup.realmRoles[0]]) {
+              roleProjectIds[roleSubgroup.realmRoles[0]] = []
+            }
+            projectIds.forEach(pid => {
+              roleProjectIds[roleSubgroup.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[roleSubgroup.realmRoles[0]].push(pid) : ""
+            })
+          }
+        }
+      }
+
+      return roleProjectIds;
     }
-
-    return R.uniq(projects);
   };
 
   const getUserRolesForProject = async (
     userInput: User,
-    projectId: number
+    projectId: number,
+    userGroups: Group[]
   ): Promise<string[]> => {
     const GroupModel = Group(clients);
-
-    const userGroups = await getAllGroupsForUser(userInput);
 
     let roles = [];
     for (const group of userGroups) {
@@ -364,11 +433,6 @@ export const User = (clients: {
       } else {
         throw new Error(`Error deleting user ${id}: ${err}`);
       }
-    }
-    try {
-      await redisClient.deleteRedisUserCache(id);
-    } catch (err) {
-      logger.error(`Error deleting user cache ${id}: ${err}`);
     }
   };
 

@@ -100,9 +100,13 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	// prepare the deployment patch for later step
 	statusType := schema.StatusTypes(strings.ToUpper(buildStatus))
 	updateDeploymentPatch := schema.UpdateDeploymentPatchInput{
-		RemoteID: &message.Meta.RemoteID,
-		Status:   &statusType,
-		// TODO: eventually can handle `message.Meta.BuildStep` here too with API support
+		Status: &statusType,
+	}
+	if message.Meta.BuildStep != "" {
+		updateDeploymentPatch.BuildStep = &message.Meta.BuildStep
+	}
+	if message.Meta.RemoteID != "" {
+		updateDeploymentPatch.RemoteID = &message.Meta.RemoteID
 	}
 	if message.Meta.StartTime != "" {
 		updateDeploymentPatch.Started = &message.Meta.StartTime
@@ -138,10 +142,6 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		if message.Meta.Routes != nil {
 			routes := strings.Join(message.Meta.Routes, ",")
 			updateEnvironmentPatch.Routes = &routes
-		}
-		if message.Meta.MonitoringURLs != nil {
-			monitoring := strings.Join(message.Meta.MonitoringURLs, ",")
-			updateEnvironmentPatch.MonitoringURLs = &monitoring
 		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
 	}

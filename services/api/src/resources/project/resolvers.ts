@@ -12,19 +12,10 @@ import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import sql from '../user/sql';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
-
-const isAdminCheck = async (hasPermission) => {
-  try {
-    // check user is admin
-    await hasPermission('project', 'viewAll');
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
 
 const isValidGitUrl = value =>
   /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
@@ -47,24 +38,43 @@ export const getPrivateKey: ResolverFn = async (
   }
 };
 
+export const getProjectDeployKey: ResolverFn = async (
+  project,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
+
+    const keyParts = privateKey.toPublic().toString().split(' ');
+    return keyParts[0] + " " + keyParts[1]
+  } catch (err) {
+    return null;
+  }
+};
+
 export const getAllProjects: ResolverFn = async (
   root,
   { order, createdAfter, gitUrl },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
 
   try {
+    // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
   } catch (err) {
+    // else user
     if (!keycloakGrant) {
       logger.debug('No grant available for getAllProjects');
       return [];
     }
+    // get the project ids from the users groups
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');
@@ -88,15 +98,7 @@ export const getAllProjects: ResolverFn = async (
   const rows = await query(sqlClientPool, queryBuilder.toString());
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  // This resolver is used for the main UI page and is quite slow. Since we've
-  // already authorized the user has access to all the projects we are
-  // returning, AND all user roles are allowed to view all environments, we can
-  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
-  // resolver.
-  //
-  // @TODO: When this performance issue is fixed for real, remove this hack as
-  // it hardcodes a "everyone can view environments" authz rule.
-  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
+  return withK8s;
 };
 
 export const getProjectByEnvironmentId: ResolverFn = async (
@@ -201,10 +203,13 @@ export const getProjectByName: ResolverFn = async (
 export const getProjectsByMetadata: ResolverFn = async (
   root,
   { metadata },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups },
+  info
 ) => {
   let userProjectIds: number[];
+
   try {
+    // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
@@ -212,9 +217,10 @@ export const getProjectsByMetadata: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');
@@ -239,13 +245,15 @@ export const getProjectsByMetadata: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString(), queryArgs);
-  return Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
 };
 
 export const addProject = async (
   root,
   { input },
-  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger }
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
   await hasPermission('project', 'add');
 
@@ -263,6 +271,17 @@ export const addProject = async (
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
     throw new Error('Must provide kubernetes or openshift field');
+  }
+
+  // check if project already exists before doing anything else
+  const pidResult = await query(
+    sqlClientPool,
+    Sql.selectProjectIdByName(input.name)
+  );
+  if (R.length(pidResult) >= 1) {
+    throw new Error(
+      `Error creating project '${input.name}'. Project already exists.`
+    );
   }
 
   let keyPair: any = {};
@@ -290,9 +309,17 @@ export const addProject = async (
   // check if a user has permission to disable deployments of a project or not
   let deploymentsDisabled = 0;
   if (input.deploymentsDisabled) {
-    const canDisableProject = await isAdminCheck(hasPermission);
-    if (canDisableProject) {
+    if (adminScopes.projectViewAll) {
       deploymentsDisabled = input.deploymentsDisabled
+    }
+  }
+
+  let buildImage = null;
+  if (input.buildImage) {
+    if (adminScopes.projectViewAll) {
+      buildImage = input.buildImage
+    } else {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -396,12 +423,9 @@ export const addProject = async (
   }
 
   // Add the user who submitted this request to the project
-  let userAlreadyHasAccess;
-  try {
-    await hasPermission('project', 'viewAll');
-    userAlreadyHasAccess = true;
-  } catch (e) {
-    userAlreadyHasAccess = false;
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
   }
 
   if (!userAlreadyHasAccess && keycloakGrant) {
@@ -438,7 +462,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -462,7 +486,29 @@ export const deleteProject: ResolverFn = async (
 
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
-  // Remove the default group and user
+  // Remove the project from all groups it is associated to
+  try {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    for (const groupInput of projectGroups) {
+      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+      await models.GroupModel.removeProjectFromGroup(project.id, group);
+      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+        group.name,
+        projectIds
+      );
+    }
+  } catch (err) {
+    logger.error(
+      `Could not remove project from associated groups ${project.name}: ${err.message}`
+    );
+
+  }
+
+  // Remove the default project group
   try {
     const group = await models.GroupModel.loadGroupByName(
       `project-${project.name}`
@@ -478,6 +524,7 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // Remove the default user
   try {
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`
@@ -541,11 +588,12 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   await hasPermission('project', 'update', {
     project: id
@@ -553,9 +601,15 @@ export const updateProject: ResolverFn = async (
 
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
-    const canDisableProject = await isAdminCheck(hasPermission);
-    if (canDisableProject == false) {
-      deploymentsDisabled = 0;
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  // check if a user has permission to change the build image of a project or not
+  if (buildImage) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -575,8 +629,7 @@ export const updateProject: ResolverFn = async (
   // renaming projects is prohibited because lagoon uses the project name for quite a few things
   // which if changed can have unintended consequences for any existing environments
   if (patch.name) {
-    const canUpdateName = await isAdminCheck(hasPermission);
-    if (!canUpdateName) {
+    if (!adminScopes.projectViewAll) {
       throw new Error('Project renaming is only available to administrators.');
     }
   }
@@ -654,7 +707,8 @@ export const updateProject: ResolverFn = async (
         pullrequests,
         openshift,
         openshiftProjectPattern,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     })
   );
@@ -755,7 +809,8 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        buildImage
       }
     }
   });

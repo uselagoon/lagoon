@@ -4,13 +4,16 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 // @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
+import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -65,16 +68,11 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes }
 ) => {
   const { id: pid } = project;
 
-  // The getAllProjects resolver will authorize environment access already,
-  // so we can skip the request to keycloak.
-  //
-  // @TODO: When this performance issue is fixed for real, remove this hack as
-  // it hardcodes a "everyone can view environments" authz rule.
-  if (!R.prop('environmentAuthz', project)) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('environment', 'view', {
       project: pid
     });
@@ -100,7 +98,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
+  return withK8s;
 };
 
 export const getEnvironmentByDeploymentId: ResolverFn = async (
@@ -312,6 +310,72 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
     ctx
   );
 
+export const getEnvironmentsByKubernetes: ResolverFn = async (
+  _,
+  { kubernetes, order, createdAfter, type },
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+) => {
+  const openshift = await openshiftHelpers(
+    sqlClientPool
+  ).getOpenshiftByOpenshiftInput(kubernetes);
+
+  let userProjectIds: number[];
+  try {
+    await hasPermission('openshift', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getEnvironmentsByKubernetes');
+      return [];
+    }
+
+    // Only return projects the user can view
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
+  }
+
+  let queryBuilder = knex('environment').where('openshift', openshift.id);
+
+  if (userProjectIds) {
+    // A user that can view a project might not be able to view an openshift
+    let projectsWithOpenshiftViewPermission: number[] = [];
+    for (const pid of userProjectIds) {
+      try {
+        await hasPermission('openshift', 'view', {
+          project: pid
+        });
+        projectsWithOpenshiftViewPermission = [
+          ...projectsWithOpenshiftViewPermission,
+          pid
+        ];
+      } catch { }
+    }
+
+    queryBuilder = queryBuilder.whereIn(
+      'project',
+      projectsWithOpenshiftViewPermission
+    );
+  }
+
+  if (type) {
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
+  }
+
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
+
+  if (order) {
+    queryBuilder = queryBuilder.orderBy(order);
+  }
+
+  const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
+};
+
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
   { input },
@@ -451,7 +515,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .andWhere("environment", input.environment)
       .andWhere("updated", input.updated)
       .toString()
-    );
+  );
 
   const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
@@ -578,6 +642,14 @@ export const deleteEnvironment: ResolverFn = async (
     }
   });
 
+  // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
+  // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
+  const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
+  if (deploytarget.length == 0 || deploytarget[0].disabled) {
+    await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+    return 'success';
+  }
+
   await createRemoveTask(data);
   sendToLagoonLogs(
     'info',
@@ -635,7 +707,6 @@ export const updateEnvironment: ResolverFn = async (
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
-        monitoringUrls: input.patch.monitoringUrls,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created
       }
@@ -661,7 +732,6 @@ export const updateEnvironment: ResolverFn = async (
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
-        monitoringUrls: input.patch.monitoringUrls,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created
       },

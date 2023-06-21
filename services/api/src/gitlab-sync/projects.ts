@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import * as sshpk from 'sshpk';
-import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
+import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import * as api from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 
@@ -15,7 +15,7 @@ interface GitlabProject {
   },
 };
 
-const projectExistsRegex = /Duplicate entry '[^']+' for key 'name'/;
+const projectExistsRegex = /Project already exists/;
 const convertRoleNumberToString = R.cond([
   [R.equals(10), R.always('GUEST')],
   [R.equals(20), R.always('REPORTER')],

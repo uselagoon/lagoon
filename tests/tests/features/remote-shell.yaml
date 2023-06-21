@@ -17,16 +17,6 @@
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
-- name: "{{ testname }} - check if we can connect via lagoon user"
-  hosts: localhost
-  serial: 1
-  vars:
-    username: lagoon
-    command: "rsh {{ project }}-remoteshell service=node env"
-    expected_content: "LAGOON_PROJECT={{ project }}"
-  tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
-
 - name: "{{ testname }} - check if we can connect via oc project user"
   hosts: localhost
   serial: 1

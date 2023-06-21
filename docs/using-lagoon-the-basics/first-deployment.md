@@ -8,20 +8,20 @@ description: >-
 
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
-!!! Note "Note:"
+!!! Note
     If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md).
 
 ## 1. Make sure you are ready
 
 In order to make your first deployment a successful one, please make sure that your project is Lagoonized and that you have set up the project in Lagoon. If not, or you're not sure, or that doesn't sound familiar, don't worry, go back and follow the [Step-by-Step Guides](setup-project.md) which show you how this works, and then come back and deploy!
 
-## 2. Push!
+## 2. Push
 
 With Lagoon, you create a new deployment by pushing into a branch that is configured to be deployed.
 
 If you don't have any new code to push, don't worry! Run:
 
-```bash
+```bash title="Git push"
 git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
@@ -36,7 +36,7 @@ This informs you that Lagoon has just started to deploy your code. Depending on 
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
-## 3. It's done!
+## 3. It's done
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, here an example:
 
@@ -57,12 +57,11 @@ That's it! We hope that wasn't too hard - making devOps accessible is what we ar
 
 That's the beauty of Lagoon: it's exactly the same! Just push the name of the branch and that one will be deployed.
 
-## Failure? Don't worry.
+## Failure? Don't worry
 
 Did the deployment fail? Oh no! But we're here to help:
 
 1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md), which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
 3. If you can't figure it out, just ask your Lagoon support, we are here to help!
-4. Reach out to us in [Rocket Chat](https://amazeeio.rocket.chat/home).
-
+4. Reach out to us in your support channel or in [the community Discord](https://discord.gg/te5hHe95JE).

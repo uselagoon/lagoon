@@ -3,9 +3,8 @@ import { Pool } from 'mariadb';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createTaskTask, createMiscTask } from '@lagoon/commons/dist/tasks';
 import { query } from '../../util/db';
-import { pubSub } from '../../clients/pubSub';
+import { pubSub, EVENTS } from '../../clients/pubSub';
 import { Sql } from './sql';
-import { EVENTS } from './events';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
@@ -23,6 +22,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service,
     command,
     remoteId,
+    deployTokenInjection,
+    projectKeyInjection,
+    adminOnlyView,
     execute
   }: {
     id?: number;
@@ -36,6 +38,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service: string;
     command: string;
     remoteId?: string;
+    deployTokenInjection: boolean;
+    projectKeyInjection: boolean;
+    adminOnlyView: boolean;
     execute: boolean;
   }) => {
     const { insertId } = await query(
@@ -51,6 +56,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command,
+        deployTokenInjection,
+        projectKeyInjection,
+        adminOnlyView,
         remoteId,
       }),
     );
@@ -58,7 +66,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     let rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = R.prop(0, rows);
 
-    pubSub.publish(EVENTS.TASK.ADDED, taskData);
+    pubSub.publish(EVENTS.TASK, taskData);
 
     // Allow creating task data w/o executing the task
     if (execute === false) {
@@ -113,6 +121,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload = {},
       remoteId,
       execute,
+      deployTokenInjection,
+      projectKeyInjection,
+      adminOnlyView,
     }: {
       id?: number,
       name: string,
@@ -127,6 +138,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload: object,
       remoteId?: string,
       execute: boolean,
+      deployTokenInjection: boolean,
+      projectKeyInjection: boolean,
+      adminOnlyView: boolean,
     },
   ) => {
     let rows = await query(
@@ -155,6 +169,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command: image,
+        deployTokenInjection,
+        projectKeyInjection,
+        adminOnlyView,
         remoteId,
         type: 'advanced',
         advanced_image: image,
@@ -175,11 +192,11 @@ export const Helpers = (sqlClientPool: Pool) => ({
       environment: environmentData,
       advancedTask: {
         RunnerImage: image,
-        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
+        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64'),
+        deployerToken: deployTokenInjection, //an admintask will have a deployer token and ssh key injected into it
+        sshKey: projectKeyInjection,
       }
     }
-
-    pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
 
     try {
       await createMiscTask(

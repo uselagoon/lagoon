@@ -13,8 +13,13 @@
     "newman:all": "newman run ./newman/lagoon-webhook-handler.postman_collection.json -e ./newman/localhost.postman_environment.json"
   },
   "nodemonConfig": {
-    "ignore": ["../../node-packages/commons/dist/"],
-    "watch": ["src", "../../node-packages/"],
+    "ignore": [
+      "../../node-packages/commons/dist/"
+    ],
+    "watch": [
+      "src",
+      "../../node-packages/"
+    ],
     "ext": "js,ts,json",
     "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
@@ -30,7 +35,7 @@
   "devDependencies": {
     "jest": "^24.9.0",
     "newman": "^4.5.4",
-    "nodemon": "^1.12.1",
+    "nodemon": "^2.0.20",
     "ts-jest": "^26.0.0",
     "typescript": "^3.9.3"
   }

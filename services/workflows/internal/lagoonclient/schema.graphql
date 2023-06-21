@@ -645,6 +645,7 @@ enum DeploymentStatusType {
   ERROR
   FAILED
   COMPLETE
+  QUEUED
 }
 
 type DeployTargetConfig {
@@ -764,7 +765,6 @@ type Environment {
   envVariables: [EnvKeyValue]
   route: String
   routes: String
-  monitoringUrls: String
   deployments(name: String, limit: Int): [Deployment]
   backups(includeDeleted: Boolean, limit: Int): [Backup]
   tasks(id: Int, limit: Int): [Task]
@@ -1860,9 +1860,14 @@ type TaskRegistration {
 }
 
 enum TaskStatusType {
-  ACTIVE
-  SUCCEEDED
+  NEW
+  PENDING
+  RUNNING
+  CANCELLED
+  ERROR
   FAILED
+  COMPLETE
+  QUEUED
 }
 
 type UnassignedNotification {
@@ -1934,7 +1939,6 @@ input UpdateEnvironmentPatchInput {
   kubernetesNamespaceName: String
   route: String
   routes: String
-  monitoringUrls: String
   autoIdle: Int
   openshift: Int
   openshiftProjectPattern: String

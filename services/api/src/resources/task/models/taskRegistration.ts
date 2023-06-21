@@ -38,6 +38,9 @@ export interface AdvancedTaskDefinitionInterface {
   command?: string;
   service?: string;
   image?: string;
+  deployTokenInjection?: boolean;
+  projectKeyInjection?: boolean;
+  adminOnlyView?: boolean;
   advancedTaskDefinitionArguments?: Partial<AdvancedTaskDefinitionArguments>;
 }
 

@@ -1865,6 +1865,7 @@ function migrate_to_js_provider {
     local pid
     for pid in $(echo $perms | jq -r '.[].id')
     do
+      echo "Collecting policy ID '$pid' for migration"
       local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$pid/associatedPolicies --config $CONFIG_PATH | jq -c 'map({id,name})')
       perms=$(echo $perms | jq -r --arg pid "$pid" --argjson ap "$associated_policies" '(.[] | select(.id == $pid) | .associatedPolicies) |= $ap')
     done
@@ -1876,6 +1877,7 @@ function migrate_to_js_provider {
     local p_name
     for p_name in $policies
     do
+      echo "Migrating '$p_name' policy to [Lagoon] format"
       # Add the new script based policy to the api client
       local script_name="[Lagoon] $p_name"
       local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
@@ -1899,6 +1901,7 @@ function migrate_to_js_provider {
     OLDIFS=$IFS;IFS=";";
     for p_name in $policies
     do
+      echo "Deleting previous '$p_name' policy"
       local js_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $p_name | sed -e 's/ /+/g') --config $CONFIG_PATH | jq -r --arg name $p_name '.[] | select(.name == $name) | .id')
       /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/policy/js/$js_policy_id --config $CONFIG_PATH
     done
@@ -1956,6 +1959,262 @@ EOF
 EOF
 }
 
+function update_env_var_view_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+  if [ "$view_value_env_var_dev_environment" != null ]; then
+      echo "environment:viewValue:development on env_var already configured"
+      return 0
+  fi
+
+  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:viewValue"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:viewValue:production"},{"name":"environment:view:development"},{"name":"environment:viewValue:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+
+  view_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+  #Delete existing permissions
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_dev_environment --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_prod_environment --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_project --config $CONFIG_PATH
+
+  #Create new permissions & re-create the existing with updated policies
+
+  echo Recreating \"View Environment Variable for Development Environment\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:view:development"],
+  "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Guest"]
+}
+EOF
+
+  echo Recreating \"View Environment Variable for Production Environment\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:view:production"],
+  "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Guest"]
+}
+EOF
+
+  echo Recreating \"View Environment Variable for Project\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:view"],
+  "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Guest"]
+}
+EOF
+
+  echo Creating \"View Environment Variable Value for Development Environment\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:viewValue:development"],
+  "policies": ["[Lagoon] User has access to project", "[Lagoon] Users role for project is Developer"]
+}
+EOF
+
+  echo Creating \"View Environment Variable Value for Production Environment\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:viewValue:production"],
+  "policies": ["[Lagoon] User has access to project", "[Lagoon] Users role for project is Maintainer"]
+}
+EOF
+
+  echo Creating \"View Environment Variable Value for Project\" permission
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:viewValue"],
+  "policies": ["[Lagoon] User has access to project", "[Lagoon] Users role for project is Maintainer"]
+}
+EOF
+}
+
+function add_user_viewall {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_users=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Users --config $CONFIG_PATH)
+
+  if [ "$view_all_users" != "[ ]" ]; then
+      echo "user:viewAll already configured"
+      return 0
+  fi
+
+  echo Configuring user:viewAll
+
+  GROUP_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=user --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Users",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+}
+
+function add_update_additional_platform_owner_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_environments=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Environments --config $CONFIG_PATH)
+
+  if [ "$view_all_environments" != "[ ]" ]; then
+      echo "environment:viewAll already configured"
+      return 0
+  fi
+
+  echo Configuring environment:viewAll
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Environments",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Configuring user:getBySshKey
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Get User By SSH Key",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["user"],
+  "scopes": ["getBySshKey"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring openshift:viewAll
+  #Delete existing permissions
+  view_all_openshifts=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Openshifts --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_all_openshifts --config $CONFIG_PATH
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Openshifts",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring environment:storage
+  #Delete existing permissions
+  view_environment_metrics=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Metrics --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_environment_metrics --config $CONFIG_PATH
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Metrics",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["environment"],
+  "scopes": ["storage"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring advanced_task:create:advanced
+  #Delete existing permissions
+  create_image_based_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Create+Image+Based+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$create_image_based_task --config $CONFIG_PATH
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Create Image Based Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["create:advanced"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+}
+
+function create_or_update_delete_advanced_task_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH)
+
+  if [ "$delete_advanced_task" != "[ ]" ]; then
+    #Delete existing permissions because it is being renamed
+    echo deleting existing advanced_task:delete:advanced
+    delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+  fi
+
+  # now check if the renamed Advanced Task Delete exists, and create it if not
+  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Advanced+Task+Delete --config $CONFIG_PATH)
+  if [ "$delete_advanced_tasks" != "[ ]" ]; then
+      echo "advanced_task:delete:advanced already configured"
+      return 0
+  fi
+
+  echo re-configuring advanced_task scopes
+  ADVTASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=advanced_task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ADVTASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"invoke:guest"},{"name":"invoke:developer"},{"name":"invoke:maintainer"},{"name":"create:advanced"},{"name":"delete:advanced"}]'
+
+  echo re-configuring advanced_task:delete:advanced
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Advanced Task Delete",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["delete:advanced"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -1993,6 +2252,11 @@ function configure_keycloak {
     migrate_to_js_provider
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
+    update_env_var_view_permissions
+    add_user_viewall
+    add_update_additional_platform_owner_permissions
+    create_or_update_delete_advanced_task_permissions
+
 
     # always run last
     sync_client_secrets

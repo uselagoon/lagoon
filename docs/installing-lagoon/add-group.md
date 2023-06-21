@@ -1,3 +1,5 @@
 # Add Group
 
-1. `lagoon add group -N groupname`
+```bash title="Add group"
+  lagoon add group -N groupname
+```

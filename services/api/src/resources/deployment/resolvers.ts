@@ -13,13 +13,13 @@ import {
 import { ResolverFn } from '../';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
-import { EVENTS } from './events';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 // @ts-ignore
@@ -33,6 +33,7 @@ import sha1 from 'sha1';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 // @ts-ignore
 import uuid4 from 'uuid4';
 
@@ -115,7 +116,7 @@ export const getBuildLog: ResolverFn = async (
 export const getDeploymentsByBulkId: ResolverFn = async (
   root,
   { bulkId },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
   /*
@@ -135,9 +136,10 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('deployment')
@@ -162,10 +164,10 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING"] } = input;
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -184,9 +186,10 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
@@ -214,15 +217,15 @@ export const getDeploymentsByFilter: ResolverFn = async (
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
-  { id: eid, environmentAuthz },
+  { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('deployment', 'view', {
       project: environment.project
     });
@@ -305,7 +308,8 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger }
@@ -330,14 +334,15 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     })
   );
 
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
 
@@ -381,7 +386,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   },
@@ -425,7 +431,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     })
   );
@@ -433,7 +440,7 @@ export const updateDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(id));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
@@ -451,7 +458,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   });
@@ -492,6 +500,53 @@ export const cancelDeployment: ResolverFn = async (
       data: data.build
     }
   });
+
+  // check if the deploytarget for this environment is disabled
+  const deploytarget = await environmentHelpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
+  if (deploytarget[0].disabled) {
+    // if it is, proceed to mark the build as cancelled
+    var date = new Date();
+    var completed = convertDateFormat(date.toISOString());
+    await query(
+      sqlClientPool,
+      Sql.updateDeployment({
+        id: deployment.id,
+        patch: {
+          status: "cancelled",
+          completed,
+          environment: environment.id,
+        }
+      })
+    );
+
+    // just normal lagoon environment name conversion to lowercase and safeing
+    const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+    var environmentName = makeSafe(environment.name)
+    var overlength = 58 - project.name.length;
+    if ( environmentName.length > overlength ) {
+      var hash = sha1(environmentName).substring(0,4)
+      environmentName = environmentName.substring(0, overlength-5)
+      environmentName = environmentName.concat('-' + hash)
+    }
+    // then publish a message to the logs system with the build log
+    sendToLagoonLogs(
+      'info',
+      project.name,
+      '',
+      `build-logs:builddeploy-kubernetes:${deployment.name}`,
+      { branchName: environmentName,
+        buildName: deployment.name,
+        buildStatus: "cancelled",
+        buildPhase: "cancelled",
+        buildStep: "cancelled",
+        environmentId: environment.id,
+        projectId: project.id,
+        remoteId: deployment.remoteId,
+       },
+      `========================================\nCancelled build as deploytarget '${deploytarget[0].name}' is disabled\n========================================\n`
+    );
+    return 'success';
+  }
 
   try {
     await createMiscTask({ key: 'build:cancel', data });
@@ -1080,7 +1135,7 @@ export const switchActiveStandby: ResolverFn = async (
     const environmentsForProject = await query(
       sqlClientPool,
       environmentSql.selectEnvironmentsByProjectID(
-        project.id
+        project.id, true
       )
     );
     for (const envForProject of environmentsForProject) {
@@ -1147,7 +1202,7 @@ export const switchActiveStandby: ResolverFn = async (
     var created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
-      'ACTIVE',
+      'NEW',
       created,
       environmentStandbyId,
       null,
@@ -1185,7 +1240,7 @@ export const switchActiveStandby: ResolverFn = async (
 export const bulkDeployEnvironmentLatest: ResolverFn = async (
   _root,
   { input: { environments: environmentsInput, buildVariables, name: bulkName } },
-  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger }
+  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger, keycloakUsersGroups }
 ) => {
 
     /*
@@ -1205,9 +1260,10 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let bulkId = uuid4();
@@ -1304,6 +1360,5 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 };
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.DEPLOYMENT.ADDED,
-  EVENTS.DEPLOYMENT.UPDATED
+  EVENTS.DEPLOYMENT
 ]);

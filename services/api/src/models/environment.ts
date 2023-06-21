@@ -16,7 +16,6 @@ export interface Environment {
   deleted?: string; // timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
-  monitoringUrls?: string; // text COLLATE utf8_bin DEFAULT NULL,
   autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
   deployBaseRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   deployHeadRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,

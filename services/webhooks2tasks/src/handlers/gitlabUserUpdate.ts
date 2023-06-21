@@ -1,6 +1,6 @@
 import R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { getUser } from '@lagoon/commons/dist/gitlabApi';
+import { getUser } from '@lagoon/commons/dist/gitlab/api';
 import { updateUser } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
@@ -10,7 +10,7 @@ export async function gitlabUserUpdate(webhook: WebhookRequestData) {
 
   try {
     const user = await getUser(body.user_id);
-    const { id, email, name }: { id: number, email: string, name: string } = user;
+    const { id, email, name } = user;
 
     const meta = {
       data: user,

@@ -6,15 +6,16 @@ Containers \(or pods\) started from `cli` images are responsible for building co
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-!!! Note "Note:"
+!!! Info
     This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 
 ## Supported versions
 
-* 7.3 \(available for compatibility, no longer officially supported\)
-* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile) - `uselagoon/php-7.4-cli`
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) - `uselagoon/php-8.0-cli`
-* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
+* 7.3 \(available for compatibility only, no longer officially supported\)
+* 7.4 \(available for compatibility only, no longer officially supported\)
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) (Security Support until November 2023) - `uselagoon/php-8.0-cli`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) (Security Support until November 2024) - `uselagoon/php-8.1-cli`
+* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.2.Dockerfile) (Security Support until December 2025) - `uselagoon/php-8.2-cli`
 
 All PHP versions use their own Dockerfiles.
 
@@ -27,9 +28,9 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
 * `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
 
-## Included cli tools
+## Included CLI tools
 
-The included cli tools are:
+The included CLI tools are:
 
 * [`composer` version 1.9.0](https://getcomposer.org/) \(changeable via `COMPOSER_VERSION` and `COMPOSER_HASH_SHA256`\)
 * [`node.js` verison 17](https://nodejs.org/en/) \(as of Mar 2022\)
@@ -42,30 +43,17 @@ The included cli tools are:
 
 By default this image ships with the `nodejs-current` package \(v17 as of Mar 2022\). If you need another version you can remove the current version and install the one of your choice. For example, to install Node.js 16, modify your dockerfile to include:
 
-```
+```bash title="Update Node.js version"
 RUN apk del nodejs-current \
     && apk add --no-cache nodejs=~16
 ```
 
 ## Environment variables
 
-Environment variables allow some configuration to be customised in a repeatable way.
+Some options are configurable via [environment
+variables](../using-lagoon-advanced/environment-variables.md). The [php-fpm
+environment variables](php-fpm.md#environment-variables) also apply.
 
-| Name | Default | Description |
-| :--- | :--- | :--- |
-| `MARIADB_MAX_ALLOWED_PACKET` | 64M | Controls the max allowed packet for the MySql client. |
-
-### Changing an environment variable
-
-Environment variables can be changed in the `docker-compose.yml` file.
-
-```text
-x-environment:
-  &default-environment
-    MARIADB_MAX_ALLOWED_PACKET: 128M
-
-service:
-  cli:
-    environment:
-    << : *default-environment
-```
+| Name                       | Default | Description                                           |
+| :------------------------- | :------ | :---------------------------------------------------- |
+| MARIADB_MAX_ALLOWED_PACKET | 64M     | Controls the max allowed packet for the MySql client. |

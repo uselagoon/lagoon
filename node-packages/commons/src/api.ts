@@ -9,6 +9,7 @@ interface Project {
   slack: any;
   name: string;
   openshift: any;
+  deploymentsDisabled: number;
 }
 
 interface GroupPatch {
@@ -403,7 +404,7 @@ export const updateUser = (email: string, patch: UserPatch): Promise<any> =>
 export const deleteUser = (email: string): Promise<any> =>
   graphqlapi.mutate(
     `
-  ($email: Int!) {
+  ($email: String!) {
     deleteUser(input: {
       user: {
         email: $email
@@ -600,6 +601,7 @@ export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
       allProjects(gitUrl: "${gitUrl}") {
         name
         productionEnvironment
+        deploymentsDisabled
         openshift {
           consoleUrl
           token
@@ -1082,6 +1084,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           routerPattern
           monitoringConfig
           buildImage
+          disabled
         }
         autoIdle
         branches
@@ -1099,7 +1102,9 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         standbyRoutes
         standbyAlias
         productionBuildPriority
+        storageCalc
         developmentBuildPriority
+        buildImage
         envVariables {
           name
           value
@@ -1128,6 +1133,7 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
           routerPattern
           monitoringConfig
           buildImage
+          disabled
         }
       }
     }
@@ -1149,8 +1155,10 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           routerPattern
           monitoringConfig
           buildImage
+          disabled
         }
         project {
+          buildImage
           envVariables {
             name
             value

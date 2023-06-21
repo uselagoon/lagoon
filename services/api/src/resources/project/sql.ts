@@ -16,6 +16,11 @@ export const Sql = {
       .whereNotIn('id', ids)
       .orderBy('id', 'asc')
       .toString(),
+  selectAllProjectsIn: (ids: number) =>
+    knex('project')
+      .select('id')
+      .whereIn('id', ids)
+      .toString(),
   selectProjectByName: (name: string) =>
     knex('project')
       .where('name', name)
@@ -119,7 +124,8 @@ export const Sql = {
       productionBuildPriority = 5,
       developmentBuildPriority = 6,
       deploymentsDisabled = 0,
-      developmentEnvironmentsLimit = 5
+      developmentEnvironmentsLimit = 5,
+      buildImage
     } = input;
 
     return knex('project').insert({
@@ -152,7 +158,8 @@ export const Sql = {
     pullrequests,
     openshift,
     openshiftProjectPattern,
-    developmentEnvironmentsLimit
+    developmentEnvironmentsLimit,
+    buildImage
   }).toString();
  }
 };
