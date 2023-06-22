@@ -23,8 +23,5 @@
   },
   "scripts": {
     "glow": "glow check"
-  },
-  "dependencies": {
-    "git-url-parse": "^13.1.0"
   }
 }
