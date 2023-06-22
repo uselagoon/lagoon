@@ -14,13 +14,18 @@ import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import sql from '../user/sql';
+import GitUrlParse from 'git-url-parse';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
-const isValidGitUrl = value =>
-  /(?:git|ssh|https?|git@[-\w.]+)(:|.)(?:(\/\/)?(.*?)(\.git)|(\/\/\.)?(.*\.azure\..*))(\/?|\#[-\d\w._]+?)$/.test(
-    value
-  );
+const isValidGitUrl = value => {
+  try {
+    GitUrlParse(value)
+    return true
+  } catch (error) {
+    return false
+  }
+}
 
 export const getPrivateKey: ResolverFn = async (
   project,
