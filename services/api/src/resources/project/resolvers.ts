@@ -18,7 +18,7 @@ import sql from '../user/sql';
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
 const isValidGitUrl = value =>
-  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
+  /(?:git|ssh|https?|git@[-\w.]+)(:|.)(?:(\/\/)?(.*?)(\.git)|(\/\/\.)?(.*\.azure\..*))(\/?|\#[-\d\w._]+?)$/.test(
     value
   );
 
