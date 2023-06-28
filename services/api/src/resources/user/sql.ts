@@ -14,10 +14,15 @@ export const Sql = {
       .andWhere('sk.key_type', keyType)
       .select('user_ssh_key.usid')
       .toString(),
-  deleteUserSshKeys: (id: string) =>
+  deleteFromSshKeys: (id: string) =>
     knex('ssh_key as sk')
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('usk.usid', '=', id)
+      .delete()
+      .toString(),
+  deleteFromUserSshKeys: (id: string) =>
+    knex('user_ssh_key ')
+      .where('usid', '=', id)
       .delete()
       .toString(),
 };

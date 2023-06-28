@@ -2,7 +2,6 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
-import { Helpers } from './helpers';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -142,7 +141,7 @@ export const updateUser: ResolverFn = async (
 export const deleteUser: ResolverFn = async (
   _root,
   { input: { user: userInput } },
-  { sqlClientPool, models, hasPermission },
+  { models, hasPermission },
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
@@ -152,15 +151,6 @@ export const deleteUser: ResolverFn = async (
   await hasPermission('user', 'delete', {
     users: [user.id],
   });
-
-  // delete ssh keys when a user is deleted
-  try {
-    await Helpers(
-      sqlClientPool
-    ).deleteUserSshKeys(user.id);
-  } catch (err) {
-    throw new Error(`Could not delete user: ${err}`)
-  }
 
   await models.UserModel.deleteUser(user.id);
 
