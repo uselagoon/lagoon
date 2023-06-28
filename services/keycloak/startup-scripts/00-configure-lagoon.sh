@@ -2215,6 +2215,31 @@ EOF
 
 }
 
+function change_groupadd_to_owner_role {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH)
+
+  if [ "$delete_group_adduser" != "[ ]" ]; then
+    #Delete existing permissions because it is being changed
+    echo deleting existing group:addUser
+    delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
+  fi
+
+  echo re-configuring group:addUser
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add User to Group",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["group"],
+  "scopes": ["addUser"],
+  "policies": ["[Lagoon] Users role for group is Owner"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -2256,6 +2281,7 @@ function configure_keycloak {
     add_user_viewall
     add_update_additional_platform_owner_permissions
     create_or_update_delete_advanced_task_permissions
+    change_groupadd_to_owner_role
 
 
     # always run last
