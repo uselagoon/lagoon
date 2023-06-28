@@ -5,19 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
-	"gopkg.in/matryer/try.v1"
+	try "gopkg.in/matryer/try.v1"
 )
 
 // LagoonAPI .
 type LagoonAPI struct {
 	Endpoint        string `json:"endpoint"`
 	JWTAudience     string `json:"audience"`
-	TokenSigningKey string `json:"tokenSigningKey`
+	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
 }
@@ -29,9 +30,10 @@ type Action struct {
 	Data      map[string]interface{} `json:"data"`      // contains the payload for the action, this could be any json so using a map
 }
 
-type messaging interface {
+type messenger interface {
 	Consumer()
 	Publish(string, []byte)
+	handleRemoval(context.Context, mq.MQ, *schema.LagoonMessage, string) error
 }
 
 // Messenger is used for the config and client information for the messaging queue.
@@ -100,17 +102,22 @@ func (m *Messenger) Consumer() {
 		action := &Action{}
 		json.Unmarshal(message.Body(), action)
 		messageID := namespace.RandString(8)
+		var err error
 		switch action.Type {
 		// check if this a `updateEnvironmentStorage` type of action
 		// and perform the steps to run the mutation against the lagoon api
 		case "updateEnvironmentStorage":
-			m.handleUpdateStorage(ctx, messageQueue, action, messageID)
+			err = m.handleUpdateStorage(ctx, messageQueue, action, messageID)
 		// check if this a `deployEnvironmentLatest` type of action
 		// and perform the steps to run the mutation against the lagoon api
 		case "deployEnvironmentLatest":
-			m.handleDeployEnvironment(ctx, messageQueue, action, messageID)
+			err = m.handleDeployEnvironment(ctx, messageQueue, action, messageID)
 		}
-		message.Ack(false) // ack to remove from queue
+		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
+		// skipping this means the message will remain in the queue
+		if LagoonAPIRetryErrorCheck(err) == nil {
+			message.Ack(false) // ack to remove from queue
+		}
 	})
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", m.ActionsQueueName, err))
@@ -122,17 +129,22 @@ func (m *Messenger) Consumer() {
 		logMsg := &schema.LagoonMessage{}
 		json.Unmarshal(message.Body(), logMsg)
 		messageID := namespace.RandString(8)
+		var err error
 		switch logMsg.Type {
 		case "build":
-			m.handleBuild(ctx, messageQueue, logMsg, messageID)
+			err = m.handleBuild(ctx, messageQueue, logMsg, messageID)
 		// check if this a `deployEnvironmentLatest` type of action
 		// and perform the steps to run the mutation against the lagoon api
 		case "remove":
-			m.handleRemoval(ctx, messageQueue, logMsg, messageID)
+			err = m.handleRemoval(ctx, messageQueue, logMsg, messageID)
 		case "task":
-			m.handleTask(ctx, messageQueue, logMsg, messageID)
+			err = m.handleTask(ctx, messageQueue, logMsg, messageID)
 		}
-		message.Ack(false) // ack to remove from queue
+		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
+		// skipping this means the message will remain in the queue
+		if LagoonAPIRetryErrorCheck(err) == nil {
+			message.Ack(false) // ack to remove from queue
+		}
 	})
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", m.ControllerQueueName, err))
@@ -155,4 +167,12 @@ func (m *Messenger) toLagoonLogs(messageQueue mq.MQ, message map[string]interfac
 		return
 	}
 	producer.Produce(msgBytes)
+}
+
+// simple error check for lagoon api responses to determine if a retry is required
+func LagoonAPIRetryErrorCheck(err error) error {
+	if err != nil && strings.Contains(err.Error(), "connection reset by peer") {
+		return err
+	}
+	return nil
 }

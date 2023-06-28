@@ -7,14 +7,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq.MQ, action *Action, messageID string) {
+func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq.MQ, action *Action, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, action.EventType)
 	// marshal unmarshal the data into the input we need to use when talking to the lagoon api
 	data, _ := json.Marshal(action.Data)
@@ -26,7 +26,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
 		}
-		return
+		return nil
 	}
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
 	deployment, err := lagoon.DeployLatest(ctx, deploy, l)
@@ -41,7 +41,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to deploy latest: %v", prefix, err))
 		}
-		return
+		return err
 	}
 	// send the log to the lagoon-logs exchange to be processed
 	m.toLagoonLogs(messageQueue, map[string]interface{}{
@@ -53,4 +53,5 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq
 	if m.EnableDebug {
 		log.Println(fmt.Sprintf("%sdeployed latest environment: %s", prefix, deployment.DeployEnvironmentLatest))
 	}
+	return nil
 }

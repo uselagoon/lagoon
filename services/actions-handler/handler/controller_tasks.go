@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) {
+func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.Name)
 	log.Println(fmt.Sprintf("%sreceived task status update: %s", prefix, message.Meta.JobStatus))
 	// generate a lagoon token with a expiry of 60 seconds from now
@@ -27,7 +27,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message 
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
 		}
-		return
+		return nil
 	}
 
 	// set up a lagoon client for use in the following process
@@ -50,7 +50,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message 
 				if m.EnableDebug {
 					log.Println(fmt.Sprintf("%sERROR: unable to project information: %v", prefix, err))
 				}
-				return
+				return err
 			}
 			// decode and unmarshal the result into an activestandby result
 			decodeData, _ := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
@@ -76,7 +76,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message 
 				if m.EnableDebug {
 					log.Println(fmt.Sprintf("%sERROR: unable to update project with active/standby result: %v", prefix, err))
 				}
-				return
+				return err
 			}
 			log.Println(fmt.Sprintf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success"))
 		}
@@ -103,7 +103,8 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message 
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to update task: %v", prefix, err))
 		}
-		return
+		return err
 	}
 	log.Println(fmt.Sprintf("%supdated task: %s", prefix, message.Meta.JobStatus))
+	return nil
 }
