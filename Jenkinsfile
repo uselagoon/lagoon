@@ -3,7 +3,8 @@ pipeline {
   environment {
     // configure build params
     SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2F','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
-    CI_BUILD_TAG = 'lagoon-'.concat(env.SAFEBRANCH_NAME.take(24))
+    SAFEBRANCH_AND_BUILDNUMBER = (env.SAFEBRANCH_NAME+env.BUILD_NUMBER).replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase();
+    CI_BUILD_TAG = 'lagoon'.concat(env.SAFEBRANCH_AND_BUILDNUMBER.drop(env.SAFEBRANCH_AND_BUILDNUMBER.length()-26));
     NPROC = "${sh(script:'getconf _NPROCESSORS_ONLN', returnStdout: true).trim()}"
     SKIP_IMAGE_PUBLISH = credentials('SKIP_IMAGE_PUBLISH')
   }
