@@ -2220,10 +2220,15 @@ function change_groupadd_to_owner_role {
   delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH)
 
   if [ "$delete_group_adduser" != "[ ]" ]; then
-    #Delete existing permissions because it is being changed
-    echo deleting existing group:addUser
     delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
+    CURRENT_ROLE=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$delete_group_adduser/associatedPolicies --config $CONFIG_PATH | jq -r '.[].name')
+    if [ "${CURRENT_ROLE}" == "[Lagoon] Users role for group is Maintainer" ]; then
+      #Delete existing permissions because it is being changed
+      echo deleting existing group:addUser
+      /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
+    else
+      return 0
+    fi
   fi
 
   echo re-configuring group:addUser
