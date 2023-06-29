@@ -2,8 +2,8 @@ pipeline {
   agent { label 'lagoon' }
   environment {
     // configure build params
-    CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase()
-    SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
+    SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2F','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
+    CI_BUILD_TAG = 'lagoon-'.concat(env.SAFEBRANCH_NAME.take(24))
     NPROC = "${sh(script:'getconf _NPROCESSORS_ONLN', returnStdout: true).trim()}"
     SKIP_IMAGE_PUBLISH = credentials('SKIP_IMAGE_PUBLISH')
   }
