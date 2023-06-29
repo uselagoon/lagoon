@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
+import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
@@ -630,9 +631,10 @@ export const updateProject: ResolverFn = async (
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
   // If the privateKey is changed, automatically add the new one to the default user
-  if (patch.privateKey) {
+  if (patch.privateKey && patch.privateKey !== oldProject.privateKey) {
     let keyPair: any = {};
     try {
+
       const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
       const publicKey = privateKey.toPublic();
 
@@ -661,6 +663,21 @@ export const updateProject: ResolverFn = async (
         await query(
           sqlClientPool,
           sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+        );
+
+        // remove the old public key from the default user
+        const skidResult = await query(
+          sqlClientPool,
+          SshKeySql.selectSshKeyByFingerprint(getSshKeyFingerprint(sshpk.parsePrivateKey(R.prop('privateKey', oldProject)).toPublic()))
+        );
+        const skid = R.path(['0', 'id'], skidResult) as number;
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteUserSshKeyByKeyId(skid)
+        );
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteSshKeyByKeyId(skid)
         );
       } catch (err) {
         logger.error(
