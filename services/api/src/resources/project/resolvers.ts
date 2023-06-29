@@ -629,8 +629,7 @@ export const updateProject: ResolverFn = async (
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
-  // If the privateKey is changed, automatically remove the old one from the
-  // default user and link the new one.
+  // If the privateKey is changed, automatically add the new one to the default user
   if (patch.privateKey) {
     let keyPair: any = {};
     try {
@@ -646,11 +645,6 @@ export const updateProject: ResolverFn = async (
       const keyParts = keyPair.public.split(' ');
 
       try {
-        // since public keys can only be associated to a single user
-        // if a polysite tries for some reason uses the same key across all the polysites
-        // then only 1 of the default-users will be able to hold the public key
-        // ideally each project should have its own key and polysite repos should
-        // have the public key for each project added to it for pulls
         const { insertId } = await query(
           sqlClientPool,
           sshKeySql.insertSshKey({
