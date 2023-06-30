@@ -8,18 +8,24 @@ import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
+import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
+import GitUrlParse from 'git-url-parse';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
-const isValidGitUrl = value =>
-  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
-    value
-  );
+const isValidGitUrl = value => {
+  try {
+    GitUrlParse(value)
+    return true
+  } catch (error) {
+    return false
+  }
+}
 
 export const getPrivateKey: ResolverFn = async (
   project,
@@ -643,8 +649,64 @@ export const updateProject: ResolverFn = async (
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
-  // TODO If the privateKey changes, automatically remove the old one from the
-  // default user and link the new one.
+  // If the privateKey is changed, automatically add the new one to the default user
+  if (patch.privateKey && patch.privateKey !== oldProject.privateKey) {
+    let keyPair: any = {};
+    try {
+
+      const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
+      const publicKey = privateKey.toPublic();
+
+      keyPair = {
+        ...keyPair,
+        private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
+        public: publicKey.toString()
+      };
+
+      const keyParts = keyPair.public.split(' ');
+
+      try {
+        const { insertId } = await query(
+          sqlClientPool,
+          sshKeySql.insertSshKey({
+            id: null,
+            name: 'auto-add via api',
+            keyValue: keyParts[1],
+            keyType: keyParts[0],
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
+        );
+        const user = await models.UserModel.loadUserByUsername(
+          `default-user@${oldProject.name}`
+        );
+        await query(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+        );
+
+        // remove the old public key from the default user
+        const skidResult = await query(
+          sqlClientPool,
+          SshKeySql.selectSshKeyByFingerprint(getSshKeyFingerprint(sshpk.parsePrivateKey(R.prop('privateKey', oldProject)).toPublic()))
+        );
+        const skid = R.path(['0', 'id'], skidResult) as number;
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteUserSshKeyByKeyId(skid)
+        );
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteSshKeyByKeyId(skid)
+        );
+      } catch (err) {
+        logger.error(
+          `Could not update default project user for ${oldProject.name}: ${err.message}`
+        );
+      }
+    } catch (err) {
+      throw new Error(`There was an error with the privateKey: ${err.message}`);
+    }
+  }
 
   // const originalProject = await Helpers(sqlClientPool).getProjectById(id);
   // const originalName = R.prop('name', originalProject);
