@@ -15,6 +15,13 @@ class SearchInputError extends Error {
   }
 }
 
+class UserNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UserNotFoundError';
+  }
+}
+
 
 export const getUserBySshKey: ResolverFn = async (
   _root,
@@ -42,6 +49,29 @@ export const getUserBySshKey: ResolverFn = async (
   const user = await models.UserModel.loadUserById(userId);
 
   return user;
+};
+
+export const getUserBySshFingerprint: ResolverFn = async (
+  _root,
+  { fingerprint },
+  { sqlClientPool, models, hasPermission },
+) => {
+  await hasPermission('user', 'getBySshKey');
+
+  if(!fingerprint) {
+    throw new SearchInputError("Malformed ssh key fingerprint provided");
+  }
+  try {
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectUserIdBySshFingerprint({keyFingerprint: fingerprint}),
+    );
+    const userId = R.map(R.prop('usid'), rows);
+    const user = await models.UserModel.loadUserById(userId);
+    return user;
+  } catch (err) {
+    throw new UserNotFoundError("No user found matching provided fingerprint");
+  }
 };
 
 // query to get all users, with some inputs to limit the search to specific email, id, or gitlabId
