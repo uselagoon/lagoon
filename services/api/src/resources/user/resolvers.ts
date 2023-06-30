@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
-import Sql from './sql';
+import { Sql } from './sql';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -183,7 +183,6 @@ export const deleteUser: ResolverFn = async (
   });
 
   await models.UserModel.deleteUser(user.id);
-  // TODO remove user ssh keys
 
   return 'success';
 };

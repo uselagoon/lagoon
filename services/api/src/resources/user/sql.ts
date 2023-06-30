@@ -1,6 +1,6 @@
 import { knex } from '../../util/db';
 
-export default {
+export const Sql = {
   selectUserIdBySshKey: ({
     keyValue,
     keyType,
@@ -13,6 +13,17 @@ export default {
       .where('sk.key_value', keyValue)
       .andWhere('sk.key_type', keyType)
       .select('user_ssh_key.usid')
+      .toString(),
+  deleteFromSshKeys: (id: string) =>
+    knex('ssh_key as sk')
+      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
+      .where('usk.usid', '=', id)
+      .delete()
+      .toString(),
+  deleteFromUserSshKeys: (id: string) =>
+    knex('user_ssh_key ')
+      .where('usid', '=', id)
+      .delete()
       .toString(),
   selectUserIdBySshFingerprint: ({
     keyFingerprint,

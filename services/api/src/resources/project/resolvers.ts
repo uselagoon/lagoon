@@ -14,7 +14,6 @@ import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import sql from '../user/sql';
 import GitUrlParse from 'git-url-parse';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"

@@ -3,6 +3,9 @@ import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
+import { sqlClientPool } from '../clients/sqlClient';
+import { query } from '../util/db';
+import { Sql } from '../resources/user/sql';
 
 export interface User {
   email: string;
@@ -426,6 +429,17 @@ export const User = (clients: {
 
   const deleteUser = async (id: string): Promise<void> => {
     try {
+      // delete the ssh keys of the user
+      await query(
+        sqlClientPool,
+        Sql.deleteFromSshKeys(id)
+      );
+      // delete from the reference table
+      await query(
+        sqlClientPool,
+        Sql.deleteFromUserSshKeys(id)
+      );
+
       await keycloakAdminClient.users.del({ id });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {

@@ -15,7 +15,6 @@ import {
   getAdvancedTaskDefinitionType
 } from './models/taskRegistration';
 import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
-import sql from '../user/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
