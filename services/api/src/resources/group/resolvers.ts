@@ -266,7 +266,7 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger }
 ) => {
   let attributes = null;
   // check if this is a group being added in an organization
@@ -331,6 +331,21 @@ export const addGroup: ResolverFn = async (
     ...attributes,
   });
   await models.GroupModel.addProjectToGroup(null, group);
+
+  // if the user is not an admin, then add the user as an owner to the group
+  if (!adminScopes.projectViewAll && keycloakGrant) {
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub
+    );
+
+    try {
+      await models.GroupModel.addUserToGroup(user, group, 'owner');
+    } catch (err) {
+      logger.error(
+        `Could not link requesting user to group ${group.name}: ${err.message}`
+      );
+    }
+  }
 
   // We don't have any projects yet. So just an empty string
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(

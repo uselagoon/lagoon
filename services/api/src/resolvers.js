@@ -208,6 +208,7 @@ const {
 const {
   getMe,
   getUserBySshKey,
+  getUserBySshFingerprint,
   addUser,
   updateUser,
   addUserToOrganization,
@@ -497,6 +498,7 @@ const resolvers = {
     me: getMe,
     lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
+    userBySshFingerprint: getUserBySshFingerprint,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
     environmentsByKubernetes: getEnvironmentsByKubernetes,

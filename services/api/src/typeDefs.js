@@ -1164,6 +1164,10 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
+    Returns User Object by a given sshKey Fingerprint
+    """
+    userBySshFingerprint(fingerprint: String!): User
+    """
     Returns User Object by a given email address
     """
     userByEmail(email: String!): User
