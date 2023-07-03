@@ -139,6 +139,8 @@ const typeDefs = gql`
     name: String
     displayName: String
     type: String
+    defaultValue: String
+    optional: Boolean
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
@@ -1446,6 +1448,8 @@ const typeDefs = gql`
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
     displayName: String
+    defaultValue: String
+    optional: Boolean
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
