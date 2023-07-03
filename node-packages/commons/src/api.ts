@@ -914,6 +914,40 @@ export async function getEnvironmentById(
   return result;
 }
 
+export async function getEnvironmentByIdWithVariables(
+  id: number
+): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      environmentById(id: ${id}) {
+        id
+        name
+        autoIdle
+        deployType
+        environmentType
+        openshiftProjectName
+        openshiftProjectPattern
+        openshift {
+          routerPattern
+        }
+        envVariables {
+          name
+          value
+          scope
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.environmentById) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for id ${id}\n${result.environmentById}`
+    );
+  }
+
+  return result;
+}
+
 export async function getDeploymentByName(
   openshiftProjectName: string,
   deploymentName: string,
