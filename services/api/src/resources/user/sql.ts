@@ -15,14 +15,17 @@ export const Sql = {
       .select('user_ssh_key.usid')
       .toString(),
   deleteFromSshKeys: (id: string) =>
-    knex('ssh_key as sk')
-      .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
-      .where('usk.usid', '=', id)
+    knex('ssh_key')
+      .whereIn('id', function() {
+        this.select('skid')
+            .from('user_ssh_key')
+            .where('usid', id);
+      })
       .delete()
       .toString(),
   deleteFromUserSshKeys: (id: string) =>
-    knex('user_ssh_key ')
-      .where('usid', '=', id)
+    knex('user_ssh_key')
+      .where('usid', id)
       .delete()
       .toString(),
   selectUserIdBySshFingerprint: ({
