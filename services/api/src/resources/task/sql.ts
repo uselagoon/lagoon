@@ -140,11 +140,15 @@ export const Sql = {
       name,
       type,
       displayName,
+      defaultValue,
+      optional,
       }: {
         id: number,
         advanced_task_definition: number,
         name: string,
         type: string,
+        defaultValue: string,
+        optional: boolean,
         displayName: string,
       }) =>
       knex('advanced_task_definition_argument')
@@ -153,6 +157,8 @@ export const Sql = {
           advanced_task_definition,
           name,
           type,
+          defaultValue,
+          optional,
           display_name: displayName
         })
       .toString(),
