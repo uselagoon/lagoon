@@ -12,6 +12,7 @@ import {
   getOpenShiftInfoForProject,
   getOpenShiftInfoForEnvironment,
   getDeployTargetConfigsForProject,
+  getEnvironmentByIdWithVariables,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
@@ -495,18 +496,6 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
-  // set routerpattern to the routerpattern of what is defined in the project scope openshift
-  var routerPattern = lagoonProjectData.openshift.routerPattern
-  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
-    // if deploytargets are being provided, then use what is defined in the deploytarget
-    // null is a valid value for routerPatterns here...
-    routerPattern = deployTarget.openshift.routerPattern
-  }
-  // but if the project itself has a routerpattern defined, then this should be used
-  if (lagoonProjectData.routerPattern) {
-    // if a project has a routerpattern defined, use it. `null` is not valid here
-    routerPattern = lagoonProjectData.routerPattern
-  }
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
   try {
@@ -598,41 +587,15 @@ export const getControllerBuildData = async function(deployData: any) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
 
-  // append the routerpattern to the projects variables
-  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
-  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
-  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
-  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
-  // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
-  // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
-  // builds that are not of a supported version of lagoon
-  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
-  if (bulkId != "") {
-    // if this is a bulk deploy, add the associated bulk deploy build scope variables
-    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
-    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_ID", "value":bulkId, "scope":"build"})
-  }
-  if (bulkName != "") {
-    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_NAME", "value":bulkName, "scope":"build"})
-  }
-  if (buildPriority != null) {
-    lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
-  }
-
-  let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
-  if (buildVariables != null ) {
-    // add the build `scope` to all the incoming build variables for a specific build
-    const scopedBuildVariables = buildVariables.map(v => ({...v, scope: 'build'}))
-    // check for buildvariables being passed in
-    // these need to be merged on top of environment level variables
-    // handle that here
-    lagoonEnvironmentVariables = jsonMerge(environment.addOrUpdateEnvironment.envVariables, scopedBuildVariables, "name")
-  }
-
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
-  const envVars = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
-  const projectVars = new Buffer(JSON.stringify(lagoonProjectData.envVariables)).toString('base64')
+  const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+    lagoonProjectData,
+    environment.addOrUpdateEnvironment,
+    deployTarget,
+    bulkId, bulkName, buildPriority, buildVariables,
+    bulkType.Deploy
+  )
 
   // this is what will be returned and sent to the controllers via message queue, it is the lagoonbuild controller spec
   var buildDeployData: any = {
@@ -685,6 +648,80 @@ export const getControllerBuildData = async function(deployData: any) {
     }
   };
   return buildDeployData;
+}
+
+enum bulkType {
+  Task,
+  Deploy
+}
+
+export const getEnvironmentsRouterPatternAndVariables = async function name(
+  lagoonProjectData: any, environment: any, deployTarget: any,
+  bulkId: string, bulkName: string, buildPriority: number, buildVariables: any, bulkTask: bulkType) {
+
+  // set routerpattern to the routerpattern of what is defined in the project scope openshift
+  var routerPattern = lagoonProjectData.openshift.routerPattern
+  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
+    // if deploytargets are being provided, then use what is defined in the deploytarget
+    // null is a valid value for routerPatterns here...
+    routerPattern = deployTarget.openshift.routerPattern
+  }
+  // but if the project itself has a routerpattern defined, then this should be used
+  if (lagoonProjectData.routerPattern) {
+    // if a project has a routerpattern defined, use it. `null` is not valid here
+    routerPattern = lagoonProjectData.routerPattern
+  }
+  // append the routerpattern to the projects variables
+  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
+  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
+  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+  // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
+  // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
+  // builds that are not of a supported version of lagoon
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
+
+  // handle any bulk deploy related injections here
+  let varPrefix = "LAGOON_BULK_DEPLOY"
+  switch (bulkTask) {
+    case bulkType.Task:
+      varPrefix = "LAGOON_BULK_TASK"
+      if (buildPriority != null) {
+        lagoonProjectData.envVariables.push({"name":"LAGOON_TASK_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+      }
+      break;
+    default:
+      if (buildPriority != null) {
+        lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+      }
+      break;
+  }
+  if (bulkId != "" && bulkId != null) {
+    // if this is a bulk deploy, add the associated bulk deploy build scope variables
+    lagoonProjectData.envVariables.push({"name": varPrefix, "value":"true", "scope":"build"})
+    lagoonProjectData.envVariables.push({"name": varPrefix+"_ID", "value":bulkId, "scope":"build"})
+  }
+  if (bulkName != "" && bulkName != null) {
+    lagoonProjectData.envVariables.push({"name": varPrefix+"_NAME", "value":bulkName, "scope":"build"})
+  }
+  // end bulk related injections
+
+  let lagoonEnvironmentVariables = environment.envVariables || []
+  if (buildVariables != null ) {
+    // add the build `scope` to all the incoming build variables for a specific build
+    const scopedBuildVariables = buildVariables.map(v => ({...v, scope: 'build'}))
+    // check for buildvariables being passed in
+    // these need to be merged on top of environment level variables
+    // handle that here
+    lagoonEnvironmentVariables = jsonMerge(environment.envVariables, scopedBuildVariables, "name")
+  }
+
+
+  // encode some values so they get sent to the controllers nicely
+  const envVars = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
+  const projectVars = new Buffer(JSON.stringify(lagoonProjectData.envVariables)).toString('base64')
+
+  return [routerPattern, envVars, projectVars]
 }
 
 /*
@@ -1027,10 +1064,37 @@ const migrateHosts = (destinationNamespace, sourceNamespace) => {
   return config;
 };
 
+export const getTaskProjectEnvironmentVariables =async (projectName: string, environmentId: number) => {
+  // inject variables into tasks the same way it is in builds
+  // this makes variables available to tasks the same way for consumption
+  // this will make it possible to handle variable updates in the future without
+  // needing to trigger a full deployment
+  const result = await getOpenShiftInfoForProject(projectName);
+  const lagoonProjectData = result.project
+  const environment = await getEnvironmentByIdWithVariables(environmentId);
+  const [_, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+    lagoonProjectData,
+    environment.environmentById,
+    environment.environmentById,
+    null, null, null, null, bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
+  )
+  return [projectVars, envVars]
+}
+
 export const createTaskTask = async function(taskData: any) {
   const { project } = taskData;
 
   const projectSystem = await getActiveSystemForProject(project.name, 'Task');
+
+  // inject variables into tasks the same way it is in builds
+  const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+    project.name,
+    taskData.environment.id
+  )
+  taskData.project.variables = {
+    project: projectVars,
+    environment: envVars,
+  }
 
   if (typeof projectSystem.activeSystemsTask === 'undefined') {
     throw new UnknownActiveSystem(
@@ -1227,6 +1291,15 @@ export const createMiscTask = async function(taskData: any) {
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
           break;
         case 'kubernetes:task:advanced':
+          // inject variables into advanced tasks the same way it is in builds and standard tasks
+          const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+            project.name,
+            taskData.environment.id
+          )
+          miscTaskData.project.variables = {
+            project: projectVars,
+            environment: envVars,
+          }
           miscTaskData.advancedTask = taskData.data.advancedTask
           break;
         case 'kubernetes:build:cancel':
