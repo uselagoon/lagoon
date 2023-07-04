@@ -5,6 +5,11 @@ export const Sql = {
     knex('task')
       .where('task.id', '=', id)
       .toString(),
+  selectTaskByNameAndEnvironment: (name: string, environmentId: number) =>
+    knex('task')
+      .where('task_name', '=', name)
+      .andWhere('environment', '=', environmentId)
+      .toString(),
   insertTask: ({
     id,
     name,

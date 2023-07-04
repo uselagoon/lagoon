@@ -706,6 +706,7 @@ mocks.Mutation = () => ({
   taskDrushRsyncFiles: () => mocks.Task(),
   deleteTask: () => 'success',
   updateTask: () => mocks.Task(),
+  cancelTask: () => faker.random.arrayElement(['success', 'Task not cancelled, reason: Too slow.']),
   setEnvironmentServices: () => [ mocks.EnvironmentService() ],
   uploadFilesForTask: () => mocks.Task(),
   deleteFilesForTask: () => 'success',
