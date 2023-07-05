@@ -1304,8 +1304,7 @@ export const createMiscTask = async function(taskData: any) {
           break;
         case 'kubernetes:task:cancel':
           // task cancellation is just a standard unmodified message
-          miscTaskData.misc = taskData.data.build
-          miscTaskData.misc.command = "" // the command isn't required and just bloats the message
+          miscTaskData.misc = taskData.data.task
           break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message

@@ -18,7 +18,13 @@ import (
 )
 
 func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) {
-	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.Name)
+
+	// use the preferred TaskName value
+	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.TaskName)
+	if message.Meta.Task.TaskName == "" {
+		// or fall back to the older task name (the full name could be "my custom task" which isn't great)
+		prefix = fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.Name)
+	}
 	log.Println(fmt.Sprintf("%sreceived task status update: %s", prefix, message.Meta.JobStatus))
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
@@ -86,10 +92,16 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message 
 	taskId, _ := strconv.Atoi(message.Meta.Task.ID)
 	// prepare the task patch for later step
 	updateTaskPatch := schema.UpdateTaskPatchInput{
-		RemoteID:  message.Meta.RemoteID,
-		Status:    schema.StatusTypes(strings.ToUpper(message.Meta.JobStatus)),
-		Started:   message.Meta.StartTime,
-		Completed: message.Meta.EndTime,
+		Status: schema.StatusTypes(strings.ToUpper(message.Meta.JobStatus)),
+	}
+	if message.Meta.RemoteID != "" {
+		updateTaskPatch.RemoteID = message.Meta.RemoteID
+	}
+	if message.Meta.StartTime != "" {
+		updateTaskPatch.Started = message.Meta.StartTime
+	}
+	if message.Meta.EndTime != "" {
+		updateTaskPatch.Completed = message.Meta.EndTime
 	}
 	updatedTask, err := lagoon.UpdateTask(ctx, taskId, updateTaskPatch, l)
 	if err != nil {

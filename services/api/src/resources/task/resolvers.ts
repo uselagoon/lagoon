@@ -358,7 +358,12 @@ export const cancelTask: ResolverFn = async (
 
 
   const data = {
-    build: task,
+    task: {
+      id: task.id.toString(),
+      name: task.name,
+      taskName: task.taskName,
+      service: task.service,
+    },
     environment,
     project
   };
@@ -370,7 +375,7 @@ export const cancelTask: ResolverFn = async (
       event: 'api:cancelDeployment',
       payload: {
         taskInput,
-        data: data.build
+        data: data.task
       }
     }
   );
