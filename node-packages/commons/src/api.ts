@@ -1119,6 +1119,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           monitoringConfig
           buildImage
           disabled
+          sharedBaasBucketName
         }
         autoIdle
         branches
@@ -1139,6 +1140,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         storageCalc
         developmentBuildPriority
         buildImage
+        sharedBaasBucket
         envVariables {
           name
           value
@@ -1190,8 +1192,10 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           monitoringConfig
           buildImage
           disabled
+          sharedBaasBucketName
         }
         project {
+          sharedBaasBucket
           buildImage
           envVariables {
             name

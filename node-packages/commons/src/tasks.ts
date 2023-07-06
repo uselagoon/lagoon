@@ -590,7 +590,7 @@ export const getControllerBuildData = async function(deployData: any) {
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    lagoonProjectData,
+    result,
     environment.addOrUpdateEnvironment,
     deployTarget,
     bulkId, bulkName, buildPriority, buildVariables,
@@ -656,9 +656,10 @@ enum bulkType {
 }
 
 export const getEnvironmentsRouterPatternAndVariables = async function name(
-  lagoonProjectData: any, environment: any, deployTarget: any,
+  result: any, environment: any, deployTarget: any,
   bulkId: string, bulkName: string, buildPriority: number, buildVariables: any, bulkTask: bulkType) {
 
+  let lagoonProjectData = result.project
   // set routerpattern to the routerpattern of what is defined in the project scope openshift
   var routerPattern = lagoonProjectData.openshift.routerPattern
   if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
@@ -680,6 +681,15 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
   // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
   // builds that are not of a supported version of lagoon
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
+
+  // if the project is configured with a shared baas bucket
+  if (lagoonProjectData.sharedBaasBucket) {
+    // we only want the shared baas bucket here if one is defined
+    let [sharedBaasBucket, shared] = await getBaasBucketName(lagoonProjectData, deployTarget.openshift)
+    if (shared) {
+      lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_PROJECT_SHARED_BUCKET", "value":sharedBaasBucket, "scope":"internal_system"})
+    }
+  }
 
   // handle any bulk deploy related injections here
   let varPrefix = "LAGOON_BULK_DEPLOY"
@@ -1070,15 +1080,41 @@ export const getTaskProjectEnvironmentVariables =async (projectName: string, env
   // this will make it possible to handle variable updates in the future without
   // needing to trigger a full deployment
   const result = await getOpenShiftInfoForProject(projectName);
-  const lagoonProjectData = result.project
   const environment = await getEnvironmentByIdWithVariables(environmentId);
   const [_, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    lagoonProjectData,
+    result,
     environment.environmentById,
     environment.environmentById,
     null, null, null, null, bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
   )
   return [projectVars, envVars]
+}
+
+export const getBaasBucketName = async (project: any, deploytarget: any) => {
+  // logic to check if the project is defined with a shared bucket or has a bucket name override
+  let sharedBaasBucketName
+  let baasBucketName
+  let shared = false
+  if (project.sharedBaasBucket) {
+    if (deploytarget.sharedBaasBucketName) {
+      sharedBaasBucketName = deploytarget.sharedBaasBucketName
+    } else {
+      sharedBaasBucketName = makeSafe(deploytarget.name)
+    }
+    shared = true
+  }
+  if (sharedBaasBucketName) {
+    baasBucketName = sharedBaasBucketName
+  }
+  // if a previously defined baas_bucket_name override exists, use it not the shared (the override will need to be removed to use the shared)
+  let overrideBaasBucketName = project.envVariables.find(obj => {
+    return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+  })
+  if (overrideBaasBucketName) {
+    baasBucketName = overrideBaasBucketName.value
+    shared = false
+  }
+  return [baasBucketName, shared]
 }
 
 export const createTaskTask = async function(taskData: any) {
@@ -1157,12 +1193,8 @@ export const createMiscTask = async function(taskData: any) {
           const randRestoreId = Math.random().toString(36).substring(7);
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = result.environment.project.envVariables.find(obj => {
-            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
-          })
-          if (baasBucketName) {
-            baasBucketName = baasBucketName.value
-          }
+          // check if the project is configured for a shared baas bucket
+          let [baasBucketName, shared] = await getBaasBucketName(result.environment.project, result.environment.openshift)
 
           // Handle custom backup configurations
           let lagoonBaasCustomBackupEndpoint = result.environment.project.envVariables.find(obj => {
