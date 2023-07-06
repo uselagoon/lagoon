@@ -22,4 +22,7 @@ exports.down = async function(knex) {
     .alterTable('project', (table) => {
         table.dropColumn('shared_baas_bucket');
     })
+    .alterTable('openshift', (table) => {
+        table.dropColumn('shared_baas_bucket_name');
+    })
 };

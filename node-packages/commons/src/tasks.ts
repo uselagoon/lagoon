@@ -15,7 +15,9 @@ import {
   getEnvironmentByIdWithVariables,
   addOrUpdateEnvironment,
   getEnvironmentByName,
-  addDeployment
+  addDeployment,
+  Project,
+  DeployTarget
 } from './api';
 import {
   deployTargetBranches,
@@ -590,9 +592,9 @@ export const getControllerBuildData = async function(deployData: any) {
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    result,
+    result.project,
     environment.addOrUpdateEnvironment,
-    deployTarget,
+    deployTarget.openshift,
     bulkId, bulkName, buildPriority, buildVariables,
     bulkType.Deploy
   )
@@ -656,38 +658,37 @@ enum bulkType {
 }
 
 export const getEnvironmentsRouterPatternAndVariables = async function name(
-  result: any, environment: any, deployTarget: any,
+  project: Project, environment: any, deployTarget: DeployTarget,
   bulkId: string, bulkName: string, buildPriority: number, buildVariables: any, bulkTask: bulkType) {
 
-  let lagoonProjectData = result.project
-  // set routerpattern to the routerpattern of what is defined in the project scope openshift
-  var routerPattern = lagoonProjectData.openshift.routerPattern
-  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
+    // set routerpattern to the routerpattern of what is defined in the project scope openshift
+  var routerPattern = project.openshift.routerPattern
+  if (typeof deployTarget.routerPattern !== 'undefined') {
     // if deploytargets are being provided, then use what is defined in the deploytarget
     // null is a valid value for routerPatterns here...
-    routerPattern = deployTarget.openshift.routerPattern
+    routerPattern = deployTarget.routerPattern
   }
   // but if the project itself has a routerpattern defined, then this should be used
-  if (lagoonProjectData.routerPattern) {
+  if (project.routerPattern) {
     // if a project has a routerpattern defined, use it. `null` is not valid here
-    routerPattern = lagoonProjectData.routerPattern
+    routerPattern = project.routerPattern
   }
   // append the routerpattern to the projects variables
   // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
   // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
-  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+  project.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
   // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
   // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
   // builds that are not of a supported version of lagoon
-  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
+  project.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
 
   // if the project is configured with a shared baas bucket
-  if (lagoonProjectData.sharedBaasBucket) {
+  if (project.sharedBaasBucket) {
     // we only want the shared baas bucket here if one is defined
-    let [sharedBaasBucket, shared] = await getBaasBucketName(lagoonProjectData, deployTarget.openshift)
+    let [sharedBaasBucket, shared] = await getBaasBucketName(project, deployTarget)
     if (shared) {
-      lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_PROJECT_SHARED_BUCKET", "value":sharedBaasBucket, "scope":"internal_system"})
+      project.envVariables.push({"name":"LAGOON_SYSTEM_PROJECT_SHARED_BUCKET", "value":sharedBaasBucket, "scope":"internal_system"})
     }
   }
 
@@ -697,22 +698,22 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
     case bulkType.Task:
       varPrefix = "LAGOON_BULK_TASK"
       if (buildPriority != null) {
-        lagoonProjectData.envVariables.push({"name":"LAGOON_TASK_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+        project.envVariables.push({"name":"LAGOON_TASK_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
       }
       break;
     default:
       if (buildPriority != null) {
-        lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+        project.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
       }
       break;
   }
   if (bulkId != "" && bulkId != null) {
     // if this is a bulk deploy, add the associated bulk deploy build scope variables
-    lagoonProjectData.envVariables.push({"name": varPrefix, "value":"true", "scope":"build"})
-    lagoonProjectData.envVariables.push({"name": varPrefix+"_ID", "value":bulkId, "scope":"build"})
+    project.envVariables.push({"name": varPrefix, "value":"true", "scope":"build"})
+    project.envVariables.push({"name": varPrefix+"_ID", "value":bulkId, "scope":"build"})
   }
   if (bulkName != "" && bulkName != null) {
-    lagoonProjectData.envVariables.push({"name": varPrefix+"_NAME", "value":bulkName, "scope":"build"})
+    project.envVariables.push({"name": varPrefix+"_NAME", "value":bulkName, "scope":"build"})
   }
   // end bulk related injections
 
@@ -729,7 +730,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
 
   // encode some values so they get sent to the controllers nicely
   const envVars = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
-  const projectVars = new Buffer(JSON.stringify(lagoonProjectData.envVariables)).toString('base64')
+  const projectVars = new Buffer(JSON.stringify(project.envVariables)).toString('base64')
 
   return [routerPattern, envVars, projectVars]
 }
@@ -1082,15 +1083,15 @@ export const getTaskProjectEnvironmentVariables =async (projectName: string, env
   const result = await getOpenShiftInfoForProject(projectName);
   const environment = await getEnvironmentByIdWithVariables(environmentId);
   const [_, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    result,
+    result.project,
     environment.environmentById,
-    environment.environmentById,
+    environment.environmentById.openshift,
     null, null, null, null, bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
   )
   return [projectVars, envVars]
 }
 
-export const getBaasBucketName = async (project: any, deploytarget: any) => {
+export const getBaasBucketName = async (project: Project, deploytarget: DeployTarget) => {
   // logic to check if the project is defined with a shared bucket or has a bucket name override
   let sharedBaasBucketName
   let baasBucketName
