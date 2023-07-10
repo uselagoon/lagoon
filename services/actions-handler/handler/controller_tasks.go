@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleTask(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) error {
+func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.Name)
 	log.Println(fmt.Sprintf("%sreceived task status update: %s", prefix, message.Meta.JobStatus))
 	// generate a lagoon token with a expiry of 60 seconds from now

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
@@ -15,7 +15,7 @@ import (
 	machinerystrings "github.com/uselagoon/machinery/utils/strings"
 )
 
-func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) error {
+func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	if message.Meta.BuildName == "" {
 		// there is no build name, so abandon this message
 		return nil

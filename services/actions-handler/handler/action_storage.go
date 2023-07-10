@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
@@ -26,7 +26,7 @@ type StorageClaim struct {
 	BytesUsed            int    `json:"bytesUsed"`
 }
 
-func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue mq.MQ, action *Action, messageID string) error {
+func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.MessageQueue, action *Action, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, action.EventType)
 	data, _ := json.Marshal(action.Data)
 	storageClaims := Storage{}

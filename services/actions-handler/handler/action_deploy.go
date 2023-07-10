@@ -7,14 +7,14 @@ import (
 	"log"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue mq.MQ, action *Action, messageID string) error {
+func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue *mq.MessageQueue, action *Action, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, action.EventType)
 	// marshal unmarshal the data into the input we need to use when talking to the lagoon api
 	data, _ := json.Marshal(action.Data)

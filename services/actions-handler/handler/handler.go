@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
 	try "gopkg.in/matryer/try.v1"
@@ -33,7 +33,7 @@ type Action struct {
 type messenger interface {
 	Consumer()
 	Publish(string, []byte)
-	handleRemoval(context.Context, mq.MQ, *schema.LagoonMessage, string) error
+	handleRemoval(context.Context, mq.MessageQueue, *schema.LagoonMessage, string) error
 }
 
 // Messenger is used for the config and client information for the messaging queue.
@@ -64,7 +64,7 @@ func New(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInte
 func (m *Messenger) Consumer() {
 	ctx := context.TODO()
 
-	var messageQueue mq.MQ
+	messageQueue := &mq.MessageQueue{}
 	// if no mq is found when the goroutine starts, retry a few times before exiting
 	// default is 10 retry with 30 second delay = 5 minutes
 	err := try.Do(func(attempt int) (bool, error) {
@@ -154,7 +154,7 @@ func (m *Messenger) Consumer() {
 }
 
 // toLagoonLogs sends logs to the lagoon-logs message queue
-func (m *Messenger) toLagoonLogs(messageQueue mq.MQ, message map[string]interface{}) {
+func (m *Messenger) toLagoonLogs(messageQueue *mq.MessageQueue, message map[string]interface{}) {
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
 		if m.EnableDebug {

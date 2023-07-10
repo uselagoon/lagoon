@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleRemoval(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) error {
+func (m *Messenger) handleRemoval(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, message.Namespace)
 	log.Println(fmt.Sprintf("%sreceived remove environment status update", prefix))
 	// generate a lagoon token with a expiry of 60 seconds from now
