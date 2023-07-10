@@ -22,6 +22,8 @@ import GitUrlParse from 'git-url-parse';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
+const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
+
 const isValidGitUrl = value => {
   try {
     GitUrlParse(value)
@@ -337,7 +339,13 @@ export const addProject = async (
       }
     }
   } else {
-    await hasPermission('project', 'add');
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+      await hasPermission('project', 'add');
+    } else {
+      throw new Error(
+        'Project creation is restricted to organizations only'
+      );
+    }
   }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
@@ -550,18 +558,16 @@ export const deleteProject: ResolverFn = async (
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
   const project = await Helpers(sqlClientPool).getProjectById(pid);
 
-  try {
+  // if the project is in an organization then check the organization delete project permission
+  // otherwise fall back to the non-organization permission check
+  if (project.organization != null) {
+    await hasPermission('organization', 'deleteProject', {
+      organization: project.organization
+    });
+  } else {
     await hasPermission('project', 'delete', {
       project: pid
     });
-  } catch (err) {
-    // if the user hasn't got permission to delete the project, but the project is in the organization
-    // allow the user to delete the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'deleteProject', {
-        organization: project.organization
-      });
-    }
   }
 
   // check for existing environments

@@ -11,6 +11,8 @@ import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 
+const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
+
 export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
@@ -303,7 +305,13 @@ export const addGroup: ResolverFn = async (
     }
   } else {
     // otherwise fall back
-    await hasPermission('group', 'add');
+    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION == "false") {
+      await hasPermission('group', 'add');
+    } else {
+      throw new Error(
+        'Group creation is restricted to organizations only'
+      );
+    }
   }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {

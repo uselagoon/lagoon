@@ -17,6 +17,8 @@ import {
 import { sqlClientPool } from '../../clients/sqlClient';
 import { logger } from '../../loggers/logger';
 
+const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT || "false"
+
 const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
   const createSql = knex(notificationTable).insert(input).toString();
   let { insertId } = await query(sqlClientPool, createSql);
@@ -24,20 +26,30 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
 }
 
 const checkOrgNotificationPermission = async (hasPermission, input) => {
-  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-  if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
-  }
+  if (input.organization != null) {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
 
-  await hasPermission('organization', 'addNotification', {
-    organization: input.organization
-  });
+    await hasPermission('organization', 'addNotification', {
+      organization: input.organization
+    });
 
-  const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-  if (orgNotifications.length >= organizationData.quotaNotification) {
-    throw new Error(
-      `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
-    );
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
+  } else {
+    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false") {
+      await hasPermission('notification', 'add');
+    } else {
+      throw new Error(
+        'Project notification assignment is restricted to organizations only'
+      );
+    }
   }
 }
 
@@ -46,11 +58,7 @@ export const addNotificationMicrosoftTeams: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  if (input.organization != null) {
-    await checkOrgNotificationPermission(hasPermission, input)
-  } else {
-    await hasPermission('notification', 'add');
-  }
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_microsoftteams', input));
 };
 
@@ -59,11 +67,7 @@ export const addNotificationEmail: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  if (input.organization != null) {
-    await checkOrgNotificationPermission(hasPermission, input)
-  } else {
-    await hasPermission('notification', 'add');
-  }
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_email', input));
 };
 
@@ -72,11 +76,7 @@ export const addNotificationRocketChat: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  if (input.organization != null) {
-    await checkOrgNotificationPermission(hasPermission, input)
-  } else {
-    await hasPermission('notification', 'add');
-  }
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
 };
 
@@ -85,20 +85,12 @@ export const addNotificationSlack: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  if (input.organization != null) {
-    await checkOrgNotificationPermission(hasPermission, input)
-  } else {
-    await hasPermission('notification', 'add');
-  }
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
 };
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
-  if (input.organization != null) {
-    await checkOrgNotificationPermission(hasPermission, input)
-  } else {
-    await hasPermission('notification', 'add');
-  }
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
 };
 
@@ -133,19 +125,16 @@ export const addNotificationToProject: ResolverFn = async (
     noproject = true
   }
 
-  // if user has permission to add notification to project allow it
-  // otherwise check if the user has organizational permissions to add notifications
-  // to the project
-  try {
+  // if a project is configured with organizations
+  // only organization permissions should be able to add notifications to it
+  if (projectNotification.oid != null) {
+    await hasPermission('organization', 'addNotification', {
+      organization: projectNotification.oid
+    });
+  } else {
     await hasPermission('project', 'addNotification', {
       project: pid
     });
-  } catch (err) {
-    if (projectNotification.oid != null) {
-      await hasPermission('organization', 'addNotification', {
-        organization: projectNotification.oid
-      });
-    }
   }
   if (noproject) {
     throw new Error(
@@ -353,19 +342,16 @@ export const removeNotificationFromProject: ResolverFn = async (
   const project = R.path([0], select) as any;
 
 
-  // if user has permission to remove notification from project allow it
-  // otherwise check if the user has organizational permissions to remove notifications
-  // from the project
-  try {
+  // if a project is configured with organizations
+  // only organization permissions should be able to remove notifications
+  if (project.organization != null) {
+    await hasPermission('organization', 'removeNotification', {
+      organization: project.organization
+    });
+  } else {
     await hasPermission('project', 'addNotification', {
       project: project.id
     });
-  } catch (err) {
-    if (project.organization != null) {
-      await hasPermission('organization', 'removeNotification', {
-        organization: project.organization
-      });
-    }
   }
 
   await query(sqlClientPool, Sql.deleteProjectNotification(input));
