@@ -1090,6 +1090,21 @@ const typeDefs = gql`
     name: String
   }
 
+  input DeploymentByNameInput {
+    """
+    The environment name
+    """
+    environment: String
+    """
+    The project name
+    """
+    project: String
+    """
+    The deployment name (eg, lagoon-build-abc)
+    """
+    name: String
+  }
+
   type Query {
     """
     Returns the current user
@@ -1155,6 +1170,7 @@ const typeDefs = gql`
       kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    deploymentByName(input: DeploymentByNameInput): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
     deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType]): [Deployment]
     taskByTaskName(taskName: String): Task

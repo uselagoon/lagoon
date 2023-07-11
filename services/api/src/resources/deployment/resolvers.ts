@@ -275,6 +275,38 @@ export const getDeploymentByRemoteId: ResolverFn = async (
   return deployment;
 };
 
+export const getDeploymentByName: ResolverFn = async (
+  _root,
+  { input: { project: projectName, environment: environmentName, name } },
+  { sqlClientPool, hasPermission }
+) => {
+
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
+    projectName
+  );
+  const environmentRows = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(
+    environmentName, projectId
+  );
+
+  const queryString = knex('deployment')
+    .where('name', '=', name)
+    .andWhere('environment', '=', environmentRows[0].id)
+    .toString();
+
+  const rows = await query(sqlClientPool, queryString);
+  const deployment = R.prop(0, rows);
+
+  if (!deployment) {
+    throw new Error('No deployment found');
+  }
+
+  await hasPermission('deployment', 'view', {
+    project: projectId
+  });
+
+  return deployment;
+};
+
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
   _args,
