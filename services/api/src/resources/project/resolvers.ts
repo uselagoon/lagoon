@@ -329,7 +329,7 @@ export const addProject = async (
   }
 
   let sharedBaasBucket = null;
-  if (input.sharedBaasBucket === false || input.sharedBaasBucket === true) {
+  if(typeof input.sharedBaasBucket == "boolean") {
     if (adminScopes.projectViewAll) {
       sharedBaasBucket = input.sharedBaasBucket
     } else {
@@ -621,7 +621,7 @@ export const updateProject: ResolverFn = async (
     }
   }
 
-  if (sharedBaasBucket === false || sharedBaasBucket === true) {
+  if(typeof sharedBaasBucket == "boolean") {
     if (adminScopes.projectViewAll) {
       throw new Error('Setting shared baas bucket is only available to administrators.');
     }
