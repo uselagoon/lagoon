@@ -284,6 +284,11 @@ export const getDeploymentByName: ResolverFn = async (
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
   );
+
+  await hasPermission('deployment', 'view', {
+    project: projectId
+  });
+
   const environmentRows = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(
     environmentName, projectId
   );
@@ -299,10 +304,6 @@ export const getDeploymentByName: ResolverFn = async (
   if (!deployment) {
     throw new Error('No deployment found');
   }
-
-  await hasPermission('deployment', 'view', {
-    project: projectId
-  });
 
   return deployment;
 };
