@@ -1700,6 +1700,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input UpdateProjectInput {

@@ -785,7 +785,8 @@ export const updateProject: ResolverFn = async (
         openshift,
         openshiftProjectPattern,
         developmentEnvironmentsLimit,
-        buildImage
+        buildImage,
+        sharedBaasBucket
       }
     })
   );
@@ -887,7 +888,8 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit,
-        buildImage
+        buildImage,
+        sharedBaasBucket
       }
     }
   });
