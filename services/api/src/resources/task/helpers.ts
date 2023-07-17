@@ -9,7 +9,6 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
-// import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission) => {
   const getTaskById = async (TaskID: number) => {
@@ -257,7 +256,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
           getTaskById,
           task => {
             if (!task) {
-              throw new Error('Unauthorized');
+              throw new Error('No matching task found');
             }
 
             return task;
@@ -273,8 +272,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
             environments
           );
 
-          if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
-            throw new Error('Unauthorized');
+          if (activeEnvironments.length != 1) {
+            throw new Error('No matching environment found');
           }
 
           const environment = R.prop(0, activeEnvironments);
@@ -288,7 +287,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
           );
 
           if (!R.prop(0, rows)) {
-            throw new Error('Unauthorized');
+            throw new Error('No matching task found');
           }
 
           return R.prop(0, rows);

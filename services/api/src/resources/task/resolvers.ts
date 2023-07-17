@@ -15,7 +15,6 @@ import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
-// import { logger } from '../../loggers/logger';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 
@@ -342,17 +341,14 @@ export const cancelTask: ResolverFn = async (
 ) => {
 
   const task = await Helpers(sqlClientPool, hasPermission).getTaskByTaskInput(taskInput);
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(task.environment);
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
-
   if (!task) {
     return null;
   }
 
-  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
-    task.environment
-  );
-  await hasPermission('task', `cancel:${envPerm.environmentType}`, {
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(task.environment);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+
+  await hasPermission('task', `cancel:${environment.environmentType}`, {
     project: project.id
   });
 
