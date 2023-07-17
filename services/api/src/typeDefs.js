@@ -508,6 +508,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -526,6 +527,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -789,6 +791,7 @@ const typeDefs = gql`
     Build image this project will use if set
     """
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   """
@@ -1329,6 +1332,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input AddEnvironmentInput {
@@ -1568,6 +1572,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1588,6 +1593,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1720,6 +1726,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input UpdateProjectInput {
@@ -1743,6 +1750,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1767,6 +1775,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 

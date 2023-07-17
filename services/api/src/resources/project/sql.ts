@@ -125,7 +125,8 @@ export const Sql = {
       developmentBuildPriority = 6,
       deploymentsDisabled = 0,
       developmentEnvironmentsLimit = 5,
-      buildImage
+      buildImage,
+      sharedBaasBucket
     } = input;
 
     return knex('project').insert({
@@ -159,7 +160,8 @@ export const Sql = {
     openshift,
     openshiftProjectPattern,
     developmentEnvironmentsLimit,
-    buildImage
+    buildImage,
+    sharedBaasBucket
   }).toString();
  }
 };

@@ -328,6 +328,15 @@ export const addProject = async (
     }
   }
 
+  let sharedBaasBucket = null;
+  if(typeof input.sharedBaasBucket == "boolean") {
+    if (adminScopes.projectViewAll) {
+      sharedBaasBucket = input.sharedBaasBucket
+    } else {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
+    }
+  }
+
   const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
@@ -594,7 +603,8 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit,
-        buildImage
+        buildImage,
+        sharedBaasBucket
       }
     }
   },
@@ -608,6 +618,12 @@ export const updateProject: ResolverFn = async (
   if (deploymentsDisabled) {
     if (!adminScopes.projectViewAll) {
       throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  if(typeof sharedBaasBucket == "boolean") {
+    if (adminScopes.projectViewAll) {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
     }
   }
 
@@ -769,7 +785,8 @@ export const updateProject: ResolverFn = async (
         openshift,
         openshiftProjectPattern,
         developmentEnvironmentsLimit,
-        buildImage
+        buildImage,
+        sharedBaasBucket
       }
     })
   );
@@ -871,7 +888,8 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit,
-        buildImage
+        buildImage,
+        sharedBaasBucket
       }
     }
   });
