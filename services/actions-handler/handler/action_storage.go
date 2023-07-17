@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
@@ -26,7 +26,7 @@ type StorageClaim struct {
 	BytesUsed            int    `json:"bytesUsed"`
 }
 
-func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue mq.MQ, action *Action, messageID string) {
+func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.MessageQueue, action *Action, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, action.EventType)
 	data, _ := json.Marshal(action.Data)
 	storageClaims := Storage{}
@@ -37,9 +37,10 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue mq.MQ,
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
 		}
-		return
+		return nil
 	}
 	// the action data can contain multiple storage claims, so iterate over them here
+	var errs []error
 	for _, sc := range storageClaims.Claims {
 		sci := schema.UpdateEnvironmentStorageInput{}
 		scdata, _ := json.Marshal(sc)
@@ -55,7 +56,11 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue mq.MQ,
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to update storage in the api: %v", prefix, err))
+				log.Println(fmt.Sprintf("%sERROR: unable to update storage for environment %v in the api: %v", prefix, sci.Environment, err))
+			}
+			// if the error is in LagoonAPIErrorCheck, this should be retried
+			if LagoonAPIRetryErrorCheck(err) == nil {
+				errs = append(errs, err)
 			}
 			// try and update the next storage claim if there is one
 			continue
@@ -70,6 +75,10 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue mq.MQ,
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%supdated environment: %v, storage claim: %s, id: %v", prefix, sci.Environment, sci.PersisteStorageClaim, environment.ID))
 		}
-
 	}
+	if len(errs) > 0 {
+		// return the first one so that the handler will retry
+		return errs[0]
+	}
+	return nil
 }
