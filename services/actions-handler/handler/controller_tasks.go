@@ -86,10 +86,16 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	taskId, _ := strconv.Atoi(message.Meta.Task.ID)
 	// prepare the task patch for later step
 	updateTaskPatch := schema.UpdateTaskPatchInput{
-		RemoteID:  message.Meta.RemoteID,
-		Status:    schema.StatusTypes(strings.ToUpper(message.Meta.JobStatus)),
-		Started:   message.Meta.StartTime,
-		Completed: message.Meta.EndTime,
+		Status: schema.StatusTypes(strings.ToUpper(message.Meta.JobStatus)),
+	}
+	if message.Meta.RemoteID != "" {
+		updateTaskPatch.RemoteID = message.Meta.RemoteID
+	}
+	if message.Meta.StartTime != "" {
+		updateTaskPatch.Started = message.Meta.StartTime
+	}
+	if message.Meta.EndTime != "" {
+		updateTaskPatch.Completed = message.Meta.EndTime
 	}
 	updatedTask, err := lagoon.UpdateTask(ctx, taskId, updateTaskPatch, l)
 	if err != nil {

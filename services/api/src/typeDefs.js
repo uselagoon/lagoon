@@ -1541,6 +1541,16 @@ const typeDefs = gql`
     patch: UpdateTaskPatchInput!
   }
 
+  input CancelTaskNameInput {
+    id: Int
+    taskName: String
+    environment: EnvironmentInput
+  }
+
+  input CancelTaskInput {
+    task: CancelTaskNameInput!
+  }
+
   input AddOpenshiftInput {
     id: Int
     name: String!
@@ -2141,6 +2151,7 @@ const typeDefs = gql`
     taskDrushUserLogin(environment: Int!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
+    cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
