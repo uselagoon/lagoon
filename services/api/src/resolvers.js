@@ -43,6 +43,7 @@ const {
 const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentByName,
   getDeploymentsByBulkId,
   getDeploymentsByFilter,
   addDeployment,
@@ -478,6 +479,7 @@ const resolvers = {
     environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
+    deploymentByName: getDeploymentByName,
     deploymentsByBulkId: getDeploymentsByBulkId,
     deploymentsByFilter: getDeploymentsByFilter,
     taskByTaskName: getTaskByTaskName,
