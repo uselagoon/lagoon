@@ -8,7 +8,7 @@ import { logger } from '../../loggers/logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import { query } from '../../util/db';
+import { query, knex } from '../../util/db';
 
 const lagoonWebhookAddress = getLagoonRouteFromEnv(
   /webhook-handler/,
@@ -156,16 +156,11 @@ async function removeHarborEnvVars(
       sqlClientPool,
       PSql.selectProjectByName(lagoonProjectName)
     );
-    const env_vars = await query(
-      sqlClientPool,
-      `SELECT *
-      FROM env_vars
-      WHERE project = :id
-      AND scope = 'internal_container_registry'`,
-      {
-        id: result[0].id
-      }
-    );
+    let queryBuilder = knex('env_vars')
+      .where('project', '=', result[0].id)
+      .andWhere('scope', '=', 'internal_container_registry');
+
+    const env_vars = await query(sqlClientPool, queryBuilder.toString());
 
     for (var i = 0; i < env_vars.length; i++) {
       old_env_vars.push(env_vars[i]);

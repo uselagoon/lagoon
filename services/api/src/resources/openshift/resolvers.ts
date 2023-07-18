@@ -105,17 +105,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
     });
   }
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT o.*
-    FROM project p
-    JOIN openshift o ON o.id = p.openshift
-    WHERE p.id = :pid
-    `,
-    {
-      pid
-    }
-  );
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftByProjectId(pid));
 
   return rows ? rows[0] : null;
 };
@@ -126,15 +116,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // get the project id for the deploytarget
-  const projectrows = await query(
-    sqlClientPool,
-    `SELECT d.project
-    FROM deploy_target_config d
-    WHERE d.id = :did
-    `,
-    {
-      did
-    }
+  const projectrows = await query(sqlClientPool, Sql.selectProjectIdByDeployTargetId(did)
   );
 
   // check permissions on the project
@@ -142,17 +124,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
     project: projectrows[0].project
   });
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT o.*
-    FROM deploy_target_config d
-    JOIN openshift o ON o.id = d.deploy_target
-    WHERE d.id = :did
-    `,
-    {
-      did
-    }
-  );
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftByDeployTargetId(did));
 
   return rows ? rows[0] : null;
 };
@@ -174,17 +146,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
     });
   }
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT o.*
-    FROM environment e
-    JOIN openshift o ON o.id = e.openshift
-    WHERE e.id = :eid
-    `,
-    {
-      eid
-    }
-  );
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftByEnvironmentId(eid));
 
   return rows ? rows[0] : null;
 };
