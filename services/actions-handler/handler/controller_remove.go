@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-func (m *Messenger) handleRemoval(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) {
+func (m *Messenger) handleRemoval(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, message.Namespace)
 	log.Println(fmt.Sprintf("%sreceived remove environment status update", prefix))
 	// generate a lagoon token with a expiry of 60 seconds from now
@@ -23,7 +23,7 @@ func (m *Messenger) handleRemoval(ctx context.Context, messageQueue mq.MQ, messa
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("ERROR: unable to generate token: %v", err))
 		}
-		return
+		return nil
 	}
 
 	// set up a lagoon client for use in the following process
@@ -44,7 +44,8 @@ func (m *Messenger) handleRemoval(ctx context.Context, messageQueue mq.MQ, messa
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR: unable to delete environment: %v", prefix, err))
 		}
-		return
+		return err
 	}
 	log.Println(fmt.Sprintf("%sdeleted environment: %v", prefix, deletedEnvironment.DeleteEnvironment))
+	return nil
 }

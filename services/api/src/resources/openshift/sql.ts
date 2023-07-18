@@ -13,7 +13,8 @@ export const Sql = {
     friendlyName,
     cloudProvider,
     cloudRegion,
-    buildImage
+    buildImage,
+    sharedBaasBucketName
   }: {
     id?: number;
     name: string;
@@ -27,6 +28,7 @@ export const Sql = {
     cloudProvider?: string;
     cloudRegion?: string;
     buildImage?: string;
+    sharedBaasBucketName?: string;
   }) =>
     knex('openshift')
       .insert({
@@ -41,7 +43,8 @@ export const Sql = {
         friendlyName,
         cloudProvider,
         cloudRegion,
-        buildImage
+        buildImage,
+        sharedBaasBucketName
       })
       .toString(),
   updateOpenshift: ({
@@ -66,5 +69,28 @@ export const Sql = {
   truncateOpenshift: () =>
     knex('openshift')
       .truncate()
-      .toString()
+      .toString(),
+  selectOpenshiftByProjectId: (id: number) =>
+    knex('project AS p')
+      .select('openshift.*')
+      .join('openshift', 'openshift.id', '=', 'p.openshift')
+      .where(knex.raw('p.id = ?', id))
+      .toString(),
+  selectProjectIdByDeployTargetId: (id: number) =>
+    knex('deploy_target_config AS d')
+      .select('d.project')
+      .where(knex.raw('d.id = ?', id))
+      .toString(),
+  selectOpenshiftByDeployTargetId: (id: number) =>
+    knex('deploy_target_config AS d')
+      .select('openshift.*')
+      .join('openshift', 'openshift.id', '=', 'd.deploy_target')
+      .where(knex.raw('d.id = ?', id))
+      .toString(),
+  selectOpenshiftByEnvironmentId: (id: number) =>
+    knex('environment AS e')
+      .select('openshift.*')
+      .join('openshift', 'openshift.id', '=', 'e.openshift')
+      .where(knex.raw('e.id = ?', id))
+      .toString(),
 };

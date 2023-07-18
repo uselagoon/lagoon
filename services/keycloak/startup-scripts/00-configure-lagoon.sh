@@ -2351,6 +2351,58 @@ function change_project_groupadd_to_owner_role {
 EOF
 }
 
+function add_development_task_cancel {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cancel_development_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Development+Task --config $CONFIG_PATH)
+
+  if [ "$cancel_development_task" != "[ ]" ]; then
+      echo "task:cancel:development already configured"
+      return 0
+  fi
+
+  echo Configuring task:cancel:development
+
+  # select the one for tasks, because 'name=task' is a search term and returns advanced_task and task in the response, we only want to modify the 'task' resource
+  TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[]| select(.name=="task")|."_id"')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushUserLogin:development"},{"name":"drushUserLogin:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"},{"name":"cancel:development"},{"name":"cancel:production"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Cancel Development Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["cancel:development"],
+  "policies": ["[Lagoon] Users role for project is Developer","[Lagoon] User has access to project"]
+}
+EOF
+}
+
+function add_production_task_cancel {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cancel_production_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Production+Task --config $CONFIG_PATH)
+
+  if [ "$cancel_production_task" != "[ ]" ]; then
+      echo "task:cancel:production already configured"
+      return 0
+  fi
+
+  echo Configuring task:cancel:production
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Cancel Production Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["task"],
+  "scopes": ["cancel:production"],
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -2395,6 +2447,8 @@ function configure_keycloak {
     create_or_update_delete_advanced_task_permissions
     change_groupadd_to_owner_role
     change_project_groupadd_to_owner_role
+    add_development_task_cancel
+    add_production_task_cancel
 
 
     # always run last

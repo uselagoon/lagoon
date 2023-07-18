@@ -51,13 +51,8 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
     project: pid
   });
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM deploy_target_config d
-    WHERE d.project = :pid ORDER BY d.weight DESC`,
-    { pid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByProjectId(pid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   return withK8s;
@@ -73,14 +68,7 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   // only admin can view all deployment targetconfigs for a specfic deploy target
   await hasPermission('project', `viewAll`);
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT d.*
-    FROM
-    deploy_target_config d
-    WHERE d.deploy_target = :oid`,
-    { oid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByDeployTarget(oid));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
