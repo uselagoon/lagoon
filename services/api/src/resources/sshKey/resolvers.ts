@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty, knex } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
 
@@ -189,8 +189,14 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
-  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', skid).delete().toString());
-  res = await query(sqlClientPool, knex('ssh_key').where('id', skid).delete().toString());
+  let res = await query(
+    sqlClientPool,
+    Sql.deleteUserSshKeyByKeyId(skid)
+  );
+  res = await query(
+    sqlClientPool,
+    Sql.deleteSshKeyByKeyId(skid)
+  );
 
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
@@ -222,8 +228,14 @@ export const deleteSshKeyById: ResolverFn = async (
     users: userIds
   });
 
-  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', id).delete().toString());
-  res = await query(sqlClientPool, knex('ssh_key').where('id', id).delete().toString());
+  let res = await query(
+    sqlClientPool,
+    Sql.deleteUserSshKeyByKeyId(id)
+  );
+  res = await query(
+    sqlClientPool,
+    Sql.deleteSshKeyByKeyId(id)
+  );
 
   // TODO: Check rows for success
 

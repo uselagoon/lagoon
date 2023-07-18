@@ -5,11 +5,38 @@ import { createJWTWithoutUserId } from './jwt';
 import { logger } from './logs/local-logger';
 import { envHasConfig, getConfigFromEnv } from './util/config';
 
-interface Project {
+export interface Project {
   slack: any;
   name: string;
-  openshift: any;
+  openshift: DeployTarget;
   deploymentsDisabled: number;
+  sharedBaasBucket?: boolean;
+  routerPattern?: string;
+  envVariables?: any;
+  gitUrl?: string;
+  subfolder?: string;
+  activesystemsdeploy?: string;
+  activesystemsremove?: string;
+  branches?: string;
+  productionenvironment?: string;
+  autoidle?: number;
+  storagecalc?: number;
+  pullrequests?: string;
+  openshiftprojectpattern?: string;
+  productionRoutes?: string;
+  standbyRoutes?: string;
+  productionEnvironment?: string;
+  standbyProductionEnvironment?: string;
+}
+
+export interface DeployTarget {
+  name: string;
+  sharedBaasBucketName?: string;
+  routerPattern?: string;
+  disabled?: boolean;
+  id?: number
+  buildImage?: string
+  monitoringConfig?: any
 }
 
 interface GroupPatch {
@@ -602,12 +629,6 @@ export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
         name
         productionEnvironment
         deploymentsDisabled
-        openshift {
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-        }
       }
     }
   `);
@@ -914,6 +935,40 @@ export async function getEnvironmentById(
   return result;
 }
 
+export async function getEnvironmentByIdWithVariables(
+  id: number
+): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      environmentById(id: ${id}) {
+        id
+        name
+        autoIdle
+        deployType
+        environmentType
+        openshiftProjectName
+        openshiftProjectPattern
+        openshift {
+          ...${deployTargetMinimalFragment}
+        }
+        envVariables {
+          name
+          value
+          scope
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.environmentById) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for id ${id}\n${result.environmentById}`
+    );
+  }
+
+  return result;
+}
+
 export async function getDeploymentByName(
   openshiftProjectName: string,
   deploymentName: string,
@@ -1076,15 +1131,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
         autoIdle
         branches
@@ -1105,6 +1152,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         storageCalc
         developmentBuildPriority
         buildImage
+        sharedBaasBucket
         envVariables {
           name
           value
@@ -1125,15 +1173,7 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
         weight
         deployTargetProjectPattern
         deployTarget{
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
       }
     }
@@ -1147,17 +1187,10 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
         name
         openshiftProjectPattern
         openshift  {
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
         project {
+          sharedBaasBucket
           buildImage
           envVariables {
             name
@@ -1206,8 +1239,7 @@ export const getEnvironmentsForProject = (
         autoIdle
         openshiftProjectPattern
         openshift{
-          id
-          name
+          ...${deployTargetMinimalFragment}
         }
       }
     }
@@ -1246,6 +1278,18 @@ fragment on Deployment {
   environment {
     name
   }
+}
+`);
+
+const deployTargetMinimalFragment = graphqlapi.createFragment(`
+fragment on Openshift {
+  id
+  name
+  routerPattern
+  buildImage
+  disabled
+  sharedBaasBucketName
+  monitoringConfig
 }
 `);
 

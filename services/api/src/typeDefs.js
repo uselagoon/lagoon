@@ -139,6 +139,8 @@ const typeDefs = gql`
     name: String
     displayName: String
     type: String
+    defaultValue: String
+    optional: Boolean
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
@@ -506,6 +508,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -524,6 +527,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -787,6 +791,7 @@ const typeDefs = gql`
     Build image this project will use if set
     """
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   """
@@ -1088,6 +1093,21 @@ const typeDefs = gql`
     name: String
   }
 
+  input DeploymentByNameInput {
+    """
+    The environment name
+    """
+    environment: String
+    """
+    The project name
+    """
+    project: String
+    """
+    The deployment name (eg, lagoon-build-abc)
+    """
+    name: String
+  }
+
   type Query {
     """
     Returns the current user
@@ -1097,6 +1117,10 @@ const typeDefs = gql`
     Returns User Object by a given sshKey
     """
     userBySshKey(sshKey: String!): User
+    """
+    Returns User Object by a given sshKey Fingerprint
+    """
+    userBySshFingerprint(fingerprint: String!): User
     """
     Returns User Object by a given email address
     """
@@ -1149,6 +1173,7 @@ const typeDefs = gql`
       kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    deploymentByName(input: DeploymentByNameInput): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
     deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType]): [Deployment]
     taskByTaskName(taskName: String): Task
@@ -1307,6 +1332,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input AddEnvironmentInput {
@@ -1442,6 +1468,8 @@ const typeDefs = gql`
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
     displayName: String
+    defaultValue: String
+    optional: Boolean
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
@@ -1517,6 +1545,16 @@ const typeDefs = gql`
     patch: UpdateTaskPatchInput!
   }
 
+  input CancelTaskNameInput {
+    id: Int
+    taskName: String
+    environment: EnvironmentInput
+  }
+
+  input CancelTaskInput {
+    task: CancelTaskNameInput!
+  }
+
   input AddOpenshiftInput {
     id: Int
     name: String!
@@ -1534,6 +1572,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1554,6 +1593,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1686,6 +1726,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input UpdateProjectInput {
@@ -1709,6 +1750,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -1733,6 +1775,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    sharedBaasBucketName: String
     disabled: Boolean
   }
 
@@ -2117,6 +2160,7 @@ const typeDefs = gql`
     taskDrushUserLogin(environment: Int!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
+    cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String

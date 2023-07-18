@@ -15,7 +15,6 @@ import {
   getAdvancedTaskDefinitionType
 } from './models/taskRegistration';
 import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
-import sql from '../user/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
@@ -339,6 +338,13 @@ export const addAdvancedTaskDefinition = async (
   //now attach arguments
   if(advancedTaskDefinitionArguments) {
     for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
+      if (advancedTaskDefinitionArguments[i].defaultValue) {
+        let typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, null, environment);
+        let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(advancedTaskDefinitionArguments[i].type);
+        if(!(await validator.validateInput(advancedTaskDefinitionArguments[i].defaultValue))) {
+          throw new Error(`Invalid input defaultValue "${advancedTaskDefinitionArguments[i].defaultValue}" for type "${advancedTaskDefinitionArguments[i].type}" given for argument "${advancedTaskDefinitionArguments[i].name}"`);
+        }
+      }
       await query(
         sqlClientPool,
         Sql.insertAdvancedTaskDefinitionArgument({
@@ -346,6 +352,8 @@ export const addAdvancedTaskDefinition = async (
           advanced_task_definition: insertId,
           name: advancedTaskDefinitionArguments[i].name,
           type: advancedTaskDefinitionArguments[i].type,
+          defaultValue: advancedTaskDefinitionArguments[i].defaultValue,
+          optional: advancedTaskDefinitionArguments[i].optional,
           displayName: advancedTaskDefinitionArguments[i].displayName,
         })
       );
@@ -451,6 +459,8 @@ export const updateAdvancedTaskDefinition = async (
             advanced_task_definition: id,
             name: advancedTaskDefinitionArguments[i].name,
             displayName: advancedTaskDefinitionArguments[i].displayName,
+            defaultValue: advancedTaskDefinitionArguments[i].defaultValue,
+            optional: advancedTaskDefinitionArguments[i].optional,
             type: advancedTaskDefinitionArguments[i].type
           })
         );
@@ -526,6 +536,11 @@ export const invokeRegisteredTask = async (
         throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
       }
 
+      // if the value is empty and there is a default value on the argument
+      if (value.trim() === "" && taskArgDef["defaultValue"]) {
+          value = taskArgDef["defaultValue"]
+      }
+
       //@ts-ignore
       let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
 
@@ -562,7 +577,7 @@ export const invokeRegisteredTask = async (
 
         taskCommand += `${task.command}`;
 
-        const taskData = await Helpers(sqlClientPool).addTask({
+        const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
           name: task.name,
           taskName: generateTaskName(),
           environment: environment,
@@ -588,7 +603,7 @@ export const invokeRegisteredTask = async (
         }
 
 
-        const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
+        const advancedTaskData = await Helpers(sqlClientPool, hasPermission).addAdvancedTask({
           name: task.name,
           taskName: generateTaskName(),
           created: undefined,
