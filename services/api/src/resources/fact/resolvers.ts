@@ -317,13 +317,12 @@ export const addFactsByName: ResolverFn = async (
     throw new Error("Both 'project' and 'environment' require values"); //Presumably this'll be taken care of via the schema, but let's check either way.
   }
 
+  let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
   if (!adminScopes.projectViewAll) {
     await hasPermission('environment', 'view', {
-      project: project
+      project: lagoonProject
     });
   }
-
-  let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
   let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
 
   if (environments.length == 0) {
