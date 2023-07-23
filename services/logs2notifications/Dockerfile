@@ -7,7 +7,7 @@ COPY . /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 
 # compile
-RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o logs2notifications .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o logs2notifications .
 
 # put the binary into container
 # use the commons image to get entrypoints

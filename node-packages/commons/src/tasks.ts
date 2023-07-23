@@ -1196,7 +1196,10 @@ export const createMiscTask = async function(taskData: any) {
           // Parse out the baasBucketName for any migrated projects
           // check if the project is configured for a shared baas bucket
           let [baasBucketName, shared] = await getBaasBucketName(result.environment.project, result.environment.openshift)
-
+          if (shared) {
+            // if it is a shared bucket, add the repo key to it too for restores
+            baasBucketName = `${baasBucketName}/baas-${makeSafe(taskData.data.project.name)}`
+          }
           // Handle custom backup configurations
           let lagoonBaasCustomBackupEndpoint = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT"
