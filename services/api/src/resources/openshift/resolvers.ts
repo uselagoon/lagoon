@@ -85,12 +85,15 @@ export const deleteOpenshift: ResolverFn = async (
 
 export const getAllOpenshifts: ResolverFn = async (
   root,
-  args,
+  { disabled },
   { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('openshift', 'viewAll');
 
-  return query(sqlClientPool, 'SELECT * FROM openshift');
+  if (disabled != null) {
+    return query(sqlClientPool, knex('openshift').where('disabled', disabled).toString());
+  }
+  return query(sqlClientPool, knex('openshift').toString());
 };
 
 export const getOpenshiftByProjectId: ResolverFn = async (
