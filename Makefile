@@ -179,7 +179,6 @@ build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/tests: tests/Dockerfile
-build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
@@ -237,6 +236,10 @@ build:
 build-list:
 	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
 
+.PHONY: build-ui-logs-development
+build-ui-logs-development:
+	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
+	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -294,7 +297,7 @@ publish-uselagoon-images:
 .PHONY: clean
 clean:
 	rm -rf build/*
-	docker buildx rm $(CI_BUILD_TAG)
+	docker buildx rm $(CI_BUILD_TAG) || echo  -e 'no builder $(CI_BUILD_TAG) found'
 
 # Conduct post-release scans on images
 .PHONY: scan-images
@@ -333,15 +336,15 @@ kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
+ui-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
-api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
+api-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 .PHONY: ui-logs-development
-ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
+ui-logs-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload
 
 ## CI targets

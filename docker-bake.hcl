@@ -59,6 +59,20 @@ group "default" {
   ]
 }
 
+group "ui-logs-development" {
+  targets = [
+    "actions-handler",
+    "api-db",
+    "api-redis",
+    "api",
+    "broker-single",
+    "keycloak-db",
+    "keycloak",
+    "local-api-data-watcher-pusher",
+    "logs2notifications"
+  ]
+}
+
 group "local-dev" {
   targets = [
     "local-api-data-watcher-pusher",
