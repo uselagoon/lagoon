@@ -119,7 +119,7 @@ function configure_opendistro_security_client {
     echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"], "secret": "'$SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating mapper for lagoon-opendistro-security "groups"
     CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n\/\/ add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  \/\/ remove the group role suffixes\n  \/\/lets check if the group has a parent if this is a child\n  if(group.getFirstAttribute(\"type\") == \"role-subgroup\") {\n    var parent = group.getParent();\n    if(parent.getFirstAttribute(\"type\") == \"project-default-group\") {\n        var projectIds = parent.getFirstAttribute(\"lagoon-projects\");\n        if(projectIds !== null) {\n            forEach.call(projectIds.split(\",\"), function(g) {\n              groupsAndRoles.add(\"p\" + g);  \n            });\n            return;\n        }\n    }\n  }\n \n  var groupName = group.getName().replace(\/-owner|-maintainer|-developer|-reporter|-guest\/gi,\"\");\n  groupsAndRoles.add(groupName);\n  return;\n});\n\n\/\/ add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
 }
 
@@ -217,159 +217,20 @@ function configure_api_client {
     # Authorization policies
     echo Creating api authz js policies
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for realm is Platform Owner",
-  "description": "Checks the users role for the realm is Platform Owner or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
-}
-EOF
+    # List of all policies that need migrating
+    local policies='User has access to own data;User has access to project;Users role for group is Owner;Users role for group is Maintainer;Users role for group is Developer;Users role for group is Reporter;Users role for group is Guest;Users role for project is Owner;Users role for project is Maintainer;Users role for project is Developer;Users role for project is Reporter;Users role for project is Guest;Users role for realm is Admin;Users role for realm is Platform Owner'
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for realm is Admin",
-  "description": "Checks the users role for the realm is Admin",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'admin')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for group is Developer",
-  "description": "Checks the users role for a group is Developer or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for project is Developer",
-  "description": "Checks the users role for a project is Developer or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "User has access to project",
-  "description": "Checks that the user has access to a project via groups",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\n// Check projects calculated by lagoon\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for project is Reporter",
-  "description": "Checks the users role for a project is Reporter or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "User has access to own data",
-  "description": "Checks that the current user is same as queried",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('usersQuery') || !ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n    var users = ctxAttr.getValue('usersQuery').asString(0);\n    var usersArr = users.split('|');\n    var grant = false;\n    \n    for (var i=0; i<usersArr.length; i++) {\n        if (currentUser == usersArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for group is Guest",
-  "description": "Checks the users role for a group is Guest or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for group is Maintainer",
-  "description": "Checks the users role for a group is Maintainer or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for project is Guest",
-  "description": "Checks the users role for a project is Guest or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for project is Maintainer",
-  "description": "Checks the users role for a project is Maintainer or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for group is Reporter",
-  "description": "Checks the users role for a group is Reporter or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for group is Owner",
-  "description": "Checks the users role for a group is Owner or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "Users role for project is Owner",
-  "description": "Checks the users role for a project is Owner or higher",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
+    OLDIFS=$IFS;IFS=";";
+    local p_name
+    for p_name in $policies
+    do
+      echo "Creating '$p_name' policy"
+      # Add the new script based policy to the api client
+      local script_name="$p_name"
+      local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+    done
+    IFS=$OLDIFS
 
     #Authorization permissions
     echo Creating api authz permissions
@@ -1822,8 +1683,10 @@ function migrate_to_js_provider {
     # Check if mapper is "upload_script" based
     local opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
     local lagoon_opendistro_security_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH)
-    local lagoon_opendistro_security_mapper_groups=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .protocolMapper')
-    if [ "$lagoon_opendistro_security_mapper_groups" != "oidc-script-based-protocol-mapper" ]; then
+
+    local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    local users_role_for_project_migrated=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=[Lagoon]+Users+role+for+project+is+Owner --config $CONFIG_PATH | jq -r )
+    if [ "$users_role_for_project_migrated" != "[]" ]; then
         echo "upload_scripts already migrated"
         return 0
     fi
@@ -1841,7 +1704,6 @@ function migrate_to_js_provider {
     ###############################
     # Update Authorization Policies
     ###############################
-    local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
     # Build a JSON string of current authz permissions and policies. Looks like:
     # [
