@@ -70,9 +70,5 @@ COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scrip
 
 RUN /opt/keycloak/bin/kc.sh build
 
-ENV KC_PROXY=edge
-ENV KC_HOSTNAME_STRICT=false
-ENV KC_HOSTNAME_STRICT_HTTPS=false
-ENV KC_HTTP_RELATIVE_PATH=/auth
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["start"]
