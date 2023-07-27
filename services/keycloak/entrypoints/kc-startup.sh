@@ -6,4 +6,4 @@ shopt -s failglob
 
 /opt/keycloak/startup-scripts/00-configure-lagoon.sh & disown
 
-/opt/keycloak/bin/kc.sh "$@"
+/opt/keycloak/bin/kc.sh "$@" --features="scripts,token-exchange,admin-fine-grained-authz"
