@@ -8,14 +8,14 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:18.0.2-legacy
+FROM quay.io/keycloak/keycloak:19.0.3
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 
-RUN microdnf install -y nc jq \
+RUN microdnf install -y nc jq openssl \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
@@ -29,10 +29,6 @@ COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
-
-# Fix permissions for JBoss home directory
-RUN chgrp -R 0 $JBOSS_HOME &&\
-    chmod -R g+rw $JBOSS_HOME
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -62,15 +58,21 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
     KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330 \
     KEYCLOAK_SERVICE_API_CLIENT_SECRET=d3724d52-34d1-4967-a802-4d178678564b \
-    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Dkeycloak.profile.feature.scripts=enabled -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
+    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.profile.feature.token_exchange=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
 
-VOLUME /opt/jboss/keycloak/standalone/data
+VOLUME /opt/keycloak/data
 
+COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
-COPY startup-scripts /opt/jboss/startup-scripts
-COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
-COPY --from=commons /tmp/lagoon-scripts.jar /opt/jboss/keycloak/standalone/deployments/lagoon-scripts.jar
+COPY startup-scripts /opt/keycloak/startup-scripts
+COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
 
+RUN /opt/keycloak/bin/kc.sh build
+
+ENV KC_PROXY=edge
+ENV KC_HOSTNAME_STRICT=false
+ENV KC_HOSTNAME_STRICT_HTTPS=false
+ENV KC_HTTP_RELATIVE_PATH=/auth
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
-CMD ["-b", "0.0.0.0"]
+CMD ["start"]

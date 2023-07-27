@@ -7,7 +7,8 @@ set -eo pipefail
 #####################
 
 function is_keycloak_running {
-    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://$(hostname -i):8080/auth/admin/realms)
+    curl -s -w "%{http_code}" http://localhost:8080/auth/admin/realms
+    local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/auth/admin/realms)
     if [[ $http_code -eq 401 ]]; then
         return 0
     else
@@ -19,18 +20,18 @@ function is_keycloak_running {
 function sync_client_secrets {
   echo Syncing client secrets
 
-  AUTH_SERVER_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$AUTH_SERVER_CLIENT_ID -s secret=$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+  AUTH_SERVER_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$AUTH_SERVER_CLIENT_ID -s secret=$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
 
-  API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$API_CLIENT_ID -s secret=$KEYCLOAK_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+  API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$API_CLIENT_ID -s secret=$KEYCLOAK_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
 
-  SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+  SERVICE_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
 
   if [ "$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" ]; then
-    LAGOON_OPENSEARCH_SYNC_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r "${KEYCLOAK_REALM:-master}" clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH" | jq -r '.[0]["id"]')
-    /opt/jboss/keycloak/bin/kcadm.sh update "clients/$LAGOON_OPENSEARCH_SYNC_CLIENT_ID" -s "secret=$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+    LAGOON_OPENSEARCH_SYNC_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r "${KEYCLOAK_REALM:-master}" clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH" | jq -r '.[0]["id"]')
+    /opt/keycloak/bin/kcadm.sh update "clients/$LAGOON_OPENSEARCH_SYNC_CLIENT_ID" -s "secret=$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
   fi
 }
 
@@ -48,44 +49,44 @@ function sync_client_secrets {
 # would've been created by the function, and halting execution if found.
 
 function configure_lagoon_realm {
-    if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
+    if /opt/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
         echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
         return 0
     fi
 
     if [ $KEYCLOAK_REALM ]; then
         echo Creating realm $KEYCLOAK_REALM
-        /opt/jboss/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -s realm=$KEYCLOAK_REALM -s enabled=true
+        /opt/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -s realm=$KEYCLOAK_REALM -s enabled=true
     fi
 
     if [ "$KEYCLOAK_REALM_ROLES" ]; then
         for role in ${KEYCLOAK_REALM_ROLES//,/ }; do
             echo Creating role $role
-            /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${role}
+            /opt/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${role}
         done
     fi
     # Configure keycloak for ui
     echo Creating client lagoon-ui
-    echo '{"clientId": "lagoon-ui", "publicClient": true, "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"clientId": "lagoon-ui", "publicClient": true, "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating mapper for lagoon-ui "lagoon-uid"
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
     if [ "$KEYCLOAK_REALM_SETTINGS" ]; then
         echo Applying extra Realm settings
-        echo $KEYCLOAK_REALM_SETTINGS | /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -f -
+        echo $KEYCLOAK_REALM_SETTINGS | /opt/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -f -
     fi
 
     if [ $KEYCLOAK_LAGOON_ADMIN_USERNAME ]; then
         echo Creating user $KEYCLOAK_LAGOON_ADMIN_USERNAME
         # grep would have been nice instead of the double sed, but we don't have gnu grep available, only the busybox grep which is very limited
         local user_id=$(echo '{"username": "'$KEYCLOAK_LAGOON_ADMIN_USERNAME'", "enabled": true}' \
-        | /opt/jboss/keycloak/bin/kcadm.sh create users --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f - 2>&1  | sed -e 's/Created new user with id //g' -e "s/'//g")
+        | /opt/keycloak/bin/kcadm.sh create users --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f - 2>&1  | sed -e 's/Created new user with id //g' -e "s/'//g")
         echo "Created user with id ${user_id}"
-        /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/reset-password --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s type=password -s value=${KEYCLOAK_LAGOON_ADMIN_PASSWORD} -s temporary=false -n
+        /opt/keycloak/bin/kcadm.sh update users/${user_id}/reset-password --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s type=password -s value=${KEYCLOAK_LAGOON_ADMIN_PASSWORD} -s temporary=false -n
         echo "Set password for user ${user_id}"
 
-        /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uid ${user_id} --rolename admin
+        /opt/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uid ${user_id} --rolename admin
         echo "Gave user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' the role 'admin'"
     fi
 }
@@ -93,21 +94,21 @@ function configure_lagoon_realm {
 function configure_opendistro_security_client {
 
     # delete old SearchGuard Clients
-    searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=searchguard --config $CONFIG_PATH)
+    searchguard_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=searchguard --config $CONFIG_PATH)
     if [ "$searchguard_client_id" != "[ ]" ]; then
         echo "Client searchguard is exising, will delete"
-        SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | jq -r '.[0]["id"]')
-        /opt/jboss/keycloak/bin/kcadm.sh delete clients/${SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+        SEARCHGUARD_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=searchguard --config $CONFIG_PATH | jq -r '.[0]["id"]')
+        /opt/keycloak/bin/kcadm.sh delete clients/${SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
     fi
-    lagoon_searchguard_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH)
+    lagoon_searchguard_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH)
     if [ "$lagoon_searchguard_client_id" != "[ ]" ]; then
         echo "Client lagoon-searchguard is exising, will delete"
-        LAGOON_SEARCHGUARD_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | jq -r '.[0]["id"]')
-        /opt/jboss/keycloak/bin/kcadm.sh delete clients/${LAGOON_SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+        LAGOON_SEARCHGUARD_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-searchguard --config $CONFIG_PATH | jq -r '.[0]["id"]')
+        /opt/keycloak/bin/kcadm.sh delete clients/${LAGOON_SEARCHGUARD_CLIENT_ID} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
     fi
 
 
-    opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH)
+    opendistro_security_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH)
     if [ "$opendistro_security_client_id" != "[ ]" ]; then
         echo "Client lagoon-opendistro-security is already created, skipping setup"
         return 0
@@ -116,38 +117,38 @@ function configure_opendistro_security_client {
     # Configure keycloak for lagoon-opendistro-security
     echo Creating client lagoon-opendistro-security
     local SECRET=$(openssl rand -hex 16)
-    echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"], "secret": "'$SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"], "secret": "'$SECRET'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating mapper for lagoon-opendistro-security "groups"
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
 }
 
 function configure_api_client {
-    api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH)
+    api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH)
     if [ "$api_client_id" != "[ ]" ]; then
         echo "Client api is already created, skipping basic setup"
         return 0
     fi
 
     # Enable username edit
-    /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -s editUsernameAllowed=true
+    /opt/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -s editUsernameAllowed=true
 
     echo Creating client auth-server
-    echo '{"clientId": "auth-server", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    AUTH_SERVER_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"clientId": "auth-server", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    AUTH_SERVER_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    REALM_MANAGEMENT_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
     echo Enable auth-server token exchange
     # 1 Enable fine grained admin permissions for users
-    /opt/jboss/keycloak/bin/kcadm.sh update users-management-permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
+    /opt/keycloak/bin/kcadm.sh update users-management-permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
     # 2 Enable fine grained admin perions for client
-    /opt/jboss/keycloak/bin/kcadm.sh update clients/$AUTH_SERVER_CLIENT_ID/management/permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
+    /opt/keycloak/bin/kcadm.sh update clients/$AUTH_SERVER_CLIENT_ID/management/permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
     # 3 Create policy for auth-server client
-    echo '{"type":"client","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Client auth-server Policy","clients":["'$AUTH_SERVER_CLIENT_ID'"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy/client --config $CONFIG_PATH -r lagoon -f -
-    AUTH_SERVER_CLIENT_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+auth-server+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"type":"client","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Client auth-server Policy","clients":["'$AUTH_SERVER_CLIENT_ID'"]}' | /opt/keycloak/bin/kcadm.sh create clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy/client --config $CONFIG_PATH -r lagoon -f -
+    AUTH_SERVER_CLIENT_POLICY_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+auth-server+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
     # 4 Update user impersonate permission to add client policy (PUT)
-    IMPERSONATE_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    /opt/jboss/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'"]'
+    IMPERSONATE_PERMISSION_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'"]'
 
 
 
@@ -156,63 +157,63 @@ function configure_api_client {
     composites_add=()
     for crn_key in ${!composite_role_names[@]}; do
         echo Creating role ${composite_role_names[$crn_key]}
-        /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s composite=true -s name=${composite_role_names[$crn_key]}
+        /opt/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s composite=true -s name=${composite_role_names[$crn_key]}
 
         for ca_key in ${!composites_add[@]}; do
-            /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname ${composite_role_names[$crn_key]} --rolename ${composites_add[$ca_key]}
+            /opt/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname ${composite_role_names[$crn_key]} --rolename ${composites_add[$ca_key]}
         done
 
         composites_add+=(${composite_role_names[$crn_key]})
     done
 
     # Setup platform wide roles.
-    /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-owner
-    /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname admin --rolename platform-owner
+    /opt/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-owner
+    /opt/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname admin --rolename platform-owner
 
     # Configure keycloak for api
     echo Creating client api
-    echo '{"clientId": "api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "authorizationServicesEnabled": true, "secret": "'$KEYCLOAK_API_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    ADMIN_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/admin --config $CONFIG_PATH | jq -r '.["id"]')
-    GUEST_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/guest --config $CONFIG_PATH | jq -r '.["id"]')
-    REPORTER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/reporter --config $CONFIG_PATH | jq -r '.["id"]')
-    DEVELOPER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/developer --config $CONFIG_PATH | jq -r '.["id"]')
-    MAINTAINER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/maintainer --config $CONFIG_PATH | jq -r '.["id"]')
-    OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | jq -r '.["id"]')
-    PLATFORM_OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/platform-owner --config $CONFIG_PATH | jq -r '.["id"]')
+    echo '{"clientId": "api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "authorizationServicesEnabled": true, "secret": "'$KEYCLOAK_API_CLIENT_SECRET'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    ADMIN_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/admin --config $CONFIG_PATH | jq -r '.["id"]')
+    GUEST_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/guest --config $CONFIG_PATH | jq -r '.["id"]')
+    REPORTER_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/reporter --config $CONFIG_PATH | jq -r '.["id"]')
+    DEVELOPER_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/developer --config $CONFIG_PATH | jq -r '.["id"]')
+    MAINTAINER_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/maintainer --config $CONFIG_PATH | jq -r '.["id"]')
+    OWNER_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | jq -r '.["id"]')
+    PLATFORM_OWNER_ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon roles/platform-owner --config $CONFIG_PATH | jq -r '.["id"]')
 
     # Resource Scopes
     resource_scope_names=(add add:development add:production addGroup addNoExec addNotification addOrUpdate:development addOrUpdate:production addUser delete delete:development delete:production deleteAll deleteNoExec deploy:development deploy:production drushArchiveDump:development drushArchiveDump:production drushCacheClear:development drushCacheClear:production drushRsync:destination:development drushRsync:destination:production drushRsync:source:development drushRsync:source:production drushSqlDump:development drushSqlDump:production drushSqlSync:destination:development drushSqlSync:destination:production drushSqlSync:source:development drushSqlSync:source:production environment:add:development environment:add:production environment:view:development environment:view:production getBySshKey invoke:guest invoke:developer invoke:maintainer create:advanced delete:advanced project:add project:view removeAll removeGroup removeNotification removeUser ssh:development ssh:production storage update update:development update:production view view:token view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
-        /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
+        /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
     done
 
     # Resources with scopes
     echo Creating resource backup
-    echo '{"name":"backup","displayName":"backup","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"backup","displayName":"backup","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource restore
-    echo '{"name":"restore","displayName":"restore","scopes":[{"name":"add"},{"name":"addNoExec"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"restore","displayName":"restore","scopes":[{"name":"add"},{"name":"addNoExec"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource deployment
-    echo '{"name":"deployment","displayName":"deployment","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"deployment","displayName":"deployment","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource env_var
-    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource task
-    echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource openshift
-    echo '{"name":"openshift","displayName":"openshift","scopes":[{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"view:token"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"openshift","displayName":"openshift","scopes":[{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"view:token"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource user
-    echo '{"name":"user","displayName":"user","scopes":[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"user","displayName":"user","scopes":[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource environment
-    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"ssh:production"},{"name":"ssh:development"},{"name":"view"},{"name":"deploy:production"},{"name":"deploy:development"},{"name":"addOrUpdate:production"},{"name":"addOrUpdate:development"},{"name":"storage"},{"name":"delete:production"},{"name":"delete:development"},{"name":"deleteNoExec"},{"name":"update:production"},{"name":"update:development"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"environment","displayName":"environment","scopes":[{"name":"ssh:production"},{"name":"ssh:development"},{"name":"view"},{"name":"deploy:production"},{"name":"deploy:development"},{"name":"addOrUpdate:production"},{"name":"addOrUpdate:development"},{"name":"storage"},{"name":"delete:production"},{"name":"delete:development"},{"name":"deleteNoExec"},{"name":"update:production"},{"name":"update:development"},{"name":"viewAll"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource project
-    echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"project","displayName":"project","scopes":[{"name":"update"},{"name":"add"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"removeNotification"},{"name":"view"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"},{"name":"viewPrivateKey"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource group
-    echo '{"name":"group","displayName":"group","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"group","displayName":"group","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource notification
-    echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource ssh_key
-    echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz js policies
@@ -228,17 +229,17 @@ function configure_api_client {
       # Add the new script based policy to the api client
       local script_name="$p_name"
       local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
-      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
     done
     IFS=$OLDIFS
 
     #Authorization permissions
     echo Creating api authz permissions
-    DEFAULT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Default+Permission --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$DEFAULT_PERMISSION_ID --config $CONFIG_PATH
+    DEFAULT_PERMISSION_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Default+Permission --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$DEFAULT_PERMISSION_ID --config $CONFIG_PATH
 
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Task",
   "type": "scope",
@@ -250,7 +251,7 @@ function configure_api_client {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Development Environment",
   "type": "scope",
@@ -262,7 +263,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Task",
   "type": "scope",
@@ -274,7 +275,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Environment Variable to Production Environment",
   "type": "scope",
@@ -286,7 +287,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Development Environment",
   "type": "scope",
@@ -298,7 +299,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Backup",
   "type": "scope",
@@ -310,7 +311,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush sql-sync from Any Environment",
   "type": "scope",
@@ -322,7 +323,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Group",
   "type": "scope",
@@ -334,7 +335,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Environment Variable to Development Environment",
   "type": "scope",
@@ -346,7 +347,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Backups",
   "type": "scope",
@@ -358,7 +359,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Restore",
   "type": "scope",
@@ -370,7 +371,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Deployment to Production Environment",
   "type": "scope",
@@ -382,7 +383,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add or Update Production Environment",
   "type": "scope",
@@ -394,7 +395,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Backups",
   "type": "scope",
@@ -406,7 +407,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Deployments",
   "type": "scope",
@@ -418,7 +419,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add User",
   "type": "scope",
@@ -430,7 +431,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add or Update Development Environment",
   "type": "scope",
@@ -443,7 +444,7 @@ EOF
 EOF
 
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Notification",
   "type": "scope",
@@ -455,7 +456,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Projects",
   "type": "scope",
@@ -467,7 +468,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Production Environment",
   "type": "scope",
@@ -479,7 +480,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Notification to Project",
   "type": "scope",
@@ -491,7 +492,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Task",
   "type": "scope",
@@ -503,7 +504,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment",
   "type": "scope",
@@ -515,7 +516,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Group",
   "type": "scope",
@@ -527,7 +528,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Project",
   "type": "scope",
@@ -539,7 +540,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Project Private Key",
   "type": "scope",
@@ -551,7 +552,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Groups",
   "type": "scope",
@@ -563,7 +564,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Users",
   "type": "scope",
@@ -575,7 +576,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Manage Openshift",
   "type": "scope",
@@ -587,7 +588,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Openshifts",
   "type": "scope",
@@ -599,7 +600,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete SSH Key",
   "type": "scope",
@@ -611,7 +612,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Environment Variable to Project",
   "type": "scope",
@@ -623,7 +624,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Project",
   "type": "scope",
@@ -635,7 +636,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Get SSH Keys for User",
   "type": "scope",
@@ -647,7 +648,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Openshift",
   "type": "scope",
@@ -659,7 +660,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush rsync from Any Environment",
   "type": "scope",
@@ -671,7 +672,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All SSH Keys",
   "type": "scope",
@@ -683,7 +684,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Metrics",
   "type": "scope",
@@ -695,7 +696,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush sql-sync to Development Environment",
   "type": "scope",
@@ -707,7 +708,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush cache-clear",
   "type": "scope",
@@ -719,7 +720,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add User to Group",
   "type": "scope",
@@ -731,7 +732,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Backup",
   "type": "scope",
@@ -743,7 +744,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush sql-sync to Production Environment",
   "type": "scope",
@@ -755,7 +756,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Production Environment",
   "type": "scope",
@@ -767,7 +768,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush rsync to Development Environment",
   "type": "scope",
@@ -779,7 +780,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update SSH Key",
   "type": "scope",
@@ -791,7 +792,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Task to Production Environment",
   "type": "scope",
@@ -803,7 +804,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Task to Development Environment",
   "type": "scope",
@@ -816,7 +817,7 @@ EOF
 EOF
 
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add SSH Key",
   "type": "scope",
@@ -828,7 +829,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Notifications",
   "type": "scope",
@@ -840,7 +841,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "CUD Notification",
   "type": "scope",
@@ -852,7 +853,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Groups to Project",
   "type": "scope",
@@ -864,7 +865,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Deployment to Development Environment",
   "type": "scope",
@@ -876,7 +877,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Environments",
   "type": "scope",
@@ -888,7 +889,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Deployment",
   "type": "scope",
@@ -900,7 +901,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Deployment",
   "type": "scope",
@@ -912,7 +913,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Project",
   "type": "scope",
@@ -924,7 +925,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Remove Notification from Project",
   "type": "scope",
@@ -936,7 +937,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete User",
   "type": "scope",
@@ -948,7 +949,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete All Projects",
   "type": "scope",
@@ -960,7 +961,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Remove User from Group",
   "type": "scope",
@@ -972,7 +973,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Project",
   "type": "scope",
@@ -984,7 +985,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Group",
   "type": "scope",
@@ -996,7 +997,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Restore",
   "type": "scope",
@@ -1008,7 +1009,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush archive-dump",
   "type": "scope",
@@ -1020,7 +1021,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update User",
   "type": "scope",
@@ -1032,7 +1033,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Environment",
   "type": "scope",
@@ -1044,7 +1045,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Remove Groups from Project",
   "type": "scope",
@@ -1056,7 +1057,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush rsync to Production Environment",
   "type": "scope",
@@ -1068,7 +1069,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush sql-dump",
   "type": "scope",
@@ -1080,7 +1081,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Production Environment",
   "type": "scope",
@@ -1092,7 +1093,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Project",
   "type": "scope",
@@ -1104,7 +1105,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Environment Variable",
   "type": "scope",
@@ -1116,7 +1117,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Update Development Environment",
   "type": "scope",
@@ -1128,7 +1129,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "User can SSH to Development Environment",
   "type": "scope",
@@ -1140,7 +1141,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "User can SSH to Production Environment",
   "type": "scope",
@@ -1158,8 +1159,8 @@ EOF
 }
 
 function add_group_viewall {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_all_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Groups --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_groups=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Groups --config $CONFIG_PATH)
 
   if [ "$view_all_groups" != "[ ]" ]; then
       echo "group:viewAll already configured"
@@ -1168,10 +1169,10 @@ function add_group_viewall {
 
   echo Configuring group:viewAll
 
-  GROUP_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=group --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"},{"name":"viewAll"}]'
+  GROUP_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=group --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"addUser"},{"name":"removeUser"},{"name":"viewAll"}]'
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Groups",
   "type": "scope",
@@ -1185,8 +1186,8 @@ EOF
 }
 
 function add_deployment_cancel {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  cancel_deployment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Deployment --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cancel_deployment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Deployment --config $CONFIG_PATH)
 
   if [ "$cancel_deployment" != "[ ]" ]; then
       echo "deployment:cancel already configured"
@@ -1195,10 +1196,10 @@ function add_deployment_cancel {
 
   echo Configuring deployment:cancel
 
-  DEPLOYMENT_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=deployment --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$DEPLOYMENT_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"cancel"}]'
+  DEPLOYMENT_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=deployment --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$DEPLOYMENT_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"cancel"}]'
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Cancel Deployment",
   "type": "scope",
@@ -1213,8 +1214,8 @@ EOF
 
 function configure_task_cron {
 
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  cron_task_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Run+Drush+cron --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cron_task_groups=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Run+Drush+cron --config $CONFIG_PATH)
 
   if [ "$cron_task_groups" != "[ ]" ]; then
     echo "group:drushCron already configured"
@@ -1224,16 +1225,16 @@ function configure_task_cron {
   echo Configuring group:drushCron
 
   # Create new scopes
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:development"
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:production"
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:development"
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushCron:production"
 
   # Add new scopes to resources
-  TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"invoke"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
+  TASK_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"invoke"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
 
 
   # Create new permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush cron",
   "type": "scope",
@@ -1247,8 +1248,8 @@ EOF
 }
 
 function configure_task_uli {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  uli_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Run+Drush+uli+on+Production+Environment --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  uli_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Run+Drush+uli+on+Production+Environment --config $CONFIG_PATH)
 
   if [ "$uli_task" != "[ ]" ]; then
     echo "scopes:drushUserLogin already configured"
@@ -1258,16 +1259,16 @@ function configure_task_uli {
   echo Configuring group:drushUserLogin
 
   # Create new scopes
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushUserLogin:development"
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushUserLogin:production"
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushUserLogin:development"
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name="drushUserLogin:production"
 
   # Add new scopes to resources
-  TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushUserLogin:development"},{"name":"drushUserLogin:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
+  TASK_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushUserLogin:development"},{"name":"drushUserLogin:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
 
 
   # Create new permissions
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush uli on Production Environment",
   "type": "scope",
@@ -1279,7 +1280,7 @@ function configure_task_uli {
 }
 EOF
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Run Drush uli on Development Environment",
   "type": "scope",
@@ -1294,8 +1295,8 @@ EOF
 }
 
 function configure_problems_system {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  problems_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Problems --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  problems_system=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Problems --config $CONFIG_PATH)
 
   if [ "$problems_system" != "[ ]" ]; then
     echo "Problems Permissions already configured"
@@ -1304,10 +1305,10 @@ function configure_problems_system {
 
   echo Configuring Problems Permissions
 
-  echo '{"name":"problem","displayName":"problem","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+  echo '{"name":"problem","displayName":"problem","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   # Create new permissions
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Problems",
   "type": "scope",
@@ -1319,7 +1320,7 @@ function configure_problems_system {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Problem",
   "type": "scope",
@@ -1331,7 +1332,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Problem",
   "type": "scope",
@@ -1347,8 +1348,8 @@ EOF
 
 
 function configure_harbor_scan_system {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  hs_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Harbor+Scan+Match --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  hs_system=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Harbor+Scan+Match --config $CONFIG_PATH)
 
   if [ "$hs_system" != "[ ]" ]; then
     echo "Harbor Scan Match Permissions already configured"
@@ -1357,10 +1358,10 @@ function configure_harbor_scan_system {
 
   echo Configuring Harbor Scan Match Permissions
 
-  echo '{"name":"harbor_scan_match","displayName":"Harbor scan match","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+  echo '{"name":"harbor_scan_match","displayName":"Harbor scan match","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   # Create new permissions
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Harbor Scan Match",
   "type": "scope",
@@ -1372,7 +1373,7 @@ function configure_harbor_scan_system {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Harbor Scan Match",
   "type": "scope",
@@ -1384,7 +1385,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Harbor Scan Match",
   "type": "scope",
@@ -1400,8 +1401,8 @@ EOF
 
 
 function configure_facts_system {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  facts_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Facts --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  facts_system=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Facts --config $CONFIG_PATH)
 
   if [ "$facts_system" != "[ ]" ]; then
     echo "Facts Permissions already configured"
@@ -1410,10 +1411,10 @@ function configure_facts_system {
 
   echo Configuring Facts Permissions
 
-  echo '{"name":"fact","displayName":"fact","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+  echo '{"name":"fact","displayName":"fact","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   # Create new permissions
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Facts",
   "type": "scope",
@@ -1425,7 +1426,7 @@ function configure_facts_system {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Fact",
   "type": "scope",
@@ -1437,7 +1438,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Fact",
   "type": "scope",
@@ -1453,8 +1454,8 @@ EOF
 
 
 function configure_advanced_task_system {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  facts_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Invoke+Task+Guest --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  facts_system=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Invoke+Task+Guest --config $CONFIG_PATH)
 
   if [ "$facts_system" != "[ ]" ]; then
     echo "Advanced Task Permissions already configured"
@@ -1463,10 +1464,10 @@ function configure_advanced_task_system {
 
   echo Configuring Advanced Task Permissions
 
-  echo '{"name":"advanced_task","displayName":"advanced_task","scopes":[{"name":"invoke:guest"}, {"name":"invoke:developer"},{"name":"invoke:maintainer"}, {"name":"create:advanced"}, {"name":"delete:advanced"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+  echo '{"name":"advanced_task","displayName":"advanced_task","scopes":[{"name":"invoke:guest"}, {"name":"invoke:developer"},{"name":"invoke:maintainer"}, {"name":"create:advanced"}, {"name":"delete:advanced"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   # Create new permissions
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Invoke Task Guest",
   "type": "scope",
@@ -1478,7 +1479,7 @@ function configure_advanced_task_system {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Invoke Task Maintainer",
   "type": "scope",
@@ -1490,7 +1491,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Invoke Task Developer",
   "type": "scope",
@@ -1502,7 +1503,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Create Image Based Task",
   "type": "scope",
@@ -1514,7 +1515,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Advanced Task",
   "type": "scope",
@@ -1529,8 +1530,8 @@ EOF
 }
 
 function remove_billing_modifier {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  billing_modifier=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  billing_modifier=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
 
   if [ "$billing_modifier" == "[ ]" ]; then
       echo Billing modifiers already removed
@@ -1539,20 +1540,20 @@ function remove_billing_modifier {
 
   echo Removing billing_modifier authz
 
-  permissions=$(/opt/jboss/keycloak/bin/kcadm.sh get clients/$CLIENT_ID/authz/resource-server/permission?resource=billing_modifier --fields id --format csv --noquotes --config $CONFIG_PATH -r lagoon)
+  permissions=$(/opt/keycloak/bin/kcadm.sh get clients/$CLIENT_ID/authz/resource-server/permission?resource=billing_modifier --fields id --format csv --noquotes --config $CONFIG_PATH -r lagoon)
   for permission in $permissions
   do
-    /opt/jboss/keycloak/bin/kcadm.sh delete clients/$CLIENT_ID/authz/resource-server/permission/$permission --config $CONFIG_PATH -r lagoon
+    /opt/keycloak/bin/kcadm.sh delete clients/$CLIENT_ID/authz/resource-server/permission/$permission --config $CONFIG_PATH -r lagoon
   done
 
-  billing_modifier_resource_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=billing_modifier --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/resource/$billing_modifier_resource_id --config $CONFIG_PATH
+  billing_modifier_resource_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=billing_modifier --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/resource/$billing_modifier_resource_id --config $CONFIG_PATH
 }
 
 function update_openshift_view_permission {
-  local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  local openshift_view_permission_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=View+Openshift --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$openshift_view_permission_id/associatedPolicies --config $CONFIG_PATH | jq -c 'map({name})')
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local openshift_view_permission_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=View+Openshift --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local associated_policies=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$openshift_view_permission_id/associatedPolicies --config $CONFIG_PATH | jq -c 'map({name})')
 
   if [ "$associated_policies" != '[{"name":"Users role for project is Maintainer"},{"name":"User has access to project"}]' ]; then
     echo \"View Openshift\" permissions already updated
@@ -1561,8 +1562,8 @@ function update_openshift_view_permission {
 
   echo Updating \"View Openshift\" permissions
 
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$openshift_view_permission_id --config $CONFIG_PATH
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$openshift_view_permission_id --config $CONFIG_PATH
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Openshift",
   "type": "scope",
@@ -1576,31 +1577,31 @@ EOF
 }
 
 function configure_service_api_client {
-    service_api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=service-api --config $CONFIG_PATH)
+    service_api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=service-api --config $CONFIG_PATH)
     if [ "$service_api_client_id" != "[ ]" ]; then
         echo "Client service-api is already created, skipping basic setup"
         return 0
     fi
     echo Creating client service-api
-    echo '{"clientId": "service-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_SERVICE_API_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"clientId": "service-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_SERVICE_API_CLIENT_SECRET'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    SERVICE_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    REALM_MANAGEMENT_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
     echo Enable fine grained permissions
     # 2 Enable fine grained admin permissions for client
-    /opt/jboss/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID/management/permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
+    /opt/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID/management/permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
 
-    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
     echo Creating groups mapper for service-api
-    echo '{"protocol":"openid-connect","config":{"full.path":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"group_membership"},"name":"Group Membership","protocolMapper":"oidc-group-membership-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo '{"protocol":"openid-connect","config":{"full.path":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"group_membership"},"name":"Group Membership","protocolMapper":"oidc-group-membership-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
     echo Creating realm roles mapper for service-api
-    echo '{"protocol":"openid-connect","config":{"multivalued":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"realm_roles"},"name":"User Realm Roles","protocolMapper":"oidc-usermodel-realm-role-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo '{"protocol":"openid-connect","config":{"multivalued":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"realm_roles"},"name":"User Realm Roles","protocolMapper":"oidc-usermodel-realm-role-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
     echo Creating group lagoon project IDs mapper for service-api
-    echo '{"protocol":"openid-connect","config":{"id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","multivalued":"true","aggregate.attrs":"true","user.attribute":"group-lagoon-project-ids","claim.name":"group_lagoon_project_ids","jsonType.label":"String"},"name":"Group Lagoon Project IDs","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo '{"protocol":"openid-connect","config":{"id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","multivalued":"true","aggregate.attrs":"true","user.attribute":"group-lagoon-project-ids","claim.name":"group_lagoon_project_ids","jsonType.label":"String"},"name":"Group Lagoon Project IDs","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 }
 
 function configure_lagoon_opensearch_sync_client {
     local client
-    client=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH")
+    client=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH")
     if [ "$client" != "[ ]" ]; then
         echo "Client lagoon-opensearch-sync is already created, skipping basic setup"
         return 0
@@ -1608,7 +1609,7 @@ function configure_lagoon_opensearch_sync_client {
     echo Creating client lagoon-opensearch-sync
     # create client
     local clientID
-    clientID=$(/opt/jboss/keycloak/bin/kcadm.sh create clients --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}" -i -f - <<EOF
+    clientID=$(/opt/keycloak/bin/kcadm.sh create clients --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}" -i -f - <<EOF
 {
     "clientId": "lagoon-opensearch-sync",
     "directAccessGrantsEnabled": false,
@@ -1619,11 +1620,11 @@ function configure_lagoon_opensearch_sync_client {
 EOF
 )
     # generate secret
-    /opt/jboss/keycloak/bin/kcadm.sh \
+    /opt/keycloak/bin/kcadm.sh \
       create "clients/$clientID/client-secret" \
       --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
     # add realm-management role to serviceaccount
-    /opt/jboss/keycloak/bin/kcadm.sh \
+    /opt/keycloak/bin/kcadm.sh \
       add-roles \
       --uusername service-account-lagoon-opensearch-sync \
       --cclientid realm-management \
@@ -1632,31 +1633,31 @@ EOF
 }
 
 function configure_token_exchange {
-    REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    IMPERSONATE_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    REALM_MANAGEMENT_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    IMPERSONATE_PERMISSION_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
     # check if policies already exist
-    service_api_client_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH)
+    service_api_client_policy_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH)
     if [ "$service_api_client_policy_id" != "[ ]" ]; then
         echo "Client service-api policies are already created, skipping policy setup"
         return 0
     fi
 
     # create client service-api policy
-    SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    echo '{"type":"client","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Client service-api Policy","clients":["'$SERVICE_API_CLIENT_ID'"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy/client --config $CONFIG_PATH -r lagoon -f -
-    SERVICE_API_CLIENT_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    SERVICE_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"type":"client","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Client service-api Policy","clients":["'$SERVICE_API_CLIENT_ID'"]}' | /opt/keycloak/bin/kcadm.sh create clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy/client --config $CONFIG_PATH -r lagoon -f -
+    SERVICE_API_CLIENT_POLICY_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
     echo Enable token exchange for auth-server and service-api
     # get auth-server client ID configured in configure_api_client
-    AUTH_SERVER_CLIENT_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+auth-server+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    AUTH_SERVER_CLIENT_POLICY_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+auth-server+Policy --config $CONFIG_PATH | jq -r '.[0]["id"]')
     # The decision strategy is affirmative since only one policy has to pass.
-    /opt/jboss/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'","'$SERVICE_API_CLIENT_POLICY_ID'"]' -s 'decisionStrategy="AFFIRMATIVE"'
+    /opt/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'","'$SERVICE_API_CLIENT_POLICY_ID'"]' -s 'decisionStrategy="AFFIRMATIVE"'
 }
 
 function update_add_env_var_to_project {
-  local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  local env_var_project_add_permission_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Add+Environment+Variable+to+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$env_var_project_add_permission_id/associatedPolicies --config $CONFIG_PATH | jq -c 'map({name})')
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local env_var_project_add_permission_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Add+Environment+Variable+to+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local associated_policies=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$env_var_project_add_permission_id/associatedPolicies --config $CONFIG_PATH | jq -c 'map({name})')
 
   if [ "$associated_policies" != '[{"name":"Users role for project is Owner"},{"name":"User has access to project"}]' ]; then
     echo \"Add Environment Variable to Project\" permissions already updated
@@ -1665,8 +1666,8 @@ function update_add_env_var_to_project {
 
   echo Updating \"Add Environment Variable to Project\" permissions
 
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$env_var_project_add_permission_id --config $CONFIG_PATH
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$env_var_project_add_permission_id --config $CONFIG_PATH
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Environment Variable to Project",
   "type": "scope",
@@ -1681,11 +1682,11 @@ EOF
 
 function migrate_to_js_provider {
     # Check if mapper is "upload_script" based
-    local opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    local lagoon_opendistro_security_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH)
+    local opendistro_security_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    local lagoon_opendistro_security_mappers=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH)
 
-    local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    local users_role_for_project_migrated=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=[Lagoon]+Users+role+for+project+is+Owner --config $CONFIG_PATH | jq -r )
+    local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    local users_role_for_project_migrated=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=[Lagoon]+Users+role+for+project+is+Owner --config $CONFIG_PATH | jq -r )
     if [ "$users_role_for_project_migrated" != "[]" ]; then
         echo "upload_scripts already migrated"
         return 0
@@ -1698,8 +1699,8 @@ function migrate_to_js_provider {
     ################
 
     local old_mapper_id=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .id')
-    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models/$old_mapper_id --config $CONFIG_PATH
-    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+    /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models/$old_mapper_id --config $CONFIG_PATH
+    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
 
     ###############################
     # Update Authorization Policies
@@ -1723,12 +1724,12 @@ function migrate_to_js_provider {
     #   },
     #   ...
     # ]
-    local perms=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission --config $CONFIG_PATH | jq -r 'map({id,name})')
+    local perms=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission --config $CONFIG_PATH | jq -r 'map({id,name})')
     local pid
     for pid in $(echo $perms | jq -r '.[].id')
     do
       echo "Collecting policy ID '$pid' for migration"
-      local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$pid/associatedPolicies --config $CONFIG_PATH | jq -c 'map({id,name})')
+      local associated_policies=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$pid/associatedPolicies --config $CONFIG_PATH | jq -c 'map({id,name})')
       perms=$(echo $perms | jq -r --arg pid "$pid" --argjson ap "$associated_policies" '(.[] | select(.id == $pid) | .associatedPolicies) |= $ap')
     done
 
@@ -1743,10 +1744,10 @@ function migrate_to_js_provider {
       # Add the new script based policy to the api client
       local script_name="[Lagoon] $p_name"
       local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
-      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$api_client_id/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/keycloak/bin/kcadm.sh create -r lagoon clients/$api_client_id/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
 
       # Do an in-place update of the permissions JSON to replace old JS policy references with new script policy
-      local script_policy=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $script_name | sed -e 's/\[/%5B/' -e 's/\]/%5D/' -e 's/ /+/g') --config $CONFIG_PATH | jq -r '.[] | {id,name}')
+      local script_policy=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $script_name | sed -e 's/\[/%5B/' -e 's/\]/%5D/' -e 's/ /+/g') --config $CONFIG_PATH | jq -r '.[] | {id,name}')
       perms=$(echo $perms | jq -r --arg name "$p_name" --argjson policy "$script_policy" '(.[].associatedPolicies[] | select(.name == $name)) |= $policy')
     done
     IFS=$OLDIFS
@@ -1756,7 +1757,7 @@ function migrate_to_js_provider {
     for pid in $(echo $perms | jq -r '.[].id')
     do
       local new_policies=$(echo $perms | jq -c --arg pid "$pid" '.[] | select(.id == $pid) | .associatedPolicies | map(.id)')
-      /opt/jboss/keycloak/bin/kcadm.sh update clients/$api_client_id/authz/resource-server/permission/scope/$pid --config $CONFIG_PATH -r lagoon -s "policies=${new_policies}"
+      /opt/keycloak/bin/kcadm.sh update clients/$api_client_id/authz/resource-server/permission/scope/$pid --config $CONFIG_PATH -r lagoon -s "policies=${new_policies}"
     done
 
     # Delete old JS policies
@@ -1764,15 +1765,15 @@ function migrate_to_js_provider {
     for p_name in $policies
     do
       echo "Deleting previous '$p_name' policy"
-      local js_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $p_name | sed -e 's/ /+/g') --config $CONFIG_PATH | jq -r --arg name $p_name '.[] | select(.name == $name) | .id')
-      /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/policy/js/$js_policy_id --config $CONFIG_PATH
+      local js_policy_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $p_name | sed -e 's/ /+/g') --config $CONFIG_PATH | jq -r --arg name $p_name '.[] | select(.name == $name) | .id')
+      /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/policy/js/$js_policy_id --config $CONFIG_PATH
     done
     IFS=$OLDIFS
 }
 
 function add_delete_env_var_permissions {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  delete_env_var_from_production_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Environment+Variable+from+Production+Environment --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_env_var_from_production_environment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Environment+Variable+from+Production+Environment --config $CONFIG_PATH)
 
   if [ "$delete_env_var_from_production_environment" != "[ ]" ]; then
       echo "project:delete and environment:delete:x on env_var already configured"
@@ -1781,10 +1782,10 @@ function add_delete_env_var_permissions {
 
   echo Configuring Delete Environment Variable permissions
 
-  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+  ENVVAR_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Environment Variable from Project",
   "type": "scope",
@@ -1796,7 +1797,7 @@ function add_delete_env_var_permissions {
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Environment Variable from Development Environment",
   "type": "scope",
@@ -1808,7 +1809,7 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete Environment Variable from Production Environment",
   "type": "scope",
@@ -1822,32 +1823,32 @@ EOF
 }
 
 function update_env_var_view_permissions {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_value_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_value_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_value_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_dev_environment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_prod_environment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_project=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
   if [ "$view_value_env_var_dev_environment" != null ]; then
       echo "environment:viewValue:development on env_var already configured"
       return 0
   fi
 
-  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:viewValue"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:viewValue:production"},{"name":"environment:view:development"},{"name":"environment:viewValue:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+  ENVVAR_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:viewValue"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:viewValue:production"},{"name":"environment:view:development"},{"name":"environment:viewValue:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
 
-  view_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_dev_environment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_prod_environment=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_project=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
   #Delete existing permissions
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_dev_environment --config $CONFIG_PATH
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_prod_environment --config $CONFIG_PATH
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_project --config $CONFIG_PATH
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_dev_environment --config $CONFIG_PATH
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_prod_environment --config $CONFIG_PATH
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_env_var_project --config $CONFIG_PATH
 
   #Create new permissions & re-create the existing with updated policies
 
   echo Recreating \"View Environment Variable for Development Environment\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Development Environment",
   "type": "scope",
@@ -1860,7 +1861,7 @@ function update_env_var_view_permissions {
 EOF
 
   echo Recreating \"View Environment Variable for Production Environment\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Production Environment",
   "type": "scope",
@@ -1873,7 +1874,7 @@ EOF
 EOF
 
   echo Recreating \"View Environment Variable for Project\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Project",
   "type": "scope",
@@ -1886,7 +1887,7 @@ EOF
 EOF
 
   echo Creating \"View Environment Variable Value for Development Environment\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable Value for Development Environment",
   "type": "scope",
@@ -1899,7 +1900,7 @@ EOF
 EOF
 
   echo Creating \"View Environment Variable Value for Production Environment\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable Value for Production Environment",
   "type": "scope",
@@ -1912,7 +1913,7 @@ EOF
 EOF
 
   echo Creating \"View Environment Variable Value for Project\" permission
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable Value for Project",
   "type": "scope",
@@ -1926,8 +1927,8 @@ EOF
 }
 
 function add_user_viewall {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_all_users=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Users --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_users=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Users --config $CONFIG_PATH)
 
   if [ "$view_all_users" != "[ ]" ]; then
       echo "user:viewAll already configured"
@@ -1936,10 +1937,10 @@ function add_user_viewall {
 
   echo Configuring user:viewAll
 
-  GROUP_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=user --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"}]'
+  GROUP_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=user --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"},{"name":"viewAll"}]'
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Users",
   "type": "scope",
@@ -1953,8 +1954,8 @@ EOF
 }
 
 function add_update_additional_platform_owner_permissions {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  view_all_environments=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Environments --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_environments=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Environments --config $CONFIG_PATH)
 
   if [ "$view_all_environments" != "[ ]" ]; then
       echo "environment:viewAll already configured"
@@ -1962,7 +1963,7 @@ function add_update_additional_platform_owner_permissions {
   fi
 
   echo Configuring environment:viewAll
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Environments",
   "type": "scope",
@@ -1975,7 +1976,7 @@ function add_update_additional_platform_owner_permissions {
 EOF
 
   echo Configuring user:getBySshKey
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Get User By SSH Key",
   "type": "scope",
@@ -1989,10 +1990,10 @@ EOF
 
   echo Re-configuring openshift:viewAll
   #Delete existing permissions
-  view_all_openshifts=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Openshifts --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_all_openshifts --config $CONFIG_PATH
+  view_all_openshifts=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Openshifts --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_all_openshifts --config $CONFIG_PATH
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View All Openshifts",
   "type": "scope",
@@ -2006,10 +2007,10 @@ EOF
 
   echo Re-configuring environment:storage
   #Delete existing permissions
-  view_environment_metrics=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Metrics --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_environment_metrics --config $CONFIG_PATH
+  view_environment_metrics=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Metrics --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_environment_metrics --config $CONFIG_PATH
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Metrics",
   "type": "scope",
@@ -2023,10 +2024,10 @@ EOF
 
   echo Re-configuring advanced_task:create:advanced
   #Delete existing permissions
-  create_image_based_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Create+Image+Based+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$create_image_based_task --config $CONFIG_PATH
+  create_image_based_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Create+Image+Based+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$create_image_based_task --config $CONFIG_PATH
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Create Image Based Task",
   "type": "scope",
@@ -2041,29 +2042,29 @@ EOF
 }
 
 function create_or_update_delete_advanced_task_permissions {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_advanced_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH)
 
   if [ "$delete_advanced_task" != "[ ]" ]; then
     #Delete existing permissions because it is being renamed
     echo deleting existing advanced_task:delete:advanced
-    delete_advanced_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
+    delete_advanced_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Advanced+Task --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_advanced_task --config $CONFIG_PATH
   fi
 
   # now check if the renamed Advanced Task Delete exists, and create it if not
-  delete_advanced_tasks=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Advanced+Task+Delete --config $CONFIG_PATH)
+  delete_advanced_tasks=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Advanced+Task+Delete --config $CONFIG_PATH)
   if [ "$delete_advanced_tasks" != "[ ]" ]; then
       echo "advanced_task:delete:advanced already configured"
       return 0
   fi
 
   echo re-configuring advanced_task scopes
-  ADVTASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=advanced_task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ADVTASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"invoke:guest"},{"name":"invoke:developer"},{"name":"invoke:maintainer"},{"name":"create:advanced"},{"name":"delete:advanced"}]'
+  ADVTASK_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=advanced_task --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ADVTASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"invoke:guest"},{"name":"invoke:developer"},{"name":"invoke:maintainer"},{"name":"create:advanced"},{"name":"delete:advanced"}]'
 
   echo re-configuring advanced_task:delete:advanced
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Advanced Task Delete",
   "type": "scope",
@@ -2078,23 +2079,23 @@ EOF
 }
 
 function change_groupadd_to_owner_role {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_group_adduser=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH)
 
   if [ "$delete_group_adduser" != "[ ]" ]; then
-    delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    CURRENT_ROLE=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$delete_group_adduser/associatedPolicies --config $CONFIG_PATH | jq -r '.[].name')
+    delete_group_adduser=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+User+to+Group --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    CURRENT_ROLE=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$delete_group_adduser/associatedPolicies --config $CONFIG_PATH | jq -r '.[].name')
     if [ "${CURRENT_ROLE}" == "[Lagoon] Users role for group is Maintainer" ]; then
       #Delete existing permissions because it is being changed
       echo deleting existing group:addUser
-      /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
+      /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
     else
       return 0
     fi
   fi
 
   echo re-configuring group:addUser
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add User to Group",
   "type": "scope",
@@ -2108,23 +2109,23 @@ EOF
 }
 
 function change_project_groupadd_to_owner_role {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Groups+to+Project --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_group_adduser=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Groups+to+Project --config $CONFIG_PATH)
 
   if [ "$delete_group_adduser" != "[ ]" ]; then
-    delete_group_adduser=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Groups+to+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
-    CURRENT_ROLE=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$delete_group_adduser/associatedPolicies --config $CONFIG_PATH | jq -r '.[].name')
+    delete_group_adduser=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Groups+to+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    CURRENT_ROLE=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$delete_group_adduser/associatedPolicies --config $CONFIG_PATH | jq -r '.[].name')
     if echo "${CURRENT_ROLE}" | grep -q "is Maintainer" ; then
       #Delete existing permissions because it is being changed
       echo deleting existing group:addUser
-      /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
+      /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_group_adduser --config $CONFIG_PATH
     else
       return 0
     fi
   fi
 
   echo re-configuring group:addUser
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+    /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Groups to Project",
   "type": "scope",
@@ -2138,8 +2139,8 @@ EOF
 }
 
 function add_development_task_cancel {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  cancel_development_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Development+Task --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cancel_development_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Development+Task --config $CONFIG_PATH)
 
   if [ "$cancel_development_task" != "[ ]" ]; then
       echo "task:cancel:development already configured"
@@ -2149,10 +2150,10 @@ function add_development_task_cancel {
   echo Configuring task:cancel:development
 
   # select the one for tasks, because 'name=task' is a search term and returns advanced_task and task in the response, we only want to modify the 'task' resource
-  TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[]| select(.name=="task")|."_id"')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushUserLogin:development"},{"name":"drushUserLogin:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"},{"name":"cancel:development"},{"name":"cancel:production"}]'
+  TASK_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | jq -r '.[]| select(.name=="task")|."_id"')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushUserLogin:development"},{"name":"drushUserLogin:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"},{"name":"cancel:development"},{"name":"cancel:production"}]'
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Cancel Development Task",
   "type": "scope",
@@ -2166,8 +2167,8 @@ EOF
 }
 
 function add_production_task_cancel {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  cancel_production_task=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Production+Task --config $CONFIG_PATH)
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  cancel_production_task=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Cancel+Production+Task --config $CONFIG_PATH)
 
   if [ "$cancel_production_task" != "[ ]" ]; then
       echo "task:cancel:production already configured"
@@ -2176,7 +2177,7 @@ function add_production_task_cancel {
 
   echo Configuring task:cancel:production
 
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Cancel Production Task",
   "type": "scope",
@@ -2199,12 +2200,11 @@ function configure_keycloak {
         sleep 5
     done
 
-    # Set the config file path because $HOME/.keycloak/kcadm.config resolves to /opt/jboss/?/.keycloak/kcadm.config for some reason, causing it to fail
-    CONFIG_PATH=/opt/jboss/keycloak/standalone/data/.keycloak/kcadm.config
+    CONFIG_PATH=/tmp/kcadm.config
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
+    /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
 
     # Sets the order of migrations, add new ones at the end.
     configure_lagoon_realm
