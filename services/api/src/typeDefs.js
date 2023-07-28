@@ -1190,11 +1190,11 @@ const typeDefs = gql`
     """
     Returns all OpenShift Objects
     """
-    allOpenshifts: [Openshift]
+    allOpenshifts(disabled: Boolean): [Openshift]
     """
     Returns all Kubernetes Objects
     """
-    allKubernetes: [Kubernetes]
+    allKubernetes(disabled: Boolean): [Kubernetes]
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
