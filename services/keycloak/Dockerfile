@@ -1,3 +1,7 @@
+FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
+RUN mkdir -p /mnt/rootfs
+RUN dnf install --installroot /mnt/rootfs nc jq openssl curl  --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
+
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
@@ -8,16 +12,13 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:19.0.3
+FROM quay.io/keycloak/keycloak:21.1.0
+COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
-
-RUN microdnf install -y nc jq openssl \
-    && microdnf clean all \
-    && rm -rf /var/cache/yum
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=keycloak
