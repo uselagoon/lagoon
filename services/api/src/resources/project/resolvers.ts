@@ -598,7 +598,7 @@ export const updateProject: ResolverFn = async (
   }
 
   if(typeof sharedBaasBucket == "boolean") {
-    if (adminScopes.projectViewAll) {
+    if (!adminScopes.projectViewAll) {
       throw new Error('Setting shared baas bucket is only available to administrators.');
     }
   }
