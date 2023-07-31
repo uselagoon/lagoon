@@ -250,7 +250,7 @@ const {
   getGroupsByOrganizationId,
   getUsersByOrganizationId,
   getUserByEmailAndOrganizationId,
-  getGroupsForUserEmailAndOrganizationId,
+  getGroupRolesByUserIdAndOrganization,
   getGroupsByNameAndOrganizationId,
   getOwnersByOrganizationId,
   getProjectsByOrganizationId,
@@ -490,7 +490,7 @@ const resolvers = {
     groupRoles: getGroupRolesByUserId,
   },
   OrgUser: {
-    groups: getGroupsForUserEmailAndOrganizationId,
+    groupRoles: getGroupRolesByUserIdAndOrganization,
   },
   Backup: {
     restore: getRestoreByBackupId,

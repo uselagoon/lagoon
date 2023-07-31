@@ -103,7 +103,14 @@ export const getGroupRolesByUserId: ResolverFn =async (
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
       let groups = []
       for (const g in queryUserGroups) {
-        groups.push({id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0]})
+        let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
+        if (queryUserGroups[g].attributes["type"]) {
+          group.groupType = queryUserGroups[g].attributes["type"][0]
+        }
+        if (queryUserGroups[g].attributes["lagoon-organization"]) {
+          group.organization = queryUserGroups[g].attributes["lagoon-organization"]
+        }
+        groups.push(group)
       }
 
       return groups;
@@ -116,7 +123,14 @@ export const getGroupRolesByUserId: ResolverFn =async (
   }
   let groups = []
   for (const g in keycloakUsersGroups) {
-    groups.push({id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0]})
+    let group = {id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
+    if (keycloakUsersGroups[g].attributes["type"]) {
+      group.groupType = keycloakUsersGroups[g].attributes["type"][0]
+    }
+    if (keycloakUsersGroups[g].attributes["lagoon-organization"]) {
+      group.organization = keycloakUsersGroups[g].attributes["lagoon-organization"]
+    }
+    groups.push(group)
   }
 
   return groups;
@@ -340,8 +354,8 @@ export const addGroup: ResolverFn = async (
   });
   await models.GroupModel.addProjectToGroup(null, group);
 
-  // if the user is not an admin, then add the user as an owner to the group
-  if (!adminScopes.projectViewAll && keycloakGrant) {
+  // if the user is not an admin, or an organization add, then add the user as an owner to the group
+  if (!adminScopes.projectViewAll && !input.organization && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );

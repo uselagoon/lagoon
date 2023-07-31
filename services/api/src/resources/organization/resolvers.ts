@@ -284,7 +284,7 @@ export const getUsersByOrganizationId: ResolverFn = async (
   let members = []
   for (const group in orgGroups) {
     const groupMembers = await models.GroupModel.getGroupMembership(orgGroups[group]);
-    // there is probably a better way to do this to only add unique members to the response
+    // there is probably a better way to do this to only add unique members in the organization in the response
     let exists = false;
     for (const member in groupMembers) {
       for (const m in members) {
@@ -293,6 +293,19 @@ export const getUsersByOrganizationId: ResolverFn = async (
         }
       }
       if (!exists) {
+        // quick check to set the owner flag or not
+        groupMembers[member].user.owner = false
+        groupMembers[member].user.comment = null
+        if (groupMembers[member].user.attributes["comment"]) {
+          groupMembers[member].user.comment = groupMembers[member].user.attributes["comment"][0]
+        }
+        if (groupMembers[member].user.attributes["lagoon-organizations"]) {
+          for (const a in groupMembers[member].user.attributes["lagoon-organizations"]) {
+            if (parseInt(groupMembers[member].user.attributes["lagoon-organizations"][a]) == args.organization) {
+              groupMembers[member].user.owner = true
+            }
+          }
+        }
         members.push(groupMembers[member].user)
         exists = false
       }
@@ -309,25 +322,54 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
 ) => {
   await hasPermission('organization', 'viewUser', organization);
 
-  const user = await models.UserModel.loadUserByUsername(email);
+  try {
+    const user = await models.UserModel.loadUserByUsername(email);
+    const queryUserGroups = await models.UserModel.getAllGroupsForUser(user.id, organization);
 
-  return { ...user, organization: organization };
+    user.owner = false
+    user.comment = null
+    if (user.attributes["comment"]) {
+      user.comment = user.attributes["comment"][0]
+    }
+    if (user.attributes["lagoon-organizations"]) {
+      for (const a in user.attributes["lagoon-organizations"]) {
+        if (parseInt(user.attributes["lagoon-organizations"][a]) == organization) {
+          user.owner = true
+        }
+      }
+    }
+    if (queryUserGroups.length == 0) {
+      // if this user has no groups in this organization, then return nothing about this user at all
+      return null
+    }
+    return { ...user, organization: organization };
+  } catch (err) {
+    return null
+  }
+  return null
 };
 
-// list the groups for this user that have the organization id
-export const getGroupsForUserEmailAndOrganizationId: ResolverFn =async (
+// list the group roles for this user that have the organization id
+export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
   { id: uid, organization },
   _input,
-  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   if (organization) {
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
-
-    let usersGroups = []
-    for (const group in queryUserGroups) {
-      usersGroups.push(queryUserGroups[group])
+    let groups = []
+    for (const g in queryUserGroups) {
+      let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
+      if (queryUserGroups[g].attributes["type"]) {
+        group.groupType = queryUserGroups[g].attributes["type"][0]
+      }
+      if (queryUserGroups[g].attributes["lagoon-organization"]) {
+        group.organization = queryUserGroups[g].attributes["lagoon-organization"][0]
+      }
+      groups.push(group)
     }
-    return usersGroups
+
+    return groups;
   }
   return null
 }

@@ -473,6 +473,8 @@ const typeDefs = gql`
     id: String
     name: String
     role: GroupRole
+    groupType: String
+    organization: Int
   }
 
   interface GroupInterface {
@@ -1032,7 +1034,8 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     owner: Boolean
-    groups: [GroupInterface]
+    comment: String
+    groupRoles: [GroupRoleInterface]
   }
 
   type Organization {
@@ -1208,7 +1211,14 @@ const typeDefs = gql`
     """
     groupByName(name: String!): GroupInterface
     groupByNameAndOrganization(name: String!, organization: Int!): GroupInterface
+    """
+    Retrieves all users that have been added to groups within an organization.
+    """
     usersByOrganization(organization: Int!): [OrgUser]
+    """
+    Retrieve information about a specific user within groups within an organization.
+    This will only return group information if this user is in any groups within this organization
+    """
     userByEmailAndOrganization(email: String!, organization: Int!): OrgUser
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
