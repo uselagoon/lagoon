@@ -249,7 +249,6 @@ export const Group = (clients: {
               value: attribute[1]
             });
           }
-
           return isMatch;
         }, false)
       )(group.attributes)

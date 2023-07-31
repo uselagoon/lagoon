@@ -248,6 +248,9 @@ const {
   addDeployTargetToOrganization,
   getDeployTargetsByOrganizationId,
   getGroupsByOrganizationId,
+  getUsersByOrganizationId,
+  getUserByEmailAndOrganizationId,
+  getGroupsForUserEmailAndOrganizationId,
   getGroupsByNameAndOrganizationId,
   getOwnersByOrganizationId,
   getProjectsByOrganizationId,
@@ -486,6 +489,9 @@ const resolvers = {
     groups: getGroupsByUserId,
     groupRoles: getGroupRolesByUserId,
   },
+  OrgUser: {
+    groups: getGroupsForUserEmailAndOrganizationId,
+  },
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
@@ -506,6 +512,8 @@ const resolvers = {
     environmentsByKubernetes: getEnvironmentsByKubernetes,
     groupByName: getGroupByName,
     groupByNameAndOrganization: getGroupsByNameAndOrganizationId,
+    usersByOrganization: getUsersByOrganizationId,
+    userByEmailAndOrganization: getUserByEmailAndOrganizationId,
     problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
     environmentById: getEnvironmentById,

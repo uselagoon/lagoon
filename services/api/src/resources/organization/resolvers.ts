@@ -30,9 +30,7 @@ export const addOrganization: ResolverFn = async (
   isValidName(input.name)
 
   try {
-      logger.info(`AAA`)
       await hasPermission('organization', 'add');
-      logger.info(`BBB`)
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
       return R.prop(0, rows);
@@ -262,14 +260,77 @@ export const getGroupsByOrganizationId: ResolverFn = async (
   _input,
   { hasPermission, models, keycloakGrant }
 ) => {
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
-
   await hasPermission('organization', 'viewGroup', {
     organization: oid,
   });
 
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
+
   return orgGroups;
 };
+
+// list all users in all groups within an organization
+export const getUsersByOrganizationId: ResolverFn = async (
+  _,
+  args,
+  { hasPermission, models, keycloakGrant }
+) => {
+  await hasPermission('organization', 'viewUsers', {
+    organization: args.organization,
+  });
+
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(args.organization);
+
+  let members = []
+  for (const group in orgGroups) {
+    const groupMembers = await models.GroupModel.getGroupMembership(orgGroups[group]);
+    // there is probably a better way to do this to only add unique members to the response
+    let exists = false;
+    for (const member in groupMembers) {
+      for (const m in members) {
+        if (groupMembers[member].user.id == members[m].id) {
+          exists = true
+        }
+      }
+      if (!exists) {
+        members.push(groupMembers[member].user)
+        exists = false
+      }
+    }
+  }
+  return members.map(row => ({ ...row, organization: args.organization }));
+};
+
+// get a users information for a user in the organization
+export const getUserByEmailAndOrganizationId: ResolverFn = async (
+  _root,
+  { email, organization},
+  { sqlClientPool, models, hasPermission },
+) => {
+  await hasPermission('organization', 'viewUser', organization);
+
+  const user = await models.UserModel.loadUserByUsername(email);
+
+  return { ...user, organization: organization };
+};
+
+// list the groups for this user that have the organization id
+export const getGroupsForUserEmailAndOrganizationId: ResolverFn =async (
+  { id: uid, organization },
+  _input,
+  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups }
+) => {
+  if (organization) {
+    const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
+
+    let usersGroups = []
+    for (const group in queryUserGroups) {
+      usersGroups.push(queryUserGroups[group])
+    }
+    return usersGroups
+  }
+  return null
+}
 
 // list all groups by organization id
 export const getGroupsByNameAndOrganizationId: ResolverFn = async (

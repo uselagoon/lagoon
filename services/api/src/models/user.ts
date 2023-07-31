@@ -324,7 +324,7 @@ export const User = (clients: {
     return users;
   };
 
-  const getAllGroupsForUser = async (userId: string): Promise<Group[]> => {
+  const getAllGroupsForUser = async (userId: string, organization?: number): Promise<Group[]> => {
     const GroupModel = Group(clients);
     let groups = [];
 
@@ -341,6 +341,11 @@ export const User = (clients: {
         for (const fullSubgroup of fullGroup.subGroups) {
           if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
             let group = fullSubgroup
+            if (organization) {
+              if (group.attributes["lagoon-organization"] != organization) {
+                continue
+              }
+            }
             let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
             group.subGroups = filtergroup
             groups.push(group)
@@ -348,6 +353,11 @@ export const User = (clients: {
         }
         if (roleSubgroup.name.replace(regexp, "") == fullGroup.name) {
           let group = fullGroup
+          if (organization) {
+            if (group.attributes["lagoon-organization"] != organization) {
+              continue
+            }
+          }
           let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
           group.subGroups = filtergroup
           groups.push(group)

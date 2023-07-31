@@ -1032,6 +1032,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     owner: Boolean
+    groups: [GroupInterface]
   }
 
   type Organization {
@@ -1207,6 +1208,8 @@ const typeDefs = gql`
     """
     groupByName(name: String!): GroupInterface
     groupByNameAndOrganization(name: String!, organization: Int!): GroupInterface
+    usersByOrganization(organization: Int!): [OrgUser]
+    userByEmailAndOrganization(email: String!, organization: Int!): OrgUser
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
