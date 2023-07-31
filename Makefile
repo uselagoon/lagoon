@@ -38,9 +38,6 @@ SHELL := /bin/bash
 ####### Default Variables
 #######
 
-# Parameter for all `docker build` commands, can be overwritten by passing `DOCKER_BUILD_PARAMS=` via the `-e` option
-DOCKER_BUILD_PARAMS := --quiet
-
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
@@ -61,6 +58,7 @@ USE_CALICO_CNI ?= false
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
+MACHINE := $(shell uname -m | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 
@@ -75,13 +73,21 @@ SCAN_IMAGES := false
 $(shell >build.txt)
 $(shell >scan.txt)
 
+ifeq ($(MACHINE), arm64)
+	PLATFORM_ARCH ?= linux/arm64
+else
+	PLATFORM_ARCH ?= linux/amd64
+endif
+
 #######
 ####### Functions
 #######
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = DOCKER_SCAN_SUGGEST=false docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
+
+docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
 scan_cmd = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
@@ -90,12 +96,6 @@ ifeq ($(SCAN_IMAGES),true)
 else
 	scan_image =
 endif
-
-# Tags an image with the `testlagoon` repository and pushes it
-docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
-
-# Tags an image with the `uselagoon` repository and pushes it
-docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
 
 .PHONY: docker_pull
 docker_pull:
@@ -114,9 +114,9 @@ docker_pull:
 build-images += yarn-workspace-builder
 build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),$(image)/Dockerfile,.)
 	$(call scan_image,$(image),)
-	touch $@
 
 #######
 ####### Task Images
@@ -138,9 +138,9 @@ task-images += $(foreach image,$(taskimages),task-$(image))
 build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
 $(build-taskimages):
 	$(eval image = $(subst build/task-,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
 	$(call scan_image,task-$(image),)
-	touch $@
 
 # Variables of service images we manage and build
 services :=	api \
@@ -165,9 +165,9 @@ build-services = $(foreach image,$(services),build/$(image))
 # Recipe for all building service-images
 $(build-services):
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
 	$(call scan_image,$(image),)
-	touch $@
 
 # Dependencies of Service Images
 build/auth-server build/logs2notifications build/backup-handler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
@@ -182,9 +182,9 @@ build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	$(call scan_image,$(image),)
-	touch $@
 service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
@@ -207,16 +207,16 @@ build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
 	$(call scan_image,$(image),)
-	touch $@
 
 # Image with ansible test
 build/tests:
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	$(call scan_image,$(image),)
-	touch $@
 service-images += tests
 
 s3-images += $(service-images)
@@ -229,17 +229,18 @@ s3-images += $(service-images)
 # Builds all Images
 .PHONY: build
 build:
-	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
-	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
 
 .PHONY: build-list
 build-list:
-	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
 
 .PHONY: build-ui-logs-development
 build-ui-logs-development:
-	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
-	PLATFORMS=linux/amd64 REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) REPO=lagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -297,6 +298,10 @@ publish-uselagoon-images:
 .PHONY: clean
 clean:
 	rm -rf build/*
+	echo -e "use 'make docker_buildx_clean' to remove semi-permanent builder image"
+
+.PHONY: docker_buildx_clean
+docker_buildx_clean:
 	docker buildx rm $(CI_BUILD_TAG) || echo  -e 'no builder $(CI_BUILD_TAG) found'
 
 # Conduct post-release scans on images
@@ -473,7 +478,7 @@ K3D_TOOLS = k3d helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a k3d cluster
 .PHONY: k3d/test
-k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
+k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -505,7 +510,7 @@ LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-
 
 # install lagoon charts in a Kind cluster
 .PHONY: k3d/setup
-k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
+k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -564,7 +569,7 @@ k3d/local-dev-logging:
 # k3d/dev can only be run once a cluster is up and running (run k3d/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.
 .PHONY: k3d/dev
-k3d/dev: $(addprefix build/,$(K3D_SERVICES))
+k3d/dev: build
 	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) k3d/push-images && cd lagoon-charts.k3d.lagoon \

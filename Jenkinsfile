@@ -33,16 +33,6 @@ pipeline {
         sh script: "docker image prune -af", label: "Pruning images"
       }
     }
-    // stage ('refresh upstream images') {
-    //   when {
-    //     not {
-    //       buildingTag()
-    //     }
-    //   }
-    //   steps {
-    //     sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
-    //   }
-    // }
     stage ('build images') {
       steps {
         sh script: "make -O build", label: "Building images"
@@ -208,7 +198,7 @@ pipeline {
 
   post {
     always {
-      sh "make clean k3d/clean"
+      sh "make docker_buildx_clean k3d/clean"
     }
     success {
       notifySlack('SUCCESS')
