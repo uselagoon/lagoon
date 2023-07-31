@@ -4,6 +4,7 @@ export const Sql = {
   insertOrganization: ({
     id,
     name,
+    friendlyName = name, // default to name if not provided
     description,
     quotaProject,
     quotaGroup,
@@ -11,6 +12,7 @@ export const Sql = {
   }: {
     id?: number;
     name: string;
+    friendlyName: string;
     description: string;
     quotaProject?: number;
     quotaGroup?: number;
@@ -20,6 +22,7 @@ export const Sql = {
       .insert({
         id,
         name,
+        friendlyName,
         description,
         quotaProject,
         quotaGroup,

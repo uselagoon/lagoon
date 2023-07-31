@@ -7,20 +7,38 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers} from './helpers';
 import { Sql } from './sql';
 import { arrayDiff } from '../../util/func';
+import validator from 'validator';
+
+const isValidName = value => {
+  if (validator.matches(value, /[^0-9a-z-]/)) {
+    throw new Error(
+      'Only lowercase characters, numbers and dashes allowed for name!'
+    );
+  }
+  if (validator.matches(value, /--/)) {
+    throw new Error('Multiple consecutive dashes are not allowed for name!');
+  }
+}
 
 export const addOrganization: ResolverFn = async (
   args,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-    try {
-        await hasPermission('organization', 'add');
-        const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
-        const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
-        return R.prop(0, rows);
-    }  catch (err) {
-        throw new Error(`There was an error creating the organization ${input.name}`);
-    }
+
+  // check if the name is valid
+  isValidName(input.name)
+
+  try {
+      logger.info(`AAA`)
+      await hasPermission('organization', 'add');
+      logger.info(`BBB`)
+      const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
+      const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
+      return R.prop(0, rows);
+  }  catch (err) {
+      throw new Error(`There was an error creating the organization ${input.name} ${err}`);
+  }
 };
 
 
@@ -67,7 +85,17 @@ export const updateOrganization: ResolverFn = async (
     { input },
     { sqlClientPool, hasPermission }
 ) => {
-    await hasPermission('organization', 'update');
+
+    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification) {
+      await hasPermission('organization', 'update');
+    } else {
+      await hasPermission('organization', 'updateOrganization', input.id);
+    }
+
+    if (input.patch.name) {
+      // check if the name is valid
+      isValidName(input.patch.name)
+    }
 
     const oid = input.id.toString();
 

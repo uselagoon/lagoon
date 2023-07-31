@@ -3,7 +3,8 @@ mutation PopulateApi {
   # Organizations
   UIOrganization1: addOrganization(input: {
     id: 1
-    name: "Test Organization"
+    name: "test-organization"
+    friendlyName: "Test Organization"
     description: "An organization for testing"
     quotaProject: 5
   }) {

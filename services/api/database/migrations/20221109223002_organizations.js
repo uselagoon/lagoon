@@ -8,7 +8,8 @@ exports.up = async function(knex) {
         return knex.schema
         .createTable('organization', function (table) {
             table.increments('id').notNullable().primary();
-            table.string('name', 300).notNullable();
+            table.string('name', 300).unique({indexName: 'name'});
+            table.string('friendly_name', 300).notNullable();
             table.specificType('description', 'text').defaultTo('').notNullable();
             table.integer('quota_project').defaultTo(1).notNullable();
             table.integer('quota_group').defaultTo(10).notNullable();

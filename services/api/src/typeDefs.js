@@ -1037,6 +1037,7 @@ const typeDefs = gql`
   type Organization {
     id: Int
     name: String
+    friendlyName: String
     description: String
     quotaProject: Int
     quotaGroup: Int
@@ -1051,6 +1052,7 @@ const typeDefs = gql`
   input AddOrganizationInput {
     id: Int
     name: String!
+    friendlyName: String
     description: String
     quotaProject: Int
     quotaGroup: Int
@@ -1059,6 +1061,7 @@ const typeDefs = gql`
 
   input UpdateOrganizationPatchInput {
     name: String
+    friendlyName: String
     description: String
     quotaProject: Int
     quotaGroup: Int
