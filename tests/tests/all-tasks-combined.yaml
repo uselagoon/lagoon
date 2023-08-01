@@ -1,0 +1,6 @@
+---
+- include: active-standby-kubernetes.yaml
+
+- include: tasks.yaml
+
+- include: workflows.yaml
