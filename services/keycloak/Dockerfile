@@ -70,6 +70,7 @@ COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
 COPY startup-scripts /opt/jboss/startup-scripts
 COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
+COPY lagoon-test-realm-2.15.4.json /lagoon/keycloak/lagoon-test-realm-2.15.4.json
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/jboss/keycloak/standalone/deployments/lagoon-scripts.jar
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]

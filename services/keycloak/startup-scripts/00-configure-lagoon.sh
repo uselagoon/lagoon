@@ -47,6 +47,19 @@ function sync_client_secrets {
 # The "standard" update mechanism is to first check if some data exists that
 # would've been created by the function, and halting execution if found.
 
+function import_test_realm {
+  # handle importing a realm from a snapshot of a raw install of 2.15.4
+  if [ $KEYCLOAK_TEST_REALM_IMPORT ]; then
+    echo Importing test realm
+    if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
+        echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
+        return 0
+    fi
+    /opt/jboss/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/keycloak/lagoon-test-realm-2.15.4.json
+    echo test realm import complete
+  fi
+}
+
 function configure_lagoon_realm {
     if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
         echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
@@ -2345,6 +2358,7 @@ function configure_keycloak {
     /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
 
     # Sets the order of migrations, add new ones at the end.
+    import_test_realm
     configure_lagoon_realm
     configure_opendistro_security_client
     configure_api_client
@@ -2372,6 +2386,7 @@ function configure_keycloak {
     change_project_groupadd_to_owner_role
     add_development_task_cancel
     add_production_task_cancel
+    #post 2.15.4+ migrations after this point
 
 
     # always run last
