@@ -1,0 +1,5 @@
+{
+	"rememberMe": true,
+	"resetPasswordAllowed": true,
+	"verifyEmail": false
+}
