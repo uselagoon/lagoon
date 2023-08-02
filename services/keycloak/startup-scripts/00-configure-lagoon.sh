@@ -213,8 +213,6 @@ function configure_api_client {
     echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource ssh_key
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    echo Creating resource organization
-    echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"viewUser"},{"name":"viewUsers"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"updateOrganization"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz js policies
@@ -1972,8 +1970,8 @@ function add_organization_permissions {
 
   echo Configuring Organization permissions
 
-  ORGANIZATION_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"addProject"},{"name":"updateProject"},{"name":"viewProject"},{"name":"deleteProject"},{"name":"addOwner"},{"name":"addGroup"},{"name":"viewGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"updateNotification"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"addViewer"},{"name":"view"},{"name":"viewAll"}]'
+  echo Creating resource organization
+  echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"viewProject"},{"name":"updateProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"viewUser"},{"name":"viewUsers"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"updateOrganization"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"addOwner"},{"name":"addViewer"},{"name":"viewGroup"},{"name":"addNotification"},{"name":"updateNotification"},{"name":"removeNotification"},{"name":"viewNotification"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   echo Creating owner policy
   local p_name="User is owner of organization"
