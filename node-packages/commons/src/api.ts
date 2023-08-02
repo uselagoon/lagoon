@@ -27,6 +27,7 @@ export interface Project {
   standbyRoutes?: string;
   productionEnvironment?: string;
   standbyProductionEnvironment?: string;
+  organization?: number;
 }
 
 export interface DeployTarget {

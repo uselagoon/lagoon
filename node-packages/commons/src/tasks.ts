@@ -701,6 +701,12 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
     }
   }
 
+  if (project.organization) {
+    // check the environment quota, this prevents environments being deployed by the api or webhooks
+    const curOrg = await getOrganizationById(project.organization);
+    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":curOrg.quotaRoute.toString(), "scope":"internal_system"})
+  }
+
   // handle any bulk deploy related injections here
   let varPrefix = "LAGOON_BULK_DEPLOY"
   switch (bulkTask) {
