@@ -1,5 +1,6 @@
 {
 	"rememberMe": true,
 	"resetPasswordAllowed": true,
-	"verifyEmail": false
+	"verifyEmail": false,
+	"editUsernameAllowed": false
 }
