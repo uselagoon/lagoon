@@ -106,7 +106,7 @@ export const updateOrganization: ResolverFn = async (
     { sqlClientPool, hasPermission }
 ) => {
 
-    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment) {
+    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment || input.patch.quotaRoute) {
       await hasPermission('organization', 'update');
     } else {
       await hasPermission('organization', 'updateOrganization', input.id);

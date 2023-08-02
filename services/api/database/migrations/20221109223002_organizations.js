@@ -15,6 +15,7 @@ exports.up = async function(knex) {
             table.integer('quota_group').defaultTo(10).notNullable();
             table.integer('quota_notification').defaultTo(10).notNullable();
             table.integer('quota_environment').defaultTo(5).notNullable();
+            table.integer('quota_route').defaultTo(5).notNullable();
         })
         .createTable('organization_deploy_target', function (table) {
             table.integer('orgid');

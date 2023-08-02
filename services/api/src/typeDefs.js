@@ -1047,6 +1047,7 @@ const typeDefs = gql`
     quotaGroup: Int
     quotaNotification: Int
     quotaEnvironment: Int
+    quotaRoute: Int
     deployTargets: [Openshift]
     projects: [OrgProject]
     environments: [OrgEnvironment]
@@ -1064,6 +1065,7 @@ const typeDefs = gql`
     quotaGroup: Int
     quotaNotification: Int
     quotaEnvironment: Int
+    quotaRoute: Int
   }
 
   input UpdateOrganizationPatchInput {
@@ -1074,6 +1076,7 @@ const typeDefs = gql`
     quotaGroup: Int
     quotaNotification: Int
     quotaEnvironment: Int
+    quotaRoute: Int
   }
 
   input UpdateOrganizationInput {

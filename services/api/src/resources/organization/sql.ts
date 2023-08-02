@@ -9,7 +9,8 @@ export const Sql = {
     quotaProject,
     quotaGroup,
     quotaNotification,
-    quotaEnvironment
+    quotaEnvironment,
+    quotaRoute
   }: {
     id?: number;
     name: string;
@@ -19,6 +20,7 @@ export const Sql = {
     quotaGroup?: number;
     quotaNotification?: number;
     quotaEnvironment?: number;
+    quotaRoute?: number;
   }) =>
     knex('organization')
       .insert({
@@ -30,6 +32,7 @@ export const Sql = {
         quotaGroup,
         quotaNotification,
         quotaEnvironment,
+        quotaRoute,
       })
       .toString(),
   updateProjectOrganization: ({
