@@ -213,8 +213,6 @@ target "ssh" {
     "org.opencontainers.image.title": "lagoon-core/ssh - the ssh service for Lagoon"
   }
   tags = ["${REPO}/ssh:${TAG}"]
-  // Note not currently arm64 compatible, libnss is waaaay too old
-  platforms = ["linux/amd64"]
 }
 
 target "tests" {

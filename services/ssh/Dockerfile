@@ -30,36 +30,39 @@ ENV LAGOON=ssh \
     OC_VERSION=v3.11.0 \
     OC_HASH=0cbc58b \
     OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
-    KUBECTL_VERSION=v1.20.0 \
+    KUBECTL_VERSION=v1.25.0 \
     TZ=UTC
 
-COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
+ADD https://github.com/saknopper/libnss-mysql/releases/download/v1.7.1/libnss-mysql-1.7.1.tar.gz /tmp/libnss-mysql-1.7.tar.gz
 
-RUN apt-get update \
+RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "x86_64" ;; aarch64 | arm64 | armv8) echo "aarch64" ;; *) echo "amd64" ;; esac) \
+    && apt-get update \
     && apt-get install -y curl build-essential libmysqlclient-dev ssh curl vim jq python3-jwt \
-    && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
+    && ln -s /usr/lib/${architecture}-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
     && mkdir /tmp/libnss-mysql \
-    && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
+    && tar -xzf /tmp/libnss-mysql-1.7.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
     && cd /tmp/libnss-mysql \
     && ./configure \
     && make \
     && make install \
     && apt-get remove --purge -y build-essential \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql
+    && rm -rf /var/lib/apt/lists/* /tmp/libnss-mysql-1.7.tar.gz /tmp/libnss-mysql
 
-RUN mkdir -p /openshift-origin-client-tools && \
-    curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz && \
-    echo "$OC_SHA256  /tmp/openshift-origin-client-tools.tar" | sha256sum -c -  && \
-    mkdir /tmp/openshift-origin-client-tools && \
-    tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
-    install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
+RUN mkdir -p /openshift-origin-client-tools \
+    && curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz \
+    && echo "$OC_SHA256  /tmp/openshift-origin-client-tools.tar" | sha256sum -c -  \
+    && mkdir /tmp/openshift-origin-client-tools \
+    && tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 \
+    && install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
 
-RUN curl -Lo kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && \
-    mv kubectl /usr/bin/kubectl
+RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -Lo kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/bin/kubectl
 
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -sL https://github.com/krallin/tini/releases/download/v0.19.0/tini-${architecture} -o /sbin/tini && chmod a+x /sbin/tini
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -71,10 +74,10 @@ COPY services/ssh/home/ /home/
 RUN fix-permissions /home/token.sh
 RUN fix-permissions /home/grant.sh
 
-RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/ && \
-    fix-permissions /etc/libnss-mysql.cfg && \
-    fix-permissions /etc/libnss-mysql-root.cfg
+RUN fix-permissions /etc/ssh/ \
+    && fix-permissions /run/ \
+    && fix-permissions /etc/libnss-mysql.cfg \
+    && fix-permissions /etc/libnss-mysql-root.cfg
 
 RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
 
