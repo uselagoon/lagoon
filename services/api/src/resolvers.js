@@ -260,6 +260,7 @@ const {
   getProjectGroupOrganizationAssociation, // WIP resolver
   getGroupProjectOrganizationAssociation, // WIP resolver
   getNotificationsForOrganizationProjectId,
+  getEnvironmentsByOrganizationId,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -426,6 +427,7 @@ const resolvers = {
   Organization: {
     groups: getGroupsByOrganizationId,
     projects: getProjectsByOrganizationId,
+    environments: getEnvironmentsByOrganizationId,
     owners: getOwnersByOrganizationId,
     deployTargets: getDeployTargetsByOrganizationId,
     notifications: getNotificationsByOrganizationId
@@ -433,6 +435,11 @@ const resolvers = {
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
     notifications: getNotificationsForOrganizationProjectId,
+  },
+  OrgEnvironment: {
+    project: getProjectById,
+    openshift: getOpenshiftByEnvironmentId,
+    kubernetes: getOpenshiftByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,

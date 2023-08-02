@@ -140,6 +140,13 @@ class ProjectNotFound extends Error {
   }
 }
 
+class OrganizationNotFound extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'OrganizationNotFound';
+  }
+}
+
 class EnvironmentNotFound extends Error {
   constructor(message) {
     super(message);
@@ -830,6 +837,7 @@ interface GetActiveSystemForProjectResult {
   id: number;
   branches: string;
   pullrequests: string;
+  organization: number;
   activeSystemsDeploy: string;
   activeSystemsPromote: string;
   activeSystemsRemove: string;
@@ -853,6 +861,7 @@ export async function getActiveSystemForProject(
         activeSystemsMisc
         branches
         pullrequests
+        organization
       }
     }
   `);
@@ -1245,6 +1254,38 @@ export const getEnvironmentsForProject = (
     }
   }
 `);
+
+export async function getOrganizationById(organization: number): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      organization:organizationById(organization: ${organization}) {
+        id
+        name
+        friendlyName
+        description
+        quotaProject
+        quotaEnvironment
+        quotaGroup
+        quotaNotification
+        environments {
+          name
+          id
+          environmentType
+          autoIdle
+          openshift{
+            ...${deployTargetMinimalFragment}
+          }
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.organization) {
+    throw new OrganizationNotFound(`Cannot find organization ${organization}`);
+  }
+
+  return result.organization;
+}
 
 export const setEnvironmentServices = (
   environment: number,

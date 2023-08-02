@@ -17,7 +17,8 @@ import {
   getEnvironmentByName,
   addDeployment,
   Project,
-  DeployTarget
+  DeployTarget,
+  getOrganizationById
 } from './api';
 import {
   deployTargetBranches,
@@ -166,6 +167,14 @@ class EnvironmentLimit extends Error {
     this.name = 'EnvironmentLimit';
   }
 }
+
+class OrganizationEnvironmentLimit extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'OrganizationEnvironmentLimit';
+  }
+}
+
 
 // add the lagoon actions queue publisher functions
 export const initSendToLagoonActions = function() {
@@ -751,6 +760,16 @@ export const createDeployTask = async function(deployData: any) {
 
   const project = await getActiveSystemForProject(projectName, 'Deploy');
   const environments = await getEnvironmentsForProject(projectName);
+
+  if (project.organization) {
+    // check the environment quota, this prevents environments being deployed by the api or webhooks
+    const curOrg = await getOrganizationById(project.organization);
+    if (curOrg.environments.length >= curOrg.quotaEnvironment) {
+      throw new OrganizationEnvironmentLimit(
+        `'${branchName}' would exceed the organization environment quota of ${curOrg.quotaEnvironment}`
+      );
+    }
+  }
 
   // environments =
   //  { project:

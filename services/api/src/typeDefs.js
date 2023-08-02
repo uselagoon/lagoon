@@ -1046,8 +1046,10 @@ const typeDefs = gql`
     quotaProject: Int
     quotaGroup: Int
     quotaNotification: Int
+    quotaEnvironment: Int
     deployTargets: [Openshift]
     projects: [OrgProject]
+    environments: [OrgEnvironment]
     groups: [GroupInterface]
     owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
@@ -1061,6 +1063,7 @@ const typeDefs = gql`
     quotaProject: Int
     quotaGroup: Int
     quotaNotification: Int
+    quotaEnvironment: Int
   }
 
   input UpdateOrganizationPatchInput {
@@ -1070,6 +1073,7 @@ const typeDefs = gql`
     quotaProject: Int
     quotaGroup: Int
     quotaNotification: Int
+    quotaEnvironment: Int
   }
 
   input UpdateOrganizationInput {
@@ -1077,12 +1081,39 @@ const typeDefs = gql`
     patch: UpdateOrganizationPatchInput!
   }
 
+  """
+  OrgProject is a small selection of fields for organization owners to view
+  """
   type OrgProject {
     id: Int
     name: String
     organization: Int
     groups: [GroupInterface]
     notifications: [OrganizationNotification]
+  }
+
+  """
+  OrgEnvironment is a small selection of fields for organization owners to view
+  """
+  type OrgEnvironment {
+    id: Int
+    name: String
+    project: OrgProject
+    deployType: String
+    deployHeadRef: String
+    deployTitle: String
+    autoIdle: Int
+    environmentType: String
+    openshiftProjectName: String
+    kubernetesNamespaceName: String
+    updated: String
+    created: String
+    deleted: String
+    route: String
+    routes: String
+    services: [EnvironmentService]
+    openshift: Openshift
+    kubernetes: Kubernetes
   }
 
   type OrganizationNotification {

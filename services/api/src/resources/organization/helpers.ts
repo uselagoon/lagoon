@@ -14,6 +14,10 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationProjects(id));
     return rows;
   };
+  const getEnvironmentsByOrganizationId = async (id: number) => {
+    const rows = await query(sqlClientPool, Sql.selectOrganizationEnvironments(id));
+    return rows;
+  };
   const getNotificationsForOrganizationId = async (id: number) => {
     let input = {id: id, type: "slack"}
     // get all the notifications for the projects
@@ -53,5 +57,6 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectsByOrganizationId,
     getDeployTargetsByOrganizationId,
     getNotificationsForOrganizationId,
+    getEnvironmentsByOrganizationId,
   }
 };

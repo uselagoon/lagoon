@@ -9,6 +9,7 @@ export const Sql = {
     quotaProject,
     quotaGroup,
     quotaNotification,
+    quotaEnvironment
   }: {
     id?: number;
     name: string;
@@ -17,6 +18,7 @@ export const Sql = {
     quotaProject?: number;
     quotaGroup?: number;
     quotaNotification?: number;
+    quotaEnvironment?: number;
   }) =>
     knex('organization')
       .insert({
@@ -27,6 +29,7 @@ export const Sql = {
         quotaProject,
         quotaGroup,
         quotaNotification,
+        quotaEnvironment,
       })
       .toString(),
   updateProjectOrganization: ({
@@ -72,7 +75,14 @@ export const Sql = {
     knex('project')
       .where('organization', '=', id)
       .toString(),
-
+  selectOrganizationEnvironments: (id: number) =>
+    knex('organization')
+      .select('e.*')
+      .join('project AS p', 'p.organization', '=', 'organization.id')
+      .join('environment AS e', 'e.project', '=', 'p.id')
+      .where(knex.raw('organization.id = ?', id))
+      .andWhere('e.deleted', '0000-00-00 00:00:00')
+      .toString(),
   selectNotificationsByTypeByProjectId: (input) => {
     const {
       type,

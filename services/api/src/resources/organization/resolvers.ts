@@ -78,13 +78,35 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
   return rows;
 };
 
+export const getEnvironmentsByOrganizationId: ResolverFn = async (
+  { id: oid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  // let oid = args.organization;
+  if (args.organization) {
+    oid = args.organization;
+  }
+  await hasPermission('organization', 'view', {
+      organization: oid,
+  });
+
+  const rows = await query(sqlClientPool, Sql.selectOrganizationEnvironments(oid));
+
+  if (!rows) {
+      return null;
+  }
+
+  return rows;
+};
+
 export const updateOrganization: ResolverFn = async (
     root,
     { input },
     { sqlClientPool, hasPermission }
 ) => {
 
-    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification) {
+    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment) {
       await hasPermission('organization', 'update');
     } else {
       await hasPermission('organization', 'updateOrganization', input.id);

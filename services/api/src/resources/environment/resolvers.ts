@@ -12,6 +12,7 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
@@ -365,6 +366,16 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
   }
 
+  if (projectOpenshift.organization) {
+    // check the environment quota, this prevents environments being added directly via the api
+    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(projectOpenshift.organization)
+    const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
+    if (curEnvs.length >= curOrg.quotaEnvironment) {
+      throw new Error(
+        `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
+      );
+    }
+  }
 
   const inputDefaults = {
     deployHeadRef: null,
