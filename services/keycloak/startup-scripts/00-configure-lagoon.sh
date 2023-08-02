@@ -213,6 +213,8 @@ function configure_api_client {
     echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource ssh_key
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating resource organization
+    echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"viewUser"},{"name":"viewUsers"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"updateOrganization"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz js policies
@@ -1959,6 +1961,91 @@ EOF
 EOF
 }
 
+function add_organization_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  platform_manage_organization=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Platform+Owner+Manage+Organizations+and+Owners --config $CONFIG_PATH)
+
+  if [ "$platform_manage_organization" != "[ ]" ]; then
+      echo "platform_manage_organization already configured"
+      return 0
+  fi
+
+  echo Configuring Organization permissions
+
+  ORGANIZATION_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"addProject"},{"name":"updateProject"},{"name":"viewProject"},{"name":"deleteProject"},{"name":"addOwner"},{"name":"addGroup"},{"name":"viewGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"updateNotification"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"addViewer"},{"name":"view"},{"name":"viewAll"}]'
+
+  echo Creating owner policy
+  local p_name="User is owner of organization"
+  local script_name="[Lagoon] $p_name"
+  local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+  echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+  echo Creating viewer policy
+  local p_name1="User is viewer of organization"
+  local script_name1="[Lagoon] $p_name1"
+  local script_type1="script-policies/$(echo $p_name1 | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+  echo '{"name":"'$script_name1'","type":"'$script_type1'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type1 | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+  echo Creating permission scope
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Platform Owner Manage Organizations and Owners",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["organization"],
+  "scopes": ["add","update","delete","deleteAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+
+EOF    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Organizations",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["organization"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addProject","updateProject","deleteProject","addGroup","removeGroup","addNotification","updateNotification","removeNotification","addOwner","addViewer"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["viewProject","viewGroup","viewNotification","view","viewUsers","viewUser"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization","[Lagoon] User is viewer of organization"]}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["updateOrganization"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization"]}
+EOF
+}
+
 function update_env_var_view_permissions {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   view_value_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
@@ -2364,6 +2451,7 @@ function configure_keycloak {
     migrate_to_js_provider
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
+    add_organization_permissions
     update_env_var_view_permissions
     add_user_viewall
     add_update_additional_platform_owner_permissions

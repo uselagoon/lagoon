@@ -1,6 +1,9 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
+import { logger } from '../../loggers/logger';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
@@ -185,6 +188,72 @@ export const deleteUser: ResolverFn = async (
   await models.UserModel.deleteUser(user.id);
 
   return 'success';
+};
+
+// addUserToOrganization adds a user as an organization owner
+export const addUserToOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization, owner: owner } },
+  { sqlClientPool, models, hasPermission },
+) => {
+
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  if (owner) {
+    // if owner is requested, check if permission to add owner
+    await hasPermission('organization', 'addOwner');
+    const updatedUser = await models.UserModel.updateUser({
+      id: user.id,
+      organization: organization,
+      owner: owner,
+    });
+    return updatedUser;
+  }
+
+  // otherwise add user as a viewer
+  await hasPermission('organization', 'addViewer')
+  const updatedUser = await models.UserModel.updateUser({
+    id: user.id,
+    organization: organization,
+  });
+  return updatedUser;
+
+};
+
+// removeUserFromOrganization a user as an organization owner
+export const removeUserFromOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization } },
+  { sqlClientPool, models, hasPermission },
+) => {
+
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  await hasPermission('organization', 'addOwner');
+
+  const updatedUser = await models.UserModel.updateUser({
+    id: user.id,
+    organization: organization,
+    remove: true,
+  });
+
+  return updatedUser;
 };
 
 export const deleteAllUsers: ResolverFn = async (

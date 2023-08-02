@@ -473,6 +473,8 @@ const typeDefs = gql`
     id: String
     name: String
     role: GroupRole
+    groupType: String
+    organization: Int
   }
 
   interface GroupInterface {
@@ -595,6 +597,10 @@ const typeDefs = gql`
     Name of project
     """
     name: String
+    """
+    ID of organization
+    """
+    organization: Int
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@172.17.0.1/project1.git
@@ -1022,6 +1028,102 @@ const typeDefs = gql`
     environments: [Environment]
   }
 
+  type OrgUser {
+    id: String
+    email: String
+    firstName: String
+    lastName: String
+    owner: Boolean
+    comment: String
+    groupRoles: [GroupRoleInterface]
+  }
+
+  type Organization {
+    id: Int
+    name: String
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+    deployTargets: [Openshift]
+    projects: [OrgProject]
+    environments: [OrgEnvironment]
+    groups: [GroupInterface]
+    owners: [OrgUser]
+    notifications(type: NotificationType): [Notification]
+  }
+
+  input AddOrganizationInput {
+    id: Int
+    name: String!
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+  }
+
+  input UpdateOrganizationPatchInput {
+    name: String
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+  }
+
+  input UpdateOrganizationInput {
+    id: Int!
+    patch: UpdateOrganizationPatchInput!
+  }
+
+  """
+  OrgProject is a small selection of fields for organization owners to view
+  """
+  type OrgProject {
+    id: Int
+    name: String
+    organization: Int
+    groups: [GroupInterface]
+    notifications: [OrganizationNotification]
+  }
+
+  """
+  OrgEnvironment is a small selection of fields for organization owners to view
+  """
+  type OrgEnvironment {
+    id: Int
+    name: String
+    project: OrgProject
+    deployType: String
+    deployHeadRef: String
+    deployTitle: String
+    autoIdle: Int
+    environmentType: String
+    openshiftProjectName: String
+    kubernetesNamespaceName: String
+    updated: String
+    created: String
+    deleted: String
+    route: String
+    routes: String
+    services: [EnvironmentService]
+    openshift: Openshift
+    kubernetes: Kubernetes
+  }
+
+  type OrganizationNotification {
+    name: String
+    type: NotificationType
+  }
+
   type DeployTargetConfig {
     id: Int
     project: Project
@@ -1082,6 +1184,11 @@ const typeDefs = gql`
     key: String!
   }
 
+  input ProjectOrgGroupsInput {
+    project: Int!
+    organization: Int!
+  }
+
   input EnvVariableByProjectEnvironmentNameInput {
     environment: String
     project: String!
@@ -1137,6 +1244,16 @@ const typeDefs = gql`
     Returns Group Object by a given name
     """
     groupByName(name: String!): GroupInterface
+    groupByNameAndOrganization(name: String!, organization: Int!): GroupInterface
+    """
+    Retrieves all users that have been added to groups within an organization.
+    """
+    usersByOrganization(organization: Int!): [OrgUser]
+    """
+    Retrieve information about a specific user within groups within an organization.
+    This will only return group information if this user is in any groups within this organization
+    """
+    userByEmailAndOrganization(email: String!, organization: Int!): OrgUser
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
@@ -1259,6 +1376,16 @@ const typeDefs = gql`
     """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    List all organizations
+    """
+    allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Get an organization by its ID
+    """
+    organizationById(organization: Int!): Organization
+    getGroupProjectOrganizationAssociation(input: AddGroupInput!): String
+    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
   }
 
@@ -1331,6 +1458,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    organization: Int
     buildImage: String
     sharedBaasBucket: Boolean
   }
@@ -1608,27 +1736,32 @@ const typeDefs = gql`
   input AddNotificationMicrosoftTeamsInput {
     name: String!
     webhook: String!
+    organization: Int
   }
   input AddNotificationEmailInput {
     name: String!
     emailAddress: String!
+    organization: Int
   }
 
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
   }
 
   input AddNotificationWebhookInput {
     name: String!
     webhook: String!
+    organization: Int
   }
 
   input AddNotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
   }
 
   input DeleteNotificationMicrosoftTeamsInput {
@@ -1689,6 +1822,12 @@ const typeDefs = gql`
     user: UserInput!
   }
 
+  input addUserToOrganizationInput {
+    user: UserInput!
+    organization: Int!
+    owner: Boolean
+  }
+
   input DeleteProjectInput {
     project: String!
   }
@@ -1732,6 +1871,16 @@ const typeDefs = gql`
   input UpdateProjectInput {
     id: Int!
     patch: UpdateProjectPatchInput!
+  }
+
+  input AddProjectToOrganizationInput {
+    project: Int!
+    organization: Int!
+  }
+
+  input AddDeployTargetToOrganizationInput {
+    deployTarget: Int!
+    organization: Int!
   }
 
   input UpdateOpenshiftPatchInput {
@@ -1978,6 +2127,7 @@ const typeDefs = gql`
   input AddGroupInput {
     name: String!
     parentGroup: GroupInput
+    organization: Int
   }
 
   input UpdateGroupPatchInput {
@@ -2108,6 +2258,11 @@ const typeDefs = gql`
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
+    """
+    Add a user to an organization as an owner of the organization
+    """
+    addUserToOrganization(input: addUserToOrganizationInput!): User
+    removeUserFromOrganization(input: addUserToOrganizationInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
@@ -2176,6 +2331,9 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
+    addGroupToOrganization(input: AddGroupInput!): String
+    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): String
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
@@ -2183,6 +2341,14 @@ const typeDefs = gql`
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Add an organization
+    """
+    addOrganization(input: AddOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Update an organization
+    """
+    updateOrganization(input: UpdateOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
   }
 

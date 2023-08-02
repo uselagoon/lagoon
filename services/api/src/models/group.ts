@@ -1,8 +1,12 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import { Pool } from 'mariadb';
+// @ts-ignore
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
+// @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 import { saveRedisKeycloakCache } from '../clients/redisClient';
@@ -11,6 +15,7 @@ import { sqlClientPool } from '../clients/sqlClient';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
+  'lagoon-organization'?: [string];
   comment?: [string];
   [propName: string]: any;
 }
@@ -22,6 +27,7 @@ export interface Group {
   currency?: string;
   path?: string;
   parentGroupId?: string;
+  organization?: number;
   // Only groups that aren't role subgroups.
   groups?: Group[];
   members?: GroupMembership[];
@@ -39,6 +45,7 @@ interface GroupMembership {
 export interface GroupInput {
   id?: string;
   name?: string;
+  organization?: number;
 }
 
 interface GroupEdit {
@@ -67,6 +74,7 @@ export class GroupNotFoundError extends Error {
 
 const attrLens = R.lensPath(['attributes']);
 const lagoonProjectsLens = R.lensPath(['lagoon-projects']);
+const lagoonOrganizationLens = R.lensPath(['lagoon-organization']);
 
 const attrLagoonProjectsLens = R.compose(
   // @ts-ignore
@@ -75,9 +83,25 @@ const attrLagoonProjectsLens = R.compose(
   R.lensPath([0])
 );
 
+const attrLagoonOrganizationLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationLens,
+  R.lensPath([0])
+);
+
 const getProjectIdsFromGroup = R.pipe(
   // @ts-ignore
   R.view(attrLagoonProjectsLens),
+  R.defaultTo(''),
+  R.split(','),
+  R.reject(R.isEmpty),
+  R.map(id => parseInt(id, 10))
+);
+
+const getOrganizationIdFromGroup = R.pipe(
+  // @ts-ignore
+  R.view(attrLagoonOrganizationLens),
   R.defaultTo(''),
   R.split(','),
   R.reject(R.isEmpty),
@@ -225,7 +249,6 @@ export const Group = (clients: {
               value: attribute[1]
             });
           }
-
           return isMatch;
         }, false)
       )(group.attributes)
@@ -284,6 +307,42 @@ export const Group = (clients: {
     const fullGroups = await transformKeycloakGroups(filteredGroups);
 
     return fullGroups;
+  };
+
+  // used by organization resolver to list all groups attached to the organization
+  const loadGroupsByOrganizationId = async (organizationId: number): Promise<Group[]> => {
+    const filterFn = attribute => {
+      if (attribute.name === 'lagoon-organization') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+
+    let groupIds = []
+    const keycloakGroups = await keycloakAdminClient.groups.find();
+    // @ts-ignore
+    groupIds = R.pluck('id', keycloakGroups);
+
+    let fullGroups = [];
+    for (const id of groupIds) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id
+      });
+      fullGroups = [...fullGroups, fullGroup];
+    }
+
+    try {
+      const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
+      const groups = await transformKeycloakGroups(filteredGroups);
+      return groups;
+    } catch (err) {
+      return null
+    }
+
   };
 
   // Recursive function to load membership "up" the group chain
@@ -714,6 +773,7 @@ export const Group = (clients: {
     loadParentGroup,
     loadGroupsByAttribute,
     loadGroupsByProjectId,
+    loadGroupsByOrganizationId,
     loadGroupsByProjectIdFromGroups,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,

@@ -1,12 +1,18 @@
+// @ts-ignore
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
+// @ts-ignore
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { Sql } from '../resources/user/sql';
 
+interface IUserAttributes {
+  comment?: [string];
+  [propName: string]: any;
+}
 export interface User {
   email: string;
   username: string;
@@ -15,6 +21,8 @@ export interface User {
   lastName?: string;
   comment?: string;
   gitlabId?: string;
+  attributes?: IUserAttributes;
+  owner?: boolean;
 }
 
 interface UserEdit {
@@ -32,6 +40,8 @@ interface UserModel {
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
+  loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
+  getAllOrganizationIdsForUser: (userInput: User) => Promise<number[]>;
   getAllGroupsForUser: (userId: string) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userInput: User, groups?: Group[]) => Promise<{}>;
   getUserRolesForProject: (
@@ -42,6 +52,10 @@ interface UserModel {
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
+}
+
+interface AttributeFilterFn {
+  (attribute: { name: string; value: string[] }): boolean;
 }
 
 export class UsernameExistsError extends Error {
@@ -61,6 +75,31 @@ export class UserNotFoundError extends Error {
 const attrLens = R.lensPath(['attributes']);
 const commentLens = R.lensPath(['comment']);
 
+const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
+const lagoonOrganizationsViewerLens = R.lensPath(['lagoon-organizations-viewer']);
+
+const attrLagoonProjectsLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsLens,
+  lagoonOrganizationsViewerLens,
+  R.lensPath([0])
+);
+
+const attrLagoonOrgOwnerLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsLens,
+  R.lensPath([0])
+);
+
+const attrLagoonOrgViewerLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsViewerLens,
+  R.lensPath([0])
+);
+
 const attrCommentLens = R.compose(
   // @ts-ignore
   attrLens,
@@ -75,6 +114,27 @@ export const User = (clients: {
   esClient: any;
 }): UserModel => {
   const { keycloakAdminClient } = clients;
+
+  // filter for user attributes like `lagoon-organizations`
+  const filterUsersByAttribute = (
+    users: User[],
+    filterFn: AttributeFilterFn
+  ): User[] =>
+    R.filter((user: User) =>
+      R.pipe(
+        R.toPairs,
+        R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
+          if (!isMatch) {
+            return filterFn({
+              name: attribute[0],
+              value: attribute[1]
+            });
+          }
+
+          return isMatch;
+        }, false)
+      )(user.attributes)
+    )(users);
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
@@ -98,7 +158,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'owner']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -205,6 +265,55 @@ export const User = (clients: {
     throw new Error('You must provide a user id or username');
   };
 
+  // used to list onwers of organizations
+  const loadUsersByOrganizationId = async (organizationId: number): Promise<User[]> => {
+    const ownerFilter = attribute => {
+      if (attribute.name === 'lagoon-organizations') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+    const viewerFilter = attribute => {
+      if (attribute.name === 'lagoon-organizations-viewer') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+
+    let userIds = []
+    const keycloakUsers = await keycloakAdminClient.users.find();
+    // @ts-ignore
+    userIds = R.pluck('id', keycloakUsers);
+
+    let fullUsers = [];
+    for (const id of userIds) {
+      const fullUser = await keycloakAdminClient.users.findOne({
+        id
+      });
+
+      fullUsers = [...fullUsers, fullUser];
+    }
+
+    let filteredOwners = filterUsersByAttribute(fullUsers, ownerFilter);
+    let filteredViewers = filterUsersByAttribute(fullUsers, viewerFilter);
+    for (const f1 in filteredOwners) {
+      filteredOwners[f1].owner = true
+    }
+    const orgUsers = [...filteredOwners, ...filteredViewers]
+
+    const users = await transformKeycloakUsers(orgUsers);
+
+    return users;
+  };
+
   const loadAllUsers = async (): Promise<User[]> => {
     const keycloakUsers = await keycloakAdminClient.users.find({
       max: -1
@@ -215,7 +324,7 @@ export const User = (clients: {
     return users;
   };
 
-  const getAllGroupsForUser = async (userId: string): Promise<Group[]> => {
+  const getAllGroupsForUser = async (userId: string, organization?: number): Promise<Group[]> => {
     const GroupModel = Group(clients);
     let groups = [];
 
@@ -232,6 +341,11 @@ export const User = (clients: {
         for (const fullSubgroup of fullGroup.subGroups) {
           if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
             let group = fullSubgroup
+            if (organization) {
+              if (group.attributes["lagoon-organization"] != organization) {
+                continue
+              }
+            }
             let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
             group.subGroups = filtergroup
             groups.push(group)
@@ -239,6 +353,11 @@ export const User = (clients: {
         }
         if (roleSubgroup.name.replace(regexp, "") == fullGroup.name) {
           let group = fullGroup
+          if (organization) {
+            if (group.attributes["lagoon-organization"] != organization) {
+              continue
+            }
+          }
           let filtergroup = group.subGroups.filter((item) => item.name == roleSubgroup.name);
           group.subGroups = filtergroup
           groups.push(group)
@@ -389,8 +508,61 @@ export const User = (clients: {
     };
   };
 
+  const removeOrgFromAttr = (attr, organization, user) => {
+    return R.pipe(
+      // @ts-ignore
+      R.view(attr),
+      R.defaultTo(`${organization}`),
+      R.split(','),
+      R.without(`${organization}`),
+      R.uniq,
+      R.join(',')
+      // @ts-ignore
+    )(user);
+  }
+
+  const addOrgToAttr = (attr, organization, user) => {
+    return R.pipe(
+      // @ts-ignore
+      R.view(attr),
+      R.defaultTo(`${organization}`),
+      R.split(','),
+      R.append(`${organization}`),
+      R.uniq,
+      R.join(',')
+      // @ts-ignore
+    )(user);
+  }
+
   const updateUser = async (userInput: UserEdit): Promise<User> => {
+    // comments used to be removed when updating a user, now they aren't
+    let organizations = null;
+    let organizationsView = null;
+    let comment = null;
+    // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
+      // collect users existing attributes
+      const user = await loadUserById(userInput.id);
+      // set the comment if provided
+      if (R.prop('comment', userInput)) {
+        comment = {comment: R.prop('comment', userInput)}
+      }
+      // set the organization if provided
+      if (R.prop('organization', userInput)) {
+        if (R.prop('remove', userInput)) {
+          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        }
+        // owner is an option, default is view
+        if (R.prop('owner', userInput)) {
+          organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        } else {
+          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+        }
+      }
+
       await keycloakAdminClient.users.update(
         {
           id: userInput.id
@@ -401,7 +573,10 @@ export const User = (clients: {
             userInput
           ),
           attributes: {
-            comment: [R.defaultTo('', R.prop('comment', userInput))]
+            ...user.attributes,
+            ...organizations,
+            ...organizationsView,
+            ...comment
           }
         }
       );
@@ -450,11 +625,37 @@ export const User = (clients: {
     }
   };
 
+  const getAllOrganizationIdsForUser = async (
+    userInput: User
+  ): Promise<number[]> => {
+    let organizations = [];
+
+    const user = await loadUserById(userInput.id);
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+
+    if (usersOrgs != "" ) {
+      const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        organizations = [...organizations, userOrg]
+      }
+    }
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
+      for (const userOrg of usersOrgsArr) {
+        organizations = [...organizations, userOrg]
+      }
+    }
+    return R.uniq(organizations);
+  };
+
   return {
     loadAllUsers,
     loadUserById,
     loadUserByUsername,
     loadUserByIdOrUsername,
+    loadUsersByOrganizationId,
+    getAllOrganizationIdsForUser,
     getAllGroupsForUser,
     getAllProjectsIdsForUser,
     getUserRolesForProject,
