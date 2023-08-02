@@ -32,6 +32,7 @@ services:
       - S3_FILES_HOST=http://172.17.0.1:9000
   mailhog:
     image: mailhog/mailhog
+    platform: linux/amd64
     ports:
       - 8025
   webhooks2tasks:
@@ -188,6 +189,7 @@ services:
       - '2222:22'
   remotedev:
     image: jhen0409/remotedev-server
+    platform: linux/amd64
     command: node main.js
     environment:
       - ADAPTER=
