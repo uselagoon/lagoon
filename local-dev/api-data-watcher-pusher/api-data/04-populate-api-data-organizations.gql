@@ -7,10 +7,16 @@ mutation PopulateApi {
     friendlyName: "Test Organization"
     description: "An organization for testing"
     quotaProject: 5
+    quotaEnvironment: 15
+    quotaGroup: 10
+    quotaNotification: 10
   }) {
     id
     name
     quotaProject
+    quotaEnvironment
+    quotaGroup
+    quotaNotification
   }
 
   UIOrganizationUser: addUser(
@@ -142,6 +148,45 @@ mutation PopulateApi {
         route: "http://cotton.example.org"
         routes: "http://cotton.example.org,https://varnish-organization-cotton-main.cluster.example.com,https://nginx-organization-cotton-main.cluster.example.com"
       }
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment2: addOrUpdateEnvironment(
+    input: {
+      id: 31
+      name: "staging"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "staging"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "organization-cotton-staging"
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment3: addOrUpdateEnvironment(
+    input: {
+      id: 32
+      name: "development"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "development"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "organization-cotton-development"
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment4: addOrUpdateEnvironment(
+    input: {
+      id: 33
+      name: "uat"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "uat"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "organization-cotton-uat"
     }
   ) {
     id
