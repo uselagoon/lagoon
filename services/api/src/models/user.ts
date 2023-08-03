@@ -8,6 +8,7 @@ import { Group, isRoleSubgroup } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { Sql } from '../resources/user/sql';
+import { getConfigFromEnv } from '../util/config';
 
 interface IUserAttributes {
   comment?: [string];
@@ -508,9 +509,8 @@ export const User = (clients: {
         id: user.id,
         lifespan: 43200,
         actions: ["UPDATE_PASSWORD"],
-        // TODO: need to figure out how to get the redirectUri into the API
-        // clientId: "lagoon-ui",
-        // redirectUri: ""
+        clientId: "lagoon-ui",
+        redirectUri: getConfigFromEnv('LAGOON_UI', "http://localhost:8888")
       });
     }
 
@@ -552,9 +552,8 @@ export const User = (clients: {
         id: id,
         lifespan: 43200,
         actions: ["UPDATE_PASSWORD"],
-        // TODO: need to figure out how to get the redirectUri into the API
-        // clientId: "lagoon-ui",
-        // redirectUri: ""
+        clientId: "lagoon-ui",
+        redirectUri: getConfigFromEnv('LAGOON_UI', "http://localhost:8888")
       });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
