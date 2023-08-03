@@ -350,7 +350,7 @@ api-development: build-ui-logs-development
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload mailhog
 
 ## CI targets
 
@@ -362,7 +362,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.9.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.26.6-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = organizations
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already

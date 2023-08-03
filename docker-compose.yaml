@@ -34,7 +34,7 @@ services:
     image: mailhog/mailhog
     platform: linux/amd64
     ports:
-      - 8025
+      - '32025:8025'
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
@@ -130,9 +130,12 @@ services:
       - keycloak-db
     ports:
       - '8088:8080'
+    environment:
+      - KEYCLOAK_ADMIN_EMAIL=admin@example.com
     volumes:
       - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
       - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
+      - "./local-dev/keycloak:/lagoon/keycloak"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:

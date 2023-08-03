@@ -1,0 +1,16 @@
+{
+	"smtpServer": {
+		"envelopeFrom": "lagoon@example.com",
+		"from": "lagoon@example.com",
+		"fromDisplayName": "Local Lagoon",
+		"host": "mailhog",
+		"port": "1025",
+		"replyTo": "lagoon@example.com",
+		"replyToDisplayName": "Local Lagoon No-Reply",
+		"ssl": "false",
+		"starttls": "false",
+		"auth": "false",
+		"user": "not-used-if-auth=false",
+		"password": "not-used-if-auth=false"
+	}
+}
