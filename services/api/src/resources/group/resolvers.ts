@@ -193,7 +193,7 @@ export const getGroupsByProjectId: ResolverFn = async (
       for (const userOrg of usersOrgsArr) {
         const project = await projectHelpers(sqlClientPool).getProjectById(pid);
         if (project.organization == userOrg) {
-          const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+          const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
           for (const pGroup of orgGroups) {
             userGroups.push(pGroup)
           }
@@ -205,7 +205,7 @@ export const getGroupsByProjectId: ResolverFn = async (
       for (const userOrg of usersOrgsArr) {
         const project = await projectHelpers(sqlClientPool).getProjectById(pid);
         if (project.organization == userOrg) {
-          const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationId(project.organization);
+          const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
           for (const pGroup of orgViewerGroups) {
             userGroups.push(pGroup)
           }
@@ -282,7 +282,7 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger }
+  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger, keycloakGroups}
 ) => {
   let attributes = null;
   // check if this is a group being added in an organization
@@ -297,7 +297,7 @@ export const addGroup: ResolverFn = async (
       organization: input.organization
     });
 
-    const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(input.organization);
+    const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(input.organization, keycloakGroups);
     let groupCount = 0
     for (const pGroup in orgGroups) {
       // project-default-groups don't count towards group quotas
@@ -740,7 +740,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
       for (const userOrg of usersOrgsArr) {
-        const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+        const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
         for (const pGroup of orgGroups) {
           userGroups.push(pGroup)
         }
@@ -749,7 +749,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     if (usersOrgsViewer != "" ) {
       const usersOrgsArr = usersOrgsViewer.split(',');
       for (const userOrg of usersOrgsArr) {
-        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
         for (const pGroup of orgViewerGroups) {
           userGroups.push(pGroup)
         }

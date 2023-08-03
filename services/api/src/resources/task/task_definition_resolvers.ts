@@ -87,7 +87,7 @@ export const advancedTaskDefinitionById = async (
 export const getRegisteredTasksByEnvironmentId = async (
   { id },
   {},
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   let rows;
 
@@ -95,7 +95,7 @@ export const getRegisteredTasksByEnvironmentId = async (
     rows = await resolveTasksForEnvironment(
       {},
       { environment: id },
-      { sqlClientPool, hasPermission, models }
+      { sqlClientPool, hasPermission, models, keycloakGroups }
     );
 
     rows = await Filters.filterAdminTasks(hasPermission, rows);
@@ -107,7 +107,7 @@ export const getRegisteredTasksByEnvironmentId = async (
 export const resolveTasksForEnvironment = async (
   root,
   { environment },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   const environmentDetails = await environmentHelpers(
     sqlClientPool
@@ -130,8 +130,9 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForProject(proj.project)
   );
 
-  const projectGroups = await models.GroupModel.loadGroupsByProjectId(
-    proj.projectId
+  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(
+    proj.projectId,
+    keycloakGroups
   );
 
   const projectGroupsFiltered = R.pluck('name', projectGroups);
@@ -504,7 +505,7 @@ const getProjectByEnvironmentIdOrProjectId = async (
 export const invokeRegisteredTask = async (
   root,
   { advancedTaskDefinition, environment, argumentValues },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
 
@@ -513,7 +514,8 @@ export const invokeRegisteredTask = async (
     hasPermission,
     advancedTaskDefinition,
     environment,
-    models
+    models,
+    keycloakGroups
   );
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -633,14 +635,15 @@ const getNamedAdvancedTaskForEnvironment = async (
   hasPermission,
   advancedTaskDefinition,
   environment,
-  models
+  models,
+  keycloakGroups
 ):Promise<AdvancedTaskDefinitionInterface> => {
   let rows;
 
   rows = await resolveTasksForEnvironment(
     {},
     { environment },
-    { sqlClientPool, hasPermission, models }
+    { sqlClientPool, hasPermission, models, keycloakGroups }
   );
 
   rows = await Filters.filterAdminTasks(hasPermission, rows);

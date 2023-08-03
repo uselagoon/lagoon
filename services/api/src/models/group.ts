@@ -345,6 +345,25 @@ export const Group = (clients: {
 
   };
 
+  // used by organization resolver to list all groups attached to the organization
+  const loadGroupsByOrganizationIdFromGroups = async (organizationId: number, groups: Group[]): Promise<Group[]> => {
+    const filterFn = attribute => {
+      if (attribute.name === 'lagoon-organization') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+    const filteredGroups = filterGroupsByAttribute(groups, filterFn);
+
+    const fullGroups = await transformKeycloakGroups(filteredGroups);
+
+    return fullGroups;
+  };
+
   // Recursive function to load membership "up" the group chain
   const getMembersFromGroupAndParents = async (
     group: Group
@@ -774,6 +793,7 @@ export const Group = (clients: {
     loadGroupsByAttribute,
     loadGroupsByProjectId,
     loadGroupsByOrganizationId,
+    loadGroupsByOrganizationIdFromGroups,
     loadGroupsByProjectIdFromGroups,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,
