@@ -135,7 +135,7 @@ export const addUser: ResolverFn = async (
     lastName: input.lastName,
     comment: input.comment,
     gitlabId: input.gitlabId,
-  });
+  }, input.resetPassword);
 
   return user;
 };
@@ -169,6 +169,26 @@ export const updateUser: ResolverFn = async (
   });
 
   return updatedUser;
+};
+
+export const resetUserPassword: ResolverFn = async (
+  _root,
+  { input: { user: userInput } },
+  { models, hasPermission },
+) => {
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  // someone can reset their own password if they want to, but admins will be able to do this
+  await hasPermission('user', 'update', {
+    users: [user.id],
+  });
+
+  await models.UserModel.resetUserPassword(user.id);
+
+  return 'success';
 };
 
 export const deleteUser: ResolverFn = async (
