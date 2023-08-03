@@ -1803,6 +1803,7 @@ const typeDefs = gql`
     lastName: String
     comment: String
     gitlabId: Int
+    resetPassword: Boolean
   }
 
   input UpdateUserPatchInput {
@@ -1826,6 +1827,10 @@ const typeDefs = gql`
     user: UserInput!
     organization: Int!
     owner: Boolean
+  }
+
+  input ResetUserPasswordInput {
+    user: UserInput!
   }
 
   input DeleteProjectInput {
@@ -2263,6 +2268,7 @@ const typeDefs = gql`
     """
     addUserToOrganization(input: addUserToOrganizationInput!): User
     removeUserFromOrganization(input: addUserToOrganizationInput!): User
+    resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment

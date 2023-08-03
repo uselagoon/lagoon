@@ -5,6 +5,7 @@ import { query, isPatchEmpty } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
+import { logger } from '../../loggers/logger';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -135,7 +136,7 @@ export const addUser: ResolverFn = async (
     lastName: input.lastName,
     comment: input.comment,
     gitlabId: input.gitlabId,
-  });
+  }, input.resetPassword);
 
   return user;
 };
@@ -169,6 +170,26 @@ export const updateUser: ResolverFn = async (
   });
 
   return updatedUser;
+};
+
+export const resetUserPassword: ResolverFn = async (
+  _root,
+  { input: { user: userInput } },
+  { models, hasPermission },
+) => {
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  // someone can reset their own password if they want to, but admins will be able to do this
+  await hasPermission('user', 'update', {
+    users: [user.id],
+  });
+
+  await models.UserModel.resetUserPassword(user.id);
+
+  return 'success';
 };
 
 export const deleteUser: ResolverFn = async (
