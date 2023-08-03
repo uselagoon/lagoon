@@ -5,7 +5,6 @@ import { query, isPatchEmpty } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
-import { logger } from '../../loggers/logger';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
