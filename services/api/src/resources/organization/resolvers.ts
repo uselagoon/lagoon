@@ -252,28 +252,11 @@ export const getOwnersByOrganizationId: ResolverFn = async (
   _input,
   { hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
+  await hasPermission('organization', 'view', {
+    organization: oid,
+  });
   const orgUsers = await models.UserModel.loadUsersByOrganizationId(oid);
-
-  try {
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
-
-    return orgUsers;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getOwnersByOrganizationId');
-      return [];
-    }
-
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const userGroups = keycloakUsersGroups;
-    const orgOwners = R.intersection(orgUsers, userGroups);
-
-    return orgOwners;
-  }
+  return orgUsers;
 };
 
 // list all groups by organization id
