@@ -86,40 +86,16 @@ export const Sql = {
       .where(knex.raw('organization.id = ?', id))
       .andWhere('e.deleted', '0000-00-00 00:00:00')
       .toString(),
-  selectNotificationsByTypeByProjectId: (input) => {
-    const {
-      type,
-      pid,
-      oid,
-      contentType = 'deployment',
-      notificationSeverityThreshold = 0
-    } = input;
-    let selectQuery = knex('project_notification AS pn').join('project', 'project.id', 'pn.pid').joinRaw(
-      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type AND pn.content_type = :contentType`,
-      { type, contentType }
-    );
-
-    return selectQuery
-      .where('pn.pid', '=', pid)
-      .where(
-        'pn.notification_severity_threshold',
-        '>=',
-        notificationSeverityThreshold
-      )
-      .andWhere('project.organization', '=', oid)
-      .andWhere('project.id', '=', pid)
-      .select(
-        'nt.*',
-        'pn.type',
-      )
-      .toString();
-  },
   selectNotificationsByTypeByOrganizationId: (input) =>{
     const {
       type,
       id,
     } = input;
     return knex(`notification_${type}`)
+      .select(
+        '*',
+        knex.raw(`'${type}' as type`)
+      )
       .where('organization', '=', id)
       .toString();
   },
@@ -133,5 +109,36 @@ export const Sql = {
       .select('dt.*')
       .join('organization_deploy_target as odt', 'dt.id', '=', 'odt.dtid')
       .where('odt.orgid', '=', id)
-      .toString()
+      .toString(),
+  selectDeployTargetsByOrganizationAndDeployTarget: (id: number, dtid: number) =>
+    knex('openshift as dt')
+      .select('dt.*')
+      .join('organization_deploy_target as odt', 'dt.id', '=', 'odt.dtid')
+      .where('odt.orgid', '=', id)
+      .andWhere('odt.dtid', '=', dtid)
+      .toString(),
+  deleteOrganization: (id: number) =>
+    knex('organization')
+      .where('id', '=', id)
+      .delete()
+      .toString(),
+  deleteOrganizationDeployTargets: (id: number) =>
+    knex('organization_deploy_target')
+      .where('orgid', '=', id)
+      .delete()
+      .toString(),
+  removeDeployTarget: ({
+    orgid,
+    dtid
+  }: {
+    orgid?: number;
+    dtid?: number;
+  }) =>
+    knex('organization_deploy_target')
+      .insert({
+        orgid,
+        dtid,
+      })
+      .delete()
+      .toString(),
 };
