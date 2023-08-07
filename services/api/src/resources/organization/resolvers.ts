@@ -8,6 +8,7 @@ import { Helpers} from './helpers';
 import { Sql } from './sql';
 import { arrayDiff } from '../../util/func';
 import validator from 'validator';
+import { log } from 'winston';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -765,4 +766,69 @@ export const addGroupToOrganization: ResolverFn = async (
   });
 
   return "success"
+};
+
+// removes a user from all groups in an organisation
+export const removeUserFromOrganizationGroups: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organizationInput } },
+  { models, sqlClientPool, hasPermission, userActivityLogger }
+) => {
+
+  if (R.isEmpty(userInput)) {
+    throw new Error('You must provide a user id or email');
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput)
+  });
+
+  // check the organization exists
+  const organizationData = await Helpers(sqlClientPool).getOrganizationById(organizationInput);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  // check permissions and get groups
+  await hasPermission('organization', 'viewGroup', {
+    organization: organizationInput,
+  });
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(organizationInput);
+
+  // iterate through groups and remove the user
+  let groupsRemoved = []
+  for (const group in orgGroups) {
+    if (R.prop('lagoon-organization',  orgGroups[group].attributes)) {
+      // if this is a group in an organization, check that the user removing members from the group in this org is in the org
+      await hasPermission('organization', 'addGroup', {
+        organization: R.prop('lagoon-organization', orgGroups[group].attributes)
+      });
+    } else {
+      await hasPermission('group', 'removeUser', {
+        group: orgGroups[group].id
+      });
+    }
+
+    try {
+      await models.GroupModel.removeUserFromGroup(user, orgGroups[group]);
+      groupsRemoved.push(orgGroups[group].name);
+    } catch (error) {
+      throw new Error(`Unable to remove user from group: ${error}`)
+    }
+  }
+
+  userActivityLogger(`User removed from these groups in organization: ${organizationData.name}`, {
+    project: '',
+    organization: organizationData.name,
+    event: 'api:removeUserFromOrganizationGroups',
+    payload: {
+      input: {
+        user: userInput, organization: organizationInput
+      },
+      data: groupsRemoved
+    }
+  });
+
+  return organizationData;
 };

@@ -12,6 +12,7 @@ import { User } from './user';
 import { saveRedisKeycloakCache } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
+import { log } from 'winston';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
