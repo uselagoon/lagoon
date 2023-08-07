@@ -214,7 +214,7 @@ export const deleteUser: ResolverFn = async (
 export const addUserToOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organization, owner: owner } },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
 
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
@@ -244,6 +244,19 @@ export const addUserToOrganization: ResolverFn = async (
     id: user.id,
     organization: organization,
   });
+
+  userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:addUserToOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        organization: organization,
+        owner: owner,
+      },
+    }
+  });
+
   return organizationData;
 
 };
@@ -252,7 +265,7 @@ export const addUserToOrganization: ResolverFn = async (
 export const removeUserFromOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organization } },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
 
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
@@ -271,6 +284,17 @@ export const removeUserFromOrganization: ResolverFn = async (
     id: user.id,
     organization: organization,
     remove: true,
+  });
+
+  userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:addUserToOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        organization: organization,
+      },
+    }
   });
 
   return organizationData;
