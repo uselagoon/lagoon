@@ -131,6 +131,7 @@ services:
     ports:
       - '8088:8080'
     environment:
+      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth
       - KEYCLOAK_ADMIN_EMAIL=admin@example.com
     volumes:
       - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"

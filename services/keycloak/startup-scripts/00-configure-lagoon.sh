@@ -102,6 +102,21 @@ function configure_admin_email {
 
 }
 
+function configure_keycloak_frontend_url {
+  # this configures the realm frontend url
+  if [ "$KEYCLOAK_FRONTEND_URL" != "" ]; then
+    echo Configuring frontend url to ${KEYCLOAK_FRONTEND_URL}
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f - <<EOF
+{
+  "attributes": {
+    "frontendUrl": "${KEYCLOAK_FRONTEND_URL}"
+  }
+}
+EOF
+  fi
+
+}
+
 function configure_smtp_settings {
   # this checks if the file containing the json data for email configuration exists
   if [ "$KEYCLOAK_ADMIN_EMAIL" == "" ] && [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
@@ -2466,6 +2481,7 @@ function configure_keycloak {
     # Sets the order of migrations, add new ones at the end.
     configure_lagoon_realm
     configure_admin_email
+    configure_keycloak_frontend_url
     configure_smtp_settings
     configure_realm_settings
     configure_opendistro_security_client
