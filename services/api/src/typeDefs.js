@@ -2266,8 +2266,8 @@ const typeDefs = gql`
     """
     Add a user to an organization as an owner of the organization
     """
-    addUserToOrganization(input: addUserToOrganizationInput!): User
-    removeUserFromOrganization(input: addUserToOrganizationInput!): User
+    addUserToOrganization(input: addUserToOrganizationInput!): Organization
+    removeUserFromOrganization(input: addUserToOrganizationInput!): Organization
     resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String

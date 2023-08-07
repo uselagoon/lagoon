@@ -230,21 +230,21 @@ export const addUserToOrganization: ResolverFn = async (
   if (owner) {
     // if owner is requested, check if permission to add owner
     await hasPermission('organization', 'addOwner');
-    const updatedUser = await models.UserModel.updateUser({
+    await models.UserModel.updateUser({
       id: user.id,
       organization: organization,
       owner: owner,
     });
-    return updatedUser;
+    return organizationData;
   }
 
   // otherwise add user as a viewer
   await hasPermission('organization', 'addViewer')
-  const updatedUser = await models.UserModel.updateUser({
+  await models.UserModel.updateUser({
     id: user.id,
     organization: organization,
   });
-  return updatedUser;
+  return organizationData;
 
 };
 
@@ -267,13 +267,13 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   await hasPermission('organization', 'addOwner');
 
-  const updatedUser = await models.UserModel.updateUser({
+  await models.UserModel.updateUser({
     id: user.id,
     organization: organization,
     remove: true,
   });
 
-  return updatedUser;
+  return organizationData;
 };
 
 export const deleteAllUsers: ResolverFn = async (
