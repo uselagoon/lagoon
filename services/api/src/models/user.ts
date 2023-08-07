@@ -290,22 +290,10 @@ export const User = (clients: {
       return false;
     };
 
-    let userIds = []
-    const keycloakUsers = await keycloakAdminClient.users.find();
-    // @ts-ignore
-    userIds = R.pluck('id', keycloakUsers);
+    const keycloakUsers = await keycloakAdminClient.users.find({briefRepresentation: false, max: -1});
 
-    let fullUsers = [];
-    for (const id of userIds) {
-      const fullUser = await keycloakAdminClient.users.findOne({
-        id
-      });
-
-      fullUsers = [...fullUsers, fullUser];
-    }
-
-    let filteredOwners = filterUsersByAttribute(fullUsers, ownerFilter);
-    let filteredViewers = filterUsersByAttribute(fullUsers, viewerFilter);
+    let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
+    let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
       filteredOwners[f1].owner = true
     }
