@@ -252,28 +252,11 @@ export const getOwnersByOrganizationId: ResolverFn = async (
   _input,
   { hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
+  await hasPermission('organization', 'view', {
+    organization: oid,
+  });
   const orgUsers = await models.UserModel.loadUsersByOrganizationId(oid);
-
-  try {
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
-
-    return orgUsers;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getOwnersByOrganizationId');
-      return [];
-    }
-
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const userGroups = keycloakUsersGroups;
-    const orgOwners = R.intersection(orgUsers, userGroups);
-
-    return orgOwners;
-  }
+  return orgUsers;
 };
 
 // list all groups by organization id
@@ -426,12 +409,12 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups }
+  { sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
 ) => {
   const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
-  if (!keycloakGrant) {
-    logger.warn('No grant available for getGroupsByOrganizationsProject');
-    return [];
+  if (adminScopes.projectViewAll) {
+    // if platform owner, this will show ALL groups on a project (those that aren't in the organization too, yes its possible with outside intervention :| )
+    return orgProjectGroups;
   }
 
   const user = await models.UserModel.loadUserById(
