@@ -290,22 +290,10 @@ export const User = (clients: {
       return false;
     };
 
-    let userIds = []
-    const keycloakUsers = await keycloakAdminClient.users.find();
-    // @ts-ignore
-    userIds = R.pluck('id', keycloakUsers);
+    const keycloakUsers = await keycloakAdminClient.users.find({briefRepresentation: false, max: -1});
 
-    let fullUsers = [];
-    for (const id of userIds) {
-      const fullUser = await keycloakAdminClient.users.findOne({
-        id
-      });
-
-      fullUsers = [...fullUsers, fullUser];
-    }
-
-    let filteredOwners = filterUsersByAttribute(fullUsers, ownerFilter);
-    let filteredViewers = filterUsersByAttribute(fullUsers, viewerFilter);
+    let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
+    let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
       filteredOwners[f1].owner = true
     }
@@ -579,17 +567,18 @@ export const User = (clients: {
       }
       // set the organization if provided
       if (R.prop('organization', userInput)) {
+        // owner is an option, default is view
         if (R.prop('remove', userInput)) {
           organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
           organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
-        }
-        // owner is an option, default is view
-        if (R.prop('owner', userInput)) {
-          organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
         } else {
-          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          if (R.prop('owner', userInput)) {
+            organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+            organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          } else {
+            organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+            organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          }
         }
       }
 
