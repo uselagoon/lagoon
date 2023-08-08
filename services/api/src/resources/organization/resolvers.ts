@@ -25,7 +25,7 @@ const isValidName = value => {
 export const addOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   // check if the name is valid
@@ -35,6 +35,18 @@ export const addOrganization: ResolverFn = async (
       await hasPermission('organization', 'add');
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
+
+      userActivityLogger(`User added an organization ${R.prop(0, rows).name}`, {
+        project: '',
+        organization: input.organization,
+        event: 'api:addOrganization',
+        payload: {
+          data: {
+            input
+          }
+        }
+      });
+
       return R.prop(0, rows);
   }  catch (err) {
       throw new Error(`There was an error creating the organization ${input.name} ${err}`);
@@ -45,7 +57,7 @@ export const addOrganization: ResolverFn = async (
 export const addDeployTargetToOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('organization', 'add');
 
@@ -71,13 +83,25 @@ export const addDeployTargetToOrganization: ResolverFn = async (
   }  catch (err) {
       throw new Error(`There was an error adding the deployTarget: ${err}`);
   }
+
+  userActivityLogger(`User added a deploytarget to organization ${R.prop(0, org).name}`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:addDeployTargetToOrganization',
+    payload: {
+      data: {
+        input
+      }
+    }
+  });
+
   return "success"
 };
 
 export const removeDeployTargetFromOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('organization', 'add');
 
@@ -93,6 +117,18 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
   }  catch (err) {
     throw new Error(`There was an error removing the deployTarget: ${err}`);
   }
+
+  userActivityLogger(`User removed a deploytarget from organization ${R.prop(0, org).name}`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:removeDeployTargetFromOrganization',
+    payload: {
+      data: {
+        input
+      }
+    }
+  });
+
   return "success"
 };
 
@@ -145,7 +181,7 @@ export const getEnvironmentsByOrganizationId: ResolverFn = async (
 export const updateOrganization: ResolverFn = async (
     root,
     { input },
-    { sqlClientPool, hasPermission }
+    { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
     if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment || input.patch.quotaRoute) {
@@ -167,6 +203,17 @@ export const updateOrganization: ResolverFn = async (
 
     await query(sqlClientPool, Sql.updateOrganization(input));
     const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
+
+    userActivityLogger(`User updated organization ${R.prop(0, rows).name}`, {
+      project: '',
+      organization: input.organization,
+      event: 'api:updateOrganization',
+      payload: {
+        data: {
+          input
+        }
+      }
+    });
 
     return R.prop(0, rows);
 };
@@ -571,7 +618,7 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
 export const removeProjectFromOrganization: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, models, keycloakGroups }
+  { sqlClientPool, hasPermission, models, keycloakGroups, userActivityLogger }
 ) => {
   // platform admin only
   await hasPermission('organization', 'add');
@@ -628,6 +675,18 @@ export const removeProjectFromOrganization: ResolverFn = async (
       `Unable to remove project from organization`
     )
   }
+
+  const org = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+  userActivityLogger(`User removed project ${project.name} from an organization ${R.prop(0, org).name}`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:removeProjectFromOrganization',
+    payload: {
+      data: {
+        input
+      }
+    }
+  });
 
   return "success"
 }
@@ -717,7 +776,7 @@ export const addProjectToOrganization: ResolverFn = async (
 export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  { models, sqlClientPool, hasPermission }
 ) => {
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
