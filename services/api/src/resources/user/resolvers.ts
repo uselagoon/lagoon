@@ -227,23 +227,16 @@ export const addUserToOrganization: ResolverFn = async (
     username: R.prop('email', userInput),
   });
 
-  if (owner) {
-    // if owner is requested, check if permission to add owner
-    await hasPermission('organization', 'addOwner');
-    await models.UserModel.updateUser({
-      id: user.id,
-      organization: organization,
-      owner: owner,
-    });
-    return organizationData;
-  }
-
-  // otherwise add user as a viewer
-  await hasPermission('organization', 'addViewer')
-  await models.UserModel.updateUser({
+  let updateUser = {
     id: user.id,
     organization: organization,
-  });
+    owner: false,
+  }
+  if (owner) {
+    updateUser.owner = true
+  }
+  await hasPermission('organization', 'addViewer')
+  await models.UserModel.updateUser(updateUser);
 
   userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
     project: '',
@@ -251,6 +244,7 @@ export const addUserToOrganization: ResolverFn = async (
     payload: {
       user: {
         id: user.id,
+        email: user.email,
         organization: organization,
         owner: owner,
       },
