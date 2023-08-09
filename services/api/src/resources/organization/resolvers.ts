@@ -94,7 +94,7 @@ export const addDeployTargetToOrganization: ResolverFn = async (
     }
   });
 
-  return query(sqlClientPool, Sql.selectDeployTargetsByOrganization(input.organization));
+  return org[0];
 };
 
 export const removeDeployTargetFromOrganization: ResolverFn = async (
@@ -128,7 +128,7 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     }
   });
 
-  return query(sqlClientPool, Sql.selectDeployTargetsByOrganization(input.organization));
+  return org[0];
 };
 
 

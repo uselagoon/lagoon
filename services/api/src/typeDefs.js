@@ -2388,11 +2388,11 @@ const typeDefs = gql`
     """
     Add a deploytarget to an organization
     """
-    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): [Openshift]
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): Organization
     """
     Remove a deploytarget from an organization
     """
-    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): [Openshift]
+    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
   }
 
   type Subscription {
