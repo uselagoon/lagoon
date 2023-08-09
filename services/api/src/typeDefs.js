@@ -484,6 +484,7 @@ const typeDefs = gql`
     groups: [GroupInterface]
     members: [GroupMembership]
     projects: [Project]
+    organization: Int
   }
 
   type Group implements GroupInterface {
@@ -493,6 +494,7 @@ const typeDefs = gql`
     groups: [GroupInterface]
     members: [GroupMembership]
     projects: [Project]
+    organization: Int
   }
 
   type Openshift {
@@ -2374,7 +2376,7 @@ const typeDefs = gql`
     """
     Add a group to an organization
     """
-    addGroupToOrganization(input: AddGroupInput!): String
+    addGroupToOrganization(input: AddGroupInput!): GroupInterface
     """
     Add a project to an organization, will return an error if it can't easily do it
     """
@@ -2382,15 +2384,15 @@ const typeDefs = gql`
     """
     Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
     """
-    removeProjectFromOrganization(input: RemoveProjectFromOrganizationInput): String
+    removeProjectFromOrganization(input: RemoveProjectFromOrganizationInput): Project
     """
     Add a deploytarget to an organization
     """
-    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): String
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): [Openshift]
     """
     Remove a deploytarget from an organization
     """
-    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): String
+    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): [Openshift]
   }
 
   type Subscription {

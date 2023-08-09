@@ -127,18 +127,10 @@ export const Sql = {
       .where('orgid', '=', id)
       .delete()
       .toString(),
-  removeDeployTarget: ({
-    orgid,
-    dtid
-  }: {
-    orgid?: number;
-    dtid?: number;
-  }) =>
+  removeDeployTarget: (orgid: number, dtid: number) =>
     knex('organization_deploy_target')
-      .insert({
-        orgid,
-        dtid,
-      })
+      .where('orgid', '=', orgid)
+      .andWhere('dtid', '=', dtid)
       .delete()
       .toString(),
 };

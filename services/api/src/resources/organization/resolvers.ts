@@ -83,7 +83,6 @@ export const addDeployTargetToOrganization: ResolverFn = async (
   }  catch (err) {
       throw new Error(`There was an error adding the deployTarget: ${err}`);
   }
-
   userActivityLogger(`User added a deploytarget to organization ${R.prop(0, org).name}`, {
     project: '',
     organization: input.organization,
@@ -95,7 +94,7 @@ export const addDeployTargetToOrganization: ResolverFn = async (
     }
   });
 
-  return "success"
+  return query(sqlClientPool, Sql.selectDeployTargetsByOrganization(input.organization));
 };
 
 export const removeDeployTargetFromOrganization: ResolverFn = async (
@@ -113,7 +112,7 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
   }
 
   try {
-    await query(sqlClientPool, Sql.removeDeployTarget({dtid: input.deployTarget, orgid: input.organization}));
+    await query(sqlClientPool, Sql.removeDeployTarget(input.organization, input.deployTarget));
   }  catch (err) {
     throw new Error(`There was an error removing the deployTarget: ${err}`);
   }
@@ -129,7 +128,7 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     }
   });
 
-  return "success"
+  return query(sqlClientPool, Sql.selectDeployTargetsByOrganization(input.organization));
 };
 
 
@@ -681,7 +680,7 @@ export const removeProjectFromOrganization: ResolverFn = async (
     }
   });
 
-  return "success"
+  return projectHelpers(sqlClientPool).getProjectById(pid);
 }
 
 // add existing project to an organization
@@ -762,18 +761,8 @@ export const addProjectToOrganization: ResolverFn = async (
 
   return projectHelpers(sqlClientPool).getProjectById(pid);
 }
-// check an existing group to see if it can be added to an organization
-// this function will return errors if there are projects in the group that are not in the organization
-// if there are no projects in the organization, and no projects in the group then it will succeed
-// this is a helper function that is a WIP, not fully flushed out
-export const getGroupProjectOrganizationAssociation: ResolverFn = async (
-  _root,
-  { input },
-  { models, sqlClientPool, hasPermission }
-) => {
-  // platform admin only as it potentially reveals information about projects/orgs/groups
-  await hasPermission('organization', 'add');
 
+const checkOrgProjectGroup = async (sqlClientPool, input, models) => {
   // check the organization exists
   const organizationData = await Helpers(sqlClientPool).getOrganizationById(input.organization);
   if (organizationData === undefined) {
@@ -790,15 +779,17 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
   const projectIdsByOrg = []
   for (const project of projectsByOrg) {
-    projectIdsByOrg.push(project.id)
+    projectIdsByOrg.push(parseInt(project.id))
   }
 
   // get the project ids
   const groupProjectIds = []
   if (R.prop('lagoon-projects', group.attributes)) {
     const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-    for (const project of groupProjects) {
-      groupProjectIds.push(project)
+    if (groupProjects.length > 0) {
+      for (const project of groupProjects) {
+        groupProjectIds.push(parseInt(project))
+      }
     }
   }
 
@@ -815,6 +806,23 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
       }
     }
   }
+
+  return group
+}
+
+// check an existing group to see if it can be added to an organization
+// this function will return errors if there are projects in the group that are not in the organization
+// if there are no projects in the organization, and no projects in the group then it will succeed
+// this is a helper function that is a WIP, not fully flushed out
+export const getGroupProjectOrganizationAssociation: ResolverFn = async (
+  _root,
+  { input },
+  { models, sqlClientPool, hasPermission }
+) => {
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  await checkOrgProjectGroup(sqlClientPool, input, models)
 
   return "success"
 };
@@ -836,42 +844,7 @@ export const addGroupToOrganization: ResolverFn = async (
     throw new Error(`Organization does not exist`)
   }
 
-  // check the requested group exists
-  const group = await models.GroupModel.loadGroupByIdOrName(input);
-  if (group === undefined) {
-    throw new Error(`Group does not exist`)
-  }
-
-
-  // check the organization for projects currently attached to it
-  const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
-  const projectIdsByOrg = []
-  for (const project of projectsByOrg) {
-    projectIdsByOrg.push(project.id)
-  }
-
-  // get the project ids
-  const groupProjectIds = []
-  if (R.prop('lagoon-projects', group.attributes)) {
-    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-    for (const project of groupProjects) {
-      groupProjectIds.push(project)
-    }
-  }
-
-  if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
-    if (projectIdsByOrg.length == 0) {
-      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
-    } else {
-      if (groupProjectIds.length > 0) {
-        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        if (filters.length > 0) {
-          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
-        }
-      }
-    }
-  }
+  const group = await checkOrgProjectGroup(sqlClientPool, input, models)
 
   // update the group to be in the organization
   const updatedGroup = await models.GroupModel.updateGroup({
@@ -895,7 +868,7 @@ export const addGroupToOrganization: ResolverFn = async (
     }
   });
 
-  return "success"
+  return updatedGroup
 };
 
 // delete an organization, only if it has no projects, notifications, or groups

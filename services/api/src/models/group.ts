@@ -135,7 +135,8 @@ export const Group = (clients: {
         type: attributeKVOrNull('type', keycloakGroup),
         path: keycloakGroup.path,
         attributes: keycloakGroup.attributes,
-        subGroups: keycloakGroup.subGroups
+        subGroups: keycloakGroup.subGroups,
+        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup)),
       })
     );
 
