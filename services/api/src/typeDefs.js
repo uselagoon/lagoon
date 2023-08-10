@@ -484,6 +484,7 @@ const typeDefs = gql`
     groups: [GroupInterface]
     members: [GroupMembership]
     projects: [Project]
+    organization: Int
   }
 
   type Group implements GroupInterface {
@@ -493,6 +494,7 @@ const typeDefs = gql`
     groups: [GroupInterface]
     members: [GroupMembership]
     projects: [Project]
+    organization: Int
   }
 
   type Openshift {
@@ -1066,6 +1068,10 @@ const typeDefs = gql`
     quotaNotification: Int
     quotaEnvironment: Int
     quotaRoute: Int
+  }
+
+  input DeleteOrganizationInput {
+    id: Int!
   }
 
   input UpdateOrganizationPatchInput {
@@ -1883,7 +1889,17 @@ const typeDefs = gql`
     organization: Int!
   }
 
+  input RemoveProjectFromOrganizationInput {
+    project: Int!
+    organization: Int!
+  }
+
   input AddDeployTargetToOrganizationInput {
+    deployTarget: Int!
+    organization: Int!
+  }
+
+  input RemoveDeployTargetFromOrganizationInput {
     deployTarget: Int!
     organization: Int!
   }
@@ -2337,9 +2353,6 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addGroupToOrganization(input: AddGroupInput!): String
-    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
-    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): String
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
@@ -2347,15 +2360,39 @@ const typeDefs = gql`
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
     """
     Add an organization
     """
-    addOrganization(input: AddOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    addOrganization(input: AddOrganizationInput!): Organization
     """
     Update an organization
     """
-    updateOrganization(input: UpdateOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
-    updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
+    updateOrganization(input: UpdateOrganizationInput!): Organization
+    """
+    Delete an organization
+    """
+    deleteOrganization(input: DeleteOrganizationInput!): String
+    """
+    Add a group to an organization
+    """
+    addGroupToOrganization(input: AddGroupInput!): GroupInterface
+    """
+    Add a project to an organization, will return an error if it can't easily do it
+    """
+    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    """
+    Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
+    """
+    removeProjectFromOrganization(input: RemoveProjectFromOrganizationInput): Project
+    """
+    Add a deploytarget to an organization
+    """
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): Organization
+    """
+    Remove a deploytarget from an organization
+    """
+    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
   }
 
   type Subscription {

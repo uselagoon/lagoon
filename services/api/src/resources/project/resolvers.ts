@@ -17,6 +17,7 @@ import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { Helpers as organizationHelpers } from '../organization/helpers';
+import { Helpers as notificationHelpers } from '../notification/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import GitUrlParse from 'git-url-parse';
 
@@ -567,11 +568,22 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  try {
+    // remove all notifications from project
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
+  } catch (err) {
+    logger.error(
+      `Could not remove notifications from project ${project.name}: ${err.message}`
+    );
+  }
+
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
   // Remove the project from all groups it is associated to
   try {
     const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
+    // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
     for (const groupInput of projectGroups) {
       const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
       await models.GroupModel.removeProjectFromGroup(project.id, group);
