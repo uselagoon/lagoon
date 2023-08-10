@@ -498,7 +498,7 @@ export const User = (clients: {
         lifespan: 43200,
         actions: ["UPDATE_PASSWORD"],
         clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('LAGOON_UI', "http://localhost:8888")
+        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
       });
     }
 
@@ -541,7 +541,7 @@ export const User = (clients: {
         lifespan: 43200,
         actions: ["UPDATE_PASSWORD"],
         clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('LAGOON_UI', "http://localhost:8888")
+        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
       });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
