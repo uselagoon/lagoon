@@ -3,7 +3,6 @@
 
     <#if section = "form">
     <div id="kc-form" class="kc-form">
-      <div id="kc-form-wrapper">
         <#if section = "form">
             <h1>${msg("loginAccountTitle")}</h1>
         </#if>
@@ -69,9 +68,8 @@
                   </div>
             </form>
         </#if>
-        </div>
-
     </div>
+
     <#elseif section = "info" >
         <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
             <div id="kc-registration-container">
