@@ -1,8 +1,8 @@
 <#import "template.ftl" as layout>
-<#import "password-commons.ftl" as passwordCommons>
+
 <@layout.registrationLayout displayRequiredFields=false displayMessage=!messagesPerField.existsError('totp','userLabel'); section>
 
-    
+
     <#if section = "form">
         <h1>${msg("loginTotpTitle")}</h1>
         <ol id="kc-totp-settings">
@@ -90,7 +90,16 @@
             </div>
 
             <div class="${properties.kcFormGroupClass!}">
-                <@passwordCommons.logoutOtherSessions/>
+                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
+                    <div class="${properties.kcFormOptionsWrapperClass!}">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="logout-sessions" name="logout-sessions" value="on" checked>
+                                ${msg("logoutOtherSessions")}
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <#if isAppInitiatedAction??>
