@@ -54,6 +54,7 @@ interface UserModel {
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   resetUserPassword: (id: string) => Promise<void>;
+  transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
 }
 
 interface AttributeFilterFn {
@@ -681,6 +682,7 @@ export const User = (clients: {
     addUser,
     updateUser,
     deleteUser,
-    resetUserPassword
+    resetUserPassword,
+    transformKeycloakUsers
   };
 };

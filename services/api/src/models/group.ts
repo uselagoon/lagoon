@@ -437,12 +437,14 @@ export const Group = (clients: {
     let membership = [];
     for (const roleSubgroup of roleSubgroups) {
       const keycloakUsers = await keycloakAdminClient.groups.listMembers({
-        id: roleSubgroup.id
+        id: roleSubgroup.id,
+        briefRepresentation: false,
       });
 
       let members = [];
       for (const keycloakUser of keycloakUsers) {
-        const fullUser = await UserModel.loadUserById(keycloakUser.id);
+        const users = await UserModel.transformKeycloakUsers([keycloakUser]);
+        const fullUser = users[0]
         const member = {
           user: fullUser,
           role: roleSubgroup.realmRoles[0],
