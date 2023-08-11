@@ -112,6 +112,38 @@ header.header a img {
   padding: 0;
   height: auto;
 }
+.kc-content .kc-content-wrapper form input.saveTOTPBtn {
+  width: auto;
+  height: 40px;
+  padding: 12px 32px;
+  background-color: #4578E6;
+  font-family: source-sans-pro, sans-serif;
+  font-size: 14px;
+  text-align: center;
+  color: #ffffff;
+  margin: 24px 0 0;
+  border: 1px #4578E6 solid;
+}
+.kc-content .kc-content-wrapper form input.saveTOTPBtn:hover {
+  color: #4578E6;
+  background-color: #ffffff;
+}
+.kc-content .kc-content-wrapper form button.cancelTOTPBtn {
+  width: auto;
+  height: 40px;
+  padding: 12px 32px;
+  background-color: #333;
+  font-family: source-sans-pro, sans-serif;
+  font-size: 14px;
+  text-align: center;
+  color: #ffffff;
+  margin: 24px 0 0;
+  border: 1px #333 solid;
+}
+.kc-content .kc-content-wrapper form button.cancelTOTPBtn:hover {
+  color: #333;
+  background-color: #ffffff;
+}
 .kc-content .kc-content-wrapper form .username_wapper {
   margin-bottom: 18px;
 }

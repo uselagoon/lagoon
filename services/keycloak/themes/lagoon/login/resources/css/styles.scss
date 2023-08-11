@@ -72,88 +72,119 @@ header.header{
   justify-content: center;
 
   .kc-content-wrapper{
-      background-size:cover;
-      background-position:center;;
-      display:flex;
-      justify-content:center;
-      flex-direction:column;
-      width: 440px;
-      background-color: #ffffff;
-      box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
-      position: relative;
-      padding: 32px;
-      z-index: 1;
+    background-size:cover;
+    background-position:center;;
+    display:flex;
+    justify-content:center;
+    flex-direction:column;
+    width: 440px;
+    background-color: #ffffff;
+    box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
+    position: relative;
+    padding: 32px;
+    z-index: 1;
 
-      h1{
-        color: $brand;
-        font-size: 24px;
+    h1{
+      color: $brand;
+      font-size: 24px;
+    }
+
+    form{
+      margin: 24px 0 0;
+      font-style: normal;
+      font-stretch: normal;
+      line-height: normal;
+      letter-spacing: normal;
+      font-family: source-sans-pro, sans-serif;
+
+      label{
+        display: block;
+        margin-bottom: 8px;
+
+        .required{
+          color: #b8082a;
+        }
       }
 
-      form{
-        margin: 24px 0 0;
-        font-style: normal;
-        font-stretch: normal;
-        line-height: normal;
-        letter-spacing: normal;
+      input{
+        width: 360px;
+        height: 24px;
+        color: #000000;
+        border: 1px solid #ccc;
+        outline: none;
+        background-color: #fff;
+        padding: 8px;
+
+        &:focus{
+          border: 1px solid $brand;
+        }
+      }
+
+      input[type="checkbox"]{
+        width: auto;
+        padding: 0;
+        height: auto;
+      }
+
+      input.saveTOTPBtn{
+        width: auto;
+        height: 40px;
+        padding: 12px 32px;
+        background-color: $brand;
         font-family: source-sans-pro, sans-serif;
+        font-size: 14px;
+        text-align: center;
+        color: #ffffff;
+        margin: 24px 0 0;
+        border: 1px $brand solid;
 
-        label{
-          display: block;
-          margin-bottom: 8px;
+        &:hover{
+          color: $brand;
+          background-color: $white;
+        }
+      }
 
-          .required{
-            color: #b8082a;
+      button.cancelTOTPBtn{
+        width: auto;
+        height: 40px;
+        padding: 12px 32px;
+        background-color: #333;
+        font-family: source-sans-pro, sans-serif;
+        font-size: 14px;
+        text-align: center;
+        color: #ffffff;
+        margin: 24px 0 0;
+        border: 1px #333 solid;
+
+        &:hover{
+          color: #333;
+          background-color: $white;
+        }
+      }
+
+      .username_wapper{
+        margin-bottom: 18px;
+      }
+
+      .input-error{
+        color: #b8082a;
+        display: block;
+        padding-top: 8px;
+        font-size: 16px;
+      }
+
+      .options_wrapper{
+        display: flex;
+        flex-direction: row;
+        margin-top: 18px;
+
+        #kc-form-options{
+          margin-right: 18px;
+
+          input#rememberMe{
+            width: auto;
+            height: auto;
           }
-        }
-
-        input{
-          width: 360px;
-          height: 24px;
-          color: #000000;
-          border: 1px solid #ccc;
-          outline: none;
-          background-color: #fff;
-          padding: 8px;
-
-          &:focus{
-            border: 1px solid $brand;
-          }
-        }
-
-        input[type="checkbox"]{
-          width: auto;
-          padding: 0;
-          height: auto;
-        }
-
-        .username_wapper{
-          margin-bottom: 18px;
-        }
-
-        .input-error{
-          color: #b8082a;
-          display: block;
-          padding-top: 8px;
-          font-size: 16px;
-        }
-
-        .options_wrapper{
-          display: flex;
-          flex-direction: row;
-          margin-top: 18px;
-
-          #kc-form-options{
-            margin-right: 18px;
-
-            input#rememberMe{
-              width: auto;
-              height: auto;
-            }
-            a{
-              color: $brand;
-            }
-          }
-
           a{
             color: $brand;
           }
@@ -162,9 +193,33 @@ header.header{
         a{
           color: $brand;
         }
+      }
 
-        // Buttons
-        .submit_btn{
+      a{
+        color: $brand;
+      }
+
+      // Buttons
+      .submit_btn{
+        width: auto;
+        height: 40px;
+        padding: 12px 32px;
+        background-color: $brand;
+        font-family: source-sans-pro, sans-serif;
+        font-size: 14px;
+        text-align: center;
+        color: #ffffff;
+        margin: 24px 0 0;
+        border: 1px $brand solid;
+
+        &:hover{
+          color: $brand;
+          background-color: $white;
+        }
+      }
+
+      #kc-form-buttons{
+        input{
           width: auto;
           height: 40px;
           padding: 12px 32px;
@@ -181,31 +236,12 @@ header.header{
             background-color: $white;
           }
         }
-
-        #kc-form-buttons{
-          input{
-            width: auto;
-            height: 40px;
-            padding: 12px 32px;
-            background-color: $brand;
-            font-family: source-sans-pro, sans-serif;
-            font-size: 14px;
-            text-align: center;
-            color: #ffffff;
-            margin: 24px 0 0;
-            border: 1px $brand solid;
-
-            &:hover{
-              color: $brand;
-              background-color: $white;
-            }
-          }
-        }
       }
-
     }
 
+  }
 }
+
 
 
 
