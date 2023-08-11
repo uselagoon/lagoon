@@ -2,7 +2,7 @@
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','password') displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??; section>
 
     <#if section = "form">
-    <div id="kc-form">
+    <div id="kc-form" class="kc-form">
       <div id="kc-form-wrapper">
         <#if section = "form">
             <h1>${msg("loginAccountTitle")}</h1>
@@ -18,7 +18,7 @@
                         />
 
                         <#if messagesPerField.existsError('username','password')>
-                            <span id="input-error" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
+                            <span id="input-error" class="input-error ${properties.kcInputErrorMessageClass!}" aria-live="polite">
                                     ${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}
                             </span>
                         </#if>
@@ -34,7 +34,7 @@
                     />
 
                     <#if usernameHidden?? && messagesPerField.existsError('username','password')>
-                        <span id="input-error" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
+                        <span id="input-error" class="input-error ${properties.kcInputErrorMessageClass!}" aria-live="polite">
                                 ${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}
                         </span>
                     </#if>
@@ -65,7 +65,7 @@
 
                   <div id="kc-form-buttons" class="${properties.kcFormGroupClass!}">
                       <input type="hidden" id="id-hidden-input" name="credentialId" <#if auth.selectedCredential?has_content>value="${auth.selectedCredential}"</#if>/>
-                      <input tabindex="4" class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
+                      <input tabindex="4" class="submit_btn ${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
                   </div>
             </form>
         </#if>

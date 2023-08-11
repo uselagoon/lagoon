@@ -25,12 +25,12 @@ header.header{
   background: linear-gradient(to right, rgba(36, 174, 196, 1) 0%, rgba(42, 109, 254, 1) 25%);
   display: flex;
   justify-content: space-between;
-  
+
   a{
     background: rgb(69, 120, 230);
     position: relative;
     padding: 10px 20px;
-    
+
     &:after{
       background: rgb(69, 120, 230);
       clip-path: polygon(0px 0px, 100% 0px, 0px 105%, 0px 100%);
@@ -42,13 +42,13 @@ header.header{
       top: 0px;
       width: 14px;
     }
-    
+
     img{
       display: block;
       height: 35px;
       width:auto;
     }
-  } 
+  }
 }
 
 
@@ -79,12 +79,12 @@ header.header{
     box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
     margin: auto;
 
-    #kc-form{
+    .kc-form{
       width:100%;
       padding: 32px;
 
       #kc-form-wrapper{
-        
+
         h1{
           color: $brand;
           font-size: 24px;
@@ -97,11 +97,11 @@ header.header{
           line-height: normal;
           letter-spacing: normal;
           font-family: source-sans-pro, sans-serif;
-        
+
           label{
             display: block;
             margin-bottom: 8px;
-        
+
             .required{
               color: #b8082a;
             }
@@ -125,13 +125,12 @@ header.header{
             margin-bottom: 18px;
           }
 
-          #input-error{
+          .input-error{
             color: #b8082a;
             display: block;
             padding-top: 8px;
             font-size: 16px;
           }
-
 
           .options_wrapper{
             display: flex;
@@ -140,10 +139,13 @@ header.header{
 
             #kc-form-options{
               margin-right: 153px;
-              
+
               input#rememberMe{
                 width: auto;
                 height: auto;
+              }
+              a{
+                color: $brand;
               }
             }
 
@@ -153,7 +155,7 @@ header.header{
           }
 
           // Buttons
-          #kc-form-buttons #kc-login{
+          .submit_btn{
             width: auto;
             height: 40px;
             padding: 12px 32px;
@@ -164,10 +166,30 @@ header.header{
             color: #ffffff;
             margin: 24px 0 0;
             border: 1px $brand solid;
-          
+
             &:hover{
               color: $brand;
               background-color: $white;
+            }
+          }
+
+          #kc-form-buttons{
+            input{
+              width: auto;
+              height: 40px;
+              padding: 12px 32px;
+              background-color: $brand;
+              font-family: source-sans-pro, sans-serif;
+              font-size: 14px;
+              text-align: center;
+              color: #ffffff;
+              margin: 24px 0 0;
+              border: 1px $brand solid;
+
+              &:hover{
+                color: $brand;
+                background-color: $white;
+              }
             }
           }
         }
@@ -177,4 +199,4 @@ header.header{
 }
 
 
-  
+

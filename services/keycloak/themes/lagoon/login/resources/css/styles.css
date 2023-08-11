@@ -71,15 +71,15 @@ header.header a img {
   box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
   margin: auto;
 }
-.login-content .box #kc-form {
+.login-content .box .kc-form {
   width: 100%;
   padding: 32px;
 }
-.login-content .box #kc-form #kc-form-wrapper h1 {
+.login-content .box .kc-form #kc-form-wrapper h1 {
   color: #4578E6;
   font-size: 24px;
 }
-.login-content .box #kc-form #kc-form-wrapper form {
+.login-content .box .kc-form #kc-form-wrapper form {
   margin: 24px 0 0;
   font-style: normal;
   font-stretch: normal;
@@ -87,14 +87,14 @@ header.header a img {
   letter-spacing: normal;
   font-family: source-sans-pro, sans-serif;
 }
-.login-content .box #kc-form #kc-form-wrapper form label {
+.login-content .box .kc-form #kc-form-wrapper form label {
   display: block;
   margin-bottom: 8px;
 }
-.login-content .box #kc-form #kc-form-wrapper form label .required {
+.login-content .box .kc-form #kc-form-wrapper form label .required {
   color: #b8082a;
 }
-.login-content .box #kc-form #kc-form-wrapper form input {
+.login-content .box .kc-form #kc-form-wrapper form input {
   width: 360px;
   height: 24px;
   color: #000000;
@@ -103,34 +103,37 @@ header.header a img {
   background-color: #fff;
   padding: 8px;
 }
-.login-content .box #kc-form #kc-form-wrapper form input:focus {
+.login-content .box .kc-form #kc-form-wrapper form input:focus {
   border: 1px solid #4578E6;
 }
-.login-content .box #kc-form #kc-form-wrapper form .username_wapper {
+.login-content .box .kc-form #kc-form-wrapper form .username_wapper {
   margin-bottom: 18px;
 }
-.login-content .box #kc-form #kc-form-wrapper form #input-error {
+.login-content .box .kc-form #kc-form-wrapper form .input-error {
   color: #b8082a;
   display: block;
   padding-top: 8px;
   font-size: 16px;
 }
-.login-content .box #kc-form #kc-form-wrapper form .options_wrapper {
+.login-content .box .kc-form #kc-form-wrapper form .options_wrapper {
   display: flex;
   flex-direction: row;
   margin-top: 18px;
 }
-.login-content .box #kc-form #kc-form-wrapper form .options_wrapper #kc-form-options {
+.login-content .box .kc-form #kc-form-wrapper form .options_wrapper #kc-form-options {
   margin-right: 153px;
 }
-.login-content .box #kc-form #kc-form-wrapper form .options_wrapper #kc-form-options input#rememberMe {
+.login-content .box .kc-form #kc-form-wrapper form .options_wrapper #kc-form-options input#rememberMe {
   width: auto;
   height: auto;
 }
-.login-content .box #kc-form #kc-form-wrapper form .options_wrapper a {
+.login-content .box .kc-form #kc-form-wrapper form .options_wrapper #kc-form-options a {
   color: #4578E6;
 }
-.login-content .box #kc-form #kc-form-wrapper form #kc-form-buttons #kc-login {
+.login-content .box .kc-form #kc-form-wrapper form .options_wrapper a {
+  color: #4578E6;
+}
+.login-content .box .kc-form #kc-form-wrapper form .submit_btn {
   width: auto;
   height: 40px;
   padding: 12px 32px;
@@ -142,7 +145,23 @@ header.header a img {
   margin: 24px 0 0;
   border: 1px #4578E6 solid;
 }
-.login-content .box #kc-form #kc-form-wrapper form #kc-form-buttons #kc-login:hover {
+.login-content .box .kc-form #kc-form-wrapper form .submit_btn:hover {
+  color: #4578E6;
+  background-color: #ffffff;
+}
+.login-content .box .kc-form #kc-form-wrapper form #kc-form-buttons input {
+  width: auto;
+  height: 40px;
+  padding: 12px 32px;
+  background-color: #4578E6;
+  font-family: source-sans-pro, sans-serif;
+  font-size: 14px;
+  text-align: center;
+  color: #ffffff;
+  margin: 24px 0 0;
+  border: 1px #4578E6 solid;
+}
+.login-content .box .kc-form #kc-form-wrapper form #kc-form-buttons input:hover {
   color: #4578E6;
   background-color: #ffffff;
 }/*# sourceMappingURL=styles.css.map */

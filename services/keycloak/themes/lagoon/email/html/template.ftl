@@ -263,6 +263,8 @@
 
       <div style="-webkit-hyphens: none; -moz-hyphens: none; hyphens: none; word-break: keep-all; font-family: Montserrat, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 21px; text-align: left; color: inherit;"><p class="body_text" style="-webkit-hyphens: none; -moz-hyphens: none; hyphens: none; word-break: keep-all;">
 
+<#--  keyclaok partials are injected here  -->
+
         <#nested>
 
       </p></div>
