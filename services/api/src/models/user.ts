@@ -42,6 +42,7 @@ interface UserModel {
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
+  transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
 }
 
 export class UsernameExistsError extends Error {
@@ -460,6 +461,7 @@ export const User = (clients: {
     getUserRolesForProject,
     addUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    transformKeycloakUsers
   };
 };
