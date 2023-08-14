@@ -374,7 +374,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
     project: '',
     event: 'api:getNotificationsByProjectId',
     payload: { id: pid, unformattedArgs },
-  });
+  }, 'user_query');
 
   const args = [
     R.over(
@@ -441,7 +441,7 @@ export const getNotificationsByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getNotificationsByOrganizationId',
     payload: { id: oid, unformattedArgs },
-  });
+  }, 'user_query');
 
   const args = [
     R.over(

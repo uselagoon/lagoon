@@ -31,7 +31,7 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getFactsByEnvironmentId',
     payload: { id: environmentId, keyFacts: keyFacts, limit: limit, summary: summary },
-  });
+  }, 'user_query');
 
   var rows = [];
   // If we're summarizing facts, we actually can't pass back fact ids, or limit
@@ -112,7 +112,7 @@ export const getFactReferencesByFactId: ResolverFn = async (
     project: '',
     event: 'api:getFactReferencesByFactId',
     payload:   { id: fid, args: args },
-  });
+  }, 'user_query');
 
   return R.sort(R.descend(R.prop('name')), rows);
 };
@@ -165,7 +165,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
     project: '',
     event: 'api:getProjectsByFactSearch',
     payload:   { input: input },
-  });
+  }, 'user_query');
 
   return { projects: rows, count };
 }
@@ -200,7 +200,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     project: '',
     event: 'api:getEnvironmentsByFactSearch',
     payload:   { input: input },
-  });
+  }, 'user_query');
 
   return { environments: rows, count };
 }

@@ -156,7 +156,7 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:userActivityLogger',
     payload: { id: oid, args: args },
-  });
+  }, 'user_query');
 
   return rows;
 };
@@ -184,7 +184,7 @@ export const getEnvironmentsByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getEnvironmentsByOrganizationId',
     payload: { id: oid, args: args },
-  });
+  }, 'user_query');
 
   return rows;
 };
@@ -254,7 +254,7 @@ export const getOrganizationById: ResolverFn = async (
       project: '',
       event: 'api:getOrganizationById',
       payload: { organization: organization, args: args },
-    });
+    }, 'user_query');
 
     return orgResult;
 };
@@ -290,7 +290,7 @@ export const getAllOrganizations: ResolverFn = async (
       project: '',
       event: 'api:getAllOrganizations',
       payload: { args: args },
-    });
+    }, 'user_query');
 
     return rows;
 };
@@ -312,7 +312,7 @@ export const getProjectsByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getProjectsByOrganizationId',
     payload: { id: oid, args: args },
-  });
+  }, 'user_query');
 
   return rows;
 };
@@ -338,7 +338,7 @@ export const getNotificationsForOrganizationProjectId: ResolverFn = async (
     project: '',
     event: 'api:getNotificationsForOrganizationProjectId',
     payload: { organization: organization, args: args },
-  });
+  }, 'user_query');
 
   return await notificationHelpers(sqlClientPool).selectNotificationsByProjectId({project: pid})
 };
@@ -358,7 +358,7 @@ export const getOwnersByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getOwnersByOrganizationId',
     payload: { id: oid, args: _input },
-  });
+  }, 'user_query');
 
   return orgUsers;
 };
@@ -379,7 +379,7 @@ export const getGroupsByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getGroupsByOrganizationId',
     payload: { id: oid, args: _input },
-  });
+  }, 'user_query');
 
   return orgGroups;
 };
@@ -398,7 +398,7 @@ export const getUsersByOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getUsersByOrganizationId',
     payload: { args: args },
-  });
+  }, 'user_query');
 
   const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(args.organization, keycloakGroups);
 
@@ -447,7 +447,7 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getUserByEmailAndOrganizationId',
     payload: { email: email, organization: organization },
-  });
+  }, 'user_query');
 
   try {
     const user = await models.UserModel.loadUserByUsername(email);
@@ -500,7 +500,7 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
       project: '',
       event: 'api:getGroupRolesByUserIdAndOrganization',
       payload: { id: uid, args: _input },
-    });
+    }, 'user_query');
 
     return groups;
   }
@@ -518,7 +518,7 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
     project: '',
     event: 'api:getGroupsByNameAndOrganizationId',
     payload: { name: name, organization: organization },
-  });
+  }, 'user_query');
 
   try {
     await hasPermission('organization', 'viewGroup', {
@@ -561,7 +561,7 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
     event: 'api:getGroupsByOrganizationsProject',
     user: user,
     payload: { id: pid, input: _input },
-  });
+  }, 'user_query');
 
   // if this user is an owner of an organization, then also display org based groups to this user
   // when listing project groups
@@ -680,7 +680,7 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
     project: '',
     event: 'api:getProjectGroupOrganizationAssociation',
     payload: { input: input },
-  });
+  }, 'user_query');
 
   return "success";
 };
@@ -918,7 +918,7 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
     project: '',
     event: 'api:getGroupProjectOrganizationAssociation',
     payload: { input: input },
-  });
+  }, 'user_query');
 
   return "success"
 };

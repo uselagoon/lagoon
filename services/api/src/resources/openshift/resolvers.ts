@@ -114,7 +114,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
     project: '',
     event: 'api:getOpenshiftByProjectId',
     payload: { id: pid, args: args },
-  });
+  }, 'user_query');
 
   return rows ? rows[0] : null;
 };
@@ -139,7 +139,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
     project: '',
     event: 'api:getOpenshiftByDeployTargetId',
     payload: { id: did, args: args },
-  });
+  }, 'user_query');
 
   return rows ? rows[0] : null;
 };
@@ -167,7 +167,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getOpenshiftByEnvironmentId',
     payload: { id: eid, args: args },
-  });
+  }, 'user_query');
 
   return rows ? rows[0] : null;
 };

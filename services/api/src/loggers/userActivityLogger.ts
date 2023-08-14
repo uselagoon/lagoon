@@ -6,6 +6,7 @@ export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
   user_auth: winston.LeveledLogMethod;
   user_action: winston.LeveledLogMethod;
+  user_query: winston.LeveledLogMethod;
 }
 export interface IUserReqHeader {
   'user-agent'?: string,
@@ -56,11 +57,13 @@ const { colors, levels } = {
     user_info: 1,
     user_auth: 2,
     user_action: 3,
+    user_query: 4,
   },
   colors: {
     user_info: 'cyan',
     user_auth: 'cyan',
     user_action: 'green',
+    user_query: 'green',
   }
 };
 
@@ -167,7 +170,7 @@ export const userActivityLogger: IUserActivityLogger = createLogger({
       json: true
     }),
     new LagoonLogsTransport({
-      level: 'user_action',
+      level: 'user_query',
       json: true
     })
   ]

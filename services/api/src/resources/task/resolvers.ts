@@ -74,7 +74,7 @@ export const getTaskLog: ResolverFn = async (
     project: '',
     event: 'api:getTaskLog',
     payload:   { remoteId: remoteId, environment: environment, id: id, status: status, args: _args },
-  });
+  }, 'user_query');
 
   try {
     // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
@@ -123,7 +123,7 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getTasksByEnvironmentId',
     payload: { id: filterId, taskName: taskName, limit: limit },
-  });
+  }, 'user_query');
 
   let queryBuilder = knex('task')
     .where('environment', eid)
@@ -177,7 +177,7 @@ export const getTaskByTaskName: ResolverFn = async (
     project: '',
     event: 'api:getTaskByTaskName',
     payload: { taskName: taskName },
-  });
+  }, 'user_query');
 
   return task;
 };
@@ -211,7 +211,7 @@ export const getTaskByRemoteId: ResolverFn = async (
     project: '',
     event: 'api:getTaskByRemoteId',
     payload: { id: id },
-  });
+  }, 'user_query');
 
   return task;
 };
@@ -245,7 +245,7 @@ export const getTaskById: ResolverFn = async (
     project: '',
     event: 'api:getTaskById',
     payload: { id: id },
-  });
+  }, 'user_query');
 
   return task;
 };

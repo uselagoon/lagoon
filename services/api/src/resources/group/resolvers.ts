@@ -55,7 +55,7 @@ export const getAllGroups: ResolverFn = async (
     project: '',
     event: 'api:getAllGroups',
     payload: { name: name, type: type },
-  });
+  }, 'user_query');
 
   if (name) {
     return R.filter(R.propEq('name', name), userGroups);
@@ -107,7 +107,7 @@ export const getGroupRolesByUserId: ResolverFn =async (
     project: '',
     event: 'api:getGroupRolesByUserId',
     payload: { id: uid, input: _input }
-  });
+  }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -163,7 +163,7 @@ export const getMembersByGroupId: ResolverFn = async (
       project: '',
       event: 'api:getMembersByGroupId',
       payload: { id: id, input: _input }
-    });
+    }, 'user_query');
 
     return members;
   } catch (err) {
@@ -189,7 +189,7 @@ export const getGroupsByProjectId: ResolverFn = async (
       project: '',
       event: 'api:getGroupsByProjectId',
       payload: { id: pid, input: _input }
-    });
+    }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -269,7 +269,7 @@ export const getGroupsByUserId: ResolverFn = async (
     project: '',
     event: 'api:getGroupsByUserId',
     payload: { id: uid, input: _input }
-  });
+  }, 'user_query');
 
   return currentUserGroups;
 };
@@ -312,7 +312,7 @@ export const getGroupByName: ResolverFn = async (
     project: '',
     event: 'api:getGroupByName',
     payload: { name: name }
-  });
+  }, 'user_query');
 
   return group;
 };
@@ -733,7 +733,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     project: '',
     event: 'api:getAllProjectsInGroup',
     payload: { input: groupInput },
-  });
+  }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {

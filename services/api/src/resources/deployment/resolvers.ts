@@ -163,7 +163,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
     payload: {
       bulkId: bulkId
     }
-  });
+  }, 'user_query');
 
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
@@ -224,7 +224,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
     payload: {
       input: input
     }
-  });
+  }, 'user_query');
 
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
@@ -265,7 +265,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
       name: name,
       limit: limit,
     }
-  });
+  }, 'user_query');
 
   return query(sqlClientPool, queryBuilder.toString());
 };
@@ -300,7 +300,7 @@ export const getDeploymentByRemoteId: ResolverFn = async (
     payload: {
       id: id,
     }
-  });
+  }, 'user_query');
 
   return deployment;
 };
@@ -340,7 +340,7 @@ export const getDeploymentByName: ResolverFn = async (
     payload: {
       input: { project: projectName, environment: environmentName, name },
     }
-  });
+  }, 'user_query');
 
   return deployment;
 };
@@ -367,7 +367,7 @@ export const getDeploymentUrl: ResolverFn = async (
       id: id, environment: environment,
       args: _args,
     }
-  });
+  }, 'user_query');
 
   return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
@@ -1299,7 +1299,7 @@ export const switchActiveStandby: ResolverFn = async (
     userActivityLogger(`User queried switchActiveStandby`, {
       event: 'api:switchActiveStandby',
       payload: { input: { project: projectInput } },
-    });
+    }, 'user_query');
 
     // return the task id and remote id
     var retData = {

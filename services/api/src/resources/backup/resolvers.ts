@@ -139,7 +139,7 @@ export const getRestoreLocation: ResolverFn = async (
       restore,
       args
     }
-  });
+  }, 'user_query');
 
   return restoreLocation;
 };
@@ -179,7 +179,7 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
       includeDeleted: includeDeleted,
       limit: limit
     }
-  });
+  }, 'user_query');
 
   return query(sqlClientPool, queryBuilder.toString());
 };
@@ -438,7 +438,7 @@ export const getRestoreByBackupId: ResolverFn = async (
       backupId: backupId,
       args: args,
     }
-  });
+  }, 'user_query');
 
   return R.prop(0, rows);
 };

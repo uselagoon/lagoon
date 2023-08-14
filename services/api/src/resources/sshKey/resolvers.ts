@@ -29,7 +29,7 @@ export const getUserSshKeys: ResolverFn = async (
     project: '',
     event: 'api:getUserSshKeys',
     payload:  { input: { id: userId, args: args } },
-  });
+  }, 'user_query');
 
   return query(sqlClientPool, Sql.selectSshKeysByUserId(userId));
 };

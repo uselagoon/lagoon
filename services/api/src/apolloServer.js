@@ -284,7 +284,7 @@ const apolloServer = new ApolloServer({
         hasPermission,
         keycloakGrant,
         requestCache,
-        userActivityLogger: (message, meta) => {
+        userActivityLogger: (message, meta, level = 'user_action') => {
           let defaultMeta = {
             user: req.kauth
               ? req.kauth.grant
@@ -293,7 +293,7 @@ const apolloServer = new ApolloServer({
               : null,
             headers: req.headers
           };
-          return userActivityLogger.user_action(message, {
+          return userActivityLogger.log(level, message, {
             ...defaultMeta,
             ...meta
           });
