@@ -41,7 +41,7 @@ export const getEnvironmentByName: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByName`, {
     event: 'api:getEnvironmentByName',
     payload: { input: { args: args } },
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -64,7 +64,7 @@ export const getEnvironmentById = async (
   userActivityLogger(`User queried getEnvironmentById`, {
     event: 'api:getEnvironmentById',
     payload: { input: { args: args } },
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -95,7 +95,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentsByProjectId`, {
     event: 'api:getEnvironmentsByProjectId',
     payload: { input: { project: project, args: args } },
-  });
+  }, 'user_query');
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
@@ -122,7 +122,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByDeploymentId`, {
     event: 'api:getEnvironmentByDeploymentId',
     payload: { id: deployment_id, args: args }
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -147,7 +147,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByTaskId`, {
     event: 'api:getEnvironmentByTaskId',
     payload: { id: task_id, args: args }
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -172,7 +172,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByBackupId`, {
     event: 'api:getEnvironmentByBackupId',
     payload: { id: backup_id, args: args }
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -189,7 +189,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentStorageByEnvironmentId`, {
     event: 'api:getEnvironmentStorageByEnvironmentId',
     payload: { id: eid, args: args }
-  });
+  }, 'user_query');
 
   return rows;
 };
@@ -204,7 +204,7 @@ export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentStorageMonthByEnvironmentId`, {
     event: 'api:getEnvironmentStorageMonthByEnvironmentId',
     payload: { id: eid, args: args }
-  });
+  }, 'user_query');
 
   return models.EnvironmentModel.environmentStorageMonthByEnvironmentId(
     eid,
@@ -222,7 +222,7 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentHoursMonthByEnvironmentId`, {
     event: 'api:getEnvironmentHoursMonthByEnvironmentId',
     payload: { id: eid, args: args }
-  });
+  }, 'user_query');
 
   return models.EnvironmentModel.environmentHoursMonthByEnvironmentId(
     eid,
@@ -244,7 +244,7 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentHitsMonthByEnvironmentId`, {
     event: 'api:getEnvironmentHitsMonthByEnvironmentId',
     payload: { id: id, openshiftProjectName: openshiftProjectName, args: args }
-  });
+  }, 'user_query');
 
   return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(
     projectName,
@@ -271,7 +271,7 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentServicesByEnvironmentId`, {
     event: 'api:getEnvironmentServicesByEnvironmentId',
     payload: { id: eid, args: args }
-  });
+  }, 'user_query');
 
   return rows;
 };
@@ -298,7 +298,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByOpenshiftProjectName`, {
     event: 'api:getEnvironmentByOpenshiftProjectName',
     payload: { args: args }
-  });
+  }, 'user_query');
 
   return environment;
 };
@@ -329,7 +329,7 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentsByKubernetes`, {
     event: 'api:getEnvironmentsByKubernetes',
     payload: { kubernetes, order, createdAfter, type }
-  });
+  }, 'user_query');
 
   let userProjectIds: number[];
   try {
@@ -780,7 +780,7 @@ export const getAllEnvironments: ResolverFn = async (
   userActivityLogger(`User queried getAllEnvironments`, {
     event: 'api:getAllEnvironments',
     payload: { createdAfter, type, order },
-  });
+  }, 'user_query');
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
@@ -867,7 +867,7 @@ export const userCanSshToEnvironment: ResolverFn = async (
       payload: {
         args
       }
-    });
+    }, 'user_query');
 
     return environment;
   } catch (err) {

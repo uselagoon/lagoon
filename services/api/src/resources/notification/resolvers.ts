@@ -298,7 +298,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
     project: '',
     event: 'api:getNotificationsByProjectId',
     payload: { id: pid, unformattedArgs },
-  });
+  }, 'user_query');
 
   const args = [
     R.over(

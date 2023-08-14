@@ -52,7 +52,7 @@ export const getUserBySshKey: ResolverFn = async (
     project: '',
     event: 'api:getUserBySshKey',
     payload: { sshKey: sshKey },
-  });
+  }, 'user_query');
 
   return user;
 };
@@ -72,7 +72,7 @@ export const getUserBySshFingerprint: ResolverFn = async (
     project: '',
     event: 'api:getUserBySshFingerprint',
     payload: { fingerprint: fingerprint },
-  });
+  }, 'user_query');
 
   try {
     const rows = await query(
@@ -99,7 +99,7 @@ export const getAllUsers: ResolverFn = async (
     project: '',
     event: 'api:getAllUsers',
     payload: { id: id, email: email, gitlabId: gitlabId },
-  });
+  }, 'user_query');
 
   const users = await models.UserModel.loadAllUsers();
   if (id) {
@@ -138,7 +138,7 @@ export const getUserByEmail: ResolverFn = async (
     project: '',
     event: 'api:getUserByEmail',
     payload: { email: email },
-  });
+  }, 'user_query');
 
   return user;
 };

@@ -24,7 +24,7 @@ export const getFilesByTaskId: ResolverFn = async (
     project: '',
     event: 'api:getFilesByTaskId',
     payload: { id: tid, args: _args },
-  });
+  }, 'user_query');
 
   return query(sqlClientPool, Sql.selectTaskFiles(tid))
 };

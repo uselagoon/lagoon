@@ -19,7 +19,7 @@ export const getEnvVarsByProjectId: ResolverFn = async (
   userActivityLogger(`User queried getEnvVarsByProjectId`, {
     event: 'api:getEnvVarsByProjectId',
     payload: { id: pid, args: args },
-  });
+  }, 'user_query');
 
   if (!adminScopes.projectViewAll) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
@@ -67,7 +67,7 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvVarsByEnvironmentId`, {
     event: 'api:getEnvVarsByEnvironmentId',
     payload: { id: eid, args: args },
-  });
+  }, 'user_query');
 
   if (!adminScopes.projectViewAll) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
@@ -406,7 +406,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   userActivityLogger(`User queried getEnvVariablesByProjectEnvironmentName`, {
     event: 'api:getEnvVariablesByProjectEnvironmentName',
     payload: { input: { project: projectName, environment: environmentName } },
-  });
+  }, 'user_query');
 
   if (environmentName) {
     // is environment

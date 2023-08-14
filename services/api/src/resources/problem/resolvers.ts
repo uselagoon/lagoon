@@ -17,7 +17,7 @@ export const getAllProblems: ResolverFn = async (
     project: '',
     event: 'api:getAllProblems',
     payload: { input: args },
-  });
+  }, 'user_query');
 
   try {
     if (!R.isEmpty(args)) {
@@ -96,7 +96,7 @@ export const getProblemSources: ResolverFn = async (
     project: '',
     event: 'api:getProblemSources',
     payload: { input: args },
-  });
+  }, 'user_query');
 
   return R.map(
     R.prop('source'),
@@ -126,7 +126,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getProblemsByEnvironmentId',
     payload: { id: environmentId, severity: severity, source: source },
-  });
+  }, 'user_query');
 
   let rows = await query(
     sqlClientPool,
@@ -302,7 +302,7 @@ export const getProblemHarborScanMatches: ResolverFn = async (
     project: '',
     event: 'api:getProblemHarborScanMatches',
     payload: { args: args },
-  });
+  }, 'user_query');
 
   return rows;
 };

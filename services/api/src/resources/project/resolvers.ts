@@ -41,7 +41,7 @@ export const getPrivateKey: ResolverFn = async (
       project: project,
       event: 'api:getPrivateKey',
       payload: { args: _args },
-    });
+    }, 'user_query');
 
     return project.privateKey;
   } catch (err) {
@@ -63,7 +63,7 @@ export const getProjectDeployKey: ResolverFn = async (
       project: project,
       event: 'api:getProjectDeployKey',
       payload: { args: _args },
-    });
+    }, 'user_query');
 
     return keyParts[0] + " " + keyParts[1]
   } catch (err) {
@@ -99,7 +99,7 @@ export const getAllProjects: ResolverFn = async (
     project: '',
     event: 'api:getAllProjects',
     payload:  { input: { order: order, createdAfter: createdAfter, gitUrl: gitUrl } },
-  });
+  }, 'user_query');
 
   let queryBuilder = knex('project');
 
@@ -144,7 +144,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getProjectByEnvironmentId',
     payload:  { input: { id: eid, args: args } },
-  });
+  }, 'user_query');
 
   return project;
 };
@@ -168,7 +168,7 @@ export const getProjectById: ResolverFn = async (
     project: pid,
     event: 'api:getProjectById',
     payload:  { input: { id: pid, args: args } },
-  });
+  }, 'user_query');
 
   return project;
 };
@@ -192,7 +192,7 @@ export const getProjectByGitUrl: ResolverFn = async (
     project: '',
     event: 'api:getProjectByGitUrl',
     payload:  { input: { args: args } },
-  });
+  }, 'user_query');
 
   return project;
 };
@@ -208,7 +208,7 @@ export const getProjectByName: ResolverFn = async (
     project: '',
     event: 'api:getProjectByName',
     payload:  { input: { args: args } },
-  });
+  }, 'user_query');
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
@@ -240,7 +240,7 @@ export const getProjectsByMetadata: ResolverFn = async (
       project: '',
       event: 'api:getProjectsByMetadata',
       payload:  { input: { args: metadata } },
-    });
+    }, 'user_query');
 
   } catch (err) {
     if (!keycloakGrant) {

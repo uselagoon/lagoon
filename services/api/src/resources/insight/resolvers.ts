@@ -81,7 +81,7 @@ export const getInsightsDownloadUrl: ResolverFn = async (
     project: '',
     event: 'api:getInsightsDownloadUrl',
     payload: { args: _args },
-  });
+  }, 'user_query');
 
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
@@ -105,7 +105,7 @@ export const getInsightsFileData: ResolverFn = async (
     project: '',
     event: 'api:getInsightsFileData',
     payload: { args: _args },
-  });
+  }, 'user_query');
 
   const environmentData = await environmentHelpers(
     sqlClientPool
@@ -144,7 +144,7 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getInsightsFilesByEnvironmentId',
     payload: { id: eid, name, limit },
-  });
+  }, 'user_query');
 
   const environmentData = await environmentHelpers(
     sqlClientPool
