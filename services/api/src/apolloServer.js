@@ -256,27 +256,30 @@ const apolloServer = new ApolloServer({
       try {
         await hasPermission("project","viewAll")
         projectViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("group","viewAll")
         groupViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("environment","viewAll")
         environmentViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("openshift","viewAll")
         deploytargetViewAll = true
       } catch(err) {
         // do nothing
       }
+      // try {
+      //   await hasPermission("group","viewAll")
+      //   groupViewAll = true
+      // } catch(err) {
+      //   // do nothing
+      // }
+      // try {
+      //   await hasPermission("environment","viewAll")
+      //   environmentViewAll = true
+      // } catch(err) {
+      //   // do nothing
+      // }
+      // try {
+      //   await hasPermission("openshift","viewAll")
+      //   deploytargetViewAll = true
+      // } catch(err) {
+      //   // do nothing
+      // }
 
       return {
         keycloakAdminClient,
