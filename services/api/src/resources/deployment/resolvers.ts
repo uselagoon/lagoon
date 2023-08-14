@@ -116,7 +116,7 @@ export const getBuildLog: ResolverFn = async (
 export const getDeploymentsByBulkId: ResolverFn = async (
   root,
   { bulkId },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
 ) => {
 
   /*
@@ -157,6 +157,14 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
+
+  userActivityLogger(`User queried getDeploymentsByBulkId`, {
+    event: 'api:getDeploymentsByBulkId',
+    payload: {
+      bulkId: bulkId
+    }
+  });
+
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -164,7 +172,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -210,6 +218,14 @@ export const getDeploymentsByFilter: ResolverFn = async (
   const queryBuilderString = queryBuilder.toString();
 
   const rows = await query(sqlClientPool, queryBuilderString);
+
+  userActivityLogger(`User queried getDeploymentsByFilter`, {
+    event: 'api:getDeploymentsByFilter',
+    payload: {
+      input: input
+    }
+  });
+
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -217,7 +233,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -242,13 +258,22 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     queryBuilder = queryBuilder.limit(limit);
   }
 
+  userActivityLogger(`User queried getDeploymentsByEnvironmentId`, {
+    event: 'api:getDeploymentsByEnvironmentId',
+    payload: {
+      id: eid,
+      name: name,
+      limit: limit,
+    }
+  });
+
   return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getDeploymentByRemoteId: ResolverFn = async (
   _root,
   { id },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const queryString = knex('deployment')
     .where('remote_id', '=', id)
@@ -270,13 +295,20 @@ export const getDeploymentByRemoteId: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  userActivityLogger(`User queried getDeploymentByRemoteId`, {
+    event: 'api:getDeploymentByRemoteId',
+    payload: {
+      id: id,
+    }
+  });
+
   return deployment;
 };
 
 export const getDeploymentByName: ResolverFn = async (
   _root,
   { input: { project: projectName, environment: environmentName, name } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
@@ -303,13 +335,20 @@ export const getDeploymentByName: ResolverFn = async (
     throw new Error('No deployment found');
   }
 
+  userActivityLogger(`User queried getDeploymentByName`, {
+    event: 'api:getDeploymentByName',
+    payload: {
+      input: { project: projectName, environment: environmentName, name },
+    }
+  });
+
   return deployment;
 };
 
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   const lagoonUiRoute = getLagoonRouteFromEnv(
     /\/ui-/,
@@ -321,6 +360,14 @@ export const getDeploymentUrl: ResolverFn = async (
   ).getProjectByEnvironmentId(environment);
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
+
+  userActivityLogger(`User queried getDeploymentUrl`, {
+    event: 'api:getDeploymentUrl',
+    payload: {
+      id: id, environment: environment,
+      args: _args,
+    }
+  });
 
   return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
@@ -1129,7 +1176,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1248,6 +1295,11 @@ export const switchActiveStandby: ResolverFn = async (
 
     // queue the task to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
+
+    userActivityLogger(`User queried switchActiveStandby`, {
+      event: 'api:switchActiveStandby',
+      payload: { input: { project: projectInput } },
+    });
 
     // return the task id and remote id
     var retData = {

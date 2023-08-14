@@ -24,7 +24,7 @@ export const getRestoreLocation: ResolverFn = async (
   context,
 ) => {
   const { restoreLocation, backupId } = restore;
-  const { sqlClientPool, hasPermission } = context;
+  const { sqlClientPool, hasPermission, userActivityLogger } = context;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
@@ -132,13 +132,22 @@ export const getRestoreLocation: ResolverFn = async (
     }
   }
 
+  userActivityLogger(`User queried getRestoreLocation`, {
+    project: '',
+    event: 'api:getRestoreLocation',
+    payload: {
+      restore,
+      args
+    }
+  });
+
   return restoreLocation;
 };
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { includeDeleted, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -162,6 +171,15 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
   if (limit) {
     queryBuilder = queryBuilder.limit(limit);
   }
+
+  userActivityLogger(`User queried getBackupsByEnvironmentId`, {
+    event: 'api:getBackupsByEnvironmentId',
+    payload: {
+      id: environmentId,
+      includeDeleted: includeDeleted,
+      limit: limit
+    }
+  });
 
   return query(sqlClientPool, queryBuilder.toString());
 };
@@ -242,7 +260,9 @@ export const deleteAllBackups: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateBackup());
 
-  userActivityLogger(`User deleted all backups`);
+  userActivityLogger(`User deleted all backups`, {
+    args: args
+  });
 
   // TODO: Check rows for success
   return 'success';
@@ -404,12 +424,21 @@ export const updateRestore: ResolverFn = async (
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );
+
+  userActivityLogger(`User queried getRestoreByBackupId`, {
+    project: '',
+    event: 'api:updateRestore',
+    payload: {
+      backupId: backupId,
+      args: args,
+    }
+  });
 
   return R.prop(0, rows);
 };

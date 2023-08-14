@@ -135,7 +135,7 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
 export const getDeployTargetsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // let oid = args.organization;
   if (args.organization) {
@@ -152,13 +152,19 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
       return null;
   }
 
+  userActivityLogger(`User queried userActivityLogger'`, {
+    project: '',
+    event: 'api:userActivityLogger',
+    payload: { id: oid, args: args },
+  });
+
   return rows;
 };
 
 export const getEnvironmentsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // let oid = args.organization;
   if (args.organization) {
@@ -173,6 +179,12 @@ export const getEnvironmentsByOrganizationId: ResolverFn = async (
   if (!rows) {
       return null;
   }
+
+  userActivityLogger(`User queried getEnvironmentsByOrganizationId'`, {
+    project: '',
+    event: 'api:getEnvironmentsByOrganizationId',
+    payload: { id: oid, args: args },
+  });
 
   return rows;
 };
@@ -220,7 +232,7 @@ export const updateOrganization: ResolverFn = async (
 export const getOrganizationById: ResolverFn = async (
     organization,
     args,
-    { sqlClientPool, hasPermission }
+    { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
     let oid = args.organization;
     if (organization) {
@@ -238,13 +250,19 @@ export const getOrganizationById: ResolverFn = async (
         return null;
     }
 
+    userActivityLogger(`User queried getOrganizationById'`, {
+      project: '',
+      event: 'api:getOrganizationById',
+      payload: { organization: organization, args: args },
+    });
+
     return orgResult;
 };
 
 export const getAllOrganizations: ResolverFn = async (
     root,
     args,
-    { sqlClientPool, models, hasPermission, keycloakGrant }
+    { sqlClientPool, models, hasPermission, keycloakGrant, userActivityLogger }
 ) => {
     let userOrganizationIds: number[];
 
@@ -267,6 +285,13 @@ export const getAllOrganizations: ResolverFn = async (
       queryBuilder = queryBuilder.whereIn('id', userOrganizationIds);
     }
     const rows = await query(sqlClientPool, queryBuilder.toString());
+
+    userActivityLogger(`User queried getAllOrganizations'`, {
+      project: '',
+      event: 'api:getAllOrganizations',
+      payload: { args: args },
+    });
+
     return rows;
 };
 
@@ -276,12 +301,19 @@ export const getAllOrganizations: ResolverFn = async (
 export const getProjectsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectOrganizationProjects(oid)
   );
+
+  userActivityLogger(`User queried getProjectsByOrganizationId'`, {
+    project: '',
+    event: 'api:getProjectsByOrganizationId',
+    payload: { id: oid, args: args },
+  });
+
   return rows;
 };
 
@@ -291,7 +323,7 @@ export const getProjectsByOrganizationId: ResolverFn = async (
 export const getNotificationsForOrganizationProjectId: ResolverFn = async (
   organization,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   let oid = args.organization;
   if (organization) {
@@ -302,6 +334,12 @@ export const getNotificationsForOrganizationProjectId: ResolverFn = async (
     pid = organization.id;
   }
 
+  userActivityLogger(`User queried getNotificationsForOrganizationProjectId'`, {
+    project: '',
+    event: 'api:getNotificationsForOrganizationProjectId',
+    payload: { organization: organization, args: args },
+  });
+
   return await notificationHelpers(sqlClientPool).selectNotificationsByProjectId({project: pid})
 };
 
@@ -309,12 +347,19 @@ export const getNotificationsForOrganizationProjectId: ResolverFn = async (
 export const getOwnersByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
 ) => {
   await hasPermission('organization', 'view', {
     organization: oid,
   });
   const orgUsers = await models.UserModel.loadUsersByOrganizationId(oid);
+
+  userActivityLogger(`User queried getOwnersByOrganizationId'`, {
+    project: '',
+    event: 'api:getOwnersByOrganizationId',
+    payload: { id: oid, args: _input },
+  });
+
   return orgUsers;
 };
 
@@ -322,13 +367,19 @@ export const getOwnersByOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, keycloakGrant, keycloakGroups, userActivityLogger }
 ) => {
   await hasPermission('organization', 'viewGroup', {
     organization: oid,
   });
 
   const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(oid, keycloakGroups);
+
+  userActivityLogger(`User queried getGroupsByOrganizationId'`, {
+    project: '',
+    event: 'api:getGroupsByOrganizationId',
+    payload: { id: oid, args: _input },
+  });
 
   return orgGroups;
 };
@@ -337,10 +388,16 @@ export const getGroupsByOrganizationId: ResolverFn = async (
 export const getUsersByOrganizationId: ResolverFn = async (
   _,
   args,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, keycloakGrant, keycloakGroups, userActivityLogger }
 ) => {
   await hasPermission('organization', 'viewUsers', {
     organization: args.organization,
+  });
+
+  userActivityLogger(`User queried getUsersByOrganizationId'`, {
+    project: '',
+    event: 'api:getUsersByOrganizationId',
+    payload: { args: args },
   });
 
   const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(args.organization, keycloakGroups);
@@ -382,9 +439,15 @@ export const getUsersByOrganizationId: ResolverFn = async (
 export const getUserByEmailAndOrganizationId: ResolverFn = async (
   _root,
   { email, organization},
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('organization', 'viewUser', organization);
+
+  userActivityLogger(`User queried getUserByEmailAndOrganizationId'`, {
+    project: '',
+    event: 'api:getUserByEmailAndOrganizationId',
+    payload: { email: email, organization: organization },
+  });
 
   try {
     const user = await models.UserModel.loadUserByUsername(email);
@@ -417,7 +480,7 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
 export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
   { id: uid, organization },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   if (organization) {
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
@@ -433,6 +496,12 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
       groups.push(group)
     }
 
+    userActivityLogger(`User queried getGroupRolesByUserIdAndOrganization'`, {
+      project: '',
+      event: 'api:getGroupRolesByUserIdAndOrganization',
+      payload: { id: uid, args: _input },
+    });
+
     return groups;
   }
   return null
@@ -442,8 +511,15 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
 export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   root,
   { name, organization },
-  { hasPermission, models, keycloakGrant }
+  { hasPermission, models, keycloakGrant, userActivityLogger }
 ) => {
+
+  userActivityLogger(`User queried getGroupsByNameAndOrganizationId'`, {
+    project: '',
+    event: 'api:getGroupsByNameAndOrganizationId',
+    payload: { name: name, organization: organization },
+  });
+
   try {
     await hasPermission('organization', 'viewGroup', {
       organization: organization,
@@ -468,7 +544,7 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
   if (adminScopes.projectViewAll) {
@@ -479,6 +555,14 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
   const user = await models.UserModel.loadUserById(
     keycloakGrant.access_token.content.sub
   );
+
+  userActivityLogger(`User queried getGroupsByOrganizationsProject'`, {
+    project: '',
+    event: 'api:getGroupsByOrganizationsProject',
+    user: user,
+    payload: { id: pid, input: _input },
+  });
+
   // if this user is an owner of an organization, then also display org based groups to this user
   // when listing project groups
   const userGroups = keycloakUsersGroups;
@@ -575,7 +659,7 @@ const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupName
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission, keycloakGroups }
+  { sqlClientPool, models, hasPermission, keycloakGroups, userActivityLogger }
 ) => {
   let pid = input.project;
   let oid = input.organization;
@@ -591,6 +675,12 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   // get all the groups the requested project is in
   const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
   await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
+
+  userActivityLogger(`User queried getProjectGroupOrganizationAssociation'`, {
+    project: '',
+    event: 'api:getProjectGroupOrganizationAssociation',
+    payload: { input: input },
+  });
 
   return "success";
 };
@@ -817,12 +907,18 @@ const checkOrgProjectGroup = async (sqlClientPool, input, models) => {
 export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
   await checkOrgProjectGroup(sqlClientPool, input, models)
+
+  userActivityLogger(`User queried getGroupProjectOrganizationAssociation'`, {
+    project: '',
+    event: 'api:getGroupProjectOrganizationAssociation',
+    payload: { input: input },
+  });
 
   return "success"
 };

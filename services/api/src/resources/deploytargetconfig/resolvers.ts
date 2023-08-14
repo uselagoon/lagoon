@@ -15,7 +15,7 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 export const getDeployTargetConfigById = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const deployTargetConfig = await Helpers(sqlClientPool).getDeployTargetConfigById(args.id);
 
@@ -30,13 +30,18 @@ export const getDeployTargetConfigById = async (
     project: deployTargetConfig.project
   });
 
+  userActivityLogger(`User queried getDeployTargetConfigById`, {
+    event: 'api:getDeployTargetConfigById',
+    payload: { input: args },
+  });
+
   return deployTargetConfig;
 };
 
 export const getDeployTargetConfigsByProjectId: ResolverFn = async (
     project,
     args,
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, userActivityLogger }
 ) => {
 
   let pid = args.project;
@@ -53,6 +58,11 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByProjectId(pid));
 
+  userActivityLogger(`User queried getDeployTargetConfigsByProjectId`, {
+    event: 'api:getDeployTargetConfigsByProjectId',
+    payload: { project: project, args: args },
+  });
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   return withK8s;
@@ -61,7 +71,7 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
 export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   let oid = args.deployTarget;
 
@@ -69,6 +79,11 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   await hasPermission('project', `viewAll`);
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByDeployTarget(oid));
+
+  userActivityLogger(`User queried getDeployTargetConfigsByDeployTarget`, {
+    event: 'api:getDeployTargetConfigsByDeployTarget',
+    payload: { args: args },
+  });
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;

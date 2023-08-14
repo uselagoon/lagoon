@@ -364,10 +364,16 @@ const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email', 'w
 export const getNotificationsByProjectId: ResolverFn = async (
   { id: pid },
   unformattedArgs,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('notification', 'view', {
     project: pid
+  });
+
+  userActivityLogger(`User queried getNotificationsByProjectId'`, {
+    project: '',
+    event: 'api:getNotificationsByProjectId',
+    payload: { id: pid, unformattedArgs },
   });
 
   const args = [
@@ -424,11 +430,17 @@ export const getNotificationsByProjectId: ResolverFn = async (
 export const getNotificationsByOrganizationId: ResolverFn = async (
   { id: oid },
   unformattedArgs,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   await hasPermission('organization', 'viewNotification', {
     organization: oid
+  });
+
+  userActivityLogger(`User queried getNotificationsByOrganizationId'`, {
+    project: '',
+    event: 'api:getNotificationsByOrganizationId',
+    payload: { id: oid, unformattedArgs },
   });
 
   const args = [

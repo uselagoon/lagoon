@@ -9,9 +9,15 @@ import { logger } from '../../loggers/logger';
 export const getAllProblems: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   let rows = [];
+
+  userActivityLogger(`User queried getAllProblems'`, {
+    project: '',
+    event: 'api:getAllProblems',
+    payload: { input: args },
+  });
 
   try {
     if (!R.isEmpty(args)) {
@@ -84,8 +90,14 @@ export const getSeverityOptions: ResolverFn = async (
 export const getProblemSources: ResolverFn = async (
   root,
   args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
+  userActivityLogger(`User queried getProblemSources'`, {
+    project: '',
+    event: 'api:getProblemSources',
+    payload: { input: args },
+  });
+
   return R.map(
     R.prop('source'),
     await query(
@@ -98,7 +110,7 @@ export const getProblemSources: ResolverFn = async (
 export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { severity, source },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -109,6 +121,12 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
       project: environment.project
     });
   }
+
+  userActivityLogger(`User queried getProblemsByEnvironmentId'`, {
+    project: '',
+    event: 'api:getProblemsByEnvironmentId',
+    payload: { id: environmentId, severity: severity, source: source },
+  });
 
   let rows = await query(
     sqlClientPool,
@@ -271,7 +289,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
 export const getProblemHarborScanMatches: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('harbor_scan_match', 'view', {});
 
@@ -279,6 +297,12 @@ export const getProblemHarborScanMatches: ResolverFn = async (
     sqlClientPool,
     Sql.selectAllProblemHarborScanMatches()
   );
+
+  userActivityLogger(`User queried getProblemHarborScanMatches'`, {
+    project: '',
+    event: 'api:getProblemHarborScanMatches',
+    payload: { args: args },
+  });
 
   return rows;
 };

@@ -17,8 +17,17 @@ export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
   _args,
-  { sqlClientPool }
-) => query(sqlClientPool, Sql.selectTaskFiles(tid));
+  { sqlClientPool, userActivityLogger }
+) => {
+
+  userActivityLogger(`User queried getFilesByTaskId'`, {
+    project: '',
+    event: 'api:getFilesByTaskId',
+    payload: { id: tid, args: _args },
+  });
+
+  return query(sqlClientPool, Sql.selectTaskFiles(tid))
+};
 
 export const uploadFilesForTask: ResolverFn = async (
   root,

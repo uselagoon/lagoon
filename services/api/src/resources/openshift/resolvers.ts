@@ -99,7 +99,7 @@ export const getAllOpenshifts: ResolverFn = async (
 export const getOpenshiftByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
 
   if (!adminScopes.openshiftViewAll) {
@@ -110,13 +110,19 @@ export const getOpenshiftByProjectId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByProjectId(pid));
 
+  userActivityLogger(`User queried getOpenshiftByProjectId'`, {
+    project: '',
+    event: 'api:getOpenshiftByProjectId',
+    payload: { id: pid, args: args },
+  });
+
   return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByDeployTargetId: ResolverFn = async (
   { id: did },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // get the project id for the deploytarget
   const projectrows = await query(sqlClientPool, Sql.selectProjectIdByDeployTargetId(did)
@@ -129,13 +135,19 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByDeployTargetId(did));
 
+  userActivityLogger(`User queried getOpenshiftByDeployTargetId'`, {
+    project: '',
+    event: 'api:getOpenshiftByDeployTargetId',
+    payload: { id: did, args: args },
+  });
+
   return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   // get the project id for the environment
   const project = await projectHelpers(
@@ -150,6 +162,12 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByEnvironmentId(eid));
+
+  userActivityLogger(`User queried getOpenshiftByEnvironmentId'`, {
+    project: '',
+    event: 'api:getOpenshiftByEnvironmentId',
+    payload: { id: eid, args: args },
+  });
 
   return rows ? rows[0] : null;
 };

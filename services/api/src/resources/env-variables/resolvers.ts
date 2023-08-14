@@ -12,9 +12,15 @@ import { logger } from '../../loggers/logger';
 export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission, adminScopes },
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger },
   info
 ) => {
+
+  userActivityLogger(`User queried getEnvVarsByProjectId`, {
+    event: 'api:getEnvVarsByProjectId',
+    payload: { id: pid, args: args },
+  });
+
   if (!adminScopes.projectViewAll) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
     if (index != -1) {
@@ -51,12 +57,17 @@ export const getEnvVarsByProjectId: ResolverFn = async (
 export const getEnvVarsByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission, adminScopes },
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger },
   info
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid)
+
+  userActivityLogger(`User queried getEnvVarsByEnvironmentId`, {
+    event: 'api:getEnvVarsByEnvironmentId',
+    payload: { id: eid, args: args },
+  });
 
   if (!adminScopes.projectViewAll) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
@@ -391,6 +402,11 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
   );
+
+  userActivityLogger(`User queried getEnvVariablesByProjectEnvironmentName`, {
+    event: 'api:getEnvVariablesByProjectEnvironmentName',
+    payload: { input: { project: projectName, environment: environmentName } },
+  });
 
   if (environmentName) {
     // is environment
