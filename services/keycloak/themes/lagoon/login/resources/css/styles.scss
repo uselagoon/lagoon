@@ -166,10 +166,10 @@ header.header{
         margin-bottom: 18px;
       }
 
-      .input-error{
+      .input-error, #input-error{
         color: #b8082a;
         display: block;
-        padding-top: 8px;
+        margin: 8px 0;
         font-size: 16px;
       }
 
@@ -235,6 +235,35 @@ header.header{
             color: $brand;
             background-color: $white;
           }
+        }
+      }
+    }
+
+    #kc-social-providers{
+
+      ul{
+        padding-left: 0;
+      }
+
+      li::marker{
+        content: '';
+      }
+
+      a{
+        width: auto;
+        height: 40px;
+        padding: 12px 32px;
+        background-color: $brand;
+        font-family: source-sans-pro, sans-serif;
+        font-size: 14px;
+        text-align: center;
+        color: #ffffff;
+        margin: 24px 0 0;
+        border: 1px $brand solid;
+
+        &:hover{
+          color: $brand;
+          background-color: $white;
         }
       }
     }
