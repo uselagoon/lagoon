@@ -46,7 +46,7 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
     group ? `${group}:` : ''
   }${scope}`;
 
-export const getRedisCache = async (resourceScope: IUserResourceScope) => {
+export const getRedisCache = async (resourceScope: IUserResourceScope): Promise<string> => {
   const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
   const key = hashKey(resourceScope);
 
@@ -55,14 +55,18 @@ export const getRedisCache = async (resourceScope: IUserResourceScope) => {
 
 export const saveRedisCache = async (
   resourceScope: IUserResourceScope,
-  value: number | string
+  value: string
 ) => {
   const key = hashKey(resourceScope);
-  await redisClient.hmset(
+  const timeout = getConfigFromEnv('CACHE_PERMISSION_TTL', '500');
+  redisClient.multi()
+  .hset(
     `cache:authz:${resourceScope.currentUserId}`,
     key,
     value
-  );
+  )
+  .expire(`cache:authz:${resourceScope.currentUserId}`, parseInt(timeout, 10))
+  .exec();
 };
 
 export const getRedisKeycloakCache = async (key: string) => {
