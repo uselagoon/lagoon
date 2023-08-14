@@ -65,7 +65,7 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
 export const getInsightsDownloadUrl: ResolverFn = async (
   { fileId, environment, file },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
 
   const environmentData = await environmentHelpers(
@@ -76,6 +76,12 @@ export const getInsightsDownloadUrl: ResolverFn = async (
   );
 
   let environmentName = getEnvironmentName(environmentData, projectData);
+
+  userActivityLogger(`User queried getInsightsDownloadUrl'`, {
+    project: '',
+    event: 'api:getInsightsDownloadUrl',
+    payload: { args: _args },
+  });
 
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
@@ -89,11 +95,17 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 export const getInsightsFileData: ResolverFn = async (
   { fileId, environment, file },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   if (!fileId) {
     return null;
   }
+
+  userActivityLogger(`User queried getInsightsFileData'`, {
+    project: '',
+    event: 'api:getInsightsFileData',
+    payload: { args: _args },
+  });
 
   const environmentData = await environmentHelpers(
     sqlClientPool
@@ -121,12 +133,18 @@ export const getInsightsFileData: ResolverFn = async (
 export const getInsightsFilesByEnvironmentId: ResolverFn = async (
   { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
 
   if (!eid) {
     throw "No Environment ID given.";
   }
+
+  userActivityLogger(`User queried getInsightsFilesByEnvironmentId'`, {
+    project: '',
+    event: 'api:getInsightsFilesByEnvironmentId',
+    payload: { id: eid, name, limit },
+  });
 
   const environmentData = await environmentHelpers(
     sqlClientPool

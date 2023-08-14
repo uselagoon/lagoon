@@ -26,7 +26,7 @@ class UserNotFoundError extends Error {
 export const getUserBySshKey: ResolverFn = async (
   _root,
   { sshKey },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'getBySshKey');
 
@@ -48,19 +48,32 @@ export const getUserBySshKey: ResolverFn = async (
 
   const user = await models.UserModel.loadUserById(userId);
 
+  userActivityLogger(`User queried getUserBySshKey`, {
+    project: '',
+    event: 'api:getUserBySshKey',
+    payload: { sshKey: sshKey },
+  });
+
   return user;
 };
 
 export const getUserBySshFingerprint: ResolverFn = async (
   _root,
   { fingerprint },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'getBySshKey');
 
   if(!fingerprint) {
     throw new SearchInputError("Malformed ssh key fingerprint provided");
   }
+
+  userActivityLogger(`User queried getUserBySshFingerprint`, {
+    project: '',
+    event: 'api:getUserBySshFingerprint',
+    payload: { fingerprint: fingerprint },
+  });
+
   try {
     const rows = await query(
       sqlClientPool,
@@ -78,9 +91,15 @@ export const getUserBySshFingerprint: ResolverFn = async (
 export const getAllUsers: ResolverFn = async (
   _root,
   { id, email, gitlabId },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'viewAll');
+
+  userActivityLogger(`User queried getAllUsers`, {
+    project: '',
+    event: 'api:getAllUsers',
+    payload: { id: id, email: email, gitlabId: gitlabId },
+  });
 
   const users = await models.UserModel.loadAllUsers();
   if (id) {
@@ -109,11 +128,17 @@ export const getAllUsers: ResolverFn = async (
 export const getUserByEmail: ResolverFn = async (
   _root,
   { email },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'viewAll');
 
   const user = await models.UserModel.loadUserByUsername(email);
+
+  userActivityLogger(`User queried getUserByEmail`, {
+    project: '',
+    event: 'api:getUserByEmail',
+    payload: { email: email },
+  });
 
   return user;
 };

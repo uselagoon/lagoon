@@ -11,7 +11,7 @@ import { KeycloakUnauthorizedError } from '../../util/auth';
 export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
-  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -46,12 +46,17 @@ export const getAllGroups: ResolverFn = async (
 
   const userGroups = await keycloakUsersGroups;
 
+  userActivityLogger(`User queried getAllGroups'`, {
+    project: '',
+    event: 'api:getAllGroups',
+    payload: { name: name, type: type },
+  });
+
   if (name) {
     return R.filter(R.propEq('name', name), userGroups);
   } else {
     return userGroups;
   }
-
 };
 
 // TODO: recursive lookups for groups in groups?
@@ -90,8 +95,15 @@ export const getGroupFromGroupsByName = async (id, groups) => {
 export const getGroupRolesByUserId: ResolverFn =async (
   { id: uid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
+
+  userActivityLogger(`User queried getGroupRolesByUserId'`, {
+    project: '',
+    event: 'api:getGroupRolesByUserId',
+    payload: { id: uid, input: _input }
+  });
+
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
     try {
@@ -120,13 +132,20 @@ export const getGroupRolesByUserId: ResolverFn =async (
 export const getMembersByGroupId: ResolverFn = async (
   { id },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, keycloakGrant, keycloakGroups, userActivityLogger }
 ) => {
   try {
     // members resolver is only called by group, no need to check the permissions on the group
     // as the group resolver will have already checked permission
     const group = await getGroupFromGroupsById(id, keycloakGroups);
     const members = await models.GroupModel.getGroupMembership(group);
+
+    userActivityLogger(`User queried getMembersByGroupId'`, {
+      project: '',
+      event: 'api:getMembersByGroupId',
+      payload: { id: id, input: _input }
+    });
+
     return members;
   } catch (err) {
     if (err instanceof KeycloakUnauthorizedError) {
@@ -144,8 +163,15 @@ export const getMembersByGroupId: ResolverFn = async (
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
+
+    userActivityLogger(`User queried getGroupsByProjectId'`, {
+      project: '',
+      event: 'api:getGroupsByProjectId',
+      payload: { id: pid, input: _input }
+    });
+
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
     try {
@@ -169,7 +195,7 @@ export const getGroupsByProjectId: ResolverFn = async (
 export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -187,13 +213,19 @@ export const getGroupsByUserId: ResolverFn = async (
   const currentUserGroups = keycloakUsersGroups;
   // const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
 
+  userActivityLogger(`User queried getGroupsByUserId'`, {
+    project: '',
+    event: 'api:getGroupsByUserId',
+    payload: { id: uid, input: _input }
+  });
+
   return currentUserGroups;
 };
 
 export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { models, hasPermission, keycloakGrant, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -223,6 +255,12 @@ export const getGroupByName: ResolverFn = async (
   if (R.isEmpty(group)) {
     throw new GroupNotFoundError(`Group not found: ${name}`);
   }
+
+  userActivityLogger(`User queried getGroupByName'`, {
+    project: '',
+    event: 'api:getGroupByName',
+    payload: { name: name }
+  });
 
   return group;
 };
@@ -544,11 +582,17 @@ export const getAllProjectsByGroupId: ResolverFn = async (
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClientPool, hasPermission, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { models, sqlClientPool, hasPermission, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
   } = models;
+
+  userActivityLogger(`User queried getAllProjectsInGroup'`, {
+    project: '',
+    event: 'api:getAllProjectsInGroup',
+    payload: { input: groupInput },
+  });
 
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -607,7 +651,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -654,6 +698,14 @@ export const removeGroupsFromProject: ResolverFn = async (
       `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
+
+  userActivityLogger(`User removed groups from a project`, {
+    project: project.id,
+    event: 'api:removeGroupsFromProject',
+    payload: {
+       input: { project: projectInput, groups: groupsInput },
+    }
+  });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

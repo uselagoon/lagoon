@@ -19,10 +19,16 @@ const sshKeyTypeToString = R.cond([
 export const getUserSshKeys: ResolverFn = async (
   { id: userId },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('ssh_key', 'view:user', {
     users: [userId]
+  });
+
+  userActivityLogger(`User queried getUserSshKeys'`, {
+    project: '',
+    event: 'api:getUserSshKeys',
+    payload:  { input: { id: userId, args: args } },
   });
 
   return query(sqlClientPool, Sql.selectSshKeysByUserId(userId));

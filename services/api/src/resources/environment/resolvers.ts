@@ -18,7 +18,7 @@ import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 export const getEnvironmentByName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   if (args.includeDeleted == undefined) {
@@ -38,13 +38,18 @@ export const getEnvironmentByName: ResolverFn = async (
     project: args.project
   });
 
+  userActivityLogger(`User queried getEnvironmentByName`, {
+    event: 'api:getEnvironmentByName',
+    payload: { input: { args: args } },
+  });
+
   return environment;
 };
 
 export const getEnvironmentById = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(args.id);
 
@@ -56,13 +61,18 @@ export const getEnvironmentById = async (
     project: environment.project
   });
 
+  userActivityLogger(`User queried getEnvironmentById`, {
+    event: 'api:getEnvironmentById',
+    payload: { input: { args: args } },
+  });
+
   return environment;
 };
 
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes }
+  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes, userActivityLogger }
 ) => {
   const { id: pid } = project;
 
@@ -82,6 +92,11 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(args.type, pid, args.includeDeleted, filterEnvironments, filteredEnvironments));
 
+  userActivityLogger(`User queried getEnvironmentsByProjectId`, {
+    event: 'api:getEnvironmentsByProjectId',
+    payload: { input: { project: project, args: args } },
+  });
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   return withK8s;
@@ -90,7 +105,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 export const getEnvironmentByDeploymentId: ResolverFn = async (
   { id: deployment_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByDeploymentId(deployment_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -104,13 +119,18 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
     project: environment.project
   });
 
+  userActivityLogger(`User queried getEnvironmentByDeploymentId`, {
+    event: 'api:getEnvironmentByDeploymentId',
+    payload: { id: deployment_id, args: args }
+  });
+
   return environment;
 };
 
 export const getEnvironmentByTaskId: ResolverFn = async (
   { id: task_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByTaskId(task_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -124,13 +144,18 @@ export const getEnvironmentByTaskId: ResolverFn = async (
     project: environment.project
   });
 
+  userActivityLogger(`User queried getEnvironmentByTaskId`, {
+    event: 'api:getEnvironmentByTaskId',
+    payload: { id: task_id, args: args }
+  });
+
   return environment;
 };
 
 export const getEnvironmentByBackupId: ResolverFn = async (
   { id: backup_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByBackupId(backup_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -144,17 +169,27 @@ export const getEnvironmentByBackupId: ResolverFn = async (
     project: environment.project
   });
 
+  userActivityLogger(`User queried getEnvironmentByBackupId`, {
+    event: 'api:getEnvironmentByBackupId',
+    payload: { id: backup_id, args: args }
+  });
+
   return environment;
 };
 
 export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'storage');
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
+
+  userActivityLogger(`User queried getEnvironmentStorageByEnvironmentId`, {
+    event: 'api:getEnvironmentStorageByEnvironmentId',
+    payload: { id: eid, args: args }
+  });
 
   return rows;
 };
@@ -162,9 +197,14 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
 export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { models, hasPermission }
+  { models, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'storage');
+
+  userActivityLogger(`User queried getEnvironmentStorageMonthByEnvironmentId`, {
+    event: 'api:getEnvironmentStorageMonthByEnvironmentId',
+    payload: { id: eid, args: args }
+  });
 
   return models.EnvironmentModel.environmentStorageMonthByEnvironmentId(
     eid,
@@ -175,9 +215,14 @@ export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
 export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { models, hasPermission }
+  { models, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'storage');
+
+  userActivityLogger(`User queried getEnvironmentHoursMonthByEnvironmentId`, {
+    event: 'api:getEnvironmentHoursMonthByEnvironmentId',
+    payload: { id: eid, args: args }
+  });
 
   return models.EnvironmentModel.environmentHoursMonthByEnvironmentId(
     eid,
@@ -188,13 +233,19 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
 export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   { id, openshiftProjectName },
   args,
-  { sqlClientPool, models, hasPermission }
+  { sqlClientPool, models, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'storage');
 
   const { name: projectName } = await projectHelpers(
     sqlClientPool
   ).getProjectByEnvironmentId(id);
+
+  userActivityLogger(`User queried getEnvironmentHitsMonthByEnvironmentId`, {
+    event: 'api:getEnvironmentHitsMonthByEnvironmentId',
+    payload: { id: id, openshiftProjectName: openshiftProjectName, args: args }
+  });
+
   return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(
     projectName,
     openshiftProjectName,
@@ -205,7 +256,7 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
 export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(eid);
   await hasPermission('environment', 'view', {
@@ -217,13 +268,18 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
     Sql.selectServicesByEnvironmentId(eid)
   );
 
+  userActivityLogger(`User queried getEnvironmentServicesByEnvironmentId`, {
+    event: 'api:getEnvironmentServicesByEnvironmentId',
+    payload: { id: eid, args: args }
+  });
+
   return rows;
 };
 
 export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByOpenshiftProjectName(args.openshiftProjectName));
@@ -237,6 +293,11 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
 
   await hasPermission('environment', 'view', {
     project: environment.project
+  });
+
+  userActivityLogger(`User queried getEnvironmentByOpenshiftProjectName`, {
+    event: 'api:getEnvironmentByOpenshiftProjectName',
+    payload: { args: args }
   });
 
   return environment;
@@ -259,11 +320,16 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const getEnvironmentsByKubernetes: ResolverFn = async (
   _,
   { kubernetes, order, createdAfter, type },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
 ) => {
   const openshift = await openshiftHelpers(
     sqlClientPool
   ).getOpenshiftByOpenshiftInput(kubernetes);
+
+  userActivityLogger(`User queried getEnvironmentsByKubernetes`, {
+    event: 'api:getEnvironmentsByKubernetes',
+    payload: { kubernetes, order, createdAfter, type }
+  });
 
   let userProjectIds: number[];
   try {
@@ -691,7 +757,7 @@ export const updateEnvironment: ResolverFn = async (
 export const getAllEnvironments: ResolverFn = async (
   root,
   { createdAfter, type, order },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'viewAll');
 
@@ -710,6 +776,12 @@ export const getAllEnvironments: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
+
+  userActivityLogger(`User queried getAllEnvironments`, {
+    event: 'api:getAllEnvironments',
+    payload: { createdAfter, type, order },
+  });
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -771,7 +843,7 @@ export const setEnvironmentServices: ResolverFn = async (
 export const userCanSshToEnvironment: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const openshiftProjectName =
     args.kubernetesNamespaceName || args.openshiftProjectName;
@@ -787,6 +859,14 @@ export const userCanSshToEnvironment: ResolverFn = async (
   try {
     await hasPermission('environment', `ssh:${environment.environmentType}`, {
       project: environment.project
+    });
+
+    userActivityLogger(`User queried userCanSshToEnvironment'`, {
+      project: '',
+      event: 'api:userCanSshToEnvironment',
+      payload: {
+        args
+      }
     });
 
     return environment;

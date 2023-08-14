@@ -47,7 +47,7 @@ const s3Client = new S3({
 export const getTaskLog: ResolverFn = async (
   { remoteId, environment, id, status },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   if (!remoteId) {
     return null;
@@ -70,6 +70,11 @@ export const getTaskLog: ResolverFn = async (
     environmentName = environmentName.concat('-' + hash)
   }
 
+  userActivityLogger(`User queried getTaskLog`, {
+    project: '',
+    event: 'api:getTaskLog',
+    payload:   { remoteId: remoteId, environment: environment, id: id, status: status, args: _args },
+  });
 
   try {
     // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
@@ -102,7 +107,7 @@ export const getTaskLog: ResolverFn = async (
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
   { id: filterId, taskName: taskName, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -113,6 +118,12 @@ export const getTasksByEnvironmentId: ResolverFn = async (
       project: environment.project
     });
   }
+
+  userActivityLogger(`User queried getTasksByEnvironmentId`, {
+    project: '',
+    event: 'api:getTasksByEnvironmentId',
+    payload: { id: filterId, taskName: taskName, limit: limit },
+  });
 
   let queryBuilder = knex('task')
     .where('environment', eid)
@@ -140,7 +151,7 @@ export const getTasksByEnvironmentId: ResolverFn = async (
 export const getTaskByTaskName: ResolverFn = async (
   root,
   { taskName },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const queryString = knex('task')
     .where('task_name', '=', taskName)
@@ -162,13 +173,19 @@ export const getTaskByTaskName: ResolverFn = async (
     });
   }
 
+  userActivityLogger(`User queried getTaskByTaskName`, {
+    project: '',
+    event: 'api:getTaskByTaskName',
+    payload: { taskName: taskName },
+  });
+
   return task;
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
   root,
   { id },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const queryString = knex('task')
     .where('remote_id', '=', id)
@@ -190,13 +207,19 @@ export const getTaskByRemoteId: ResolverFn = async (
     });
   }
 
+  userActivityLogger(`User queried getTaskByRemoteId`, {
+    project: '',
+    event: 'api:getTaskByRemoteId',
+    payload: { id: id },
+  });
+
   return task;
 };
 
 export const getTaskById: ResolverFn = async (
   root,
   { id },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const queryString = knex('task')
     .where('id', '=', id)
@@ -217,6 +240,12 @@ export const getTaskById: ResolverFn = async (
       project: R.path(['0', 'pid'], rowsPerms)
     });
   }
+
+  userActivityLogger(`User queried getTaskById`, {
+    project: '',
+    event: 'api:getTaskById',
+    payload: { id: id },
+  });
 
   return task;
 };

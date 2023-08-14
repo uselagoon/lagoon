@@ -30,11 +30,17 @@ const isValidGitUrl = value => {
 export const getPrivateKey: ResolverFn = async (
   project,
   _args,
-  { hasPermission }
+  { hasPermission, userActivityLogger }
 ) => {
   try {
     await hasPermission('project', 'viewPrivateKey', {
       project: project.id
+    });
+
+    userActivityLogger(`User queried getPrivateKey'`, {
+      project: project,
+      event: 'api:getPrivateKey',
+      payload: { args: _args },
     });
 
     return project.privateKey;
@@ -46,12 +52,19 @@ export const getPrivateKey: ResolverFn = async (
 export const getProjectDeployKey: ResolverFn = async (
   project,
   _args,
-  { hasPermission }
+  { hasPermission, userActivityLogger }
 ) => {
   try {
     const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
 
     const keyParts = privateKey.toPublic().toString().split(' ');
+
+    userActivityLogger(`User queried getProjectDeployKey'`, {
+      project: project,
+      event: 'api:getProjectDeployKey',
+      payload: { args: _args },
+    });
+
     return keyParts[0] + " " + keyParts[1]
   } catch (err) {
     return null;
@@ -61,7 +74,7 @@ export const getProjectDeployKey: ResolverFn = async (
 export const getAllProjects: ResolverFn = async (
   root,
   { order, createdAfter, gitUrl },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
 ) => {
   let userProjectIds: number[];
 
@@ -81,6 +94,12 @@ export const getAllProjects: ResolverFn = async (
     }, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
+
+  userActivityLogger(`User queried getAllProjects'`, {
+    project: '',
+    event: 'api:getAllProjects',
+    payload:  { input: { order: order, createdAfter: createdAfter, gitUrl: gitUrl } },
+  });
 
   let queryBuilder = knex('project');
 
@@ -109,7 +128,7 @@ export const getAllProjects: ResolverFn = async (
 export const getProjectByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
 
@@ -121,13 +140,19 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     project: project.id
   });
 
+  userActivityLogger(`User queried getProjectByEnvironmentId'`, {
+    project: '',
+    event: 'api:getProjectByEnvironmentId',
+    payload:  { input: { id: eid, args: args } },
+  });
+
   return project;
 };
 
 export const getProjectById: ResolverFn = async (
   { project: pid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectById(pid));
 
@@ -139,13 +164,19 @@ export const getProjectById: ResolverFn = async (
     project: project.id
   });
 
+  userActivityLogger(`User queried getProjectById'`, {
+    project: pid,
+    event: 'api:getProjectById',
+    payload:  { input: { id: pid, args: args } },
+  });
+
   return project;
 };
 
 export const getProjectByGitUrl: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByGitUrl(args.gitUrl));
 
@@ -157,15 +188,27 @@ export const getProjectByGitUrl: ResolverFn = async (
     project: project.id
   });
 
+  userActivityLogger(`User queried getProjectByGitUrl'`, {
+    project: '',
+    event: 'api:getProjectByGitUrl',
+    payload:  { input: { args: args } },
+  });
+
   return project;
 };
 
 export const getProjectByName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
+
+  userActivityLogger(`User queried getProjectByName'`, {
+    project: '',
+    event: 'api:getProjectByName',
+    payload:  { input: { args: args } },
+  });
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
@@ -184,7 +227,7 @@ export const getProjectByName: ResolverFn = async (
 export const getProjectsByMetadata: ResolverFn = async (
   root,
   { metadata },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups },
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, userActivityLogger },
   info
 ) => {
   let userProjectIds: number[];
@@ -192,6 +235,13 @@ export const getProjectsByMetadata: ResolverFn = async (
   try {
     // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
+
+    userActivityLogger(`User queried getProjectsByMetadata'`, {
+      project: '',
+      event: 'api:getProjectsByMetadata',
+      payload:  { input: { args: metadata } },
+    });
+
   } catch (err) {
     if (!keycloakGrant) {
       logger.debug('No grant available for getProjectsByMetadata');

@@ -15,7 +15,7 @@ import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { keyFacts, limit, summary },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -27,6 +27,11 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     });
   }
 
+  userActivityLogger(`User queried getFactsByEnvironmentId'`, {
+    project: '',
+    event: 'api:getFactsByEnvironmentId',
+    payload: { id: environmentId, keyFacts: keyFacts, limit: limit, summary: summary },
+  });
 
   var rows = [];
   // If we're summarizing facts, we actually can't pass back fact ids, or limit
@@ -96,12 +101,18 @@ const summarizeFacts = (rows) => {
 export const getFactReferencesByFactId: ResolverFn = async (
   { id: fid },
   args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectFactReferencesByFactId(fid)
   );
+
+  userActivityLogger(`User queried getFactReferencesByFactId'`, {
+    project: '',
+    event: 'api:getFactReferencesByFactId',
+    payload:   { id: fid, args: args },
+  });
 
   return R.sort(R.descend(R.prop('name')), rows);
 };
@@ -124,7 +135,7 @@ const getSqlPredicate = (predicate) => {
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes },
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes, userActivityLogger },
   info
 ) => {
 
@@ -140,13 +151,19 @@ export const getProjectsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
   const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
+  userActivityLogger(`User queried getProjectsByFactSearch'`, {
+    project: '',
+    event: 'api:getProjectsByFactSearch',
+    payload:   { input: input },
+  });
+
   return { projects: rows, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
 
   let userProjectIds: number[];
@@ -159,6 +176,12 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
   const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
+
+  userActivityLogger(`User queried getEnvironmentsByFactSearch'`, {
+    project: '',
+    event: 'api:getEnvironmentsByFactSearch',
+    payload:   { input: input },
+  });
 
   return { environments: rows, count };
 }
