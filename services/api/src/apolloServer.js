@@ -134,6 +134,7 @@ const plugin = createPlugin({
     // log to userActivity Logger
 
     context.userActivityLogger(`Apollo query`, {
+      project: '',
       event: 'api:apollo:request',
       payload: logdata,
     }, 'user_query');
