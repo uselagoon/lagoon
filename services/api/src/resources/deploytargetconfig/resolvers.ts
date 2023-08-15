@@ -253,7 +253,7 @@ export const deleteDeployTargetConfig: ResolverFn = async (
      // Not allowed to stop execution.
   }
 
-  userActivityLogger(`User deleted DeployTargetConfig'`, {
+  userActivityLogger(`User deleted DeployTargetConfig`, {
     project: '',
     event: 'api:deleteDeployTargetConfig',
     payload: {

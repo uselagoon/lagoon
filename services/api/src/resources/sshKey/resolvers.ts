@@ -25,7 +25,7 @@ export const getUserSshKeys: ResolverFn = async (
     users: [userId]
   });
 
-  userActivityLogger(`User queried getUserSshKeys'`, {
+  userActivityLogger(`User queried getUserSshKeys`, {
     project: '',
     event: 'api:getUserSshKeys',
     payload:  { input: { id: userId, args: args } },

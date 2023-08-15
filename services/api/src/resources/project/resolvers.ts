@@ -37,7 +37,7 @@ export const getPrivateKey: ResolverFn = async (
       project: project.id
     });
 
-    userActivityLogger(`User queried getPrivateKey'`, {
+    userActivityLogger(`User queried getPrivateKey`, {
       project: '',
       event: 'api:getPrivateKey',
       payload: { args: _args },
@@ -59,7 +59,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
     const keyParts = privateKey.toPublic().toString().split(' ');
 
-    userActivityLogger(`User queried getProjectDeployKey'`, {
+    userActivityLogger(`User queried getProjectDeployKey`, {
       project: '',
       event: 'api:getProjectDeployKey',
       payload: { args: _args },
@@ -95,7 +95,7 @@ export const getAllProjects: ResolverFn = async (
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  userActivityLogger(`User queried getAllProjects'`, {
+  userActivityLogger(`User queried getAllProjects`, {
     project: '',
     event: 'api:getAllProjects',
     payload:  { input: { order: order, createdAfter: createdAfter, gitUrl: gitUrl } },
@@ -140,7 +140,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     project: project.id
   });
 
-  userActivityLogger(`User queried getProjectByEnvironmentId'`, {
+  userActivityLogger(`User queried getProjectByEnvironmentId`, {
     project: '',
     event: 'api:getProjectByEnvironmentId',
     payload:  { input: { id: eid, args: args } },
@@ -164,7 +164,7 @@ export const getProjectById: ResolverFn = async (
     project: project.id
   });
 
-  userActivityLogger(`User queried getProjectById'`, {
+  userActivityLogger(`User queried getProjectById`, {
     project: '',
     event: 'api:getProjectById',
     payload:  { input: { id: pid, args: args } },
@@ -188,7 +188,7 @@ export const getProjectByGitUrl: ResolverFn = async (
     project: project.id
   });
 
-  userActivityLogger(`User queried getProjectByGitUrl'`, {
+  userActivityLogger(`User queried getProjectByGitUrl`, {
     project: '',
     event: 'api:getProjectByGitUrl',
     payload:  { input: { args: args } },
@@ -204,7 +204,7 @@ export const getProjectByName: ResolverFn = async (
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
 
-  userActivityLogger(`User queried getProjectByName'`, {
+  userActivityLogger(`User queried getProjectByName`, {
     project: '',
     event: 'api:getProjectByName',
     payload:  { input: { args: args } },
@@ -236,7 +236,7 @@ export const getProjectsByMetadata: ResolverFn = async (
     // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
 
-    userActivityLogger(`User queried getProjectsByMetadata'`, {
+    userActivityLogger(`User queried getProjectsByMetadata`, {
       project: '',
       event: 'api:getProjectsByMetadata',
       payload:  { input: { args: metadata } },

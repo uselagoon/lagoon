@@ -27,7 +27,7 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     });
   }
 
-  userActivityLogger(`User queried getFactsByEnvironmentId'`, {
+  userActivityLogger(`User queried getFactsByEnvironmentId`, {
     project: '',
     event: 'api:getFactsByEnvironmentId',
     payload: { id: environmentId, keyFacts: keyFacts, limit: limit, summary: summary },
@@ -108,7 +108,7 @@ export const getFactReferencesByFactId: ResolverFn = async (
     Sql.selectFactReferencesByFactId(fid)
   );
 
-  userActivityLogger(`User queried getFactReferencesByFactId'`, {
+  userActivityLogger(`User queried getFactReferencesByFactId`, {
     project: '',
     event: 'api:getFactReferencesByFactId',
     payload:   { id: fid, args: args },
@@ -151,7 +151,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
   const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
-  userActivityLogger(`User queried getProjectsByFactSearch'`, {
+  userActivityLogger(`User queried getProjectsByFactSearch`, {
     project: '',
     event: 'api:getProjectsByFactSearch',
     payload:   { input: input },
@@ -177,7 +177,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
   const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
-  userActivityLogger(`User queried getEnvironmentsByFactSearch'`, {
+  userActivityLogger(`User queried getEnvironmentsByFactSearch`, {
     project: '',
     event: 'api:getEnvironmentsByFactSearch',
     payload:   { input: input },
@@ -310,7 +310,7 @@ export const addFacts: ResolverFn = async (
 ) => {
   const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
-  userActivityLogger(`User added facts to environment'`, {
+  userActivityLogger(`User added facts to environment`, {
     project: '',
     event: 'api:addFacts',
     payload: {

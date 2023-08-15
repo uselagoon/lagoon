@@ -13,7 +13,7 @@ export const getAllProblems: ResolverFn = async (
 ) => {
   let rows = [];
 
-  userActivityLogger(`User queried getAllProblems'`, {
+  userActivityLogger(`User queried getAllProblems`, {
     project: '',
     event: 'api:getAllProblems',
     payload: { input: args },
@@ -92,7 +92,7 @@ export const getProblemSources: ResolverFn = async (
   args,
   { sqlClientPool, userActivityLogger }
 ) => {
-  userActivityLogger(`User queried getProblemSources'`, {
+  userActivityLogger(`User queried getProblemSources`, {
     project: '',
     event: 'api:getProblemSources',
     payload: { input: args },
@@ -122,7 +122,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     });
   }
 
-  userActivityLogger(`User queried getProblemsByEnvironmentId'`, {
+  userActivityLogger(`User queried getProblemsByEnvironmentId`, {
     project: '',
     event: 'api:getProblemsByEnvironmentId',
     payload: { id: environmentId, severity: severity, source: source },
@@ -298,7 +298,7 @@ export const getProblemHarborScanMatches: ResolverFn = async (
     Sql.selectAllProblemHarborScanMatches()
   );
 
-  userActivityLogger(`User queried getProblemHarborScanMatches'`, {
+  userActivityLogger(`User queried getProblemHarborScanMatches`, {
     project: '',
     event: 'api:getProblemHarborScanMatches',
     payload: { args: args },

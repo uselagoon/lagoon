@@ -46,7 +46,7 @@ export const getAllGroups: ResolverFn = async (
 
   const userGroups = await keycloakUsersGroups;
 
-  userActivityLogger(`User queried getAllGroups'`, {
+  userActivityLogger(`User queried getAllGroups`, {
     project: '',
     event: 'api:getAllGroups',
     payload: { name: name, type: type },
@@ -98,7 +98,7 @@ export const getGroupRolesByUserId: ResolverFn =async (
   { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
 
-  userActivityLogger(`User queried getGroupRolesByUserId'`, {
+  userActivityLogger(`User queried getGroupRolesByUserId`, {
     project: '',
     event: 'api:getGroupRolesByUserId',
     payload: { id: uid, input: _input }
@@ -140,7 +140,7 @@ export const getMembersByGroupId: ResolverFn = async (
     const group = await getGroupFromGroupsById(id, keycloakGroups);
     const members = await models.GroupModel.getGroupMembership(group);
 
-    userActivityLogger(`User queried getMembersByGroupId'`, {
+    userActivityLogger(`User queried getMembersByGroupId`, {
       project: '',
       event: 'api:getMembersByGroupId',
       payload: { id: id, input: _input }
@@ -166,7 +166,7 @@ export const getGroupsByProjectId: ResolverFn = async (
   { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes, userActivityLogger }
 ) => {
 
-    userActivityLogger(`User queried getGroupsByProjectId'`, {
+    userActivityLogger(`User queried getGroupsByProjectId`, {
       project: '',
       event: 'api:getGroupsByProjectId',
       payload: { id: pid, input: _input }
@@ -213,7 +213,7 @@ export const getGroupsByUserId: ResolverFn = async (
   const currentUserGroups = keycloakUsersGroups;
   // const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
 
-  userActivityLogger(`User queried getGroupsByUserId'`, {
+  userActivityLogger(`User queried getGroupsByUserId`, {
     project: '',
     event: 'api:getGroupsByUserId',
     payload: { id: uid, input: _input }
@@ -256,7 +256,7 @@ export const getGroupByName: ResolverFn = async (
     throw new GroupNotFoundError(`Group not found: ${name}`);
   }
 
-  userActivityLogger(`User queried getGroupByName'`, {
+  userActivityLogger(`User queried getGroupByName`, {
     project: '',
     event: 'api:getGroupByName',
     payload: { name: name }
@@ -588,7 +588,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
   } = models;
 
-  userActivityLogger(`User queried getAllProjectsInGroup'`, {
+  userActivityLogger(`User queried getAllProjectsInGroup`, {
     project: '',
     event: 'api:getAllProjectsInGroup',
     payload: { input: groupInput },

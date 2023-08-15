@@ -809,7 +809,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateEnvironment());
 
-  userActivityLogger(`User deleted all environments'`, {
+  userActivityLogger(`User deleted all environments`, {
     project: '',
     event: 'api:deleteAllEnvironments',
     payload: {

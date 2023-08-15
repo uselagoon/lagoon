@@ -77,7 +77,7 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 
   let environmentName = getEnvironmentName(environmentData, projectData);
 
-  userActivityLogger(`User queried getInsightsDownloadUrl'`, {
+  userActivityLogger(`User queried getInsightsDownloadUrl`, {
     project: '',
     event: 'api:getInsightsDownloadUrl',
     payload: { args: _args },
@@ -101,7 +101,7 @@ export const getInsightsFileData: ResolverFn = async (
     return null;
   }
 
-  userActivityLogger(`User queried getInsightsFileData'`, {
+  userActivityLogger(`User queried getInsightsFileData`, {
     project: '',
     event: 'api:getInsightsFileData',
     payload: { args: _args },
@@ -140,7 +140,7 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
     throw "No Environment ID given.";
   }
 
-  userActivityLogger(`User queried getInsightsFilesByEnvironmentId'`, {
+  userActivityLogger(`User queried getInsightsFilesByEnvironmentId`, {
     project: '',
     event: 'api:getInsightsFilesByEnvironmentId',
     payload: { id: eid, name, limit },

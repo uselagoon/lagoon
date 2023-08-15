@@ -110,7 +110,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByProjectId(pid));
 
-  userActivityLogger(`User queried getOpenshiftByProjectId'`, {
+  userActivityLogger(`User queried getOpenshiftByProjectId`, {
     project: '',
     event: 'api:getOpenshiftByProjectId',
     payload: { id: pid, args: args },
@@ -135,7 +135,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByDeployTargetId(did));
 
-  userActivityLogger(`User queried getOpenshiftByDeployTargetId'`, {
+  userActivityLogger(`User queried getOpenshiftByDeployTargetId`, {
     project: '',
     event: 'api:getOpenshiftByDeployTargetId',
     payload: { id: did, args: args },
@@ -163,7 +163,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByEnvironmentId(eid));
 
-  userActivityLogger(`User queried getOpenshiftByEnvironmentId'`, {
+  userActivityLogger(`User queried getOpenshiftByEnvironmentId`, {
     project: '',
     event: 'api:getOpenshiftByEnvironmentId',
     payload: { id: eid, args: args },
