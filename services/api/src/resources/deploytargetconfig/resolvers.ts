@@ -30,6 +30,7 @@ export const getDeployTargetConfigById = async (
   });
 
   userActivityLogger(`User queried getDeployTargetConfigById`, {
+    project: '',
     event: 'api:getDeployTargetConfigById',
     payload: { input: args },
   }, 'user_query');
@@ -58,6 +59,7 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByProjectId(pid));
 
   userActivityLogger(`User queried getDeployTargetConfigsByProjectId`, {
+    project: '',
     event: 'api:getDeployTargetConfigsByProjectId',
     payload: { project: project, args: args },
   }, 'user_query');
@@ -80,6 +82,7 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByDeployTarget(oid));
 
   userActivityLogger(`User queried getDeployTargetConfigsByDeployTarget`, {
+    project: '',
     event: 'api:getDeployTargetConfigsByDeployTarget',
     payload: { args: args },
   }, 'user_query');

@@ -39,6 +39,7 @@ export const getEnvironmentByName: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getEnvironmentByName`, {
+    project: '',
     event: 'api:getEnvironmentByName',
     payload: { input: { args: args } },
   }, 'user_query');
@@ -62,6 +63,7 @@ export const getEnvironmentById = async (
   });
 
   userActivityLogger(`User queried getEnvironmentById`, {
+    project: '',
     event: 'api:getEnvironmentById',
     payload: { input: { args: args } },
   }, 'user_query');
@@ -93,6 +95,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(args.type, pid, args.includeDeleted, filterEnvironments, filteredEnvironments));
 
   userActivityLogger(`User queried getEnvironmentsByProjectId`, {
+    project: '',
     event: 'api:getEnvironmentsByProjectId',
     payload: { input: { project: project, args: args } },
   }, 'user_query');
@@ -120,6 +123,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getEnvironmentByDeploymentId`, {
+    project: '',
     event: 'api:getEnvironmentByDeploymentId',
     payload: { id: deployment_id, args: args }
   }, 'user_query');
@@ -145,6 +149,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getEnvironmentByTaskId`, {
+    project: '',
     event: 'api:getEnvironmentByTaskId',
     payload: { id: task_id, args: args }
   }, 'user_query');
@@ -170,6 +175,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getEnvironmentByBackupId`, {
+    project: '',
     event: 'api:getEnvironmentByBackupId',
     payload: { id: backup_id, args: args }
   }, 'user_query');
@@ -187,6 +193,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
 
   userActivityLogger(`User queried getEnvironmentStorageByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvironmentStorageByEnvironmentId',
     payload: { id: eid, args: args }
   }, 'user_query');
@@ -202,6 +209,7 @@ export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
   await hasPermission('environment', 'storage');
 
   userActivityLogger(`User queried getEnvironmentStorageMonthByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvironmentStorageMonthByEnvironmentId',
     payload: { id: eid, args: args }
   }, 'user_query');
@@ -220,6 +228,7 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
   await hasPermission('environment', 'storage');
 
   userActivityLogger(`User queried getEnvironmentHoursMonthByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvironmentHoursMonthByEnvironmentId',
     payload: { id: eid, args: args }
   }, 'user_query');
@@ -242,6 +251,7 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   ).getProjectByEnvironmentId(id);
 
   userActivityLogger(`User queried getEnvironmentHitsMonthByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvironmentHitsMonthByEnvironmentId',
     payload: { id: id, openshiftProjectName: openshiftProjectName, args: args }
   }, 'user_query');
@@ -269,6 +279,7 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   );
 
   userActivityLogger(`User queried getEnvironmentServicesByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvironmentServicesByEnvironmentId',
     payload: { id: eid, args: args }
   }, 'user_query');
@@ -296,6 +307,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getEnvironmentByOpenshiftProjectName`, {
+    project: '',
     event: 'api:getEnvironmentByOpenshiftProjectName',
     payload: { args: args }
   }, 'user_query');
@@ -327,6 +339,7 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
   ).getOpenshiftByOpenshiftInput(kubernetes);
 
   userActivityLogger(`User queried getEnvironmentsByKubernetes`, {
+    project: '',
     event: 'api:getEnvironmentsByKubernetes',
     payload: { kubernetes, order, createdAfter, type }
   }, 'user_query');
@@ -778,6 +791,7 @@ export const getAllEnvironments: ResolverFn = async (
   const rows = await query(sqlClientPool, queryBuilder.toString());
 
   userActivityLogger(`User queried getAllEnvironments`, {
+    project: '',
     event: 'api:getAllEnvironments',
     payload: { createdAfter, type, order },
   }, 'user_query');

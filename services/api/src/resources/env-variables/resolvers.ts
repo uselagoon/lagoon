@@ -17,6 +17,7 @@ export const getEnvVarsByProjectId: ResolverFn = async (
 ) => {
 
   userActivityLogger(`User queried getEnvVarsByProjectId`, {
+    project: '',
     event: 'api:getEnvVarsByProjectId',
     payload: { id: pid, args: args },
   }, 'user_query');
@@ -65,6 +66,7 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
   ).getEnvironmentById(eid)
 
   userActivityLogger(`User queried getEnvVarsByEnvironmentId`, {
+    project: '',
     event: 'api:getEnvVarsByEnvironmentId',
     payload: { id: eid, args: args },
   }, 'user_query');
@@ -404,6 +406,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   );
 
   userActivityLogger(`User queried getEnvVariablesByProjectEnvironmentName`, {
+    project: '',
     event: 'api:getEnvVariablesByProjectEnvironmentName',
     payload: { input: { project: projectName, environment: environmentName } },
   }, 'user_query');

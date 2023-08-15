@@ -173,6 +173,7 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
   }
 
   userActivityLogger(`User queried getBackupsByEnvironmentId`, {
+    project: '',
     event: 'api:getBackupsByEnvironmentId',
     payload: {
       id: environmentId,

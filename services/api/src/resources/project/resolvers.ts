@@ -38,7 +38,7 @@ export const getPrivateKey: ResolverFn = async (
     });
 
     userActivityLogger(`User queried getPrivateKey'`, {
-      project: project,
+      project: '',
       event: 'api:getPrivateKey',
       payload: { args: _args },
     }, 'user_query');
@@ -60,7 +60,7 @@ export const getProjectDeployKey: ResolverFn = async (
     const keyParts = privateKey.toPublic().toString().split(' ');
 
     userActivityLogger(`User queried getProjectDeployKey'`, {
-      project: project,
+      project: '',
       event: 'api:getProjectDeployKey',
       payload: { args: _args },
     }, 'user_query');
@@ -165,7 +165,7 @@ export const getProjectById: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getProjectById'`, {
-    project: pid,
+    project: '',
     event: 'api:getProjectById',
     payload:  { input: { id: pid, args: args } },
   }, 'user_query');

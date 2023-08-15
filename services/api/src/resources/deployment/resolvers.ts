@@ -159,6 +159,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   const rows = await query(sqlClientPool, queryBuilder.toString());
 
   userActivityLogger(`User queried getDeploymentsByBulkId`, {
+    project: '',
     event: 'api:getDeploymentsByBulkId',
     payload: {
       bulkId: bulkId
@@ -222,6 +223,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
   const rows = await query(sqlClientPool, queryBuilderString);
 
   userActivityLogger(`User queried getDeploymentsByFilter`, {
+    project: '',
     event: 'api:getDeploymentsByFilter',
     payload: {
       input: input
@@ -261,6 +263,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
   }
 
   userActivityLogger(`User queried getDeploymentsByEnvironmentId`, {
+    project: '',
     event: 'api:getDeploymentsByEnvironmentId',
     payload: {
       id: eid,
@@ -298,6 +301,7 @@ export const getDeploymentByRemoteId: ResolverFn = async (
   });
 
   userActivityLogger(`User queried getDeploymentByRemoteId`, {
+    project: '',
     event: 'api:getDeploymentByRemoteId',
     payload: {
       id: id,
@@ -338,6 +342,7 @@ export const getDeploymentByName: ResolverFn = async (
   }
 
   userActivityLogger(`User queried getDeploymentByName`, {
+    project: '',
     event: 'api:getDeploymentByName',
     payload: {
       input: { project: projectName, environment: environmentName, name },
@@ -364,6 +369,7 @@ export const getDeploymentUrl: ResolverFn = async (
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
   userActivityLogger(`User queried getDeploymentUrl`, {
+    project: '',
     event: 'api:getDeploymentUrl',
     payload: {
       id: id, environment: environment,
@@ -1299,6 +1305,7 @@ export const switchActiveStandby: ResolverFn = async (
     await createMiscTask({ key: 'route:migrate', data });
 
     userActivityLogger(`User queried switchActiveStandby`, {
+      project: '',
       event: 'api:switchActiveStandby',
       payload: { input: { project: projectInput } },
     }, 'user_query');
