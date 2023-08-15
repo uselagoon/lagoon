@@ -126,16 +126,19 @@ const plugin = createPlugin({
       operationName: operationName,
       querySize: query ? query.length : 0,
       queryHash: doHash(query),
-      user: `${userEmail}`,
       query: doB64(query),
       variableSize: variablesString.length,
       variables: doB64(variablesString),
     };
 
-    // output to stdout
-    console.log(logdata);
+    // log to userActivity Logger
 
-    return { lagoonUser: logdata.user, lagoonQueryHash: logdata.queryHash };
+    context.userActivityLogger(`Apollo query`, {
+      event: 'api:apollo:request',
+      payload: logdata,
+    }, 'user_query');
+
+    return { lagoonUser: userEmail, lagoonQueryHash: logdata.queryHash };
   }
 })
 
