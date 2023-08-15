@@ -96,7 +96,7 @@ pipeline {
             sh script: "cat test-suite-1.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-1.txt"
           }
         }
-        stage ('push arm64 images to testlagoon/*') {
+        stage ('push all images to testlagoon/*') {
           when {
             not {
               environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
@@ -108,7 +108,7 @@ pipeline {
           steps {
             retry(3) {
               sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-              sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+              sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
             }
           }
         }
