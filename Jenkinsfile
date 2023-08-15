@@ -72,8 +72,10 @@ pipeline {
             PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
           }
           steps {
-            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-            sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            retry(3) {
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            }
           }
         }
       }
@@ -104,8 +106,10 @@ pipeline {
             PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
           }
           steps {
-            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-            sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            retry(3) {
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            }
           }
         }
       }
