@@ -127,7 +127,7 @@ const plugin = createPlugin({
       querySize: query ? query.length : 0,
       queryHash: doHash(query),
       query: doB64(query),
-      variableSize: variablesString.length,
+      variableSize: variablesString ? variablesString.length : 0,
       variables: doB64(variablesString),
     };
 
