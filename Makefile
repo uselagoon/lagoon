@@ -287,7 +287,7 @@ broker-up: build/broker-single
 #######
 
 .PHONY: publish-testlagoon-images
-publish-testlagoon-images
+publish-testlagoon-images:
 	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
