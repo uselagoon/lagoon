@@ -94,6 +94,20 @@ pipeline {
             sh script: "cat test-suite-1.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-1.txt"
           }
         }
+        stage ('push arm64 images to testlagoon/*') {
+          when {
+            not {
+              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+            }
+          }
+          environment {
+            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+          }
+          steps {
+            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+            sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+          }
+        }
       }
     }
     stage ('run second test suite') {
@@ -112,20 +126,6 @@ pipeline {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true", label: "Collecting test-suite-2 logs"
             }
             sh script: "cat test-suite-2.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-2.txt"
-          }
-        }
-        stage ('push arm64 images to testlagoon/*') {
-          when {
-            not {
-              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
-            }
-          }
-          environment {
-            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
-          }
-          steps {
-            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-            sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
           }
         }
       }
