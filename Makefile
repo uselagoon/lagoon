@@ -66,6 +66,8 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' | cut -c 1-128)
 
+PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
+
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
@@ -285,15 +287,15 @@ broker-up: build/broker-single
 #######
 
 .PHONY: publish-testlagoon-images
-publish-testlagoon-images:
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+publish-testlagoon-images
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
 
 .PHONY: publish-uselagoon-images
 publish-uselagoon-images:
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 .PHONY: clean
 clean:
