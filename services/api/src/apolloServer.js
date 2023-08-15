@@ -31,6 +31,9 @@ const User = require('./models/user');
 const Group = require('./models/group');
 const ProjectModel = require('./models/project');
 const EnvironmentModel = require('./models/environment');
+const crypto = require('crypto');
+
+const createPlugin = require('@newrelic/apollo-server-plugin');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -69,8 +72,7 @@ const getGrantOrLegacyCredsFromToken = async token => {
         const username = preferred_username ? preferred_username : 'unknown';
 
         userActivityLogger.user_auth(
-          `Authentication granted for '${username} (${
-            email ? email : 'unknown'
+          `Authentication granted for '${username} (${email ? email : 'unknown'
           })' from '${source}'`,
           { user: grant ? grant.access_token.content : null }
         );
@@ -91,6 +93,54 @@ const getGrantOrLegacyCredsFromToken = async token => {
     };
   }
 };
+
+const plugin = createPlugin({
+  customOperationAttributes: (req) => {
+
+    const doB64 = (data) => (new Buffer(data)).toString('base64');
+
+    const doHash = (data) => crypto.createHash('md5').update(data).digest("hex");
+
+    const { context } = req;
+    const user = context.keycloakGrant ? context.keycloakGrant :
+      context.legacyCredentials
+        ? context.legacyCredentials
+        : null;
+
+    let preferredUsername = null;
+    let userEmail = null;
+
+    if (context.keycloakGrant && context.keycloakGrant.access_token) {
+      preferredUsername = context.keycloakGrant.access_token.content.preferred_username;
+      userEmail = context.keycloakGrant.access_token.content.email;
+    } else if (context.legacyCredentials) {
+      preferredUsername = context.legacyCredentials.username;
+      userEmail = context.legacyCredentials.email;
+    }
+
+    const { query, operationName, variables } = req.request;
+
+    const variablesString = JSON.stringify(variables);
+
+    const logdata = {
+      operationName: operationName,
+      querySize: query ? query.length : 0,
+      queryHash: doHash(query),
+      query: doB64(query),
+      variableSize: variablesString.length,
+      variables: doB64(variablesString),
+    };
+
+    // log to userActivity Logger
+
+    context.userActivityLogger(`Apollo query`, {
+      event: 'api:apollo:request',
+      payload: logdata,
+    }, 'user_query');
+
+    return { lagoonUser: userEmail, lagoonQueryHash: logdata.queryHash };
+  }
+})
 
 const apolloServer = new ApolloServer({
   schema,
@@ -247,19 +297,19 @@ const apolloServer = new ApolloServer({
       // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
       // this eliminates a huge number of these by making it available in the apollo context
       const hasPermission = req.kauth
-          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
-          : legacyHasPermission(req.legacyCredentials)
+        ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+        : legacyHasPermission(req.legacyCredentials)
       let projectViewAll = false
       let groupViewAll = false
       let environmentViewAll = false
       let deploytargetViewAll = false
       try {
-        await hasPermission("project","viewAll")
+        await hasPermission("project", "viewAll")
         projectViewAll = true
         groupViewAll = true
         environmentViewAll = true
         deploytargetViewAll = true
-      } catch(err) {
+      } catch (err) {
         // do nothing
       }
       // try {
@@ -287,13 +337,19 @@ const apolloServer = new ApolloServer({
         hasPermission,
         keycloakGrant,
         requestCache,
+        legacyCredentials: req.legacyCredentials ? req.legacyCredentials : null,
+        user: req.kauth
+          ? req.kauth.grant
+          : req.legacyCredentials
+            ? req.legacyCredentials
+            : null,
         userActivityLogger: (message, meta, level = 'user_action') => {
           let defaultMeta = {
             user: req.kauth
               ? req.kauth.grant
               : req.legacyCredentials
-              ? req.legacyCredentials
-              : null,
+                ? req.legacyCredentials
+                : null,
             headers: req.headers
           };
           return userActivityLogger.log(level, message, {
@@ -359,46 +415,47 @@ const apolloServer = new ApolloServer({
         }
       })
     },
+    plugin
     // newrelic instrumentation plugin. Based heavily on https://github.com/essaji/apollo-newrelic-extension-plus
-    {
-      requestDidStart({ request }) {
-        const operationName = R.prop('operationName', request);
-        const queryString = R.prop('query', request);
-        const variables = R.prop('variables', request);
+    // {
+    //   requestDidStart({ request }) {
+    //     const operationName = R.prop('operationName', request);
+    //     const queryString = R.prop('query', request);
+    //     const variables = R.prop('variables', request);
 
-        const queryObject = gql`
-          ${queryString}
-        `;
-        const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
-          (init, q, idx) =>
-            idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
-          ''
-        );
+    //     const queryObject = gql`
+    //       ${queryString}
+    //     `;
+    //     const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
+    //       (init, q, idx) =>
+    //         idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
+    //       ''
+    //     );
 
-        // operationName is set by the client and optional. rootFieldName is
-        // set by the API type defs.
-        // operationName would be "getHighCottonProjectId" and rootFieldName
-        // would be "getProjectByName" with a query like:
-        // query getHighCottonProjectId { getProjectByName(name: "high-cotton") { id } }
-        const transactionName = operationName ? operationName : rootFieldName;
-        newrelic.setTransactionName(`graphql (${transactionName})`);
-        newrelic.addCustomAttribute('gqlQuery', queryString);
-        newrelic.addCustomAttribute('gqlVars', JSON.stringify(variables));
+    //     // operationName is set by the client and optional. rootFieldName is
+    //     // set by the API type defs.
+    //     // operationName would be "getHighCottonProjectId" and rootFieldName
+    //     // would be "getProjectByName" with a query like:
+    //     // query getHighCottonProjectId { getProjectByName(name: "high-cotton") { id } }
+    //     const transactionName = operationName ? operationName : rootFieldName;
+    //     newrelic.setTransactionName(`graphql (${transactionName})`);
+    //     newrelic.addCustomAttribute('gqlQuery', queryString);
+    //     newrelic.addCustomAttribute('gqlVars', JSON.stringify(variables));
 
-        return {
-          willSendResponse: data => {
-            const { response } = data;
-            newrelic.addCustomAttribute(
-              'errorCount',
-              R.pipe(
-                R.propOr([], 'errors'),
-                R.length
-              )(response)
-            );
-          }
-        };
-      }
-    }
+    //     return {
+    //       willSendResponse: data => {
+    //         const { response } = data;
+    //         newrelic.addCustomAttribute(
+    //           'errorCount',
+    //           R.pipe(
+    //             R.propOr([], 'errors'),
+    //             R.length
+    //           )(response)
+    //         );
+    //       }
+    //     };
+    //   }
+    // }
   ]
 });
 
