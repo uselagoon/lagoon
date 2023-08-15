@@ -125,10 +125,10 @@ const plugin = createPlugin({
     const logdata = {
       operationName: operationName,
       querySize: query ? query.length : 0,
-      queryHash: doHash(query),
+      queryHash: doHash(query ? query : ""),
       query: doB64(query),
       variableSize: variablesString ? variablesString.length : 0,
-      variables: doB64(variablesString),
+      variables: doB64(variablesString ? variablesString : ""),
     };
 
     // log to userActivity Logger
