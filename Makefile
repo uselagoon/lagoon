@@ -172,14 +172,16 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-build/auth-server build/logs2notifications build/backup-handler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
+build/backup-handler: services/backup-handler/Dockerfile
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
+build/logs2notifications: services/logs2notifications/Dockerfile
 build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
