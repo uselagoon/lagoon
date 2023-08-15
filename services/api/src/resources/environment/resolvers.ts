@@ -177,7 +177,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentByBackupId`, {
     project: '',
     event: 'api:getEnvironmentByBackupId',
-    payload: { id: backup_id, args: args }
+    payload: { id: backup_id }
   }, 'user_query');
 
   return environment;
@@ -195,7 +195,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentStorageByEnvironmentId`, {
     project: '',
     event: 'api:getEnvironmentStorageByEnvironmentId',
-    payload: { id: eid, args: args }
+    payload: { id: eid }
   }, 'user_query');
 
   return rows;
