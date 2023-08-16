@@ -876,7 +876,7 @@ export const addGroupToOrganization: ResolverFn = async (
 export const removeUserFromOrganizationGroups: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organizationInput } },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  { models, sqlClientPool, hasPermission, keycloakGroups, userActivityLogger }
 ) => {
 
   if (R.isEmpty(userInput)) {
@@ -898,7 +898,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   await hasPermission('organization', 'removeGroup', {
     organization: organizationInput,
   });
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(organizationInput);
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(organizationInput, keycloakGroups);
 
   // iterate through groups and remove the user
   let groupsRemoved = []
