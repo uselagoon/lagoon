@@ -841,7 +841,6 @@ export const Group = (clients: {
   ): Promise<void> => {
     for (const g in groups) {
       const group = groups[g]
-
       const members = await getGroupMembership(group);
       const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
 
@@ -857,16 +856,16 @@ export const Group = (clients: {
           throw new Error(`Could not remove user from group: ${err.message}`);
         }
       }
+    }
 
-      const allGroups = await loadAllGroups();
-      const keycloakGroups = await transformKeycloakGroups(allGroups);
-      const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-      try {
-        // then attempt to save it to redis
-        await saveRedisKeycloakCache("allgroups", data);
-      } catch (err) {
-        logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-      }
+    const allGroups = await loadAllGroups();
+    const keycloakGroups = await transformKeycloakGroups(allGroups);
+    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
+    try {
+      // then attempt to save it to redis
+      await saveRedisKeycloakCache("allgroups", data);
+    } catch (err) {
+      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
   };
 
