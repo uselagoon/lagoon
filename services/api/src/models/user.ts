@@ -8,6 +8,7 @@ import { Group, isRoleSubgroup } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { Sql } from '../resources/user/sql';
+import { getConfigFromEnv } from '../util/config';
 
 interface IUserAttributes {
   comment?: [string];
@@ -49,9 +50,10 @@ interface UserModel {
     projectId: number,
     userGroups: Group[]
   ) => Promise<string[]>;
-  addUser: (userInput: User) => Promise<User>;
+  addUser: (userInput: User, resetPassword?: Boolean) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
+  resetUserPassword: (id: string) => Promise<void>;
 }
 
 interface AttributeFilterFn {
@@ -288,22 +290,10 @@ export const User = (clients: {
       return false;
     };
 
-    let userIds = []
-    const keycloakUsers = await keycloakAdminClient.users.find();
-    // @ts-ignore
-    userIds = R.pluck('id', keycloakUsers);
+    const keycloakUsers = await keycloakAdminClient.users.find({briefRepresentation: false, max: -1});
 
-    let fullUsers = [];
-    for (const id of userIds) {
-      const fullUser = await keycloakAdminClient.users.findOne({
-        id
-      });
-
-      fullUsers = [...fullUsers, fullUser];
-    }
-
-    let filteredOwners = filterUsersByAttribute(fullUsers, ownerFilter);
-    let filteredViewers = filterUsersByAttribute(fullUsers, viewerFilter);
+    let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
+    let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
       filteredOwners[f1].owner = true
     }
@@ -472,7 +462,7 @@ export const User = (clients: {
     return R.uniq(roles);
   };
 
-  const addUser = async (userInput: User): Promise<User> => {
+  const addUser = async (userInput: User, resetPassword?: Boolean): Promise<User> => {
     let response: { id: string };
     try {
       response = await keycloakAdminClient.users.create({
@@ -500,6 +490,16 @@ export const User = (clients: {
     // If user has been created with a gitlabid, we map that ID to the user in Keycloak
     if (R.prop('gitlabId', userInput)) {
       await linkUserToGitlab(user, R.prop('gitlabId', userInput));
+    }
+
+    if (resetPassword) {
+      await keycloakAdminClient.users.executeActionsEmail({
+        id: user.id,
+        lifespan: 43200,
+        actions: ["UPDATE_PASSWORD"],
+        clientId: "lagoon-ui",
+        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
+      });
     }
 
     return {
@@ -534,6 +534,24 @@ export const User = (clients: {
     )(user);
   }
 
+  const resetUserPassword = async (id: string): Promise<void> => {
+    try {
+      await keycloakAdminClient.users.executeActionsEmail({
+        id: id,
+        lifespan: 43200,
+        actions: ["UPDATE_PASSWORD"],
+        clientId: "lagoon-ui",
+        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
+      });
+    } catch (err) {
+      if (err.response.status && err.response.status === 404) {
+        throw new UserNotFoundError(`User not found: ${id}`);
+      } else {
+        throw new Error(`Error updating Keycloak user: ${err.message}`);
+      }
+    }
+  };
+
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // comments used to be removed when updating a user, now they aren't
     let organizations = null;
@@ -549,17 +567,18 @@ export const User = (clients: {
       }
       // set the organization if provided
       if (R.prop('organization', userInput)) {
+        // owner is an option, default is view
         if (R.prop('remove', userInput)) {
           organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
           organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
-        }
-        // owner is an option, default is view
-        if (R.prop('owner', userInput)) {
-          organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
         } else {
-          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          if (R.prop('owner', userInput)) {
+            organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+            organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          } else {
+            organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+            organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          }
         }
       }
 
@@ -661,6 +680,7 @@ export const User = (clients: {
     getUserRolesForProject,
     addUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    resetUserPassword
   };
 };

@@ -136,7 +136,8 @@ export const Group = (clients: {
         type: attributeKVOrNull('type', keycloakGroup),
         path: keycloakGroup.path,
         attributes: keycloakGroup.attributes,
-        subGroups: keycloakGroup.subGroups
+        subGroups: keycloakGroup.subGroups,
+        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup)),
       })
     );
 
@@ -344,6 +345,25 @@ export const Group = (clients: {
       return null
     }
 
+  };
+
+  // used by organization resolver to list all groups attached to the organization
+  const loadGroupsByOrganizationIdFromGroups = async (organizationId: number, groups: Group[]): Promise<Group[]> => {
+    const filterFn = attribute => {
+      if (attribute.name === 'lagoon-organization') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+    const filteredGroups = filterGroupsByAttribute(groups, filterFn);
+
+    const fullGroups = await transformKeycloakGroups(filteredGroups);
+
+    return fullGroups;
   };
 
   // Recursive function to load membership "up" the group chain
@@ -766,6 +786,90 @@ export const Group = (clients: {
     }
   };
 
+  // helper to remove project from groups
+  const removeProjectFromGroups = async (
+    projectId: number,
+    groups: Group[]
+  ): Promise<void> => {
+    for (const g in groups) {
+      const group = groups[g]
+      const groupProjectIds = getProjectIdsFromGroup(group)
+      const newGroupProjects = R.pipe(
+        R.without([projectId]),
+        R.uniq,
+        R.join(',')
+        // @ts-ignore
+      )(groupProjectIds);
+
+      try {
+        await keycloakAdminClient.groups.update(
+          {
+            id: group.id
+          },
+          {
+            name: group.name,
+            attributes: {
+              ...group.attributes,
+              'lagoon-projects': [newGroupProjects],
+              'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
+            }
+          }
+        );
+      } catch (err) {
+        throw new Error(
+          `Error setting projects for group ${group.name}: ${err.message}`
+        );
+      }
+    }
+
+    // once the project is remove from the groups, update the cache
+    const allGroups = await loadAllGroups();
+    const keycloakGroups = await transformKeycloakGroups(allGroups);
+    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
+    try {
+      // then attempt to save it to redis
+      await saveRedisKeycloakCache("allgroups", data);
+    } catch (err) {
+      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    }
+  };
+
+  // helper to remove all non default-users from project
+  const removeNonProjectDefaultUsersFromGroup = async (
+    group: Group,
+    project: String,
+  ): Promise<Group> => {
+    const members = await getGroupMembership(group);
+
+    for (const u in members) {
+      if (members[u].user.email != "default-user@"+project) {
+        try {
+          await keycloakAdminClient.users.delFromGroup({
+            // @ts-ignore
+            id: members[u].user.id,
+            // @ts-ignore
+            groupId: members[u].roleSubgroupId
+          });
+        } catch (err) {
+          throw new Error(`Could not remove user from group: ${err.message}`);
+        }
+      }
+    }
+
+    // once the users are removed from the group, update the cache
+    const allGroups = await loadAllGroups();
+    const keycloakGroups = await transformKeycloakGroups(allGroups);
+    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
+    try {
+      // then attempt to save it to redis
+      await saveRedisKeycloakCache("allgroups", data);
+    } catch (err) {
+      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    }
+
+    return await loadGroupById(group.id);
+  };
+
   return {
     loadAllGroups,
     loadGroupById,
@@ -775,6 +879,7 @@ export const Group = (clients: {
     loadGroupsByAttribute,
     loadGroupsByProjectId,
     loadGroupsByOrganizationId,
+    loadGroupsByOrganizationIdFromGroups,
     loadGroupsByProjectIdFromGroups,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,
@@ -785,7 +890,9 @@ export const Group = (clients: {
     removeUserFromGroup,
     addProjectToGroup,
     removeProjectFromGroup,
+    removeProjectFromGroups,
     transformKeycloakGroups,
-    getGroupMembership
+    getGroupMembership,
+    removeNonProjectDefaultUsersFromGroup
   };
 };

@@ -71,6 +71,7 @@ function configure_lagoon_realm {
     CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
     echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
+    # don't use KEYCLOAK_REALM_SETTINGS, use the 'configure_realm_settings' way to pass values from a file (inject by configmap/volume mount)
     if [ "$KEYCLOAK_REALM_SETTINGS" ]; then
         echo Applying extra Realm settings
         echo $KEYCLOAK_REALM_SETTINGS | /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -f -
@@ -88,6 +89,39 @@ function configure_lagoon_realm {
         /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uid ${user_id} --rolename admin
         echo "Gave user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' the role 'admin'"
     fi
+}
+
+function configure_admin_email {
+  # Configure the admin user with an email address so that email configuration can be enabled in the lagoon realm
+  # this will always update the email address of the admin user if it is defined
+  if [ "$KEYCLOAK_ADMIN_EMAIL" != "" ]; then
+    echo Configuring admin user email to ${KEYCLOAK_ADMIN_EMAIL}
+    ADMIN_USER_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get users -r master --config $CONFIG_PATH -q username=admin | jq -r '.[0]|.id')
+    /opt/jboss/keycloak/bin/kcadm.sh update users/${ADMIN_USER_ID} --config $CONFIG_PATH -s "email=${KEYCLOAK_ADMIN_EMAIL}"
+  fi
+
+}
+
+function configure_smtp_settings {
+  # this checks if the file containing the json data for email configuration exists
+  if [ "$KEYCLOAK_ADMIN_EMAIL" == "" ] && [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
+    echo "Admin email must be set to configure lagoon realm email server settings"
+    return 0
+  fi
+  if [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
+    echo Configuring lagoon realm email server settings
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-smtp-settings.json
+  fi
+
+}
+
+function configure_realm_settings {
+  # this checks if the file containing the json data for realm settings exists
+  if [ -f "/lagoon/keycloak/keycloak-realm-settings.json" ]; then
+    echo Configuring lagoon realm settings
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-realm-settings.json
+  fi
+
 }
 
 function configure_opendistro_security_client {
@@ -213,8 +247,6 @@ function configure_api_client {
     echo '{"name":"notification","displayName":"notification","scopes":[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource ssh_key
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-    echo Creating resource organization
-    echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"viewUser"},{"name":"viewUsers"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"updateOrganization"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz js policies
@@ -1972,8 +2004,8 @@ function add_organization_permissions {
 
   echo Configuring Organization permissions
 
-  ORGANIZATION_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"addProject"},{"name":"updateProject"},{"name":"viewProject"},{"name":"deleteProject"},{"name":"addOwner"},{"name":"addGroup"},{"name":"viewGroup"},{"name":"removeGroup"},{"name":"addNotification"},{"name":"updateNotification"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"addViewer"},{"name":"view"},{"name":"viewAll"}]'
+  echo Creating resource organization
+  echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"viewProject"},{"name":"updateProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"viewUser"},{"name":"viewUsers"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"updateOrganization"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"addOwner"},{"name":"addViewer"},{"name":"viewGroup"},{"name":"addNotification"},{"name":"updateNotification"},{"name":"removeNotification"},{"name":"viewNotification"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
   echo Creating owner policy
   local p_name="User is owner of organization"
@@ -2433,6 +2465,9 @@ function configure_keycloak {
 
     # Sets the order of migrations, add new ones at the end.
     configure_lagoon_realm
+    configure_admin_email
+    configure_smtp_settings
+    configure_realm_settings
     configure_opendistro_security_client
     configure_api_client
     add_group_viewall

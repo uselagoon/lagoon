@@ -94,7 +94,9 @@ mutation PopulateApi {
   UILocalKubernetesOrganization: addDeployTargetToOrganization(input:{
       deployTarget: 2001
       organization: 1
-    })
+    }) {
+      id
+    }
 
   UIProject1: addProject(
     input: {

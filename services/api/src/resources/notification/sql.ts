@@ -53,6 +53,22 @@ export const Sql = {
 
     return deleteQuery.toString();
   },
+  deleteProjectNotificationByProjectId: (id: number, type: string) => {
+    const deleteQuery = knex.raw(
+      `DELETE pn
+      FROM project_notification as pn
+      LEFT JOIN :notificationTable: AS nt ON pn.nid = nt.id AND pn.type = :notificationType
+      LEFT JOIN project as p on pn.pid = p.id
+      WHERE p.id = :pid`,
+      {
+        pid: id,
+        notificationType: type,
+        notificationTable: `notification_${type}`
+      }
+    );
+
+    return deleteQuery.toString();
+  },
   selectProjectById: input =>
     knex('project')
       .select('*')

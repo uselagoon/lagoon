@@ -454,15 +454,7 @@ export const getNotificationsByOrganizationId: ResolverFn = async (
 
   const results = await Promise.all(
     types.map(type =>
-      query(
-        sqlClientPool,
-        Sql.selectNotificationsByTypeByOrganizationId({
-          type,
-          oid,
-          contentType,
-          notificationSeverityThreshold
-        })
-      )
+      organizationHelpers(sqlClientPool).getNotificationsByTypeForOrganizationId(oid, type)
     )
   );
 

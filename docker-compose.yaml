@@ -32,8 +32,9 @@ services:
       - S3_FILES_HOST=http://172.17.0.1:9000
   mailhog:
     image: mailhog/mailhog
+    platform: linux/amd64
     ports:
-      - 8025
+      - '32025:8025'
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
@@ -60,6 +61,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     environment:
+      - KEYCLOAK_URL=http://172.17.0.1:8088
       - NODE_ENV=development
       - OPENSEARCH_INTEGRATION_ENABLED=false
       - DISABLE_CORE_HARBOR=true
@@ -128,9 +130,12 @@ services:
       - keycloak-db
     ports:
       - '8088:8080'
+    environment:
+      - KEYCLOAK_ADMIN_EMAIL=admin@example.com
     volumes:
       - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
       - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
+      - "./local-dev/keycloak:/lagoon/keycloak"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
@@ -189,6 +194,7 @@ services:
       - '2222:22'
   remotedev:
     image: jhen0409/remotedev-server
+    platform: linux/amd64
     command: node main.js
     environment:
       - ADAPTER=
