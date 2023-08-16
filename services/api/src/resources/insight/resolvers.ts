@@ -80,7 +80,9 @@ export const getInsightsDownloadUrl: ResolverFn = async (
   userActivityLogger(`User queried getInsightsDownloadUrl`, {
     project: '',
     event: 'api:getInsightsDownloadUrl',
-    payload: { args: _args },
+    payload: {
+      id: environmentData.project
+    },
   }, 'user_query');
 
 	try {
@@ -104,7 +106,9 @@ export const getInsightsFileData: ResolverFn = async (
   userActivityLogger(`User queried getInsightsFileData`, {
     project: '',
     event: 'api:getInsightsFileData',
-    payload: { args: _args },
+    payload: {
+      name: 'insightsFileData'
+    },
   }, 'user_query');
 
   const environmentData = await environmentHelpers(
@@ -143,7 +147,7 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getInsightsFilesByEnvironmentId`, {
     project: '',
     event: 'api:getInsightsFilesByEnvironmentId',
-    payload: { id: eid, name, limit },
+    payload: { id: eid },
   }, 'user_query');
 
   const environmentData = await environmentHelpers(

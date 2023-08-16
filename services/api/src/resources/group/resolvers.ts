@@ -19,12 +19,26 @@ export const getAllGroups: ResolverFn = async (
 
       if (name) {
         const group = await models.GroupModel.loadGroupByName(name);
+        userActivityLogger(`User queried getAllGroups`, {
+          project: '',
+          event: 'api:getAllGroups',
+          payload: {
+            name: name
+          },
+        }, 'user_query');
         return [group];
       } else {
         const groups = keycloakGroups;
         const filterFn = (key, val) => group => group[key].includes(val);
         const filteredByName = groups.filter(filterFn('name', name));
         const filteredByType = groups.filter(filterFn('type', type));
+        userActivityLogger(`User queried getAllGroups`, {
+          project: '',
+          event: 'api:getAllGroups',
+          payload: {
+            name: 'allGroupsFilter'
+          },
+        }, 'user_query');
         return name || type ? R.union(filteredByName, filteredByType) : groups;
       }
     } catch (err) {
@@ -49,7 +63,9 @@ export const getAllGroups: ResolverFn = async (
   userActivityLogger(`User queried getAllGroups`, {
     project: '',
     event: 'api:getAllGroups',
-    payload: { name: name, type: type },
+    payload: {
+      name: 'allGroups'
+    },
   }, 'user_query');
 
   if (name) {
@@ -101,7 +117,7 @@ export const getGroupRolesByUserId: ResolverFn =async (
   userActivityLogger(`User queried getGroupRolesByUserId`, {
     project: '',
     event: 'api:getGroupRolesByUserId',
-    payload: { id: uid, input: _input }
+    payload: { data: { user: { id: uid } } }
   }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed
@@ -143,7 +159,7 @@ export const getMembersByGroupId: ResolverFn = async (
     userActivityLogger(`User queried getMembersByGroupId`, {
       project: '',
       event: 'api:getMembersByGroupId',
-      payload: { id: id, input: _input }
+      payload: { data: { group: { id: id } } }
     }, 'user_query');
 
     return members;
@@ -169,7 +185,7 @@ export const getGroupsByProjectId: ResolverFn = async (
     userActivityLogger(`User queried getGroupsByProjectId`, {
       project: '',
       event: 'api:getGroupsByProjectId',
-      payload: { id: pid, input: _input }
+      payload: { id: pid }
     }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed
@@ -216,7 +232,7 @@ export const getGroupsByUserId: ResolverFn = async (
   userActivityLogger(`User queried getGroupsByUserId`, {
     project: '',
     event: 'api:getGroupsByUserId',
-    payload: { id: uid, input: _input }
+    payload: { data: { user: { id: uid } } }
   }, 'user_query');
 
   return currentUserGroups;
@@ -591,7 +607,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
   userActivityLogger(`User queried getAllProjectsInGroup`, {
     project: '',
     event: 'api:getAllProjectsInGroup',
-    payload: { input: groupInput },
+    payload: { data: { group: { id: groupInput.id } } },
   }, 'user_query');
 
   // use the admin scope check instead of `hasPermission` for speed

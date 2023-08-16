@@ -40,7 +40,7 @@ export const getPrivateKey: ResolverFn = async (
     userActivityLogger(`User queried getPrivateKey`, {
       project: '',
       event: 'api:getPrivateKey',
-      payload: { args: _args },
+      payload: { id: project.id },
     }, 'user_query');
 
     return project.privateKey;
@@ -62,7 +62,7 @@ export const getProjectDeployKey: ResolverFn = async (
     userActivityLogger(`User queried getProjectDeployKey`, {
       project: '',
       event: 'api:getProjectDeployKey',
-      payload: { args: _args },
+      payload: { id: project.id },
     }, 'user_query');
 
     return keyParts[0] + " " + keyParts[1]
@@ -98,7 +98,9 @@ export const getAllProjects: ResolverFn = async (
   userActivityLogger(`User queried getAllProjects`, {
     project: '',
     event: 'api:getAllProjects',
-    payload:  { input: { order: order, createdAfter: createdAfter, gitUrl: gitUrl } },
+    payload: {
+      name: 'allProjects'
+    },
   }, 'user_query');
 
   let queryBuilder = knex('project');
@@ -143,7 +145,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getProjectByEnvironmentId`, {
     project: '',
     event: 'api:getProjectByEnvironmentId',
-    payload:  { input: { id: eid, args: args } },
+    payload:  { id: eid },
   }, 'user_query');
 
   return project;
@@ -167,7 +169,7 @@ export const getProjectById: ResolverFn = async (
   userActivityLogger(`User queried getProjectById`, {
     project: '',
     event: 'api:getProjectById',
-    payload:  { input: { id: pid, args: args } },
+    payload:  { id: pid },
   }, 'user_query');
 
   return project;
@@ -191,7 +193,7 @@ export const getProjectByGitUrl: ResolverFn = async (
   userActivityLogger(`User queried getProjectByGitUrl`, {
     project: '',
     event: 'api:getProjectByGitUrl',
-    payload:  { input: { args: args } },
+    payload:  { id: project.id },
   }, 'user_query');
 
   return project;
@@ -204,14 +206,14 @@ export const getProjectByName: ResolverFn = async (
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
 
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const project = withK8s[0];
+
   userActivityLogger(`User queried getProjectByName`, {
     project: '',
     event: 'api:getProjectByName',
-    payload:  { input: { args: args } },
+    payload:  { id: project.id },
   }, 'user_query');
-
-  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
-  const project = withK8s[0];
 
   if (!project) {
     return null;
@@ -239,7 +241,9 @@ export const getProjectsByMetadata: ResolverFn = async (
     userActivityLogger(`User queried getProjectsByMetadata`, {
       project: '',
       event: 'api:getProjectsByMetadata',
-      payload:  { input: { args: metadata } },
+      payload: {
+        name: 'projectsByMetadata'
+      },
     }, 'user_query');
 
   } catch (err) {

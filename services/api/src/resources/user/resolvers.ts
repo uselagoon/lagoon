@@ -51,7 +51,7 @@ export const getUserBySshKey: ResolverFn = async (
   userActivityLogger(`User queried getUserBySshKey`, {
     project: '',
     event: 'api:getUserBySshKey',
-    payload: { sshKey: sshKey },
+    payload: { data: { user: {id: userId} } },
   }, 'user_query');
 
   return user;
@@ -71,7 +71,11 @@ export const getUserBySshFingerprint: ResolverFn = async (
   userActivityLogger(`User queried getUserBySshFingerprint`, {
     project: '',
     event: 'api:getUserBySshFingerprint',
-    payload: { fingerprint: fingerprint },
+    payload: {
+      input: {
+        keyFingerprint: fingerprint
+      }
+    },
   }, 'user_query');
 
   try {
@@ -98,7 +102,7 @@ export const getAllUsers: ResolverFn = async (
   userActivityLogger(`User queried getAllUsers`, {
     project: '',
     event: 'api:getAllUsers',
-    payload: { id: id, email: email, gitlabId: gitlabId },
+    payload: { data: { user: { id: id, email: email } } } ,
   }, 'user_query');
 
   const users = await models.UserModel.loadAllUsers();
@@ -137,7 +141,7 @@ export const getUserByEmail: ResolverFn = async (
   userActivityLogger(`User queried getUserByEmail`, {
     project: '',
     event: 'api:getUserByEmail',
-    payload: { email: email },
+    payload: { data: { user: { email: email } } },
   }, 'user_query');
 
   return user;

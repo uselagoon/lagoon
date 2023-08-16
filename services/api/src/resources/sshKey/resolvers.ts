@@ -28,7 +28,7 @@ export const getUserSshKeys: ResolverFn = async (
   userActivityLogger(`User queried getUserSshKeys`, {
     project: '',
     event: 'api:getUserSshKeys',
-    payload:  { input: { id: userId, args: args } },
+    payload:  { data: { user: {id: userId } } },
   }, 'user_query');
 
   return query(sqlClientPool, Sql.selectSshKeysByUserId(userId));

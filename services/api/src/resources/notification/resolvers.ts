@@ -297,7 +297,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
   userActivityLogger(`User queried getNotificationsByProjectId`, {
     project: '',
     event: 'api:getNotificationsByProjectId',
-    payload: { id: pid, unformattedArgs },
+    payload: { id: pid },
   }, 'user_query');
 
   const args = [

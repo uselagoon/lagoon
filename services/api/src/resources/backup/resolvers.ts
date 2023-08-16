@@ -436,8 +436,7 @@ export const getRestoreByBackupId: ResolverFn = async (
     project: '',
     event: 'api:updateRestore',
     payload: {
-      backupId: backupId,
-      args: args,
+      backupId,
     }
   }, 'user_query');
 

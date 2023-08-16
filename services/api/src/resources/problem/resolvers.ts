@@ -16,7 +16,9 @@ export const getAllProblems: ResolverFn = async (
   userActivityLogger(`User queried getAllProblems`, {
     project: '',
     event: 'api:getAllProblems',
-    payload: { input: args },
+    payload: {
+      name: 'allProblems'
+    },
   }, 'user_query');
 
   try {
@@ -95,7 +97,9 @@ export const getProblemSources: ResolverFn = async (
   userActivityLogger(`User queried getProblemSources`, {
     project: '',
     event: 'api:getProblemSources',
-    payload: { input: args },
+    payload: {
+      name: 'problemSources'
+    },
   }, 'user_query');
 
   return R.map(
@@ -125,7 +129,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getProblemsByEnvironmentId`, {
     project: '',
     event: 'api:getProblemsByEnvironmentId',
-    payload: { id: environmentId, severity: severity, source: source },
+    payload: { id: environmentId },
   }, 'user_query');
 
   let rows = await query(
@@ -301,7 +305,9 @@ export const getProblemHarborScanMatches: ResolverFn = async (
   userActivityLogger(`User queried getProblemHarborScanMatches`, {
     project: '',
     event: 'api:getProblemHarborScanMatches',
-    payload: { args: args },
+    payload: {
+      name: 'problemHarborScanMatches'
+    },
   }, 'user_query');
 
   return rows;

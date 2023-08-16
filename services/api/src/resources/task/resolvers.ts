@@ -73,7 +73,7 @@ export const getTaskLog: ResolverFn = async (
   userActivityLogger(`User queried getTaskLog`, {
     project: '',
     event: 'api:getTaskLog',
-    payload:   { remoteId: remoteId, environment: environment, id: id, status: status, args: _args },
+    payload: { data: { remoteId: remoteId, environment: environment, id: id, status: status }},
   }, 'user_query');
 
   try {
@@ -122,7 +122,7 @@ export const getTasksByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getTasksByEnvironmentId`, {
     project: '',
     event: 'api:getTasksByEnvironmentId',
-    payload: { id: filterId, taskName: taskName, limit: limit },
+    payload: { id: eid },
   }, 'user_query');
 
   let queryBuilder = knex('task')
@@ -176,7 +176,7 @@ export const getTaskByTaskName: ResolverFn = async (
   userActivityLogger(`User queried getTaskByTaskName`, {
     project: '',
     event: 'api:getTaskByTaskName',
-    payload: { taskName: taskName },
+    payload: { input: { taskName: taskName } },
   }, 'user_query');
 
   return task;

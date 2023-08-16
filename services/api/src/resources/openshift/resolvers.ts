@@ -113,7 +113,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
   userActivityLogger(`User queried getOpenshiftByProjectId`, {
     project: '',
     event: 'api:getOpenshiftByProjectId',
-    payload: { id: pid, args: args },
+    payload: { id: pid },
   }, 'user_query');
 
   return rows ? rows[0] : null;
@@ -138,7 +138,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
   userActivityLogger(`User queried getOpenshiftByDeployTargetId`, {
     project: '',
     event: 'api:getOpenshiftByDeployTargetId',
-    payload: { id: did, args: args },
+    payload: { id: did },
   }, 'user_query');
 
   return rows ? rows[0] : null;
@@ -166,7 +166,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getOpenshiftByEnvironmentId`, {
     project: '',
     event: 'api:getOpenshiftByEnvironmentId',
-    payload: { id: eid, args: args },
+    payload: { id: eid },
   }, 'user_query');
 
   return rows ? rows[0] : null;

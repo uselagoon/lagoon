@@ -30,7 +30,7 @@ export const getFactsByEnvironmentId: ResolverFn = async (
   userActivityLogger(`User queried getFactsByEnvironmentId`, {
     project: '',
     event: 'api:getFactsByEnvironmentId',
-    payload: { id: environmentId, keyFacts: keyFacts, limit: limit, summary: summary },
+    payload: { id: environmentId },
   }, 'user_query');
 
   var rows = [];
@@ -111,7 +111,7 @@ export const getFactReferencesByFactId: ResolverFn = async (
   userActivityLogger(`User queried getFactReferencesByFactId`, {
     project: '',
     event: 'api:getFactReferencesByFactId',
-    payload:   { id: fid, args: args },
+    payload: { id: fid },
   }, 'user_query');
 
   return R.sort(R.descend(R.prop('name')), rows);
@@ -154,7 +154,9 @@ export const getProjectsByFactSearch: ResolverFn = async (
   userActivityLogger(`User queried getProjectsByFactSearch`, {
     project: '',
     event: 'api:getProjectsByFactSearch',
-    payload:   { input: input },
+    payload: {
+      name: 'projectsByFact'
+    },
   }, 'user_query');
 
   return { projects: rows, count };
@@ -180,7 +182,9 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   userActivityLogger(`User queried getEnvironmentsByFactSearch`, {
     project: '',
     event: 'api:getEnvironmentsByFactSearch',
-    payload:   { input: input },
+    payload: {
+      name: 'environmentsByFact'
+    },
   }, 'user_query');
 
   return { environments: rows, count };

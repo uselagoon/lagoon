@@ -23,7 +23,7 @@ export const getFilesByTaskId: ResolverFn = async (
   userActivityLogger(`User queried getFilesByTaskId`, {
     project: '',
     event: 'api:getFilesByTaskId',
-    payload: { id: tid, args: _args },
+    payload: { id: tid },
   }, 'user_query');
 
   return query(sqlClientPool, Sql.selectTaskFiles(tid))

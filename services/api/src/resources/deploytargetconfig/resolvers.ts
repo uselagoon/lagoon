@@ -32,7 +32,7 @@ export const getDeployTargetConfigById = async (
   userActivityLogger(`User queried getDeployTargetConfigById`, {
     project: '',
     event: 'api:getDeployTargetConfigById',
-    payload: { input: args },
+    payload: { id: args.id },
   }, 'user_query');
 
   return deployTargetConfig;
@@ -61,7 +61,7 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
   userActivityLogger(`User queried getDeployTargetConfigsByProjectId`, {
     project: '',
     event: 'api:getDeployTargetConfigsByProjectId',
-    payload: { project: project, args: args },
+    payload: { id: pid },
   }, 'user_query');
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -84,7 +84,7 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   userActivityLogger(`User queried getDeployTargetConfigsByDeployTarget`, {
     project: '',
     event: 'api:getDeployTargetConfigsByDeployTarget',
-    payload: { args: args },
+    payload: { id: oid },
   }, 'user_query');
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);

@@ -162,7 +162,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentsByBulkId',
     payload: {
-      bulkId: bulkId
+      name: bulkId
     }
   }, 'user_query');
 
@@ -173,7 +173,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, userActivityLogger, adminScopes }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -187,14 +187,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
     the user has access to
   */
   let userProjectIds: number[];
-  try {
-    await hasPermission('project', 'viewAll');
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.debug('No grant available for getDeploymentsByFilter');
-      return [];
-    }
-
+  if (!adminScopes.projectViewAll) {
     const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
     }, keycloakUsersGroups);
@@ -226,7 +219,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentsByFilter',
     payload: {
-      input: input
+      name: 'deploymentsByFilter'
     }
   }, 'user_query');
 
@@ -266,9 +259,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentsByEnvironmentId',
     payload: {
-      id: eid,
-      name: name,
-      limit: limit,
+      id: eid
     }
   }, 'user_query');
 
@@ -304,7 +295,9 @@ export const getDeploymentByRemoteId: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentByRemoteId',
     payload: {
-      id: id,
+      data: {
+        id: id
+      }
     }
   }, 'user_query');
 
@@ -345,7 +338,7 @@ export const getDeploymentByName: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentByName',
     payload: {
-      input: { project: projectName, environment: environmentName, name },
+      input: { projectName: projectName, environment: {name: environmentName} },
     }
   }, 'user_query');
 
@@ -372,8 +365,7 @@ export const getDeploymentUrl: ResolverFn = async (
     project: '',
     event: 'api:getDeploymentUrl',
     payload: {
-      id: id, environment: environment,
-      args: _args,
+      environment: {id: environment},
     }
   }, 'user_query');
 
@@ -1307,7 +1299,7 @@ export const switchActiveStandby: ResolverFn = async (
     userActivityLogger(`User queried switchActiveStandby`, {
       project: '',
       event: 'api:switchActiveStandby',
-      payload: { input: { project: projectInput } },
+      payload: { id: project.id },
     }, 'user_query');
 
     // return the task id and remote id
