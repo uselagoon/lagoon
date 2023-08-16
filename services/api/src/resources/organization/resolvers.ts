@@ -895,7 +895,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   }
 
   // check permissions and get groups
-  await hasPermission('organization', 'viewGroup', {
+  await hasPermission('organization', 'removeGroup', {
     organization: organizationInput,
   });
   const orgGroups = await models.GroupModel.loadGroupsByOrganizationId(organizationInput);
@@ -903,23 +903,16 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   // iterate through groups and remove the user
   let groupsRemoved = []
   for (const group in orgGroups) {
-    if (R.prop('lagoon-organization',  orgGroups[group].attributes)) {
-      // if this is a group in an organization, check that the user removing members from the group in this org is in the org
-      await hasPermission('organization', 'addGroup', {
-        organization: R.prop('lagoon-organization', orgGroups[group].attributes)
-      });
-    } else {
-      await hasPermission('group', 'removeUser', {
-        group: orgGroups[group].id
-      });
+    // if the groups organization is the one to remove from, push it to a new array
+    if (R.prop('lagoon-organization',  orgGroups[group].attributes) == organizationInput) {
+      groupsRemoved.push(orgGroups[group]);
     }
+  }
 
-    try {
-      await models.GroupModel.removeUserFromGroup(user, orgGroups[group]);
-      groupsRemoved.push(orgGroups[group].name);
-    } catch (error) {
-      throw new Error(`Unable to remove user from group: ${error}`)
-    }
+  try {
+    await models.GroupModel.removeUserFromGroups(user, groupsRemoved);
+  } catch (error) {
+    throw new Error(`Unable to remove user from groups: ${error}`)
   }
 
   userActivityLogger(`User removed from these groups in organization: ${organizationData.name}`, {
