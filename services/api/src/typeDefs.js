@@ -2185,6 +2185,11 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
+  input UserOrganizationInput {
+    user: UserInput!
+    organization: Int!
+  }
+
   input BulkDeploymentLatestInput {
     buildVariables: [EnvKeyValueInput]
     environments: [DeployEnvironmentLatestInput!]!
@@ -2354,6 +2359,7 @@ const typeDefs = gql`
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    removeUserFromOrganizationGroups(input: UserOrganizationInput): Organization
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
     addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")

@@ -10,6 +10,7 @@ import { arrayDiff } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import validator from 'validator';
+import { log } from 'winston';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -869,6 +870,64 @@ export const addGroupToOrganization: ResolverFn = async (
   });
 
   return updatedGroup
+};
+
+// removes a user from all groups in an organisation
+export const removeUserFromOrganizationGroups: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organizationInput } },
+  { models, sqlClientPool, hasPermission, keycloakGroups, userActivityLogger }
+) => {
+
+  if (R.isEmpty(userInput)) {
+    throw new Error('You must provide a user id or email');
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput)
+  });
+
+  // check the organization exists
+  const organizationData = await Helpers(sqlClientPool).getOrganizationById(organizationInput);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  // check permissions and get groups
+  await hasPermission('organization', 'removeGroup', {
+    organization: organizationInput,
+  });
+  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(organizationInput, keycloakGroups);
+
+  // iterate through groups and remove the user
+  let groupsRemoved = []
+  for (const group in orgGroups) {
+    // if the groups organization is the one to remove from, push it to a new array
+    if (R.prop('lagoon-organization',  orgGroups[group].attributes) == organizationInput) {
+      groupsRemoved.push(orgGroups[group]);
+    }
+  }
+
+  try {
+    await models.GroupModel.removeUserFromGroups(user, groupsRemoved);
+  } catch (error) {
+    throw new Error(`Unable to remove user from groups: ${error}`)
+  }
+
+  userActivityLogger(`User removed from these groups in organization: ${organizationData.name}`, {
+    project: '',
+    organization: organizationData.name,
+    event: 'api:removeUserFromOrganizationGroups',
+    payload: {
+      input: {
+        user: userInput, organization: organizationInput
+      },
+      data: groupsRemoved
+    }
+  });
+
+  return organizationData;
 };
 
 // delete an organization, only if it has no projects, notifications, or groups

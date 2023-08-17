@@ -66,6 +66,8 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' | cut -c 1-128)
 
+PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
+
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
@@ -170,14 +172,16 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-build/auth-server build/logs2notifications build/backup-handler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
+build/backup-handler: services/backup-handler/Dockerfile
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
+build/logs2notifications: services/logs2notifications/Dockerfile
 build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
@@ -286,14 +290,14 @@ broker-up: build/broker-single
 
 .PHONY: publish-testlagoon-images
 publish-testlagoon-images:
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
 
 .PHONY: publish-uselagoon-images
 publish-uselagoon-images:
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
-	PLATFORMS=linux/amd64,linux/arm64 IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 .PHONY: clean
 clean:
