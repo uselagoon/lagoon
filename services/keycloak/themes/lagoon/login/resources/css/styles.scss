@@ -241,12 +241,21 @@ header.header{
 
     #kc-social-providers{
 
+      hr{
+        margin-top: 20px;
+      }
+
       ul{
         padding-left: 0;
       }
 
       li::marker{
         content: '';
+      }
+
+      h4{
+        color: $brand;
+        font-size: 20px;
       }
 
       a{
@@ -260,6 +269,11 @@ header.header{
         color: #ffffff;
         margin: 24px 0 0;
         border: 1px $brand solid;
+        text-decoration: none;
+
+        span{
+          text-decoration: none;
+        }
 
         &:hover{
           color: $brand;

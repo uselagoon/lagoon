@@ -206,11 +206,18 @@ header.header a img {
   color: #4578E6;
   background-color: #ffffff;
 }
+.kc-content .kc-content-wrapper #kc-social-providers hr {
+  margin-top: 20px;
+}
 .kc-content .kc-content-wrapper #kc-social-providers ul {
   padding-left: 0;
 }
 .kc-content .kc-content-wrapper #kc-social-providers li::marker {
   content: "";
+}
+.kc-content .kc-content-wrapper #kc-social-providers h4 {
+  color: #4578E6;
+  font-size: 20px;
 }
 .kc-content .kc-content-wrapper #kc-social-providers a {
   width: auto;
@@ -223,6 +230,10 @@ header.header a img {
   color: #ffffff;
   margin: 24px 0 0;
   border: 1px #4578E6 solid;
+  text-decoration: none;
+}
+.kc-content .kc-content-wrapper #kc-social-providers a span {
+  text-decoration: none;
 }
 .kc-content .kc-content-wrapper #kc-social-providers a:hover {
   color: #4578E6;
