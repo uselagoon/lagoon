@@ -4,5 +4,6 @@
 	"verifyEmail": false,
 	"editUsernameAllowed": false,
 	"loginTheme": "lagoon",
-	"emailTheme": "lagoon"
+	"emailTheme": "lagoon",
+	"accountTheme": "lagoon"
 }
