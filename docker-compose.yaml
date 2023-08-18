@@ -82,7 +82,7 @@ services:
     #   - NEW_RELIC_APP_NAME=api-local
   ui:
     # use the organizations pr for the ui
-    image: uselagoon/ui:pr-94
+    image: uselagoon/ui:main
     command: yarn run dev
     environment:
       - NODE_ENV=development
