@@ -9,7 +9,7 @@ import { logger } from '../loggers/logger';
 // @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { saveRedisKeycloakCache } from '../clients/redisClient';
+import { getRedisKeycloakCache, saveRedisKeycloakCache } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
 import { log } from 'winston';
@@ -162,10 +162,33 @@ export const Group = (clients: {
   const loadGroupById = async (id: string): Promise<Group> => {
 
     let keycloakGroup: Group
-    keycloakGroup = await keycloakAdminClient.groups.findOne({
-      id,
-      briefRepresentation: false,
-    });
+    try {
+      // check redis for the allgroups cache value
+      const data = await getRedisKeycloakCache("allgroups");
+      let buff = new Buffer(data, 'base64');
+      const allKeycloakGroups = JSON.parse(buff.toString('utf-8'));
+      for (const fullGroup of allKeycloakGroups) {
+        if (id == fullGroup.id) {
+          keycloakGroup = fullGroup
+        }
+        for (const fullSubgroup of fullGroup.subGroups) {
+          if (id == fullSubgroup.id) {
+            keycloakGroup = fullGroup
+          }
+        }
+      }
+      if (keycloakGroup == null) {
+        // throw error to fall back to non-redis check
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      }
+    } catch (err) {
+      logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
+      keycloakGroup = await keycloakAdminClient.groups.findOne({
+        id,
+        briefRepresentation: false,
+      });
+    }
+
     if (R.isNil(keycloakGroup)) {
       throw new GroupNotFoundError(`Group not found: ${id}`);
     }
@@ -177,9 +200,33 @@ export const Group = (clients: {
   };
 
   const loadGroupByName = async (name: string): Promise<Group> => {
-    const keycloakGroups = await keycloakAdminClient.groups.find({
-      search: name
-    });
+
+    let keycloakGroups = []
+    try {
+      // check redis for the allgroups cache value
+      const data = await getRedisKeycloakCache("allgroups");
+      let buff = new Buffer(data, 'base64');
+      const allKeycloakGroups = JSON.parse(buff.toString('utf-8'));
+      for (const fullGroup of allKeycloakGroups) {
+        if (fullGroup.name == name) {
+          keycloakGroups.push(fullGroup)
+        }
+        for (const fullSubgroup of fullGroup.subGroups) {
+          if (fullSubgroup.name == name) {
+            keycloakGroups.push(fullGroup)
+          }
+        }
+      }
+      if (keycloakGroups.length == 0) {
+        // throw error to fall back to non-redis check
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      }
+    } catch (err) {
+      logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
+      keycloakGroups = await keycloakAdminClient.groups.find({
+        search: name
+      });
+    }
 
     if (R.isEmpty(keycloakGroups)) {
       throw new GroupNotFoundError(`Group not found: ${name}`);
