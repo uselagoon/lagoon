@@ -82,7 +82,7 @@ services:
     #   - NEW_RELIC_APP_NAME=api-local
   ui:
     # use the organizations pr for the ui
-    image: uselagoon/ui:pr-94
+    image: uselagoon/ui:main
     command: yarn run dev
     environment:
       - NODE_ENV=development
@@ -135,6 +135,7 @@ services:
     volumes:
       - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
       - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
+      - "./services/keycloak/themes/lagoon:/opt/jboss/keycloak/themes/lagoon"
       - "./local-dev/keycloak:/lagoon/keycloak"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
