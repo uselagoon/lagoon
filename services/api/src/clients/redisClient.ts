@@ -16,7 +16,7 @@ export const config: {
     : undefined
 };
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   host: config.hostname,
   port: config.port,
   password: config.pass,
@@ -27,6 +27,7 @@ redisClient.on('error', function(error) {
   console.error(error);
 });
 
+export const get = promisify(redisClient.get).bind(redisClient);
 const hgetall = promisify(redisClient.hgetall).bind(redisClient);
 const smembers = promisify(redisClient.smembers).bind(redisClient);
 const sadd = promisify(redisClient.sadd).bind(redisClient);
