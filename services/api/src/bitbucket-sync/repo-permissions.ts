@@ -124,8 +124,7 @@ const syncUsersForProjects = async (redis, projects) => {
             );
           } catch (e) {
             logger.warn(
-              `Could not load users for repo ${R.prop('slug', repo)}: ${
-                e.message
+              `Could not load users for repo ${R.prop('slug', repo)}: ${e.message
               }`
             );
             return;
@@ -133,7 +132,7 @@ const syncUsersForProjects = async (redis, projects) => {
 
           let userPermissionCacheHash = userPermissionsToCacheHash(userPermissions);
           let cachedUserPermissionCacheHash = await redis.get(lagoonProjectGroupCacheName);
-          if(cachedUserPermissionCacheHash == userPermissionCacheHash) {
+          if (cachedUserPermissionCacheHash == userPermissionCacheHash) {
             logger.warn(`Cache entry found for ${lagoonProjectGroupCacheName} - skipping`);
             return;
           }
@@ -173,7 +172,7 @@ const syncUsersForProjects = async (redis, projects) => {
               }
 
               //Now we check if we need to change this users' permissions
-              if(getUsersCurrentPermission(lagoonUsersInGroupTotal, email) != BitbucketPermsToLagoonPerms[bbPerm]) {
+              if (getUsersCurrentPermission(lagoonUsersInGroupTotal, email) != BitbucketPermsToLagoonPerms[bbPerm]) {
                 await api.addUserToGroup(
                   email,
                   lagoonProjectGroup,
@@ -239,8 +238,8 @@ function getUsersEmails(lagoonUsers) {
 }
 
 function getUsersCurrentPermission(lagoonUsers, email) {
-  for(let i = 0; i < lagoonUsers.length; i++) {
-    if(R.toLower(lagoonUsers[i].user.email) == R.toLower(email)) {
+  for (let i = 0; i < lagoonUsers.length; i++) {
+    if (R.toLower(lagoonUsers[i].user.email) == R.toLower(email)) {
       return lagoonUsers[i].role;
     }
   }
@@ -249,7 +248,7 @@ function getUsersCurrentPermission(lagoonUsers, email) {
 
 async function getLagoonUsersForGroup(lagoonProjectGroup: string) {
   const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
-  const lagoonUsers = R.pipe(R.pathOr([], ['groupByName','members']))(currentMembersQuery);
+  const lagoonUsers = R.pipe(R.pathOr([], ['groupByName', 'members']))(currentMembersQuery);
   return lagoonUsers;
 }
 
@@ -259,10 +258,10 @@ const getRedisClient = () => {
     port: number;
     pass?: string;
   } = {
-    hostname: getConfigFromEnv('REDIS_HOST', 'api-redis'),
-    port: toNumber(getConfigFromEnv('REDIS_PORT', '6379')),
-    pass: envHasConfig('REDIS_PASSWORD')
-      ? getConfigFromEnv('REDIS_PASSWORD')
+    hostname: getConfigFromEnv('BITBUCKETSYNC_REDIS_HOST', getConfigFromEnv('REDIS_HOST', 'api-redis')),
+    port: toNumber(getConfigFromEnv('BITBUCKETSYNC_REDIS_PORT', getConfigFromEnv('REDIS_PORT', '6379'))),
+    pass: envHasConfig('BITBUCKETSYNC_REDIS_PASSWORD') || envHasConfig('REDIS_PASSWORD')
+      ? getConfigFromEnv('BITBUCKETSYNC_REDIS_PASSWORD', getConfigFromEnv('REDIS_PASSWORD'))
       : undefined
   };
 
@@ -273,7 +272,7 @@ const getRedisClient = () => {
     enable_offline_queue: true
   });
 
-  redisClient.on('error', function(error) {
+  redisClient.on('error', function (error) {
     console.error(error);
   });
 
@@ -292,16 +291,16 @@ const getRedisClient = () => {
 (async () => {
   const redisObj = getRedisClient();
   // @ts-ignore
-  redisObj.redisClient.on("ready", async function() {
-      // Get all bitbucket related lagoon projects
-      const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
-      const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
-        object
-      ];
+  redisObj.redisClient.on("ready", async function () {
+    // Get all bitbucket related lagoon projects
+    const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
+    const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
+      object
+    ];
 
-      const syncResponse = await syncUsersForProjects(redisObj, projects);
-      logger.info('Sync completed');
-      // @ts-ignore
-      redisObj.redisClient.quit();
-    });
+    const syncResponse = await syncUsersForProjects(redisObj, projects);
+    logger.info('Sync completed');
+    // @ts-ignore
+    redisObj.redisClient.quit();
+  });
 })();
