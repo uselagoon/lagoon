@@ -6,6 +6,7 @@ import { Group, isRoleSubgroup } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { Sql } from '../resources/user/sql';
+import { getRedisKeycloakCache } from '../clients/redisClient';
 
 export interface User {
   email: string;
@@ -224,7 +225,18 @@ export const User = (clients: {
       id: userId,
       briefRepresentation: false
     });
-    const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
+    let fullGroups = [];
+    try {
+      // check redis for the allgroups cache value
+      const data = await getRedisKeycloakCache("allgroups");
+      let buff = new Buffer(data, 'base64');
+      fullGroups = JSON.parse(buff.toString('utf-8'));
+    } catch (err) {
+      logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
+      // if it can't be recalled from redis, get the data from keycloak
+      const allGroups = await GroupModel.loadAllGroups();
+      fullGroups = await GroupModel.transformKeycloakGroups(allGroups);
+    }
 
     const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
 
