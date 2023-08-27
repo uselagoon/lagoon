@@ -459,6 +459,21 @@ export const Group = (clients: {
     return membership;
   };
 
+  const getGroupMemberCount = async (
+    group: Group
+  ): Promise<number> => {
+    const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
+    let membership = 0;
+    for (const roleSubgroup of roleSubgroups) {
+      const keycloakUsers = await keycloakAdminClient.groups.listMembers({
+        id: roleSubgroup.id
+      });
+
+      membership = membership + keycloakUsers.length;
+    }
+    return membership;
+  };
+
   const addGroup = async (groupInput: Group): Promise<Group> => {
     // Don't allow duplicate subgroup names
     try {
@@ -929,6 +944,7 @@ export const Group = (clients: {
     removeProjectFromGroups,
     transformKeycloakGroups,
     getGroupMembership,
+    getGroupMemberCount,
     removeNonProjectDefaultUsersFromGroup
   };
 };

@@ -160,6 +160,31 @@ export const getMembersByGroupId: ResolverFn = async (
   }
 }
 
+// resolver to simply retrieve how many members are in a group
+export const getMemberCountByGroupId: ResolverFn = async (
+  { id },
+  _input,
+  { hasPermission, models, keycloakGrant }
+) => {
+  try {
+    // members resolver is only called by group, no need to check the permissions on the group
+    // as the group resolver will have already checked permission
+    const group = await models.GroupModel.loadGroupById(id);
+    const members = await models.GroupModel.getGroupMemberCount(group);
+    return members;
+  } catch (err) {
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.debug('No grant available for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message} ${id}`);
+    throw err;
+  }
+}
+
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,

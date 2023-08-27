@@ -462,6 +462,15 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   return [];
 };
 
+export const getGroupCountByOrganizationProject: ResolverFn = async (
+  { id: pid },
+  _input,
+  { sqlClientPool, models, keycloakGroups }
+) => {
+  const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  return orgProjectGroups.length
+}
+
 // get the groups of a project in an organization
 // this is only accessible as a resolver of organizations
 // skip permissions checks as they are already
