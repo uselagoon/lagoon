@@ -265,6 +265,7 @@ const {
   getGroupProjectOrganizationAssociation, // WIP resolver
   getNotificationsForOrganizationProjectId,
   getEnvironmentsByOrganizationId,
+  removeUserFromOrganizationGroups,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -694,6 +695,7 @@ const resolvers = {
     addDeployTargetToOrganization,
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
+    removeUserFromOrganizationGroups,
   },
   Subscription: {
     backupChanged: backupSubscriber,
