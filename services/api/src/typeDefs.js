@@ -2285,9 +2285,14 @@ const typeDefs = gql`
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     """
-    Add a user to an organization as an owner of the organization
+    Add a user to an organization as a viewer or owner of the organization.
+    This allows the user to view or manage the organizations groups, projects, and notifications
     """
     addUserToOrganization(input: addUserToOrganizationInput!): Organization
+    """
+    Remove a viewer or owner from an organization.
+    This removes the users ability to view or manage the organizations groups, projects, and notifications
+    """
     removeUserFromOrganization(input: addUserToOrganizationInput!): Organization
     resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
@@ -2359,6 +2364,10 @@ const typeDefs = gql`
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    """
+    This is a way to quickly remove a user from all groups within an organization.
+    Effectively removing all access to any projects that are assigned to those groups.
+    """
     removeUserFromOrganizationGroups(input: UserOrganizationInput): Organization
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
