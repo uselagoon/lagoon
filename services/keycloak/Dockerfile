@@ -70,6 +70,7 @@ COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
 COPY startup-scripts /opt/jboss/startup-scripts
 COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
+COPY configure-ds-pool.cli /opt/jboss/tools/cli/databases/configure-ds-pool.cli
 COPY themes/lagoon /opt/jboss/keycloak/themes/lagoon
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/jboss/keycloak/standalone/deployments/lagoon-scripts.jar
 
