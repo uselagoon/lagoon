@@ -9,7 +9,7 @@ import { logger } from '../loggers/logger';
 // @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { saveRedisKeycloakCache } from '../clients/redisClient';
+import { saveRedisKeycloakCache, get, redisClient } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
 import { log } from 'winston';
@@ -177,29 +177,49 @@ export const Group = (clients: {
   };
 
   const loadGroupByName = async (name: string): Promise<Group> => {
-    const keycloakGroups = await keycloakAdminClient.groups.find({
-      search: name
-    });
+    const cacheKey = `cache:keycloak:group-id:${name}`;
+    let groupId;
 
-    if (R.isEmpty(keycloakGroups)) {
-      throw new GroupNotFoundError(`Group not found: ${name}`);
+    try {
+      groupId = await get(cacheKey);
+    } catch(err) {
+      logger.info(`Error reading redis ${cacheKey}: ${err.message}`);
     }
 
-    // Use mutable operations to avoid running out of heap memory
-    const flattenGroups = (groups, group) => {
-      groups.push(R.omit(['subGroups'], group));
-      const flatSubGroups = group.subGroups.reduce(flattenGroups, []);
-      return groups.concat(flatSubGroups);
-    };
+    if (!groupId) {
+      const keycloakGroups = await keycloakAdminClient.groups.find({
+        search: name
+      });
 
-    const groupId = R.pipe(
-      R.reduce(flattenGroups, []),
-      R.filter(R.propEq('name', name)),
-      R.path(['0', 'id'])
-    )(keycloakGroups);
+      if (R.isEmpty(keycloakGroups)) {
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      }
 
-    if (R.isNil(groupId)) {
-      throw new GroupNotFoundError(`Group not found: ${name}`);
+      // Use mutable operations to avoid running out of heap memory
+      const flattenGroups = (groups, group) => {
+        groups.push(R.omit(['subGroups'], group));
+        const flatSubGroups = group.subGroups.reduce(flattenGroups, []);
+        return groups.concat(flatSubGroups);
+      };
+
+      groupId = R.pipe(
+        R.reduce(flattenGroups, []),
+        R.filter(R.propEq('name', name)),
+        R.path(['0', 'id'])
+      )(keycloakGroups) as string;
+
+      if (R.isNil(groupId)) {
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      }
+
+      try {
+        await redisClient.multi()
+        .set(cacheKey, groupId)
+        .expire(cacheKey, 172800) // 48 hours
+        .exec();
+      } catch (err) {
+        logger.info (`Error saving redis ${cacheKey}: ${err.message}`)
+      }
     }
 
     // @ts-ignore
