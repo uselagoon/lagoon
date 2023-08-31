@@ -7,10 +7,19 @@ import { Sql } from './sql';
 export const getToken: ResolverFn = async (
   kubernetes,
   _args,
-  { hasPermission }
+  { hasPermission, userActivityLogger }
 ) => {
   try {
     await hasPermission('openshift', 'view:token');
+
+    userActivityLogger(`User viewed openshift token`, {
+      project: '',
+      event: 'api:viewOpenshiftToken',
+      payload: {
+        name: kubernetes.name,
+        id: kubernetes.id
+      }
+    });
 
     return kubernetes.token;
   } catch (err) {
@@ -51,20 +60,30 @@ export const getProjectUser: ResolverFn = async () => null;
 export const addOpenshift: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('openshift', 'add');
 
   const { insertId } = await query(sqlClientPool, Sql.insertOpenshift(input));
 
   const rows = await query(sqlClientPool, Sql.selectOpenshift(insertId));
+
+  userActivityLogger(`User added an openshift '${input.name}'`, {
+    project: '',
+    event: 'api:addOpenshift',
+    payload: {
+      name: input.name,
+      id: R.prop(0, rows).id
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteOpenshift: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('openshift', 'delete');
 
@@ -79,6 +98,13 @@ export const deleteOpenshift: ResolverFn = async (
 
   res = await query(sqlClientPool, knex('openshift').where('name', input.name).delete().toString());
 
+  userActivityLogger(`User deleted an openshift '${input.name}'`, {
+    project: '',
+    event: 'api:deleteOpenshift',
+    payload: {
+      name: input.name,
+    }
+  });
   // TODO: maybe check rows for changed result
   return 'success';
 };
@@ -157,7 +183,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
 export const updateOpenshift: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('openshift', 'update');
 
@@ -170,17 +196,32 @@ export const updateOpenshift: ResolverFn = async (
   await query(sqlClientPool, Sql.updateOpenshift(input));
   const rows = await query(sqlClientPool, Sql.selectOpenshift(oid));
 
+  userActivityLogger(`User updated an openshift '${R.prop(0, rows).name}'`, {
+    project: '',
+    event: 'api:updateOpenshift',
+    payload: {
+      name: R.prop(0, rows).name,
+      id: R.prop(0, rows).id
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteAllOpenshifts: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('openshift', 'deleteAll');
 
   await query(sqlClientPool, Sql.truncateOpenshift());
+
+  userActivityLogger(`User deleted all openshifts`, {
+    project: '',
+    event: 'api:updateOpenshift',
+    payload: { }
+  });
 
   // TODO: Check rows for success
   return 'success';
