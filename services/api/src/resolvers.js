@@ -535,6 +535,7 @@ const resolvers = {
     userBySshFingerprint: getUserBySshFingerprint,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    orgProjectByName: getProjectByName,
     environmentsByKubernetes: getEnvironmentsByKubernetes,
     groupByName: getGroupByName,
     groupByNameAndOrganization: getGroupsByNameAndOrganizationId,
