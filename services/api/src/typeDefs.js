@@ -1267,6 +1267,7 @@ const typeDefs = gql`
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    orgProjectByName(name: String!): OrgProject
     """
     Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
     """
