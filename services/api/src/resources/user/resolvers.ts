@@ -233,9 +233,15 @@ export const addUserToOrganization: ResolverFn = async (
     owner: false,
   }
   if (owner) {
+    await hasPermission('organization', 'addOwner', {
+      organization: organization
+    });
     updateUser.owner = true
+  } else {
+    await hasPermission('organization', 'addViewer', {
+      organization: organization
+    });
   }
-  await hasPermission('organization', 'addViewer')
   await models.UserModel.updateUser(updateUser);
 
   userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
@@ -272,7 +278,9 @@ export const removeUserFromOrganization: ResolverFn = async (
     username: R.prop('email', userInput),
   });
 
-  await hasPermission('organization', 'addOwner');
+  await hasPermission('organization', 'addOwner', {
+    organization: organization
+  });
 
   await models.UserModel.updateUser({
     id: user.id,
