@@ -1491,6 +1491,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     organization: Int
+    organizationProjectOwner: Boolean
     buildImage: String
     sharedBaasBucket: Boolean
   }
