@@ -51,18 +51,18 @@ Some Docker images and containers need additional customizations from the provid
 
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
-| [MariaDB](../docker-images/mariadb/) | 10.4 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
+| [MariaDB](../docker-images/mariadb.md) | 10.4 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
 | [PostgreSQL](../docker-images/postgres.md) | 11, 12 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
 | [MongoDB](../docker-images/mongodb.md) | 3.6 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
-| [NGINX](../docker-images/nginx/) | openresty/1.19 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
+| [NGINX](../docker-images/nginx.md) | openresty/1.19 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
 | Node.js | 10, 12, 14 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
 | [PHP FPM](../docker-images/php-fpm.md) | 7.2, 7.3, 7.4 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
-| [PHP CLI](../docker-images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
+| [PHP CLI](../docker-images/php-cli.md) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
 | Python | 2.7, 3.7, 3.8 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
 | [Redis](../docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
 | [Redis-persistent](../docker-images/redis.md) | 5, 6 | [redis-persistent/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent) |
-| [Solr](../docker-images/solr/) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
-| [Varnish](../docker-images/varnish/) | 5 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
+| [Solr](../docker-images/solr.md) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
+| [Varnish](../docker-images/varnish.md) | 5 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
 | [Elasticsearch](../docker-images/elasticsearch.md) | 6, 7 | [elasticsearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch) |
 | [Logstash](../docker-images/elasticsearch.md) | 6, 7 | [logstash/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/logstash) |
 | [Kibana](../docker-images/elasticsearch.md) | 6, 7 | [kibana/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/kibana) |
