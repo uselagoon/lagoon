@@ -155,7 +155,7 @@ theme:
     - scheme: slate
       primary: 'blue'
       toggle:
-        icon: material/brightness-7
+        icon: material/white-balance-sunny
         name: Switch to light mode
 
   favicon: images/lagoon-icon.png
