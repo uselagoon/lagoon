@@ -372,8 +372,8 @@ export const getUsersByOrganizationId: ResolverFn = async (
           }
         }
         members.push(groupMembers[member].user)
-        exists = false
       }
+      exists = false
     }
   }
   return members.map(row => ({ ...row, organization: args.organization }));
