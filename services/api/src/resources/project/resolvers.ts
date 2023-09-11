@@ -293,8 +293,8 @@ export const addProject = async (
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
-    // if the project is created without the organizationProjectOwner boolean set to true, then do not add the user to the project as its owner
-    if (!input.organizationProjectOwner) {
+    // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
+    if (!input.addOrgOwner) {
       userAlreadyHasAccess = true
     }
     // check the project quota before adding the project

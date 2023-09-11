@@ -1491,7 +1491,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     organization: Int
-    organizationProjectOwner: Boolean
+    addOrgOwner: Boolean
     buildImage: String
     sharedBaasBucket: Boolean
   }
@@ -2176,6 +2176,7 @@ const typeDefs = gql`
     name: String!
     parentGroup: GroupInput
     organization: Int
+    addOrgOwner: Boolean
   }
 
   input UpdateGroupPatchInput {
