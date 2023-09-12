@@ -208,7 +208,9 @@ export const getProjectByName: ResolverFn = async (
   const project = withK8s[0];
 
   if (!project) {
-    return null;
+    throw new Error(
+      `No project matching ${project.name} found`
+    );
   }
 
   try {
