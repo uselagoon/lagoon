@@ -370,7 +370,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     // check the environment quota, this prevents environments being added directly via the api
     const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(projectOpenshift.organization)
     const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
-    if (curEnvs.length >= curOrg.quotaEnvironment) {
+    if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
       throw new Error(
         `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
       );
