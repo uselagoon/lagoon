@@ -372,8 +372,8 @@ export const getUsersByOrganizationId: ResolverFn = async (
           }
         }
         members.push(groupMembers[member].user)
-        exists = false
       }
+      exists = false
     }
   }
   return members.map(row => ({ ...row, organization: args.organization }));
@@ -385,7 +385,9 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
   { email, organization},
   { sqlClientPool, models, hasPermission },
 ) => {
-  await hasPermission('organization', 'viewUser', organization);
+  await hasPermission('organization', 'viewUser', {
+    organization: organization
+  });
 
   try {
     const user = await models.UserModel.loadUserByUsername(email);
@@ -461,6 +463,15 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   }
   return [];
 };
+
+export const getGroupCountByOrganizationProject: ResolverFn = async (
+  { id: pid },
+  _input,
+  { sqlClientPool, models, keycloakGroups }
+) => {
+  const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  return orgProjectGroups.length
+}
 
 // get the groups of a project in an organization
 // this is only accessible as a resolver of organizations

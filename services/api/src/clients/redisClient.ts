@@ -16,7 +16,7 @@ export const config: {
     : undefined
 };
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   host: config.hostname,
   port: config.port,
   password: config.pass,
@@ -27,6 +27,7 @@ redisClient.on('error', function(error) {
   console.error(error);
 });
 
+export const get = promisify(redisClient.get).bind(redisClient);
 const hgetall = promisify(redisClient.hgetall).bind(redisClient);
 const smembers = promisify(redisClient.smembers).bind(redisClient);
 const sadd = promisify(redisClient.sadd).bind(redisClient);
@@ -46,7 +47,7 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
     group ? `${group}:` : ''
   }${scope}`;
 
-export const getRedisCache = async (resourceScope: IUserResourceScope) => {
+export const getRedisCache = async (resourceScope: IUserResourceScope): Promise<string> => {
   const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
   const key = hashKey(resourceScope);
 
@@ -55,14 +56,18 @@ export const getRedisCache = async (resourceScope: IUserResourceScope) => {
 
 export const saveRedisCache = async (
   resourceScope: IUserResourceScope,
-  value: number | string
+  value: string
 ) => {
   const key = hashKey(resourceScope);
-  await redisClient.hmset(
+  const timeout = getConfigFromEnv('CACHE_PERMISSION_TTL', '500');
+  redisClient.multi()
+  .hset(
     `cache:authz:${resourceScope.currentUserId}`,
     key,
     value
-  );
+  )
+  .expire(`cache:authz:${resourceScope.currentUserId}`, parseInt(timeout, 10))
+  .exec();
 };
 
 export const getRedisKeycloakCache = async (key: string) => {

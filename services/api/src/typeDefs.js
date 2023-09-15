@@ -483,6 +483,7 @@ const typeDefs = gql`
     type: String
     groups: [GroupInterface]
     members: [GroupMembership]
+    memberCount: Int
     projects: [Project]
     organization: Int
   }
@@ -493,7 +494,30 @@ const typeDefs = gql`
     type: String
     groups: [GroupInterface]
     members: [GroupMembership]
+    memberCount: Int
     projects: [Project]
+    organization: Int
+  }
+
+  interface OrgGroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [OrgGroupInterface]
+    members: [GroupMembership]
+    memberCount: Int
+    projects: [OrgProject]
+    organization: Int
+  }
+
+  type OrgGroup implements OrgGroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [OrgGroupInterface]
+    members: [GroupMembership]
+    memberCount: Int
+    projects: [OrgProject]
     organization: Int
   }
 
@@ -1098,6 +1122,7 @@ const typeDefs = gql`
     name: String
     organization: Int
     groups: [GroupInterface]
+    groupCount: Int
     notifications: [OrganizationNotification]
   }
 
@@ -1242,6 +1267,7 @@ const typeDefs = gql`
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    orgProjectByName(name: String!): OrgProject
     """
     Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
     """
@@ -1250,7 +1276,7 @@ const typeDefs = gql`
     Returns Group Object by a given name
     """
     groupByName(name: String!): GroupInterface
-    groupByNameAndOrganization(name: String!, organization: Int!): GroupInterface
+    groupByNameAndOrganization(name: String!, organization: Int!): OrgGroupInterface
     """
     Retrieves all users that have been added to groups within an organization.
     """
@@ -1465,6 +1491,7 @@ const typeDefs = gql`
     developmentBuildPriority: Int
     deploymentsDisabled: Int
     organization: Int
+    addOrgOwner: Boolean
     buildImage: String
     sharedBaasBucket: Boolean
   }
@@ -2149,6 +2176,7 @@ const typeDefs = gql`
     name: String!
     parentGroup: GroupInput
     organization: Int
+    addOrgOwner: Boolean
   }
 
   input UpdateGroupPatchInput {

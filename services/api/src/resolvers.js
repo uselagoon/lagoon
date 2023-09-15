@@ -238,6 +238,7 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
   getMembersByGroupId,
+  getMemberCountByGroupId,
   getGroupRolesByUserId,
 } = require('./resources/group/resolvers');
 
@@ -261,6 +262,7 @@ const {
   removeProjectFromOrganization,
   addGroupToOrganization,
   getGroupsByOrganizationsProject,
+  getGroupCountByOrganizationProject,
   getProjectGroupOrganizationAssociation, // WIP resolver
   getGroupProjectOrganizationAssociation, // WIP resolver
   getNotificationsForOrganizationProjectId,
@@ -402,9 +404,20 @@ const resolvers = {
       return 'Group';
     },
   },
+  OrgGroupInterface: {
+    __resolveType(group) {
+      return 'OrgGroup';
+    },
+  },
   Group: {
     projects: getAllProjectsByGroupId,
-    members: getMembersByGroupId
+    members: getMembersByGroupId,
+    memberCount: getMemberCountByGroupId,
+  },
+  OrgGroup: {
+    projects: getAllProjectsByGroupId,
+    members: getMembersByGroupId,
+    memberCount: getMemberCountByGroupId,
   },
   DeployTargetConfig: {
     project: getProjectById,
@@ -439,6 +452,7 @@ const resolvers = {
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
+    groupCount: getGroupCountByOrganizationProject,
     notifications: getNotificationsForOrganizationProjectId,
   },
   OrgEnvironment: {
@@ -521,6 +535,7 @@ const resolvers = {
     userBySshFingerprint: getUserBySshFingerprint,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    orgProjectByName: getProjectByName,
     environmentsByKubernetes: getEnvironmentsByKubernetes,
     groupByName: getGroupByName,
     groupByNameAndOrganization: getGroupsByNameAndOrganizationId,

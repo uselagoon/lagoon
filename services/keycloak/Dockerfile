@@ -15,7 +15,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 
-RUN microdnf install -y nc jq \
+RUN microdnf install -y nc jq unzip \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
@@ -39,6 +39,11 @@ RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
     && curl -sL https://github.com/krallin/tini/releases/download/v0.19.0/tini-${architecture} -o /sbin/tini && chmod a+x /sbin/tini
+
+RUN cd /opt \
+    && curl -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip \
+    && unzip newrelic-java.zip \
+    && rm newrelic-java.zip
 
 ENV TMPDIR=/tmp \
     TMP=/tmp \
@@ -70,6 +75,7 @@ COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
 COPY startup-scripts /opt/jboss/startup-scripts
 COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
+COPY configure-ds-pool.cli /opt/jboss/tools/cli/databases/configure-ds-pool.cli
 COPY themes/lagoon /opt/jboss/keycloak/themes/lagoon
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/jboss/keycloak/standalone/deployments/lagoon-scripts.jar
 

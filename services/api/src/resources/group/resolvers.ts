@@ -160,6 +160,31 @@ export const getMembersByGroupId: ResolverFn = async (
   }
 }
 
+// resolver to simply retrieve how many members are in a group
+export const getMemberCountByGroupId: ResolverFn = async (
+  { id },
+  _input,
+  { hasPermission, models, keycloakGrant }
+) => {
+  try {
+    // members resolver is only called by group, no need to check the permissions on the group
+    // as the group resolver will have already checked permission
+    const group = await models.GroupModel.loadGroupById(id);
+    const members = await models.GroupModel.getGroupMemberCount(group);
+    return members;
+  } catch (err) {
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.debug('No grant available for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message} ${id}`);
+    throw err;
+  }
+}
+
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
@@ -354,8 +379,16 @@ export const addGroup: ResolverFn = async (
   });
   await models.GroupModel.addProjectToGroup(null, group);
 
-  // if the user is not an admin, or an organization add, then add the user as an owner to the group
-  if (!adminScopes.projectViewAll && !input.organization && keycloakGrant) {
+  // if the user is not an admin, then add the user as an owner to the group
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
+  // if the group is created without the addOrgOwner boolean set to true, then do not add the user to the group as its owner
+  if (!input.addOrgOwner) {
+    userAlreadyHasAccess = true
+  }
+  if (!userAlreadyHasAccess && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
