@@ -372,8 +372,8 @@ export const getUsersByOrganizationId: ResolverFn = async (
           }
         }
         members.push(groupMembers[member].user)
-        exists = false
       }
+      exists = false
     }
   }
   return members.map(row => ({ ...row, organization: args.organization }));
@@ -385,7 +385,9 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
   { email, organization},
   { sqlClientPool, models, hasPermission },
 ) => {
-  await hasPermission('organization', 'viewUser', organization);
+  await hasPermission('organization', 'viewUser', {
+    organization: organization
+  });
 
   try {
     const user = await models.UserModel.loadUserByUsername(email);

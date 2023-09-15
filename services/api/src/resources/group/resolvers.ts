@@ -379,8 +379,16 @@ export const addGroup: ResolverFn = async (
   });
   await models.GroupModel.addProjectToGroup(null, group);
 
-  // if the user is not an admin, or an organization add, then add the user as an owner to the group
-  if (!adminScopes.projectViewAll && !input.organization && keycloakGrant) {
+  // if the user is not an admin, then add the user as an owner to the group
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
+  // if the group is created without the addOrgOwner boolean set to true, then do not add the user to the group as its owner
+  if (!input.addOrgOwner) {
+    userAlreadyHasAccess = true
+  }
+  if (!userAlreadyHasAccess && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
