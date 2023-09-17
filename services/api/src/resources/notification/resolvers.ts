@@ -37,7 +37,7 @@ const checkOrgNotificationPermission = async (hasPermission, input) => {
     });
 
     const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
-    if (orgNotifications.length >= organizationData.quotaNotification) {
+    if (orgNotifications.length >= organizationData.quotaNotification && organizationData.quotaNotification != -1) {
       throw new Error(
         `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
       );
