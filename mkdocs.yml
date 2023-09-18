@@ -13,10 +13,38 @@ nav:
   - Set Up a New Project: using-lagoon-the-basics/setup-project.md
   - Configure Webhooks: using-lagoon-the-basics/configure-webhooks.md
   - First Deployment: using-lagoon-the-basics/first-deployment.md
-  - .lagoon.yml: using-lagoon-the-basics/lagoon-yml.md
-  - docker-compose.yml: using-lagoon-the-basics/docker-compose-yml.md
-  - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
   - Going Live: using-lagoon-the-basics/going-live.md
+- Using Lagoon - Advanced:
+  - Active/Standby: using-lagoon-advanced/active-standby.md
+  - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
+  - Backups: using-lagoon-advanced/backups.md
+  - Private Repositories: using-lagoon-advanced/private-repositories.md
+  - SimpleSAML: using-lagoon-advanced/simplesaml.md
+  - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
+  - Node.js Graceful Shutdown: using-lagoon-advanced/nodejs.md
+  - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
+  - Custom Tasks: using-lagoon-advanced/custom-tasks.md
+  - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
+  - Blackfire: using-lagoon-advanced/blackfire.md
+- Lagoon Concepts - The Basics:
+  - .lagoon.yml: concepts-basics/lagoon-yml.md
+  - docker-compose.yml: concepts-basics/docker-compose-yml.md
+  - Build and Deploy Process: concepts-basics/build-and-deploy-process.md
+  - Building Blocks of Lagoon:
+    - Users: concepts-basics/building-blocks/users.md
+    - Groups: concepts-basics/building-blocks/groups.md
+    - Projects: concepts-basics/building-blocks/projects.md
+    - Notifications: concepts-basics/building-blocks/notifications.md
+    - Deploy Targets: concepts-basics/building-blocks/deploy-targets.md
+    - Organizations: concepts-basics/building-blocks/organizations.md
+- Lagoon Concepts - Advanced:
+  - Service Types: concepts-advanced/service-types.md
+  - Environment Types: concepts-advanced/environment-types.md
+  - Environment Variables: concepts-advanced/environment-variables.md
+  - Environment Idling: concepts-advanced/environment-idling.md
+  - Base Images: concepts-advanced/base-images.md
+  - Workflows: concepts-advanced/workflows.md
+  - Feature Flags: concepts-advanced/feature-flags.md
 - Docker Images:
   - Commons: docker-images/commons.md
   - Elasticsearch: docker-images/elasticsearch.md
@@ -68,26 +96,12 @@ nav:
 - Understanding Logs:
   - Logging: logging/logging.md
   - Kibana Examples: logging/kibana-examples.md
-- Using Lagoon - Advanced:
-  - Service Types: using-lagoon-advanced/service-types.md
-  - Environment Types: using-lagoon-advanced/environment-types.md
-  - Environment Variables: using-lagoon-advanced/environment-variables.md
-  - Base Images: using-lagoon-advanced/base-images.md
-  - Workflows: using-lagoon-advanced/workflows.md
-  - Active/Standby: using-lagoon-advanced/active-standby.md
-  - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
-  - Backups: using-lagoon-advanced/backups.md
-  - GraphQL: using-lagoon-advanced/graphql.md
-  - Private Repositories: using-lagoon-advanced/private-repositories.md
-  - SimpleSAML: using-lagoon-advanced/simplesaml.md
-  - SSH: using-lagoon-advanced/ssh.md
-  - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
-  - Node.js Graceful Shutdown: using-lagoon-advanced/nodejs.md
-  - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
-  - Environment Idling: using-lagoon-advanced/environment-idling.md
-  - Custom Tasks: using-lagoon-advanced/custom-tasks.md
-  - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
-  - Blackfire: using-lagoon-advanced/blackfire.md
+- Interacting with Lagoon:
+  - The Lagoon UI: interacting/lagooon-ui.md
+  - GraphQL: interacting/graphql.md
+  - SSH: interacting/ssh.md
+  - GraphQL API: interacting/graphql-queries.md
+  - Role-Based Access Control (RBAC): interacting/rbac.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
   - EFS Provisioner: installing-lagoon/efs-provisioner.md
@@ -108,9 +122,6 @@ nav:
   - GitLab: installing-lagoon/gitlab.md
   - Updating: installing-lagoon/update-lagoon.md
 - Administering Lagoon:
-  - GraphQL API: administering-lagoon/graphql-queries.md
-  - Role-Based Access Control (RBAC): administering-lagoon/rbac.md
-  - Feature Flags: administering-lagoon/feature-flags.md
   - Harbor:
     - Using Harbor: administering-lagoon/using-harbor/README.md
     - Security Scanning: administering-lagoon/using-harbor/security-scanning.md
