@@ -98,10 +98,8 @@ pipeline {
           }
           steps {
             retry(3) {
-              timeout(time: 10, unit: 'MINUTES') {
-                sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-                sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
-              }
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
             }
           }
         }
