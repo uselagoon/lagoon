@@ -209,15 +209,15 @@ export const getProjectByName: ResolverFn = async (
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 
+  if (!project) {
+    return null;
+  }
+
   userActivityLogger(`User queried getProjectByName`, {
     project: '',
     event: 'api:getProjectByName',
     payload:  { id: project.id },
   }, 'user_query');
-
-  if (!project) {
-    return null;
-  }
 
   await hasPermission('project', 'view', {
     project: project.id
