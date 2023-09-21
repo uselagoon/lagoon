@@ -19,7 +19,6 @@ nav:
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
   - Commons: docker-images/commons.md
-  - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
@@ -240,7 +239,7 @@ plugins:
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
-        'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
+        'lagoon/docker-images/elasticsearch.md': 'docker-images/opensearch.md'
         'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
         'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
         'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'
