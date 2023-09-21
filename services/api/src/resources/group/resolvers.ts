@@ -331,7 +331,7 @@ export const addGroup: ResolverFn = async (
       }
     }
 
-    if (groupCount >= organizationData.quotaGroup) {
+    if (groupCount >= organizationData.quotaGroup && organizationData.quotaGroup != -1) {
       throw new Error(
         `This would exceed this organizations group quota; ${groupCount}/${organizationData.quotaGroup}`
       );

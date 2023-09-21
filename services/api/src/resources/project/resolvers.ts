@@ -300,7 +300,7 @@ export const addProject = async (
     // check the project quota before adding the project
     const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
-    if (projects.length >= organization.quotaProject) {
+    if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
       throw new Error(
         `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
       );
