@@ -26,6 +26,16 @@ nav:
   - Custom Tasks: using-lagoon-advanced/custom-tasks.md
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
   - Blackfire: using-lagoon-advanced/blackfire.md
+  - Harbor:
+    - Using Harbor: using-lagoon-advanced/using-harbor/README.md
+    - Security Scanning: using-lagoon-advanced/using-harbor/security-scanning.md
+    - Harbor Settings: using-lagoon-advanced/using-harbor/harbor-settings/README.md
+    - Harbor-Core: using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md
+    - Harbor-Database: using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md
+    - Harbor-Jobservice: using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md
+    - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
+    - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
+    - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
 - Lagoon Concepts - The Basics:
   - .lagoon.yml: concepts-basics/lagoon-yml.md
   - docker-compose.yml: concepts-basics/docker-compose-yml.md
@@ -121,17 +131,6 @@ nav:
   - Lagoon Files: installing-lagoon/lagoon-files.md
   - GitLab: installing-lagoon/gitlab.md
   - Updating: installing-lagoon/update-lagoon.md
-- Administering Lagoon:
-  - Harbor:
-    - Using Harbor: administering-lagoon/using-harbor/README.md
-    - Security Scanning: administering-lagoon/using-harbor/security-scanning.md
-    - Harbor Settings: administering-lagoon/using-harbor/harbor-settings/README.md
-    - Harbor-Core: administering-lagoon/using-harbor/harbor-settings/harbor-core.md
-    - Harbor-Database: administering-lagoon/using-harbor/harbor-settings/harbor-database.md
-    - Harbor-Jobservice: administering-lagoon/using-harbor/harbor-settings/harbor-jobservice.md
-    - Harbor-Trivy: administering-lagoon/using-harbor/harbor-settings/harbor-trivy.md
-    - HarborRegistry: administering-lagoon/using-harbor/harbor-settings/harborregistry.md
-    - HarborRegistryCtl: administering-lagoon/using-harbor/harbor-settings/harborregistryctl.md
 - Contributing to Lagoon:
   - Documentation: contributing-to-lagoon/documentation.md
   - Code of Conduct: code-of-conduct.md

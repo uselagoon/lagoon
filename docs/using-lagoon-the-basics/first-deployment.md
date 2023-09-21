@@ -30,7 +30,7 @@ This will trigger a push, and your Git hosting will inform Lagoon about this pus
 
 If all is correct, you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon administrator\):
 
-![Slack notification that a push has been made in a Lagoonized repository.](./first_deployment_slack_start.jpg)
+![Slack notification that a push has been made in a Lagoonized repository.](../images/first_deployment_slack_start.jpg)
 
 This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md).
 
@@ -40,7 +40,7 @@ You can also check your Lagoon UI to see the progress of any deployment \(your L
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, here an example:
 
-![Slack notification of a successful Lagoon build and deployment.](./first_deployment_slack_2nd_success.jpg)
+![Slack notification of a successful Lagoon build and deployment.](../images/first_deployment_slack_2nd_success.jpg)
 
 It tells you:
 
