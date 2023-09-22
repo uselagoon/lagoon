@@ -113,7 +113,7 @@ That should list everything running on port 80. Kill the process running on port
 
 ## How can I change branches/PR environments/production on my project?
 
-You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#updating-objects).
+You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../interacting/graphql-queries.md#updating-objects).
 
 ## How do I add a redirect?
 
@@ -121,13 +121,13 @@ You can make that change using the Lagoon API! You can find the documentation fo
 
 ## How can I add new users \(and SSH keys\) to my project/group?
 
-This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project).
+This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../interacting/graphql-queries.md#allowing-access-to-the-project).
 
 ## Can an environment be completely deleted to roll out large code changes to my project?
 
 Environments are fully built from scratch at each deploy, dropping the old database and files and pushing your code would result in a fresh clean build, Don’t forget to re-sync!
 
-It is possible to delete an environment via GraphQL. You can find the instructions [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#deleting-environments).
+It is possible to delete an environment via GraphQL. You can find the instructions [in our GraphQL documentation](../interacting/graphql-queries.md#deleting-environments).
 
 ## How do I get my new environment variable to show up?
 

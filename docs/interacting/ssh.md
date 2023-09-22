@@ -50,7 +50,7 @@ You will then see a page where you can upload your SSH key(s), and it will show 
 
 ### Via Command Line
 
-A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found [here](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project)
+A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found [here](../interacting/graphql-queries.md#allowing-access-to-the-project)
 
 ## SSH into a pod
 

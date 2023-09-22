@@ -72,7 +72,7 @@ debugging.
   site is to check the PHP status page. You should find a section about Xdebug
   and all its settings.
 
-![phpinfo results](phpinfo.png)
+![phpinfo results](../images/phpinfo.png)
 
 - Verify the following settings:
 

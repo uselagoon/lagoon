@@ -1,5 +1,5 @@
 # See the docs for a detailed explanation about this file:
-# https://docs.lagoon.sh/administering-lagoon/graphql-queries/#creating-the-first-project
+# https://docs.lagoon.sh/interacting/graphql-queries/#creating-the-first-project
 
 # 1. Create a cluster (Kubernetes or OpenShift)
 mutation {

@@ -17,7 +17,6 @@ nav:
 - Using Lagoon - Advanced:
   - Active/Standby: using-lagoon-advanced/active-standby.md
   - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
-  - Backups: using-lagoon-advanced/backups.md
   - Private Repositories: using-lagoon-advanced/private-repositories.md
   - SimpleSAML: using-lagoon-advanced/simplesaml.md
   - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
@@ -47,11 +46,13 @@ nav:
     - Notifications: concepts-basics/building-blocks/notifications.md
     - Deploy Targets: concepts-basics/building-blocks/deploy-targets.md
     - Organizations: concepts-basics/building-blocks/organizations.md
+    - Roles: concepts-basics/building-blocks/roles.md
 - Lagoon Concepts - Advanced:
   - Service Types: concepts-advanced/service-types.md
   - Environment Types: concepts-advanced/environment-types.md
   - Environment Variables: concepts-advanced/environment-variables.md
   - Environment Idling: concepts-advanced/environment-idling.md
+  - Backups: concepts-advanced/backups.md
   - Base Images: concepts-advanced/base-images.md
   - Workflows: concepts-advanced/workflows.md
   - Feature Flags: concepts-advanced/feature-flags.md
@@ -107,7 +108,7 @@ nav:
   - Logging: logging/logging.md
   - Kibana Examples: logging/kibana-examples.md
 - Interacting with Lagoon:
-  - The Lagoon UI: interacting/lagooon-ui.md
+  - The Lagoon UI: interacting/lagoon-ui.md
   - GraphQL: interacting/graphql.md
   - SSH: interacting/ssh.md
   - GraphQL API: interacting/graphql-queries.md
