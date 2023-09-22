@@ -4,7 +4,7 @@ Lagoon integrates with OpenSearch to store application, container and router log
 
 In addition, it should be installed in the `lagoon-core` cluster to collect logs from the `lagoon-core` service.  This is configured in the `LagoonLogs` section.
 
-Logging Overview: [https://lucid.app/lucidchart/b1da011f-2b91-4798-9518-4164b19d327d/view](https://lucid.app/lucidchart/b1da011f-2b91-4798-9518-4164b19d327d/view)
+Logging Overview: [Lucid Chart](https://lucid.app/lucidchart/70f9610e-cfd7-42e8-8b5b-3d03293a439c/view?page=Uq-x~LhSIxrp&invitationId=inv_4e891071-f795-4ada-bbd3-2ff63b8eb1f7#)
 
 See also: [Logging](../logging/logging.md).
 
