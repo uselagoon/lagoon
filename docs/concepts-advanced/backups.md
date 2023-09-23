@@ -8,7 +8,7 @@ Lagoon makes use of the [k8up operator](https://github.com/vshn/k8up) to provide
 
 Backups of databases and containers' persistent storage volumes happens nightly within production environments by default.
 
-If a different backup schedule for production backups is required, this can be specified at a project level via setting the "Backup Schedule" variables in the project's [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md#backup-schedule) file.
+If a different backup schedule for production backups is required, this can be specified at a project level via setting the "Backup Schedule" variables in the project's [.lagoon.yml](../concepts-basics/lagoon-yml.md#backup-schedule) file.
 
 ### Backup Retention
 
@@ -19,7 +19,7 @@ Production environment backups will be held according to the following schedule 
 * Monthly: 1
 * Hourly: 0
 
-If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md#backup-retention) file.
+If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's [.lagoon.yml](../concepts-basics/lagoon-yml.md#backup-retention) file.
 
 ## Development Environments
 
@@ -31,7 +31,7 @@ Backups stored in Restic will be tracked within Lagoon, and can be recovered via
 
 ## Custom Backup and/or Restore Locations
 
-Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](../using-lagoon-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](../using-lagoon-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
+Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](../concepts-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](../concepts-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
 
 !!! danger
     Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.

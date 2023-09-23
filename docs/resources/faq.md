@@ -26,7 +26,7 @@ If you ever need to recover or restore a backup, feel free to submit a ticket or
 
 ## I'm getting an invalid SSL certificate error
 
-The first thing to try is what is listed in [our documentation about SSL](../using-lagoon-the-basics/lagoon-yml.md#ssl-configuration-tls-acme).
+The first thing to try is what is listed in [our documentation about SSL](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
 
 If you follow those steps, and you are still seeing an error, please submit a ticket or send us a message on chat and we can help resolve this for you.
 
@@ -155,13 +155,13 @@ We can definitely help with that. Once you have your own SSL certificate, feel f
 * Certificate file \(.crt\)
 * Intermediate certificates \(.crt\)
 
-Also, you will need to [set the `tls-acme` option in `.lagoon.yml` to false](../using-lagoon-the-basics/lagoon-yml.md#ssl-configuration-tls-acme).
+Also, you will need to [set the `tls-acme` option in `.lagoon.yml` to false](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
 
 ## Is it possible to mount an external volume \(EFS/Fuse/SMB/etc\) into Lagoon?
 
 Mounting an external volume would need to be handled completely inside of your containers, Lagoon does not provide a provision for this type of connection as part of the platform.
 
-A developer can handle this by installing the necessary packages into the container \(via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)\), and ensuring the volume mount is connected via a [pre- or post-rollout task](../using-lagoon-the-basics/lagoon-yml.md#tasks).
+A developer can handle this by installing the necessary packages into the container \(via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)\), and ensuring the volume mount is connected via a [pre- or post-rollout task](../concepts-basics/lagoon-yml.md#tasks).
 
 ## Is there a way to stop a Lagoon build?
 

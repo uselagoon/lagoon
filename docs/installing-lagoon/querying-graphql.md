@@ -28,7 +28,7 @@
     }
   ```
 
-  [Read more about GraphQL here in our documentation.](../using-lagoon-advanced/graphql.md)
+  [Read more about GraphQL here in our documentation.](../interacting/graphql.md)
 
 6. Once you get the correct response, we need to add a mutation.
 

@@ -104,7 +104,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `when`
   * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](../concepts-advanced/environment-variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
@@ -522,7 +522,7 @@ There are 2 ways to define the password used for your registry user.
 Create an environment variable in the Lagoon API with the type `container_registry`:
 
 * `lagoon add variable -p <project_name> -N <registry_password_variable_name> -V <password_goes_here> -S container_registry`
-* \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\)
+* \(see more on [Environment Variables](../concepts-advanced/environment-variables.md)\)
 
 The name of the variable you create can then be set as the password:
 

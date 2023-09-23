@@ -18,7 +18,7 @@ The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tr
 
 The default exposed port of Python containers is port `8800`.
 
-Persistent storage is configurable in Lagoon, using the `lagoon.type: python-persistent`. See [the docs](../using-lagoon-the-basics/docker-compose-yml.md#persistent-storage) for more info
+Persistent storage is configurable in Lagoon, using the `lagoon.type: python-persistent`. See [the docs](../concepts-basics/docker-compose-yml.md#persistent-storage) for more info
 
 Use the following labels in your `docker-compose.yml` file to configure it:
 `lagoon.persistent` = use this to define the path in the container to use as persistent storage - e.g. /app/files

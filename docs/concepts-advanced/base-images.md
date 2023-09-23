@@ -37,7 +37,7 @@ We only require this metapackage, which points to a GitHub repository.
 
 ### `docker-compose.yml`
 
-Other pieces of your project are defined in [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
+Other pieces of your project are defined in [`docker-compose.yml`](../concepts-basics/docker-compose-yml.md). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
 
 ### Drupal
 

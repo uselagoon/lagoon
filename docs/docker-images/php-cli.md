@@ -51,7 +51,7 @@ RUN apk del nodejs-current \
 ## Environment variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md). The [php-fpm
+variables](../concepts-advanced/environment-variables.md). The [php-fpm
 environment variables](php-fpm.md#environment-variables) also apply.
 
 | Name                       | Default | Description                                           |

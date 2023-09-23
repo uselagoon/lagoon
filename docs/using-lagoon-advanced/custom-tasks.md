@@ -18,7 +18,7 @@ We have to define where this task will be run -- this means two things, first, w
 
 Let's say that we'd like for our `yarn audit` task to be available to run in any environment in a specific project \(let's say the project's ID is 42 for this example\). We will therefore specify the project's ID when we create our task definition, as we will describe below.
 
-The second question regards which environment we want to target with our task. When you set up your project, you specify several services in your [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md). We use this service name to determine where the command is actually executed.
+The second question regards which environment we want to target with our task. When you set up your project, you specify several services in your [`docker-compose.yml`](../concepts-basics/docker-compose-yml.md). We use this service name to determine where the command is actually executed.
 
 ### Who can run this task?
 

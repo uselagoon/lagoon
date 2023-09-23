@@ -23,7 +23,7 @@ If all is correct, you will see a notification in your configured chat system \(
 
 ![Slack notification of a deployment starting.](./first_deployment_slack_start.jpg)
 
-This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
+This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../concepts-basics/build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 

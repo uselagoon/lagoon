@@ -50,7 +50,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 The image ships a _default_ MariaDB configuration file, optimized to work on
 Lagoon. Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 ## Environment Variables
 

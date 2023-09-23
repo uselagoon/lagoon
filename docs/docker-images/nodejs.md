@@ -20,7 +20,7 @@ The builder variant of those images comes with additional tooling that is needed
 
 The default exposed port of Node.js containers is port `3000`.
 
-Persistent storage is configurable in Lagoon, using the `lagoon.type: node-persistent`. See [the docs](../using-lagoon-the-basics/docker-compose-yml.md#persistent-storage) for more info
+Persistent storage is configurable in Lagoon, using the `lagoon.type: node-persistent`. See [the docs](../concepts-basics/docker-compose-yml.md#persistent-storage) for more info
 
 Use the following labels in your `docker-compose.yml` file to configure it:
 

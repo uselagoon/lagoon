@@ -98,7 +98,7 @@ mutation addBuildtimeEnv {
 }
 ```
 
-Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. They are used to store the password for the user defined in [Specials » `container-registries`](../using-lagoon-the-basics/lagoon-yml.md#specials). They can be applied at the project or environment level.
+Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. They are used to store the password for the user defined in [Specials » `container-registries`](../concepts-basics/lagoon-yml.md#specials). They can be applied at the project or environment level.
 
 This defines a project-wide container registry variable \(available in all environments\) for the project with ID `463`:
 
