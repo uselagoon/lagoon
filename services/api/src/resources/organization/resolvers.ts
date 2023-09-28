@@ -242,30 +242,6 @@ export const getOrganizationById: ResolverFn = async (
     return orgResult;
 };
 
-export const getOrganizationByName: ResolverFn = async (
-  organization,
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  let orgName = args.organization;
-  if (organization) {
-    orgName = organization;
-  }
-
-  await hasPermission('organization', 'view', {
-    organization: orgName,
-  });
-
-  const rows = await query(sqlClientPool, Sql.selectOrganizationByName(orgName));
-  const orgResult = rows[0];
-
-  if (!orgResult) {
-    return null;
-  }
-
-  return orgResult;
-};
-
 export const getAllOrganizations: ResolverFn = async (
     root,
     args,
