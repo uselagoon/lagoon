@@ -252,16 +252,16 @@ export const getOrganizationByName: ResolverFn = async (
     orgName = organization;
   }
 
-  await hasPermission('organization', 'view', {
-    organization: orgName,
-  });
-
   const rows = await query(sqlClientPool, Sql.selectOrganizationByName(orgName));
   const orgResult = rows[0];
 
   if (!orgResult) {
     return null;
   }
+
+  await hasPermission('organization', 'view', {
+    organization: orgResult.id,
+  });
 
   return orgResult;
 };
