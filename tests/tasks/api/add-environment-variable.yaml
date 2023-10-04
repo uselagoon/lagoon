@@ -1,6 +1,6 @@
 - name: "{{ testname }} - POST api add envVariable with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - POST api add envVariable with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

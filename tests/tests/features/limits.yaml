@@ -1,5 +1,5 @@
 ---
-- include: ../api/push.yaml
+- ansible.builtin.import_playbook: ../api/push.yaml
   vars:
     testname: "environment limits - allow production"
     node_version: 16
@@ -9,7 +9,7 @@
     expected_status: 200
     url: "{{ check_url }}"
 
-- include: ../api/push.yaml
+- ansible.builtin.import_playbook: ../api/push.yaml
   vars:
     testname: "environment limits - allow deployment of existing branch"
     node_version: 16
@@ -19,7 +19,7 @@
     expected_status: 200
     url: "{{ check_url }}"
 
-- include: ../api/push.yaml
+- ansible.builtin.import_playbook: ../api/push.yaml
   vars:
     testname: "environment limits - prevent deployment of new branch"
     node_version: 16

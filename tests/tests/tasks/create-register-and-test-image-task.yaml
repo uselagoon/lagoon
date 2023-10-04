@@ -1,6 +1,6 @@
 - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
   block:
-    - include: ../../tasks/api/admin-token.yaml
+    - ansible.builtin.include_tasks: ../../tasks/api/admin-token.yaml
     - name: "{{ testname }} - print openshift variable debug inside subtask"
       debug:
         msg: "openshift id {{ openshift_project_name }}"
@@ -17,7 +17,7 @@
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}"
-    - include: ./post-api-register-task.yaml
+    - ansible.builtin.import_playbook: ./post-api-register-task.yaml
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
       debug:
         msg: "api response: {{ taskCreateApiResponse }}"

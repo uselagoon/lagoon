@@ -5,7 +5,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_BUILD_TYPE_BUILDTIME={{ expected_build_type }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_HEAD_BRANCH_BUILDTIME={{ expected_pr_head_branch }}"
   hosts: localhost
@@ -14,7 +14,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_HEAD_BRANCH_BUILDTIME={{ expected_pr_head_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_HEAD_BRANCH={{ expected_pr_head_branch }}"
   hosts: localhost
@@ -23,7 +23,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_HEAD_BRANCH={{ expected_pr_head_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_HEAD_SHA_BUILDTIME={{ expected_pr_head_sha }}"
   hosts: localhost
@@ -32,7 +32,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_HEAD_SHA_BUILDTIME={{ expected_pr_head_sha }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_BASE_BRANCH_BUILDTIME={{ expected_pr_base_branch }}"
   hosts: localhost
@@ -41,7 +41,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_BASE_BRANCH_BUILDTIME={{ expected_pr_base_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_BASE_BRANCH={{ expected_pr_base_branch }}"
   hosts: localhost
@@ -50,7 +50,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_BASE_BRANCH={{ expected_pr_base_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_BASE_SHA_BUILDTIME={{ expected_pr_base_sha }}"
   hosts: localhost
@@ -59,7 +59,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_BASE_SHA_BUILDTIME={{ expected_pr_base_sha }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_TITLE_BUILDTIME={{ expected_pr_title }}"
   hosts: localhost
@@ -68,7 +68,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_TITLE_BUILDTIME={{ expected_pr_title }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for LAGOON_PR_TITLE={{ expected_pr_title }}"
   hosts: localhost
@@ -77,4 +77,4 @@
     url: "{{ url }}"
     expected_content: "LAGOON_PR_TITLE={{ expected_pr_title }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml

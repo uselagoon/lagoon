@@ -5,8 +5,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 # delete the envvar if it exists already
 - name: "{{ testname }} - api delete LAGOON_FASTLY_SERVICE_ID envVariable on {{ project }}"
@@ -16,7 +16,7 @@
     envName: "LAGOON_FASTLY_SERVICE_ID"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/delete-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project-variable.yaml
 
 # delete the envvar if it exists already
 - name: "{{ testname }} - api delete LAGOON_FASTLY_SERVICE_IDS envVariable on {{ project }}"
@@ -26,7 +26,7 @@
     envName: "LAGOON_FASTLY_SERVICE_IDS"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/delete-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project-variable.yaml
 
 # delete the envvar if it exists already
 - name: "{{ testname }} - api delete LAGOON_FASTLY_API_SECRETS envVariable on {{ project }}"
@@ -36,7 +36,7 @@
     envName: "LAGOON_FASTLY_API_SECRETS"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/delete-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project-variable.yaml
 
 # # add the `LAGOON_FASTLY_NOCACHE_SERVICE_ID` environment variable
 # - name: "{{ testname }} - api add envVariable on {{ project }}"
@@ -48,7 +48,7 @@
 #     envScope: "BUILD"
 #     project: "{{ project }}"
 #   tasks:
-#   - include: ../../tasks/api/add-project-variable.yaml
+#   - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
 # - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
 #   hosts: localhost
@@ -58,7 +58,7 @@
 #     project: "{{ project }}"
 #     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
 #   tasks:
-#   - include: ../../tasks/api/deploy-no-sha.yaml
+#   - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 # - name: >
 #     {{ testname }} - check that the ingress has the correct fastly annotations
@@ -71,7 +71,7 @@
 #     - "fastly.amazee.io/service-id=lagoon"
 #     ingress: annotations.com
 #   tasks:
-#   - include: ../../checks/check-ingress-annotations.yaml
+#   - ansible.builtin.include_tasks: ../../checks/check-ingress-annotations.yaml
 
 # add the `LAGOON_FASTLY_SERVICE_ID` environment variable
 - name: "{{ testname }} - api add LAGOON_FASTLY_SERVICE_ID envVariable on {{ project }}"
@@ -83,7 +83,7 @@
     envScope: "BUILD"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/add-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch {{ branch }} on {{ project }}"
   hosts: localhost
@@ -93,7 +93,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: >
     {{ testname }} - check that the ingress has the correct fastly annotations
@@ -106,7 +106,7 @@
     - "fastly.amazee.io/service-id=newlagoon"
     ingress: annotations.com
   tasks:
-  - include: ../../checks/check-ingress-annotations.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-ingress-annotations.yaml
 
 # add the `LAGOON_FASTLY_API_SECRETS` environment variable
 - name: "{{ testname }} - api add LAGOON_FASTLY_API_SECRETS envVariable on {{ project }}"
@@ -118,7 +118,7 @@
     envScope: "BUILD"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/add-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
 # add the `LAGOON_FASTLY_API_SECRETS` environment variable
 - name: "{{ testname }} - api add LAGOON_FASTLY_SERVICE_IDS envVariable on {{ project }}"
@@ -130,7 +130,7 @@
     envScope: "BUILD"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/add-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
   hosts: localhost
@@ -140,7 +140,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: >
     {{ testname }} - check that the ingress has the correct fastly annotations for a service override with custom secret
@@ -154,7 +154,7 @@
     - "fastly.amazee.io/api-secret-name=fastly-api-annotationscom"
     ingress: annotations.com
   tasks:
-  - include: ../../checks/check-ingress-annotations.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-ingress-annotations.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -163,7 +163,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -172,4 +172,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
