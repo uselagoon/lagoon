@@ -31,4 +31,4 @@
     - debug:
         msg: "Failed to connect - Retrying..."
 
-    - include_tasks: ./post-api-register-workflow.yaml
+    - ansible.builtin.include_tasks: ./post-api-register-workflow.yaml

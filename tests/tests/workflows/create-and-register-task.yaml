@@ -20,7 +20,7 @@
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse }}"
-    - ansible.builtin.import_playbook: ./post-api-register-task-command.yaml
+    - ansible.builtin.include_tasks: ./post-api-register-task-command.yaml
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
       debug:
         msg: "api response: {{ taskCreateApiResponse }}"
@@ -40,7 +40,7 @@
     - name: "{{ testname }} - projectByNameResponse"
       debug:
         msg: "api response: {{ projectByNameResponse.json.data.projectByName.id }}"
-    - ansible.builtin.import_playbook: ./post-api-register-workflow.yaml
+    - ansible.builtin.include_tasks: ./post-api-register-workflow.yaml
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
       debug:
         msg: "api response: {{ taskCreateApiResponse }}"

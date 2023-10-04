@@ -26,4 +26,4 @@
     - debug:
         msg: "Failed to connect - Retrying..."
 
-    - include_tasks: ./post-api-register-task.yaml
+    - ansible.builtin.include_tasks: ./post-api-register-task.yaml
