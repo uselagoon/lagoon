@@ -7,7 +7,7 @@ import { keycloakGrantManager } from '../clients/keycloakClient';
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { Group } from '../models/group';
 import { User } from '../models/user';
-import { saveRedisCache, getRedisCache, saveRedisKeycloakCache } from '../clients/redisClient';
+import { saveRedisKeycloakCache } from '../clients/redisClient';
 
 interface ILegacyToken {
   iat: string;
@@ -152,54 +152,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
   const UserModel = User(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
-
-    // Check if the same set of permissions has been granted already for this
-    // api query.
-    const cacheKey = `${currentUser.id}:${resource}:${scope}:${JSON.stringify(
-      attributes
-    )}`;
-    const cachedPermissions = requestCache.get(cacheKey);
-    if (cachedPermissions === true) {
-      return true;
-    } else if (!cachedPermissions === false) {
-      userActivityLogger.user_info(
-        `User does not have permission to '${scope}' on '${resource}'`,
-        {
-          user: grant ? grant.access_token.content : null
-        }
-      );
-      throw new KeycloakUnauthorizedError(
-        `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-          attributes
-        )}`
-      );
-    }
-
-    // Check the redis cache before doing a full keycloak lookup.
-    const resourceScope = { resource, scope, currentUserId: currentUser.id, ...attributes };
-    let redisCacheResult: number;
-    try {
-      const data = await getRedisCache(resourceScope);
-      redisCacheResult = parseInt(data, 10);
-    } catch (err) {
-      logger.warn(`Couldn't check redis authz cache: ${err.message}`);
-    }
-
-    if (redisCacheResult === 1) {
-      return true;
-    } else if (redisCacheResult === 0) {
-      userActivityLogger.user_info(
-        `User does not have permission to '${scope}' on '${resource}'`,
-        {
-          user: grant.access_token.content
-        }
-      );
-      throw new KeycloakUnauthorizedError(
-        `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-          attributes
-        )}`
-      );
-    }
 
     let claims: {
       currentUser: [string];
@@ -346,12 +298,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       );
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
-        requestCache.set(cacheKey, true);
-        try {
-          await saveRedisCache(resourceScope, '1');
-        } catch (err) {
-          logger.warn(`Couldn't save redis authz cache: ${err.message}`);
-        }
         return;
       }
     } catch (err) {
