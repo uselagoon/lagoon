@@ -59,7 +59,7 @@ export const saveRedisCache = async (
   value: string
 ) => {
   const key = hashKey(resourceScope);
-  const timeout = getConfigFromEnv('CACHE_PERMISSION_TTL', '500');
+  const timeout = getConfigFromEnv('CACHE_PERMISSION_TTL', '0'); // disabled by default, set this to enable it if you want
   redisClient.multi()
   .hset(
     `cache:authz:${resourceScope.currentUserId}`,
