@@ -1077,7 +1077,7 @@ const typeDefs = gql`
     deployTargets: [Openshift]
     projects: [OrgProject]
     environments: [OrgEnvironment]
-    groups: [GroupInterface]
+    groups: [OrgGroupInterface]
     owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
   }
@@ -1121,7 +1121,7 @@ const typeDefs = gql`
     id: Int
     name: String
     organization: Int
-    groups: [GroupInterface]
+    groups: [OrgGroupInterface]
     groupCount: Int
     notifications: [OrganizationNotification]
   }
@@ -2175,7 +2175,12 @@ const typeDefs = gql`
   input AddGroupInput {
     name: String!
     parentGroup: GroupInput
-    organization: Int
+  }
+
+  input AddGroupToOrganizationInput {
+    name: String!
+    organization: Int!
+    parentGroup: GroupInput
     addOrgOwner: Boolean
   }
 
@@ -2419,7 +2424,7 @@ const typeDefs = gql`
     """
     Add a group to an organization
     """
-    addGroupToOrganization(input: AddGroupInput!): GroupInterface
+    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
     """
     Add a project to an organization, will return an error if it can't easily do it
     """
