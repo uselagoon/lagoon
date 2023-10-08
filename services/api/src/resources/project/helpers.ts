@@ -6,6 +6,47 @@ import { Sql } from './sql';
 // import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
+  const checkOrgProjectViewPermission = async (hasPermission, pid) => {
+    // helper that allows fall through of permission check
+    // for viewProject:organization to view:project
+    // this allows queries to be performed by organization owners
+    // then falling through to the default project view for general users
+    const rows = await query(sqlClientPool, Sql.selectProject(pid));
+    const project = rows[0];
+    if (project.organization != null) {
+      try {
+        await hasPermission('organization', 'viewProject', {
+          organization: project.organization
+        });
+        // if the organization owner has permission to view project, return
+        return
+      } catch (err) {
+        // otherwise fall through to project view permission check
+      }
+    }
+    // finally check the user view:project permission
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  }
+  const checkOrgProjectUpdatePermission = async (hasPermission, pid) => {
+    // helper checks the permission to updateProject:organization
+    // or the update:project permission
+    const rows = await query(sqlClientPool, Sql.selectProject(pid));
+    const project = rows[0];
+    if (project.organization != null) {
+      // if the project is in an organization, only the organization owner should be able to do this
+      await hasPermission('organization', 'updateProject', {
+        organization: project.organization
+      });
+    } else {
+      // if not in a project, follow the standard rbac
+      await hasPermission('project', 'update', {
+        project: project.id
+      });
+    }
+  }
+
   const aliasOpenshiftToK8s = (projects: any[]) => {
     return projects.map(project => {
       return {
@@ -52,6 +93,8 @@ export const Helpers = (sqlClientPool: Pool) => {
     query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
   return {
+    checkOrgProjectViewPermission,
+    checkOrgProjectUpdatePermission,
     aliasOpenshiftToK8s,
     getProjectById,
     getProjectsByIds,

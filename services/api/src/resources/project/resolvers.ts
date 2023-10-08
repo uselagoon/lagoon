@@ -124,19 +124,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -152,19 +140,7 @@ export const getProjectById: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -180,19 +156,7 @@ export const getProjectByGitUrl: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -211,19 +175,7 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
