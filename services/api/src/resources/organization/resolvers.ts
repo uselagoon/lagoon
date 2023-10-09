@@ -229,7 +229,7 @@ export const getOrganizationById: ResolverFn = async (
     }
 
     await hasPermission('organization', 'view', {
-        id: oid,
+      organization: oid,
     });
 
     const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
