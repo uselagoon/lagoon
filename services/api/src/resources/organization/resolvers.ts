@@ -219,17 +219,17 @@ export const updateOrganization: ResolverFn = async (
 };
 
 export const getOrganizationById: ResolverFn = async (
-    organization,
+    id,
     args,
     { sqlClientPool, hasPermission }
 ) => {
-    let oid = args.organization;
-    if (organization) {
-      oid = organization;
+    let oid = args.id;
+    if (id) {
+      oid = id;
     }
 
     await hasPermission('organization', 'view', {
-        organization: oid,
+      organization: oid,
     });
 
     const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
