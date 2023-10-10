@@ -1256,10 +1256,10 @@ export const getEnvironmentsForProject = (
   }
 `);
 
-export async function getOrganizationById(organization: number): Promise<any> {
+export async function getOrganizationById(id: number): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      organization:organizationById(organization: ${organization}) {
+      organization:organizationById(id: ${id}) {
         id
         name
         friendlyName
@@ -1282,7 +1282,7 @@ export async function getOrganizationById(organization: number): Promise<any> {
   `);
 
   if (!result || !result.organization) {
-    throw new OrganizationNotFound(`Cannot find organization ${organization}`);
+    throw new OrganizationNotFound(`Cannot find organization ${id}`);
   }
 
   return result.organization;
