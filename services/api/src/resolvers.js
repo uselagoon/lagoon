@@ -260,7 +260,7 @@ const {
   getProjectsByOrganizationId,
   addProjectToOrganization,
   removeProjectFromOrganization,
-  addGroupToOrganization,
+  addExistingGroupToOrganization,
   getGroupsByOrganizationsProject,
   getGroupCountByOrganizationProject,
   getProjectGroupOrganizationAssociation, // WIP resolver
@@ -705,6 +705,7 @@ const resolvers = {
     updateOrganization,
     deleteOrganization,
     addGroupToOrganization: addGroup,
+    addExistingGroupToOrganization,
     addProjectToOrganization,
     removeProjectFromOrganization,
     addDeployTargetToOrganization,

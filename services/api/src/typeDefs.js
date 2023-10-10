@@ -2426,6 +2426,10 @@ const typeDefs = gql`
     """
     addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
     """
+    Add an existing group to an organization
+    """
+    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
+    """
     Add a project to an organization, will return an error if it can't easily do it
     """
     addProjectToOrganization(input: AddProjectToOrganizationInput): Project
