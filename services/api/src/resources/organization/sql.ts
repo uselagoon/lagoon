@@ -74,6 +74,10 @@ export const Sql = {
     knex('organization')
       .where('id', '=', id)
       .toString(),
+  selectOrganizationByName: (name: string) =>
+    knex('organization')
+      .where('name', '=', name)
+      .toString(),
   selectOrganizationProjects: (id: number) =>
     knex('project')
       .where('organization', '=', id)
