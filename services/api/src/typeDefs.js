@@ -1415,7 +1415,7 @@ const typeDefs = gql`
     """
     Get an organization by its ID
     """
-    organizationById(organization: Int!): Organization
+    organizationById(id: Int!): Organization
     organizationByName(name: String!): Organization
     getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String
     getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
