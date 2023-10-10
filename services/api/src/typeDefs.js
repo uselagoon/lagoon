@@ -1416,6 +1416,7 @@ const typeDefs = gql`
     Get an organization by its ID
     """
     organizationById(id: Int!): Organization
+    organizationByName(name: String!): Organization
     getGroupProjectOrganizationAssociation(input: AddGroupInput!): String
     getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
