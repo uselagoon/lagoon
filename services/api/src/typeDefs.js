@@ -2431,9 +2431,9 @@ const typeDefs = gql`
     """
     addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
     """
-    Add a project to an organization, will return an error if it can't easily do it
+    Add an existing project to an organization
     """
-    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project
     """
     Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
     """

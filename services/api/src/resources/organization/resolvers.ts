@@ -720,7 +720,7 @@ export const removeProjectFromOrganization: ResolverFn = async (
 }
 
 // add existing project to an organization
-export const addProjectToOrganization: ResolverFn = async (
+export const addExistingProjectToOrganization: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
@@ -784,7 +784,7 @@ export const addProjectToOrganization: ResolverFn = async (
   userActivityLogger(`User added a project to organization`, {
     project: '',
     organization: input.organization,
-    event: 'api:addProjectToOrganization',
+    event: 'api:addExistingProjectToOrganization',
     payload: {
       data: {
         project: pid,
