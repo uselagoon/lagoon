@@ -2435,10 +2435,6 @@ const typeDefs = gql`
     """
     addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project
     """
-    Add a project to an organization, will return an error if it can't easily do it
-    """
-    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
-    """
     Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
     """
     removeProjectFromOrganization(input: RemoveProjectFromOrganizationInput): Project

@@ -708,7 +708,6 @@ const resolvers = {
     deleteOrganization,
     addGroupToOrganization: addGroup,
     addExistingGroupToOrganization,
-    addProjectToOrganization: addProject,
     addExistingProjectToOrganization,
     removeProjectFromOrganization,
     addDeployTargetToOrganization,
