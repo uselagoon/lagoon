@@ -866,7 +866,7 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
 // add an existing group to an organization
 // this function will return errors if there are projects in the group that are not in the organization
 // if there are no projects in the organization, and no projects in the group then it will succeed
-export const addGroupToOrganization: ResolverFn = async (
+export const addExistingGroupToOrganization: ResolverFn = async (
   _root,
   { input },
   { models, sqlClientPool, hasPermission, userActivityLogger }

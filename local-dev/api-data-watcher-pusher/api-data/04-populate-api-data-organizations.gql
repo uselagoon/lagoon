@@ -44,7 +44,7 @@ mutation PopulateApi {
     id
   }
 
-  UIOrganizationGroup: addGroup(
+  UIOrganizationGroup: addGroupToOrganization(
     input: { name: "organization-group1", organization: 1}
   ) {
     id
