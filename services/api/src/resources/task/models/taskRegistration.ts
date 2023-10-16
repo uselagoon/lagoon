@@ -57,19 +57,19 @@ export interface AdvancedTaskDefinitionArguments {
   advancedTaskDefinition?: number;
 };
 
-export const getAdvancedTaskDefinitionType = (taskDef:AdvancedTaskDefinitionInterface) => {
-    if(taskDef.type.toLowerCase() == AdvancedTaskDefinitionType.command.toLowerCase()) {
-      return AdvancedTaskDefinitionType.command;
-    }
-    return AdvancedTaskDefinitionType.image;
+export const getAdvancedTaskDefinitionType = (taskDef: AdvancedTaskDefinitionInterface) => {
+  if (taskDef.type.toLowerCase() == AdvancedTaskDefinitionType.command.toLowerCase()) {
+    return AdvancedTaskDefinitionType.command;
   }
+  return AdvancedTaskDefinitionType.image;
+}
 
-export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
+export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef: AdvancedTaskDefinitionInterface): boolean => {
   return taskDef.project == null && taskDef.environment == null && taskDef.groupName == null;
 }
 
-export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
+export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef: AdvancedTaskDefinitionInterface): boolean => {
   return isAdvancedTaskDefinitionSystemLevelTask(taskDef)
-  || getAdvancedTaskDefinitionType(taskDef) == AdvancedTaskDefinitionType.image
-  || taskDef.groupName != undefined;
+    || getAdvancedTaskDefinitionType(taskDef) == AdvancedTaskDefinitionType.image
+    || taskDef.groupName != undefined;
 }

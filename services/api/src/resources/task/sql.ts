@@ -101,24 +101,24 @@ export const Sql = {
     deploy_token_injection,
     project_key_injection,
     admin_only_view,
-    }: {
-      id: number,
-      name: string,
-      description: string,
-      image: string,
-      command: string,
-      created: string,
-      type: string,
-      service: string,
-      project: number,
-      group_name: string,
-      environment: number,
-      permission: string,
-      confirmation_text: string,
-      deploy_token_injection: boolean,
-      project_key_injection: boolean,
-      admin_only_view: boolean,
-    }) =>
+  }: {
+    id: number,
+    name: string,
+    description: string,
+    image: string,
+    command: string,
+    created: string,
+    type: string,
+    service: string,
+    project: number,
+    group_name: string,
+    environment: number,
+    permission: string,
+    confirmation_text: string,
+    deploy_token_injection: boolean,
+    project_key_injection: boolean,
+    admin_only_view: boolean,
+  }) =>
     knex('advanced_task_definition')
       .insert({
         id,
@@ -138,122 +138,125 @@ export const Sql = {
         project_key_injection,
         admin_only_view,
       })
-    .toString(),
-    insertAdvancedTaskDefinitionArgument: ({
-      id,
-      advanced_task_definition,
-      name,
-      type,
-      displayName,
-      defaultValue,
-      optional,
-      }: {
-        id: number,
-        advanced_task_definition: number,
-        name: string,
-        type: string,
-        defaultValue: string,
-        optional: boolean,
-        displayName: string,
-      }) =>
-      knex('advanced_task_definition_argument')
-        .insert({
-          id,
-          advanced_task_definition,
-          name,
-          type,
-          defaultValue,
-          optional,
-          display_name: displayName
-        })
       .toString(),
-    updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
-     knex('advanced_task_definition')
-       .where('id', id)
-       .update(patch)
-       .toString(),
-    selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
-          knex('task_registration')
-            .where('task_registration.id', '=', id)
-          .toString(),
-    selectTaskRegistrationById: (id: number) =>
-      knex('task_registration')
-        .where('task_registration.id', '=', id)
-        .toString(),
-    selectTaskRegistrationsByEnvironmentId:(id: number) =>
-      knex('advanced_task_definition')
-        // .select('advanced_task_definition.*', 'task_registration.id')
-        .select(knex.raw(`advanced_task_definition.*, task_registration.id, advanced_task_definition.admin_only_view XOR 1 as "advanced_task_definition.show_ui", advanced_task_definition.deploy_token_injection as "advanced_task_definition.admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-        .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
-        .where('task_registration.environment', '=', id)
-        .toString(),
-    selectTaskRegistrationByEnvironmentIdAndAdvancedTaskId: (environmentId: number, task: number) =>
-      knex('task_registration')
-        .where('task_registration.environment', '=', environmentId)
-        .where('task_registration.advanced_task_definition', '=', task)
-        .toString(),
-    selectAdvancedTaskDefinition:(id: number) =>
-      knex('advanced_task_definition')
-        .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-        .where('advanced_task_definition.id', '=', id)
-        .toString(),
-    selectAdvancedTaskDefinitionArguments:(id: number) =>
-      knex('advanced_task_definition_argument')
-        .where('advanced_task_definition_argument.advanced_task_definition', '=', id)
-        .toString(),
-    selectAdvancedTaskDefinitionArgumentById:(id: number) =>
-      knex('advanced_task_definition_argument')
-        .where('advanced_task_definition_argument.id', '=', id)
-        .toString(),
-    deleteAdvancedTaskDefinitionArgumentByTaskDef:(advanced_task_definition: number) =>
-      knex('advanced_task_definition_argument')
-        .where('advanced_task_definition_argument.advanced_task_definition', '=', advanced_task_definition)
-        .del()
-        .toString(),
-    selectAdvancedTaskDefinitionByName:(name: string) =>
-      knex('advanced_task_definition')
+  insertAdvancedTaskDefinitionArgument: ({
+    id,
+    advanced_task_definition,
+    name,
+    type,
+    displayName,
+    defaultValue,
+    optional,
+    range
+  }: {
+    id: number,
+    advanced_task_definition: number,
+    name: string,
+    type: string,
+    defaultValue: string,
+    optional: boolean,
+    displayName: string,
+    range: string
+  }) =>
+    knex('advanced_task_definition_argument')
+      .insert({
+        id,
+        advanced_task_definition,
+        name,
+        type,
+        defaultValue,
+        optional,
+        display_name: displayName,
+        range
+      })
+      .toString(),
+  updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
+    knex('advanced_task_definition')
+      .where('id', id)
+      .update(patch)
+      .toString(),
+  selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
+    knex('task_registration')
+      .where('task_registration.id', '=', id)
+      .toString(),
+  selectTaskRegistrationById: (id: number) =>
+    knex('task_registration')
+      .where('task_registration.id', '=', id)
+      .toString(),
+  selectTaskRegistrationsByEnvironmentId: (id: number) =>
+    knex('advanced_task_definition')
+      // .select('advanced_task_definition.*', 'task_registration.id')
+      .select(knex.raw(`advanced_task_definition.*, task_registration.id, advanced_task_definition.admin_only_view XOR 1 as "advanced_task_definition.show_ui", advanced_task_definition.deploy_token_injection as "advanced_task_definition.admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
+      .where('task_registration.environment', '=', id)
+      .toString(),
+  selectTaskRegistrationByEnvironmentIdAndAdvancedTaskId: (environmentId: number, task: number) =>
+    knex('task_registration')
+      .where('task_registration.environment', '=', environmentId)
+      .where('task_registration.advanced_task_definition', '=', task)
+      .toString(),
+  selectAdvancedTaskDefinition: (id: number) =>
+    knex('advanced_task_definition')
       .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-        .where('advanced_task_definition.name', '=', name)
-        .toString(),
-    selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
-      let query = knex('advanced_task_definition')
-        .where('advanced_task_definition.name', '=', name);
-        if(project) {
-          query = query.where('advanced_task_definition.project', '=', project)
-        }
-        if(environment) {
-          query = query.where('advanced_task_definition.environment', '=', environment)
-        }
-        if(group) {
-          query = query.where('advanced_task_definition.group_name', '=', group)
-        }
-        return query.toString()
-    },
-  selectAdvancedTaskDefinitions:() =>
+      .where('advanced_task_definition.id', '=', id)
+      .toString(),
+  selectAdvancedTaskDefinitionArguments: (id: number) =>
+    knex('advanced_task_definition_argument')
+      .where('advanced_task_definition_argument.advanced_task_definition', '=', id)
+      .toString(),
+  selectAdvancedTaskDefinitionArgumentById: (id: number) =>
+    knex('advanced_task_definition_argument')
+      .where('advanced_task_definition_argument.id', '=', id)
+      .toString(),
+  deleteAdvancedTaskDefinitionArgumentByTaskDef: (advanced_task_definition: number) =>
+    knex('advanced_task_definition_argument')
+      .where('advanced_task_definition_argument.advanced_task_definition', '=', advanced_task_definition)
+      .del()
+      .toString(),
+  selectAdvancedTaskDefinitionByName: (name: string) =>
     knex('advanced_task_definition')
-    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-    .toString(),
-  selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .where('advanced_task_definition.name', '=', name)
+      .toString(),
+  selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup: (name: string, project: number, environment: number, group: string) => {
+    let query = knex('advanced_task_definition')
+      .where('advanced_task_definition.name', '=', name);
+    if (project) {
+      query = query.where('advanced_task_definition.project', '=', project)
+    }
+    if (environment) {
+      query = query.where('advanced_task_definition.environment', '=', environment)
+    }
+    if (group) {
+      query = query.where('advanced_task_definition.group_name', '=', group)
+    }
+    return query.toString()
+  },
+  selectAdvancedTaskDefinitions: () =>
     knex('advanced_task_definition')
-    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-    .where('environment', '=', id)
-    .toString(),
-  selectAdvancedTaskDefinitionsForProject:(id: number) =>
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .toString(),
+  selectAdvancedTaskDefinitionsForEnvironment: (id: number) =>
     knex('advanced_task_definition')
-    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-    .where('project', '=', id)
-    .toString(),
-  selectAdvancedTaskDefinitionsForGroups:(groups) =>
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .where('environment', '=', id)
+      .toString(),
+  selectAdvancedTaskDefinitionsForProject: (id: number) =>
     knex('advanced_task_definition')
-    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
-    .where('group_name', 'in', groups)
-    .toString(),
-  deleteAdvancedTaskDefinition:(id: number) =>
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .where('project', '=', id)
+      .toString(),
+  selectAdvancedTaskDefinitionsForGroups: (groups) =>
     knex('advanced_task_definition')
-    .where('id', id)
-    .del()
-    .toString(),
-  deleteAdvancedTaskDefinitionArgumentsForTask:(taskId: number) => knex('advanced_task_definition_argument')
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+      .where('group_name', 'in', groups)
+      .toString(),
+  deleteAdvancedTaskDefinition: (id: number) =>
+    knex('advanced_task_definition')
+      .where('id', id)
+      .del()
+      .toString(),
+  deleteAdvancedTaskDefinitionArgumentsForTask: (taskId: number) => knex('advanced_task_definition_argument')
     .where('advanced_task_definition', taskId)
     .del()
     .toString(),
