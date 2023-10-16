@@ -109,7 +109,7 @@ export class NumberArgument {
 }
 
 
-export const getAdvancedTaskArgumentValidator = (sqlClientPool, environment, taskArguments) => {
+export const getAdvancedTaskArgumentValidator = async (sqlClientPool, environment, taskArguments) => {
     const rows = await query(
         sqlClientPool,
         `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${environment.id} and e.id != ${environment.id}`
