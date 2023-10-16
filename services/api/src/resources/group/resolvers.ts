@@ -1,5 +1,7 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
+// @ts-ignore
 import validator from 'validator';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';
@@ -7,6 +9,9 @@ import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
+import { Helpers as organizationHelpers } from '../organization/helpers';
+
+const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
 
 export const getAllGroups: ResolverFn = async (
   root,
@@ -98,7 +103,14 @@ export const getGroupRolesByUserId: ResolverFn =async (
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
       let groups = []
       for (const g in queryUserGroups) {
-        groups.push({id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0]})
+        let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
+        if (queryUserGroups[g].attributes["type"]) {
+          group.groupType = queryUserGroups[g].attributes["type"][0]
+        }
+        if (queryUserGroups[g].attributes["lagoon-organization"]) {
+          group.organization = queryUserGroups[g].attributes["lagoon-organization"]
+        }
+        groups.push(group)
       }
 
       return groups;
@@ -111,7 +123,14 @@ export const getGroupRolesByUserId: ResolverFn =async (
   }
   let groups = []
   for (const g in keycloakUsersGroups) {
-    groups.push({id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0]})
+    let group = {id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
+    if (keycloakUsersGroups[g].attributes["type"]) {
+      group.groupType = keycloakUsersGroups[g].attributes["type"][0]
+    }
+    if (keycloakUsersGroups[g].attributes["lagoon-organization"]) {
+      group.organization = keycloakUsersGroups[g].attributes["lagoon-organization"]
+    }
+    groups.push(group)
   }
 
   return groups;
@@ -141,10 +160,35 @@ export const getMembersByGroupId: ResolverFn = async (
   }
 }
 
+// resolver to simply retrieve how many members are in a group
+export const getMemberCountByGroupId: ResolverFn = async (
+  { id },
+  _input,
+  { hasPermission, models, keycloakGrant }
+) => {
+  try {
+    // members resolver is only called by group, no need to check the permissions on the group
+    // as the group resolver will have already checked permission
+    const group = await models.GroupModel.loadGroupById(id);
+    const members = await models.GroupModel.getGroupMemberCount(group);
+    return members;
+  } catch (err) {
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.debug('No grant available for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message} ${id}`);
+    throw err;
+  }
+}
+
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -157,13 +201,46 @@ export const getGroupsByProjectId: ResolverFn = async (
         return [];
       }
     }
+  } else {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub
+    );
+
+    // if this user is an owner of an organization, then also display org based groups to this user
+    // when listing project groups
+    const userGroups = keycloakUsersGroups;
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+
+    if (usersOrgs != "" ) {
+      const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const project = await projectHelpers(sqlClientPool).getProjectById(pid);
+        if (project.organization == userOrg) {
+          const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
+          for (const pGroup of orgGroups) {
+            userGroups.push(pGroup)
+          }
+        }
+      }
+    }
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const project = await projectHelpers(sqlClientPool).getProjectById(pid);
+        if (project.organization == userOrg) {
+          const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
+          for (const pGroup of orgViewerGroups) {
+            userGroups.push(pGroup)
+          }
+        }
+      }
+    }
+    const userProjectGroups = R.intersection(projectGroups, userGroups);
+
+    return userProjectGroups;
   }
-
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
-  const userGroups = keycloakUsersGroups;
-  const userProjectGroups = R.intersection(projectGroups, userGroups);
-
-  return userProjectGroups;
 };
 
 export const getGroupsByUserId: ResolverFn = async (
@@ -230,9 +307,51 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger }
+  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger, keycloakGroups}
 ) => {
-  await hasPermission('group', 'add');
+  let attributes = null;
+  // check if this is a group being added in an organization
+  // if so, check the user adding the group has permission to do so, and that the organization exists
+  if (input.organization != null) {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addGroup', {
+      organization: input.organization
+    });
+
+    const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(input.organization, keycloakGroups);
+    let groupCount = 0
+    for (const pGroup in orgGroups) {
+      // project-default-groups don't count towards group quotas
+      if (orgGroups[pGroup].attributes["type"] != "project-default-group") {
+        groupCount++
+      }
+    }
+
+    if (groupCount >= organizationData.quotaGroup && organizationData.quotaGroup != -1) {
+      throw new Error(
+        `This would exceed this organizations group quota; ${groupCount}/${organizationData.quotaGroup}`
+      );
+    }
+
+    attributes = {
+      attributes: {
+        "lagoon-organization": [input.organization]
+      }
+    }
+  } else {
+    // otherwise fall back
+    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION == "false") {
+      await hasPermission('group', 'add');
+    } else {
+      throw new Error(
+        'Group creation is restricted to organizations only'
+      );
+    }
+  }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -252,14 +371,24 @@ export const addGroup: ResolverFn = async (
     parentGroupId = parentGroup.id;
   }
 
+
   const group = await models.GroupModel.addGroup({
     name: input.name,
-    parentGroupId
+    parentGroupId,
+    ...attributes,
   });
   await models.GroupModel.addProjectToGroup(null, group);
 
   // if the user is not an admin, then add the user as an owner to the group
-  if (!adminScopes.projectViewAll && keycloakGrant) {
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
+  // if the group is created without the addOrgOwner boolean set to true, then do not add the user to the group as its owner
+  if (!input.addOrgOwner) {
+    userAlreadyHasAccess = true
+  }
+  if (!userAlreadyHasAccess && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
@@ -292,6 +421,8 @@ export const addGroup: ResolverFn = async (
   return group;
 };
 
+
+
 export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
@@ -299,9 +430,16 @@ export const updateGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
-  await hasPermission('group', 'update', {
-    group: group.id
-  });
+  if (R.prop('lagoon-organization', group.attributes)) {
+    // if this is a group in an organization, check that the user updating it has permission to do so before deleting the group
+    await hasPermission('organization', 'addGroup', {
+      organization: R.prop('lagoon-organization', group.attributes)
+    });
+  } else {
+    await hasPermission('group', 'update', {
+      group: group.id
+    });
+  }
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -341,16 +479,22 @@ export const deleteGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
-  await hasPermission('group', 'delete', {
-    group: group.id
-  });
+  if (R.prop('lagoon-organization', group.attributes)) {
+    // if this is a group in an organization, check that the user deleting it has permission to do so before deleting the group
+    await hasPermission('organization', 'removeGroup', {
+      organization: R.prop('lagoon-organization', group.attributes)
+    });
+  } else {
+    await hasPermission('group', 'delete', {
+      group: group.id
+    });
+  }
 
   await models.GroupModel.deleteGroup(group.id);
 
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
     group.name
   );
-
   userActivityLogger(`User deleted a group`, {
     project: '',
     event: 'api:deleteGroup',
@@ -407,9 +551,16 @@ export const addUserToGroup: ResolverFn = async (
 
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
-  await hasPermission('group', 'addUser', {
-    group: group.id
-  });
+  if (R.prop('lagoon-organization', group.attributes)) {
+    // if this is a group in an organization, check that the user adding members to the group in this org is in the org
+    await hasPermission('organization', 'addGroup', {
+      organization: R.prop('lagoon-organization', group.attributes)
+    });
+  } else {
+    await hasPermission('group', 'addUser', {
+      group: group.id
+    });
+  }
 
   await models.GroupModel.removeUserFromGroup(user, group);
   const updatedGroup = await models.GroupModel.addUserToGroup(
@@ -452,9 +603,16 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
-  await hasPermission('group', 'removeUser', {
-    group: group.id
-  });
+  if (R.prop('lagoon-organization', group.attributes)) {
+    // if this is a group in an organization, check that the user removing members from the group in this org is in the org
+    await hasPermission('organization', 'addGroup', {
+      organization: R.prop('lagoon-organization', group.attributes)
+    });
+  } else {
+    await hasPermission('group', 'removeUser', {
+      group: group.id
+    });
+  }
 
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
@@ -480,10 +638,16 @@ export const addGroupsToProject: ResolverFn = async (
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
   );
-
-  await hasPermission('project', 'addGroup', {
-    project: project.id
-  });
+  if (project.organization != null) {
+    // this project is in an organization, limit it to organization groups only
+    await hasPermission('organization', 'addGroup', {
+      organization: project.organization
+    });
+  } else {
+    await hasPermission('project', 'addGroup', {
+      project: project.id
+    });
+  }
 
   if (R.isEmpty(groupsInput)) {
     throw new Error('You must provide groups');
@@ -497,6 +661,16 @@ export const addGroupsToProject: ResolverFn = async (
 
   for (const groupInput of groupsInput) {
     const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+    if (R.prop('lagoon-organization', group.attributes) && project.organization != null) {
+      if (project.organization == R.prop('lagoon-organization', group.attributes)) {
+        // if this is a group in an organization, check that the user removing members from the group in this org is in the org
+        await hasPermission('organization', 'addGroup', {
+          organization: R.prop('lagoon-organization', group.attributes)
+        });
+      } else {
+        throw new Error('Project must be in same organization as groups');
+      }
+    }
     await models.GroupModel.addProjectToGroup(project.id, group);
   }
 
@@ -591,7 +765,29 @@ export const getAllProjectsInGroup: ResolverFn = async (
     }
     // get users groups from users keycloak groups apollo context
     const userGroups = keycloakUsersGroups;
-
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub
+    );
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+    if (usersOrgs != "" ) {
+      const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
+        }
+      }
+    }
+    if (usersOrgsViewer != "" ) {
+      const usersOrgsArr = usersOrgsViewer.split(',');
+      for (const userOrg of usersOrgsArr) {
+        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
+        for (const pGroup of orgViewerGroups) {
+          userGroups.push(pGroup)
+        }
+      }
+    }
     // @ts-ignore
     if (!R.contains(group.name, R.pluck('name', userGroups))) {
       logger.debug('No grant available for getAllProjectsInGroup');
@@ -613,9 +809,23 @@ export const removeGroupsFromProject: ResolverFn = async (
     projectInput
   );
 
-  await hasPermission('project', 'removeGroup', {
-    project: project.id
-  });
+  // check if this is a group being removed by an organization
+  // if so, check the user removing the group has permission to do so, and that the organization exists
+  if (project.organization != null) {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'removeGroup', {
+      organization: project.organization
+    });
+  } else {
+    // otherwise fall back
+    await hasPermission('project', 'removeGroup', {
+      project: project.id
+    });
+  }
 
   if (R.isEmpty(groupsInput)) {
     throw new Error('You must provide groups');

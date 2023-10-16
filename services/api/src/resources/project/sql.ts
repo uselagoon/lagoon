@@ -44,6 +44,10 @@ export const Sql = {
     knex('project AS p')
       .whereIn('p.id', projectIds)
       .toString(),
+  selectProjectsByOrganizationId: (organizationId: number) =>
+    knex('project as p')
+      .where('p.organization', organizationId)
+      .toString(),
   selectProjectByEnvironmentID: (id: number) =>
     knex('environment as e')
       .select('project.*')
@@ -142,6 +146,7 @@ export const Sql = {
       developmentBuildPriority = 6,
       deploymentsDisabled = 0,
       developmentEnvironmentsLimit = 5,
+      organization,
       buildImage,
       sharedBaasBucket
     } = input;
@@ -177,6 +182,7 @@ export const Sql = {
     openshift,
     openshiftProjectPattern,
     developmentEnvironmentsLimit,
+    organization,
     buildImage,
     sharedBaasBucket
   }).toString();

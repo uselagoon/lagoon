@@ -497,7 +497,7 @@ export const taskDrushArchiveDump: ResolverFn = async (
     project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
 TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -546,7 +546,7 @@ export const taskDrushSqlDump: ResolverFn = async (
   });
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
-if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; else drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; fi && \
+if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
 TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -597,9 +597,9 @@ export const taskDrushCacheClear: ResolverFn = async (
   const command =
     'drupal_version=$(drush status drupal-version --format=list) && \
   if [ ${drupal_version%.*} == "7" ]; then \
-    drush cc all; \
+    if drush cc all; then echo "drush cc all complete"; else exit $?; fi; \
   elif [ ${drupal_version%.*.*} -ge "8" ] ; then \
-    drush cr; \
+    if drush cr; then echo "drush cr complete"; else exit $?; fi; \
   else \
     echo "could not clear cache for found Drupal Version ${drupal_version}"; \
     exit 1; \

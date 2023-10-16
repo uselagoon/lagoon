@@ -1,9 +1,11 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
+// @ts-ignore
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { Group } from '../models/group';
 import { User } from '../models/user';
@@ -160,6 +162,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       userProjects?: [string];
       userProjectRole?: [string];
       userGroupRole?: [string];
+      organizationQuery?: [string];
+      userOrganizations?: [string];
+      userOrganizationsView?: [string];
     } = {
       currentUser: [currentUser.id]
     };
@@ -176,6 +181,28 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           )(attributes)
         ],
         currentUser: [currentUser.id]
+      };
+    }
+
+    // check organization attributes
+    if (R.prop('lagoon-organizations', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+      };
+    }
+    // check organization viewer attributes
+    if (R.prop('lagoon-organizations-viewer', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`]
+      };
+    }
+    if (R.prop('organization', attributes)) {
+      const organizationId = parseInt(R.prop('organization', attributes), 10);
+      claims = {
+        ...claims,
+        organizationQuery: [`${organizationId}`]
       };
     }
 
@@ -279,6 +306,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       authzRequest = {
         ...authzRequest,
         claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+        // @ts-ignore
         claim_token: Buffer.from(JSON.stringify(claims)).toString('base64')
       };
     }

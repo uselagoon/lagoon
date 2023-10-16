@@ -115,7 +115,10 @@ func (m *Messenger) Consumer() {
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
-		if LagoonAPIRetryErrorCheck(err) == nil {
+		if LagoonAPIRetryErrorCheck(err) != nil {
+			log.Println(fmt.Sprintf("Lagoon API error retry: %v", err))
+			message.Nack(false, true) // resubmit the message to the queue for processing
+		} else {
 			message.Ack(false) // ack to remove from queue
 		}
 	})
@@ -142,7 +145,10 @@ func (m *Messenger) Consumer() {
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
-		if LagoonAPIRetryErrorCheck(err) == nil {
+		if LagoonAPIRetryErrorCheck(err) != nil {
+			log.Println(fmt.Sprintf("Lagoon API error retry: %v", err))
+			message.Nack(false, true) // resubmit the message to the queue for processing
+		} else {
 			message.Ack(false) // ack to remove from queue
 		}
 	})

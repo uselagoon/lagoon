@@ -1,3 +1,4 @@
+// @ts-ignore
 import { unless, is, isNil, isEmpty, partialRight, complement } from 'ramda';
 
 export const isNumber = is(Number);
@@ -21,3 +22,10 @@ export const jsonMerge = function(a, b, prop) {
   });
   return reduced.concat(b);
 }
+
+// will return only what is in a1 that isn't in a2
+// eg:
+// a1 = [1,2,3,4]
+// a2 = [1,2,3,5]
+// arrayDiff(a1,a2) = [4]
+export const arrayDiff = (a:Array<any>, b:Array<any>) =>  a.filter(e => !b.includes(e));

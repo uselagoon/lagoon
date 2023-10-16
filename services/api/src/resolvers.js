@@ -147,6 +147,7 @@ const {
   deleteNotificationSlack,
   deleteNotificationWebhook,
   getNotificationsByProjectId,
+  getNotificationsByOrganizationId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
@@ -212,6 +213,9 @@ const {
   getUserBySshFingerprint,
   addUser,
   updateUser,
+  addUserToOrganization,
+  removeUserFromOrganization,
+  resetUserPassword,
   deleteUser,
   deleteAllUsers,
   getAllUsers,
@@ -234,8 +238,38 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
   getMembersByGroupId,
+  getMemberCountByGroupId,
   getGroupRolesByUserId,
 } = require('./resources/group/resolvers');
+
+const {
+  addOrganization,
+  getAllOrganizations,
+  updateOrganization,
+  deleteOrganization,
+  getOrganizationById,
+  getOrganizationByName,
+  addDeployTargetToOrganization,
+  removeDeployTargetFromOrganization,
+  getDeployTargetsByOrganizationId,
+  getGroupsByOrganizationId,
+  getUsersByOrganizationId,
+  getUserByEmailAndOrganizationId,
+  getGroupRolesByUserIdAndOrganization,
+  getGroupsByNameAndOrganizationId,
+  getOwnersByOrganizationId,
+  getProjectsByOrganizationId,
+  addExistingProjectToOrganization,
+  removeProjectFromOrganization,
+  addExistingGroupToOrganization,
+  getGroupsByOrganizationsProject,
+  getGroupCountByOrganizationProject,
+  getProjectGroupOrganizationAssociation, // WIP resolver
+  getGroupProjectOrganizationAssociation, // WIP resolver
+  getNotificationsForOrganizationProjectId,
+  getEnvironmentsByOrganizationId,
+  removeUserFromOrganizationGroups,
+} = require('./resources/organization/resolvers');
 
 const {
   addBackup,
@@ -371,9 +405,20 @@ const resolvers = {
       return 'Group';
     },
   },
+  OrgGroupInterface: {
+    __resolveType(group) {
+      return 'OrgGroup';
+    },
+  },
   Group: {
     projects: getAllProjectsByGroupId,
-    members: getMembersByGroupId
+    members: getMembersByGroupId,
+    memberCount: getMemberCountByGroupId,
+  },
+  OrgGroup: {
+    projects: getAllProjectsByGroupId,
+    members: getMembersByGroupId,
+    memberCount: getMemberCountByGroupId,
   },
   DeployTargetConfig: {
     project: getProjectById,
@@ -397,6 +442,24 @@ const resolvers = {
     openshift: getOpenshiftByEnvironmentId,
     kubernetes: getOpenshiftByEnvironmentId,
     workflows: getWorkflowsByEnvironmentId,
+  },
+  Organization: {
+    groups: getGroupsByOrganizationId,
+    projects: getProjectsByOrganizationId,
+    environments: getEnvironmentsByOrganizationId,
+    owners: getOwnersByOrganizationId,
+    deployTargets: getDeployTargetsByOrganizationId,
+    notifications: getNotificationsByOrganizationId
+  },
+  OrgProject: {
+    groups: getGroupsByOrganizationsProject,
+    groupCount: getGroupCountByOrganizationProject,
+    notifications: getNotificationsForOrganizationProjectId,
+  },
+  OrgEnvironment: {
+    project: getProjectById,
+    openshift: getOpenshiftByEnvironmentId,
+    kubernetes: getOpenshiftByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -453,6 +516,9 @@ const resolvers = {
     groups: getGroupsByUserId,
     groupRoles: getGroupRolesByUserId,
   },
+  OrgUser: {
+    groupRoles: getGroupRolesByUserIdAndOrganization,
+  },
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
@@ -470,8 +536,12 @@ const resolvers = {
     userBySshFingerprint: getUserBySshFingerprint,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    orgProjectByName: getProjectByName,
     environmentsByKubernetes: getEnvironmentsByKubernetes,
     groupByName: getGroupByName,
+    groupByNameAndOrganization: getGroupsByNameAndOrganizationId,
+    usersByOrganization: getUsersByOrganizationId,
+    userByEmailAndOrganization: getUserByEmailAndOrganizationId,
     problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
     environmentById: getEnvironmentById,
@@ -506,6 +576,11 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
+    allOrganizations: getAllOrganizations,
+    organizationById: getOrganizationById,
+    organizationByName: getOrganizationByName,
+    getGroupProjectOrganizationAssociation,
+    getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
   },
   Mutation: {
@@ -572,6 +647,9 @@ const resolvers = {
     removeAllSshKeysFromAllUsers,
     addUser,
     updateUser,
+    addUserToOrganization,
+    removeUserFromOrganization,
+    resetUserPassword,
     deleteUser,
     deleteAllUsers,
     addDeployment,
@@ -625,7 +703,17 @@ const resolvers = {
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
+    addOrganization,
+    updateOrganization,
+    deleteOrganization,
+    addGroupToOrganization: addGroup,
+    addExistingGroupToOrganization,
+    addExistingProjectToOrganization,
+    removeProjectFromOrganization,
+    addDeployTargetToOrganization,
+    removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
+    removeUserFromOrganizationGroups,
   },
   Subscription: {
     backupChanged: backupSubscriber,

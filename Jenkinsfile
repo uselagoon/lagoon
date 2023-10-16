@@ -33,19 +33,16 @@ pipeline {
         sh script: "docker image prune -af", label: "Pruning images"
       }
     }
-    // stage ('refresh upstream images') {
-    //   when {
-    //     not {
-    //       buildingTag()
-    //     }
-    //   }
-    //   steps {
-    //     sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
-    //   }
-    // }
-    stage ('build images') {
+    stage ('build and push images') {
+      environment {
+        PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+      }
       steps {
         sh script: "make -O build", label: "Building images"
+        retry(3) {
+          sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+          sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built amd64 images to testlagoon/*"
+        }
       }
     }
     stage ('show trivy scan results') {
@@ -72,20 +69,6 @@ pipeline {
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
           }
         }
-        stage ('push images to testlagoon/*') {
-          when {
-            not {
-              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
-            }
-          }
-          environment {
-            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
-          }
-          steps {
-            sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-            sh script: "make -O publish-testlagoon-images BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
-          }
-        }
       }
     }
     stage ('run first test suite') {
@@ -102,6 +85,22 @@ pipeline {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true", label: "Collecting test-suite-1 logs"
             }
             sh script: "cat test-suite-1.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-1.txt"
+          }
+        }
+        stage ('push all images to testlagoon/*') {
+          when {
+            not {
+              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+            }
+          }
+          environment {
+            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+          }
+          steps {
+            retry(3) {
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            }
           }
         }
       }
@@ -172,7 +171,7 @@ pipeline {
         TOKEN = credentials('git-amazeeio-helmfile-ci-trigger')
       }
       steps {
-        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
+        sh script: "curl -X POST -F token=$TOKEN -F ref=keycloak_settings https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
       }
     }
     stage ('push images to uselagoon/*') {
@@ -208,7 +207,7 @@ pipeline {
 
   post {
     always {
-      sh "make clean k3d/clean"
+      sh "make docker_buildx_clean k3d/clean"
     }
     success {
       notifySlack('SUCCESS')
