@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
 RUN mkdir -p /mnt/rootfs
-RUN dnf install --installroot /mnt/rootfs nc jq openssl curl  --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
+RUN dnf install --installroot /mnt/rootfs nc jq openssl curl unzip --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
 
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
