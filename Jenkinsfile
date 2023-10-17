@@ -56,7 +56,7 @@ pipeline {
           steps {
             sh script: "make -j$NPROC local-dev/k3d", label: "Configure k3d"
             sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
-            sh script: "make -j$NPROC k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
+            sh script: "make -j$NPROC k3d/test TESTS=[features-kubernetes-2] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
           }
         }
@@ -75,7 +75,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
+            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,nginx,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
