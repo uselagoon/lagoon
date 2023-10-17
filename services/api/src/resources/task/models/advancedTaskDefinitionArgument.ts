@@ -40,6 +40,8 @@ export class EnvironmentSourceArgument extends ArgumentBase {
      * @returns boolean
      */
     validateInput(input): boolean {
+        console.log(`Got "${input} as input - list of environments follow:`);
+        console.log(this.environmentNameList);
         return this.environmentNameList.includes(input);
     }
 }
@@ -72,6 +74,9 @@ export class OtherEnvironmentSourceNamesArgument extends ArgumentBase {
      * @returns boolean
      */
     validateInput(input): boolean {
+        if (this.environmentName == input) {
+            return false; // we shouldn't match our own name - just anything that appears in the env list
+        }
         return this.environmentNameList.includes(input);
     }
 }
@@ -112,7 +117,7 @@ export class NumberArgument {
 export const getAdvancedTaskArgumentValidator = async (sqlClientPool, environment, taskArguments) => {
     const rows = await query(
         sqlClientPool,
-        `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${environment.id} and e.id != ${environment.id}`
+        `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${environment.id}`
     );
     let environmentNameList = R.pluck('name')(rows);
     return new AdvancedTaskArgumentValidator(environment.id, environment.name, environmentNameList, taskArguments);
