@@ -50,7 +50,7 @@ UPSTREAM_TAG ?= latest
 # BUILD_DEPLOY_IMAGE_TAG is the docker tag from uselagoon/build-deploy-image to use -
 # latest is the most current release
 # edge is the most current merged change
-BUILD_DEPLOY_IMAGE_TAG ?= latest
+BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
