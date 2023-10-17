@@ -40,8 +40,6 @@ export class EnvironmentSourceArgument extends ArgumentBase {
      * @returns boolean
      */
     validateInput(input): boolean {
-        console.log(`Got "${input} as input - list of environments follow:`);
-        console.log(this.environmentNameList);
         return this.environmentNameList.includes(input);
     }
 }
