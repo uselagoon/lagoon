@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/lagoon/services/workflows/internal/handler"
 )
 
@@ -100,7 +100,7 @@ func main() {
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
-			{
+			mq.ExchangeConfig{
 				Name: "lagoon-logs",
 				Type: "direct",
 				Options: mq.Options{
@@ -112,7 +112,7 @@ func main() {
 			},
 		},
 		Consumers: mq.Consumers{
-			{
+			mq.ConsumerConfig{
 				Name:    "items-queue",
 				Queue:   "lagoon-logs:workflows",
 				Workers: mqWorkers,
@@ -125,7 +125,7 @@ func main() {
 			},
 		},
 		Queues: mq.Queues{
-			{
+			mq.QueueConfig{
 				Name:     "lagoon-logs:workflows",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{

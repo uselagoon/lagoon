@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/amazeeio/lagoon-cli/pkg/api"
 	"github.com/google/uuid"
 	"github.com/isayme/go-amqp-reconnect/rabbitmq"
 	"github.com/streadway/amqp"
+	"github.com/uselagoon/lagoon-cli/pkg/api"
 )
 
 // BackupInterface .
@@ -41,7 +41,7 @@ type RabbitBroker struct {
 type GraphQLEndpoint struct {
 	Endpoint        string `json:"endpoint"`
 	JWTAudience     string `json:"audience"`
-	TokenSigningKey string `json:"tokenSigningKey`
+	TokenSigningKey string `json:"tokenSigningKey"`
 }
 
 // NewBackupHandler .

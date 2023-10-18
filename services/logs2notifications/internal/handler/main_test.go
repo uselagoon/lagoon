@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 )
 
 func checkEqual(t *testing.T, got, want interface{}, msgs ...interface{}) {
