@@ -1,10 +1,10 @@
-FROM alpine:3.17.1
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
+
 RUN apk add --no-cache \
       bash \
       gettext \
       moreutils \
       py3-jwt \
-      tini \
       wget
 
 ENV JWTSECRET=super-secret-string \
@@ -18,4 +18,4 @@ ENV JWTSECRET=super-secret-string \
 COPY api-data /api-data
 COPY api-watch-push.sh create_jwt.py /home/
 
-CMD ["tini", "--", "/home/api-watch-push.sh"]
+CMD ["/sbin/tini", "--", "/home/api-watch-push.sh"]
