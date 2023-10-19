@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/matryer/try"
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon"
 	lclient "github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/client"
@@ -28,7 +28,7 @@ type RabbitBroker struct {
 type LagoonAPI struct {
 	Endpoint        string `json:"endpoint"`
 	JWTAudience     string `json:"audience"`
-	TokenSigningKey string `json:"tokenSigningKey`
+	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
 }
@@ -94,7 +94,7 @@ type Notification struct {
 		} `json:"headers"`
 		Project                  string   `json:"project"`
 		ProjectName              string   `json:"projectName"`
-		BranchName               string   `json:"branchName`
+		BranchName               string   `json:"branchName"`
 		Event                    string   `json:"event"`
 		Level                    string   `json:"level"`
 		Message                  string   `json:"message"`
@@ -178,7 +178,7 @@ func NewMessaging(config mq.Config,
 // Consumer handles consuming messages sent to the queue that this action handler is connected to and processes them accordingly
 func (h *Messaging) Consumer() {
 
-	var messageQueue mq.MQ
+	messageQueue := &mq.MessageQueue{}
 	// if no mq is found when the goroutine starts, retry a few times before exiting
 	// default is 10 retry with 30 second delay = 5 minutes
 	err := try.Do(func(attempt int) (bool, error) {
@@ -213,7 +213,7 @@ func (h *Messaging) Consumer() {
 	// Handle any tasks that go to the queue
 	log.Println("Listening for messages in queue lagoon-logs:notifications")
 	err = messageQueue.SetConsumerHandler("notifications-queue", func(message mq.Message) {
-		h.processMessage(message.Body(), message.AppId())
+		h.processMessage(message.Body())
 		message.Ack(false) // ack to remove from queue
 	})
 	if err != nil {
@@ -222,7 +222,7 @@ func (h *Messaging) Consumer() {
 	<-forever
 }
 
-func (h *Messaging) processMessage(message []byte, applicationID string) {
+func (h *Messaging) processMessage(message []byte) {
 	ctx := context.Background()
 	notification := &Notification{}
 	json.Unmarshal(message, notification)
@@ -253,12 +253,12 @@ func (h *Messaging) processMessage(message []byte, applicationID string) {
 			if projectNotifications.Notifications != nil {
 				if len(projectNotifications.Notifications.Slack) > 0 && !h.DisableSlack {
 					for _, slack := range projectNotifications.Notifications.Slack {
-						h.SendToSlack(notification, slack.Channel, slack.Webhook, applicationID)
+						h.SendToSlack(notification, slack.Channel, slack.Webhook, h.LagoonAppID)
 					}
 				}
 				if len(projectNotifications.Notifications.RocketChat) > 0 && !h.DisableRocketChat {
 					for _, rc := range projectNotifications.Notifications.RocketChat {
-						h.SendToRocketChat(notification, rc.Channel, rc.Webhook, applicationID)
+						h.SendToRocketChat(notification, rc.Channel, rc.Webhook, h.LagoonAppID)
 					}
 				}
 				if len(projectNotifications.Notifications.Email) > 0 && !h.DisableEmail {
