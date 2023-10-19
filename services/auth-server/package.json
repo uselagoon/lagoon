@@ -25,7 +25,7 @@
     "exec": "yarn build && yarn start --inspect=0.0.0.0:9229"
   },
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "jsonwebtoken": "^8.5.1",
