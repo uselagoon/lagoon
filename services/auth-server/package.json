@@ -11,7 +11,7 @@
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
-    "build": "tsc",
+    "build": "tsc --build",
     "start": "node dist/index",
     "dev": "NODE_ENV=development nodemon",
     "format": "prettier-eslint --write '**/*.js'",
@@ -39,6 +39,6 @@
     "nodemon": "^2.0.20",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
-    "typescript": "^3.9.3"
+    "typescript": "^5.2.0"
   }
 }

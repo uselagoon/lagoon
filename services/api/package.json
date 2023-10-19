@@ -77,6 +77,6 @@
     "prettier-eslint-cli": "^4.7.1",
     "ts-jest": "^24.0.2",
     "tsc-watch": "^4.4.0",
-    "typescript": "^3.4.4"
+    "typescript": "^5.2.0"
   }
 }

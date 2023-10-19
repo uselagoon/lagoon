@@ -5,7 +5,7 @@
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest"
@@ -17,7 +17,8 @@
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.8.2"
+    "tsc-silent": "^1.2.2",
+    "typescript": "^5.2.0"
   },
   "dependencies": {
     "@lagoon/lokka-transport-http": "^1.6.1",

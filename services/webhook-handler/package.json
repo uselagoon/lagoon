@@ -37,6 +37,6 @@
     "newman": "^4.5.4",
     "nodemon": "^2.0.20",
     "ts-jest": "^26.0.0",
-    "typescript": "^3.9.3"
+    "typescript": "^5.2.0"
   }
 }
