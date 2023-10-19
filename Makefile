@@ -193,17 +193,11 @@ service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
-build/local-registry: local-dev/registry/Dockerfile
-build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
-build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
 build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher \
-									local-registry \
-									local-dbaas-provider \
-									local-mongodb-dbaas-provider
+									local-api-data-watcher-pusher
 
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -271,10 +265,6 @@ drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-serv
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
-
-.PHONY: local-registry-up
-local-registry-up: build/local-registry
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
 
 # broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
 # when running kubernetes tests
