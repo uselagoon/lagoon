@@ -92,6 +92,7 @@ export const deleteOpenshift: ResolverFn = async (
   .where('openshift.name', input.name).count('project.id', {as: 'numactive'}).toString());
 
   const numberActiveOs = R.path(['0', 'numactive'], res);
+  // @ts-ignore - TS2365: Operator '>' cannot be applied to types 'unknown' and 'number'.
   if(numberActiveOs > 0) {
     throw new Error(`Openshift "${input.name} still in use, can not delete`);
   }
