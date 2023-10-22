@@ -9,6 +9,8 @@ ENV RABBITMQ_DEFAULT_HA_PATTERN='^lagoon-'\
 
 RUN rabbitmq-plugins --offline enable rabbitmq_peer_discovery_k8s
 
+RUN chmod 0777 /var/lib/rabbitmq /etc/rabbitmq /etc/rabbitmq/conf.d /tmp/rabbitmq-ssl /var/log/rabbitmq;
+
 ADD enabled_plugins /etc/rabbitmq/enabled_plugins
 ADD rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 RUN fix-permissions /etc/rabbitmq/rabbitmq.conf
