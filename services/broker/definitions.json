@@ -7,8 +7,5 @@
   ],
   "permissions":[
         { "user": "${RABBITMQ_DEFAULT_USER}", "vhost": "${RABBITMQ_DEFAULT_VHOST}", "configure": ".*", "write": ".*", "read": ".*" }
-  ],
-  "policies":[
-        {"vhost":"${RABBITMQ_DEFAULT_VHOST}","name":"lagoon-ha","pattern":"${RABBITMQ_DEFAULT_HA_PATTERN}", "definition":{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","ha-sync-batch-size":5}}
   ]
 }

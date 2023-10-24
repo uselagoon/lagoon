@@ -1,1 +1,1 @@
-[rabbitmq_management,rabbitmq_delayed_message_exchange,rabbitmq_peer_discovery_k8s,rabbitmq_prometheus].
+[rabbitmq_management,rabbitmq_delayed_message_exchange,rabbitmq_prometheus].

@@ -152,7 +152,6 @@ services :=	api \
 			actions-handler \
 			backup-handler \
 			broker \
-			broker-single \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
@@ -177,8 +176,7 @@ build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/backup-handler: services/backup-handler/Dockerfile
-build/broker-single: services/broker/Dockerfile
-build/broker: build/broker-single
+build/broker: services/broker/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
@@ -265,12 +263,6 @@ drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-serv
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
-
-# broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
-# when running kubernetes tests
-.PHONY: broker-up
-broker-up: build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
 
 #######
 ####### Publishing Images

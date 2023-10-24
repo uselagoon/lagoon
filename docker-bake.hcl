@@ -40,7 +40,6 @@ group "default" {
     "api",
     "auth-server",
     "backup-handler",
-    "broker-single",
     "broker",
     "keycloak-db",
     "keycloak",
@@ -62,7 +61,7 @@ group "ui-logs-development" {
     "api-db",
     "api-redis",
     "api",
-    "broker-single",
+    "broker",
     "keycloak-db",
     "keycloak",
     "local-api-data-watcher-pusher",
@@ -85,7 +84,6 @@ group "prod-images" {
     "api",
     "auth-server",
     "backup-handler",
-    "broker-single",
     "broker",
     "keycloak-db",
     "keycloak",
@@ -165,21 +163,9 @@ target "backup-handler" {
   tags = ["${IMAGE_REPO}/backup-handler:${TAG}"]
 }
 
-target "broker-single" {
-  inherits = ["default"]
-  context = "services/broker-single"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/broker-single - the RabbitMQ broker standalone service for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/broker-single:${TAG}"]
-}
-
 target "broker" {
   inherits = ["default"]
   context = "services/broker"
-  contexts = {
-    "lagoon/broker-single": "target:broker-single"
-  }
   labels = {
     "org.opencontainers.image.title": "lagoon-core/broker - the RabbitMQ broker service for Lagoon"
   }

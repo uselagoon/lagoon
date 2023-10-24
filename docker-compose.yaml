@@ -22,7 +22,7 @@ services:
     depends_on:
       - broker
   broker:
-    image: ${IMAGE_REPO:-lagoon}/broker-single
+    image: ${IMAGE_REPO:-lagoon}/broker
     ports:
       - '15672:15672'
       - '5672:5672'
@@ -70,7 +70,7 @@ services:
       - S3_FILES_HOST=http://172.17.0.1:9000
       - S3_BAAS_ACCESS_KEY_ID=minio
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
-      - CONSOLE_LOGGING_LEVEL=trace
+      - CONSOLE_LOGGING_LEVEL=debug
     depends_on:
       - api-init
       - keycloak
