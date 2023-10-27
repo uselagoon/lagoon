@@ -90,7 +90,7 @@ nav:
   - Blackfire: using-lagoon-advanced/blackfire.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
-  - EFS Provisioner: installing-lagoon/efs-provisioner.md
+  - Bulk storage Provisioner: installing-lagoon/bulk-storage-provisioner.md
   - Install Harbor: installing-lagoon/install-harbor.md
   - Install Lagoon Core: installing-lagoon/lagoon-core.md
   - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
@@ -307,3 +307,4 @@ plugins:
         'docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
         'docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
         'docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'
+        'installing-lagoon/efs-provisioner.md': 'installing-lagoon/bulk-storage-provisioner.md'
