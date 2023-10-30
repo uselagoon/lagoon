@@ -33,7 +33,10 @@ export const addOrganization: ResolverFn = async (
   isValidName(input.name)
 
   try {
-      await hasPermission('organization', 'add');
+    await hasPermission('organization', 'add');
+    const org = await query(sqlClientPool, Sql.selectOrganizationByName(input.name));
+    // if no organization found, create it
+    if (R.length(org) == 0) {
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
 
@@ -49,8 +52,11 @@ export const addOrganization: ResolverFn = async (
       });
 
       return R.prop(0, rows);
+    } else {
+      throw new Error(`There was an error creating the organization, ${input.name} already exists`);
+    }
   }  catch (err) {
-      throw new Error(`There was an error creating the organization ${input.name} ${err}`);
+    throw new Error(`There was an error creating the organization ${input.name} ${err}`);
   }
 };
 
@@ -219,17 +225,17 @@ export const updateOrganization: ResolverFn = async (
 };
 
 export const getOrganizationById: ResolverFn = async (
-    organization,
+    id,
     args,
     { sqlClientPool, hasPermission }
 ) => {
-    let oid = args.organization;
-    if (organization) {
-      oid = organization;
+    let oid = args.id;
+    if (id) {
+      oid = id;
     }
 
     await hasPermission('organization', 'view', {
-        organization: oid,
+      organization: oid,
     });
 
     const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
@@ -240,6 +246,30 @@ export const getOrganizationById: ResolverFn = async (
     }
 
     return orgResult;
+};
+
+export const getOrganizationByName: ResolverFn = async (
+  name,
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  let orgName = args.name;
+  if (name) {
+    orgName = name;
+  }
+
+  const rows = await query(sqlClientPool, Sql.selectOrganizationByName(orgName));
+  const orgResult = rows[0];
+
+  if (!orgResult) {
+    return null;
+  }
+
+  await hasPermission('organization', 'view', {
+    organization: orgResult.id,
+  });
+
+  return orgResult;
 };
 
 export const getAllOrganizations: ResolverFn = async (
@@ -696,7 +726,7 @@ export const removeProjectFromOrganization: ResolverFn = async (
 }
 
 // add existing project to an organization
-export const addProjectToOrganization: ResolverFn = async (
+export const addExistingProjectToOrganization: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
@@ -760,7 +790,7 @@ export const addProjectToOrganization: ResolverFn = async (
   userActivityLogger(`User added a project to organization`, {
     project: '',
     organization: input.organization,
-    event: 'api:addProjectToOrganization',
+    event: 'api:addExistingProjectToOrganization',
     payload: {
       data: {
         project: pid,
@@ -842,7 +872,7 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
 // add an existing group to an organization
 // this function will return errors if there are projects in the group that are not in the organization
 // if there are no projects in the organization, and no projects in the group then it will succeed
-export const addGroupToOrganization: ResolverFn = async (
+export const addExistingGroupToOrganization: ResolverFn = async (
   _root,
   { input },
   { models, sqlClientPool, hasPermission, userActivityLogger }

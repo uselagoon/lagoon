@@ -768,12 +768,15 @@ export const createDeployTask = async function(deployData: any) {
   const environments = await getEnvironmentsForProject(projectName);
 
   if (project.organization) {
-    // check the environment quota, this prevents environments being deployed by the api or webhooks
-    const curOrg = await getOrganizationById(project.organization);
-    if (curOrg.environments.length >= curOrg.quotaEnvironment) {
-      throw new OrganizationEnvironmentLimit(
-        `'${branchName}' would exceed the organization environment quota of ${curOrg.quotaEnvironment}`
-      );
+    // if this would be a new environment, check it against the environment quota
+    if (!environments.project.environments.map(e => e.name).find(i => i === branchName)) {
+      // check the environment quota, this prevents environments being deployed by the api or webhooks
+      const curOrg = await getOrganizationById(project.organization);
+      if (curOrg.environments.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
+        throw new OrganizationEnvironmentLimit(
+          `'${branchName}' would exceed organization environment quota: ${curOrg.environments.length}/${curOrg.quotaEnvironment}`
+        );
+      }
     }
   }
 

@@ -7,7 +7,7 @@ mutation PopulateApi {
     friendlyName: "Test Organization"
     description: "An organization for testing"
     quotaProject: 5
-    quotaEnvironment: 15
+    quotaEnvironment: 4
     quotaGroup: 10
     quotaNotification: 10
   }) {
@@ -44,7 +44,7 @@ mutation PopulateApi {
     id
   }
 
-  UIOrganizationGroup: addGroup(
+  UIOrganizationGroup: addGroupToOrganization(
     input: { name: "organization-group1", organization: 1}
   ) {
     id

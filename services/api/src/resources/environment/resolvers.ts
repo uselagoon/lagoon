@@ -367,13 +367,16 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   }
 
   if (projectOpenshift.organization) {
-    // check the environment quota, this prevents environments being added directly via the api
+    // if this would be a new environment, check it against the quota
     const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(projectOpenshift.organization)
-    const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
-    if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
-      throw new Error(
-        `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
-      );
+    if (!curEnvs.map(e => e.name).find(i => i === input.name)) {
+      // check the environment quota, this prevents environments being added directly via the api
+      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
+      if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
+        throw new Error(
+          `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
+        );
+      }
     }
   }
 
