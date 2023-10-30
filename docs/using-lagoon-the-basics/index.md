@@ -28,17 +28,17 @@ Learn more about Lagoon, pygmy, and [Local Development Environments](local-devel
 * General: [first deployment](first-deployment.md)
 * Drupal: [first deployment in Drupal](../drupal/first-deployment-of-drupal.md)
 * Drupal: [Lagoonize your Drupal site](../drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
-* All: [build and deployment process of Lagoon](build-and-deploy-process.md)
+* All: [build and deployment process of Lagoon](../concepts-basics/build-and-deploy-process.md)
 
 ## Overview of Lagoon Configuration Files
 
 ### `.lagoon.yml`
 
-This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [documentation for `.lagoon.yml`](lagoon-yml.md).
+This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [documentation for `.lagoon.yml`](../concepts-basics/lagoon-yml.md).
 
 ### `docker-compose.yml`
 
-This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [documentation for `docker-compose.yml`](docker-compose-yml.md).
+This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [documentation for `docker-compose.yml`](../concepts-basics/docker-compose-yml.md).
 
 ### Dockerfiles
 

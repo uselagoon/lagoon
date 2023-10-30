@@ -47,7 +47,7 @@ If you need non-www to www redirects, make sure you have them set up in the `red
 
 ### Cron jobs
 
-Check if your cron jobs have been set up for your production environment - see [`.lagoon.yml`](lagoon-yml.md).
+Check if your cron jobs have been set up for your production environment - see [`.lagoon.yml`](../concepts-basics/lagoon-yml.md).
 
 ## DNS
 
@@ -96,4 +96,4 @@ Lagoon understands the concept of development and production environments. Devel
 
 During project setup, the production environment should already be defined. If that's omitted, your environment will run in development mode. You can check if the environment is set as production environment in the Lagoon user interface. If the production environment is not set, let your Lagoon administrator know, and they will configure the system accordingly.
 
-![The production environment is labelled in green on the left. ](./lagoon-ui-production.png)
+![The production environment is labelled in green on the left. ](../images/lagoon-ui-production.png)

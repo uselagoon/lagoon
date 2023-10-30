@@ -108,7 +108,8 @@ nav:
   - Logging: logging/logging.md
   - Kibana Examples: logging/kibana-examples.md
 - Interacting with Lagoon:
-  - The Lagoon UI: interacting/lagoon-ui.md
+  - Using the UI: interacting/lagoon-ui.md
+  - Working with Orgs: interacting/organizations.md
   - GraphQL: interacting/graphql.md
   - SSH: interacting/ssh.md
   - GraphQL API: interacting/graphql-queries.md

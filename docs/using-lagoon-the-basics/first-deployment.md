@@ -32,7 +32,7 @@ If all is correct, you should see a notification in your configured chat system 
 
 ![Slack notification that a push has been made in a Lagoonized repository.](../images/first_deployment_slack_start.jpg)
 
-This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md).
+This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](../concepts-basics/build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
