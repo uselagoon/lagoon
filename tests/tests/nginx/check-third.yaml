@@ -6,4 +6,4 @@
     host: "test1.example.com"
     expected_returncode: 200
   tasks:
-  - include: ../../checks/check-url-returncode-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode-host.yaml

@@ -5,8 +5,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on first project {{ project1 }}"
   hosts: localhost
@@ -16,7 +16,7 @@
     project: "{{ project1 }}"
     namespace: "{{ project1 }}-{{ branch }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on second project {{ project2 }}"
   hosts: localhost
@@ -26,16 +26,16 @@
     project: "{{ project2 }}"
     namespace: "{{ project2 }}-{{ branch }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project1 }}"
     url: "{{ check_url1 }}"
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -50,7 +50,7 @@
     host: "{{ custom_domain1 }}"
     expected_content: "LAGOON_ROUTE=https://{{ custom_domain1 }}"
   tasks:
-  - include: ../../checks/check-url-content-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content-host.yaml
 
 - name: "{{ testname }} - check if {{ project2 }} is deployed with accessing the custom domain and searching for the environment variable LAGOON_ROUTE"
   hosts: localhost
@@ -60,7 +60,7 @@
     host: "{{ custom_domain2 }}"
     expected_content: "LAGOON_ROUTE=https://{{ custom_domain2 }}"
   tasks:
-  - include: ../../checks/check-url-content-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content-host.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project1 }}, which should remove all resources"
   hosts: localhost
@@ -69,7 +69,7 @@
     project: "{{ project1 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project2 }}, which should remove all resources"
   hosts: localhost
@@ -78,7 +78,7 @@
     project: "{{ project2 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project1 }} does not exist anymore"
   hosts: localhost
@@ -87,7 +87,7 @@
     url: "http://{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} - check if site for {{ project2 }} does not exist anymore"
   hosts: localhost
@@ -96,4 +96,4 @@
     url: "http://{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

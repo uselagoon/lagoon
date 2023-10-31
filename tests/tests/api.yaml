@@ -1,15 +1,15 @@
 ---
-- include: features/api-token.yaml
+- ansible.builtin.import_playbook: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-api-{{ cluster_type }}
     git_repo_name: api.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: api/deploy-pullrequest.yaml
+- ansible.builtin.import_playbook: api/deploy-pullrequest.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy pullrequest"
     node_version: 16
@@ -17,7 +17,7 @@
     project: ci-api-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
 
-- include: api/deploy-branch.yaml
+- ansible.builtin.import_playbook: api/deploy-branch.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy regular branch api/slash/branch"
     node_version: 16
@@ -26,7 +26,7 @@
     branch: api/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: api/deploy-branch-once.yaml
+# - ansible.builtin.import_playbook: api/deploy-branch-once.yaml
 #   vars:
 #     testname: "API {{ cluster_type|upper }} - deploy regular branch, name ends with -"
 #     node_version: 16
@@ -35,7 +35,7 @@
 #     branch: some-branch-name-
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: api/deploy-branch-once.yaml
+# - ansible.builtin.import_playbook: api/deploy-branch-once.yaml
 #   vars:
 #     testname: "API {{ cluster_type|upper }} - deploy regular branch, name contains only numbers"
 #     node_version: 16
@@ -44,7 +44,7 @@
 #     branch: 1234567890
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: api/deploy-branch-once.yaml
+# - ansible.builtin.import_playbook: api/deploy-branch-once.yaml
 #   vars:
 #     testname: "API {{ cluster_type|upper }} - deploy regular branch, name contains --"
 #     node_version: 16
@@ -53,7 +53,7 @@
 #     branch: api--branch
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: api/promote.yaml
+- ansible.builtin.import_playbook: api/promote.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - promote branch"
     node_version: 16
@@ -64,6 +64,6 @@
     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-api-{{ cluster_type }}
