@@ -631,7 +631,7 @@ export const Group = (clients: {
         id,
         briefRepresentation: false,
       });
-      del(`cache:keycloak:group-id:${keycloakGroup.name}`);
+      await del(`cache:keycloak:group-id:${keycloakGroup.name}`);
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
