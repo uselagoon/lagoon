@@ -11,6 +11,14 @@ variable "LAGOON_VERSION" {
   default = "development"
 }
 
+variable "UPSTREAM_REPO" {
+  default = "uselagoon"
+}
+
+variable "UPSTREAM_TAG" {
+  default = "latest"
+}
+
 variable "PLATFORMS" {
   // use PLATFORMS=linux/amd64,linux/arm64 to override default single architecture on the cli
   default = "linux/amd64"
@@ -29,6 +37,8 @@ target "default"{
   }
   args = {
     LAGOON_VERSION = "${LAGOON_VERSION}"
+    UPSTREAM_REPO = "${UPSTREAM_REPO}"
+    UPSTREAM_TAG = "${UPSTREAM_TAG}"
   }
 }
 
