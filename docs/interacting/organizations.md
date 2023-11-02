@@ -1,6 +1,6 @@
 # Working with Organizations in the UI
 
-Here are some step-by-step guides to help walk you through useful organization-related tasks in the Lagoon UI.
+Here are some step-by-step guides to help walk you through useful organization-related tasks in the Lagoon UI, working with groups, projects, users, and roles.
 
 ## Log in and find organizations
 
