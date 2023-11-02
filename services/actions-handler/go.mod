@@ -1,6 +1,6 @@
 module github.com/uselagoon/lagoon/services/actions-handler
 
-go 1.18
+go 1.21
 
 require (
 	github.com/cheshir/go-mq/v2 v2.0.1

@@ -50,7 +50,7 @@ UPSTREAM_TAG ?= latest
 # BUILD_DEPLOY_IMAGE_TAG is the docker tag from uselagoon/build-deploy-image to use -
 # latest is the most current release
 # edge is the most current merged change
-BUILD_DEPLOY_IMAGE_TAG ?= latest
+BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -366,7 +366,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.9.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.26.6-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = organizations
+CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already

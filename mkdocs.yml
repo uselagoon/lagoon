@@ -52,6 +52,7 @@ nav:
     - Subfolders: drupal/subfolders.md
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+    - Automatic Updates: drupal/automatic-updates.md
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:
