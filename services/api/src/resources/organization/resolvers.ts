@@ -33,7 +33,10 @@ export const addOrganization: ResolverFn = async (
   isValidName(input.name)
 
   try {
-      await hasPermission('organization', 'add');
+    await hasPermission('organization', 'add');
+    const org = await query(sqlClientPool, Sql.selectOrganizationByName(input.name));
+    // if no organization found, create it
+    if (R.length(org) == 0) {
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
 
@@ -49,8 +52,11 @@ export const addOrganization: ResolverFn = async (
       });
 
       return R.prop(0, rows);
+    } else {
+      throw new Error(`There was an error creating the organization, ${input.name} already exists`);
+    }
   }  catch (err) {
-      throw new Error(`There was an error creating the organization ${input.name} ${err}`);
+    throw new Error(`There was an error creating the organization ${input.name} ${err}`);
   }
 };
 

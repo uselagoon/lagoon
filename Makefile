@@ -87,7 +87,7 @@ endif
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -508,7 +508,7 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
 
@@ -635,7 +635,7 @@ k3d/retest:
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d

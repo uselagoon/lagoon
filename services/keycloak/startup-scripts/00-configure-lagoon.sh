@@ -2031,16 +2031,6 @@ function add_organization_permissions {
   "policies": ["[Lagoon] Users role for realm is Platform Owner"]
 }
 
-EOF    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "View All Organizations",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["organization"],
-  "scopes": ["viewAll"],
-  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
-}
 EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
@@ -2446,6 +2436,30 @@ function add_production_task_cancel {
 EOF
 }
 
+function add_organization_viewall {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_all_orgs=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Organizations --config $CONFIG_PATH)
+
+  if [ "$view_all_orgs" != "[ ]" ]; then
+      echo "organization:viewAll already configured"
+      return 0
+  fi
+
+  echo Configuring organization:viewAll
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Organizations",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["organization"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -2495,6 +2509,7 @@ function configure_keycloak {
     change_project_groupadd_to_owner_role
     add_development_task_cancel
     add_production_task_cancel
+    add_organization_viewall
 
 
     # always run last
