@@ -467,7 +467,8 @@ export const updateAdvancedTaskDefinition = async (
             displayName: advancedTaskDefinitionArguments[i].displayName,
             defaultValue: advancedTaskDefinitionArguments[i].defaultValue,
             optional: advancedTaskDefinitionArguments[i].optional,
-            type: advancedTaskDefinitionArguments[i].type
+            type: advancedTaskDefinitionArguments[i].type,
+            range: advancedTaskDefinitionArguments[i].range
           })
         );
       }

@@ -147,6 +147,7 @@ export const Sql = {
       displayName,
       defaultValue,
       optional,
+      range,
       }: {
         id: number,
         advanced_task_definition: number,
@@ -155,6 +156,7 @@ export const Sql = {
         defaultValue: string,
         optional: boolean,
         displayName: string,
+        range: string,
       }) =>
       knex('advanced_task_definition_argument')
         .insert({
@@ -164,7 +166,8 @@ export const Sql = {
           type,
           defaultValue,
           optional,
-          display_name: displayName
+          display_name: displayName,
+          range,
         })
       .toString(),
     updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>

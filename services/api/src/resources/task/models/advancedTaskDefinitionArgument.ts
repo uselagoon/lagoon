@@ -111,6 +111,31 @@ export class NumberArgument {
     }
 }
 
+export class SelectArgument {
+
+    private range: Array<string>;
+
+    constructor(range) {
+        this.range = range;
+    }
+
+    public static typeName() {
+        return "SELECT";
+    }
+
+    public setRange(range: Array<string>) {
+        this.range = range;
+    }
+
+    validateInput(input): boolean {
+        return this.range.includes(input);
+    }
+
+    public async getArgumentRange() {
+
+        return this.range;
+    }
+}
 
 export const getAdvancedTaskArgumentValidator = async (sqlClientPool, environment, taskArguments) => {
     const rows = await query(
@@ -141,9 +166,7 @@ export class AdvancedTaskArgumentValidator {
             throw new Error(`Unable to find argument ${argumentName} in argument list for task`);
         }
 
-        //@ts-ignore
-        let typename = advancedTaskDefinitionArgument.type;
-        let validator = this.getValidatorForArg(typename);
+        let validator = this.getValidatorForArg(advancedTaskDefinitionArgument);
         return validator.validateInput(argumentValue);
     }
 
@@ -153,17 +176,14 @@ export class AdvancedTaskArgumentValidator {
             throw new Error(`Unable to find argument ${argumentName} in argument list for task`);
         }
 
-        //@ts-ignore
-        let typename = advancedTaskDefinitionArgument.type;
-        let validator = this.getValidatorForArg(typename);
+        let validator = this.getValidatorForArg(advancedTaskDefinitionArgument);
         return validator;
     }
 
-    protected getValidatorForArg(typename) {
+    protected getValidatorForArg(advancedTaskDefArgument) {
 
         let validator = null;
-
-        switch (typename) {
+        switch (advancedTaskDefArgument.type) {
             case (EnvironmentSourceArgument.typeName()):
                 validator = new EnvironmentSourceArgument(this.relatedEnvironments);
                 break;
@@ -176,8 +196,12 @@ export class AdvancedTaskArgumentValidator {
             case (OtherEnvironmentSourceNamesArgument.typeName()):
                 validator = new OtherEnvironmentSourceNamesArgument(this.environmentName, this.relatedEnvironments);
                 break;
+            case (SelectArgument.typeName()):
+                let range = advancedTaskDefArgument.range.split(",").map((v) => v.trim());
+                validator = new SelectArgument(range);
+                break;
             default:
-                throw new Error(`Unable to find AdvancedTaskDefinitionType ${typename}`);
+                throw new Error(`Unable to find AdvancedTaskDefinitionType ${advancedTaskDefArgument.type}`);
                 break;
         }
 

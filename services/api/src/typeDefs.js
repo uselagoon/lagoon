@@ -1624,6 +1624,7 @@ const typeDefs = gql`
     STRING
     ENVIRONMENT_SOURCE_NAME
     ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF
+    SELECT
   }
 
   input AdvancedTaskDefinitionArgumentInput {
@@ -1632,6 +1633,7 @@ const typeDefs = gql`
     displayName: String
     defaultValue: String
     optional: Boolean
+    range: String
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {

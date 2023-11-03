@@ -1,10 +1,11 @@
-import { AdvancedTaskArgumentValidator, NumberArgument, EnvironmentSourceArgument, OtherEnvironmentSourceNamesArgument, StringArgument } from "./advancedTaskDefinitionArgument";
+import { AdvancedTaskArgumentValidator, NumberArgument, EnvironmentSourceArgument, OtherEnvironmentSourceNamesArgument, StringArgument, SelectArgument } from "./advancedTaskDefinitionArgument";
 
 describe("Testing AdvancedTaskArgumentValidator class as a whole", () => {
 
     let arglist = [
         { name: "stringarg", type: StringArgument.typeName(), range: "", default: "" },
         { name: "envarg", type: EnvironmentSourceArgument.typeName(), range: "", default: "" },
+        { name: "selectarg", type: SelectArgument.typeName(), range: "a, b, c, d, e", default: "" },
     ];
 
     let environmentNames = ["main", "dev", "qa"];
@@ -24,6 +25,14 @@ describe("Testing AdvancedTaskArgumentValidator class as a whole", () => {
     test("environment source argument validator - not in list", () => {
         return expect(advancedTaskValidator.validateArgument("envarg", "notInEnvList")).toBe(false);
     });
+
+    test("select argument type - success", () => {
+        return expect(advancedTaskValidator.validateArgument("selectarg", "c")).toBe(true);
+    })
+
+    test("select argument type - fail, not in list", () => {
+        return expect(advancedTaskValidator.validateArgument("selectarg", "12")).toBe(false);
+    })
 
 });
 
