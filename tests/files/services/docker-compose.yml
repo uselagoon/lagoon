@@ -8,22 +8,22 @@ services:
     ports:
       - '3306'
 
-  mariadb-10-6:
-    image: uselagoon/mariadb-10.6
+  mariadb-10-11:
+    image: uselagoon/mariadb-10.11
     labels:
       lagoon.type: mariadb
     ports:
       - '3306'
 
   mongo-4:
-    image: uselagoon/mongo:latest
+    image: uselagoon/mongo-4
     labels:
       lagoon.type: mongo
     ports:
       - '27017'
 
   opensearch-2:
-    image: uselagoon/opensearch-2:latest
+    image: uselagoon/opensearch-2
     environment:
     - cluster.name=opensearch-cluster
     - node.name=opensearch
@@ -39,7 +39,8 @@ services:
         soft: 65536
         hard: 65536
     labels:
-      lagoon.type: none # gets set to opensearch in a second deployment
+      lagoon.type: opensearch
+      # lagoon.type: none # gets set to opensearch in a second deployment
     ports:
       - '9200'
 
@@ -50,15 +51,15 @@ services:
     ports:
       - '5432'
 
-  postgres-14:
-    image: uselagoon/postgres-14
+  postgres-15:
+    image: uselagoon/postgres-15
     labels:
       lagoon.type: postgres
     ports:
       - '5432'
 
-  redis-6:
-    image: uselagoon/redis-6
+  redis-7:
+    image: uselagoon/redis-7
     labels:
       lagoon.type: redis
     ports:

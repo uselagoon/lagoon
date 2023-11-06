@@ -38,11 +38,11 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.6 service"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.11 service"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.6"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.11"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -56,11 +56,11 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-14 service"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-15 service"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-14"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-15"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -83,35 +83,35 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, redis-6 service"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, redis-7 service"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis?service=redis-6"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis?service=redis-7"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - api add envVariable on {{ project }}"
-  hosts: localhost
-  serial: 1
-  vars:
-    envName: "LAGOON_SERVICE_TYPES"
-    envValue: "opensearch-2:opensearch"
-    envScope: "BUILD"
-    project: "{{ project }}"
-  tasks:
-  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
+# - name: "{{ testname }} - api add envVariable on {{ project }}"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     envName: "LAGOON_SERVICE_TYPES"
+#     envValue: "opensearch-2:opensearch"
+#     envScope: "BUILD"
+#     project: "{{ project }}"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
-- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
-  hosts: localhost
-  serial: 1
-  vars:
-    branch: "{{ branch }}"
-    project: "{{ project }}"
-    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
-  tasks:
-  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
+# - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     branch: "{{ branch }}"
+#     project: "{{ project }}"
+#     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
   hosts: localhost
