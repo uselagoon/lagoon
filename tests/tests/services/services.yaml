@@ -33,7 +33,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb-10.5"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.5"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -42,7 +42,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb-10.6"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.6"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -51,7 +51,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres-13"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-13"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -60,7 +60,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres-14"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-14"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -69,7 +69,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mongo-4"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mongo?service=mongo-4"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -78,7 +78,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr-8"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr?service=solr-8"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -87,7 +87,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis-6"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis?service=redis-6"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -117,7 +117,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch-2"
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch?service=opensearch-2"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
