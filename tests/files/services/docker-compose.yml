@@ -5,6 +5,7 @@ services:
     image: uselagoon/mariadb-10.5
     labels:
       lagoon.type: mariadb-single
+      lagoon.persistent.size: 100Mi
     ports:
       - '3306'
 
@@ -40,7 +41,7 @@ services:
         hard: 65536
     labels:
       lagoon.type: opensearch
-      # lagoon.type: none # gets set to opensearch in a second deployment
+      lagoon.persistent.size: 100Mi
     ports:
       - '9200'
 
@@ -48,6 +49,7 @@ services:
     image: uselagoon/postgres-13
     labels:
       lagoon.type: postgres-single
+      lagoon.persistent.size: 100Mi
     ports:
       - '5432'
 
@@ -69,6 +71,7 @@ services:
     image: uselagoon/solr-8
     labels:
       lagoon.type: solr
+      lagoon.persistent.size: 100Mi
     ports:
      - "8983"
     command:
@@ -78,6 +81,11 @@ services:
   internal-services-test:
     image: uselagoon/internal-services-test:main
     labels:
-      lagoon.type: basic
+      lagoon.type: basic-persistent
+      lagoon.persistent: /app/files
+      lagoon.persistent.size: 10Mi
+      lagoon.persistent.class: bulk
     ports:
       - "3000"
+    environment:
+      - STORAGE_LOCATION=/app/files

@@ -92,32 +92,20 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-# - name: "{{ testname }} - api add envVariable on {{ project }}"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     envName: "LAGOON_SERVICE_TYPES"
-#     envValue: "opensearch-2:opensearch"
-#     envScope: "BUILD"
-#     project: "{{ project }}"
-#   tasks:
-#   - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
-
-# - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     branch: "{{ branch }}"
-#     project: "{{ project }}"
-#     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
-#   tasks:
-#   - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
-
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
   hosts: localhost
   serial: 1
   vars:
     url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch?service=opensearch-2"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, persistent storage"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/storage?path=/app/files"
     expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
