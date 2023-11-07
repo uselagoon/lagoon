@@ -331,8 +331,7 @@ export const addFactsByName: ResolverFn = async (
   }
 
   const returnFacts = await processAddFacts(
-    // @ts-ignore - TS2698: Spread types may only be created from object types.
-    R.map((fact) => {return {environment: envId, ...fact};}, facts),
+    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
     sqlClientPool,
     hasPermission,
     adminScopes,
