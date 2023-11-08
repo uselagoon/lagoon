@@ -26,7 +26,4 @@ An _org owner_ can do everything to do with administering an organization aside 
 An _org viewer_ is a read-only role that can only view the organization, but cannot make any changes or additions.
 
 A user who has not been assigned as an owner or viewer cannot see the organization.
-
-
-
-
+x
