@@ -1331,7 +1331,7 @@ const typeDefs = gql`
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType, buildImage: Boolean): [Project]
     """
     Returns all Project Objects matching metadata filters
     """
