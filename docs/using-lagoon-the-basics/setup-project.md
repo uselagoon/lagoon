@@ -21,7 +21,7 @@ We suggest deploying specific important branches \(like `develop` and `main`\) a
 
 This means that the `.lagoon.yml` and `docker-compose.yml` files are available in your Git repository and configured accordingly.
 
-If this is not the case, check out the list of [Step-by-Step Guides](index.md) on how to do so before proceeding.
+If this is not the case, check out the list of [Step-by-Step Guides](index.md#step-by-step-guides) on how to do so before proceeding.
 
 ## 2. Provide access to your code
 

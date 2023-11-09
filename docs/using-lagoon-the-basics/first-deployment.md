@@ -61,7 +61,7 @@ That's the beauty of Lagoon: it's exactly the same! Just push the name of the br
 
 Did the deployment fail? Oh no! But we're here to help:
 
-1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md), which explains why this happens.
+1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../applications/drupal/first-deployment-of-drupal.md), which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
 3. If you can't figure it out, just ask your Lagoon support, we are here to help!
 4. Reach out to us in your support channel or in [the community Discord](https://discord.gg/te5hHe95JE).

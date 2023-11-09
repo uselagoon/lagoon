@@ -118,13 +118,13 @@ The second `ENV_VAR_NAME_STRING` is of type `STRING` and will present the user w
 
 The values that the user selects will be available as environment variables in the `COMMAND` type tasks when the task is run.
 
-![Task Arguments](./custom-task-arguments.png)
+![Task Arguments](../images/custom-task-arguments.png)
 
 ### Confirmation
 
 When the `confirmationText` field has text, it will be displayed with a confirmation modal in the UI before the user is able to run the task.
 
-![Task Confirmation](./custom-task-confirm.png)
+![Task Confirmation](../images/custom-task-confirm.png)
 
 ## Invoking the task
 
@@ -166,4 +166,4 @@ This, then, will define our task for our project \(42\). When we run this, we wi
 
 This task will now be available to run from the UI for anyone with the `DEVELOPER` or `MAINTAINER` role.
 
-![Task List](./task-yarn-audit.png)
+![Task List](../images/task-yarn-audit.png)
