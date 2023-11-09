@@ -1,6 +1,6 @@
 # NGINX-Drupal
 
-The [Lagoon `nginx-drupal` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx-drupal/Dockerfile). Optimized to work with Drupal. Based on [Lagoon `nginx` image](../../docker-images/nginx.md).
+The [Lagoon `nginx-drupal` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx-drupal/Dockerfile). Optimized to work with Drupal. Based on [Lagoon `nginx` image](../../../docker-images/nginx.md).
 
 ## Lagoon adaptions
 
@@ -8,7 +8,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * To keep `drupal.conf` 's configuration file as clean and customizable as possible, we added `include` directives in the main sections of the file:`server`, `location /`, `location @drupal` and `location @php`.
-* Further information in the section [`Drupal.conf` customization](nginx.md#drupal-conf-customization).
+* Further information in the section [`Drupal.conf` customization](#drupalconf-customization).
 
 ## Included Drupal configuration \(`drupal.conf`\)
 

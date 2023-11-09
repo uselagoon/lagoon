@@ -4,7 +4,7 @@ description: MariaDB is the open source successor to MySQL.
 
 # MariaDB-Drupal
 
-The Lagoon `mariadb-drupal` Docker image [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb-drupal/10.5.Dockerfile) is a customized [`mariadb`](../../docker-images/mariadb.md) image to use within Drupal projects in Lagoon. It differs from the `mariadb` image only for initial database setup, made by some environment variables:
+The Lagoon `mariadb-drupal` Docker image [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb-drupal/10.5.Dockerfile) is a customized [`mariadb`](../../../docker-images/mariadb.md) image to use within Drupal projects in Lagoon. It differs from the `mariadb` image only for initial database setup, made by some environment variables:
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
@@ -14,7 +14,7 @@ The Lagoon `mariadb-drupal` Docker image [Dockerfile](https://github.com/uselago
 
 If the `LAGOON_ENVIRONMENT_TYPE` variable is set to `production`, performances are set accordingly by using `MARIADB_INNODB_BUFFER_POOL_SIZE=1024` and `MARIADB_INNODB_LOG_FILE_SIZE=256`.
 
-## Additional MariaDB [Logging](../../logging/logging.md)
+## Additional MariaDB [Logging](../../../logging/logging.md)
 
 During the course of development, it may be necessary to enable either query logging or slow query logging. To do so, set the environment variables `MARIADB_LOG_SLOW` or `MARIADB_LOG_QUERIES`. This can be done in `docker-compose.yml`.
 

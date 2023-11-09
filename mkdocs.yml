@@ -77,21 +77,21 @@ nav:
   - Overview: applications/index.md
   - Options: applications/options.md
   - Drupal:
-    - Overview: drupal/index.md
+    - Overview: applications/drupal/index.md
     - Services:
-      - Overview: drupal/services/README.md
-      - MariaDB: drupal/services/mariadb.md
-      - NGINX: drupal/services/nginx.md
-      - PHP-cli: drupal/services/php-cli.md
-      - Redis: drupal/services/redis.md
-      - Solr: drupal/services/solr.md
-      - Varnish: drupal/services/varnish.md
-    - Step by Step - Getting Drupal ready to run on Lagoon: drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
-    - First Deployment of Drupal: drupal/first-deployment-of-drupal.md
-    - Drush 9: drupal/drush-9.md
-    - Subfolders: drupal/subfolders.md
-    - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
-    - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+      - Overview: applications/drupal/services/README.md
+      - MariaDB: applications/drupal/services/mariadb.md
+      - NGINX: applications/drupal/services/nginx.md
+      - PHP-cli: applications/drupal/services/php-cli.md
+      - Redis: applications/drupal/services/redis.md
+      - Solr: applications/drupal/services/solr.md
+      - Varnish: applications/drupal/services/varnish.md
+    - Step by Step - Getting Drupal ready to run on Lagoon: applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
+    - First Deployment of Drupal: applications/drupal/first-deployment-of-drupal.md
+    - Drush 9: applications/drupal/drush-9.md
+    - Subfolders: applications/drupal/subfolders.md
+    - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
+    - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:
@@ -269,19 +269,19 @@ plugins:
         'lagoon/docker-images/solr/README.md': 'docker-images/solr.md'
         'lagoon/docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
         'lagoon/docker-images/varnish/README.md': 'docker-images/varnish.md'
-        'lagoon/docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'
-        'lagoon/drupal/drush-9.md': 'drupal/drush-9.md'
-        'lagoon/drupal/first-deployment-of-drupal.md': 'drupal/first-deployment-of-drupal.md'
-        'lagoon/drupal/integrate-drupal-and-fastly.md': 'drupal/integrate-drupal-and-fastly.md'
-        'lagoon/drupal/phpunit-and-phpstorm.md': 'drupal/phpunit-and-phpstorm.md'
-        'lagoon/drupal/services/mariadb.md': 'drupal/services/mariadb.md'
-        'lagoon/drupal/services/README.md': 'drupal/services/README.md'
-        'lagoon/drupal/services/redis.md': 'drupal/services/redis.md'
-        'lagoon/drupal/services/solr.md': 'drupal/services/solr.md'
-        'lagoon/drupal/services/untitled.md': 'drupal/services/README.md'
-        'lagoon/drupal/services/varnish.md': 'drupal/services/varnish.md'
-        'lagoon/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
-        'lagoon/drupal/subfolders.md': 'drupal/subfolders.md'
+        'lagoon/docker-images/varnish/varnish-drupal.md': 'applications/drupal/services/varnish.md'
+        'lagoon/drupal/drush-9.md': 'applications/drupal/drush-9.md'
+        'lagoon/drupal/first-deployment-of-drupal.md': 'applications/drupal/first-deployment-of-drupal.md'
+        'lagoon/drupal/integrate-drupal-and-fastly.md': 'applications/drupal/integrate-drupal-and-fastly.md'
+        'lagoon/drupal/phpunit-and-phpstorm.md': 'applications/drupal/phpunit-and-phpstorm.md'
+        'lagoon/drupal/services/mariadb.md': 'applications/drupal/services/mariadb.md'
+        'lagoon/drupal/services/README.md': 'applications/drupal/services/README.md'
+        'lagoon/drupal/services/redis.md': 'applications/drupal/services/redis.md'
+        'lagoon/drupal/services/solr.md': 'applications/drupal/services/solr.md'
+        'lagoon/drupal/services/untitled.md': 'applications/drupal/services/README.md'
+        'lagoon/drupal/services/varnish.md': 'applications/drupal/services/varnish.md'
+        'lagoon/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
+        'lagoon/drupal/subfolders.md': 'applications/drupal/subfolders.md'
         'lagoon/logging/kibana-examples.md': 'logging/kibana-examples.md'
         'lagoon/logging/logging.md': 'logging/logging.md'
         'lagoon/resources/faq.md': 'resources/faq.md'
@@ -314,8 +314,8 @@ plugins:
         'lagoon/using-lagoon-the-basics/lagoon-yml.md': 'concepts-basics/lagoon-yml.md'
         'lagoon/using-lagoon-the-basics/local-development-environments.md': 'using-lagoon-the-basics/local-development-environments.md'
         'lagoon/using-lagoon-the-basics/setup_project.md': 'using-lagoon-the-basics/setup-project.md'
-        'docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
-        'docker-images/nginx/nginx-drupal.md': 'drupal/services/nginx.md'
-        'docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
-        'docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
-        'docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'
+        'docker-images/mariadb/mariadb-drupal.md': 'applications/drupal/services/mariadb.md'
+        'docker-images/nginx/nginx-drupal.md': 'applications/drupal/services/nginx.md'
+        'docker-images/php-cli/php-cli-drupal.md': 'applications/drupal/services/php-cli.md'
+        'docker-images/solr/solr-drupal.md': 'applications/drupal/services/solr.md'
+        'docker-images/varnish/varnish-drupal.md': 'applications/drupal/services/varnish.md'
