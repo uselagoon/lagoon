@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # inject variables from environment into the GQL template
-envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /api-data/03-populate-api-data-kubernetes.gql | sponge /api-data/03-populate-api-data-kubernetes.gql
+envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /home/api-data/03-populate-api-data-kubernetes.gql | sponge /home/api-data/03-populate-api-data-kubernetes.gql
 
-clear_gql_file_path="/api-data/00-clear-api-data.gql"
-populate_general_gql_file_path="/api-data/01-populate-api-data-general.gql"
-populate_kubernetes_gql_file_path="/api-data/03-populate-api-data-kubernetes.gql"
-populate_organizations_gql_file_path="/api-data/04-populate-api-data-organizations.gql"
+clear_gql_file_path="/home/api-data/00-clear-api-data.gql"
+populate_general_gql_file_path="/home/api-data/01-populate-api-data-general.gql"
+populate_kubernetes_gql_file_path="/home/api-data/03-populate-api-data-kubernetes.gql"
+populate_organizations_gql_file_path="/home/api-data/04-populate-api-data-organizations.gql"
 
 send_graphql_query() {
     local file_path=${1}
@@ -22,6 +22,12 @@ send_graphql_query() {
     json="{\"query\": \"$data\"}"
 
     wget --header "Content-Type: application/json" --header "$bearer" "${API_HOST:-api}:${API_PORT:-3000}/graphql" --post-data "$json" --content-on-error -O -
+}
+
+update_minio_files() {
+	mcli config host add local-minio ${MINIO_SERVER_URL-http://local-minio:9000} ${MINIO_ROOT_USER:-minio} ${MINIO_ROOT_PASSWORD:-minio123}
+	mcli cp --recursive /home/minio-data/lagoon-files/ local-minio/lagoon-files
+	mcli cp --recursive /home/minio-data/restores/ local-minio/restores
 }
 
 watch_apidatafolder() {
@@ -43,7 +49,7 @@ watch_apidatafolder() {
             [[ $chsum_populate_kubernetes_prev != $chsum_populate_kubernetes_curr ]];
             [[ $chsum_populate_organizations_prev != $chsum_populate_organizations_curr ]];
         then
-            echo "******* Found changes in gql files in /api-data/, clearing and re-populating"
+            echo "******* Found changes in gql files in /home/api-data/, clearing and re-populating"
 
             if
                 send_graphql_query $clear_gql_file_path;
@@ -85,4 +91,5 @@ watch_apidatafolder() {
     done
 }
 
+update_minio_files
 watch_apidatafolder

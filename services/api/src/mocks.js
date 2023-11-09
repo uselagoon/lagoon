@@ -587,8 +587,8 @@ mocks.Query = () => ({
     deployments: [ mocks.Deployment() ]
   }),
   environmentWithDeployments: () => mocks.Environment(null, { deployments: [
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }}),
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }})
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }}),
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }})
   ]}),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
