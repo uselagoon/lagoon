@@ -299,7 +299,7 @@ plugins:
         'lagoon/using-lagoon-advanced/nodejs.md': 'using-lagoon-advanced/nodejs.md'
         'lagoon/using-lagoon-advanced/private-repositories.md': 'using-lagoon-advanced/private-repositories.md'
         'lagoon/using-lagoon-advanced/project-default-users-keys.md': 'using-lagoon-advanced/project-default-users-keys.md'
-        'lagoon/using-lagoon-advanced/service-types.md': 'using-lagoon-advanced/service-types.md'
+        'lagoon/using-lagoon-advanced/service-types.md': 'concepts-advanced/service-types.md'
         'lagoon/using-lagoon-advanced/setting-up-xdebug-with-lagoon.md': 'using-lagoon-advanced/setting-up-xdebug-with-lagoon.md'
         'lagoon/using-lagoon-advanced/simplesaml.md': 'using-lagoon-advanced/simplesaml.md'
         'lagoon/using-lagoon-advanced/ssh.md': 'interacting/ssh.md'

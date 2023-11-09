@@ -84,7 +84,7 @@ If your project makes use of [queues](https://laravel.com/docs/5.8/queues), you 
 
 ## Understanding the process of building a base image
 
-There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../using-lagoon-advanced/using-harbor/).
+There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../using-lagoon-advanced/using-harbor/README.md).
 
 ### Makefile and build assumptions
 
@@ -143,7 +143,7 @@ This is just pulling down the Git repository locally. In the case of the Drupal 
 git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 ```
 
-![Running \`git clone\` on the base image repository.](../0.gif)
+![Running \`git clone\` on the base image repository.](../images/0.gif)
 
 #### Step 2 - Make the changes to the repository
 
@@ -158,13 +158,13 @@ Here we run:
 composer require drupal/clamav
 ```
 
-![Running \`composer require drupal/clamav\`](../step2_require.gif)
+![Running \`composer require drupal/clamav\`](../images/step2_require.gif)
 
 When the Composer require process completes, the package should then appear in the `composer.json` file.
 
 Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:
 
-![Opening composer.json to check that ClamAV is now required.](../2.gif)
+![Opening composer.json to check that ClamAV is now required.](../images/2.gif)
 
 #### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images
 
@@ -172,7 +172,7 @@ For any modules now added to the base image, we need to ensure that they’re en
 
 Here we open `web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml` and add `clamav:clamav` as a dependency:
 
-![Adding ClamAV as a dependency of Lagoon Bundle.](../3.png)
+![Adding ClamAV as a dependency of Lagoon Bundle.](../images/3.png)
 
 Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added ClamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
 
@@ -182,7 +182,7 @@ This will depend on what you’re testing. In the case of adding the ClamAV modu
 
 Here we check that the module is downloaded to `/app/web/modules/contrib`:
 
-![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../4.gif)
+![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../images/4.gif)
 
 And then we check that when we enable the `lagoon_bundle` module, it enables `clamav` by running:
 
@@ -190,7 +190,7 @@ And then we check that when we enable the `lagoon_bundle` module, it enables `cl
 drush pm-enable lagoon_bundle -y
 ```
 
-![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../5.gif)
+![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../images/5.gif)
 
 !!! warning
     You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
@@ -217,7 +217,7 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 !!! Danger
     The tags must be pushed explicitly in their own step!
 
-![Demonstrating how to tag and push a base image.](../6.gif)
+![Demonstrating how to tag and push a base image.](../images/6.gif)
 
 #### How Git tags map to image tags
 
@@ -243,7 +243,7 @@ Images are tagged using the following rules, and images will be built for each o
 3. Click the branch you would like to build.
 4. Click “Build Now.”
 
-![Showing how to build a base image in the Jenkins UI.](../7.gif)
+![Showing how to build a base image in the Jenkins UI.](../images/7.gif)
 
 This will kick off the build process which, if successful, will push up the new images to Harbor.
 
@@ -251,7 +251,7 @@ If the build is not successful, you can click into the build itself and read the
 
 As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **main** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
 
-![Screenshot from Harbor showing uploaded and tagged images.](../8.png)
+![Screenshot from Harbor showing uploaded and tagged images.](../images/8.png)
 
 ## Acknowledgement
 
