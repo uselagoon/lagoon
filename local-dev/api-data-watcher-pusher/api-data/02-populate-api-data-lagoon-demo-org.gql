@@ -94,8 +94,25 @@ mutation PopulateApi {
     id
   }
 
-  UILocalKubernetesOrganization: addDeployTargetToOrganization(input:{
-      deployTarget: 2001
+  AddUIKubernetesToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 4
+      organization: 1
+    }) {
+      id
+    }
+
+  UIKubernetes2: addKubernetes(
+    input: {
+      id: 5
+      name: "ui-kubernetes-2"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+
+  AddUIKubernetes2ToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 5
       organization: 1
     }) {
       id

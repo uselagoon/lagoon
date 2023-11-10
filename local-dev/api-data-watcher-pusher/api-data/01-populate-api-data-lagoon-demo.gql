@@ -10,11 +10,13 @@ mutation PopulateApi {
   ) {
     id
   }
+
   UICustomer1: addGroup(
     input: { name: "lagoon-group" }
   ) {
     id
   }
+
   UIProject1: addProject(
     input: {
       id: 18
@@ -29,6 +31,7 @@ mutation PopulateApi {
   ) {
     id
   }
+
   UIProject1Group5: addGroupsToProject(
     input: {
       project: {
@@ -43,6 +46,7 @@ mutation PopulateApi {
   ) {
     id
   }
+
   UIProject1Environment1: addOrUpdateEnvironment(
     input: {
       id: 3
@@ -56,6 +60,7 @@ mutation PopulateApi {
   ) {
     id
   }
+
   UIProject1Environment1Update: updateEnvironment(
     input: {
       id: 3
@@ -71,9 +76,9 @@ mutation PopulateApi {
   UIProject1Environment1Backup1: addBackup(
     input: {
       environment: 3
-      source: "files"
+      source: "mariadb"
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280d"
-      created: "2018-10-14 00:33:16"
+      created: "2023-10-14 00:33:16"
     }
   ) {
     id
@@ -91,9 +96,9 @@ mutation PopulateApi {
   UIProject1Environment1Backup2: addBackup(
     input: {
       environment: 3
-      source: "mariadb"
+      source: "files"
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
-      created: "2018-10-14 00:33:16"
+      created: "2023-10-14 00:33:16"
     }
   ) {
     id
@@ -113,9 +118,9 @@ mutation PopulateApi {
   UIProject1Environment1Backup3: addBackup(
     input: {
       environment: 3
-      source: "files"
+      source: "mariadb"
       backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
-      created: "2018-10-13 00:33:16"
+      created: "2023-10-13 00:33:16"
     }
   ) {
     id
@@ -134,9 +139,9 @@ mutation PopulateApi {
   UIProject1Environment1Backup4: addBackup(
     input: {
       environment: 3
-      source: "mariadb"
+      source: "files"
       backupId: "bf072a09e17726da54adc79936ec8745521993599d41211dfc9466dfd5bc32a5"
-      created: "2018-10-13 00:33:16"
+      created: "2023-10-13 00:33:16"
     }
   ) {
     id
@@ -148,9 +153,9 @@ mutation PopulateApi {
       status: COMPLETE
       remoteId: "86358316-a755-11ed-8206-032901f4c7e3"
       environment: 3
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
-      completed: "2018-10-07 23:20:41"
+      created: "2023-10-07 23:02:41"
+      started: "2023-10-07 23:03:41"
+      completed: "2023-10-07 23:20:41"
     }
   ) {
     id
@@ -161,9 +166,9 @@ mutation PopulateApi {
       remoteId: "85e36e3c-a755-11ed-abf6-df28d8a74109"
       status: FAILED
       environment: 3
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
-      completed: "2018-10-07 23:20:41"
+      created: "2023-10-07 23:02:41"
+      started: "2023-10-07 23:03:41"
+      completed: "2023-10-07 23:20:41"
     }
   ) {
     id
@@ -174,8 +179,8 @@ mutation PopulateApi {
       remoteId: "84e1dc8a-a755-11ed-a37d-770f36aa3d4e"
       status: RUNNING
       environment: 3
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
+      created: "2023-10-07 23:02:41"
+      started: "2023-10-07 23:03:41"
     }
   ) {
     id
@@ -183,13 +188,16 @@ mutation PopulateApi {
 
   UIProject1Environment1addTask1: addTask(
     input: {
-      name: "Site Status"
-      status: PENDING
+      name: "Developer task"
+      id: 123
+      remoteId: "5b21aff1-689c-41b7-80d7-6de9f5bff1f3"
+      status: FAILED
       environment: 3
       service: "cli"
-      command: "drush status"
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
+      command: "site-status"
+      created: "2023-10-07 23:00:00"
+      started: "2023-10-07 23:00:10"
+      completed: "2023-10-07 23:00:20"
       execute: false
     }
   ) {
@@ -198,14 +206,16 @@ mutation PopulateApi {
 
   UIProject1Environment1addTask2: addTask(
     input: {
-      name: "Drupal Archive"
+      name: "Maintainer task"
+      id: 124
+      remoteId: "50573da4-f0dd-477a-9261-c4785ac2adff"
       status: COMPLETE
       environment: 3
       service: "cli"
-      command: "drush archive-dump"
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
-      completed: "2018-10-07 23:13:41"
+      command: "site-status"
+      created: "2023-10-07 23:01:00"
+      started: "2023-10-07 23:01:10"
+      completed: "2023-10-07 23:01:30"
       execute: false
     }
   ) {
@@ -214,14 +224,15 @@ mutation PopulateApi {
 
   UIProject1Environment1addTask3: addTask(
     input: {
-      name: "Drupal Archive"
-      status: FAILED
+      name: "Maintainer task"
+      id: 125
+      remoteId: "e3869563-126d-4922-b6c4-36289a374edb"
+      status: PENDING
       environment: 3
       service: "cli"
-      command: "drush archive-dump"
-      created: "2018-10-07 23:02:41"
-      started: "2018-10-07 23:03:41"
-      completed: "2018-10-07 23:05:41"
+      command: "site-status"
+      created: "2023-10-07 23:02:00"
+      started: "2023-10-07 23:02:10"
       execute: false
     }
   ) {
@@ -234,7 +245,7 @@ mutation PopulateApi {
       description: "A task that only admins can see and run (logs also only visible to admin)"
       type: COMMAND
       service: "cli"
-      command: "env"
+      command: "site-status"
       permission: MAINTAINER
       project: 18
       adminOnlyView: true
@@ -253,11 +264,11 @@ mutation PopulateApi {
 
   UIProjectAdvancedTask2: addAdvancedTaskDefinition(
     input:{
-      name: "Mainter task"
-      description: "A task that maintainers can run"
+      name: "Maintainer task"
+      description: "A task that only maintainers can run"
       type: COMMAND
       service: "cli"
-      command: "env"
+      command: "site-status"
       permission: MAINTAINER
       project: 18
     }
@@ -277,7 +288,7 @@ mutation PopulateApi {
       description: "A task that developers can run"
       type: COMMAND
       service: "cli"
-      command: "env"
+      command: "site-status"
       permission: DEVELOPER
       project: 18
     }
@@ -291,7 +302,30 @@ mutation PopulateApi {
     }
   }
 
-  UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
+  UIProjectInvokeAdvancedTask1: invokeRegisteredTask(
+    advancedTaskDefinition: 1
+    environment: 3
+  ) {
+    id
+  }
+
+  UIProjectUpdateAdvancedTask1: updateTask(
+    input:{
+      id: 126
+      patch: {
+        remoteId: "0ba18cc1-03e7-4dd6-b6e9-95c1ff54103a"
+      }
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1addServices: setEnvironmentServices(
+    input:{
+      environment:3,
+      services:["cli", "nginx", "mariadb"]
+    }
+  ) {
     id
   }
 
@@ -407,6 +441,7 @@ mutation PopulateApi {
   ) {
     id
   }
+
   UIProject1Environment3: addOrUpdateEnvironment(
     input: {
       id: 5

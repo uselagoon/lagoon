@@ -236,8 +236,6 @@ services:
     environment:
       - MINIO_ROOT_USER=minio
       - MINIO_ROOT_PASSWORD=minio123
-    volumes:
-      - minio_storage:/export
   local-registry:
     image: ${IMAGE_REPO:-lagoon}/local-registry
     ports:
@@ -250,6 +248,3 @@ services:
       version: '2'
   api-redis:
     image: ${IMAGE_REPO:-lagoon}/api-redis
-
-volumes:
-  minio_storage: {}

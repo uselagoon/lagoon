@@ -2,6 +2,7 @@ FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
+      curl \
       gettext \
       minio-client \
       moreutils \
@@ -19,6 +20,6 @@ ENV JWTSECRET=super-secret-string \
 
 COPY api-data /home/api-data
 COPY minio-data /home/minio-data
-COPY api-watch-push.sh create_jwt.py /home/
+COPY data-init-push.sh create_jwt.py /home/
 
-CMD ["/sbin/tini", "--", "/home/api-watch-push.sh"]
+CMD ["/sbin/tini", "--", "/home/data-init-push.sh"]
