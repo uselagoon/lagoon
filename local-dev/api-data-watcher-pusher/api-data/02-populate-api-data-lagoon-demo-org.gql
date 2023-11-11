@@ -124,7 +124,7 @@ mutation PopulateApi {
       organization: 1
       name: "lagoon-org-demo"
       availability: HIGH
-      openshift: 2001
+      openshift: 5
       gitUrl: "ssh://git@example.com/lagoon-org-demo.git"
       productionEnvironment: "main"
       problemsUi: 1
