@@ -122,10 +122,10 @@ mutation PopulateApi {
     input: {
       id: 180
       organization: 1
-      name: "lagoon-org-demo"
+      name: "lagoon-demo-org"
       availability: HIGH
       openshift: 5
-      gitUrl: "ssh://git@example.com/lagoon-org-demo.git"
+      gitUrl: "ssh://git@example.com/lagoon-demo-org.git"
       productionEnvironment: "main"
       problemsUi: 1
       factsUi: 1
@@ -138,7 +138,7 @@ mutation PopulateApi {
   UIOrganizationProjectGroup: addGroupsToProject(
     input: {
       project: {
-        name: "lagoon-org-demo"
+        name: "lagoon-demo-org"
       }
       groups: [
         {
@@ -158,7 +158,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "main"
       environmentType: PRODUCTION
-      openshiftProjectName: "lagoon-org-demo-main"
+      openshiftProjectName: "lagoon-demo-org-main"
     }
   ) {
     id
@@ -168,8 +168,8 @@ mutation PopulateApi {
     input: {
       id: 30
       patch: {
-        route: "https://lagoonorgdemo.example.org"
-        routes: "https://lagoonorgdemo.example.org,https://nginx.main.lagoon-org-demo.ui-kubernetes.lagoon.sh"
+        route: "https://lagoondemoorg.example.org"
+        routes: "https://lagoondemoorg.example.org,https://nginx.main.lagoon-demo-org.ui-kubernetes.lagoon.sh"
       }
     }
   ) {
@@ -183,7 +183,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "staging"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "lagoon-org-demo-staging"
+      openshiftProjectName: "lagoon-demo-org-staging"
     }
   ) {
     id
@@ -196,7 +196,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "development"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "lagoon-org-demo-development"
+      openshiftProjectName: "lagoon-demo-org-development"
     }
   ) {
     id
@@ -211,7 +211,7 @@ mutation PopulateApi {
       deployHeadRef: "source"
       deployTitle: "pr-15"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "lagoon-org-demo-pr-15"
+      openshiftProjectName: "lagoon-demo-org-pr-15"
     }
   ) {
     id
