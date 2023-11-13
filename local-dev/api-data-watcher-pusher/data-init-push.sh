@@ -9,6 +9,12 @@ populate_demo_lagoon_org_gql_file_path="/home/api-data/02-populate-api-data-lago
 populate_ci_local_control_k8s_gql_file_path="/home/api-data/03-populate-api-data-ci-local-control-k8s.gql"
 sample_task_file_path="/home/minio-data/task-files/sample-task-file.txt"
 
+wait_for_services() {
+    echo "waiting for ${API_HOST:-api}:${API_PORT:-3000}"
+    wait-for ${API_HOST:-api}:${API_PORT:-3000} -t 600
+    echo "connected to API"
+}
+
 send_graphql_query() {
     local file_path=${1}
 
@@ -45,6 +51,9 @@ send_task_data() {
         -F map='{ "0": ["variables.files.0"] }' \
         -F 0=@${file_path}
 }
+
+# Waiting for the API to be ready
+wait_for_services
 
 # Optionally clear *some* API data prior to reloading - not really necessary any more
 # send_graphql_query $clear_gql_file_path
