@@ -358,15 +358,15 @@ ui-logs-development: build-ui-logs-development
 
 ## CI targets
 
-KUBECTL_VERSION := v1.26.6
-HELM_VERSION := v3.12.2
-K3D_VERSION = v5.5.1
+KUBECTL_VERSION := v1.27.3
+HELM_VERSION := v3.13.1
+K3D_VERSION = v5.6.0
 GOJQ_VERSION = v0.12.13
 STERN_VERSION = v2.6.1
-CHART_TESTING_VERSION = v3.9.0
-K3D_IMAGE = docker.io/rancher/k3s:v1.26.6-k3s1
+CHART_TESTING_VERSION = v3.10.1
+K3D_IMAGE = docker.io/rancher/k3s:v1.27.3-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = testing/updated-dwp
+CHARTS_TREEISH = prerelease/lagoon_v217
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
