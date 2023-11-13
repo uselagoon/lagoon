@@ -86,7 +86,7 @@ services:
     command: yarn run dev
     environment:
       - NODE_ENV=development
-      - KEYCLOAK_API=http:/localhost:8088/auth
+      - KEYCLOAK_API=http://localhost:8088/auth
       - GRAPHQL_API=http://localhost:3000/graphql
     ports:
       - '8888:3003'
