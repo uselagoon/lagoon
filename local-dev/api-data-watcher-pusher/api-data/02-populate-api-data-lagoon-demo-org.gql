@@ -3,8 +3,8 @@ mutation PopulateApi {
   # Organizations
   UIOrganization1: addOrganization(input: {
     id: 1
-    name: "test-organization"
-    friendlyName: "Test Organization"
+    name: "lagoon-demo-organization"
+    friendlyName: "Lagoon Demo Organization"
     description: "An organization for testing"
     quotaProject: 5
     quotaEnvironment: 4
@@ -21,7 +21,7 @@ mutation PopulateApi {
 
   UIOrganizationUser: addUser(
     input: {
-      email: "testuser@example.com"
+      email: "orguser@example.com"
       comment: "test user that will be in a group in an organization"
     }
   ) {
@@ -45,7 +45,9 @@ mutation PopulateApi {
   }
 
   UIOrganizationGroup: addGroupToOrganization(
-    input: { name: "organization-group1", organization: 1}
+    input: {
+      name: "lagoon-demo-organization-group"
+      organization: 1}
   ) {
     id
   }
@@ -53,10 +55,10 @@ mutation PopulateApi {
   UIOrganizationUserToGroup: addUserToGroup(
     input: {
       user: {
-        email:"testuser@example.com"
+        email:"orguser@example.com"
       }
       group: {
-        name: "organization-group1"
+        name: "lagoon-demo-organization-group"
       }
       role: MAINTAINER
     }
@@ -91,8 +93,26 @@ mutation PopulateApi {
   UIOrganizationNotificationTeams: addNotificationMicrosoftTeams(input: {organization: 1, name: "teams-test", webhook: "http://teams.example.com/hooks/sdgsgsgs"}) {
     id
   }
-  UILocalKubernetesOrganization: addDeployTargetToOrganization(input:{
-      deployTarget: 2001
+
+  AddUIKubernetesToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 4
+      organization: 1
+    }) {
+      id
+    }
+
+  UIKubernetes2: addKubernetes(
+    input: {
+      id: 5
+      name: "ui-kubernetes-2"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+
+  AddUIKubernetes2ToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 5
       organization: 1
     }) {
       id
@@ -102,11 +122,11 @@ mutation PopulateApi {
     input: {
       id: 180
       organization: 1
-      name: "organization-cotton"
+      name: "lagoon-demo-org"
       availability: HIGH
-      openshift: 2001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/project180.git"
-      productionEnvironment: "master"
+      openshift: 5
+      gitUrl: "ssh://git@example.com/lagoon-demo-org.git"
+      productionEnvironment: "main"
       problemsUi: 1
       factsUi: 1
     }
@@ -118,11 +138,11 @@ mutation PopulateApi {
   UIOrganizationProjectGroup: addGroupsToProject(
     input: {
       project: {
-        name: "organization-cotton"
+        name: "lagoon-demo-org"
       }
       groups: [
         {
-          name: "organization-group1"
+          name: "lagoon-demo-organization-group"
         }
       ]
     }
@@ -138,17 +158,18 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "main"
       environmentType: PRODUCTION
-      openshiftProjectName: "organization-cotton-main"
+      openshiftProjectName: "lagoon-demo-org-main"
     }
   ) {
     id
   }
+
   UIOrganizationProjectEnvironment1Update: updateEnvironment(
     input: {
       id: 30
       patch: {
-        route: "http://cotton.example.org"
-        routes: "http://cotton.example.org,https://varnish-organization-cotton-main.cluster.example.com,https://nginx-organization-cotton-main.cluster.example.com"
+        route: "https://lagoondemoorg.example.org"
+        routes: "https://lagoondemoorg.example.org,https://nginx.main.lagoon-demo-org.ui-kubernetes.lagoon.sh"
       }
     }
   ) {
@@ -162,7 +183,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "staging"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "organization-cotton-staging"
+      openshiftProjectName: "lagoon-demo-org-staging"
     }
   ) {
     id
@@ -175,7 +196,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "development"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "organization-cotton-development"
+      openshiftProjectName: "lagoon-demo-org-development"
     }
   ) {
     id
@@ -183,12 +204,14 @@ mutation PopulateApi {
   UIOrganizationProjectEnvironment4: addOrUpdateEnvironment(
     input: {
       id: 33
-      name: "uat"
+      name: "pr-15"
       project: 180
-      deployType: BRANCH
-      deployBaseRef: "uat"
+      deployType: PULLREQUEST
+      deployBaseRef: "target"
+      deployHeadRef: "source"
+      deployTitle: "pr-15"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "organization-cotton-uat"
+      openshiftProjectName: "lagoon-demo-org-pr-15"
     }
   ) {
     id
