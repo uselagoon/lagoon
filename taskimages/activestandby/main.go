@@ -1,31 +1,15 @@
 package main
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"time"
 
-	"gopkg.in/matryer/try.v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/uselagoon/lagoon/taskimages/activestandby/dioscuri"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// this is the return data structure for the active standby task.
-// this will be sent back to lagoon as a payload to be processed.
-type returnData struct {
-	Status                      string `json:"status"`
-	ProductionEnvironment       string `json:"productionEnvironment"`
-	StandbyProdutionEnvironment string `json:"standbyProductionEnvironment"`
-	ProductionRoutes            string `json:"productionRoutes"`
-	StandbyRoutes               string `json:"standbyRoutes"`
-}
 
 func main() {
 	// get the values from the provided environment variables.
@@ -46,13 +30,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	// read the deployer token.
-	token, err := ioutil.ReadFile("/var/run/secrets/lagoon/deployer/token")
+	// read the serviceaccount deployer token first.
+	token, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
-		// read the deployer token.
-		token, err = ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+		// read the legacy deployer token if for some reason the serviceaccount is not found.
+		token, err = os.ReadFile("/var/run/secrets/lagoon/deployer/token")
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Task failed to read the token, error was: %v", err))
+			fmt.Println(fmt.Sprintf("Task failed to find a kubernetes token to use, error was: %v", err))
 			os.Exit(1)
 		}
 	}
@@ -67,7 +51,7 @@ func main() {
 	// create the client using the rest config.
 	c, err := client.New(config, client.Options{})
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Task failed creating the client, error was: %v", err))
+		fmt.Println(fmt.Sprintf("Task failed creating the kubernetes client, error was: %v", err))
 		os.Exit(1)
 	}
 
@@ -79,153 +63,21 @@ func main() {
 	}
 	var payloadData map[string]interface{}
 	if err := json.Unmarshal(payloadBytes, &payloadData); err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the given payload data, error was: %v", err))
+		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the supplied payload data, error was: %v", err))
 		os.Exit(1)
 	}
 
-	// get the provided CRD from the payload data and unmarshal it to unstructured so we can create it in kubernetes.
-	crdBytes, err := json.Marshal(payloadData["crd"])
+	// seed the return data with the initial data
+	rData := dioscuri.ReturnData{
+		SourceNamespace:             payloadData["sourceNamespace"].(string),
+		DestinationNamespace:        payloadData["destinationNamespace"].(string),
+		ProductionEnvironment:       payloadData["productionEnvironment"].(string),
+		StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
+	}
+
+	err = dioscuri.RunMigration(c, rData, podName, podNamespace)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to marshal the given payload data, error was: %v", err))
-		os.Exit(1)
-	}
-	crd := unstructured.Unstructured{}
-	if err := crd.UnmarshalJSON([]byte(crdBytes)); err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the given payload data, error was: %v", err))
-		os.Exit(1)
-	}
-	// set the namespace for the crd.
-	crd.SetNamespace(podNamespace)
-
-	// create the crd in kubernetes.
-	if err := c.Create(context.Background(), &crd); err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to create the object, error was: %v", err))
-		os.Exit(1)
-	}
-
-	// check the status of the crd until we have the status conditions.
-	// otherwise give up after 30 minutes. 180 retries, 10 seconds apart.
-	try.MaxRetries = 180
-	err = try.Do(func(attempt int) (bool, error) {
-		var err error
-		if err := c.Get(context.Background(), types.NamespacedName{
-			Namespace: podNamespace,
-			Name:      crd.GetName(),
-		}, &crd); err != nil {
-			fmt.Println(fmt.Sprintf("Task failed to get the object from kubernetes, error was: %v", err))
-			os.Exit(1)
-		}
-		// check if the status exists, the job may not have started.
-		if _, ok := crd.Object["status"]; ok {
-			conditions := crd.Object["status"].(map[string]interface{})
-			// check if the conditions exists, the job may not have started.
-			if _, ok := conditions["conditions"]; ok {
-				// loop over the conditions until we get a completed or failed status.
-				for _, condition := range conditions["conditions"].([]interface{}) {
-					mapval := condition.(map[string]interface{})
-					// if the status is failed, we need to make sure the pod exits accordingly
-					if mapval["type"].(string) == "failed" {
-						crdSpec := crd.Object["spec"].(map[string]interface{})
-						if crdSpec != nil {
-							crdHosts := crdSpec["hosts"].(map[string]interface{})
-							if crdHosts != nil {
-								rData := returnData{
-									Status:                      "Failed",
-									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
-									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdHosts["activeHosts"].(string),
-									StandbyRoutes:               crdHosts["standbyHosts"].(string),
-								}
-
-								// print the result of the task, it will go back to lagoon-logs to be displayed
-								// to the user
-								jsonData, _ := json.Marshal(rData)
-								fmt.Println(string(jsonData))
-								// exit as the task failed
-								os.Exit(1)
-							}
-							fmt.Println("Task failed, error was: no hosts found in resource")
-							os.Exit(1)
-						}
-						fmt.Println("Task failed, error was: no spec found in resource")
-						os.Exit(1)
-					}
-					// if the status is completed, then do some additional steps as there could still be a failure
-					if mapval["type"].(string) == "completed" {
-						crdSpec := crd.Object["spec"].(map[string]interface{})
-						if crdSpec != nil {
-							crdHosts := crdSpec["hosts"].(map[string]interface{})
-							if crdHosts != nil {
-								rData := returnData{
-									Status:                      "Completed",
-									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
-									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdHosts["activeHosts"].(string),
-									StandbyRoutes:               crdHosts["standbyHosts"].(string),
-								}
-
-								// print the result of the task, it will go back to lagoon-logs to be displayed
-								// to the user
-								jsonData, _ := json.Marshal(rData)
-								fmt.Println(string(jsonData))
-
-								// update this pods annotations so that the lagoonmonitor controller
-								// knows that it needs to send information back to lagoon
-								pod := corev1.Pod{}
-								if err := c.Get(context.Background(), types.NamespacedName{
-									Namespace: podNamespace,
-									Name:      podName,
-								}, &pod); err != nil {
-									fmt.Println(fmt.Sprintf(`========================================
-Task failed to get the pod to update, error was: %v
-========================================
-The active standby switch completed, but Lagoon has not been updated to reflect the changes.
-Please contact your Lagoon administrator to make sure your project gets updated correctly.
-Provide a copy of this entire log to the team.`, err))
-									os.Exit(1)
-								}
-								// the job data to send back to lagoon must be base64 encoded
-								mergePatch, _ := json.Marshal(map[string]interface{}{
-									"metadata": map[string]interface{}{
-										"annotations": map[string]interface{}{
-											"lagoon.sh/taskData": base64.StdEncoding.EncodeToString(jsonData),
-										},
-									},
-								})
-								// update the pod with the annotation
-								if err := c.Patch(context.Background(), &pod, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
-									fmt.Println(fmt.Sprintf(`========================================
-Task failed to update pod with return information, error was: %v
-========================================
-The active standby switch completed, but Lagoon has not been updated to reflect the changes.
-Please contact your Lagoon administrator to make sure your project gets updated correctly.
-Provide a copy of this entire log to the team.`, err))
-									// if the update fails, exit 1
-									// if this update fails, it will not update the annotation on the pod
-									// and so the monitor controller won't know to send the response data to lagoon
-									// in this case, the migration completed, but the task failed
-									// inform the user
-									os.Exit(1)
-								}
-								os.Exit(0)
-							}
-							fmt.Println("Task failed, error was: no hosts found in resource")
-							os.Exit(1)
-						}
-						fmt.Println("Task failed, error was: no spec found in resource")
-						os.Exit(1)
-					}
-					fmt.Println(fmt.Sprintf("Task current status is %s, retrying check", mapval["type"].(string)))
-				}
-			}
-		}
-		// sleep for 10 seconds up to a maximum of 180 times (30 minutes) before finally giving up
-		time.Sleep(10 * time.Second)
-		err = fmt.Errorf("status condition not met yet")
-		return attempt < 180, err
-	})
-	if err != nil {
-		fmt.Println(fmt.Sprintf("Task failed, timed out after 30 minutes waiting for the job to start: %v", err))
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
