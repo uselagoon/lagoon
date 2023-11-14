@@ -34,7 +34,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
 
 	switch message.Meta.Key {
-	case "kubernetes:route:migrate", "deploytarget:route:migrate":
+	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby":
 		// if the result is from an active/standby task, handle updating the project here
 		switch message.Meta.JobStatus {
 		case "complete", "succeeded":

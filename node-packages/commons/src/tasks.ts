@@ -1323,18 +1323,15 @@ export const createMiscTask = async function(taskData: any) {
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
           break;
-        case 'deploytarget:route:migrate':
+        case 'deploytarget:task:activestandby':
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
-          // first generate the migration CRD
-          const migrateConf = migrateHosts(
-            makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
-            makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task
           var jsonPayload: any = {
             productionEnvironment: taskData.data.productionEnvironment.name,
             standbyEnvironment: taskData.data.environment.name,
-            crd: migrateConf
+            sourceNamespace: makeSafe(taskData.data.environment.openshiftProjectName),
+            destinationNamespace: makeSafe(taskData.data.productionEnvironment.openshiftProjectName)
           }
           // encode it
           const jsonPayloadBytes = new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')

@@ -1247,7 +1247,7 @@ export const switchActiveStandby: ResolverFn = async (
     data.task.id = sourceTaskData.addTask.id.toString();
 
     // queue the task to trigger the migration
-    await createMiscTask({ key: 'route:migrate', data });
+    await createMiscTask({ key: 'task:activestandby', data });
 
     // return the task id and remote id
     var retData = {
