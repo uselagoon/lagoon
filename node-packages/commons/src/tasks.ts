@@ -1081,28 +1081,6 @@ const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   return config;
 };
 
-// creates the route/ingress migration config
-const migrateHosts = (destinationNamespace, sourceNamespace) => {
-  const randId = Math.random().toString(36).substring(7);
-  const migrateName = `host-migration-${randId}`;
-  let config = {
-    apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'HostMigration',
-    metadata: {
-      name: migrateName,
-      annotations: {
-          'dioscuri.amazee.io/migrate':'true'
-      }
-    },
-    spec: {
-      destinationNamespace: destinationNamespace,
-      activeEnvironment: sourceNamespace,
-    },
-  };
-
-  return config;
-};
-
 export const getTaskProjectEnvironmentVariables =async (projectName: string, environmentId: number) => {
   // inject variables into tasks the same way it is in builds
   // this makes variables available to tasks the same way for consumption
