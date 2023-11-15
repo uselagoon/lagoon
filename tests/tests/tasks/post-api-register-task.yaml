@@ -1,6 +1,6 @@
 - name: 'Wait until success'
   block:
-  - include: ../../tasks/api/admin-token.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/admin-token.yaml
   - name: Set the retry count
     set_fact:
       retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
@@ -26,4 +26,4 @@
     - debug:
         msg: "Failed to connect - Retrying..."
 
-    - include_tasks: ./post-api-register-task.yaml
+    - ansible.builtin.include_tasks: ./post-api-register-task.yaml

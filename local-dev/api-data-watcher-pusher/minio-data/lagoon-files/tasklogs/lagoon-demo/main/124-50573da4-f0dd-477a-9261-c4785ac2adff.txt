@@ -1,0 +1,4 @@
+LAGOON_USER: maintainer
+FILE_UPLOADED: sample-task-file.txt
+
+Site Status report: success

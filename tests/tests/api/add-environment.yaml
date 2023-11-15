@@ -9,4 +9,4 @@
     deployBaseRef: "{{ name }}"
     environmentType: "{{ environmentType }}"
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
