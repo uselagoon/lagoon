@@ -523,9 +523,6 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
   },
-  Restore: {
-    restoreLocation: getRestoreLocation,
-  },
   Workflow: {
     advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },

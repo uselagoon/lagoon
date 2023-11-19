@@ -966,6 +966,10 @@ const typeDefs = gql`
     backupId: String
     status: String
     restoreLocation: String
+    """
+    The size of the restored file in bytes
+    """
+    restoreSize: Int
     created: String
   }
 
