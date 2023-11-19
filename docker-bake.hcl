@@ -1,14 +1,22 @@
 # docker-bake.dev.hcl
-variable "REPO" {
-  default = "ghcr.io/tobybellwood"
+variable "IMAGE_REPO" {
+  default = "ghcr.io/uselagoon"
 }
 
 variable "TAG" {
-  default = "bake"
+  default = "latest"
 }
 
 variable "LAGOON_VERSION" {
   default = "development"
+}
+
+variable "UPSTREAM_REPO" {
+  default = "uselagoon"
+}
+
+variable "UPSTREAM_TAG" {
+  default = "latest"
 }
 
 variable "PLATFORMS" {
@@ -29,6 +37,8 @@ target "default"{
   }
   args = {
     LAGOON_VERSION = "${LAGOON_VERSION}"
+    UPSTREAM_REPO = "${UPSTREAM_REPO}"
+    UPSTREAM_TAG = "${UPSTREAM_TAG}"
   }
 }
 
@@ -56,6 +66,20 @@ group "default" {
     "webhook-handler",
     "webhooks2tasks",
     "workflows"
+  ]
+}
+
+group "ui-logs-development" {
+  targets = [
+    "actions-handler",
+    "api-db",
+    "api-redis",
+    "api",
+    "broker-single",
+    "keycloak-db",
+    "keycloak",
+    "local-api-data-watcher-pusher",
+    "logs2notifications"
   ]
 }
 
@@ -106,7 +130,7 @@ target "api" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api - the API service for Lagoon"
   }
-  tags = ["${REPO}/api:${TAG}"]
+  tags = ["${IMAGE_REPO}/api:${TAG}"]
 }
 
 target "api-db" {
@@ -115,7 +139,7 @@ target "api-db" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api-db - the MariaDB database service for Lagoon API"
   }
-  tags = ["${REPO}/api-db:${TAG}"]
+  tags = ["${IMAGE_REPO}/api-db:${TAG}"]
 }
 
 target "api-redis" {
@@ -124,7 +148,7 @@ target "api-redis" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api-redis - the Redis service for Lagoon API"
   }
-  tags = ["${REPO}/api-redis:${TAG}"]
+  tags = ["${IMAGE_REPO}/api-redis:${TAG}"]
 }
 
 target "actions-handler" {
@@ -133,7 +157,7 @@ target "actions-handler" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/actions-handler - the actions-handler service for Lagoon"
   }
-  tags = ["${REPO}/actions-handler:${TAG}"]
+  tags = ["${IMAGE_REPO}/actions-handler:${TAG}"]
 }
 
 target "auth-server" {
@@ -145,7 +169,7 @@ target "auth-server" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/auth-server - the auth-server service for Lagoon"
   }
-  tags = ["${REPO}/auth-server:${TAG}"]
+  tags = ["${IMAGE_REPO}/auth-server:${TAG}"]
 }
 
 target "backup-handler" {
@@ -154,7 +178,7 @@ target "backup-handler" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/backup-handler - the backup-handler service for Lagoon"
   }
-  tags = ["${REPO}/backup-handler:${TAG}"]
+  tags = ["${IMAGE_REPO}/backup-handler:${TAG}"]
 }
 
 target "broker-single" {
@@ -163,7 +187,7 @@ target "broker-single" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/broker-single - the RabbitMQ broker standalone service for Lagoon"
   }
-  tags = ["${REPO}/broker-single:${TAG}"]
+  tags = ["${IMAGE_REPO}/broker-single:${TAG}"]
 }
 
 target "broker" {
@@ -175,7 +199,7 @@ target "broker" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/broker - the RabbitMQ broker service for Lagoon"
   }
-  tags = ["${REPO}/broker:${TAG}"]
+  tags = ["${IMAGE_REPO}/broker:${TAG}"]
 }
 
 target "keycloak" {
@@ -184,7 +208,7 @@ target "keycloak" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/keycloak - the Keycloak service for Lagoon"
   }
-  tags = ["${REPO}/keycloak:${TAG}"]
+  tags = ["${IMAGE_REPO}/keycloak:${TAG}"]
 }
 
 target "keycloak-db" {
@@ -193,7 +217,7 @@ target "keycloak-db" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/keycloak-db - the MariaDB database service for Lagoon Keycloak"
   }
-  tags = ["${REPO}/keycloak-db:${TAG}"]
+  tags = ["${IMAGE_REPO}/keycloak-db:${TAG}"]
 }
 
 target "logs2notifications" {
@@ -202,7 +226,7 @@ target "logs2notifications" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/logs2notifications - the logs2notifications service for Lagoon"
   }
-  tags = ["${REPO}/logs2notifications:${TAG}"]
+  tags = ["${IMAGE_REPO}/logs2notifications:${TAG}"]
 }
 
 target "ssh" {
@@ -221,7 +245,7 @@ target "tests" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/tests - the tests image for Lagoon"
   }
-  tags = ["${REPO}/tests:${TAG}"]
+  tags = ["${IMAGE_REPO}/tests:${TAG}"]
 }
 
 target "webhook-handler" {
@@ -233,7 +257,7 @@ target "webhook-handler" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/webhook-handler - the webhook-handler service for Lagoon"
   }
-  tags = ["${REPO}/webhook-handler:${TAG}"]
+  tags = ["${IMAGE_REPO}/webhook-handler:${TAG}"]
 }
 
 target "webhooks2tasks" {
@@ -245,7 +269,7 @@ target "webhooks2tasks" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/webhooks2tasks - the webhooks2tasks service for Lagoon"
   }
-  tags = ["${REPO}/webhooks2tasks:${TAG}"]
+  tags = ["${IMAGE_REPO}/webhooks2tasks:${TAG}"]
 }
 
 target "workflows" {
@@ -254,7 +278,7 @@ target "workflows" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/workflows - the workflows service for Lagoon"
   }
-  tags = ["${REPO}/workflows:${TAG}"]
+  tags = ["${IMAGE_REPO}/workflows:${TAG}"]
 }
 
 target "task-activestandby" {
@@ -263,7 +287,7 @@ target "task-activestandby" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/task-activestandby - the active/standby task image for Lagoon"
   }
-  tags = ["${REPO}/task-activestandby:${TAG}"]
+  tags = ["${IMAGE_REPO}/task-activestandby:${TAG}"]
 }
 
 target "local-api-data-watcher-pusher" {
@@ -272,7 +296,7 @@ target "local-api-data-watcher-pusher" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/local-api-data-watcher-pusher - the local-dev data pusher image for Lagoon"
   }
-  tags = ["${REPO}/local-api-data-watcher-pusher:${TAG}"]
+  tags = ["${IMAGE_REPO}/local-api-data-watcher-pusher:${TAG}"]
 }
 
 target "local-dbaas-provider" {
@@ -281,7 +305,7 @@ target "local-dbaas-provider" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/local-dbaas-provider - the local-dev MariaDB DBaaS image for Lagoon"
   }
-  tags = ["${REPO}/local-dbaas-provider:${TAG}"]
+  tags = ["${IMAGE_REPO}/local-dbaas-provider:${TAG}"]
 }
 
 target "local-git" {
@@ -290,7 +314,7 @@ target "local-git" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/local-git - the local-dev Git repository image for Lagoon"
   }
-  tags = ["${REPO}/local-git:${TAG}"]
+  tags = ["${IMAGE_REPO}/local-git:${TAG}"]
 }
 
 target "local-mongodb-dbaas-provider" {
@@ -299,7 +323,7 @@ target "local-mongodb-dbaas-provider" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/local-mongodb-dbaas-provider - the local-dev MongoDB DBaaS image for Lagoon"
   }
-  tags = ["${REPO}/local-mongodb-dbaas-provider:${TAG}"]
+  tags = ["${IMAGE_REPO}/local-mongodb-dbaas-provider:${TAG}"]
 }
 
 target "local-registry" {
@@ -308,5 +332,5 @@ target "local-registry" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/local-registry - the local-dev Docker registry image for Lagoon"
   }
-  tags = ["${REPO}/local-registry:${TAG}"]
+  tags = ["${IMAGE_REPO}/local-registry:${TAG}"]
 }

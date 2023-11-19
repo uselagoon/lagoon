@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -14,6 +15,9 @@ import {
   notificationContentTypeToInt
 } from '@lagoon/commons/dist/notificationCommons';
 import { sqlClientPool } from '../../clients/sqlClient';
+import { logger } from '../../loggers/logger';
+
+const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT || "false"
 
 const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
   const createSql = knex(notificationTable).insert(input).toString();
@@ -21,12 +25,40 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
 
+const checkOrgNotificationPermission = async (hasPermission, input) => {
+  if (input.organization != null) {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'addNotification', {
+      organization: input.organization
+    });
+
+    const orgNotifications = await organizationHelpers(sqlClientPool).getNotificationsForOrganizationId(input.organization);
+    if (orgNotifications.length >= organizationData.quotaNotification && organizationData.quotaNotification != -1) {
+      throw new Error(
+        `This would exceed this organizations notification quota; ${orgNotifications.length}/${organizationData.quotaNotification}`
+      );
+    }
+  } else {
+    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false") {
+      await hasPermission('notification', 'add');
+    } else {
+      throw new Error(
+        'Project notification assignment is restricted to organizations only'
+      );
+    }
+  }
+}
+
 export const addNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'add');
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_microsoftteams', input));
 };
 
@@ -35,8 +67,7 @@ export const addNotificationEmail: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'add');
-
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_email', input));
 };
 
@@ -45,8 +76,7 @@ export const addNotificationRocketChat: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'add');
-
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
 };
 
@@ -55,14 +85,12 @@ export const addNotificationSlack: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'add');
-
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
 };
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
-  await hasPermission('notification', 'add');
-
+  await checkOrgNotificationPermission(hasPermission, input)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
 };
 
@@ -86,16 +114,29 @@ export const addNotificationToProject: ResolverFn = async (
   const pid = await projectHelpers(sqlClientPool).getProjectIdByName(
     input.project
   );
-  await hasPermission('project', 'addNotification', {
-    project: pid
-  });
 
   const rows = await query(
     sqlClientPool,
     Sql.selectProjectNotification(input)
   );
   const projectNotification = R.path([0], rows) as any;
+  let noproject = false
   if (!projectNotification) {
+    noproject = true
+  }
+
+  // if a project is configured with organizations
+  // only organization permissions should be able to add notifications to it
+  if (projectNotification.oid != null) {
+    await hasPermission('organization', 'addNotification', {
+      organization: projectNotification.oid
+    });
+  } else {
+    await hasPermission('project', 'addNotification', {
+      project: pid
+    });
+  }
+  if (noproject) {
     throw new Error(
       `Could not find notification '${input.notificationName}' of type '${input.notificationType}'`
     );
@@ -137,14 +178,28 @@ const deleteNotificationGeneric = async (sqlClientPool, notificationTableName, t
   await query(sqlClientPool, knex(notificationTableName).where('name', name).delete().toString());
 }
 
+const checkNotificationRemovePermissions = async (check, hasPermission) => {
+  if (R.prop(0, check).organization != null) {
+    await hasPermission('organization', 'removeNotification', {
+      organization: R.prop(0, check).organization
+    });
+  } else {
+    await hasPermission('notification', 'delete');
+  }
+}
+
+
 export const deleteNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'delete');
-
   const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationMicrosoftTeamsByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
@@ -166,9 +221,12 @@ export const deleteNotificationEmail: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'delete');
-
   const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationEmailByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
@@ -190,9 +248,12 @@ export const deleteNotificationRocketChat: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'delete');
-
   const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationRocketChatByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
@@ -214,9 +275,12 @@ export const deleteNotificationSlack: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'delete');
-
   const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationSlackByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
@@ -242,9 +306,12 @@ export const deleteNotificationWebhook: ResolverFn = async (
     hasPermission,
   },
 ) => {
-  await hasPermission('notification', 'delete');
-
   const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationWebhookByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
@@ -274,9 +341,18 @@ export const removeNotificationFromProject: ResolverFn = async (
   );
   const project = R.path([0], select) as any;
 
-  await hasPermission('project', 'removeNotification', {
-    project: project.id
-  });
+
+  // if a project is configured with organizations
+  // only organization permissions should be able to remove notifications
+  if (project.organization != null) {
+    await hasPermission('organization', 'removeNotification', {
+      organization: project.organization
+    });
+  } else {
+    await hasPermission('project', 'addNotification', {
+      project: project.id
+    });
+  }
 
   await query(sqlClientPool, Sql.deleteProjectNotification(input));
 
@@ -345,18 +421,83 @@ export const getNotificationsByProjectId: ResolverFn = async (
   );
 };
 
+export const getNotificationsByOrganizationId: ResolverFn = async (
+  { id: oid },
+  unformattedArgs,
+  { sqlClientPool, hasPermission }
+) => {
+
+  await hasPermission('organization', 'viewNotification', {
+    organization: oid
+  });
+
+  const args = [
+    R.over(
+      R.lensProp('notificationSeverityThreshold'),
+      notificationContentTypeToInt
+    )
+  ].reduce(
+    (argumentsToProcess, functionToApply) =>
+      functionToApply(argumentsToProcess),
+    unformattedArgs
+  );
+
+  const {
+    type: argsType,
+    contentType = NOTIFICATION_CONTENT_TYPE,
+    notificationSeverityThreshold = NOTIFICATION_SEVERITY_THRESHOLD
+  } = args;
+
+  // Types to collect notifications from all different
+  // notification type tables
+  const types = argsType == null ? NOTIFICATION_TYPES : [argsType.toLowerCase()];
+
+  const results = await Promise.all(
+    types.map(type =>
+      organizationHelpers(sqlClientPool).getNotificationsByTypeForOrganizationId(oid, type)
+    )
+  );
+
+  let resultArray = results.reduce((acc, rows) => {
+    if (rows == null) {
+      return acc;
+    }
+    return R.concat(acc, rows);
+  }, []);
+
+  return resultArray.map(e =>
+    R.over(
+      R.lensProp('notificationSeverityThreshold'),
+      notificationIntToContentType,
+      e
+    )
+  );
+};
+
+const checkNotificationUpdatePermissions = async (check, hasPermission) => {
+  if (R.prop(0, check).organization != null) {
+    await hasPermission('organization', 'updateNotification', {
+      organization: R.prop(0, check).organization
+    });
+  } else {
+    await hasPermission('notification', 'update');
+  }
+}
+
 export const updateNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'update');
-
-  const { name } = input;
-
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationMicrosoftTeamsByName(name)
+  );
+  await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   const rows = await query(
@@ -368,42 +509,46 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
 };
 
 export const updateNotificationWebhook: ResolverFn = async (
-    root,
-    { input },
-    {
-      sqlClientPool,
-      hasPermission,
-    },
-  ) => {
-    await hasPermission('notification', 'update');
+  root,
+  { input },
+  {
+    sqlClientPool,
+    hasPermission,
+  },
+) => {
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationWebhookByName(name)
+  );
+  await checkNotificationUpdatePermissions(check, hasPermission)
 
-    const { name } = input;
+  await query(sqlClientPool, Sql.updateNotificationWebhook(input));
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectNotificationWebhookByName(name),
+  );
 
-    if (isPatchEmpty(input)) {
-      throw new Error('input.patch requires at least 1 attribute');
-    }
-
-    await query(sqlClientPool, Sql.updateNotificationWebhook(input));
-    const rows = await query(
-      sqlClientPool,
-      Sql.selectNotificationWebhookByName(name),
-    );
-
-    return R.prop(0, rows);
-  };
+  return R.prop(0, rows);
+};
 
 export const updateNotificationEmail: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'update');
-
-  const { name } = input;
-
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationEmailByName(name)
+  );
+  await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationEmail(input));
   const rows = await query(
@@ -419,13 +564,15 @@ export const updateNotificationRocketChat: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'update');
-
-  const { name } = input;
-
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationRocketChatByName(name)
+  );
+  await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
   const rows = await query(
@@ -441,13 +588,15 @@ export const updateNotificationSlack: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'update');
-
-  const { name } = input;
-
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationSlackByName(name)
+  );
+  await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationSlack(input));
   const rows = await query(

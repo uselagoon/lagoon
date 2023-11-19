@@ -18,7 +18,7 @@ If you look at the [dockerfile](https://github.com/lagoon-examples/ruby-on-rails
 
 ### Logging
 
-The Lagoon logging infrastructure is described in the [docs here](../logging/logging/). Essentially, in order to make use of the infrastructure, logs need to be sent via a UDP message to `udp://application-logs.lagoon.svc:5140`.
+The Lagoon logging infrastructure is described in the [docs here](../logging/logging.md). Essentially, in order to make use of the infrastructure, logs need to be sent via a UDP message to `udp://application-logs.lagoon.svc:5140`.
 
 In our Rails example, we're importing the `logstash-logger` gem, and then in our `config/application.rb` we're initializing it with the following:
 

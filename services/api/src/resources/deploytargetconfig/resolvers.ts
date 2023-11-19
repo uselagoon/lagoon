@@ -9,7 +9,7 @@ import { Sql } from './sql';
 import { deployTargetBranches } from '@lagoon/commons/src/deploy-tasks';
 import { Sql as EnvironmentSql } from '../environment/sql'
 import { Helpers as projectHelpers } from '../project/helpers';
-
+import { Helpers as organizationHelpers } from '../organization/helpers';
 
 export const getDeployTargetConfigById = async (
   root,
@@ -25,9 +25,7 @@ export const getDeployTargetConfigById = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:view` permissions check, since the same sorts of fields
   // are viewable by the same permissions at the project scope
-  await hasPermission('project', 'view', {
-    project: deployTargetConfig.project
-  });
+  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, deployTargetConfig.project)
 
   return deployTargetConfig;
 };
@@ -46,9 +44,7 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:view` permissions check, since the same sorts of fields
   // are viewable by the same permissions at the project scope
-  await hasPermission('project', 'view', {
-    project: pid
-  });
+  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, pid)
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByProjectId(pid));
 
@@ -73,6 +69,23 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   return withK8s;
 };
 
+// used to check if project within an organization has requested valid deploy target
+const checkProjectDeployTargetByOrg = async (project, deployTarget, sqlClientPool) => {
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(project)
+  if (projectdata.organization != null) {
+    let validDeployTarget = false
+    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
+    for (const dt of deploytargets) {
+      if (dt.dtid == deployTarget) {
+        validDeployTarget = true
+      }
+    }
+    if (!validDeployTarget) {
+      throw new Error('The provided deploytarget is not valid for this organization');
+    }
+  }
+}
+
 export const updateEnvironmentDeployTarget: ResolverFn = async (
   root,
   input,
@@ -89,6 +102,9 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
   await hasPermission('project', 'update', {
     project: environmentObj.project
   });
+
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
 
   const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
 
@@ -175,9 +191,10 @@ export const addDeployTargetConfig: ResolverFn = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:update` permissions check, since the same sorts of fields
   // are updateable by the same permissions at the project scope
-  await hasPermission('project', 'update', {
-    project: project
-  });
+  await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
+
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -222,9 +239,7 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   // re-use the existing `project:update` permissions check, since the same sorts of fields
   // are updateable by the same permissions at the project scope
   // deleting a deploytargetconfig from a project is classed as updating the project
-  await hasPermission('project', 'update', {
-    project: project
-  });
+  await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
 
   try {
     await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE id = :id', {
@@ -268,9 +283,10 @@ export const updateDeployTargetConfig: ResolverFn = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:update` permissions check, since the same sorts of fields
   // are updateable by the same permissions at the project scope
-  await hasPermission('project', 'update', {
-    project: deployTargetConfig.project
-  });
+  await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, deployTargetConfig.project)
+
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  await checkProjectDeployTargetByOrg(deployTargetConfig.project, deployTarget, sqlClientPool)
 
   await query(
     sqlClientPool,

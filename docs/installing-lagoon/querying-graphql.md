@@ -48,18 +48,10 @@
 
     1. `name`: get from `lagoon-remote-values.yml`
     2. `consoleUrl`: API Endpoint of Kubernetes cluster. Get from `values.yml`
-    3. `token`: create a token for the `lagoon-build-deploy` service account
+    3. `token`: get a token for the `ssh-core` service account
 
-      ```bash title="Create token"
-        kubectl -n lagoon create token lagoon-build-deploy --duration 3h
-      ```
-
-!!! Warning "Prior to Kubernetes 1.21:"
-      Use the `lagoon-build-deploy` token installed by `lagoon-remote`:
-
-      ```bash title="Use deploy token"
-        kubectl -n lagoon describe secret \
-          $(kubectl -n lagoon get secret | grep lagoon-build-deploy | awk '{print $1}') | grep token: | awk '{print $2}'
+      ```bash title="Get token"
+      kubectl -n lagoon get secret/lagoon-remote-ssh-core-token -o json | jq -r '.data.token | @base64d'
       ```
 
 !!! Info

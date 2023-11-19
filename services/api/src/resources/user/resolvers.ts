@@ -1,6 +1,8 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
@@ -109,11 +111,21 @@ export const getAllUsers: ResolverFn = async (
 export const getUserByEmail: ResolverFn = async (
   _root,
   { email },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('user', 'viewAll');
 
   const user = await models.UserModel.loadUserByUsername(email);
+  if (keycloakGrant) {
+    if (keycloakGrant.access_token.content.sub == user.id) {
+      await hasPermission('ssh_key', 'view:user', {
+        users: [user.id]
+      });
+    } else {
+      await hasPermission('user', 'viewAll');
+    }
+  } else {
+    await hasPermission('user', 'viewAll');
+  }
 
   return user;
 };
@@ -132,7 +144,7 @@ export const addUser: ResolverFn = async (
     lastName: input.lastName,
     comment: input.comment,
     gitlabId: input.gitlabId,
-  });
+  }, input.resetPassword);
 
   return user;
 };
@@ -168,6 +180,26 @@ export const updateUser: ResolverFn = async (
   return updatedUser;
 };
 
+export const resetUserPassword: ResolverFn = async (
+  _root,
+  { input: { user: userInput } },
+  { models, hasPermission },
+) => {
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  // someone can reset their own password if they want to, but admins will be able to do this
+  await hasPermission('user', 'update', {
+    users: [user.id],
+  });
+
+  await models.UserModel.resetUserPassword(user.id);
+
+  return 'success';
+};
+
 export const deleteUser: ResolverFn = async (
   _root,
   { input: { user: userInput } },
@@ -185,6 +217,98 @@ export const deleteUser: ResolverFn = async (
   await models.UserModel.deleteUser(user.id);
 
   return 'success';
+};
+
+// addUserToOrganization adds a user as an organization owner
+export const addUserToOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization, owner: owner } },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
+) => {
+
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  let updateUser = {
+    id: user.id,
+    organization: organization,
+    owner: false,
+  }
+  if (owner) {
+    await hasPermission('organization', 'addOwner', {
+      organization: organization
+    });
+    updateUser.owner = true
+  } else {
+    await hasPermission('organization', 'addViewer', {
+      organization: organization
+    });
+  }
+  await models.UserModel.updateUser(updateUser);
+
+  userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:addUserToOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+        organization: organization,
+        owner: owner,
+      },
+    }
+  });
+
+  return organizationData;
+
+};
+
+// removeUserFromOrganization a user as an organization owner
+export const removeUserFromOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization } },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
+) => {
+
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  await hasPermission('organization', 'addOwner', {
+    organization: organization
+  });
+
+  await models.UserModel.updateUser({
+    id: user.id,
+    organization: organization,
+    remove: true,
+  });
+
+  userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:addUserToOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        organization: organization,
+      },
+    }
+  });
+
+  return organizationData;
 };
 
 export const deleteAllUsers: ResolverFn = async (

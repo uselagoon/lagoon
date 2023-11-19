@@ -7,7 +7,7 @@ ARG ENABLE_DEPRECATED_TRIVY_INTEGRATION=false
 FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${UPSTREAM_REPO:-uselagoon}/node-16:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/node-20:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION

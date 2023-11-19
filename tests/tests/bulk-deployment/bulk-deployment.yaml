@@ -6,8 +6,8 @@
     git_files: "bulk/bulk1/"
     branch: "bulk1"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
@@ -16,8 +16,8 @@
     git_files: "bulk/bulk2/"
     branch: "bulk2"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
@@ -26,8 +26,8 @@
     git_files: "bulk/bulk3/"
     branch: "bulk3"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
@@ -36,8 +36,8 @@
     git_files: "bulk/bulk4/"
     branch: "bulk4"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
@@ -46,8 +46,8 @@
     git_files: "bulk/bulk5/"
     branch: "bulk5"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
@@ -56,8 +56,8 @@
     git_files: "bulk/bulk6/"
     branch: "bulk6"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - Add environment bulk1 to project {{ project }}"
   hosts: localhost
@@ -69,7 +69,7 @@
     deployBaseRef: "bulk1"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Add environment bulk2 to project {{ project }}"
   hosts: localhost
@@ -81,7 +81,7 @@
     deployBaseRef: "bulk2"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Add environment bulk3 to project {{ project }}"
   hosts: localhost
@@ -93,7 +93,7 @@
     deployBaseRef: "bulk3"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Add environment bulk4 to project {{ project }}"
   hosts: localhost
@@ -105,7 +105,7 @@
     deployBaseRef: "bulk4"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Add environment bulk5 to project {{ project }}"
   hosts: localhost
@@ -117,7 +117,7 @@
     deployBaseRef: "bulk5"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Add environment bulk6 to project {{ project }}"
   hosts: localhost
@@ -129,7 +129,7 @@
     deployBaseRef: "bulk6"
     environmentType: DEVELOPMENT
   tasks:
-  - include: ../../tasks/api/add-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
 - name: "{{ testname }} - Trigger bulk deployment"
   hosts: localhost
@@ -144,7 +144,7 @@
       - bulk5
       - bulk6
   tasks:
-  - include: ../../tasks/api/deploy-bulk-deployment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-bulk-deployment.yaml
 
 - name: "{{ testname }} - Get bulk deployment, wait until builds complete"
   hosts: localhost
@@ -153,7 +153,7 @@
     name: "{{ item }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/get-bulk-deployment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/get-bulk-deployment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -162,7 +162,7 @@
     project: "{{ project }}"
     branch: "bulk1"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -171,7 +171,7 @@
     project: "{{ project }}"
     branch: "bulk2"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -180,7 +180,7 @@
     project: "{{ project }}"
     branch: "bulk2"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -189,7 +189,7 @@
     project: "{{ project }}"
     branch: "bulk3"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -198,7 +198,7 @@
     project: "{{ project }}"
     branch: "bulk4"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -207,7 +207,7 @@
     project: "{{ project }}"
     branch: "bulk5"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -216,4 +216,4 @@
     project: "{{ project }}"
     branch: "bulk6"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml

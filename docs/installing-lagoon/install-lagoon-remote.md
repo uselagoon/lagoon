@@ -70,6 +70,8 @@ Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../d
         user: root
   ```
 
+1. Enable [ssh-core service account](https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-remote/values.yaml#L116-L125)
+
 1. Install Lagoon Remote:
 
     ```bash title="Install Lagoon remote"

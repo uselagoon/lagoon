@@ -2,11 +2,7 @@
 
 Lagoon provides access to the following logs via Kibana:
 
-<<<<<<< HEAD
-1. Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
-=======
 * Logs from the Kubernetes Routers, including every single HTTP and HTTPS request with:
->>>>>>> c5708ed6d405ed33273a925012b66d0fe1156036
   * Source IP
   * URL
   * Path
