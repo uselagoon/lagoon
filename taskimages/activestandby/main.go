@@ -75,7 +75,7 @@ func main() {
 		StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
 	}
 
-	err = dioscuri.RunMigration(c, rData, podName, podNamespace)
+	err = dioscuri.RunMigration(c, &rData, podName, podNamespace)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -33,7 +33,7 @@ type ReturnData struct {
 	DestinationNamespace        string `json:"DestinationNamespace"`
 }
 
-func RunMigration(c client.Client, rData ReturnData, podName, podNamespace string) error {
+func RunMigration(c client.Client, rData *ReturnData, podName, podNamespace string) error {
 	ctx := context.Background()
 	var activeMigratedIngress []string
 	var standbyMigratedIngress []string
@@ -284,12 +284,20 @@ Provide a copy of this entire log to the team.`, err)
 
 	// print the result of the task, it will go back to lagoon-logs to be displayed
 	// to the user
+	oldProduction := rData.ProductionEnvironment
+	oldStandby := rData.StandbyProdutionEnvironment
+	rData.ProductionEnvironment = oldStandby
+	rData.StandbyProdutionEnvironment = oldProduction
+	// oldSource := rData.SourceNamespace
+	// oldDestination := rData.DestinationNamespace
+	rData.ProductionEnvironment = oldStandby
+	rData.StandbyProdutionEnvironment = oldProduction
 	jsonData, _ := json.Marshal(rData)
 	fmt.Println("========================================")
 	fmt.Println("Status:", rData.Status)
-	fmt.Println("Active Environment:", rData.StandbyProdutionEnvironment)
+	fmt.Println("Active Environment:", rData.ProductionEnvironment)
 	fmt.Println("Active Routes:", rData.ProductionRoutes)
-	fmt.Println("Standby Environment:", rData.ProductionEnvironment)
+	fmt.Println("Standby Environment:", rData.StandbyProdutionEnvironment)
 	fmt.Println("Standby Routes:", rData.StandbyRoutes)
 	fmt.Println("========================================")
 	pod := corev1.Pod{}
