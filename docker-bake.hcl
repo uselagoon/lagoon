@@ -236,7 +236,7 @@ target "ssh" {
   labels = {
     "org.opencontainers.image.title": "lagoon-core/ssh - the ssh service for Lagoon"
   }
-  tags = ["${REPO}/ssh:${TAG}"]
+  tags = ["${IMAGE_REPO}/ssh:${TAG}"]
 }
 
 target "tests" {
