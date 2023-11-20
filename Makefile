@@ -258,7 +258,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio local-minio-upload
+main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -359,19 +359,19 @@ api-development: build-ui-logs-development
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload mailhog
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 
 ## CI targets
 
-KUBECTL_VERSION := v1.26.6
-HELM_VERSION := v3.12.2
-K3D_VERSION = v5.5.1
+KUBECTL_VERSION := v1.27.3
+HELM_VERSION := v3.13.1
+K3D_VERSION = v5.6.0
 GOJQ_VERSION = v0.12.13
 STERN_VERSION = v2.6.1
-CHART_TESTING_VERSION = v3.9.0
-K3D_IMAGE = docker.io/rancher/k3s:v1.26.6-k3s1
+CHART_TESTING_VERSION = v3.10.1
+K3D_IMAGE = docker.io/rancher/k3s:v1.27.3-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = prerelease/lagoon_v217
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
