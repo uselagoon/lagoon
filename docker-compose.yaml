@@ -209,6 +209,8 @@ services:
     depends_on:
       - api
     image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher
+    environment:
+      - CLEAR_API_DATA=false
     volumes:
       - ./local-dev/api-data-watcher-pusher:/home
   local-dbaas-provider:
