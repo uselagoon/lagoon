@@ -1,0 +1,20 @@
+---
+- include: ../../tasks/cli/add-group.yaml
+  vars:
+    name: "credentialtest-group1"
+
+- include: ../../tasks/cli/add-group.yaml
+  vars:
+    name: "credentialtest-group2"
+
+- include: ../../tasks/cli/add-group.yaml
+  vars:
+    name: "credentialtest-group3"
+
+# - include: ../../tasks/cli/add-group.yaml
+#   vars:
+#     name: "ci-group"
+
+- include: ../../tasks/cli/add-group.yaml
+  vars:
+    name: "kickstart-group"

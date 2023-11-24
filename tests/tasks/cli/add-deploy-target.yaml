@@ -1,0 +1,3 @@
+
+- name: "Add deploy-target '{{ deploy_target }}'"
+  command: lagoon add deploy-target -N {{ deploy_target }}

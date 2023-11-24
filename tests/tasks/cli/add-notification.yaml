@@ -1,0 +1,3 @@
+
+- name: "Add {{ notification_type }} notification to '{{ name }}'"
+  command: lagoon add {{ notification_type }} -c {{ channel }} -n {{ name }} -w {{ webhook }}

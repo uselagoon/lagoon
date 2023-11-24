@@ -33,32 +33,25 @@ add_admin_user_query() {
   wget --header "Content-Type: application/json" --header "$bearer" "${API_HOST:-lagoon-core-api}:${API_PORT:-80}/graphql" --post-data "$json" -O -
 }
 
+# create new lagoon admin user
+#echo "Add admin user"
+#curl --location --request POST 'http://lagoon-core-keycloak:8080/auth/admin/realms/lagoon/users' --header 'Content-Type: application/json' --header "Authorization: Bearer $access_token" --data-raw '{"firstName":"admin","lastName":"", "email":"admin@e2e-lagoon", "enabled":"true", "username":"admin-lagoon"}'
+
 ## create lagoon admin user
 map_user_role_keycloak() {
-  ADMINUSER=admin
-  PASSWORD=jKkenTkokHmeWdOJtvhAFTiLnABUmDHs
   GRANT_TYPE=password
   CLIENT_ID=admin-cli
-  USER=admin-lagoon
-
   REALM=lagoon
+  USER=admin-lagoon
   USERROLE=admin-role.json
 
-  access_token=$( curl -d "client_id=$CLIENT_ID" -d "username=$ADMINUSER" -d "password=$PASSWORD" -d "grant_type=$GRANT_TYPE" "$KEYCLOAK_URL/auth/realms/master/protocol/openid-connect/token" | jq -r '. | .access_token')
-  echo "Admin User : $ADMINUSER/$PASSWORD"
-  echo "Access token : $access_token"
+  access_token=$( curl -d "client_id=$CLIENT_ID" -d "username=$KEYCLOAK_ADMIN_USER" -d "password=$KEYCLOAK_ADMIN_PASSWORD" -d "grant_type=$GRANT_TYPE" "$KEYCLOAK_URL/auth/realms/master/protocol/openid-connect/token" | jq -r '. | .access_token')
 
-  echo "Authorization: Bearer $access_token"
-  echo "$KEYCLOAK_URL/auth/admin/realms/$REALM/users"
-
-  # create new lagoon admin user
-  #echo "Add admin user"
-  #curl --location --request POST 'http://lagoon-core-keycloak:8080/auth/admin/realms/lagoon/users' --header 'Content-Type: application/json' --header "Authorization: Bearer $access_token" --data-raw '{"firstName":"admin","lastName":"", "email":"admin@e2e-lagoon", "enabled":"true", "username":"admin-lagoon"}'
 
   # Get admin user and extract user id
   USERID=$(curl -H "Content-Type: application/json" -H "Authorization: Bearer $access_token" "$KEYCLOAK_URL/auth/admin/realms/$REALM/users" | jq -r '.[] | select(.username == "admin-lagoon") | .id' )
   echo "------------------------------------------------------------------------"
-  echo "User ID for 'admin': $USERID"
+  echo "User ID for '$USER': $USERID"
   echo "------------------------------------------------------------------------"
 
   echo "get admin role id"
@@ -83,8 +76,8 @@ map_user_role_keycloak() {
   fi
 }
 
-add_admin_user_query
-map_user_role_keycloak
+#add_admin_user_query
+#map_user_role_keycloak
 
 ## setup lagoon cli
 lagoon config add \
@@ -92,17 +85,20 @@ lagoon config add \
   --hostname lagoon-core-ssh \
   --graphql http://lagoon-core-api:80/graphql \
   --port 2020 \
+  --token $(./create_jwt.py) \
   --ui http://lagoon-core-ui \
   --force
 
+lagoon config delete -l amazeeio --force
 lagoon config default -l e2e
 
-## testing
-#lagoon add test user -E "test@e2e-tests.com" -F test
-#pub=$(cat ~/.ssh/id_rsa.pub) | lagoon add user-sshkey -E "test@e2e-tests.com" -V "$pub"
+## create default lagoon user and group
+lagoon add user -E ci-customer-user-rsa@example.com
+lagoon add user-sshkey -E ci-customer-user-rsa@example.com -N "ci-customer-sshkey-rsa" -V "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
+lagoon add group -N ci-group
+lagoon add user-group -N ci-group -E ci-customer-user-rsa@example.com -R owner
 
+exec "$@"
 
-
-# exec "$@"
-
-tail -f /dev/null
+# debug - keep container running
+#tail -f /dev/null

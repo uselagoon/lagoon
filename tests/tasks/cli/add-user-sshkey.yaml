@@ -1,0 +1,3 @@
+
+- name: "Add ssh key for user {{ user_email }}"
+  command: lagoon add user-sshkey -E {{ user_email }} -N "{{ user }}" -V "{{ key_type }} {{ key }}"

@@ -1,0 +1,3 @@
+
+- name: "Add {{ user_email }} to {{ group }} as {{ role }}"
+  command: lagoon add user-group -N {{ group }} -E "{{ user_email }}" -R {{ role }}

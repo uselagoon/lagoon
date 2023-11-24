@@ -46,6 +46,8 @@ COPY hosts /etc/ansible/hosts
 ENV ANSIBLE_FORCE_COLOR=true \
     SSH_AUTH_SOCK=/tmp/ssh-agent \
     KEYCLOAK_URL=http://keycloak:8080 \
+    KEYCLOAK_ADMIN_USER=admin \
+    KEYCLOAK_ADMIN_PASSWORD=jKkenTkokHmeWdOJtvhAFTiLnABUmDHs \
     JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
     JWTUSER=test-suite

@@ -1,0 +1,14 @@
+---
+- include: ../../tasks/cli/add-notification.yaml
+  vars:
+    name: "amazeeio--lagoon-local-ci"
+    notification_type: "rocketchat"
+    channel: "lagoon-local-ci"
+    webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
+
+- include: ../../tasks/cli/add-notification.yaml
+  vars:
+    name: "amazeeio--lagoon-kickstart"
+    notification_type: "rocketchat"
+    channel: "lagoon-kickstart"
+    webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"

@@ -1,0 +1,24 @@
+---
+- name: "Setup test data for entire test suite"
+  hosts: localhost
+  serial: 1
+  tasks:
+  # - include: setup/deploy-targets.yaml.yaml
+  #   vars:
+  #     testname: "Add Deploy Targets"
+
+  - include: setup/groups.yaml
+    vars:
+      testname: "Add Groups"
+
+  - include: setup/users.yaml
+    vars:
+      testname: "Add Users"
+
+  - include: setup/users-to-group.yaml
+    vars:
+      testname: "Add Users to Groups"
+
+  - include: setup/notifications.yaml
+    vars:
+      testname: "Add Notificationss"

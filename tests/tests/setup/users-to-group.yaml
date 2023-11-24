@@ -1,0 +1,30 @@
+---
+- include: ../../tasks/cli/add-user-to-group.yaml
+  vars:
+    user_email: "credentialtestbothgroupaccess_user@example.com"
+    group: "credentialtest-group1"
+    role: "owner"
+
+- include: ../../tasks/cli/add-user-to-group.yaml
+  vars:
+    user_email: "credentialtestbothgroupaccess_user@example.com"
+    group: "credentialtest-group2"
+    role: "owner"
+
+- include: ../../tasks/cli/add-user-to-group.yaml
+  vars:
+    user_email: "credentialtestsubgroupaccess_user@example.com"
+    group: "credentialtest-group3"
+    role: "owner"
+
+- include: ../../tasks/cli/add-user-to-group.yaml
+  vars:
+    user_email: "ci-customer-user-ed25519@example.com"
+    group: "ci-group"
+    role: "owner"
+
+- include: ../../tasks/cli/add-user-to-group.yaml
+  vars:
+    user_email: "ci-customer-user-ecdsa@example.com"
+    group: "ci-group"
+    role: "owner"
