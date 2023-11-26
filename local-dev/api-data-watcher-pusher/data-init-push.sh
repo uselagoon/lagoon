@@ -71,7 +71,7 @@ send_task_data 124 $sample_task_file_path
 send_graphql_query $populate_demo_lagoon_org_gql_file_path
 
 # Prepare the api with the necessary test fixtures for ci-local-control-k8s testing
-send_graphql_query $populate_ci_local_control_k8s_gql_file_path
+# send_graphql_query $populate_ci_local_control_k8s_gql_file_path
 
 echo "Lagoon init complete"
 touch /tmp/api-data-pushed

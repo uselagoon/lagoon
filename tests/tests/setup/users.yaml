@@ -1,11 +1,7 @@
 ---
 - include: ../../tasks/cli/add-user-via-cli.yaml
   vars:
-    user_email: "credentialtestbothgroupaccess_user@example.com"
-
-- include: ../../tasks/cli/add-user-via-cli.yaml
-  vars:
-    user_email: "credentialtestsubgroupaccess_user@example.com"
+    user_email: "ci-customer-user-rsa@example.com"
 
 - include: ../../tasks/cli/add-user-via-cli.yaml
   vars:
@@ -15,31 +11,23 @@
   vars:
     user_email: "ci-customer-user-ecdsa@example.com"
 
-
 - include: ../../tasks/cli/add-user-sshkey.yaml
   vars:
-    user: "credentialtestbothgroupaccess_user"
-    user_email: "credentialtestbothgroupaccess_user@example.com"
+    key_name: "ci-customer-sshkey-rsa"
+    user_email: "ci-customer-user-rsa@example.com"
     key_type: "ssh-rsa"
-    key: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDHDRxmCLzLCLdo8M8hK+v5Zr5p4q0XQYwCm9xxWWU8ItkyP4LB90fyh8qWFJRQTYrGNe4usDL5kPyHXhUevdZt75jcjWqlWypbtNY4nFfi+HQ9dnR/f7RRkoBWbha3j8mqZdRHXo9xrXMc82wXaN9a9dMbvEmZPkTpi75g+C0KXBrfjJjDR6Lvr7zWoB2nPMmgy1UGLl5dKxJOg7vHYCpAI582knd0nep3t3bRdlxe7l/CxMthZmoJxz6dfoFotDyBjivVYqEiybtjkNBQnRf2xYQ7m6837hu3EkSVKdgbonWASFMenpuFacDE2S2dVftwW3QjzIOtdQERGZuMsi0p"
+    key: "AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
 
 - include: ../../tasks/cli/add-user-sshkey.yaml
   vars:
-    user: "credentialtestsubgroupaccess"
-    user_email: "credentialtestsubgroupaccess_user@example.com"
-    key_type: "ssh-rsa"
-    key: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDSeDyxIwMWOjeAq7hF2qirbtoD33JZA2RxodsnnesrmWvrRlANn/fYZSR9zc8SMUMA6s6gR6eOLP+Nrz6bz9xIPFDhHpU7yJqWvb8EM2EPpgSppGmBIBDIPN+5YSxiX5fTuLn2dGHyIdgRvl1yXC09Pa16i/gweMIskP7nanFUfVcgUlTNm0nS6F+MzqklRRO7Tw1zOuleEnXohpzGpUJV5xgQmX4CoqiKYuyXssgBdwsrB9oYdGl8i7xi1w7Xlop6FhbaY/vQdy5f9xfoY2jiO7Big6FDeUGccpjL+xZ0MlKfiTl/OIHcsbshQZ1+D9eSmeaaQ8r9cujgTX2Y7umt"
-
-- include: ../../tasks/cli/add-user-sshkey.yaml
-  vars:
-    user: "ci-customer-sshkey-ed25519"
+    key_name: "ci-customer-sshkey-ed25519"
     user_email: "ci-customer-user-ed25519@example.com"
     key_type: "ssh-ed25519"
     key: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
 
-# - include: ../../tasks/cli/add-user-sshkey.yaml
-#   vars:
-#     user: "credentialtestbothgroupaccess"
-#     user_email: "ci-customer-user-ecdsa@example.com"
-#     key_type: "ecdsa-sha2-nistp521"
-#     key: "AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="
+- include: ../../tasks/cli/add-user-sshkey.yaml
+  vars:
+    key_name: "cci-customer-sshkey-ecdsa"
+    user_email: "ci-customer-user-ecdsa@example.com"
+    key_type: "secdsa-sha2-nistp521"
+    key: "AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="

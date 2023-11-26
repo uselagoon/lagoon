@@ -7,18 +7,18 @@
   #   vars:
   #     testname: "Add Deploy Targets"
 
-  - include: setup/groups.yaml
-    vars:
-      testname: "Add Groups"
+- ansible.builtin.import_playbook: setup/groups.yaml
+  vars:
+    testname: "Add Groups"
 
-  - include: setup/users.yaml
-    vars:
-      testname: "Add Users"
+- ansible.builtin.import_playbook: setup/users.yaml
+  vars:
+    testname: "Add Users"
 
-  - include: setup/users-to-group.yaml
-    vars:
-      testname: "Add Users to Groups"
+- ansible.builtin.import_playbook: setup/users-to-group.yaml
+  vars:
+    testname: "Add Users to Groups"
 
-  - include: setup/notifications.yaml
-    vars:
-      testname: "Add Notificationss"
+- ansible.builtin.import_playbook: setup/notifications.yaml
+  vars:
+    testname: "Add Notificationss"
