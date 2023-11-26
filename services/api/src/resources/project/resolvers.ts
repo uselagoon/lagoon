@@ -67,7 +67,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
+  { order, createdAfter, gitUrl, buildImage },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -97,6 +97,10 @@ export const getAllProjects: ResolverFn = async (
 
   if (gitUrl) {
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
+  }
+
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
 
   if (userProjectIds) {
