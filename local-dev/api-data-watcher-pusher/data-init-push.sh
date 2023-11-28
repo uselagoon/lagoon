@@ -56,7 +56,10 @@ send_task_data() {
 wait_for_services
 
 # Optionally clear *some* API data prior to reloading - not really necessary any more
-# send_graphql_query $clear_gql_file_path
+if expr "$CLEAR_API_DATA" : '[Tt][Rr][Uu][Ee]' > /dev/null; then
+  echo "Clearing Lagoon data first"
+  send_graphql_query $clear_gql_file_path
+fi
 
 # Create the lagoon-demo project and associated users, groups, deployments, tasks etc
 send_graphql_query $populate_demo_lagoon_gql_file_path

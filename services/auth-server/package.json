@@ -11,7 +11,7 @@
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
-    "build": "tsc",
+    "build": "tsc --build",
     "start": "node dist/index",
     "dev": "NODE_ENV=development nodemon",
     "format": "prettier-eslint --write '**/*.js'",
@@ -25,13 +25,13 @@
     "exec": "yarn build && yarn start --inspect=0.0.0.0:9229"
   },
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.9.0",
     "nano": "^6.4.3",
-    "ramda": "^0.25.0",
+    "ramda": "0.25.0",
     "sshpk": "^1.14.1",
     "winston": "^3"
   },
@@ -39,6 +39,6 @@
     "nodemon": "^2.0.20",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
-    "typescript": "^3.9.3"
+    "typescript": "^5.2.0"
   }
 }
