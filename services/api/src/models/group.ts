@@ -496,7 +496,7 @@ export const Group = (clients: {
     return membership;
   };
 
-  const addGroup = async (groupInput: Group): Promise<Group> => {
+  const addGroup = async (groupInput: Group, purge: Boolean=true): Promise<Group> => {
     // Don't allow duplicate subgroup names
     try {
       const existingGroup = await loadGroupByName(groupInput.name);
@@ -562,20 +562,14 @@ export const Group = (clients: {
       }
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
 
     return group;
   };
 
-  const updateGroup = async (groupInput: GroupEdit): Promise<Group> => {
+  const updateGroup = async (groupInput: GroupEdit, purge: Boolean=true): Promise<Group> => {
     const oldGroup = await loadGroupById(groupInput.id);
 
     try {
@@ -609,23 +603,17 @@ export const Group = (clients: {
         await updateGroup({
           id: roleSubgroup.id,
           name: R.replace(oldGroup.name, newGroup.name, roleSubgroup.name)
-        });
+        }, false);
       }
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
     return newGroup;
   };
 
-  const deleteGroup = async (id: string): Promise<void> => {
+  const deleteGroup = async (id: string, purge: Boolean=true): Promise<void> => {
     try {
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
@@ -636,21 +624,16 @@ export const Group = (clients: {
       }
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
   };
 
   const addUserToGroup = async (
     user: User,
     groupInput: Group,
-    roleName: string
+    roleName: string,
+    purge: Boolean=true
   ): Promise<Group> => {
     const group = await loadGroupById(groupInput.id);
     // Load or create the role subgroup.
@@ -666,7 +649,7 @@ export const Group = (clients: {
         attributes: {
           type: ['role-subgroup']
         }
-      });
+      }, false);
       const role = await keycloakAdminClient.roles.findOneByName({
         name: roleName
       });
@@ -686,21 +669,16 @@ export const Group = (clients: {
       throw new Error(`Could not add user to group: ${err.message}`);
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
     return await loadGroupById(group.id);
   };
 
   const removeUserFromGroup = async (
     user: User,
-    group: Group
+    group: Group,
+    purge: Boolean=true
   ): Promise<Group> => {
     const members = await getGroupMembership(group);
     const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
@@ -720,14 +698,8 @@ export const Group = (clients: {
 
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
 
     return await loadGroupById(group.id);
@@ -735,7 +707,8 @@ export const Group = (clients: {
 
   const addProjectToGroup = async (
     projectId: number,
-    groupInput: any
+    groupInput: any,
+    purge: Boolean=true
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
     let newGroupProjects = ""
@@ -769,20 +742,15 @@ export const Group = (clients: {
       );
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+   if (purge === true) {
+      await purgeCache()
     }
   };
 
   const removeProjectFromGroup = async (
     projectId: number,
-    group: Group
+    group: Group,
+    purge: Boolean=true
   ): Promise<void> => {
     const groupProjectIds = getProjectIdsFromGroup(group)
     const newGroupProjects = R.pipe(
@@ -812,21 +780,16 @@ export const Group = (clients: {
       );
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+   if (purge === true) {
+      await purgeCache()
     }
   };
 
   // helper to remove project from groups
   const removeProjectFromGroups = async (
     projectId: number,
-    groups: Group[]
+    groups: Group[],
+    purge: Boolean=true
   ): Promise<void> => {
     for (const g in groups) {
       const group = groups[g]
@@ -859,22 +822,16 @@ export const Group = (clients: {
       }
     }
 
-    // once the project is remove from the groups, update the cache
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
   };
 
   // helper to remove user from groups
   const removeUserFromGroups = async (
     user: User,
-    groups: Group[]
+    groups: Group[],
+    purge: Boolean=true
   ): Promise<void> => {
     for (const g in groups) {
       const group = groups[g]
@@ -895,14 +852,8 @@ export const Group = (clients: {
       }
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+    if (purge === true) {
+      await purgeCache()
     }
   };
 
@@ -910,6 +861,7 @@ export const Group = (clients: {
   const removeNonProjectDefaultUsersFromGroup = async (
     group: Group,
     project: String,
+    purge: Boolean=true
   ): Promise<Group> => {
     const members = await getGroupMembership(group);
 
@@ -928,7 +880,14 @@ export const Group = (clients: {
       }
     }
 
-    // once the users are removed from the group, update the cache
+    if (purge === true) {
+      await purgeCache()
+    }
+
+    return await loadGroupById(group.id);
+  };
+
+  const purgeCache = async () => {
     const allGroups = await loadAllGroups();
     const keycloakGroups = await transformKeycloakGroups(allGroups);
     const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
@@ -938,9 +897,7 @@ export const Group = (clients: {
     } catch (err) {
       logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
-
-    return await loadGroupById(group.id);
-  };
+  }
 
   return {
     loadAllGroups,
@@ -967,6 +924,7 @@ export const Group = (clients: {
     transformKeycloakGroups,
     getGroupMembership,
     getGroupMemberCount,
-    removeNonProjectDefaultUsersFromGroup
+    removeNonProjectDefaultUsersFromGroup,
+    purgeCache
   };
 };

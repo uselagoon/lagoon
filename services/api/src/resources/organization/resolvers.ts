@@ -657,8 +657,9 @@ export const removeProjectFromOrganization: ResolverFn = async (
     for (const g in projectGroups) {
       if (projectGroups[g].attributes["type"] == "project-default-group") {
         // remove all users from the project default group except the `default-user@project`
-        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name)
-        // update group
+        // don't purge the cache after performing this, purge will happen at the end
+        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name, false)
+        // update group, don't purge the cache though
         await models.GroupModel.updateGroup({
           id: projectGroups[g].id,
           name: projectGroups[g].name,
@@ -666,18 +667,21 @@ export const removeProjectFromOrganization: ResolverFn = async (
             ...projectGroups[g].attributes,
             "lagoon-organization": [""]
           }
-        });
+        }, false);
       } else {
         removeGroups.push(projectGroups[g])
       }
     }
     // remove groups from project
-    await models.GroupModel.removeProjectFromGroups(pid, removeGroups);
+    // don't purge the cache after performing this, purge will happen at the end
+    await models.GroupModel.removeProjectFromGroups(pid, removeGroups, false);
   } catch (err) {
     throw new Error(
       `Unable to remove all groups from the project`
     )
   }
+
+  await models.GroupModel.purgeCache()
   try {
     // remove all notifications from project
     await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
@@ -745,6 +749,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
   // get all groups the project is in
   for (const group of projectGroups) {
     // update the groups to be in the organization
+      // don't purge the cache after performing this, purge will happen at the end
     const updatedGroup = await models.GroupModel.updateGroup({
       id: group.id,
       name: group.name,
@@ -752,7 +757,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
         ...group.attributes,
         "lagoon-organization": [input.organization]
       }
-    });
+    }, false);
 
     // log this activity
     userActivityLogger(`User added a group to organization`, {
@@ -779,6 +784,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       }
     })
   );
+  await models.GroupModel.purgeCache()
 
   // log this activity
   userActivityLogger(`User added a project to organization`, {
@@ -882,7 +888,7 @@ export const addExistingGroupToOrganization: ResolverFn = async (
 
   const group = await checkOrgProjectGroup(sqlClientPool, input, models)
 
-  // update the group to be in the organization
+  // update the group to be in the organization, and purge the cache
   const updatedGroup = await models.GroupModel.updateGroup({
     id: group.id,
     name: group.name,
@@ -890,7 +896,7 @@ export const addExistingGroupToOrganization: ResolverFn = async (
       ...group.attributes,
       "lagoon-organization": [input.organization]
     }
-  });
+  }, true);
 
   // log this activity
   userActivityLogger(`User added a group to organization`, {
@@ -945,7 +951,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   }
 
   try {
-    await models.GroupModel.removeUserFromGroups(user, groupsRemoved);
+    await models.GroupModel.removeUserFromGroups(user, groupsRemoved, true);
   } catch (error) {
     throw new Error(`Unable to remove user from groups: ${error}`)
   }

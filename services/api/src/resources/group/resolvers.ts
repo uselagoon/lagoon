@@ -371,13 +371,13 @@ export const addGroup: ResolverFn = async (
     parentGroupId = parentGroup.id;
   }
 
-
+  // don't purge the cache after performing this, purge will happen at the end
   const group = await models.GroupModel.addGroup({
     name: input.name,
     parentGroupId,
     ...attributes,
-  });
-  await models.GroupModel.addProjectToGroup(null, group);
+  }, false);
+  await models.GroupModel.addProjectToGroup(null, group, false);
 
   // if the user is not an admin, then add the user as an owner to the group
   let userAlreadyHasAccess = false;
@@ -394,13 +394,16 @@ export const addGroup: ResolverFn = async (
     );
 
     try {
-      await models.GroupModel.addUserToGroup(user, group, 'owner');
+      // don't purge the cache after performing this, purge will happen at the end
+      await models.GroupModel.addUserToGroup(user, group, 'owner', false);
     } catch (err) {
       logger.error(
         `Could not link requesting user to group ${group.name}: ${err.message}`
       );
     }
   }
+
+  await models.GroupModel.purgeCache()
 
   // We don't have any projects yet. So just an empty string
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
@@ -453,10 +456,11 @@ export const updateGroup: ResolverFn = async (
     }
   }
 
+  // purge the cache after performing this
   const updatedGroup = await models.GroupModel.updateGroup({
     id: group.id,
     name: patch.name
-  });
+  }, true);
 
   userActivityLogger(`User updated a group`, {
     project: '',
@@ -562,12 +566,15 @@ export const addUserToGroup: ResolverFn = async (
     });
   }
 
-  await models.GroupModel.removeUserFromGroup(user, group);
+  // don't purge the cache after performing this, purge will happen at the end
+  await models.GroupModel.removeUserFromGroup(user, group, false);
   const updatedGroup = await models.GroupModel.addUserToGroup(
     user,
     group,
-    role
+    role,
+    false
   );
+  await models.GroupModel.purgeCache()
 
   userActivityLogger(`User added a user to a group`, {
     project: '',
@@ -614,7 +621,8 @@ export const removeUserFromGroup: ResolverFn = async (
     });
   }
 
-  const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
+  // purge the cache after performing this
+  const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group, true);
 
   userActivityLogger(`User removed a user from a group`, {
     project: '',
@@ -671,7 +679,8 @@ export const addGroupsToProject: ResolverFn = async (
         throw new Error('Project must be in same organization as groups');
       }
     }
-    await models.GroupModel.addProjectToGroup(project.id, group);
+    // don't purge the cache after performing this, purge will happen at the end
+    await models.GroupModel.addProjectToGroup(project.id, group, false);
   }
 
   const syncGroups = groupsInput.map(async groupInput => {
@@ -695,6 +704,7 @@ export const addGroupsToProject: ResolverFn = async (
       `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
+  await models.GroupModel.purgeCache()
 
   userActivityLogger(`User synced groups to a project`, {
     project: '',
@@ -839,7 +849,8 @@ export const removeGroupsFromProject: ResolverFn = async (
 
   for (const groupInput of groupsInput) {
     const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-    await models.GroupModel.removeProjectFromGroup(project.id, group);
+    // don't purge the cache after performing this, purge will happen at the end
+    await models.GroupModel.removeProjectFromGroup(project.id, group, false);
   }
 
   const syncGroups = groupsInput.map(async groupInput => {
@@ -856,6 +867,8 @@ export const removeGroupsFromProject: ResolverFn = async (
       projectIds
     );
   });
+
+  await models.GroupModel.purgeCache()
 
   try {
     await Promise.all(syncGroups);
