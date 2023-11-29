@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/machinery/api/lagoon"
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
@@ -15,10 +15,10 @@ import (
 	machinerystrings "github.com/uselagoon/machinery/utils/strings"
 )
 
-func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) {
+func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	if message.Meta.BuildName == "" {
 		// there is no build name, so abandon this message
-		return
+		return nil
 	}
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.BuildName)
 	buildStatus := message.Meta.BuildPhase // eventually use message.Meta.BuildStatus
@@ -34,7 +34,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR:unable to generate token: %v", prefix, err))
 		}
-		return
+		return nil
 	}
 
 	// set up a lagoon client for use in the following process
@@ -50,7 +50,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sERROR:unable to get deployment - %v", prefix, err))
 		}
-		return
+		return err
 	}
 	switch strings.ToLower(deployment.Status) {
 	case "complete", "failed", "cancelled":
@@ -58,7 +58,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		if m.EnableDebug {
 			log.Println(fmt.Sprintf("%sWARNING:deployment is already %s doing nothing - %v", prefix, strings.ToLower(deployment.Status), err))
 		}
-		return
+		return nil
 	}
 	var environmentID uint
 	// determine the environment id from the message
@@ -73,9 +73,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR:unable to get project - %v", prefix, err))
+				log.Println(fmt.Sprintf("%sERROR: unable to get project - %v", prefix, err))
 			}
-			return
+			return err
 		}
 		environment, err := lagoon.GetEnvironmentByName(ctx, message.Meta.Environment, project.ID, l)
 		if err != nil {
@@ -87,9 +87,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR:unable to get project - %v", prefix, err))
+				log.Println(fmt.Sprintf("%sERROR: unable to get project - %v", prefix, err))
 			}
-			return
+			return err
 		}
 		environmentID = environment.ID
 	} else {
@@ -100,15 +100,24 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	// prepare the deployment patch for later step
 	statusType := schema.StatusTypes(strings.ToUpper(buildStatus))
 	updateDeploymentPatch := schema.UpdateDeploymentPatchInput{
-		RemoteID:  &message.Meta.RemoteID,
-		Status:    &statusType,
-		BuildStep: &message.Meta.BuildStep,
+		Status: &statusType,
+	}
+	if message.Meta.BuildStep != "" {
+		updateDeploymentPatch.BuildStep = &message.Meta.BuildStep
+	}
+	if message.Meta.RemoteID != "" {
+		updateDeploymentPatch.RemoteID = &message.Meta.RemoteID
 	}
 	if message.Meta.StartTime != "" {
 		updateDeploymentPatch.Started = &message.Meta.StartTime
 	}
 	if message.Meta.EndTime != "" {
 		updateDeploymentPatch.Completed = &message.Meta.EndTime
+	}
+	switch buildStatus {
+	case "complete", "failed", "cancelled":
+		// smol delay for final messages again to try and reduce raciness
+		time.Sleep(time.Second)
 	}
 	updatedDeployment, err := lagoon.UpdateDeployment(ctx, deployment.ID, updateDeploymentPatch, l)
 	if err != nil {
@@ -120,9 +129,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR:unable to update deployment - %v", prefix, err))
+			log.Println(fmt.Sprintf("%sERROR: unable to update deployment - %v", prefix, err))
 		}
-		return
+		return err
 	}
 
 	// update the environment namespace to be one that is in the cluster
@@ -155,9 +164,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR:unable to update environment - %v", prefix, err))
+				log.Println(fmt.Sprintf("%sERROR: unable to update environment - %v", prefix, err))
 			}
-			return
+			return err
 		}
 		log.Println(fmt.Sprintf("%supdated environment", prefix))
 		if message.Meta.Services != nil {
@@ -176,12 +185,13 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 						"message":  err.Error(),
 					})
 					if m.EnableDebug {
-						log.Println(fmt.Sprintf("%sERROR:unable to update environment services - %v", prefix, err))
+						log.Println(fmt.Sprintf("%sERROR: unable to update environment services - %v", prefix, err))
 					}
-					return
+					return err
 				}
 				log.Println(fmt.Sprintf("%supdated environment services - %v", prefix, strings.Join(message.Meta.Services, ",")))
 			}
 		}
 	}
+	return nil
 }

@@ -13,13 +13,13 @@ import {
 import { ResolverFn } from '../';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
-import { EVENTS } from './events';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 // @ts-ignore
@@ -193,21 +193,19 @@ export const getDeploymentsByFilter: ResolverFn = async (
   }
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
-      join('environment', 'deployment.environment', '=', 'environment.id').
-      join('project', 'environment.project', '=', 'project.id').
-      where('environment.deleted', '=', '0000-00-00 00:00:00');
+      join('environment', 'deployment.environment', '=', 'environment.id');
+
+  if (userProjectIds) {
+      queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
+  }
 
   if(openshifts) {
     queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
   }
 
-
   queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
 
-
-  if (userProjectIds) {
-    queryBuilder = queryBuilder.whereIn('project.id', userProjectIds);
-  }
+  queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
 
   const queryBuilderString = queryBuilder.toString();
 
@@ -271,6 +269,39 @@ export const getDeploymentByRemoteId: ResolverFn = async (
   await hasPermission('deployment', 'view', {
     project: R.path(['0', 'pid'], perms)
   });
+
+  return deployment;
+};
+
+export const getDeploymentByName: ResolverFn = async (
+  _root,
+  { input: { project: projectName, environment: environmentName, name } },
+  { sqlClientPool, hasPermission }
+) => {
+
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
+    projectName
+  );
+
+  await hasPermission('deployment', 'view', {
+    project: projectId
+  });
+
+  const environmentRows = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(
+    environmentName, projectId
+  );
+
+  const queryString = knex('deployment')
+    .where('name', '=', name)
+    .andWhere('environment', '=', environmentRows[0].id)
+    .toString();
+
+  const rows = await query(sqlClientPool, queryString);
+  const deployment = R.prop(0, rows);
+
+  if (!deployment) {
+    throw new Error('No deployment found');
+  }
 
   return deployment;
 };
@@ -342,7 +373,7 @@ export const addDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
 
@@ -440,7 +471,7 @@ export const updateDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(id));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
@@ -502,7 +533,7 @@ export const cancelDeployment: ResolverFn = async (
   });
 
   // check if the deploytarget for this environment is disabled
-  const deploytarget = await query(sqlClientPool, Sql.selectDeployTarget(environment.openshift));
+  const deploytarget = await environmentHelpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
   if (deploytarget[0].disabled) {
     // if it is, proceed to mark the build as cancelled
     var date = new Date();
@@ -1135,7 +1166,7 @@ export const switchActiveStandby: ResolverFn = async (
     const environmentsForProject = await query(
       sqlClientPool,
       environmentSql.selectEnvironmentsByProjectID(
-        project.id
+        project.id, true
       )
     );
     for (const envForProject of environmentsForProject) {
@@ -1360,6 +1391,5 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 };
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.DEPLOYMENT.ADDED,
-  EVENTS.DEPLOYMENT.UPDATED
+  EVENTS.DEPLOYMENT
 ]);

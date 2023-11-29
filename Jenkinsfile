@@ -2,8 +2,9 @@ pipeline {
   agent { label 'lagoon' }
   environment {
     // configure build params
-    CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase()
-    SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
+    SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2F','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
+    SAFEBRANCH_AND_BUILDNUMBER = (env.SAFEBRANCH_NAME+env.BUILD_NUMBER).replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase();
+    CI_BUILD_TAG = 'lagoon'.concat(env.SAFEBRANCH_AND_BUILDNUMBER.drop(env.SAFEBRANCH_AND_BUILDNUMBER.length()-26));
     NPROC = "${sh(script:'getconf _NPROCESSORS_ONLN', returnStdout: true).trim()}"
     SKIP_IMAGE_PUBLISH = credentials('SKIP_IMAGE_PUBLISH')
   }
@@ -32,38 +33,21 @@ pipeline {
         sh script: "docker image prune -af", label: "Pruning images"
       }
     }
-    stage ('refresh upstream images') {
-      when {
-        not {
-          buildingTag()
+    stage ('build and push images') {
+      environment {
+        PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+      }
+      steps {
+        sh script: "make -O build", label: "Building images"
+        retry(3) {
+          sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+          sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built amd64 images to testlagoon/*"
         }
-      }
-      steps {
-        sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
-      }
-    }
-    stage ('build images') {
-      steps {
-        sh script: "make -O -j$NPROC build", label: "Building images"
       }
     }
     stage ('show trivy scan results') {
       steps {
         sh script: "cat scan.txt", label: "Display scan results"
-      }
-    }
-    stage ('push images to testlagoon/*') {
-      when {
-        not {
-          environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
-        }
-      }
-      environment {
-        PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
-      }
-      steps {
-        sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
       }
     }
     stage ('setup test cluster') {
@@ -101,6 +85,22 @@ pipeline {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true", label: "Collecting test-suite-1 logs"
             }
             sh script: "cat test-suite-1.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-1.txt"
+          }
+        }
+        stage ('push all images to testlagoon/*') {
+          when {
+            not {
+              environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+            }
+          }
+          environment {
+            PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+          }
+          steps {
+            retry(3) {
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+            }
           }
         }
       }
@@ -157,7 +157,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
+        sh script: "make -O publish-testlagoon-images BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
       }
     }
     stage ('deploy to test environment') {
@@ -186,7 +186,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O -j$NPROC publish-uselagoon-baseimages publish-uselagoon-serviceimages publish-uselagoon-taskimages", label: "Publishing built images to uselagoon"
+        sh script: "make -O publish-uselagoon-images", label: "Publishing built images to uselagoon"
       }
     }
     stage ('scan built images') {
@@ -207,7 +207,7 @@ pipeline {
 
   post {
     always {
-      sh "make clean k3d/clean"
+      sh "make docker_buildx_clean k3d/clean"
     }
     success {
       notifySlack('SUCCESS')

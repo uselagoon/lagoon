@@ -2,9 +2,9 @@
 
 ## Introduction
 
-We provide images for Ruby 3.0 and above, built on top of the official Ruby alpine Docker images.
+We provide images for Ruby 3.0 and above, built on the official Ruby alpine Docker images.
 
-Below we assume that you're attempting to get a Rails app deployed on Lagoon, although most of the details described are really framework neutral.
+Below we assume that you're attempting to get a Rails app deployed on Lagoon, although most of the details described are really framework-neutral.
 
 ## Getting Rails running on Lagoon
 
@@ -18,11 +18,11 @@ If you look at the [dockerfile](https://github.com/lagoon-examples/ruby-on-rails
 
 ### Logging
 
-The Lagoon logging infrastructure is described in the [docs here](../logging/logging/). Essentially, in order to make use of the infrastructure, logs need to be sent via a UDP message to `udp://application-logs.lagoon.svc:5140`.
+The Lagoon logging infrastructure is described in the [docs here](../logging/logging.md). Essentially, in order to make use of the infrastructure, logs need to be sent via a UDP message to `udp://application-logs.lagoon.svc:5140`.
 
 In our Rails example, we're importing the `logstash-logger` gem, and then in our `config/application.rb` we're initializing it with the following:
 
-```
+```ruby title="config/application.rb"
     if ENV.has_key?('LAGOON_PROJECT') && ENV.has_key?('LAGOON_ENVIRONMENT') then
       lagoon_namespace = ENV['LAGOON_PROJECT'] + "-" + ENV['LAGOON_ENVIRONMENT']
       LogStashLogger.configure do |config|
@@ -39,9 +39,9 @@ In our Rails example, we're importing the `logstash-logger` gem, and then in our
 
 ## Database configuration
 
-The example uses our Postgresql image (see the `docker-compose.yml` file). Configuring database access in Rails for Lagoon is very straightforward. Since Lagoon injects the database host, name, and credentials as environment variables, we can change our [`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database.yml) to be aware of these env vars, and consume them if they exist.
+The example uses our PostgreSQL image (see the `docker-compose.yml` file). Configuring database access in Rails for Lagoon is very straightforward. Since Lagoon injects the database host, name, and credentials as environment variables, we can change our [`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database.yml) to be aware of these env vars, and consume them if they exist.
 
-```
+```yaml title="config/database.yml"
 default: &default
   adapter: postgresql
   encoding: unicode

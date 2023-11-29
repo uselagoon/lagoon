@@ -5,11 +5,39 @@ import { createJWTWithoutUserId } from './jwt';
 import { logger } from './logs/local-logger';
 import { envHasConfig, getConfigFromEnv } from './util/config';
 
-interface Project {
+export interface Project {
   slack: any;
   name: string;
-  openshift: any;
+  openshift: DeployTarget;
   deploymentsDisabled: number;
+  sharedBaasBucket?: boolean;
+  routerPattern?: string;
+  envVariables?: any;
+  gitUrl?: string;
+  subfolder?: string;
+  activesystemsdeploy?: string;
+  activesystemsremove?: string;
+  branches?: string;
+  productionenvironment?: string;
+  autoidle?: number;
+  storagecalc?: number;
+  pullrequests?: string;
+  openshiftprojectpattern?: string;
+  productionRoutes?: string;
+  standbyRoutes?: string;
+  productionEnvironment?: string;
+  standbyProductionEnvironment?: string;
+  organization?: number;
+}
+
+export interface DeployTarget {
+  name: string;
+  sharedBaasBucketName?: string;
+  routerPattern?: string;
+  disabled?: boolean;
+  id?: number
+  buildImage?: string
+  monitoringConfig?: any
 }
 
 interface GroupPatch {
@@ -110,6 +138,13 @@ class ProjectNotFound extends Error {
   constructor(message) {
     super(message);
     this.name = 'ProjectNotFound';
+  }
+}
+
+class OrganizationNotFound extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'OrganizationNotFound';
   }
 }
 
@@ -602,12 +637,6 @@ export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
         name
         productionEnvironment
         deploymentsDisabled
-        openshift {
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-        }
       }
     }
   `);
@@ -809,6 +838,7 @@ interface GetActiveSystemForProjectResult {
   id: number;
   branches: string;
   pullrequests: string;
+  organization: number;
   activeSystemsDeploy: string;
   activeSystemsPromote: string;
   activeSystemsRemove: string;
@@ -832,6 +862,7 @@ export async function getActiveSystemForProject(
         activeSystemsMisc
         branches
         pullrequests
+        organization
       }
     }
   `);
@@ -901,6 +932,40 @@ export async function getEnvironmentById(
         updated,
         created,
         deleted,
+      }
+    }
+  `);
+
+  if (!result || !result.environmentById) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for id ${id}\n${result.environmentById}`
+    );
+  }
+
+  return result;
+}
+
+export async function getEnvironmentByIdWithVariables(
+  id: number
+): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      environmentById(id: ${id}) {
+        id
+        name
+        autoIdle
+        deployType
+        environmentType
+        openshiftProjectName
+        openshiftProjectPattern
+        openshift {
+          ...${deployTargetMinimalFragment}
+        }
+        envVariables {
+          name
+          value
+          scope
+        }
       }
     }
   `);
@@ -1076,15 +1141,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
         autoIdle
         branches
@@ -1102,7 +1159,10 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         standbyRoutes
         standbyAlias
         productionBuildPriority
+        storageCalc
         developmentBuildPriority
+        buildImage
+        sharedBaasBucket
         envVariables {
           name
           value
@@ -1123,15 +1183,7 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
         weight
         deployTargetProjectPattern
         deployTarget{
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
       }
     }
@@ -1145,17 +1197,11 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
         name
         openshiftProjectPattern
         openshift  {
-          id
-          name
-          consoleUrl
-          token
-          projectUser
-          routerPattern
-          monitoringConfig
-          buildImage
-          disabled
+          ...${deployTargetMinimalFragment}
         }
         project {
+          sharedBaasBucket
+          buildImage
           envVariables {
             name
             value
@@ -1203,13 +1249,44 @@ export const getEnvironmentsForProject = (
         autoIdle
         openshiftProjectPattern
         openshift{
-          id
-          name
+          ...${deployTargetMinimalFragment}
         }
       }
     }
   }
 `);
+
+export async function getOrganizationById(id: number): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      organization:organizationById(id: ${id}) {
+        id
+        name
+        friendlyName
+        description
+        quotaProject
+        quotaEnvironment
+        quotaGroup
+        quotaNotification
+        environments {
+          name
+          id
+          environmentType
+          autoIdle
+          openshift{
+            ...${deployTargetMinimalFragment}
+          }
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.organization) {
+    throw new OrganizationNotFound(`Cannot find organization ${id}`);
+  }
+
+  return result.organization;
+}
 
 export const setEnvironmentServices = (
   environment: number,
@@ -1243,6 +1320,18 @@ fragment on Deployment {
   environment {
     name
   }
+}
+`);
+
+const deployTargetMinimalFragment = graphqlapi.createFragment(`
+fragment on Openshift {
+  id
+  name
+  routerPattern
+  buildImage
+  disabled
+  sharedBaasBucketName
+  monitoringConfig
 }
 `);
 

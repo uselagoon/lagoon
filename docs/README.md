@@ -8,9 +8,12 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 
 ## Who are you?
 
-* If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
-* If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+<div class="grid cards" markdown>
 
+- If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
+- If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+
+</div>
 ## TL;DR: How Lagoon Works
 
 1. Developers define and configure needed services within YAML files.
@@ -20,7 +23,7 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 5. Lagoon pushes them to a Docker registry.
 6. Lagoon creates the needed resources in Kubernetes.
 7. Lagoon monitors the deployment of the containers.
-8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc.\).
+8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc\).
 
 ## Help?
 
@@ -41,7 +44,7 @@ Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE
 7. **Lagoon is completely integration tested**. This means we can test the whole process. From receiving Git webhooks to deploying into a Docker container, the same Git hash is deployed in the cluster.
 8. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
-We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac) ‌
+We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [Lucid Chart](https://lucid.app/documents/view/cb441054-e04a-4389-b98b-c75bcda8ea0d) ‌
 
 ## History of Lagoon
 

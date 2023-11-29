@@ -1,11 +1,11 @@
 # Build the binary
-FROM golang:1.18-alpine3.17 AS builder
+FROM golang:1.21-alpine AS builder
 
 COPY . /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/
 WORKDIR /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o taskrunner .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o taskrunner .
 
 # Use distroless as minimal base image to package the binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

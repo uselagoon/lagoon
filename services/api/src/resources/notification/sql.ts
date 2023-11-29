@@ -1,3 +1,4 @@
+import { logger } from '../../loggers/logger';
 import { knex } from '../../util/db';
 import {
   NOTIFICATION_CONTENT_TYPE,
@@ -52,6 +53,22 @@ export const Sql = {
 
     return deleteQuery.toString();
   },
+  deleteProjectNotificationByProjectId: (id: number, type: string) => {
+    const deleteQuery = knex.raw(
+      `DELETE pn
+      FROM project_notification as pn
+      LEFT JOIN :notificationTable: AS nt ON pn.nid = nt.id AND pn.type = :notificationType
+      LEFT JOIN project as p on pn.pid = p.id
+      WHERE p.id = :pid`,
+      {
+        pid: id,
+        notificationType: type,
+        notificationTable: `notification_${type}`
+      }
+    );
+
+    return deleteQuery.toString();
+  },
   selectProjectById: input =>
     knex('project')
       .select('*')
@@ -79,7 +96,7 @@ export const Sql = {
     let ret = knex({ p: 'project', nt: `notification_${notificationType}` })
     .where({ 'p.name': project })
     .andWhere({ 'nt.name': notificationName })
-    .select({ pid: 'p.id', nid: 'nt.id' })
+    .select({ pid: 'p.id', nid: 'nt.id', oid: 'p.organization' })
     .toString();
     return ret;
   },
@@ -147,6 +164,23 @@ export const Sql = {
         'pn.type',
         'pn.content_type as contentType',
         'pn.notification_severity_threshold as notificationSeverityThreshold'
+      )
+      .toString();
+  },
+  selectNotificationsByTypeByOrganizationId: (input) => {
+    const {
+      type,
+      oid,
+      contentType = NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = NOTIFICATION_SEVERITY_THRESHOLD
+    } = input;
+    let selectQuery = knex(`notification_${type} as nt`);
+
+    return selectQuery
+      .where('nt.organization', '=', oid)
+      .select(
+        'nt.*',
+        knex.raw(`'${type}' as type`)
       )
       .toString();
   },

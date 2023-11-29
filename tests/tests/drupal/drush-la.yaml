@@ -5,8 +5,8 @@
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
     branch: "drush-first"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
   - set_fact:
       current_head_first: "{{ current_head }}"
 
@@ -18,7 +18,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-drush-first"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} SECOND - init git, add files, commit, git push"
   hosts: localhost
@@ -27,8 +27,8 @@
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
     branch: "drush-second"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
   - set_fact:
       current_head_second: "{{ current_head }}"
 
@@ -40,16 +40,16 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-drush-second"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- ansible.builtin.import_playbook: check-deployed.yaml
   vars:
     expected_head: "{{ current_head_first }}"
     expected_branch: "drush-first"
     branch: "drush-first"
     project: "{{ project }}"
 
-- include: check-deployed.yaml
+- ansible.builtin.import_playbook: check-deployed.yaml
   vars:
     expected_head: "{{ current_head_second }}"
     expected_branch: "drush-second"
@@ -62,7 +62,7 @@
 #   vars:
 #     seconds: "900"
 #   tasks:
-#   - include: ../../tasks/pause.yaml
+#   - ansible.builtin.include_tasks: ../../tasks/pause.yaml
 
 - name: "{{ testname }} - check if we can connect via oc project user and no service"
   hosts: localhost
@@ -72,7 +72,7 @@
     command: env
     expected_content: LAGOON=cli-drupal
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if we can connect via oc project user defining service and container"
   hosts: localhost
@@ -82,7 +82,7 @@
     command: service=nginx container=php env
     expected_content: LAGOON=php
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if drush site alias shows up @drush-second"
   hosts: localhost
@@ -92,7 +92,7 @@
     command: drush la
     expected_content: "@lagoon.{{ project }}-drush-second"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - set remote drupal site 'drush-second' name with random number"
   hosts: localhost
@@ -104,7 +104,7 @@
   tasks:
   - set_fact:
       random_number: "{{ 99999999 | random }}"
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if site name set on remote drupal 'drush-second' has worked"
   hosts: localhost
@@ -114,7 +114,7 @@
     command: drush @lagoon.{{ project }}-drush-second -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, nginx route"
   hosts: localhost
@@ -123,7 +123,7 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ route_suffix }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - drush sql-sync from remote drupal site 'drush-second' to local"
   hosts: localhost
@@ -133,7 +133,7 @@
     command: drush -y sql-sync @lagoon.{{ project }}-drush-second @self
     expected_content: ""
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if random number now appears on own drupal"
   hosts: localhost
@@ -143,7 +143,7 @@
     command: drush -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, nginx route"
   hosts: localhost
@@ -152,7 +152,7 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ route_suffix }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -161,7 +161,7 @@
     project: "{{ project }}"
     branch: "drush-first"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -170,7 +170,7 @@
     project: "{{ project }}"
     branch: "drush-second"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -179,7 +179,7 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -188,7 +188,7 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} third - init git, add files, commit, git push"
   hosts: localhost
@@ -197,8 +197,8 @@
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
     branch: "foo/bar"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
   - set_fact:
       current_head_third: "{{ current_head }}"
 
@@ -210,9 +210,9 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-foo-bar"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-deployed.yaml
+- ansible.builtin.import_playbook: check-deployed.yaml
   vars:
     expected_head: "{{ current_head_third }}"
     expected_branch: "foo/bar"
@@ -227,7 +227,7 @@
     command: drush @lagoon.{{ project }}-foo-bar ssh echo zzyzx
     expected_content: "zzyzx"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -236,7 +236,7 @@
     project: "{{ project }}"
     branch: "foo/bar"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -245,4 +245,4 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.foo-bar.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

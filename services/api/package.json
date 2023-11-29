@@ -35,6 +35,7 @@
     "elasticsearch": "^15.0.0",
     "es7-sleep": "^1.0.0",
     "express": "^4.16.1",
+    "git-url-parse": "^13.1.0",
     "got": "^9.2.2",
     "graphql": "^14.5.8",
     "graphql-iso-date": "^3.5.0",
@@ -56,7 +57,7 @@
     "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
     "rabbit-chatter": "^2.0.0",
-    "ramda": "^0.25.0",
+    "ramda": "0.25.0",
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
@@ -69,13 +70,13 @@
     "@types/faker": "^4.1.5",
     "@types/jest": "^24.0.18",
     "@types/ramda": "types/npm-ramda#dist",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "faker": "^4.1.0",
     "jest": "^24.9.0",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "ts-jest": "^24.0.2",
     "tsc-watch": "^4.4.0",
-    "typescript": "^3.4.4"
+    "typescript": "^5.2.0"
   }
 }

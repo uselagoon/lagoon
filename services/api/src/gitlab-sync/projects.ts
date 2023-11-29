@@ -15,7 +15,7 @@ interface GitlabProject {
   },
 };
 
-const projectExistsRegex = /Duplicate entry '[^']+' for key 'name'/;
+const projectExistsRegex = /Project already exists/;
 const convertRoleNumberToString = R.cond([
   [R.equals(10), R.always('GUEST')],
   [R.equals(20), R.always('REPORTER')],

@@ -8,4 +8,4 @@
     envValue: "newlagoon:true"
     envScope: "BUILD"
   tasks:
-  - include: ../../tasks/api/add-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml

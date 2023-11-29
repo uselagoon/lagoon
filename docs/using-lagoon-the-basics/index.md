@@ -11,10 +11,12 @@ To run a Lagoon Project, your system must meet the requirements to run Docker. W
 TL;DR: install and start `pygmy`:
 
 ```bash
-brew tap pygmystack/pygmy;
+brew tap pygmystack/pygmy; # (1)
 brew install pygmy;
 pygmy up
 ```
+
+1. HomeBrew is the easiest way to install Pygmy, see the docs for more info.
 
 [Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 
@@ -42,31 +44,28 @@ This file is used by `Docker Compose` to start your local development environmen
 
 Some Docker images and containers need additional customizations from the provided images. This usually has two reasons:
 
-1. **Application code**: Containers like NGINX, PHP, Node.js, etc., need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
+1. **Application code**: Containers like NGINX, PHP, Node.js, etc, need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
 2. **Customization of images**: Lagoon also allows you to customize the base images according to your needs. This can be to inject an additional environment variable, change a service configuration, or even install additional tools. We advise caution with installing additional tools to the Docker images, as you will need to maintain any adaptions in the future!
 
 ## Supported Services & Base Images by Lagoon
 
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
-| [MariaDB](../docker-images/mariadb/) | 10.4 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
-| [PostgreSQL](../docker-images/postgres.md) | 11, 12 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
-| [MongoDB](../docker-images/mongodb.md) | 3.6 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
-| [NGINX](../docker-images/nginx/) | openresty/1.19 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
-| Node.js | 10, 12, 14 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
-| [PHP FPM](../docker-images/php-fpm.md) | 7.2, 7.3, 7.4 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
-| [PHP CLI](../docker-images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
-| Python | 2.7, 3.7, 3.8 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
-| [Redis](../docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
-| [Redis-persistent](../docker-images/redis.md) | 5, 6 | [redis-persistent/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent) |
-| [Solr](../docker-images/solr/) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
-| [Varnish](../docker-images/varnish/) | 5 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
-| [Elasticsearch](../docker-images/elasticsearch.md) | 6, 7 | [elasticsearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch) |
-| [Logstash](../docker-images/elasticsearch.md) | 6, 7 | [logstash/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/logstash) |
-| [Kibana](../docker-images/elasticsearch.md) | 6, 7 | [kibana/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/kibana) |
-| [RabbitMQ](../docker-images/rabbitmq.md) | 3.8 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
+| [MariaDB](../docker-images/mariadb.md) | 10.4, 10.5, 10.6, 10.11 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
+| [PostgreSQL](../docker-images/postgres.md) | 11, 12, 13, 14, 15 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
+| [MongoDB](../docker-images/mongodb.md) | 4 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
+| [NGINX](../docker-images/nginx.md) | openresty/1.21 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
+| [Node.js](../docker-images/nodejs.md) | 16, 18, 20 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
+| [PHP FPM](../docker-images/php-fpm.md) | 8.0, 8.1, 8.2 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
+| [PHP CLI](../docker-images/php-cli.md) | 8.0, 8.1, 8.2 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
+| [Python](../docker-images/nodejs.md) | 3.7, 3.8, 3.9, 3.10, 3.11 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
+| [Redis](../docker-images/redis.md) | 5, 6, 7 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
+| [Solr](../docker-images/solr.md) | 7, 8 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
+| [Varnish](../docker-images/varnish.md) | 5, 6, 7 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
+| [Opensearch](../docker-images/opensearch.md) | 2 | [opensearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch) |
+| [RabbitMQ](../docker-images/rabbitmq.md) | 3.10 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
+| [Ruby](../docker-images/ruby.md) | 3.0, 3.1, 3.2 | [ruby/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby) |
 
-All images are pushed to [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon). We suggest always using the latest tag \(like `uselagoon/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:14`\), as they are kept up to date in terms of features and security.
+All images are pushed to [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon). We suggest always using the latest tag \(like `uselagoon/nginx:latest`\) as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `uselagoon/nginx:20.10.0` or `uselagoon/node-10:20.10.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-

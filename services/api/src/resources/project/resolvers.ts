@@ -1,5 +1,8 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import validator from 'validator';
+// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -8,19 +11,28 @@ import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
+import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
+import { Helpers as organizationHelpers } from '../organization/helpers';
+import { Helpers as notificationHelpers } from '../notification/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import sql from '../user/sql';
+import GitUrlParse from 'git-url-parse';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
-const isValidGitUrl = value =>
-  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
-    value
-  );
+const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
+
+const isValidGitUrl = value => {
+  try {
+    GitUrlParse(value)
+    return true
+  } catch (error) {
+    return false
+  }
+}
 
 export const getPrivateKey: ResolverFn = async (
   project,
@@ -38,9 +50,24 @@ export const getPrivateKey: ResolverFn = async (
   }
 };
 
+export const getProjectDeployKey: ResolverFn = async (
+  project,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
+
+    const keyParts = privateKey.toPublic().toString().split(' ');
+    return keyParts[0] + " " + keyParts[1]
+  } catch (err) {
+    return null;
+  }
+};
+
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
+  { order, createdAfter, gitUrl, buildImage },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -72,6 +99,10 @@ export const getAllProjects: ResolverFn = async (
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
   }
 
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
+  }
+
   if (userProjectIds) {
     queryBuilder = queryBuilder.whereIn('id', userProjectIds);
   }
@@ -91,22 +122,13 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM environment e
-    JOIN project p ON e.project = p.id
-    WHERE e.id = :eid
-    LIMIT 1`,
-    { eid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -116,21 +138,13 @@ export const getProjectById: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM project p
-    WHERE p.id = :pid
-    LIMIT 1`,
-    { pid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectById(pid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -140,21 +154,13 @@ export const getProjectByGitUrl: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE git_url = :git_url
-    LIMIT 1`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByGitUrl(args.gitUrl));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -164,13 +170,8 @@ export const getProjectByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE name = :name`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 
@@ -178,9 +179,7 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -240,7 +239,50 @@ export const addProject = async (
   { input },
   { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
-  await hasPermission('project', 'add');
+
+  // Add the user who submitted this request to the project
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
+  if (input.organization != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: input.organization
+    });
+    // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
+    if (!input.addOrgOwner) {
+      userAlreadyHasAccess = true
+    }
+    // check the project quota before adding the project
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
+    if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
+      throw new Error(
+        `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
+      );
+    }
+    const deploytarget = input.kubernetes || input.openshift;
+    if (deploytarget) {
+      const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(input.organization);
+      let validDeployTarget = false
+      for (const dt of deploytargets) {
+        if (dt.dtid == deploytarget) {
+          validDeployTarget = true
+        }
+      }
+      if (!validDeployTarget) {
+        throw new Error('The provided deploytarget is not valid for this organization');
+      }
+    }
+  } else {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+      await hasPermission('project', 'add');
+    } else {
+      throw new Error(
+        'Project creation is restricted to organizations only'
+      );
+    }
+  }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -299,6 +341,24 @@ export const addProject = async (
     }
   }
 
+  let buildImage = null;
+  if (input.buildImage) {
+    if (adminScopes.projectViewAll) {
+      buildImage = input.buildImage
+    } else {
+      throw new Error('Setting build image is only available to administrators.');
+    }
+  }
+
+  let sharedBaasBucket = null;
+  if(typeof input.sharedBaasBucket == "boolean") {
+    if (adminScopes.projectViewAll) {
+      sharedBaasBucket = input.sharedBaasBucket
+    } else {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
+    }
+  }
+
   const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
@@ -322,14 +382,19 @@ export const addProject = async (
 
   // Create a default group for this project
   let group;
+  let attributes = {
+    type: ['project-default-group'],
+    'lagoon-projects': [project.id],
+    'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
+  };
+  // add the organization attribute if this exists
+  if (input.organization != null) {
+    attributes['lagoon-organization'] = [input.organization];
+  }
   try {
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
-      attributes: {
-        type: ['project-default-group'],
-        'lagoon-projects': [project.id],
-        'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
-      }
+      attributes: attributes
     });
   } catch (err) {
     logger.error(
@@ -370,7 +435,7 @@ export const addProject = async (
         sqlClientPool,
         sshKeySql.insertSshKey({
           id: null,
-          name: 'auto-add via api',
+          name: `default-user@${project.name}`,
           keyValue: keyParts[1],
           keyType: keyParts[0],
           keyFingerprint: getSshKeyFingerprint(keyPair.public)
@@ -396,12 +461,6 @@ export const addProject = async (
     logger.error(
       `Could not link user to default project group for ${project.name}: ${err.message}`
     );
-  }
-
-  // Add the user who submitted this request to the project
-  let userAlreadyHasAccess = false;
-  if (adminScopes.projectViewAll) {
-    userAlreadyHasAccess = true
   }
 
   if (!userAlreadyHasAccess && keycloakGrant) {
@@ -438,15 +497,23 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
   const project = await Helpers(sqlClientPool).getProjectById(pid);
 
-  await hasPermission('project', 'delete', {
-    project: pid
-  });
+  // if the project is in an organization then check the organization delete project permission
+  // otherwise fall back to the non-organization permission check
+  if (project.organization != null) {
+    await hasPermission('organization', 'deleteProject', {
+      organization: project.organization
+    });
+  } else {
+    await hasPermission('project', 'delete', {
+      project: pid
+    });
+  }
 
   // check for existing environments
   const rows = await query(
@@ -460,9 +527,42 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  try {
+    // remove all notifications from project
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
+  } catch (err) {
+    logger.error(
+      `Could not remove notifications from project ${project.name}: ${err.message}`
+    );
+  }
+
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
-  // Remove the default group and user
+  // Remove the project from all groups it is associated to
+  try {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
+    // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
+    for (const groupInput of projectGroups) {
+      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+      await models.GroupModel.removeProjectFromGroup(project.id, group);
+      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+        group.name,
+        projectIds
+      );
+    }
+  } catch (err) {
+    logger.error(
+      `Could not remove project from associated groups ${project.name}: ${err.message}`
+    );
+
+  }
+
+  // Remove the default project group
   try {
     const group = await models.GroupModel.loadGroupByName(
       `project-${project.name}`
@@ -478,6 +578,7 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // Remove the default user
   try {
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`
@@ -541,7 +642,10 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     }
   },
@@ -554,7 +658,20 @@ export const updateProject: ResolverFn = async (
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
     if (!adminScopes.projectViewAll) {
-      deploymentsDisabled = 0;
+      throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  if(typeof sharedBaasBucket == "boolean") {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
+    }
+  }
+
+  // check if a user has permission to change the build image of a project or not
+  if (buildImage) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -589,8 +706,64 @@ export const updateProject: ResolverFn = async (
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
-  // TODO If the privateKey changes, automatically remove the old one from the
-  // default user and link the new one.
+  // If the privateKey is changed, automatically add the new one to the default user
+  if (patch.privateKey && patch.privateKey !== oldProject.privateKey) {
+    let keyPair: any = {};
+    try {
+
+      const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
+      const publicKey = privateKey.toPublic();
+
+      keyPair = {
+        ...keyPair,
+        private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
+        public: publicKey.toString()
+      };
+
+      const keyParts = keyPair.public.split(' ');
+
+      try {
+        const { insertId } = await query(
+          sqlClientPool,
+          sshKeySql.insertSshKey({
+            id: null,
+            name: 'auto-add via api',
+            keyValue: keyParts[1],
+            keyType: keyParts[0],
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
+        );
+        const user = await models.UserModel.loadUserByUsername(
+          `default-user@${oldProject.name}`
+        );
+        await query(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+        );
+
+        // remove the old public key from the default user
+        const skidResult = await query(
+          sqlClientPool,
+          SshKeySql.selectSshKeyByFingerprint(getSshKeyFingerprint(sshpk.parsePrivateKey(R.prop('privateKey', oldProject)).toPublic()))
+        );
+        const skid = R.path(['0', 'id'], skidResult) as number;
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteUserSshKeyByKeyId(skid)
+        );
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteSshKeyByKeyId(skid)
+        );
+      } catch (err) {
+        logger.error(
+          `Could not update default project user for ${oldProject.name}: ${err.message}`
+        );
+      }
+    } catch (err) {
+      throw new Error(`There was an error with the privateKey: ${err.message}`);
+    }
+  }
 
   // const originalProject = await Helpers(sqlClientPool).getProjectById(id);
   // const originalName = R.prop('name', originalProject);
@@ -652,7 +825,10 @@ export const updateProject: ResolverFn = async (
         pullrequests,
         openshift,
         openshiftProjectPattern,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     })
   );
@@ -753,7 +929,10 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     }
   });

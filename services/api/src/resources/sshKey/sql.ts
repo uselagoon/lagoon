@@ -32,6 +32,20 @@ export const Sql = {
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')
       .where('sk.key_fingerprint', '=', fingerprint)
       .toString(),
+  selectSshKeyByFingerprint: (fingerprint: string) =>
+    knex('ssh_key')
+      .where('key_fingerprint', '=', fingerprint)
+      .toString(),
+  deleteUserSshKeyByKeyId: (skid: number) =>
+    knex('user_ssh_key')
+      .where('skid', skid)
+      .delete()
+      .toString(),
+  deleteSshKeyByKeyId: (skid: number) =>
+    knex('ssh_key')
+      .where('id', skid)
+      .delete()
+      .toString(),
   insertSshKey: ({
     id,
     name,

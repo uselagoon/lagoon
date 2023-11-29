@@ -19,7 +19,6 @@ nav:
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
   - Commons: docker-images/commons.md
-  - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
@@ -53,6 +52,7 @@ nav:
     - Subfolders: drupal/subfolders.md
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+    - Automatic Updates: drupal/automatic-updates.md
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:
@@ -122,12 +122,13 @@ nav:
     - HarborRegistry: administering-lagoon/using-harbor/harbor-settings/harborregistry.md
     - HarborRegistryCtl: administering-lagoon/using-harbor/harbor-settings/harborregistryctl.md
 - Contributing to Lagoon:
+  - Documentation: contributing-to-lagoon/documentation.md
+  - Code of Conduct: code-of-conduct.md
   - Contributing: contributing.md
   - Developing Lagoon: contributing-to-lagoon/developing-lagoon.md
-  - Code of Conduct: code-of-conduct.md
-  - Documentation: contributing-to-lagoon/documentation.md
   - Tests: contributing-to-lagoon/tests.md
   - API Debugging: contributing-to-lagoon/api-debugging.md
+  - Releasing: contributing-to-lagoon/releasing.md
 - Community:
   - Code of Conduct: code-of-conduct.md
   - Discord: community/discord.md
@@ -144,14 +145,40 @@ nav:
 theme:
   name: 'material'
   palette:
-    primary: 'blue'
-    accent: 'light blue'
+    # Palette toggle for light mode
+    - primary: 'blue'
+      accent: 'light blue'
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: 'blue'
+      toggle:
+        icon: material/white-balance-sunny
+        name: Switch to light mode
+
   favicon: images/lagoon-icon.png
   logo: images/lagoon-icon-bw.png
   icon:
+    admonition:
+      note: fontawesome/solid/note-sticky
+      abstract: fontawesome/solid/book
+      info: fontawesome/solid/circle-info
+      tip: fontawesome/solid/bullhorn
+      success: fontawesome/solid/check
+      question: fontawesome/solid/circle-question
+      warning: fontawesome/solid/triangle-exclamation
+      failure: fontawesome/solid/bomb
+      danger: fontawesome/solid/skull
+      bug: fontawesome/solid/robot
+      example: fontawesome/solid/flask
+      quote: fontawesome/solid/quote-left
     repo: fontawesome/brands/github
   features:
     - content.action.edit
+    - content.code.copy
+    - content.code.annotate
 
 extra:
   analytics:
@@ -163,21 +190,31 @@ extra_javascript:
   - javascript/tablesort.js
 
 markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - mdx_truly_sane_lists
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      auto_title: true
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tilde
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences
+  - tables
   - toc:
       permalink: "#"
       baselevel: 1
-  - def_list
-  - admonition
-  - attr_list
-  - tables
-  - mdx_truly_sane_lists
-  - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
 
 plugins:
   - search
@@ -203,7 +240,7 @@ plugins:
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
-        'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
+        'lagoon/docker-images/elasticsearch.md': 'docker-images/opensearch.md'
         'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
         'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
         'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'

@@ -5,7 +5,7 @@
     ssh_token_host: "{{ ssh_host }}"
     ssh_token_port: "{{ ssh_auth_port }}"
   tasks:
-  - include: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
 
 - name: "SSH AUTH LEGACY - Check if token is allowed for API request"
   hosts: localhost
@@ -15,4 +15,4 @@
     bearer_token: "{{ token }}"
     expected_content: '{"status":"success","data":{}}'
   tasks:
-  - include: ../../checks/check-api-request.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-api-request.yaml

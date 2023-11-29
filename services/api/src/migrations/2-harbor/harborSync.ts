@@ -3,7 +3,7 @@ import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { createHarborOperations } from '../../resources/project/harborSetup';
 import { Helpers as projectHelpers } from '../../resources/project/helpers';
-import { query } from '../../util/db';
+import { query, knex } from '../../util/db';
 
 const defaultHarborUrl = R.propOr(
   'http://harbor-harbor-core.harbor.svc.cluster.local:80',
@@ -39,16 +39,12 @@ const projectRegex = process.env.PROJECT_REGEX
     }
 
     // Get project's env vars from db
-    var envVars = await query(
-      sqlClientPool,
-      `SELECT *
-      FROM env_vars
-      WHERE project=:id
-      AND scope = 'internal_container_registry';`,
-      {
-        id: project.id
-      }
-    );
+    let queryBuilder = knex('env_vars')
+      .where('project', '=', project.id)
+      .andWhere('scope', '=', 'internal_container_registry');
+
+    var envVars = await query(sqlClientPool, queryBuilder.toString());
+
     var hasURL = false;
     var hasUser = false;
     var hasPass = false;

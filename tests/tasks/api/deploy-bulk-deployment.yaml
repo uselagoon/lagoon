@@ -1,6 +1,6 @@
 - name: "{{ testname }} - Trigger a bulk deployment for environments to {{ graphql_url }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - create the bulk deployment environments input"
       set_fact:
         environments: >

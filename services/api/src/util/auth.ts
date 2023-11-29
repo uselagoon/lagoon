@@ -1,11 +1,15 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
+// @ts-ignore
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { Group } from '../models/group';
+import { User } from '../models/user';
+import { saveRedisKeycloakCache } from '../clients/redisClient';
 
 interface ILegacyToken {
   iat: string;
@@ -147,6 +151,7 @@ export class KeycloakUnauthorizedError extends Error {
 
 export const keycloakHasPermission = (grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
   const GroupModel = Group(modelClients);
+  const UserModel = User(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
 
@@ -157,6 +162,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       userProjects?: [string];
       userProjectRole?: [string];
       userGroupRole?: [string];
+      organizationQuery?: [string];
+      userOrganizations?: [string];
+      userOrganizationsView?: [string];
     } = {
       currentUser: [currentUser.id]
     };
@@ -176,6 +184,28 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       };
     }
 
+    // check organization attributes
+    if (R.prop('lagoon-organizations', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+      };
+    }
+    // check organization viewer attributes
+    if (R.prop('lagoon-organizations-viewer', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`]
+      };
+    }
+    if (R.prop('organization', attributes)) {
+      const organizationId = parseInt(R.prop('organization', attributes), 10);
+      claims = {
+        ...claims,
+        organizationQuery: [`${organizationId}`]
+      };
+    }
+
     if (R.prop('project', attributes)) {
       // TODO: This shouldn't be needed when typescript is implemented top down?
       // @ts-ignore
@@ -187,7 +217,18 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           projectQuery: [`${projectId}`]
         };
 
-        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        let [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+
+        if (!highestRoleForProject) {
+          // if no role is detected, fall back to checking the slow way. this is usually only going to be on project creation
+          // but could happen elsewhere
+          const keycloakUsersGroups = await UserModel.getAllGroupsForUser(currentUser.id);
+          // grab the users project ids and roles in the first request
+          groupRoleProjectIds = await UserModel.getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+
+          [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        }
+
         if (upids.length) {
           claims = {
             ...claims,
@@ -214,12 +255,14 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           R.prop('group', attributes)
         );
 
+        const groupMembers = await GroupModel.getGroupMembership(group)
+
         const groupRoles = R.pipe(
           R.filter(membership =>
             R.pathEq(['user', 'id'], currentUser.id, membership)
           ),
           R.pluck('role')
-        )(group.members);
+        )(groupMembers);
 
         const highestRoleForGroup = R.pipe(
           R.uniq,
@@ -263,6 +306,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       authzRequest = {
         ...authzRequest,
         claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+        // @ts-ignore
         claim_token: Buffer.from(JSON.stringify(claims)).toString('base64')
       };
     }

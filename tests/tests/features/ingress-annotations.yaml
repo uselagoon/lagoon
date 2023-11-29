@@ -5,8 +5,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
   hosts: localhost
@@ -16,7 +16,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: >
     {{ testname }} - check that the ingress has the correct annotations
@@ -29,7 +29,7 @@
     - "ladybird=dog"
     ingress: annotations.com
   tasks:
-  - include: ../../checks/check-ingress-annotations.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-ingress-annotations.yaml
 
 - name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and redirects to https://example.com"
   hosts: localhost
@@ -39,7 +39,7 @@
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/$"
   tasks:
-  - include: ../../checks/check-url-redirect-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
 - name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and request to /asdf redirects to https://example.com/asdf"
   hosts: localhost
@@ -49,7 +49,7 @@
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/asdf$"
   tasks:
-  - include: ../../checks/check-url-redirect-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
 - name: "{{ testname }} - check if custom domain 'redirect-to-www.com' is created and redirects to https://www.redirect-to-www.com"
   hosts: localhost
@@ -59,7 +59,7 @@
     host: "redirect-to-www.com"
     expected_redirect_location: "https://www.redirect-to-www.com/$"
   tasks:
-  - include: ../../checks/check-url-redirect-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
 - name: "{{ testname }} - check if custom domain 'www.redirect-from-www.com' is created and redirects to https://redirect-from-www.com"
   hosts: localhost
@@ -69,7 +69,7 @@
     host: "www.redirect-from-www.com"
     expected_redirect_location: "https://redirect-from-www.com/$"
   tasks:
-  - include: ../../checks/check-url-redirect-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -78,7 +78,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -87,4 +87,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Khan/genqlient/graphql"
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/matryer/try"
 	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/jwt"
 	"github.com/uselagoon/lagoon/services/workflows/internal/lagoonclient"
@@ -33,7 +33,7 @@ type RabbitBroker struct {
 type LagoonAPI struct {
 	Endpoint        string `json:"endpoint"`
 	JWTAudience     string `json:"audience"`
-	TokenSigningKey string `json:"tokenSigningKey`
+	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
 }
@@ -105,7 +105,7 @@ func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, st
 // Consumer handles consuming messages sent to the queue that this action handler is connected to and processes them accordingly
 func (h *Messaging) Consumer() {
 
-	var messageQueue mq.MQ
+	messageQueue := &mq.MessageQueue{}
 	// if no mq is found when the goroutine starts, retry a few times before exiting
 	// default is 10 retry with 30 second delay = 5 minutes
 	err := try.Do(func(attempt int) (bool, error) {
@@ -211,7 +211,7 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 }
 
 // toLagoonLogs sends logs to the lagoon-logs message queue
-func (h *Messaging) toLagoonLogs(messageQueue mq.MQ, message map[string]interface{}) {
+func (h *Messaging) toLagoonLogs(messageQueue mq.MessageQueue, message map[string]interface{}) {
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
 		if h.EnableDebug {

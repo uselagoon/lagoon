@@ -1,6 +1,6 @@
 # Varnish
 
-The [Lagoon `Varnish` Docker images](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish). Based on the [official `varnish` package](https://hub.docker.com/_/varnish)
+The [Lagoon `Varnish` Docker images](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish). Based on the [official `Varnish` package](https://hub.docker.com/_/varnish)
 
 ## Supported versions
 
@@ -21,7 +21,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ## Included `default.vcl` configuration file
 
-The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](./#environment-variables)\).
+The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](#environment-variables)\).
 
 ## Environment Variables
 
@@ -31,7 +31,7 @@ variables](../using-lagoon-advanced/environment-variables.md).
 | Environment Variable       | Default               | Description                                                                             |
 | :------------------------- | :-------------------- | :-------------------------------------------------------------------------------------- |
 | VARNISH_BACKEND_HOST       | NGINX                 | Default backend host.                                                                   |
-| VARNISH_BACKEND_PORT       | 8080                  | Default listening varnish port.                                                         |
+| VARNISH_BACKEND_PORT       | 8080                  | Default listening Varnish port.                                                         |
 | VARNISH_SECRET             | lagoon_default_secret | Varnish secret used to connect to management.                                           |
 | LIBVMOD_DYNAMIC_VERSION    | 5.2                   | Default version of `vmod-dynamic` module.                                               |
 | LIBVMOD_BODYACCESS_VERSION | 5.0                   | Default version of `vmod-bodyaccess` module.                                            |

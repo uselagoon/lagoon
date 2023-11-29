@@ -6,8 +6,8 @@
     git_files: "node{{ node_version }}/"
     branch: "pullrequest_base"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - save base branch commit"
   hosts: localhost
@@ -22,7 +22,7 @@
   vars:
     branch: "pullrequest_pr"
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
 
 - name: "{{ testname }} - save pr branch commit"
   hosts: localhost
@@ -42,18 +42,18 @@
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: "PR Title"
   tasks:
-  - include: ../../tasks/webhook-gitlab/pullrequest-opened.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/pullrequest-opened.yaml
 
 
 # pullrequest type doesn't have a LAGOON_GIT_BRANCH to check?
-#- include: ../../checks/check-branch-sha.yaml
+#- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
 #   vars:
 #     expected_head: "{{ pr_commit_hash }}"
 #     expected_branch: "pr-1"
 #     project: "{{ project }}"
 #     url: "{{ check_url }}"
 
-- include: ../../checks/check-pullrequest.yaml
+- ansible.builtin.import_playbook: ../../checks/check-pullrequest.yaml
   vars:
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
@@ -69,7 +69,7 @@
   vars:
     branch: "pullrequest_pr"
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
 
 - name: "{{ testname }} - save pr branch commit"
   hosts: localhost
@@ -89,16 +89,16 @@
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: "PR Title - UPDATE"
   tasks:
-  - include: ../../tasks/webhook-gitlab/pullrequest-updated.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/pullrequest-updated.yaml
 
-# - include: ../../checks/check-branch-sha.yaml
+# - ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
 #   vars:
 #     expected_head: "{{ pr_2nd_commit_hash }}"
 #     expected_branch: "pr-1"
 #     project: "{{ project }}"
 #     url: "{{ check_url }}"
 
-- include: ../../checks/check-pullrequest.yaml
+- ansible.builtin.import_playbook: ../../checks/check-pullrequest.yaml
   vars:
     url: "{{ check_url }}"
     expected_build_type: "pullrequest"
@@ -118,7 +118,7 @@
     git_pr_number: "1"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-gitlab/pullrequest-closed.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/pullrequest-closed.yaml
 
 - name: "{{ testname }} - check if site for project does not exist anymore"
   hosts: localhost
@@ -127,4 +127,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

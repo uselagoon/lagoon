@@ -4,14 +4,17 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 // @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
+import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as openshiftHelpers } from '../openshift/helpers';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
-import { logger } from '../../loggers/logger';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -22,15 +25,9 @@ export const getEnvironmentByName: ResolverFn = async (
   if (args.includeDeleted == undefined) {
     args.includeDeleted = true
   }
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM environment
-    WHERE name = :name AND
-    project = :project
-    ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}`,
-    args,
-  );
+
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByNameAndProjectWithArgs(args.name, args.project, args.includeDeleted));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -84,16 +81,8 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false);
   }
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM environment e
-    WHERE e.project = :pid
-    ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-    ${args.type ? 'AND e.environment_type = :type' : ''}
-    ${filterEnvironments && filteredEnvironments.length !== 0 ? `AND e.id in (${filteredEnvironments.join(",")})` : ''}`,
-    { pid, type: args.type }
-  );
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(args.type, pid, args.includeDeleted, filterEnvironments, filteredEnvironments));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   return withK8s;
@@ -104,16 +93,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT e.*
-    FROM deployment d
-    JOIN environment e on d.environment = e.id
-    JOIN project p ON e.project = p.id
-    WHERE d.id = :deployment_id
-    LIMIT 1`,
-    { deployment_id }
-  );
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByDeploymentId(deployment_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -133,16 +113,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT e.*
-    FROM task t
-    JOIN environment e on t.environment = e.id
-    JOIN project p ON e.project = p.id
-    WHERE t.id = :task_id
-    LIMIT 1`,
-    { task_id }
-  );
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByTaskId(task_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -162,16 +133,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT e.*
-    FROM environment_backup eb
-    JOIN environment e on eb.environment = e.id
-    JOIN project p ON e.project = p.id
-    WHERE eb.id = :backup_id
-    LIMIT 1`,
-    { backup_id }
-  );
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByBackupId(backup_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -193,13 +155,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM environment_storage es
-    WHERE es.environment = :eid`,
-    { eid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
 
   return rows;
 };
@@ -270,16 +226,9 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT e.*
-    FROM
-    environment e
-    JOIN project p ON e.project = p.id
-    WHERE e.openshift_project_name = :openshift_project_name
-    AND e.deleted = "0000-00-00 00:00:00"`,
-    args
-  );
+
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByOpenshiftProjectName(args.openshiftProjectName));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -307,6 +256,72 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
     },
     ctx
   );
+
+export const getEnvironmentsByKubernetes: ResolverFn = async (
+  _,
+  { kubernetes, order, createdAfter, type },
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+) => {
+  const openshift = await openshiftHelpers(
+    sqlClientPool
+  ).getOpenshiftByOpenshiftInput(kubernetes);
+
+  let userProjectIds: number[];
+  try {
+    await hasPermission('openshift', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getEnvironmentsByKubernetes');
+      return [];
+    }
+
+    // Only return projects the user can view
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
+  }
+
+  let queryBuilder = knex('environment').where('openshift', openshift.id);
+
+  if (userProjectIds) {
+    // A user that can view a project might not be able to view an openshift
+    let projectsWithOpenshiftViewPermission: number[] = [];
+    for (const pid of userProjectIds) {
+      try {
+        await hasPermission('openshift', 'view', {
+          project: pid
+        });
+        projectsWithOpenshiftViewPermission = [
+          ...projectsWithOpenshiftViewPermission,
+          pid
+        ];
+      } catch { }
+    }
+
+    queryBuilder = queryBuilder.whereIn(
+      'project',
+      projectsWithOpenshiftViewPermission
+    );
+  }
+
+  if (type) {
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
+  }
+
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
+
+  if (order) {
+    queryBuilder = queryBuilder.orderBy(order);
+  }
+
+  const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
+};
 
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
@@ -351,6 +366,19 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
   }
 
+  if (projectOpenshift.organization) {
+    // if this would be a new environment, check it against the quota
+    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(projectOpenshift.organization)
+    if (!curEnvs.map(e => e.name).find(i => i === input.name)) {
+      // check the environment quota, this prevents environments being added directly via the api
+      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
+      if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
+        throw new Error(
+          `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
+        );
+      }
+    }
+  }
 
   const inputDefaults = {
     deployHeadRef: null,
@@ -447,7 +475,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .andWhere("environment", input.environment)
       .andWhere("updated", input.updated)
       .toString()
-    );
+  );
 
   const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
@@ -573,6 +601,14 @@ export const deleteEnvironment: ResolverFn = async (
       data
     }
   });
+
+  // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
+  // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
+  const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
+  if (deploytarget.length == 0 || deploytarget[0].disabled) {
+    await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+    return 'success';
+  }
 
   await createRemoveTask(data);
   sendToLagoonLogs(
@@ -754,15 +790,7 @@ export const userCanSshToEnvironment: ResolverFn = async (
   const openshiftProjectName =
     args.kubernetesNamespaceName || args.openshiftProjectName;
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT e.*
-    FROM
-    environment e
-    JOIN project p ON e.project = p.id
-    WHERE e.openshift_project_name = :openshift_project_name`,
-    { openshiftProjectName }
-  );
+  const rows = await query(sqlClientPool, Sql.canSshToEnvironment(openshiftProjectName));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 

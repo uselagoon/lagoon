@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	mq "github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/lagoon/services/actions-handler/handler"
 	"github.com/uselagoon/machinery/utils/variables"
 )

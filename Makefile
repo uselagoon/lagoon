@@ -38,9 +38,6 @@ SHELL := /bin/bash
 ####### Default Variables
 #######
 
-# Parameter for all `docker build` commands, can be overwritten by passing `DOCKER_BUILD_PARAMS=` via the `-e` option
-DOCKER_BUILD_PARAMS := --quiet
-
 # On CI systems like jenkins we need a way to run multiple testings at the same time. We expect the
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
@@ -53,7 +50,7 @@ UPSTREAM_TAG ?= latest
 # BUILD_DEPLOY_IMAGE_TAG is the docker tag from uselagoon/build-deploy-image to use -
 # latest is the most current release
 # edge is the most current merged change
-BUILD_DEPLOY_IMAGE_TAG ?= latest
+BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -61,6 +58,7 @@ USE_CALICO_CNI ?= false
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
+MACHINE := $(shell uname -m | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 
@@ -68,12 +66,23 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' | cut -c 1-128)
 
+PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
+
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
+
+# Clear all data from the API on a retest run, usually to clear up after a failure. Set false to preserve
+CLEAR_API_DATA ?= true
 
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
 $(shell >scan.txt)
+
+ifeq ($(MACHINE), arm64)
+	PLATFORM_ARCH ?= linux/arm64
+else
+	PLATFORM_ARCH ?= linux/amd64
+endif
 
 #######
 ####### Functions
@@ -81,7 +90,9 @@ $(shell >scan.txt)
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = DOCKER_SCAN_SUGGEST=false docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
+
+docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
 scan_cmd = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
@@ -90,12 +101,6 @@ ifeq ($(SCAN_IMAGES),true)
 else
 	scan_image =
 endif
-
-# Tags an image with the `testlagoon` repository and pushes it
-docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
-
-# Tags an image with the `uselagoon` repository and pushes it
-docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
 
 .PHONY: docker_pull
 docker_pull:
@@ -114,9 +119,9 @@ docker_pull:
 build-images += yarn-workspace-builder
 build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),$(image)/Dockerfile,.)
 	$(call scan_image,$(image),)
-	touch $@
 
 #######
 ####### Task Images
@@ -138,9 +143,9 @@ task-images += $(foreach image,$(taskimages),task-$(image))
 build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
 $(build-taskimages):
 	$(eval image = $(subst build/task-,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
 	$(call scan_image,task-$(image),)
-	touch $@
 
 # Variables of service images we manage and build
 services :=	api \
@@ -165,27 +170,28 @@ build-services = $(foreach image,$(services),build/$(image))
 # Recipe for all building service-images
 $(build-services):
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
 	$(call scan_image,$(image),)
-	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2notifications build/backup-handler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
+build/backup-handler: services/backup-handler/Dockerfile
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
+build/logs2notifications: services/logs2notifications/Dockerfile
 build/tests: tests/Dockerfile
-build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	$(call scan_image,$(image),)
-	touch $@
 service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
@@ -208,16 +214,16 @@ build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
 	$(call scan_image,$(image),)
-	touch $@
 
 # Image with ansible test
 build/tests:
 	$(eval image = $(subst build/,,$@))
+	$(call docker_buildx_create)
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
 	$(call scan_image,$(image),)
-	touch $@
 service-images += tests
 
 s3-images += $(service-images)
@@ -229,13 +235,19 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(service-images) $(task-images),build/$(image))
-# Outputs a list of all Images we manage
+build:
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
+
 .PHONY: build-list
 build-list:
-	@for number in $(foreach image,$(build-images),build/$(image)); do \
-			echo $$number ; \
-	done
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
+
+.PHONY: build-ui-logs-development
+build-ui-logs-development:
+	$(call docker_buildx_create)
+	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -244,7 +256,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio local-minio-upload
+main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -279,111 +291,25 @@ broker-up: build/broker-single
 ####### All main&PR images are pushed to testlagoon repository
 #######
 
-# Publish command to testlagoon docker hub, done on any main branch or PR
-publish-testlagoon-baseimages = $(foreach image,$(base-images),[publish-testlagoon-baseimages]-$(image))
-# tag and push all images
-
-.PHONY: publish-testlagoon-baseimages
-publish-testlagoon-baseimages: $(publish-testlagoon-baseimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-baseimages)
-$(publish-testlagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-baseimages]-' first
-		$(eval image = $(subst [publish-testlagoon-baseimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-serviceimages
-publish-testlagoon-serviceimages: $(publish-testlagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-serviceimages)
-$(publish-testlagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-testlagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-taskimages
-publish-testlagoon-taskimages: $(publish-testlagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-taskimages)
-$(publish-testlagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-taskimages]-' first
-		$(eval image = $(subst [publish-testlagoon-taskimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-#######
-####### All tagged releases are pushed to uselagoon repository with new semantic tags
-#######
-
-# Publish command to uselagoon docker hub, only done on tags
-publish-uselagoon-baseimages = $(foreach image,$(base-images),[publish-uselagoon-baseimages]-$(image))
+.PHONY: publish-testlagoon-images
+publish-testlagoon-images:
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
-.PHONY: publish-uselagoon-baseimages
-publish-uselagoon-baseimages: $(publish-uselagoon-baseimages)
 
-# tag and push of each image
-.PHONY: $(publish-uselagoon-baseimages)
-$(publish-uselagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-baseimages]-' first
-		$(eval image = $(subst [publish-uselagoon-baseimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
+.PHONY: publish-uselagoon-images
+publish-uselagoon-images:
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-serviceimages
-publish-uselagoon-serviceimages: $(publish-uselagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-serviceimages)
-$(publish-uselagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-uselagoon-serviceimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-# Publish command to amazeeio docker hub, this should only be done during main deployments
-publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-taskimages
-publish-uselagoon-taskimages: $(publish-uselagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-taskimages)
-$(publish-uselagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-taskimages]-' first
-		$(eval image = $(subst [publish-uselagoon-taskimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-# Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
-# still active, so this is a very safe command)
+.PHONY: clean
 clean:
 	rm -rf build/*
+	echo -e "use 'make docker_buildx_clean' to remove semi-permanent builder image"
+
+.PHONY: docker_buildx_clean
+docker_buildx_clean:
+	docker buildx rm $(CI_BUILD_TAG) || echo  -e 'no builder $(CI_BUILD_TAG) found'
 
 # Conduct post-release scans on images
 .PHONY: scan-images
@@ -422,28 +348,28 @@ kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
+ui-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
-api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
+api-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 .PHONY: ui-logs-development
-ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload
+ui-logs-development: build-ui-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 
 ## CI targets
 
-KUBECTL_VERSION := v1.24.9
-HELM_VERSION := v3.10.2
-K3D_VERSION = v5.4.6
-GOJQ_VERSION = v0.12.9
-STERN_VERSION = 2.1.20
-CHART_TESTING_VERSION = v3.7.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.24.9-k3s1
+KUBECTL_VERSION := v1.27.3
+HELM_VERSION := v3.13.1
+K3D_VERSION = v5.6.0
+GOJQ_VERSION = v0.12.13
+STERN_VERSION = v2.6.1
+CHART_TESTING_VERSION = v3.10.1
+K3D_IMAGE = docker.io/rancher/k3s:v1.27.3-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = prerelease/lagoon_v217
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
@@ -559,7 +485,7 @@ K3D_TOOLS = k3d helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a k3d cluster
 .PHONY: k3d/test
-k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
+k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -585,13 +511,13 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefi
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: k3d/setup
-k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
+k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -650,7 +576,7 @@ k3d/local-dev-logging:
 # k3d/dev can only be run once a cluster is up and running (run k3d/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.
 .PHONY: k3d/dev
-k3d/dev: $(addprefix build/,$(K3D_SERVICES))
+k3d/dev: build
 	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) k3d/push-images && cd lagoon-charts.k3d.lagoon \
@@ -706,13 +632,14 @@ k3d/retest:
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
+			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d

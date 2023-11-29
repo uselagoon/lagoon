@@ -25,6 +25,16 @@ export const Sql = {
       .update('pullrequests', 'This project is configured with DeployTargets')
       .where('id', '=', id)
       .toString(),
+  selectDeployTargetConfigsByProjectId: (id: number) =>
+    knex('deploy_target_config')
+      .where('project', '=', id)
+      .orderBy('weight', 'desc')
+      .toString(),
+  selectDeployTargetConfigsByDeployTarget: (id: number) =>
+    knex('deploy_target_config AS d')
+      .select('d.*')
+      .where('deploy_target', '=', id)
+      .toString(),
   insertDeployTargetConfig: ({
     id,
     project,

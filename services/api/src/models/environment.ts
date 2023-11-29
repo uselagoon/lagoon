@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { Pool } from 'mariadb';
-import { query } from '../util/db';
+import { query, knex } from '../util/db';
 import { logger } from '../loggers/logger';
 import { esClient } from '../clients/esClient';
 
@@ -50,15 +50,13 @@ export const EnvironmentModel = (clients: { sqlClientPool: Pool }) => {
    * @return {Promise<[Environments]>} An array of all project environments
    */
   const projectEnvironments = async (pid, type, includeDeleted = false) => {
-    const environments: [Environment] = await query(
-      sqlClientPool,
-      `SELECT *
-      FROM environment e
-      WHERE e.project = :pid
-      ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-      ${type ? 'AND e.environment_type = :type' : ''}`,
-      { pid, type }
-    );
+    let query = knex('environment')
+      .where(knex.raw('project = ?', pid))
+
+    if (!includeDeleted) { query = query.andWhere('deleted', '0000-00-00 00:00:00') }
+    if (type) { query = query.andWhere(knex.raw('environment_type = ?', type)) }
+
+    const environments: [Environment] = await query(sqlClientPool, query.toString());
     return environments;
   };
 

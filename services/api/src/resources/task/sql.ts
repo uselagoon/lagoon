@@ -5,6 +5,11 @@ export const Sql = {
     knex('task')
       .where('task.id', '=', id)
       .toString(),
+  selectTaskByNameAndEnvironment: (name: string, environmentId: number) =>
+    knex('task')
+      .where('task_name', '=', name)
+      .andWhere('environment', '=', environmentId)
+      .toString(),
   insertTask: ({
     id,
     name,
@@ -140,11 +145,15 @@ export const Sql = {
       name,
       type,
       displayName,
+      defaultValue,
+      optional,
       }: {
         id: number,
         advanced_task_definition: number,
         name: string,
         type: string,
+        defaultValue: string,
+        optional: boolean,
         displayName: string,
       }) =>
       knex('advanced_task_definition_argument')
@@ -153,6 +162,8 @@ export const Sql = {
           advanced_task_definition,
           name,
           type,
+          defaultValue,
+          optional,
           display_name: displayName
         })
       .toString(),

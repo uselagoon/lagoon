@@ -10,4 +10,4 @@
     standbyenv: "{{ standby_env | default('') }}"
     openshift: 2001
   tasks:
-  - include: ../../tasks/api/add-project.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project.yaml
