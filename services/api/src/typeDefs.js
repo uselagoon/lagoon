@@ -2455,7 +2455,7 @@ const typeDefs = gql`
     """
     removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
     """
-    Run the query getProjectGroupOrganizationAssociation first to see the changes that would be made before executing this, as it may contain undesirable changes
+    Run the query checkBulkImportProjectsAndGroupsToOrganization first to see the changes that would be made before executing this, as it may contain undesirable changes
     Add an existing project to an organization, this will include all the groups and all the projects that those groups contain
     Optionally detach any notifications attached to the projects, they will be need to be recreated within the organization afterwards
     This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
