@@ -497,6 +497,11 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
+
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
@@ -524,6 +529,11 @@ export const updateNotificationWebhook: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationWebhookByName(name)
   );
+
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationWebhook(input));
@@ -548,6 +558,11 @@ export const updateNotificationEmail: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
   );
+
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationEmail(input));
@@ -572,6 +587,11 @@ export const updateNotificationRocketChat: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
   );
+
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
@@ -596,6 +616,11 @@ export const updateNotificationSlack: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)
   );
+
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationSlack(input));
