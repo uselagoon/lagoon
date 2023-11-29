@@ -165,27 +165,24 @@ export const addBackup: ResolverFn = async (
     project: environment.project
   });
 
-  // check if backup with this id already exists before doing anything else
-  const backupResult = await query(
-    sqlClientPool,
-    Sql.selectBackupByBackupId(backupId)
-  );
-  if (R.length(backupResult) >= 1) {
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertBackup({
+        id,
+        environment: environmentId,
+        source,
+        backupId,
+        created
+      })
+    ));
+  } catch(error) {
     throw new Error(
       `Error adding backup. Backup already exists.`
     );
-  }
+  };
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertBackup({
-      id,
-      environment: environmentId,
-      source,
-      backupId,
-      created
-    })
-  );
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 

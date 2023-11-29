@@ -10,11 +10,6 @@ export const Sql = {
       .where('name', '=', name)
       .select('id')
       .toString(),
-  selectSshKeyByFingerprint: (fingerprint: string) =>
-    knex('ssh_key')
-      .where('key_fingerprint', '=', fingerprint)
-      .select('id')
-      .toString(),
   selectSshKeysByUserId: (userId: number) =>
     knex('ssh_key as sk')
       .join('user_ssh_key as usk', 'sk.id', '=', 'usk.skid')

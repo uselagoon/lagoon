@@ -47,17 +47,6 @@ export const addSshKey: ResolverFn = async (
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
-  // check if key with this fingerprint already exists before doing anything else
-  const keyResult = await query(
-    sqlClientPool,
-    Sql.selectSshKeyByFingerprint(getSshKeyFingerprint(keyFormatted))
-  );
-  if (R.length(keyResult) >= 1) {
-    throw new Error(
-      `Error adding SSH key. Key already exists.`
-    );
-  }
-
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
     username: R.prop('email', userInput)
@@ -67,16 +56,24 @@ export const addSshKey: ResolverFn = async (
     users: [user.id]
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertSshKey({
-      id,
-      name,
-      keyValue,
-      keyType,
-      keyFingerprint: getSshKeyFingerprint(keyFormatted)
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertSshKey({
+        id,
+        name,
+        keyValue,
+        keyType,
+        keyFingerprint: getSshKeyFingerprint(keyFormatted)
+      })
+    ));
+  } catch(error) {
+    throw new Error(
+      `Error adding SSH key. Key already exists.`
+    );
+  };
+
   await query(
     sqlClientPool,
     Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })

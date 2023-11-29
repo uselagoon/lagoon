@@ -20,16 +20,17 @@ import { logger } from '../../loggers/logger';
 const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT || "false"
 
 const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
-  // check if notification with this name already exists before doing anything else
-  const selectSql = knex(notificationTable).select('id').where('name', '=', input.name).toString();
-  const notifResult = await query(sqlClientPool, selectSql);
-  if (R.length(notifResult) >= 1) {
+  const createSql = knex(notificationTable).insert(input).toString();
+
+  let insertId: number;
+  try {
+     ({insertId} = await query(sqlClientPool, createSql));
+  } catch(error) {
     throw new Error(
       `Error adding notification ${input.name}. Notification already exists`
     );
-  }
-  const createSql = knex(notificationTable).insert(input).toString();
-  let { insertId } = await query(sqlClientPool, createSql);
+  };
+
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
 

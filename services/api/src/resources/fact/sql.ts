@@ -77,8 +77,6 @@ export const Sql = {
   insertFactReference: ({ fid, name }) =>
     knex('environment_fact_reference')
       .insert({ fid, name })
-      .onConflict(['name', 'fid'])
-      .merge()
       .toString(),
   deleteFactReferencesByFactId: (fid) =>
     knex('environment_fact_reference')
