@@ -1357,7 +1357,7 @@ export const createMiscTask = async function(taskData: any) {
         case 'deploytarget:task:advanced':
           // inject variables into advanced tasks the same way it is in builds and standard tasks
           const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
-            project.name,
+            taskData.data.project.name,
             taskData.data.environment.id
           )
           miscTaskData.project.variables = {
