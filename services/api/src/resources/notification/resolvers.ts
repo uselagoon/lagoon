@@ -484,6 +484,12 @@ const checkNotificationUpdatePermissions = async (check, hasPermission) => {
   }
 }
 
+const checkNotificationExists = (name, check) => {
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+}
+
 export const updateNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
@@ -498,9 +504,7 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
 
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
-    throw new Error(`No notification found for ${name}`);
-  }
+  checkNotificationExists(name, check);
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
@@ -530,9 +534,7 @@ export const updateNotificationWebhook: ResolverFn = async (
     Sql.selectNotificationWebhookByName(name)
   );
 
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
-    throw new Error(`No notification found for ${name}`);
-  }
+  checkNotificationExists(name, check);
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
@@ -559,9 +561,7 @@ export const updateNotificationEmail: ResolverFn = async (
     Sql.selectNotificationEmailByName(name)
   );
 
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
-    throw new Error(`No notification found for ${name}`);
-  }
+  checkNotificationExists(name, check)
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
@@ -588,9 +588,7 @@ export const updateNotificationRocketChat: ResolverFn = async (
     Sql.selectNotificationRocketChatByName(name)
   );
 
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
-    throw new Error(`No notification found for ${name}`);
-  }
+  checkNotificationExists(name, check)
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
@@ -617,9 +615,7 @@ export const updateNotificationSlack: ResolverFn = async (
     Sql.selectNotificationSlackByName(name)
   );
 
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
-    throw new Error(`No notification found for ${name}`);
-  }
+  checkNotificationExists(name, check)
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
