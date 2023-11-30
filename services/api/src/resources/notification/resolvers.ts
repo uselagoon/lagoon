@@ -508,18 +508,14 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
   );
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  if (input.patch.name) {
-    // check if notification with this name already exists before doing anything else
-    const selectSql = knex('notification_microsoftteams').select('id').where('name', '=', input.patch.name).toString();
-    const notifResult = await query(sqlClientPool, selectSql);
-    if (R.length(notifResult) >= 1) {
-      throw new Error(
-        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-      );
-    }
-  }
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    throw new Error(
+      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+    );
+  };
 
-  await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
@@ -546,22 +542,18 @@ export const updateNotificationWebhook: ResolverFn = async (
   );
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-    if (input.patch.name) {
-      // check if notification with this name already exists before doing anything else
-      const selectSql = knex('notification_webhook').select('id').where('name', '=', input.patch.name).toString();
-      const notifResult = await query(sqlClientPool, selectSql);
-      if (R.length(notifResult) >= 1) {
-        throw new Error(
-          `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-        );
-      }
-    }
-
-    await query(sqlClientPool, Sql.updateNotificationWebhook(input));
-    const rows = await query(
-      sqlClientPool,
-      Sql.selectNotificationWebhookByName(name),
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    throw new Error(
+      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
     );
+  };
+
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectNotificationWebhookByName(name),
+  );
 
   return R.prop(0, rows);
 };
@@ -581,18 +573,14 @@ export const updateNotificationEmail: ResolverFn = async (
   );
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  if (input.patch.name) {
-    // check if notification with this name already exists before doing anything else
-    const selectSql = knex('notification_email').select('id').where('name', '=', input.patch.name).toString();
-    const notifResult = await query(sqlClientPool, selectSql);
-    if (R.length(notifResult) >= 1) {
-      throw new Error(
-        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-      );
-    }
-  }
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    throw new Error(
+      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+    );
+  };
 
-  await query(sqlClientPool, Sql.updateNotificationEmail(input));
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
@@ -616,18 +604,14 @@ export const updateNotificationRocketChat: ResolverFn = async (
   );
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  if (input.patch.name) {
-    // check if notification with this name already exists before doing anything else
-    const selectSql = knex('notification_rocketchat').select('id').where('name', '=', input.patch.name).toString();
-    const notifResult = await query(sqlClientPool, selectSql);
-    if (R.length(notifResult) >= 1) {
-      throw new Error(
-        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-      );
-    }
-  }
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    throw new Error(
+      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+    );
+  };
 
-  await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
@@ -651,18 +635,14 @@ export const updateNotificationSlack: ResolverFn = async (
   );
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  if (input.patch.name) {
-    // check if notification with this name already exists before doing anything else
-    const selectSql = knex('notification_slack').select('id').where('name', '=', input.patch.name).toString();
-    const notifResult = await query(sqlClientPool, selectSql);
-    if (R.length(notifResult) >= 1) {
-      throw new Error(
-        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-      );
-    }
-  }
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    throw new Error(
+      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+    );
+  };
 
-  await query(sqlClientPool, Sql.updateNotificationSlack(input));
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)
