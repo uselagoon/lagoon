@@ -245,3 +245,7 @@ no such service: container:amazeeio-ssh-agent
 BuildKit is a toolkit for converting source code to build artifacts in an efficient, expressive and repeatable manner.
 
 With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker-compose builds. To enable BuildKit for your Project or Environment, add `DOCKER_BUILDKIT=1` as a build-time variable to your Lagoon project or environment.
+
+## Docker Compose Errors in Lagoon Builds
+
+See the [Lagoon Build Errors page](lagoon-build-errors.md#docker-compose-errors) for how to resolve common build errors with Docker Compose
