@@ -1,6 +1,8 @@
-# Lagoon Build Errors
+# Lagoon Build Errors and Warnings
 
-Newer releases of Lagoon have the capability to identify build errors, and highlight them without failing the build. They should be resolved wherever possible, as future releases of Lagoon may not be able to handle the errors.
+Newer releases of Lagoon have the capability to identify build errors, and highlight them as warnings without failing the build. They should be resolved wherever possible, as future releases of Lagoon may not be able to handle the errors.
+
+If you aren't sure how to resolve these errors, please reach out to your Lagoon administrator, or ask a question in the [Lagoon community](../community/discord.md).
 
 ## Docker Compose Errors
 
