@@ -138,29 +138,25 @@ export const updateSshKey: ResolverFn = async (
     keyFingerprint = getSshKeyFingerprint(keyFormatted);
   }
 
-  // check if key with this fingerprint already exists before doing anything else
-  const keyResult = await query(
-    sqlClientPool,
-    Sql.selectSshKeyByFingerprint(keyFingerprint)
-  );
-  if (R.length(keyResult) >= 1) {
+  try {
+    await query(
+      sqlClientPool,
+      Sql.updateSshKey({
+        id,
+        patch: {
+          name,
+          keyType,
+          keyValue,
+          keyFingerprint
+        }
+      })
+    );
+  } catch(error) {
     throw new Error(
       `Error updating SSH key. Key already exists.`
     );
-  }
+  };
 
-  await query(
-    sqlClientPool,
-    Sql.updateSshKey({
-      id,
-      patch: {
-        name,
-        keyType,
-        keyValue,
-        keyFingerprint
-      }
-    })
-  );
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
   userActivityLogger(`User updated ssh key '${id}'`, {

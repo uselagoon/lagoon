@@ -254,27 +254,24 @@ export const addRestore: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  // check if backup with this id already exists before doing anything else
-  const backupResult = await query(
-    sqlClientPool,
-    Sql.selectBackupByBackupId(backupId)
-  );
-  if (R.length(backupResult) >= 1) {
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertRestore({
+        id,
+        backupId,
+        status,
+        restoreLocation,
+        created
+      })
+    ));
+  } catch(error) {
     throw new Error(
       `Error adding restore. Restore already exists.`
     );
-  }
+  };
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertRestore({
-      id,
-      backupId,
-      status,
-      restoreLocation,
-      created
-    })
-  );
   let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
   const restoreData = R.prop(0, rows);
 
