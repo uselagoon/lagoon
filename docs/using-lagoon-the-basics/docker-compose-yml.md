@@ -248,4 +248,30 @@ With the release of Lagoon v2.11.0, Lagoon now provides support for more advance
 
 ## Docker Compose Errors in Lagoon Builds
 
-See the [Lagoon Build Errors page](lagoon-build-errors.md#docker-compose-errors) for how to resolve common build errors with Docker Compose
+See the [Lagoon Build Errors page](lagoon-build-errors-and-warnings.md#docker-compose-errors) for how to resolve common build errors with Docker Compose
+
+## Common Docker Compose Issues
+
+This section outlines some of the more common Docker Compose errors, and how to remedy them. These may present in local development, or as [Lagoon Build Errors and Warnings](lagoon-build-errors-and-warnings.md#docker-compose-errors)
+
+### Dual Mapping keys
+``` shell title="Docker Compose output indicating mapping key error"
+ERR: yaml: unmarshal errors: line 22: mapping key "<<" already defined at line 21
+```
+Early releases of the Lagoon examples contained a pair of YAML aliases attached to services to provide volumes and user code. Newer releases of Docker Compose will report this as an error. Whilst all examples have now been updated, there may be some older codebases around that need updating.
+
+This error arises from Docker Compose not knowing what it is inserting into the array, so just assuming it may be duplicate.
+
+If your docker-compose.yml contains one or more of this (or similar) code blocks, you will be affected.
+``` yaml title="Docker Compose error with dual mapping keys"
+...
+    << : [*default-volumes]
+    << : [*default-user]
+...
+```
+The corrected version combines both aliases into a single mapping key - you'll need to remedy all occurrances.
+``` yaml title="Docker Compose correct insertion of multiple alias mapping keys"
+...
+    << : [*default-volumes, *default-user]
+...
+```
