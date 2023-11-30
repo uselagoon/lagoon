@@ -7,6 +7,27 @@ site_author: The Lagoon Authors
 
 nav:
 - Home: README.md
+- Lagoon Concepts - The Basics:
+  - .lagoon.yml: concepts-basics/lagoon-yml.md
+  - docker-compose.yml: concepts-basics/docker-compose-yml.md
+  - Build and Deploy Process: concepts-basics/build-and-deploy-process.md
+  - Building Blocks of Lagoon:
+    - Users: concepts-basics/building-blocks/users.md
+    - Groups: concepts-basics/building-blocks/groups.md
+    - Projects: concepts-basics/building-blocks/projects.md
+    - Notifications: concepts-basics/building-blocks/notifications.md
+    - Deploy Targets: concepts-basics/building-blocks/deploy-targets.md
+    - Organizations: concepts-basics/building-blocks/organizations.md
+    - Roles: concepts-basics/building-blocks/roles.md
+- Lagoon Concepts - Advanced:
+  - Service Types: concepts-advanced/service-types.md
+  - Environment Types: concepts-advanced/environment-types.md
+  - Environment Variables: concepts-advanced/environment-variables.md
+  - Environment Idling: concepts-advanced/environment-idling.md
+  - Backups: concepts-advanced/backups.md
+  - Base Images: concepts-advanced/base-images.md
+  - Workflows: concepts-advanced/workflows.md
+  - Feature Flags: concepts-advanced/feature-flags.md
 - Using Lagoon - The Basics:
   - Overview: using-lagoon-the-basics/index.md
   - Local Development Environments: using-lagoon-the-basics/local-development-environments.md
@@ -35,27 +56,6 @@ nav:
     - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
     - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
     - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
-- Lagoon Concepts - The Basics:
-  - .lagoon.yml: concepts-basics/lagoon-yml.md
-  - docker-compose.yml: concepts-basics/docker-compose-yml.md
-  - Build and Deploy Process: concepts-basics/build-and-deploy-process.md
-  - Building Blocks of Lagoon:
-    - Users: concepts-basics/building-blocks/users.md
-    - Groups: concepts-basics/building-blocks/groups.md
-    - Projects: concepts-basics/building-blocks/projects.md
-    - Notifications: concepts-basics/building-blocks/notifications.md
-    - Deploy Targets: concepts-basics/building-blocks/deploy-targets.md
-    - Organizations: concepts-basics/building-blocks/organizations.md
-    - Roles: concepts-basics/building-blocks/roles.md
-- Lagoon Concepts - Advanced:
-  - Service Types: concepts-advanced/service-types.md
-  - Environment Types: concepts-advanced/environment-types.md
-  - Environment Variables: concepts-advanced/environment-variables.md
-  - Environment Idling: concepts-advanced/environment-idling.md
-  - Backups: concepts-advanced/backups.md
-  - Base Images: concepts-advanced/base-images.md
-  - Workflows: concepts-advanced/workflows.md
-  - Feature Flags: concepts-advanced/feature-flags.md
 - Docker Images:
   - Commons: docker-images/commons.md
   - Elasticsearch: docker-images/elasticsearch.md
