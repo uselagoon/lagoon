@@ -16,6 +16,7 @@ nav:
   - .lagoon.yml: using-lagoon-the-basics/lagoon-yml.md
   - docker-compose.yml: using-lagoon-the-basics/docker-compose-yml.md
   - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
+  - Lagoon Build Errors and Warnings: using-lagoon-the-basics/lagoon-build-errors-and-warnings.md
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
   - Commons: docker-images/commons.md
@@ -220,6 +221,8 @@ plugins:
   - search
   - redirects:
       redirect_maps:
+        'lagoon-build-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md'
+        'docker-compose-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md#docker-compose-errors'
         'lagoon/README.md': 'README.md'
         'lagoon/getting-started/README.md': 'README.md'
         'lagoon/using-lagoon-advanced/deploytarget_configs.md': 'using-lagoon-advanced/deploytarget-configs.md'
