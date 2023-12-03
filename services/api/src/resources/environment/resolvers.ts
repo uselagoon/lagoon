@@ -276,9 +276,7 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
     }
 
     // Only return projects the user can view
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub,
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 

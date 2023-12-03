@@ -136,9 +136,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -186,9 +184,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -1291,9 +1287,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 

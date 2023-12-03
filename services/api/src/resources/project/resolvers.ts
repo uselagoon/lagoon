@@ -18,6 +18,7 @@ import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import GitUrlParse from 'git-url-parse';
 
@@ -67,7 +68,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl, buildImage },
+  { order, createdAfter, gitUrl },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -82,10 +83,7 @@ export const getAllProjects: ResolverFn = async (
       return [];
     }
     // get the project ids from the users groups
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub,
-
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -97,10 +95,6 @@ export const getAllProjects: ResolverFn = async (
 
   if (gitUrl) {
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
-  }
-
-  if (buildImage) {
-    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
 
   if (userProjectIds) {
@@ -201,9 +195,7 @@ export const getProjectsByMetadata: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -395,7 +387,7 @@ export const addProject = async (
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
       attributes: attributes
-    });
+    }, project.id, input.organization);
   } catch (err) {
     logger.error(
       `Could not create default project group for ${project.name}: ${err.message}`
@@ -497,7 +489,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -540,7 +532,7 @@ export const deleteProject: ResolverFn = async (
 
   // Remove the project from all groups it is associated to
   try {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
     // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
     // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
     for (const groupInput of projectGroups) {

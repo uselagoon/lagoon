@@ -43,7 +43,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
-  api-init:
+  api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database
     volumes:
@@ -51,8 +51,24 @@ services:
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     depends_on:
-      - api-db
-      - keycloak
+      api-db:
+        condition: service_started
+      keycloak:
+        condition: service_started
+  api-lagoon-migrations:
+    image: ${IMAGE_REPO:-lagoon}/api
+    command: sh -c "./node_modules/.bin/tsc && node -r dotenv-extended/config dist/migrations/lagoon/migration.js"
+    volumes:
+      - ./services/api/src:/app/services/api/src
+    environment:
+      - KEYCLOAK_URL=http://172.17.0.1:8088
+      - NODE_ENV=development
+      - CONSOLE_LOGGING_LEVEL=trace
+    depends_on:
+      api-db-init:
+        condition: service_completed_successfully # don't start the lagoon migrations until the db migrations is completed
+      keycloak:
+        condition: service_started
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -72,8 +88,10 @@ services:
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
       - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
-      - api-init
-      - keycloak
+      api-lagoon-migrations:
+        condition: service_completed_successfully # don't start the API until the lagoon migrations are completed
+      keycloak:
+        condition: service_started
     ports:
       - '3000:3000'
     # Uncomment for local new relic tracking

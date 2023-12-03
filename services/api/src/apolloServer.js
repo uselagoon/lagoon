@@ -120,28 +120,6 @@ const apolloServer = new ApolloServer({
         esClient,
       };
 
-      // get all keycloak groups, do this early to reduce the number of times this is called otherwise
-      // but doing this early and once is pretty cheap
-      let keycloakGroups = []
-      try {
-        // check redis for the allgroups cache value
-        const data = await getRedisKeycloakCache("allgroups");
-        let buff = new Buffer(data, 'base64');
-        keycloakGroups = JSON.parse(buff.toString('utf-8'));
-      } catch (err) {
-        logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
-        // if it can't be recalled from redis, get the data from keycloak
-        const allGroups = await Group.Group(modelClients).loadAllGroups();
-        keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
-        const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-        try {
-          // then attempt to save it to redis
-          await saveRedisKeycloakCache("allgroups", data);
-        } catch (err) {
-          logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-        }
-      }
-
       let currentUser = {};
       let serviceAccount = {};
       // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
@@ -150,6 +128,7 @@ const apolloServer = new ApolloServer({
       let groupRoleProjectIds = []
       const keycloakGrant = grant
       if (keycloakGrant) {
+        // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
@@ -171,7 +150,6 @@ const apolloServer = new ApolloServer({
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         },
-        keycloakGroups,
         keycloakUsersGroups,
       };
     },
@@ -204,28 +182,6 @@ const apolloServer = new ApolloServer({
         esClient,
       };
 
-      // get all keycloak groups, do this early to reduce the number of times this is called otherwise
-      // but doing this early and once is pretty cheap
-      let keycloakGroups = []
-      try {
-        // check redis for the allgroups cache value
-        const data = await getRedisKeycloakCache("allgroups");
-        let buff = new Buffer(data, 'base64');
-        keycloakGroups = JSON.parse(buff.toString('utf-8'));
-      } catch (err) {
-        logger.warn(`Couldn't check redis keycloak cache: ${err.message}`);
-        // if it can't be recalled from redis, get the data from keycloak
-        const allGroups = await Group.Group(modelClients).loadAllGroups();
-        keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
-        const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-        try {
-          // then attempt to save it to redis
-          await saveRedisKeycloakCache("allgroups", data);
-        } catch (err) {
-          logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-        }
-      }
-
       let currentUser = {};
       let serviceAccount = {};
       // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
@@ -234,6 +190,7 @@ const apolloServer = new ApolloServer({
       let groupRoleProjectIds = []
       const keycloakGrant = req.kauth ? req.kauth.grant : null
       if (keycloakGrant) {
+        // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
@@ -304,7 +261,6 @@ const apolloServer = new ApolloServer({
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         },
-        keycloakGroups,
         keycloakUsersGroups,
         adminScopes: {
           projectViewAll: projectViewAll,

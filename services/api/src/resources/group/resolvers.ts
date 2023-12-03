@@ -10,13 +10,15 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 import { Helpers as organizationHelpers } from '../organization/helpers';
+import { Helpers } from './helpers';
+import { sqlClientPool } from '../../clients/sqlClient';
 
 const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
 
 export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
-  { hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
@@ -26,7 +28,8 @@ export const getAllGroups: ResolverFn = async (
         const group = await models.GroupModel.loadGroupByName(name);
         return [group];
       } else {
-        const groups = keycloakGroups;
+        const allGroups = await models.GroupModel.loadAllGroups();
+        const groups = await models.GroupModel.transformKeycloakGroups(allGroups);
         const filterFn = (key, val) => group => group[key].includes(val);
         const filteredByName = groups.filter(filterFn('name', name));
         const filteredByType = groups.filter(filterFn('type', type));
@@ -139,12 +142,12 @@ export const getGroupRolesByUserId: ResolverFn =async (
 export const getMembersByGroupId: ResolverFn = async (
   { id },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, keycloakGrant }
 ) => {
   try {
     // members resolver is only called by group, no need to check the permissions on the group
     // as the group resolver will have already checked permission
-    const group = await getGroupFromGroupsById(id, keycloakGroups);
+    const group = await models.GroupModel.loadGroupById(id);
     const members = await models.GroupModel.getGroupMembership(group);
     return members;
   } catch (err) {
@@ -188,12 +191,12 @@ export const getMemberCountByGroupId: ResolverFn = async (
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
     try {
-      const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+      const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid)
       return projectGroups;
     } catch (err) {
       if (!keycloakGrant) {
@@ -202,7 +205,7 @@ export const getGroupsByProjectId: ResolverFn = async (
       }
     }
   } else {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid)
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
@@ -214,26 +217,20 @@ export const getGroupsByProjectId: ResolverFn = async (
     const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
 
     if (usersOrgs != "" ) {
-      const usersOrgsArr = usersOrgs.split(',');
-      for (const userOrg of usersOrgsArr) {
-        const project = await projectHelpers(sqlClientPool).getProjectById(pid);
-        if (project.organization == userOrg) {
-          const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
-          for (const pGroup of orgGroups) {
-            userGroups.push(pGroup)
-          }
+      const uOrgs = usersOrgs.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
         }
       }
     }
     if (usersOrgsViewer != "" ) {
-      const usersOrgsArr = usersOrgsViewer.split(',');
-      for (const userOrg of usersOrgsArr) {
-        const project = await projectHelpers(sqlClientPool).getProjectById(pid);
-        if (project.organization == userOrg) {
-          const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
-          for (const pGroup of orgViewerGroups) {
-            userGroups.push(pGroup)
-          }
+      const uOrgs = usersOrgsViewer.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
         }
       }
     }
@@ -307,7 +304,7 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger, keycloakGroups}
+  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger}
 ) => {
   let attributes = null;
   // check if this is a group being added in an organization
@@ -322,7 +319,7 @@ export const addGroup: ResolverFn = async (
       organization: input.organization
     });
 
-    const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(input.organization, keycloakGroups);
+    const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, input.organization)
     let groupCount = 0
     for (const pGroup in orgGroups) {
       // project-default-groups don't count towards group quotas
@@ -376,19 +373,11 @@ export const addGroup: ResolverFn = async (
     name: input.name,
     parentGroupId,
     ...attributes,
-  });
+  }, null, input.organization);
   await models.GroupModel.addProjectToGroup(null, group);
 
-  // if the user is not an admin, then add the user as an owner to the group
-  let userAlreadyHasAccess = false;
-  if (adminScopes.projectViewAll) {
-    userAlreadyHasAccess = true
-  }
-  // if the group is created without the addOrgOwner boolean set to true, then do not add the user to the group as its owner
-  if (!input.addOrgOwner) {
-    userAlreadyHasAccess = true
-  }
-  if (!userAlreadyHasAccess && keycloakGrant) {
+  // if the user is not an admin, or an organization add, then add the user as an owner to the group
+  if (!adminScopes.projectViewAll && !input.organization && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
@@ -511,11 +500,12 @@ export const deleteGroup: ResolverFn = async (
 export const deleteAllGroups: ResolverFn = async (
   _root,
   _args,
-  { models, hasPermission, keycloakGroups }
+  { models, hasPermission }
 ) => {
   await hasPermission('group', 'deleteAll');
 
-  const groups = keycloakGroups;
+  const allGroups = await models.GroupModel.loadAllGroups();
+  const groups = await models.GroupModel.transformKeycloakGroups(allGroups);
 
   let deleteErrors: String[] = [];
   for (const group of groups) {
@@ -718,7 +708,7 @@ export const getAllProjectsByGroupId: ResolverFn = async (
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClientPool, hasPermission, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { models, sqlClientPool, hasPermission, keycloakGrant, adminScopes }
 ) => {
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
@@ -728,13 +718,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
   if (adminScopes.groupViewAll) {
     try {
       // get group from all keycloak groups apollo context
-      let group = [];
-      if (groupInput.name) {
-        group = await getGroupFromGroupsByName(groupInput.name, keycloakGroups);
-      }
-      if (groupInput.id) {
-        group = await getGroupFromGroupsById(groupInput.id, keycloakGroups);
-      }
+      const group = await loadGroupByIdOrName(groupInput);
       const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
       return projectIdsArray.map(async id =>
         projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
@@ -755,35 +739,27 @@ export const getAllProjectsInGroup: ResolverFn = async (
     logger.debug('No grant available for getAllProjectsInGroup');
     return [];
   } else {
-    // get group from all keycloak groups apollo context
-    let group = [];
-    if (groupInput.name) {
-      group = await getGroupFromGroupsByName(groupInput.name, keycloakGroups);
-    }
-    if (groupInput.id) {
-      group = await getGroupFromGroupsById(groupInput.id, keycloakGroups);
-    }
-    // get users groups from users keycloak groups apollo context
-    const userGroups = keycloakUsersGroups;
+    const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+    const userGroups = await models.UserModel.getAllGroupsForUser(keycloakGrant.access_token.content.sub);
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
     const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
     const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
     if (usersOrgs != "" ) {
-      const usersOrgsArr = usersOrgs.split(',');
-      for (const userOrg of usersOrgsArr) {
-        const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
+      const uOrgs = usersOrgs.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
         for (const pGroup of orgGroups) {
           userGroups.push(pGroup)
         }
       }
     }
     if (usersOrgsViewer != "" ) {
-      const usersOrgsArr = usersOrgsViewer.split(',');
-      for (const userOrg of usersOrgsArr) {
-        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(userOrg, keycloakGroups);
-        for (const pGroup of orgViewerGroups) {
+      const uOrgs = usersOrgsViewer.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        for (const pGroup of orgGroups) {
           userGroups.push(pGroup)
         }
       }
