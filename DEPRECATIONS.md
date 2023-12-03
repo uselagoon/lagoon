@@ -12,7 +12,7 @@ All deprecations are listed below, with the most recent announcements at the top
 
 ### Lagoon v2.17.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.17.0
-* (insert any planned deprecations here)
+* This release introduces a new active/standby task image that does not require the use of the [dioscuri controller](https://github.com/amazeeio/dioscuri). Dioscuri is deprecated and will eventually be removed from the `lagoon-remote` helm chart. If you use active/standby functionality in your clusters, you should upgrade to lagoon v2.17.0 and update your remote clusters to the version of the `lagoon-remote` helm chart the v2.17.0 release says to use (see release notes for v2.17.0)
 
 ### Lagoon v2.16.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.16.0
