@@ -1045,9 +1045,9 @@ export const deleteOrganization: ResolverFn = async (
   return 'success';
 };
 
-const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups) => {
+const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models) => {
   const groupProjectIds = [];
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   // get all the groups the requested project is in
   for (const group of projectGroups) {
     // for each group the project is in, get the list of projects that are also in this group
@@ -1064,7 +1064,7 @@ const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groups
   if (groupProjectIds.length > 0) {
     for (const pGroup of groupProjectIds) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(project.id, keycloakGroups);
+      const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
       // check if the project is already in the requested organization
       if (project.organization != oid && project.organization == null) {
         let alreadyAdded = false
@@ -1128,7 +1128,7 @@ const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groups
 export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission, keycloakGroups }
+  { sqlClientPool, models, hasPermission }
 ) => {
   let pid = input.project;
   let oid = input.organization;
@@ -1142,7 +1142,7 @@ export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async 
   const groupsInOtherOrgs = []
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
 
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
 };
@@ -1152,7 +1152,7 @@ export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async 
 export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   root,
   { input, detachNotifications },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
 
   let pid = input.project;
@@ -1167,7 +1167,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   const groupsInOtherOrgs = []
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
 
   // if anything comes back in projectsInOtherOrgs or groupsInOtherOrgs, then this mutation should fail and inform the user
   // to run the query first and return the fields that contain information about why it can't move the projects
@@ -1192,6 +1192,9 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             "lagoon-organization": [input.organization]
           }
         });
+        if (input.organization) {
+          await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
+        }
         groupsDone.push(group.id)
 
         // log this activity
