@@ -1,0 +1,45 @@
+{
+    "kind": "Ingress",
+    "apiVersion": "networking.k8s.io/v1",
+    "metadata": {
+        "name": "example.com",
+        "namespace": "standby-main",
+        "resourceVersion": "1",
+        "creationTimestamp": null,
+        "labels": {
+            "activestandby.lagoon.sh/migrate": "true",
+            "activestandby.lagoon.sh/migrating": "true"
+        }
+    },
+    "spec": {
+        "tls": [
+            {
+                "secretName": "example.com-tls"
+            }
+        ],
+        "rules": [
+            {
+                "host": "example.com",
+                "http": {
+                    "paths": [
+                        {
+                            "path": "/",
+                            "pathType": "Prefix",
+                            "backend": {
+                                "service": {
+                                    "name": "http",
+                                    "port": {
+                                        "name": "http"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "status": {
+        "loadBalancer": {}
+    }
+}

@@ -484,6 +484,12 @@ const checkNotificationUpdatePermissions = async (check, hasPermission) => {
   }
 }
 
+const checkNotificationExists = (name, check) => {
+  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+    throw new Error(`No notification found for ${name}`);
+  }
+}
+
 export const updateNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
@@ -497,6 +503,9 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
+
+  checkNotificationExists(name, check);
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
@@ -524,6 +533,9 @@ export const updateNotificationWebhook: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationWebhookByName(name)
   );
+
+  checkNotificationExists(name, check);
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationWebhook(input));
@@ -548,6 +560,9 @@ export const updateNotificationEmail: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
   );
+
+  checkNotificationExists(name, check)
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationEmail(input));
@@ -572,6 +587,9 @@ export const updateNotificationRocketChat: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
   );
+
+  checkNotificationExists(name, check)
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
@@ -596,6 +614,9 @@ export const updateNotificationSlack: ResolverFn = async (
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)
   );
+
+  checkNotificationExists(name, check)
+
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   await query(sqlClientPool, Sql.updateNotificationSlack(input));

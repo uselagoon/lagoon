@@ -1421,9 +1421,17 @@ const typeDefs = gql`
     """
     organizationById(id: Int!): Organization
     organizationByName(name: String!): Organization
-    getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String
-    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
+    getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
+    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
+    checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
+  }
+
+  type ProjectGroupsToOrganization {
+    projects: [Project]
+    groups: [GroupInterface]
+    otherOrgProjects: [Project]
+    otherOrgGroups: [GroupInterface]
   }
 
   # Must provide id OR name
@@ -2429,15 +2437,15 @@ const typeDefs = gql`
     """
     Add a group to an organization
     """
-    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
+    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Add an existing group to an organization
     """
-    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
+    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Add an existing project to an organization
     """
-    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
     """
@@ -2450,6 +2458,13 @@ const typeDefs = gql`
     Remove a deploytarget from an organization
     """
     removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
+    """
+    Run the query checkBulkImportProjectsAndGroupsToOrganization first to see the changes that would be made before executing this, as it may contain undesirable changes
+    Add an existing project to an organization, this will include all the groups and all the projects that those groups contain
+    Optionally detach any notifications attached to the projects, they will be need to be recreated within the organization afterwards
+    This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
+    """
+    bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
   }
 
   type Subscription {

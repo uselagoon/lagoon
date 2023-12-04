@@ -269,6 +269,8 @@ const {
   getNotificationsForOrganizationProjectId,
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
+  checkBulkImportProjectsAndGroupsToOrganization,
+  bulkImportProjectsAndGroupsToOrganization
 } = require('./resources/organization/resolvers');
 
 const {
@@ -579,6 +581,7 @@ const resolvers = {
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
+    checkBulkImportProjectsAndGroupsToOrganization
   },
   Mutation: {
     addProblem,
@@ -711,6 +714,7 @@ const resolvers = {
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
+    bulkImportProjectsAndGroupsToOrganization
   },
   Subscription: {
     backupChanged: backupSubscriber,
