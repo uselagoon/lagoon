@@ -6,14 +6,22 @@
 
 Lagoon gives developers what they dream about. It's a system that allows developers to run the exact same code in their local and production environment. The same Docker images, the same service configurations, and the same code.
 
-## Who are you?
+## Where do I start?
 
-<div class="grid cards" markdown>
+If you want to use Lagoon to host your website or application, visit
+[Using Lagoon - The Basics](using-lagoon-the-basics/index.md)
 
-- If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
-- If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+To get more in depth with Lagoon functionality, visit
+[Using Lagoon - Advanced](using-lagoon-advanced/index.md)
 
-</div>
+To understand how Lagoon works, check out
+[Lagoon Concepts - The Basics](concepts-basics/index.md)
+
+and for a deeper understanding, [Lagoon Concepts - Advanced](concepts-advanced/index.md)
+
+If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
+
+
 ## TL;DR: How Lagoon Works
 
 1. Developers define and configure needed services within YAML files.
