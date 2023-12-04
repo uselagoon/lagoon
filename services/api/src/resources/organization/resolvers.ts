@@ -1044,3 +1044,227 @@ export const deleteOrganization: ResolverFn = async (
   });
   return 'success';
 };
+
+const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups) => {
+  const groupProjectIds = [];
+  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  // get all the groups the requested project is in
+  for (const group of projectGroups) {
+    // for each group the project is in, get the list of projects that are also in this group
+    if (R.prop('lagoon-projects', group.attributes)) {
+      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
+      for (const project of groupProjects) {
+        groupProjectIds.push({group: group.name, project: project})
+      }
+    }
+  }
+
+  // for all the projects in the first projects group, iterate through the projects and the groups attached
+  // to these projects and try to build out a map of all the groups and projects that are linked by the primary project
+  if (groupProjectIds.length > 0) {
+    for (const pGroup of groupProjectIds) {
+      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
+      const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(project.id, keycloakGroups);
+      // check if the project is already in the requested organization
+      if (project.organization != oid && project.organization == null) {
+        let alreadyAdded = false
+        for (const f of projectsToMove) {
+          if (f.id == project.id) {
+            alreadyAdded = true
+          }
+        }
+        if (!alreadyAdded) {
+          // if it isn't already in the requested organization, add it to the list of projects that should be moved
+          projectsToMove.push(project)
+        }
+      } else {
+        // if the project is in a completely different organization
+        if (project.organization != oid) {
+          let alreadyAdded = false
+          for (const f of projectsInOtherOrgs) {
+            if (f.id == project.id) {
+              alreadyAdded = true
+            }
+          }
+          if (!alreadyAdded) {
+            // add it to the lsit of projects that will cause this check to fail
+            projectsInOtherOrgs.push(project)
+          }
+        }
+      }
+      for (const group of projectGroups) {
+        // for every group that the project is in, check if the group is already in the requested organization
+        if (group.organization != oid && group.organization == null) {
+          let alreadyAdded = false
+          for (const f of groupsToMove) {
+            if (f.id == group.id) {
+              alreadyAdded = true
+            }
+          }
+          if (!alreadyAdded) {
+            // if it isn't already in the requested organization, add it to the list of groups that should be moved
+            groupsToMove.push(group)
+          }
+        } else {
+          // if the group is in a completely different organization
+          if (group.organization != oid) {
+            let alreadyAdded = false
+            for (const f of groupsInOtherOrgs) {
+              if (f.id == group.id) {
+                alreadyAdded = true
+              }
+            }
+            if (!alreadyAdded) {
+              // add it to the lsit of projects that will cause this check to fail
+              groupsInOtherOrgs.push(group)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, models, hasPermission, keycloakGroups }
+) => {
+  let pid = input.project;
+  let oid = input.organization;
+
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  const projectsToMove = []
+  const groupsToMove = []
+  const projectsInOtherOrgs = []
+  const groupsInOtherOrgs = []
+
+  // get all the groups the requested project is in
+  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+
+  return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
+};
+
+// given a project, collect all the groups that this project has, and all the projects that those groups have and their associated projects
+// and import them into the given organization
+export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
+  root,
+  { input, detachNotifications },
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+) => {
+
+  let pid = input.project;
+  let oid = input.organization;
+
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  const projectsToMove = []
+  const groupsToMove = []
+  const projectsInOtherOrgs = []
+  const groupsInOtherOrgs = []
+
+  // get all the groups the requested project is in
+  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+
+  // if anything comes back in projectsInOtherOrgs or groupsInOtherOrgs, then this mutation should fail and inform the user
+  // to run the query first and return the fields that contain information about why it can't move the projects
+  if (projectsInOtherOrgs.length > 0 || groupsInOtherOrgs.length > 0) {
+    throw new Error(
+      `The process detected projects or groups that are in another organization already, you should run checkBulkImportProjectsAndGroupsToOrganization and return otherOrgProjects and otherOrgGroups fields`
+    )
+  }
+
+  // update all projects to be in the organization
+  const groupsDone = [];
+  const projectsDone = [];
+  for (const group of groupsToMove) {
+    // update the groups of the project to be in the organization
+    if (!groupsDone.includes(group.id)) {
+      if (group.organization != oid && group.organization == null) {
+        await models.GroupModel.updateGroup({
+          id: group.id,
+          name: group.name,
+          attributes: {
+            ...group.attributes,
+            "lagoon-organization": [input.organization]
+          }
+        });
+        groupsDone.push(group.id)
+
+        // log this activity
+        userActivityLogger(`User added a group to organization`, {
+          project: '',
+          organization: input.organization,
+          event: 'api:addGroupToOrganization',
+          payload: {
+            data: {
+              group: group.name,
+              organization: oid
+            }
+          }
+        });
+      }
+    }
+  }
+  for (const project of projectsToMove) {
+    if (!projectsDone.includes(project.id)) {
+      if (project.organization != oid && project.organization == null) {
+        if (detachNotifications) {
+          // remove all notifications from projects before adding them to the organizations
+          try {
+            await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: project.id})
+            userActivityLogger(`User removed all notifications from project`, {
+              project: '',
+              organization: input.organization,
+              event: 'api:removeNotificationsFromProject',
+              payload: {
+                data: {
+                  project: project.id,
+                  patch:{
+                    organization: oid,
+                  }
+                }
+              }
+            });
+          } catch (err) {
+            throw new Error(
+              `Unable to remove all notifications from the project`
+            )
+          }
+        }
+
+        // set project.organization
+        await query(
+          sqlClientPool,
+          Sql.updateProjectOrganization({
+            pid: project.id,
+            patch:{
+              organization: oid,
+            }
+          })
+        );
+        projectsDone.push(project.id)
+
+        // log this activity
+        userActivityLogger(`User added a project to organization`, {
+          project: '',
+          organization: input.organization,
+          event: 'api:addExistingProjectToOrganization',
+          payload: {
+            data: {
+              project: project.id,
+              patch:{
+                organization: oid,
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+
+  return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
+}
