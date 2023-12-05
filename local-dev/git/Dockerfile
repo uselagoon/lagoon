@@ -1,4 +1,4 @@
-FROM alpine:3.17.1
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
@@ -50,4 +50,4 @@ USER root
 
 COPY entrypoint.sh /usr/sbin/entrypoint.sh
 
-ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/sbin/entrypoint.sh"]

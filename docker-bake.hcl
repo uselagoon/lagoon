@@ -50,15 +50,11 @@ group "default" {
     "api",
     "auth-server",
     "backup-handler",
-    "broker-single",
     "broker",
     "keycloak-db",
     "keycloak",
     "local-api-data-watcher-pusher",
-    "local-dbaas-provider",
     "local-git",
-    "local-mongodb-dbaas-provider",
-    "local-registry",
     "logs2notifications",
     "ssh",
     "task-activestandby",
@@ -75,7 +71,7 @@ group "ui-logs-development" {
     "api-db",
     "api-redis",
     "api",
-    "broker-single",
+    "broker",
     "keycloak-db",
     "keycloak",
     "local-api-data-watcher-pusher",
@@ -86,10 +82,7 @@ group "ui-logs-development" {
 group "local-dev" {
   targets = [
     "local-api-data-watcher-pusher",
-    "local-dbaas-provider",
-    "local-git",
-    "local-mongodb-dbaas-provider",
-    "local-registry",
+    "local-git"
   ]
 }
 
@@ -101,7 +94,6 @@ group "prod-images" {
     "api",
     "auth-server",
     "backup-handler",
-    "broker-single",
     "broker",
     "keycloak-db",
     "keycloak",
@@ -181,21 +173,9 @@ target "backup-handler" {
   tags = ["${IMAGE_REPO}/backup-handler:${TAG}"]
 }
 
-target "broker-single" {
-  inherits = ["default"]
-  context = "services/broker-single"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/broker-single - the RabbitMQ broker standalone service for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/broker-single:${TAG}"]
-}
-
 target "broker" {
   inherits = ["default"]
   context = "services/broker"
-  contexts = {
-    "lagoon/broker-single": "target:broker-single"
-  }
   labels = {
     "org.opencontainers.image.title": "lagoon-core/broker - the RabbitMQ broker service for Lagoon"
   }
@@ -301,15 +281,6 @@ target "local-api-data-watcher-pusher" {
   tags = ["${IMAGE_REPO}/local-api-data-watcher-pusher:${TAG}"]
 }
 
-target "local-dbaas-provider" {
-  inherits = ["default"]
-  context = "local-dev/dbaas-provider"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/local-dbaas-provider - the local-dev MariaDB DBaaS image for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/local-dbaas-provider:${TAG}"]
-}
-
 target "local-git" {
   inherits = ["default"]
   context = "local-dev/git"
@@ -317,22 +288,4 @@ target "local-git" {
     "org.opencontainers.image.title": "lagoon-core/local-git - the local-dev Git repository image for Lagoon"
   }
   tags = ["${IMAGE_REPO}/local-git:${TAG}"]
-}
-
-target "local-mongodb-dbaas-provider" {
-  inherits = ["default"]
-  context = "local-dev/mongodb-dbaas-provider"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/local-mongodb-dbaas-provider - the local-dev MongoDB DBaaS image for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/local-mongodb-dbaas-provider:${TAG}"]
-}
-
-target "local-registry" {
-  inherits = ["default"]
-  context = "local-dev/registry"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/local-registry - the local-dev Docker registry image for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/local-registry:${TAG}"]
 }
