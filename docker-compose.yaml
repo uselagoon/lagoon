@@ -89,7 +89,7 @@ services:
       - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
       api-lagoon-migrations:
-        condition: service_completed_successfully # don't start the API until the lagoon migrations are completed
+        condition: service_started
       keycloak:
         condition: service_started
     ports:

@@ -2460,6 +2460,27 @@ function add_organization_viewall {
 EOF
 }
 
+function migrate_to_custom_group_mapper {
+    local opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    local lagoon_opendistro_security_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH)
+    local lagoon_opendistro_security_mapper_groups=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .protocolMapper')
+    if [ "$lagoon_opendistro_security_mapper_groups" == "lagoon-search-customprotocolmapper" ]; then
+        echo "custom mapper already migrated"
+        return 0
+    fi
+
+    echo Migrating "token mapper for search" to customer token mapper
+
+    ################
+    # Update Mapper
+    ################
+
+    local old_mapper_id=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .id')
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models/$old_mapper_id --config $CONFIG_PATH
+    echo '{"name":"groups","protocolMapper":"lagoon-search-customprotocolmapper","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -2510,6 +2531,7 @@ function configure_keycloak {
     add_development_task_cancel
     add_production_task_cancel
     add_organization_viewall
+    migrate_to_custom_group_mapper
 
 
     # always run last
