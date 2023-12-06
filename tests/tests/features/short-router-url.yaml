@@ -5,8 +5,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
   hosts: localhost
@@ -14,8 +14,10 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    lagoon_environment: "{{ lagoon_environment }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ lagoon_environment }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: >
     {{ testname }} - check that the auto-generated ingress has the
@@ -27,7 +29,7 @@
     project: "{{ project }}"
     lagoon_environment: "{{ lagoon_environment }}"
   tasks:
-  - include: ../../checks/check-auto-generated-ingress-short-router-url.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-auto-generated-ingress-short-router-url.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -36,7 +38,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -45,4 +47,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

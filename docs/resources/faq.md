@@ -1,20 +1,16 @@
----
-description: Frequently asked questions about Lagoon!
----
-
 # FAQ
 
 ## How do I contact my Lagoon administrator?
 
-You should have either a private RocketChat or Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
+You should have a private Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
 
 ## I found a bug! 🐞
 
-If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please **DO NOT** file a GitHub issue for them.
+If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please DO NOT file a GitHub issue for them.
 
-## I'm interested in amazee.io's hosting services with Lagoon!
+## I'm interested in amazee.io's hosting services with Lagoon
 
-That's great news! You can contact us via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
+That's great news! You can contact them via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
 
 ## How can I restore a backup?
 
@@ -22,11 +18,11 @@ We have backups available for files and databases, typically taken every 24 hour
 
 We keep up to 7 daily backups and 4 weekly backups.
 
-If you ever need to recover or restore a backup feel free to submit a ticket or send us a message via chat and we will be more than happy to help!
+If you ever need to recover or restore a backup, feel free to submit a ticket or send us a message via chat and we will be more than happy to help!
 
 ## How can I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=bluTyxKqLbw&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## I'm getting an invalid SSL certificate error
 
@@ -34,9 +30,9 @@ The first thing to try is what is listed in [our documentation about SSL](../usi
 
 If you follow those steps, and you are still seeing an error, please submit a ticket or send us a message on chat and we can help resolve this for you.
 
-## I'm getting an "Array" error when running a drush command
+## I'm getting an "Array" error when running a Drush command
 
-This was a bug that was prevalent in drush versions 8.1.16 and 8.1.17. There error would look something like this:
+This was a bug that was prevalent in Drush versions 8.1.16 and 8.1.17. There error would look something like this:
 
 ```text
 The command could not be executed successfully (returned: Array [error]
@@ -56,9 +52,9 @@ Error: no database record could be found for source @main [error]
 
 Upgrading Drush should fix that for you. We strongly suggest that you use version 8.3 or newer. Once Drush is upgraded the command should work!
 
-## I'm seeing an Internal Server Error when trying to access my Kibana logs!
+## I'm seeing an Internal Server Error when trying to access my Kibana logs
 
-{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 No need to panic! This usually happens when a tenant has not been selected. To fix this, follow these steps:
 
@@ -69,41 +65,41 @@ No need to panic! This usually happens when a tenant has not been selected. To f
 
 You should now be able to see your logs.
 
-## I'm unable to SSH into any environment!
+## I'm unable to SSH into any environment
 
 I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`. When I run `drush sa` no aliases are returned.
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://docs.lagoon.sh/pygmy/troubleshooting](https://docs.lagoon.sh/pygmy/troubleshooting)
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
 
-## How can I check the status of a build
+## How can I check the status of a build?
 
-{% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PyrlZqTjf68" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## How do I add a cron job?
 
-{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Yd_JfDyfbR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## How do I add a new route?
 
-{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## How do I remove a route?
 
-You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use either the private RocketChat or Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io.
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io or on [Discord](https://discord.gg/te5hHe95JE).
 
-## **When I run `pygmy status`, no keys are loaded:**
+## When I run `pygmy status`, no keys are loaded
 
-You'll need to load your SSH key into pygmy. Here's how: [https://docs.lagoon.sh/pygmy/ssh-agent](https://docs.lagoon.sh/pygmy/ssh-agent)
+You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/ssh_agent](https://pygmy.readthedocs.io/en/master/ssh_agent)
 
-## **When I run `drush sa` no aliases are returned:**
+## When I run `drush sa` no aliases are returned
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://docs.lagoon.sh/pygmy/troubleshooting](https://docs.lagoon.sh/pygmy/troubleshooting)
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting](https://pygmy.readthedocs.io/en/master/troubleshooting)
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
 This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
 
-## When I start pygmy I see an "address already in use" error?
+## When I start Pygmy I see an "address already in use" error?
 
 `Error starting userland proxy: listen tcp 0.0.0.0:80: bind: address already in use Error: failed to start containers: amazeeio-haproxy`
 
@@ -113,7 +109,7 @@ This is a known error! Most of the time it means that there is already something
 netstat -ltnp | grep -w ':80'
 ```
 
-That should list everything running on port 80. Kill the process running on port 80. Once port 80 is freed up, pygmy should start up with no further errors.
+That should list everything running on port 80. Kill the process running on port 80. Once port 80 is freed up, Pygmy should start up with no further errors.
 
 ## How can I change branches/PR environments/production on my project?
 
@@ -121,7 +117,7 @@ You can make that change using the Lagoon API! You can find the documentation fo
 
 ## How do I add a redirect?
 
-{% embed url="https://www.youtube.com/watch?v=rWb-PkRDhY4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=6" caption="" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rWb-PkRDhY4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## How can I add new users \(and SSH keys\) to my project/group?
 
@@ -141,13 +137,13 @@ Once you've added a runtime environment variable to your production environment 
 
 For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:
 
-* **Server Hostname**: `ssh.lagoon.amazeeio.cloud`
-* **Port**: 32222
-* **Username**: &lt;Project-Environment-Name&gt;
+* Server Hostname: `ssh.lagoon.amazeeio.cloud`
+* Port: 32222
+* Username: &lt;Project-Environment-Name&gt;
 
-Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _**`PROJECTNAME-ENVIRONMENT`**_.
+Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _`PROJECTNAME-ENVIRONMENT`_.
 
-You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/amazeeio/lagoon-sync](https://github.com/amazeeio/lagoon-sync)
+You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/uselagoon/lagoon-sync](https://github.com/uselagoon/lagoon-sync)
 
 Authentication also happens automatically via SSH Public & Private Key Authentication.
 
@@ -169,32 +165,12 @@ A developer can handle this by installing the necessary packages into the contai
 
 ## Is there a way to stop a Lagoon build?
 
-If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by amazee.io support.
-
-## I’m launching my production environment in \(CH\US\AU\), to which records should I point my DNS?
-
-For amazee.io cloud customers:
-
-* US
-  * [lagoon.us.amazee.io](http://lagoon.us.amazee.io/)
-  * 34.237.122.21
-* CH
-  * [lagoon.ch.amazee.io](http://lagoon.ch.amazee.io/)
-  * 5.102.151.21
-  * 5.102.151.53
-* AU
-  * [lagoon.au.amazee.io](http://lagoon.au.amazee.io/)
-  * 13.55.153.74
+If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by users with admin access to the cluster.
 
 ## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
-
+<!-- markdown-link-check-disable-next-line -->
 We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
-## Where can I find the amazee.io Status Page?
+## I have a question that isn't answered here
 
-You can find and subscribe to the amazee.io StatusPage here: [https://status.amazee.io/](https://status.amazee.io/).
-
-## I have a question that isn't answered here.
-
-You can reach out to us via [RocketChat](https://amazeeio.rocket.chat/home) or email at [support@amazee.io](mailto:support@amazee.io).
-
+You can reach out to the team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

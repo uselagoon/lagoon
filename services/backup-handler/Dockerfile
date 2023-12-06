@@ -1,20 +1,14 @@
 # build the binary
-ARG GO_VERSION
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:${GO_VERSION:-1.13.8} AS builder
-# bring in all the packages
-# COPY main.go /go/src/github.com/amazeeio/lagoon/services/backup-handler/
-# COPY go.mod /go/src/github.com/amazeeio/lagoon/services/backup-handler/
-# COPY go.sum /go/src/github.com/amazeeio/lagoon/services/backup-handler/
-# COPY internal /go/src/github.com/amazeeio/lagoon/services/backup-handler/internal/
-COPY . /go/src/github.com/amazeeio/lagoon/services/backup-handler/
-WORKDIR /go/src/github.com/amazeeio/lagoon/services/backup-handler/
+FROM golang:1.21-alpine AS builder
 
-# tests currently don't work because mocking rabbit is interesting
-RUN GO111MODULE=on go test ./...
+# bring in all the packages
+COPY . /go/src/github.com/uselagoon/lagoon/services/backup-handler/
+WORKDIR /go/src/github.com/uselagoon/lagoon/services/backup-handler/
+
 # compile
-RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o backup-handler .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o backup-handler .
 
 # put the binary into container
 # use the commons image to get entrypoints
@@ -25,8 +19,8 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 WORKDIR /app/
 
-# bring the auto-idler binary from the builder
-COPY --from=builder /go/src/github.com/amazeeio/lagoon/services/backup-handler/backup-handler .
+# bring the backup-handler binary from the builder
+COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/backup-handler/backup-handler .
 
 ENV LAGOON=backup-handler
 # set defaults

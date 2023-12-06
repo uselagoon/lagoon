@@ -1,0 +1,42 @@
+{
+    "kind": "Ingress",
+    "apiVersion": "networking.k8s.io/v1",
+    "metadata": {
+        "name": "www.example.com",
+        "namespace": "standby-main",
+        "labels": {
+            "dioscuri.amazee.io/migrate": "true"
+        }
+    },
+    "spec": {
+        "tls": [
+            {
+                "secretName": "www.example.com-tls"
+            }
+        ],
+        "rules": [
+            {
+                "host": "www.example.com",
+                "http": {
+                    "paths": [
+                        {
+                            "path": "/",
+                            "pathType": "Prefix",
+                            "backend": {
+                                "service": {
+                                    "name": "http",
+                                    "port": {
+                                        "name": "http"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "status": {
+        "loadBalancer": {}
+    }
+}

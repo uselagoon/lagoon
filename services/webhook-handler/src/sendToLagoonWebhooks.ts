@@ -1,5 +1,5 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { WebhookRequestData } from './types';
 
 export async function sendToLagoonWebhooks (args: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper): Promise<void> {

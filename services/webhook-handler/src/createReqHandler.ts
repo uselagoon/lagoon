@@ -4,9 +4,9 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { extractWebhookData } from './extractWebhookData';
 
 import { sendToLagoonWebhooks } from './sendToLagoonWebhooks';
-import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 
-import type { Logger } from '@lagoon/commons/dist/local-logging';
+import type { Logger } from '@lagoon/commons/dist/logs/local-logger';
 
 interface Callback {
   (): void
@@ -41,7 +41,7 @@ export function createReqHandler(options: Options): Handler {
       res.writeHead(400, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: msg }));
 
-      logger.error('Error:', msg);
+      logger.error(`Error: ${msg}`);
     };
 
     req.pipe(bl((err, data) => {

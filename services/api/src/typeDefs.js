@@ -14,6 +14,9 @@ const typeDefs = gql`
   enum SshKeyType {
     SSH_RSA
     SSH_ED25519
+    ECDSA_SHA2_NISTP256
+    ECDSA_SHA2_NISTP384
+    ECDSA_SHA2_NISTP521
   }
 
   enum DeployType {
@@ -32,6 +35,7 @@ const typeDefs = gql`
     ROCKETCHAT
     MICROSOFTTEAMS
     EMAIL
+    WEBHOOK
   }
 
   enum NotificationContentType {
@@ -47,6 +51,7 @@ const typeDefs = gql`
     ERROR
     FAILED
     COMPLETE
+    QUEUED
   }
 
   enum EnvVariableType {
@@ -63,9 +68,16 @@ const typeDefs = gql`
   }
 
   enum TaskStatusType {
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    FAILED
+    COMPLETE
+    QUEUED
     ACTIVE
     SUCCEEDED
-    FAILED
   }
 
   enum RestoreStatusType {
@@ -98,15 +110,6 @@ const typeDefs = gql`
     OWNER
   }
 
-  enum Currency {
-    AUD
-    EUR
-    GBP
-    USD
-    CHF
-    ZAR
-  }
-
   enum ProblemSeverityRating {
     NONE
     UNKNOWN
@@ -117,7 +120,124 @@ const typeDefs = gql`
     CRITICAL
   }
 
+  enum FactType {
+    TEXT
+    URL
+    SEMVER
+  }
+
+  enum TaskPermission {
+    MAINTAINER
+    DEVELOPER
+    GUEST
+  }
+
   scalar SeverityScore
+
+  type AdvancedTaskDefinitionArgument {
+    id: Int
+    name: String
+    displayName: String
+    type: String
+    defaultValue: String
+    optional: Boolean
+    range: [String]
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  type AdvancedTaskDefinitionImage {
+    id: Int
+    name: String
+    description: String
+    confirmationText: String
+    type: AdvancedTaskDefinitionTypes
+    image: String
+    service: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
+  }
+
+  type AdvancedTaskDefinitionCommand {
+    id: Int
+    name: String
+    description: String
+    confirmationText: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
+  }
+
+  union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand
+
+  type TaskRegistration {
+    id: Int
+    type: String
+    name: String
+    description: String
+    groupName: String
+    environment: Int
+    project: Int
+    command: String
+    service: String
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
+
+
+  type Workflow {
+    id: Int
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  input AddWorkflowInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
 
   type Problem {
     id: Int
@@ -203,18 +323,33 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
+    references: [FactReference]
+    service: String
   }
 
   input AddFactInput {
     id: Int
-    environment: Int!
+    environment: Int
     name: String!
     value: String!
     source: String!
     description: String!
+    keyFact: Boolean
+    type: FactType
+    category: String
+    service: String
   }
 
   input AddFactsInput {
+    facts: [AddFactInput]!
+  }
+
+  input AddFactsByNameInput {
+    project: String
+    environment: String
     facts: [AddFactInput]!
   }
 
@@ -224,6 +359,10 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
+    service: String
   }
 
   input UpdateFactInput {
@@ -239,6 +378,61 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+  }
+
+  type FactReference {
+    id: Int
+    fid: Int
+    name: String
+  }
+
+  input AddFactReferenceInput {
+    fid: Int!
+    name: String!
+  }
+
+  input UpdateFactReferenceInputValue {
+    fid: Int!
+    name: String
+  }
+
+  input UpdateFactReferenceInput {
+    fid: Int!
+    patch: UpdateFactReferenceInputValue!
+  }
+
+  input DeleteFactReferenceInput {
+    factName: String!
+    referenceName: String!
+    eid: Int!
+  }
+
+  input DeleteFactReferencesByFactIdInput {
+    fid: Int!
+  }
+
+  enum FactFilterConnective {
+    OR
+    AND
+  }
+
+  enum FactFilterLHSTarget {
+    FACT
+    ENVIRONMENT
+    PROJECT
+  }
+
+  input FactFilterAtom {
+    lhsTarget: FactFilterLHSTarget
+    name: String!
+    contains: String!
+  }
+  input FactFilterInput {
+    filterConnective: FactFilterConnective
+    filters: [FactFilterAtom]
+    skip: Int
+    take: Int
+    orderBy: String
   }
 
   type File {
@@ -266,11 +460,22 @@ const typeDefs = gql`
     gitlabId: Int
     sshKeys: [SshKey]
     groups: [GroupInterface]
+    # This just returns the group name, id and the role the user has in that group.
+    # This is a neat way to visualize a users specific access without having to get all members of a group
+    groupRoles: [GroupRoleInterface]
   }
 
   type GroupMembership {
     user: User
     role: GroupRole
+  }
+
+  type GroupRoleInterface {
+    id: String
+    name: String
+    role: GroupRole
+    groupType: String
+    organization: Int
   }
 
   interface GroupInterface {
@@ -279,7 +484,9 @@ const typeDefs = gql`
     type: String
     groups: [GroupInterface]
     members: [GroupMembership]
+    memberCount: Int
     projects: [Project]
+    organization: Int
   }
 
   type Group implements GroupInterface {
@@ -288,20 +495,31 @@ const typeDefs = gql`
     type: String
     groups: [GroupInterface]
     members: [GroupMembership]
+    memberCount: Int
     projects: [Project]
+    organization: Int
   }
 
-  type BillingGroup implements GroupInterface {
+  interface OrgGroupInterface {
     id: String
     name: String
     type: String
-    groups: [GroupInterface]
+    groups: [OrgGroupInterface]
     members: [GroupMembership]
-    projects: [Project]
-    currency: String
-    billingSoftware: String
-    modifiers: [BillingModifier]
-    uptimeRobotStatusPageId: String
+    memberCount: Int
+    projects: [OrgProject]
+    organization: Int
+  }
+
+  type OrgGroup implements OrgGroupInterface {
+    id: String
+    name: String
+    type: String
+    groups: [OrgGroupInterface]
+    members: [GroupMembership]
+    memberCount: Int
+    projects: [OrgProject]
+    organization: Int
   }
 
   type Openshift {
@@ -310,11 +528,17 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   type Kubernetes {
@@ -323,11 +547,17 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   type NotificationMicrosoftTeams {
@@ -364,6 +594,14 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
+  type NotificationWebhook {
+    id: Int
+    name: String
+    webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
@@ -372,7 +610,7 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail | NotificationWebhook
 
   """
   Lagoon Project (like a git repository)
@@ -386,6 +624,10 @@ const typeDefs = gql`
     Name of project
     """
     name: String
+    """
+    ID of organization
+    """
+    organization: Int
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@172.17.0.1/project1.git
@@ -406,10 +648,18 @@ const typeDefs = gql`
     """
     privateKey: String
     """
+    SSH Public Key for Project, can be added to git repositories to allow Lagoon read access.
+    """
+    publicKey: String
+    """
     Set if the .lagoon.yml should be found in a subfolder
     Usefull if you have multiple Lagoon projects per Git Repository
     """
     subfolder: String
+    """
+    Set if the project should use a routerPattern that is different from the deploy target default
+    """
+    routerPattern: String
     """
     Notifications that should be sent for this project
     """
@@ -482,6 +732,14 @@ const typeDefs = gql`
     """
     standbyAlias: String
     """
+    What the production environment build priority should be (\`0 through 10\`)
+    """
+    productionBuildPriority: Int
+    """
+    What the development environment build priority should be (\`0 through 10\`)
+    """
+    developmentBuildPriority: Int
+    """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
@@ -497,6 +755,10 @@ const typeDefs = gql`
     Should the Facts UI be available for this Project (\`1\` or \`0\`)
     """
     factsUi: Int
+    """
+    Should the ability to deploy environments be disabled for this Project (\`1\` or \`0\`)
+    """
+    deploymentsDisabled: Int
     """
     Reference to OpenShift Object this Project should be deployed to
     """
@@ -533,6 +795,10 @@ const typeDefs = gql`
       Include deleted Environments (by default deleted environment are hidden)
       """
       includeDeleted: Boolean
+      """
+      Filter environments by fact matching
+      """
+      factFilter: FactFilterInput
     ): [Environment]
     """
     Creation Timestamp of Project
@@ -550,6 +816,15 @@ const typeDefs = gql`
     Metadata key/values stored against a project
     """
     metadata: JSON
+    """
+    DeployTargetConfigs are a way to define which deploy targets are used for a project\n
+    """
+    deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Build image this project will use if set
+    """
+    buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   """
@@ -634,13 +909,20 @@ const typeDefs = gql`
     envVariables: [EnvKeyValue]
     route: String
     routes: String
-    monitoringUrls: String
-    deployments(name: String): [Deployment]
-    backups(includeDeleted: Boolean): [Backup]
-    tasks(id: Int): [Task]
+    monitoringUrls: String @deprecated(reason: "No longer in use")
+    deployments(name: String, limit: Int): [Deployment]
+    insights(type: String, limit: Int): [Insight]
+    backups(includeDeleted: Boolean, limit: Int): [Backup]
+    tasks(id: Int, taskName: String, limit: Int): [Task]
+    advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts: [Fact]
+    facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
+    openshift: Openshift
+    openshiftProjectPattern: String
+    kubernetes: Kubernetes
+    kubernetesNamespacePattern: String
+    workflows: [Workflow]
   }
 
   type EnvironmentHitsMonth {
@@ -685,6 +967,10 @@ const typeDefs = gql`
     backupId: String
     status: String
     restoreLocation: String
+    """
+    The size of the restored file in bytes
+    """
+    restoreSize: Int
     created: String
   }
 
@@ -702,6 +988,23 @@ const typeDefs = gql`
     The Lagoon URL
     """
     uiLink: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildStep: String
+  }
+
+  type Insight {
+    id: Int
+    type: String
+    service: String
+    created: String
+    fileId: String
+    data: String
+    file: String!
+    size: String
+    environment: Environment!
+    downloadUrl: String
   }
 
   type EnvKeyValue {
@@ -714,6 +1017,7 @@ const typeDefs = gql`
   type Task {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -721,25 +1025,178 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
   }
 
-  type BillingModifier {
+  type AdvancedTask {
     id: Int
-    group: BillingGroup
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
+    name: String
+    taskName: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    service: String
+    advancedTask: String
+    remoteId: String
+    logs: String
+    files: [File]
+  }
+
+  type ProjectFactSearchResults {
+    count: Int
+    projects: [Project]
+  }
+
+  type EnvironmentFactSearchResults {
+    count: Int
+    environments: [Environment]
+  }
+
+  type OrgUser {
+    id: String
+    email: String
+    firstName: String
+    lastName: String
+    owner: Boolean
+    comment: String
+    groupRoles: [GroupRoleInterface]
+  }
+
+  type Organization {
+    id: Int
+    name: String
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+    deployTargets: [Openshift]
+    projects: [OrgProject]
+    environments: [OrgEnvironment]
+    groups: [OrgGroupInterface]
+    owners: [OrgUser]
+    notifications(type: NotificationType): [Notification]
+  }
+
+  input AddOrganizationInput {
+    id: Int
+    name: String!
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+  }
+
+  input DeleteOrganizationInput {
+    id: Int!
+  }
+
+  input UpdateOrganizationPatchInput {
+    name: String
+    friendlyName: String
+    description: String
+    quotaProject: Int
+    quotaGroup: Int
+    quotaNotification: Int
+    quotaEnvironment: Int
+    quotaRoute: Int
+  }
+
+  input UpdateOrganizationInput {
+    id: Int!
+    patch: UpdateOrganizationPatchInput!
+  }
+
+  """
+  OrgProject is a small selection of fields for organization owners to view
+  """
+  type OrgProject {
+    id: Int
+    name: String
+    organization: Int
+    groups: [OrgGroupInterface]
+    groupCount: Int
+    notifications: [OrganizationNotification]
+  }
+
+  """
+  OrgEnvironment is a small selection of fields for organization owners to view
+  """
+  type OrgEnvironment {
+    id: Int
+    name: String
+    project: OrgProject
+    deployType: String
+    deployHeadRef: String
+    deployTitle: String
+    autoIdle: Int
+    environmentType: String
+    openshiftProjectName: String
+    kubernetesNamespaceName: String
+    updated: String
+    created: String
+    deleted: String
+    route: String
+    routes: String
+    services: [EnvironmentService]
+    openshift: Openshift
+    kubernetes: Kubernetes
+  }
+
+  type OrganizationNotification {
+    name: String
+    type: NotificationType
+  }
+
+  type DeployTargetConfig {
+    id: Int
+    project: Project
     weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Openshift
+    deployTargetProjectPattern: String
+  }
+
+  input AddDeployTargetConfigInput {
+    id: Int
+    project: Int!
+    weight: Int
+    branches: String!
+    pullrequests: String!
+    deployTarget: Int!
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigPatchInput {
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Int
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigInput {
+    id: Int!
+    patch: UpdateDeployTargetConfigPatchInput
+  }
+
+  input DeleteDeployTargetConfigInput {
+    id: Int!
+    project: Int!
+    execute: Boolean
   }
 
   input DeleteEnvironmentInput {
@@ -763,6 +1220,36 @@ const typeDefs = gql`
     key: String!
   }
 
+  input ProjectOrgGroupsInput {
+    project: Int!
+    organization: Int!
+  }
+
+  input EnvVariableByProjectEnvironmentNameInput {
+    environment: String
+    project: String!
+  }
+
+  # Must provide id OR name
+  input KubernetesInput {
+    id: Int
+    name: String
+  }
+
+  input DeploymentByNameInput {
+    """
+    The environment name
+    """
+    environment: String
+    """
+    The project name
+    """
+    project: String
+    """
+    The deployment name (eg, lagoon-build-abc)
+    """
+    name: String
+  }
 
   type Query {
     """
@@ -774,18 +1261,41 @@ const typeDefs = gql`
     """
     userBySshKey(sshKey: String!): User
     """
+    Returns User Object by a given sshKey Fingerprint
+    """
+    userBySshFingerprint(fingerprint: String!): User
+    """
+    Returns User Object by a given email address
+    """
+    userByEmail(email: String!): User
+    """
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    orgProjectByName(name: String!): OrgProject
+    """
+    Returns all Environment Objects for a specified Kubernetes matching given filter (all if no filter defined)
+    """
+    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String, type: EnvType): [Environment]
     """
     Returns Group Object by a given name
     """
     groupByName(name: String!): GroupInterface
+    groupByNameAndOrganization(name: String!, organization: Int!): OrgGroupInterface
+    """
+    Retrieves all users that have been added to groups within an organization.
+    """
+    usersByOrganization(organization: Int!): [OrgUser]
+    """
+    Retrieve information about a specific user within groups within an organization.
+    This will only return group information if this user is in any groups within this organization
+    """
+    userByEmailAndOrganization(email: String!, organization: Int!): OrgUser
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
-    environmentByName(name: String!, project: Int!): Environment
+    environmentByName(name: String!, project: Int!, includeDeleted: Boolean): Environment
     environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
@@ -799,17 +1309,34 @@ const typeDefs = gql`
     environmentByKubernetesNamespaceName(
       kubernetesNamespaceName: String!
     ): Environment
+    """
+    Return projects from a fact-based search
+    """
+    projectsByFactSearch(
+      input: FactFilterInput
+    ): ProjectFactSearchResults
+
+    """
+    Return environments from a fact-based search
+    """
+    environmentsByFactSearch(
+      input: FactFilterInput
+    ): EnvironmentFactSearchResults
     userCanSshToEnvironment(
       openshiftProjectName: String
       kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    deploymentByName(input: DeploymentByNameInput): Deployment
+    deploymentsByBulkId(bulkId: String): [Deployment]
+    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType]): [Deployment]
+    taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType, buildImage: Boolean): [Project]
     """
     Returns all Project Objects matching metadata filters
     """
@@ -817,11 +1344,11 @@ const typeDefs = gql`
     """
     Returns all OpenShift Objects
     """
-    allOpenshifts: [Openshift]
+    allOpenshifts(disabled: Boolean, buildImage: Boolean): [Openshift]
     """
     Returns all Kubernetes Objects
     """
-    allKubernetes: [Kubernetes]
+    allKubernetes(disabled: Boolean, buildImage: Boolean): [Kubernetes]
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
@@ -832,6 +1359,10 @@ const typeDefs = gql`
     allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
     problemSources: [String]
     """
+    Returns all Users
+    """
+    allUsers(id: String, email: String, gitlabId: Int): [User]
+    """
     Returns all Groups matching given filter (all if no filter defined)
     """
     allGroups(name: String, type: String): [GroupInterface]
@@ -840,18 +1371,6 @@ const typeDefs = gql`
     """
     allProjectsInGroup(input: GroupInput): [Project]
     """
-    Returns the costs for a given billing group
-    """
-    billingGroupCost(input: GroupInput, month: String!): JSON
-    """
-    Returns the costs for all billing groups
-    """
-    allBillingGroupsCost(month: String!): JSON
-    """
-    Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
-    """
-    allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
-    """
     Returns LAGOON_VERSION
     """
     lagoonVersion: JSON
@@ -859,6 +1378,61 @@ const typeDefs = gql`
     Returns all ProblemHarborScanMatchers
     """
     allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    """
+    Returns all AdvancedTaskDefinitions
+    """
+    allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
+    """
+    Returns a single AdvancedTaskDefinition given an id
+    """
+    advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
+    """
+    Returns a AdvancedTaskDefinitions applicable for an environment
+    """
+    advancedTasksForEnvironment(environment: Int!) : [AdvancedTaskDefinition]
+    """
+    Returns a AdvancedTaskDefinitionArgument by Id
+    """
+    advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
+    """
+    Returns the DeployTargetConfig by a deployTargetConfig Id
+    """
+    deployTargetConfigById(id: Int!) : DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a project Id
+    """
+    deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a deployTarget Id (aka: Openshift Id)
+    """
+    deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    List all organizations
+    """
+    allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Get an organization by its ID
+    """
+    organizationById(id: Int!): Organization
+    organizationByName(name: String!): Organization
+    getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
+    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
+    getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
+    checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
+  }
+
+  type ProjectGroupsToOrganization {
+    projects: [Project]
+    groups: [GroupInterface]
+    otherOrgProjects: [Project]
+    otherOrgGroups: [GroupInterface]
   }
 
   # Must provide id OR name
@@ -902,6 +1476,7 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
+    routerPattern: String
     openshift: Int
     openshiftProjectPattern: String
     kubernetes: Int
@@ -926,6 +1501,13 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
+    deploymentsDisabled: Int
+    organization: Int
+    addOrgOwner: Boolean
+    buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input AddEnvironmentInput {
@@ -939,6 +1521,10 @@ const typeDefs = gql`
     environmentType: EnvType!
     openshiftProjectName: String
     kubernetesNamespaceName: String
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
   }
 
   input AddOrUpdateEnvironmentStorageInput {
@@ -993,6 +1579,10 @@ const typeDefs = gql`
     completed: String
     environment: Int!
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildStep: String
   }
 
   input DeleteDeploymentInput {
@@ -1007,6 +1597,10 @@ const typeDefs = gql`
     completed: String
     environment: Int
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildStep: String
   }
 
   input UpdateDeploymentInput {
@@ -1032,12 +1626,85 @@ const typeDefs = gql`
     execute: Boolean
   }
 
+
+  input AdvancedTaskArgumentInput {
+    name: String
+    value: String
+  }
+
+  enum AdvancedTaskDefinitionArgumentTypes {
+    NUMERIC
+    STRING
+    ENVIRONMENT_SOURCE_NAME
+    ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF
+  }
+
+  input AdvancedTaskDefinitionArgumentInput {
+    name: String
+    type: AdvancedTaskDefinitionArgumentTypes
+    displayName: String
+    defaultValue: String
+    optional: Boolean
+  }
+
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    COMMAND
+    IMAGE
+  }
+
+  input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+  }
+
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+  }
+
   input DeleteTaskInput {
     id: Int!
   }
 
   input UpdateTaskPatchInput {
     name: String
+    taskName: String
     status: TaskStatusType
     created: String
     started: String
@@ -1053,16 +1720,35 @@ const typeDefs = gql`
     patch: UpdateTaskPatchInput!
   }
 
+  input CancelTaskNameInput {
+    id: Int
+    taskName: String
+    environment: EnvironmentInput
+  }
+
+  input CancelTaskInput {
+    task: CancelTaskNameInput!
+  }
+
   input AddOpenshiftInput {
     id: Int
     name: String!
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   input AddKubernetesInput {
@@ -1071,10 +1757,19 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   input DeleteOpenshiftInput {
@@ -1088,22 +1783,32 @@ const typeDefs = gql`
   input AddNotificationMicrosoftTeamsInput {
     name: String!
     webhook: String!
+    organization: Int
   }
   input AddNotificationEmailInput {
     name: String!
     emailAddress: String!
+    organization: Int
   }
 
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
+  }
+
+  input AddNotificationWebhookInput {
+    name: String!
+    webhook: String!
+    organization: Int
   }
 
   input AddNotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
   }
 
   input DeleteNotificationMicrosoftTeamsInput {
@@ -1118,6 +1823,10 @@ const typeDefs = gql`
   }
 
   input DeleteNotificationSlackInput {
+    name: String!
+  }
+
+  input DeleteNotificationWebhookInput {
     name: String!
   }
 
@@ -1141,6 +1850,7 @@ const typeDefs = gql`
     lastName: String
     comment: String
     gitlabId: Int
+    resetPassword: Boolean
   }
 
   input UpdateUserPatchInput {
@@ -1160,6 +1870,16 @@ const typeDefs = gql`
     user: UserInput!
   }
 
+  input addUserToOrganizationInput {
+    user: UserInput!
+    organization: Int!
+    owner: Boolean
+  }
+
+  input ResetUserPasswordInput {
+    user: UserInput!
+  }
+
   input DeleteProjectInput {
     project: String!
   }
@@ -1170,6 +1890,7 @@ const typeDefs = gql`
     availability: ProjectAvailability
     privateKey: String
     subfolder: String
+    routerPattern: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
@@ -1192,6 +1913,11 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
+    deploymentsDisabled: Int
+    buildImage: String
+    sharedBaasBucket: Boolean
   }
 
   input UpdateProjectInput {
@@ -1199,15 +1925,44 @@ const typeDefs = gql`
     patch: UpdateProjectPatchInput!
   }
 
+  input AddProjectToOrganizationInput {
+    project: Int!
+    organization: Int!
+  }
+
+  input RemoveProjectFromOrganizationInput {
+    project: Int!
+    organization: Int!
+  }
+
+  input AddDeployTargetToOrganizationInput {
+    deployTarget: Int!
+    organization: Int!
+  }
+
+  input RemoveDeployTargetFromOrganizationInput {
+    deployTarget: Int!
+    organization: Int!
+  }
+
   input UpdateOpenshiftPatchInput {
     name: String
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   input UpdateOpenshiftInput {
@@ -1220,10 +1975,19 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
+    buildImage: String
+    sharedBaasBucketName: String
+    disabled: Boolean
   }
 
   input UpdateKubernetesInput {
@@ -1253,6 +2017,11 @@ const typeDefs = gql`
     channel: String
   }
 
+  input UpdateNotificationWebhookPatchInput {
+    name: String
+    webhook: String
+  }
+
   input UpdateNotificationMicrosoftTeamsInput {
     name: String!
     patch: UpdateNotificationMicrosoftTeamsPatchInput
@@ -1270,6 +2039,11 @@ const typeDefs = gql`
   input UpdateNotificationSlackInput {
     name: String!
     patch: UpdateNotificationSlackPatchInput
+  }
+
+  input UpdateNotificationWebhookInput {
+    name: String!
+    patch: UpdateNotificationWebhookPatchInput
   }
 
   input UpdateSshKeyPatchInput {
@@ -1296,6 +2070,10 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     """
     Timestamp in format 'YYYY-MM-DD hh:mm:ss'
     """
@@ -1320,6 +2098,20 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input DeleteEnvVariableByNameInput {
+    environment: String
+    project: String!
+    name: String!
+  }
+
+  input EnvVariableByNameInput {
+    environment: String
+    project: String!
+    scope: EnvVariableScope
+    name: String!
+    value: String!
+  }
+
   input SetEnvironmentServicesInput {
     environment: Int!
     services: [String]!
@@ -1334,14 +2126,29 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input EnvKeyValueInput {
+    name: String
+    value: String
+  }
+
   input DeployEnvironmentLatestInput {
     environment: EnvironmentInput!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentBranchInput {
     project: ProjectInput!
     branchName: String!
     branchRef: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPullrequestInput {
@@ -1352,12 +2159,22 @@ const typeDefs = gql`
     baseBranchRef: String!
     headBranchName: String!
     headBranchRef: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPromoteInput {
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input switchActiveStandbyInput {
@@ -1374,79 +2191,11 @@ const typeDefs = gql`
     parentGroup: GroupInput
   }
 
-  input AddBillingModifierInput {
-    """
-    The existing billing group for this modifier
-    """
-    group: GroupInput!
-    """
-    The date this modifier should start to be applied - Format: YYYY-MM-DD
-    """
-    startDate: String!
-    """
-    The date this modifer will expire - Format: YYYY-MM-DD
-    """
-    endDate: String!
-    """
-    The amount that the total monthly bill should be discounted - Format (Float)
-    """
-    discountFixed: Float
-    """
-    The percentage the total monthly bill should be discounted - Format (0-100)
-    """
-    discountPercentage: Float
-    """
-    The amount of exta cost that should be added to the total- Format (Float)
-    """
-    extraFixed: Float
-    """
-    The percentage the total monthly bill should be added - Format (0-100)
-    """
-    extraPercentage: Float
-    """
-    The minimum amount of the invoice applied to the total- Format (Float)
-    """
-    min: Float
-    """
-    The maximum amount of the invoice applied to the total- Format (Float)
-    """
-    max: Float
-    """
-    Customer comments are visible to the customer
-    """
-    customerComments: String
-    """
-    Admin comments will not be visible to the customer.
-    """
-    adminComments: String!
-    """
-    The order this modifer should be applied
-    """
-    weight: Int
-  }
-
-  input BillingModifierPatchInput {
-    group: GroupInput
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
-  }
-
-  input UpdateBillingModifierInput {
-    id: Int!
-    patch: BillingModifierPatchInput!
-  }
-
-  input DeleteBillingModifierInput {
-    id: Int!
+  input AddGroupToOrganizationInput {
+    name: String!
+    organization: Int!
+    parentGroup: GroupInput
+    addOrgOwner: Boolean
   }
 
   input UpdateGroupPatchInput {
@@ -1483,28 +2232,15 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
-  input BillingGroupInput {
-    name: String!
-    currency: Currency!
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
+  input UserOrganizationInput {
+    user: UserInput!
+    organization: Int!
   }
 
-  input ProjectBillingGroupInput {
-    group: GroupInput!
-    project: ProjectInput!
-  }
-
-  input UpdateBillingGroupPatchInput {
-    name: String!
-    currency: Currency
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input UpdateBillingGroupInput {
-    group: GroupInput!
-    patch: UpdateBillingGroupPatchInput!
+  input BulkDeploymentLatestInput {
+    buildVariables: [EnvKeyValueInput]
+    environments: [DeployEnvironmentLatestInput!]!
+    name: String
   }
 
   type Mutation {
@@ -1547,6 +2283,16 @@ const typeDefs = gql`
       input: DeleteNotificationMicrosoftTeamsInput!
     ): String
     deleteAllNotificationMicrosoftTeams: String
+    addNotificationWebhook(
+      input: AddNotificationWebhookInput!
+    ): NotificationWebhook
+    updateNotificationWebhook(
+      input: UpdateNotificationWebhookInput!
+    ): NotificationWebhook
+    deleteNotificationWebhook(
+      input: DeleteNotificationWebhookInput!
+    ): String
+    deleteAllNotificationWebhook: String
     addNotificationEmail(
       input: AddNotificationEmailInput!
     ): NotificationEmail
@@ -1585,9 +2331,21 @@ const typeDefs = gql`
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
+    """
+    Add a user to an organization as a viewer or owner of the organization.
+    This allows the user to view or manage the organizations groups, projects, and notifications
+    """
+    addUserToOrganization(input: addUserToOrganizationInput!): Organization
+    """
+    Remove a viewer or owner from an organization.
+    This removes the users ability to view or manage the organizations groups, projects, and notifications
+    """
+    removeUserFromOrganization(input: addUserToOrganizationInput!): Organization
+    resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
+    bulkDeployEnvironmentLatest(input: BulkDeploymentLatestInput!): String
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String
@@ -1598,16 +2356,29 @@ const typeDefs = gql`
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
-    addFacts(input: AddFactsInput!): [Fact]
+    addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
+    addFactsByName(input: AddFactsByNameInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
+    addFactReference(input: AddFactReferenceInput!): FactReference
+    deleteFactReference(input: DeleteFactReferenceInput!): String
+    deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    addEnvVariable(input: EnvVariableInput!): EnvKeyValue
-    deleteEnvVariable(input: DeleteEnvVariableInput!): String
+    addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
+    deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
+    addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
+    deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
     addTask(input: TaskInput!): Task
+    addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
+    deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
@@ -1623,6 +2394,7 @@ const typeDefs = gql`
     taskDrushUserLogin(environment: Int!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
+    cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
@@ -1638,19 +2410,62 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addBillingGroup(input: BillingGroupInput!): BillingGroup
-    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
-    deleteBillingGroup(input: DeleteGroupInput!): String
-    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
-    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
-    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    """
+    This is a way to quickly remove a user from all groups within an organization.
+    Effectively removing all access to any projects that are assigned to those groups.
+    """
+    removeUserFromOrganizationGroups(input: UserOrganizationInput): Organization
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-    addBillingModifier(input: AddBillingModifierInput!): BillingModifier
-    updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
-    deleteBillingModifier(input: DeleteBillingModifierInput!): String
-    deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
+    addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
+    """
+    Add an organization
+    """
+    addOrganization(input: AddOrganizationInput!): Organization
+    """
+    Update an organization
+    """
+    updateOrganization(input: UpdateOrganizationInput!): Organization
+    """
+    Delete an organization
+    """
+    deleteOrganization(input: DeleteOrganizationInput!): String
+    """
+    Add a group to an organization
+    """
+    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
+    """
+    Add an existing group to an organization
+    """
+    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
+    """
+    Add an existing project to an organization
+    """
+    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
+    """
+    Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
+    """
+    removeProjectFromOrganization(input: RemoveProjectFromOrganizationInput): Project
+    """
+    Add a deploytarget to an organization
+    """
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): Organization
+    """
+    Remove a deploytarget from an organization
+    """
+    removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
+    """
+    Run the query checkBulkImportProjectsAndGroupsToOrganization first to see the changes that would be made before executing this, as it may contain undesirable changes
+    Add an existing project to an organization, this will include all the groups and all the projects that those groups contain
+    Optionally detach any notifications attached to the projects, they will be need to be recreated within the organization afterwards
+    This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
+    """
+    bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
   }
 
   type Subscription {

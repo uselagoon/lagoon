@@ -53,7 +53,7 @@ export const generator = (schema, min = 1, max) => {
 const mocks = {
   Date: () => faker.date.between('2018-11-01T00:00:00', '2019-10-31T23:59:59').toISOString(),
   JSON: () => ({ id: faker.random.number(), currency: 'usd' }),
-  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519']),
+  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519','ecdsa_sha2_nistp256','ecdsa_sha2_nistp384','ecdsa_sha2_nistp521']),
   DeployType: () => faker.random.arrayElement(['branch', 'pullrequest', 'promote']),
   EnvType: () => faker.random.arrayElement(['production', 'development']),
   NotificationType: () => faker.random.arrayElement(['slack', 'rocketchat', 'microsoftteams', 'email']),
@@ -146,13 +146,29 @@ mocks.Group = (parent, args = {}, context, info) => {
   return group;
 };
 
-// mocks.Group = mocks.GroupInterface;
+//mocks.Group = mocks.GroupInterface;
 
-mocks.BillingGroup = (parent, args = {}, context, info) => ({
-  ...mocks.Group(parent, args, context, info),
-  currency: mocks.Currency(),
-  billingSoftware: faker.random.arrayElement(['Xero', 'Bexio', 'Clay tablets']),
-});
+mocks.Me = () => ({
+  id: faker.random.number(),
+  firstName: faker.name.firstName(),
+  lastName: faker.name.lastName(),
+  email: faker.internet.email(),
+  username: faker.internet.userName(),
+  sshKeys: [{
+    id: faker.random.number(),
+    name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
+    created: mocks.Date(),
+    keyFingerprint: faker.random.uuid()
+  },
+  {
+    id: faker.random.number(),
+    name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
+    created: mocks.Date(),
+    keyFingerprint: faker.random.uuid()
+  }]
+})
 
 mocks.Openshift = () => ({
   id: faker.random.number(),
@@ -232,19 +248,19 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
-    problemsUi: faker.random.arrayElement([0, 1]),
-    factsUi: faker.random.arrayElement([0, 1]),
+    problemsUi: 1,
+    factsUi: 1,
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
     environments: [],
     created: mocks.Date(),
     envVariables: [ mocks.EnvKeyValue() ],
-    groups: [ mocks.Group() ],
+    // groups: [ mocks.Group() ],
   };
   return {
     ...project,
-    environments: args.hasOwnProperty('environments') ? args.environments : mocks.Query().allEnvironments(project),
+    environments: args.hasOwnProperty('environments') ? args.environments : mocks.Query().allEnvironments(null, { project }),
   };
 };
 
@@ -265,7 +281,7 @@ mocks.Environment = (parent, args = {}, context, info) => {
   const created = mocks.Date();
   const updated = addTime(created, 48);
   const deleted = addTime(updated, 24);
-  const project = args.hasOwnProperty('project') ? args.project : mocks.Project(null, {environments: []});
+  const project = args.hasOwnProperty('project') ? args.project : mocks.Project(null, { environment: {} });
 
   const environment = {
     id: faker.random.number(),
@@ -286,13 +302,28 @@ mocks.Environment = (parent, args = {}, context, info) => {
     storageMonth: mocks.EnvironmentStorageMonth(),
     hitsMonth: mocks.EnvironmentHitsMonth(),
     envVariables: [ mocks.EnvKeyValue() ],
-    route: name === 'master' ? `https://${project.name}.org` : '',
+    route: name === 'master' ? `https://${project.name}.org` : `https://${name}.${project.name}.org`,
     routes: `https://${project.name}.org,https://varnish-${project.name}-org-prod.us.amazee.io,https://nginx-${project.name}-org-prod.us.amazee.io`,
-    monitoringUrls: '',
-    deployments: [],
+    monitoringUrls: null,
+    deployments: [
+      mocks.Deployment(null, {environment: { created: new Date(mocks.Date()) }}),
+      mocks.Deployment(null, {environment: {}})
+    ],
     backups: [],
     tasks: [],
-    problems: [
+    problems: [],
+    facts: [],
+    services: [ mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService() ],
+  };
+
+  return {
+    ...environment,
+    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
+    deployments: args.hasOwnProperty('deployments') ? args.deployments : [
+      mocks.Deployment(null, {environment} ),
+      mocks.Deployment(null, {environment} )
+    ],
+    problems: args.hasOwnProperty('problems') ? args.problems : [
       mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
       mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
       mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
@@ -300,15 +331,17 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Problem(),
       mocks.Problem()
     ],
-    services: [ mocks.EnvironmentService() ],
-  };
-  environment.project.environments.push(environment);
-  return {
-    ...environment,
-    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
-    deployments: [ mocks.Deployment(null, {environment}) ],
-    backups: [ mocks.Backup(null, {environment}) ],
-    tasks: [ mocks.Task(null, {environment}) ],
+    facts: args.hasOwnProperty('facts') ? args.facts : [
+      mocks.Fact(null, { name: "php-version", value: faker.random.arrayElement(['7.4.1', '7.2.1', '7.1.1', '8.1.0']), source: "php-version", category: "Programming language", keyFact: true} ),
+      mocks.Fact(null, { name: "drupal-core", value: "9.0.12", source: "drupal-version", category: "Framework", keyFact: true} ),
+      mocks.Fact(null, { name: "Lagoon", value: " 21.3.0", source: "env", category: "Platform", keyFact: true} ),
+      mocks.Fact(null, { name: "site-code-status", value: faker.random.arrayElement(['200', '404', '403', '301', '504', '503']), source: "curl", category: "Performance", keyFact: true} ),
+      mocks.Fact(null, { name: "lagoon-category", value: "saas", source: "saas", category: "Lagoon", keyFact: true} ),
+      mocks.Fact(),
+      mocks.Fact()
+    ],
+    backups: args.hasOwnProperty('backups') ? args.backups : [ mocks.Backup(null, {environment}) ],
+    tasks: args.hasOwnProperty('tasks') ? args.tasks : [ mocks.Task(null, {environment}) ],
   };
 };
 
@@ -318,7 +351,7 @@ mocks.EnvironmentHitsMonth = () => ({
 
 mocks.EnvironmentStorage = (parent, args = {}, context, info) => ({
   id: faker.random.number(),
-  environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+  environment: args.hasOwnProperty('environment') ? { id: args.environment.id } : { id: mocks.Environment().id },
   persistentStorageClaim: '',
   bytesUsed: faker.random.number({ precision: 0.001 }), // Float
   updated: mocks.Date(),
@@ -342,15 +375,48 @@ mocks.EnvironmentHoursMonth = () => {
 
 mocks.EnvironmentService = () => ({
   id: faker.random.number(),
-  name: faker.random.arrayElement(['cli', 'nginx', 'mariadb']),
+  name: faker.random.arrayElement(['cli', 'nginx', 'mariadb', 'solr', 'varnish', 'php']),
 });
+
+mocks.Fact = (parent, args = {}, context, info) => {
+  const id = `${faker.random.number({min: 0, max: 99999})}`;
+  const name = args.hasOwnProperty('name') ? args.name : faker.random.arrayElement(['drupal-version', 'drush-version', 'admin_toolbar', 'drupal-core', 'laravel', 'composer-version']);
+  const value = args.hasOwnProperty('value') ? args.value : faker.random.arrayElement(['8.0.1', '9.0.1', '3.2.1', '10.20.2', '4.3.4']);
+  const source = args.hasOwnProperty('source') ? args.source : faker.random.arrayElement(['drush_pml', 'drush_status', 'http_header', 'php-version', 'env']);
+  const category = args.hasOwnProperty('category') ? args.category : faker.random.arrayElement(['Application', 'Framework', 'Docker configuration', 'Drupal configuration', 'Lagoon', 'Platform', 'Programming language']);
+  const description = faker.lorem.paragraph();
+  const environment = `${faker.random.number({min:0, max:5})}`;
+  const keyFact = args.hasOwnProperty('keyFact') ? args.keyFact : false;
+  const type = args.hasOwnProperty('type') ? args.type : 'TEXT';
+
+  const references = [{
+    id: faker.random.number(),
+    fid: faker.random.number(),
+    name: faker.random.arrayElement([
+      ['nginx.company.amazee.io'], ['cli'], ['solr'], ['php'], ['backend.company.amazee.io']
+    ])
+  }];
+
+  return {
+    id: id,
+    name: name,
+    value: value,
+    source: source,
+    category: category,
+    description,
+    environment,
+    keyFact,
+    type,
+    references
+  };
+};
 
 mocks.Backup = (parent, args = {}, context, info) => {
   const date = mocks.Date();
   const backupId = faker.random.uuid();
   return {
     id: faker.random.number(),
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment') ? { id: args.environment.id } : { id: mocks.Environment().id },
     source: faker.random.arrayElement(['files', 'mariadb']),
     backupId,
     created: date,
@@ -374,9 +440,10 @@ mocks.Restore = (parent, args = {}, context, info) => {
 
 mocks.Deployment = (parent, args = {}, context, info) => {
   const id = faker.random.number();
-  const created = mocks.Date();
+  const created = args.hasOwnProperty('created') ? args.created : mocks.Date();
   const started = addTime(created, .5);
   const completed = addTime(started, .75);
+
   return {
     id,
     name: `build-${id}`,
@@ -384,7 +451,7 @@ mocks.Deployment = (parent, args = {}, context, info) => {
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(null, {deployments: []} ),
     remoteId: faker.random.number(),
     buildLog: 'Buildem logem ipsum.',
   };
@@ -403,13 +470,13 @@ mocks.Task = (parent, args = {}, context, info) => {
   const started = addTime(created, 0.125);
   const completed = addTime(created, 1.7);
   return {
-    id: faker.random.number(),
+    id: args.hasOwnProperty('id') ? args.id : faker.random.number(),
     name,
     status: mocks.TaskStatusType(),
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment') ?  args.environment : mocks.Environment(),
     service: 'cli',
     command: name === 'Site Status' ? 'drush status' : 'drush archive-dump',
     remoteId: faker.random.uuid(),
@@ -483,6 +550,7 @@ mocks.ProblemMutation = (schema) => {
 // Query 'type' mock from typeDefs.
 //
 mocks.Query = () => ({
+  me: () => mocks.Me(),
   userBySshKey: () => mocks.User(),
   projectByName: () => mocks.Project(),
   groupByName: () => mocks.Group(),
@@ -490,10 +558,68 @@ mocks.Query = () => ({
   projectsByMetadata: () => mocks.Project(),
   environmentByName: () => mocks.Environment(),
   environmentByOpenshiftProjectName: () => mocks.Environment(),
-  userCanSshToEnvironment: () => mocks.Environment(),
+  environmentWithBackup: () => () => mocks.Environment(null, { backups: [
+    mocks.Backup(null, { environment: {} }),
+  ]}),
+  environmentWithBackups: () => mocks.Environment(null, { project: mocks.Project()}),
+  environmentWithFacts: () => mocks.Environment(),
+  environmentWithTask: ({projectName, envName}) => mocks.Environment(null, {
+    name: envName,
+    project: {
+      name: projectName,
+      problemsUi: true,
+      factsUi: true
+    },
+    deployments: {}, problems: {}, facts: {}, environment: {},
+    tasks: [ mocks.Task(null, { id: 1, environment: {} }) ]
+  }),
+  environmentWithTasks: () => mocks.Environment(null, {
+    deployments: {}, problems: {}, facts: {}, environment: {}
+  }),
+  environmentWithDeployment: ({projectName, envName}) => mocks.Environment(null, {
+    name: envName,
+    project: {
+      name: projectName,
+      problemsUi: true,
+      factsUi: true
+    },
+    tasks: {}, problems: {}, facts: {}, environment: {},
+    deployments: [ mocks.Deployment() ]
+  }),
+  environmentWithDeployments: () => mocks.Environment(null, { deployments: [
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }}),
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }})
+  ]}),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(100),
+  allProjectsFromFacts: () => [{
+    count: 4,
+    projects: [
+      mocks.Project(null, { environments: []}),
+      mocks.Project(null, { environments: [
+        mocks.Environment(null, { name: 'master', facts: [
+          mocks.Fact(null, { name: "laravel", value: "7.0.12", source: "laravel-version", category: "Framework", keyFact: true} ),
+          mocks.Fact(null, { name: "php-version", value: "7.1", source: "php-version", category: "Programming language", keyFact: true} ),
+          mocks.Fact(null, { name: "site-code-status", value: '200', source: "curl", category: "Performance", keyFact: true} )
+        ]})
+      ]}),
+      mocks.Project(null, { environments: [
+        mocks.Environment(null, { name: 'master', facts: [
+          mocks.Fact(null, { name: "express", value: "4.16.4", source: "npm", category: "Framework", keyFact: true} ),
+          mocks.Fact(null, { name: "node-js", value: "16.0.1", source: "node-version", category: "Programming language", keyFact: true} ),
+          mocks.Fact(null, { name: "site-code-status", value: '503', source: "curl", category: "Performance", keyFact: true} )
+        ]})
+      ]}),
+      mocks.Project()
+    ]
+  }],
+  allProjects: () => [
+    mocks.Project(),
+    mocks.Project(),
+    mocks.Project(),
+    mocks.Project(),
+    mocks.Project()
+  ],
   allOpenshifts: () => new MockList(9),
   allProblems: () => new MockList(20),
   allEnvironments: (parent, args = {}, context, info) => {
@@ -511,75 +637,7 @@ mocks.Query = () => ({
   },
   allGroups: () => new MockList(9),
   allProjectsInGroup: () => new MockList(5),
-  billingGroupCost: mockCost,
-  allBillingGroupsCost: mockCost,
-  allBillingModifiers: mockModifier
 });
-
-const mockModifier = () => {
-  return [
-    {
-      "id": 18,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Lorem Ipsum",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-03-01 00:00:00",
-      "endDate": "2999-03-02 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 540,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Rocket Chat",
-      "adminComments": "Rocket Chat",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    },
-    {
-      "id": 25,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Accruent",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-04-01 00:00:00",
-      "endDate": "2020-04-30 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 1517,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Per email with Alex and Jennifer, correction for Jan/Feb/Mar hits calculation",
-      "adminComments": "Back-billing for incorrect hits calculation",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    }
-  ]
-}
-
-const mockCost = () => {
-  const availability = mocks.ProjectAvailability();
-  return {
-    currency: mocks.Currency(),
-    availability: {
-      [availability]: {
-        hitCost: 200,
-        storageCost: 0,
-        environmentCost: {
-          environmentCost: {
-            prod: 0,
-            dev: 0,
-          },
-        },
-        projects: [mocks.Project(null, { environments: [] })],
-      },
-    },
-  };
-};
 
 //
 // Mutation 'type' mock from typeDefs.
@@ -648,6 +706,7 @@ mocks.Mutation = () => ({
   taskDrushRsyncFiles: () => mocks.Task(),
   deleteTask: () => 'success',
   updateTask: () => mocks.Task(),
+  cancelTask: () => faker.random.arrayElement(['success', 'Task not cancelled, reason: Too slow.']),
   setEnvironmentServices: () => [ mocks.EnvironmentService() ],
   uploadFilesForTask: () => mocks.Task(),
   deleteFilesForTask: () => 'success',
@@ -663,12 +722,6 @@ mocks.Mutation = () => ({
   addUserToGroup: () => mocks.Group(),
   removeUserFromGroup: () => mocks.Group(),
   addGroupsToProject: () => mocks.Project(),
-  addBillingGroup: () => mocks.BillingGroup(),
-  updateBillingGroup: () => mocks.BillingGroup(),
-  deleteBillingGroup: () => 'success',
-  addProjectToBillingGroup: () => mocks.Project(),
-  updateProjectBillingGroup: () => mocks.Project(),
-  removeProjectFromBillingGroup: () => mocks.Project(),
   removeGroupsFromProject: () => mocks.Project(),
 });
 

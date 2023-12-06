@@ -1,0 +1,9 @@
+{
+	"rememberMe": true,
+	"resetPasswordAllowed": true,
+	"verifyEmail": false,
+	"editUsernameAllowed": false,
+	"loginTheme": "lagoon",
+	"emailTheme": "lagoon",
+	"accountTheme": "lagoon"
+}

@@ -1,0 +1,23 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-image-cache-{{ cluster_type }}
+    git_repo_name: image-cache.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: image-cache/image-cache.yaml
+  vars:
+    testname: "image-cache {{ cluster_type|upper }}"
+    git_repo_name: image-cache.git
+    project: ci-image-cache-{{ cluster_type }}
+    branch: image-cache
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    openshift_project_name: ci-image-cache-{{ cluster_type }}-image-cache
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-image-cache-{{ cluster_type }}

@@ -1,0 +1,38 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+# this test uses the existing nginx repo as it is the simplest example
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-deploytarget-{{ cluster_type }}
+    git_repo_name: nginx.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+# add a deploytarget that only deploys pullrequests, and goes to a non-functional cluster
+- ansible.builtin.import_playbook: api/add-deploytarget.yaml
+  vars:
+    project: ci-deploytarget-{{ cluster_type }}
+    branches_regex: "false"
+    pullrequests_regex: "true"
+    openshift_id: 3
+
+# add a deploytarget that only deploys the nginx branch, this goes to the functional cluster
+- ansible.builtin.import_playbook: api/add-deploytarget.yaml
+  vars:
+    project: ci-deploytarget-{{ cluster_type }}
+    branches_regex: "nginx"
+    pullrequests_regex: "false"
+    openshift_id: 2001
+
+- ansible.builtin.import_playbook: deploytarget/deploytarget.yaml
+  vars:
+    testname: "DEPLOYTARGET {{ cluster_type|upper }}"
+    git_repo_name: nginx.git
+    project: ci-deploytarget-{{ cluster_type }}
+    branch: nginx
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-deploytarget-{{ cluster_type }}

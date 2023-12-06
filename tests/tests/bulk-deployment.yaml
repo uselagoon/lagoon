@@ -1,0 +1,22 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    project: ci-bulk-{{ cluster_type }}
+    git_repo_name: bulk.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: bulk-deployment/bulk-deployment.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    git_repo_name: bulk.git
+    project: ci-bulk-{{ cluster_type }}
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    project: ci-bulk-{{ cluster_type }}

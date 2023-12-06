@@ -5,8 +5,8 @@
   vars:
     git_files: "features-lagoon-type-override/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 # delete the envvar if it exists already
 - name: "{{ testname }} - api delete envVariable on {{ project }}"
@@ -16,7 +16,7 @@
     envName: "LAGOON_SERVICE_TYPES"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/delete-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project-variable.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
   hosts: localhost
@@ -24,8 +24,9 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 # the site should not exist, as the .lagoon.yml has a type: none for the service, so it should not deploy anything at all
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
@@ -35,7 +36,7 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 # add the environment variable
 - name: "{{ testname }} - api add envVariable on {{ project }}"
@@ -47,7 +48,7 @@
     envScope: "BUILD"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/add-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
 
 # if no site, then deploy with the variable defined now
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
@@ -56,8 +57,9 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed"
   hosts: localhost
@@ -66,7 +68,7 @@
     url: "{{ check_url }}"
     expected_returncode: 200
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 # delete the envvar
 - name: "{{ testname }} - api delete envVariable on {{ project }}"
@@ -76,7 +78,7 @@
     envName: "LAGOON_SERVICE_TYPES"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/delete-project-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project-variable.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -85,7 +87,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -94,4 +96,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

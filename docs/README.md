@@ -1,46 +1,50 @@
 # Lagoon
 
-![](.gitbook/assets/lagoon-logo%20%282%29.png)
+![](./lagoon-logo.png)
 
-## Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
+## Lagoon - the Open Source Application Delivery Platform for Kubernetes
 
 Lagoon gives developers what they dream about. It's a system that allows developers to run the exact same code in their local and production environment. The same Docker images, the same service configurations, and the same code.
 
 ## Who are you?
 
-* If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
-* If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+<div class="grid cards" markdown>
 
+- If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
+- If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
+
+</div>
 ## TL;DR: How Lagoon Works
 
 1. Developers define and configure needed services within YAML files.
 2. When they are happy, they push the code to Git.
-3. Lagoon parses the YAML files.
+3. Lagoon parses the YAML files and adds in any additional needed configuration.
 4. Lagoon builds the needed Docker images.
-5. Lagoon creates the needed resources in OpenShift.
-6. Lagoon pushes them to a Docker registry.
+5. Lagoon pushes them to a Docker registry.
+6. Lagoon creates the needed resources in Kubernetes.
 7. Lagoon monitors the deployment of the containers.
-8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc.\).
+8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc\).
 
 ## Help?
 
 Questions? Ideas? Meet the maintainers and contributors.
 
-Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat/)
+Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE
+](https://discord.gg/te5hHe95JE
+)
 
 ## A couple of things about Lagoon
 
-1. **Lagoon is based on microservices**. The deployment and build workflow is very complex. We have multiple version control sources, multiple OpenShift servers, and multiple notification systems. Each deployment is unique and can take from seconds to hours. It's built with flexibility and robustness in mind. Microservices communicate through a messaging system, which allows us to scale individual services up and down. It allows us to survive down times of individual services. It also allows us to try out new parts of Lagoon in production without affecting others.
+1. **Lagoon is based on microservices**. The deployment and build workflow is very complex. We have multiple version control sources, multiple clusters, and multiple notification systems. Each deployment is unique and can take from seconds to hours. It's built with flexibility and robustness in mind. Microservices communicate through a messaging system, which allows us to scale individual services up and down. It allows us to survive down times of individual services. It also allows us to try out new parts of Lagoon in production without affecting others.
 2. **Lagoon uses many programming languages**. Each programming language has specific strengths. We try to decide which language makes the most sense for each service. Currently, a lot of Lagoon is built in Node.js. This is partly because we started with Node.js, but also because Node.js allows asynchronous processing of webhooks, tasks and more. We are likely going to change the programming language of some services. This is what is great about microservices! We can replace a single service with another language without worrying about other parts of the platform.
 3. **Lagoon is not Drupal-specific**. Everything has been built so that it can run any Docker image. There are existing Docker images for Drupal, and support for Drupal-specific tools like Drush. But that's it!
 4. **Lagoon is DevOps**. It allows developers to define the services they need and customize them as they need. You might think this is not the right way to do it, and gives too much power to developers. We believe that as system engineers, we need to empower developers. If we allow developers to define services locally, and test them locally, they will find bugs and mistakes themselves.
-5. **Lagoon runs on Docker and OpenShift.** \(That one should be obvious, right?\)
+5. **Lagoon runs on Docker and Kubernetes.** \(That one should be obvious, right?\)
 6. **Lagoon can be completely locally developed and tested.**
-7. **Lagoon is completely integration tested**. This means we can test the whole process. From receiving Git webhooks to deploying into a Docker container, the same Git hash is deployed in OpenShift.
-8. **Lagoon is built and deployed via Lagoon.** \(Mind blown? 🤯 \)
-9. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
+7. **Lagoon is completely integration tested**. This means we can test the whole process. From receiving Git webhooks to deploying into a Docker container, the same Git hash is deployed in the cluster.
+8. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
-We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac) ‌
+We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [Lucid Chart](https://lucid.app/documents/view/cb441054-e04a-4389-b98b-c75bcda8ea0d) ‌
 
 ## History of Lagoon
 
@@ -56,5 +60,5 @@ At amazee.io, we believe in open source. It was always troubling for us that ope
 
 ### License
 
-Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/main/LICENSE).
+Lagoon is available under [`an Apache 2.0 License`](https://github.com/uselagoon/lagoon/blob/main/LICENSE).
 

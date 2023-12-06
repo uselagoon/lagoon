@@ -1,0 +1,2 @@
+LAGOON_USER: admin
+Site Status report: pending

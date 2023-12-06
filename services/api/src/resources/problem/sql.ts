@@ -139,7 +139,7 @@ export const Sql = {
       q.where('lagoon_service', service);
     }
 
-    return q.where('deleted', '=', '0000-00-00 00:00:00').update({ deleted: knex.fn.now() }).toString()
+    return q.del().toString()
   },
   deleteProblemsFromSource: (environment, source, service) =>
     knex('environment_problem')
@@ -148,8 +148,7 @@ export const Sql = {
         source: source,
         lagoon_service: service
       })
-      .where('deleted', '=', '0000-00-00 00:00:00')
-      .update({ deleted: knex.fn.now() })
+      .del()
       .toString(),
   selectAllProblemHarborScanMatches: () =>
     knex('problem_harbor_scan_matcher')

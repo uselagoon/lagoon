@@ -19,6 +19,10 @@ export const Sql = {
     completed,
     environment,
     remoteId,
+    priority,
+    bulkId,
+    bulkName,
+    buildStep,
   }: {
     id: number,
     name: string,
@@ -28,6 +32,10 @@ export const Sql = {
     completed: number,
     environment: string,
     remoteId: number,
+    priority: number,
+    bulkId: string,
+    bulkName: string,
+    buildStep: string,
   }) =>
     knex('deployment')
       .insert({
@@ -39,6 +47,10 @@ export const Sql = {
         completed,
         environment,
         remoteId,
+        priority,
+        bulkId,
+        bulkName,
+        buildStep,
       })
       .toString(),
   deleteDeployment: (id: number) =>
@@ -53,9 +65,8 @@ export const Sql = {
       .toString(),
   selectPermsForDeployment: (id: number) =>
     knex('deployment')
-      .select({ pid: 'project.id' })
+      .select({ pid: 'environment.project' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
-      .join('project', 'environment.project', '=', 'project.id')
       .where('deployment.id', id)
       .toString()
 };

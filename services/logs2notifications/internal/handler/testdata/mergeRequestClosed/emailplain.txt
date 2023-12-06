@@ -1,0 +1,1 @@
+[ci-github-openshift] PR #123 - My PR closed in owner/repository

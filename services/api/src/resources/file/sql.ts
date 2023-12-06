@@ -3,8 +3,10 @@ import { knex } from '../../util/db';
 export const Sql = {
   selectTaskFiles: (tid: number) =>
     knex('task_file')
-      .where('task_file.tid', '=', tid)
       .join('s3_file', 'task_file.fid', '=', 's3_file.id')
+      .where('task_file.tid', tid)
+      .andWhere('s3_file.deleted', '0000-00-00 00:00:00')
+      .orderBy('s3_file.created', 'desc')
       .toString(),
   insertFile: ({
     id,

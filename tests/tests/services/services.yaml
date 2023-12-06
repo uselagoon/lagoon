@@ -1,0 +1,129 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "{{ branch }}/"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
+
+- name: >
+    {{ testname }} - check that the namespace is labelled correctly
+  hosts: localhost
+  serial: 1
+  vars:
+    expected_labels:
+    - "lagoon.sh/project={{ project }}"
+    - "lagoon.sh/environment={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-namespace-labels.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.5 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.5"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.11 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb?service=mariadb-10.11"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-13 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-13"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-15 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres?service=postgres-15"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mongo-4 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mongo?service=mongo-4"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, solr-8 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr?service=solr-8"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, redis-7 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis?service=redis-7"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch?service=opensearch-2"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, persistent storage"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/storage?path=/app/files"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

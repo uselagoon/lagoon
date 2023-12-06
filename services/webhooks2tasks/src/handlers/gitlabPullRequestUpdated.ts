@@ -1,6 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -16,11 +17,18 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
 
     const meta = {
       projectName: project.name,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       pullrequestTitle: body.object_attributes.title,
       pullrequestUrl: body.object_attributes.url,
       repoName: body.object_attributes.target.name,
       repoUrl: body.object_attributes.target.web_url,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     const headRepoId = body.object_attributes.source.git_ssh_url
@@ -38,27 +46,29 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
       return;
     }
 
+    let buildName = generateBuildId();
 
     const data: deployData = {
       repoUrl: body.object_attributes.target.web_url,
       repoName: body.object_attributes.target.name,
       pullrequestUrl: body.object_attributes.url,
       pullrequestTitle: body.object_attributes.title,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       projectName: project.name,
       type: 'pullrequest',
       headBranchName: headBranchName,
       headSha: headSha,
       baseBranchName: baseBranchName,
       baseSha: baseSha,
-      branchName: `pr-${body.object_attributes.id}`,
+      branchName: `pr-${body.object_attributes.iid}`,
+      buildName: buildName
     }
 
     try {
       await createDeployTask(data);
       // gitlab does not identify well that this is an update to a merge request, so we manually set the event type here.
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:updated:handled`, data,
-        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.id} (${body.object_attributes.title})> updated in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:updated:handled`, meta,
+        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.iid} (${body.object_attributes.title})> updated in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;
     } catch (error) {
@@ -68,7 +78,7 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.object_attributes.id} updated. No deploy task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.object_attributes.iid} updated. No deploy task created, reason: ${error}`
           )
           return;
 

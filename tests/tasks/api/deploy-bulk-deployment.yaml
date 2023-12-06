@@ -1,0 +1,24 @@
+- name: "{{ testname }} - Trigger a bulk deployment for environments to {{ graphql_url }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - create the bulk deployment environments input"
+      set_fact:
+        environments: >
+          [{%- for branch in branches %}
+          {environment:{name: "{{branch}}",project:{name: "{{project}}"}}}
+          {%- endfor %}]
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./deploy-bulk-deployment.gql") }}'
+      register: apiresponse
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - set_fact:
+        bulk_deploy_id: "{{ apiresponse.json.data.bulkDeployEnvironmentLatest }}"

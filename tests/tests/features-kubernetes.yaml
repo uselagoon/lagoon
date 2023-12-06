@@ -1,88 +1,31 @@
 ---
-- include: features/random-wait.yaml
-
-- include: features/api-token.yaml
+- ansible.builtin.import_playbook: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-features-{{ cluster_type }}
     git_repo_name: features.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: api/add-environment.yaml
-  vars:
-    name: lagoon-api-variables
-    project: ci-features-{{ cluster_type }}
-    environmentType: PRODUCTION
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_PROJECT"
-    envValue: "4A65DC68F2"
-    envScope: "GLOBAL"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_OVERRIDE"
-    envValue: "74B3E42B54"
-    envScope: "GLOBAL"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_BUILD"
-    envValue: "AEF177FCF4"
-    envScope: "BUILD"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_RUNTIME"
-    envValue: "90AEC657F8"
-    envScope: "RUNTIME"
-
-# - include: api/add-project-variable.yaml
+# - ansible.builtin.import_playbook: features/fastly-annotations.yaml
 #   vars:
+#     testname: "FASTLY ANNOTATIONS {{ cluster_type|upper }}"
+#     git_repo_name: features.git
 #     project: ci-features-{{ cluster_type }}
-#     envName: "LAGOON_API_VARIABLE_MULTILINE_SPACED"
-#     envValue: "-----BEGIN PUBLIC KEY-----\\\\nB10B03D8DB7F\\\\n-----END PUBLIC KEY-----"
-#     envScope: "GLOBAL"
+#     branch: fastly-annotations
+#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: api/add-environment-variable.yaml
+# - ansible.builtin.import_playbook: features/lagoon-type-override.yaml
 #   vars:
+#     testname: "LAGOON TYPE OVERRIDE {{ cluster_type|upper }}"
+#     git_repo_name: features.git
 #     project: ci-features-{{ cluster_type }}
-#     envName:"LAGOON_API_VARIABLE_ENVIRONMENT"
-#     envValue: "EA2AFAE09B"
-#     envScope: "GLOBAL"
+#     branch: lagoon-type-override
+#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: api/add-environment-variable.yaml
-#   vars:
-#     project: ci-features-{{ cluster_type }}
-#     envName: "LAGOON_API_VARIABLE_OVERRIDE"
-#     envValue: "D0CE76D4C9"
-#     envScope: "GLOBAL"
-
-- include: features/fastly-annotations.yaml
-  vars:
-    testname: "FASTLY ANNOTATIONS {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: fastly-annotations
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/lagoon-type-override.yaml
-  vars:
-    testname: "LAGOON TYPE OVERRIDE {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: lagoon-type-override
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/ingress-annotations.yaml
+- ansible.builtin.import_playbook: features/ingress-annotations.yaml
   vars:
     testname: "INGRESS ANNOTATIONS {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -90,7 +33,7 @@
     branch: ingress-annotations
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/short-router-url.yaml
+- ansible.builtin.import_playbook: features/short-router-url.yaml
   vars:
     testname: "SHORT ROUTER URL {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -101,14 +44,14 @@
     lagoon_environment: short-router-url-from-a-very-l-ebe8
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/namespace-labels.yaml
-  vars:
-    testname: "NAMESPACE LABELS {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: namespace-labels
+# - ansible.builtin.import_playbook: features/namespace-labels.yaml
+#   vars:
+#     testname: "NAMESPACE LABELS {{ cluster_type|upper }}"
+#     git_repo_name: features.git
+#     project: ci-features-{{ cluster_type }}
+#     branch: namespace-labels
 
-- include: features/remote-shell.yaml
+- ansible.builtin.import_playbook: features/remote-shell.yaml
   vars:
     testname: "REMOTE SHELL {{ cluster_type|upper }}"
     node_version: 16
@@ -117,7 +60,7 @@
     branch: remoteshell
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: features/promote.yaml
+# - ansible.builtin.import_playbook: features/promote.yaml
 #   vars:
 #     testname: "PROMOTE {{ cluster_type|upper }}"
 #     git_repo_name: features.git
@@ -127,15 +70,7 @@
 #     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 #     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
-- include: features/cronjobs.yaml
-  vars:
-    testname: "CRONJOBS {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: branch/cronjob
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-# - include: features/openshift-limit.yaml
+# - ansible.builtin.import_playbook: features/openshift-limit.yaml
 #   vars:
 #     testname: "openshift-character-limit {{ cluster_type|upper }}"
 #     node_version: 16
@@ -145,7 +80,7 @@
 #     # not going to try hashing something in yaml.
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.very-long-branch-name-what-would-otherwise-aae9.{{ route_suffix }}"
 
-- include: features/environment-type.yaml
+- ansible.builtin.import_playbook: features/environment-type.yaml
   vars:
     testname: "ENVIRONMENT TYPE DEVELOPMENT {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -154,7 +89,7 @@
     environment_type: development
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: features/environment-templates.yaml
+# - ansible.builtin.import_playbook: features/environment-templates.yaml
 #   vars:
 #     testname: "CUSTOM DEPLOYMENT TEMPLATES docker-compose {{ cluster_type|upper }}"
 #     git_repo_name: features.git
@@ -163,7 +98,7 @@
 #     expected_template_filename: .lagoon.node.yml
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# - include: features/environment-templates.yaml
+# - ansible.builtin.import_playbook: features/environment-templates.yaml
 #   vars:
 #     testname: "ENVIRIONMENT SPECIFIC CUSTOM DEPLOYMENT TEMPLATES {{ cluster_type|upper }} .lagoon.yml"
 #     git_repo_name: features.git
@@ -172,7 +107,7 @@
 #     expected_template_filename: .lagoon.node-env-specific.yml
 #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/environment-type.yaml
+- ansible.builtin.import_playbook: features/environment-type.yaml
   vars:
     testname: "ENVIRONMENT TYPE PRODUCTION {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -181,7 +116,7 @@
     environment_type: production
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/route-env-variables.yaml
+- ansible.builtin.import_playbook: features/route-env-variables.yaml
   vars:
     testname: "ROUTE ENV VARIABLES {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -189,7 +124,7 @@
     branch: branch/routes
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/autogenerated-routes-disabled.yaml
+- ansible.builtin.import_playbook: features/autogenerated-routes-disabled.yaml
   vars:
     testname: "AUTOGENERATED ROUTES DISABLED {{ cluster_type|upper }}"
     git_repo_name: features.git
@@ -197,40 +132,14 @@
     branch: autogen-routes-disabled
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/dot-env.yaml
-  vars:
-    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: slash/branch1
-    expected_dot_env: slash/branch1
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/dot-env.yaml
-  vars:
-    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: branch1
-    expected_dot_env: branch1
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-# # @TODO: Enable again, see https://github.com/amazeeio/lagoon/issues/1099
-# # - include: features/limits.yaml
+# # @TODO: Enable again, see https://github.com/uselagoon/lagoon/issues/1099
+# # - ansible.builtin.import_playbook: features/limits.yaml
 # #   vars:
 # #     testname: "limits"
 # #     git_repo_name: node.git
 # #     project: ci-env-limit
 # #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/lagoon-api-variables.yaml
-  vars:
-    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: lagoon-api-variables
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-features-{{ cluster_type }}

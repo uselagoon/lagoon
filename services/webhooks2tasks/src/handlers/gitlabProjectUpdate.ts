@@ -1,6 +1,6 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { getProject } from '@lagoon/commons/dist/gitlabApi';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { getProject } from '@lagoon/commons/dist/gitlab/api';
 import {
   addProject,
   updateProject,

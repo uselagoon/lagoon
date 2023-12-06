@@ -1,13 +1,26 @@
-import winston from 'winston';
+const { addColors, createLogger, format, transports } = require('winston');
+import { getConfigFromEnv } from '@lagoon/commons/dist/util/config';
+import { levels, colors } from '@lagoon/commons/dist/logs/';
 
-export const logger = new winston.Logger({
+addColors(colors);
+
+export const logger = createLogger({
   exitOnError: false,
+  levels,
+  format: format.combine(
+    format.colorize(),
+    format.splat(),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.printf(
+      ({ timestamp, level, message }) => `[${timestamp}] [${level}]: ${message}`
+    )
+  ),
   transports: [
-    new winston.transports.Console({
-      level: 'debug',
+    new transports.Console({
+      level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'info'),
       handleExceptions: true,
       json: false,
-      colorize: true,
-    }),
-  ],
+      colorize: true
+    })
+  ]
 });

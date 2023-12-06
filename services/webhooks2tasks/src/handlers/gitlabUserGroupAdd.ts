@@ -1,7 +1,7 @@
-import { retry } from 'async-retry';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import retry from 'async-retry';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { addUserToGroup, sanitizeGroupName } from '@lagoon/commons/dist/api';
-import { getGroup } from '@lagoon/commons/dist/gitlabApi';
+import { getGroup, getUser } from '@lagoon/commons/dist/gitlab/api';
 
 import { WebhookRequestData } from '../types';
 
@@ -10,7 +10,10 @@ export async function gitlabUserGroupAdd(webhook: WebhookRequestData) {
 
   try {
     const group = await getGroup(body.group_id);
-    const { group_path: groupName, user_id: gitlabUserId, user_email: userEmail, group_access: role } = body;
+    const { group_path: groupName, user_id: gitlabUserId, group_access: role } = body;
+
+    const gitlabUser = await getUser(gitlabUserId);
+    const { email: userEmail } = gitlabUser;
 
     const meta = {
       data: body,

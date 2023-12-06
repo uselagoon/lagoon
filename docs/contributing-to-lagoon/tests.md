@@ -15,7 +15,7 @@ Lagoon is mostly tested in 3 different ways:
 
 During local development, the best way to test is locally. All tests are started via `make`. Make will download and build all the required dependencies.
 
-```text
+```bash title="Make tests"
 make tests
 ```
 
@@ -25,36 +25,24 @@ For example, `make tests/node` will run the Node.js Docker images tests.
 
 In order to actually see what is happening inside the microservices, we can use `make logs`:
 
-```text
+```bash title="Make logs"
 make logs
 ```
 
 Or only for a specific service:
 
-```text
+```bash title="Make logs"
 make logs service=webhook-handler
-```
-
-Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here:
-
-[http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
-
-Sometimes you just want to create another push webhook without having to wait for the Git repository to be initialized and pushed.
-
-In this case, there is a small helper script, `tests/playbooks/helpers/just-push.yaml,` that will get the current HEAD of the Git repository and push a webhook push. It needs to know which Git repository and branch you would like to check and push:
-
-```text
-docker-compose -p lagoon exec tests ansible-playbook /ansible/tests/tests/helpers/just-push.yaml -e git_repo_name=node.git -e branch=develop
 ```
 
 ## 2. Automated integration testing
 
-In order to test pull requests that are created against Lagoon, we have a fully automatic integration test running on [`TravisCI`](https://docs.travis-ci.com/): [https://travis-ci.org/amazeeio/lagoon](https://travis-ci.org/amazeeio/lagoon). It is defined inside the `.travis.yml` file, and runs automatically for every pull request that is opened.
+In order to test pull requests that are created against Lagoon, we have a fully automatic integration test running on a dedicated Jenkins instance: [https://ci.lagoon.sh](https://ci.lagoon.sh). It is defined inside the `.Jenkinsfile`, and runs automatically for every pull request that is opened.
 
-This will build all images, start an OpenShift and run all tests.
+This will build all images, start a Kubernetes cluster and run a series of tests.
 
 The tests can be found here:
 
-* `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop)
-* `main` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main)
-
+<!-- markdown-link-check-disable -->
+* [https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/activity](https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/activity)
+<!-- markdown-link-check-enable -->

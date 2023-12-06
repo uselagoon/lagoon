@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { asyncPipe } from '@lagoon/commons/dist/util';
+import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';
@@ -71,6 +71,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return R.cond([
         [hasId, deploymentFromId],
+        // @ts-ignore
         [hasNameAndEnvironment, deploymentFromNameEnv],
         [
           R.T,
@@ -80,6 +81,7 @@ export const Helpers = (sqlClientPool: Pool) => {
             );
           }
         ]
+      // @ts-ignore
       ])(deploymentInput);
     }
   };

@@ -1,6 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -30,6 +31,13 @@ export async function githubPullRequestOpened(webhook: WebhookRequestData, proje
       repoUrl: body.repository.html_url,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     // Don't trigger deploy if the head and base repos are different
     if (!R.equals(headRepoId, baseRepoId)) {
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
@@ -37,6 +45,8 @@ export async function githubPullRequestOpened(webhook: WebhookRequestData, proje
       )
       return;
     }
+
+    let buildName = generateBuildId();
 
     const data: deployData = {
       repoUrl: body.repository.html_url,
@@ -51,11 +61,12 @@ export async function githubPullRequestOpened(webhook: WebhookRequestData, proje
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
+      buildName: buildName
     }
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, meta,
         `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> opened in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;

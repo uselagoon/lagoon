@@ -1,0 +1,16 @@
+mutation addEnvVariable {
+  addOrUpdateEnvVariableByName(
+    input: {
+      project: "{{ project }}"
+      environment: "{{ branch }}"
+      scope: {{ envScope }},
+      name: "{{ envName }}",
+      value: "{{ envValue }}"
+    }
+  ) {
+    id
+    scope
+    name
+    value
+  }
+}

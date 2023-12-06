@@ -1,19 +1,56 @@
 import { Pool } from 'mariadb';
 import { opendistroSecurityClient } from '../../clients/opendistroSecurityClient';
 import { kibanaClient } from '../../clients/kibanaClient';
-import logger from '../../logger';
+import { getConfigFromEnv } from '../../util/config';
+import { logger } from '../../loggers/logger';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 export const OpendistroSecurityOperations = (
   sqlClientPool: Pool,
   GroupModel
-) => ({
-  syncGroup: async (groupName, groupProjectIDs) => {
+) => {
+
+  // In certain cases (some testing, local env), we want to disable the opensearch integration
+  // Setting OPENSEARCH_INTEGRATION_ENABLED to "false" will return an object that simply logs
+  // the requested operations, rather than performs them
+  const opensearchIntegrationEnabled = getConfigFromEnv('OPENSEARCH_INTEGRATION_ENABLED', 'true');
+
+  if (opensearchIntegrationEnabled == "false") {
+    logger.debug("OPENSEARCH_INTEGRATION_ENABLED is 'false' - disabling and returning log only object");
+    return {
+      syncGroup: async function(groupName, groupProjectIDs) {
+        logger.debug("[OpendistroSecurityOperations].syncGroup called");
+      },
+      syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
+        logger.debug("[OpendistroSecurityOperations].syncGroupWithSpecificTenant called");
+      },
+      deleteTenant: async tenantName => {
+        logger.debug("[OpendistroSecurityOperations].deleteTenant called");
+      },
+      deleteGroup: async function(groupName) {
+        logger.debug("[OpendistroSecurityOperations].deleteGroup called");
+      },
+      deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
+        logger.debug("[OpendistroSecurityOperations].deleteGroupWithSpecificTenant called");
+      },
+    }
+  } else {
+    logger.info("OPENSEARCH_INTEGRATION_ENABLED is set to '" + opensearchIntegrationEnabled + '" - returning full integration');
+  }
+
+  // If enabled, we return the full bodied opensearch integration.
+  return {
+    syncGroup: async function(groupName, groupProjectIDs) {
+      return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
+    },
+    syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
     const groupProjectIDsArray = groupProjectIDs
       .split(',')
       .filter(groupProjectID => groupProjectID !== '');
+
+    const overwriteKibanaIndexPattern = getConfigFromEnv('OVERWRITE_KIBANA_INDEX_PATTERN', 'false');
 
     // Load project name by ID and add to groupProjectNames array
     for (const groupProjectID of groupProjectIDsArray) {
@@ -36,16 +73,19 @@ export const OpendistroSecurityOperations = (
 
     const groupProjectPermissions = {
       body: {
+        cluster_permissions: [
+          'cluster:admin/opendistro/reports/menu/download'
+        ],
         index_permissions: [
           {
             index_patterns: [],
-            allowed_actions: ['read']
+            allowed_actions: ['read','indices:monitor/settings/get']
           }
         ],
         tenant_permissions: [
           {
-            tenant_patterns: [groupName],
-            allowed_actions: ['kibana_all_write']
+            tenant_patterns: [tenantName],
+            allowed_actions: [tenantName == 'global_tenant' ? 'kibana_all_read' : 'kibana_all_write'] // ReadOnly Access for Global Tenant
           }
         ]
       }
@@ -60,7 +100,7 @@ export const OpendistroSecurityOperations = (
       // inject project permissions into permission array
       groupProjectNames.forEach(projectName =>
         groupProjectPermissions.body.index_permissions[0].index_patterns.push(
-          `*-${projectName}-*`
+          `/^(application|container|lagoon|router)-logs-${projectName}-_-.+/`
         )
       );
     }
@@ -79,11 +119,31 @@ export const OpendistroSecurityOperations = (
     }
 
     try {
-      // Create a new Tenant for this Group
-      await opendistroSecurityClient.put(`tenants/${groupName}`, { body: {} });
-      logger.debug(`${groupName}: Created Tentant "${groupName}"`);
+      // Create a new RoleMapping for this Role
+      await opendistroSecurityClient.put(
+        `rolesmapping/${groupName}`,
+        { body: { backend_roles: [`${groupName}`] } }
+      );
+      logger.debug(
+        `${groupName}: Created RoleMapping "${groupName}"`
+      );
     } catch (err) {
-      logger.error(`Opendistro-Security create tenant error: ${err}`);
+      logger.error(`Opendistro-Security create rolemapping error: ${err}`);
+    }
+
+    if (tenantName != 'global_tenant') {
+      try {
+        // Create a new Tenant for this Group
+        await opendistroSecurityClient.put(
+          `tenants/${tenantName}`,
+          { body: { description: `${tenantName}` } }
+        );
+        logger.debug(
+          `${groupName}: Created Tenant "${tenantName}"`
+        );
+      } catch (err) {
+        logger.error(`Opendistro-Security create tenant error: ${err}`);
+      }
     }
 
     // Create index-patterns for this group
@@ -96,7 +156,7 @@ export const OpendistroSecurityOperations = (
     const containerLogs =
       '[{"name":"@timestamp","type":"date","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"@version","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"_id","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_index","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_score","type":"number","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_source","type":"_source","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_type","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"geoip.ip","type":"ip","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.latitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.location","type":"geo_point","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.longitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.container_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.container_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.host","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.host.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.baasid","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.baasid.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.baasresource","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.baasresource.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.branch","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.branch.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.controller-uid","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.controller-uid.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.deployment","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.deployment.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.deploymentconfig","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.deploymentconfig.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.job-name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.job-name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.openshift_io/build_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.openshift_io/build_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.openshift_io/deployer-pod-for_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.openshift_io/deployer-pod-for_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.project","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.project.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.labels.service","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.labels.service.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.namespace_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"kubernetes.pod_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.pod_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"level","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"level.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"message","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false}]';
     const routerLogs =
-      '[{"name":"@timestamp","type":"date","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"@version","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"_id","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_index","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_score","type":"number","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_source","type":"_source","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_type","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"accept_date","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"accept_date.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"actconn","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"actconn.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"backend_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"backend_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"backend_queue","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"backend_queue.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"beconn","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"beconn.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"bytes_read","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"bytes_read.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"captured_request_cookie","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"captured_request_cookie.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"captured_request_headers","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"captured_request_headers.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"captured_response_cookie","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"captured_response_cookie.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"client_ip","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"client_ip.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"client_port","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"client_port.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"feconn","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"feconn.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"frontend_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"frontend_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.ip","type":"ip","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.latitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.location","type":"geo_point","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.longitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_backend","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_backend.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_hour","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_hour.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_milliseconds","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_milliseconds.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_minute","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_minute.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_month","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_month.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_monthday","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_monthday.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_second","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_second.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_time","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_time.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"haproxy_year","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"haproxy_year.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"host","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"host.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"http_request","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_request.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"http_status_code","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_status_code.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"http_verb","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_verb.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"http_version","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_version.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"log-type","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"log-type.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_pod","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_pod.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_pod_ip","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_pod_ip.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_pod_port","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_pod_port.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_project","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_project.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_route","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_route.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"openshift_service","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"openshift_service.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"pid","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"pid.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"port","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"port.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"program","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"program.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"request_header_host","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_header_host.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"request_header_useragent","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_header_useragent.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"retries","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"retries.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"server_name","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"server_name.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"srv_queue","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"srv_queue.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"srvconn","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"srvconn.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"syslog_timestamp","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"syslog_timestamp.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"termination_state","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"termination_state.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"time_backend_connect","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"time_backend_connect.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"time_backend_response","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"time_backend_response.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"time_duration","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"time_duration.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"time_queue","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"time_queue.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"time_request","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"time_request.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true}]';
+      '[{"name":"@timestamp","type":"date","esTypes":["date"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"_id","type":"string","esTypes":["_id"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_index","type":"string","esTypes":["_index"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_score","type":"number","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_source","type":"_source","esTypes":["_source"],"count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_type","type":"string","esTypes":["_type"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"bytes_sent","type":"number","esTypes":["long"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"cluster","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"cluster.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"cluster"}}},{"name":"host","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"host.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"host"}}},{"name":"http_referer","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_referer.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"http_referer"}}},{"name":"http_user_agent","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"http_user_agent.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"http_user_agent"}}},{"name":"ingress_name","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"ingress_name.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"ingress_name"}}},{"name":"kubernetes.namespace_id","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_id.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_id"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/controller","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/controller.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/controller"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/environment","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/environment.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/environment"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentAutoIdle","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentAutoIdle.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/environmentAutoIdle"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentId","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentId.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/environmentId"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentType","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/environmentType.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/environmentType"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/project","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/project.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/project"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/projectAutoIdle","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/projectAutoIdle.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/projectAutoIdle"}}},{"name":"kubernetes.namespace_labels.lagoon_sh/projectId","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_labels.lagoon_sh/projectId.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_labels.lagoon_sh/projectId"}}},{"name":"kubernetes.namespace_name","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"kubernetes.namespace_name.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"kubernetes.namespace_name"}}},{"name":"namespace","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"namespace.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"namespace"}}},{"name":"remote_addr","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"remote_addr.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"remote_addr"}}},{"name":"remote_user","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"remote_user.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"remote_user"}}},{"name":"req_id","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"req_id.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"req_id"}}},{"name":"request_length","type":"number","esTypes":["long"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"request_method","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_method.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"request_method"}}},{"name":"request_proto","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_proto.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"request_proto"}}},{"name":"request_query","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_query.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"request_query"}}},{"name":"request_time","type":"number","esTypes":["float"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"request_uri","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"request_uri.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"request_uri"}}},{"name":"service_name","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"service_name.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"service_name"}}},{"name":"service_port","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"service_port.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"service_port"}}},{"name":"status","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"status.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"status"}}},{"name":"stream","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"stream.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"stream"}}},{"name":"time","type":"date","esTypes":["date"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"true-client-ip","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"true-client-ip.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"true-client-ip"}}},{"name":"x-forwarded-for","type":"string","esTypes":["text"],"count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"x-forwarded-for.keyword","type":"string","esTypes":["keyword"],"count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true,"subType":{"multi":{"parent":"x-forwarded-for"}}}]';
     const lagoonLogs =
       '[{"name":"@timestamp","type":"date","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"@version","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"_id","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_index","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"_score","type":"number","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_source","type":"_source","count":0,"scripted":false,"searchable":false,"aggregatable":false,"readFromDocValues":false},{"name":"_type","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":false},{"name":"event","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"event.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.ip","type":"ip","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.latitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.location","type":"geo_point","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"geoip.longitude","type":"number","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"log-type","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"log-type.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"message","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.branchName","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.branchName.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.buildName","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.buildName.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.buildPhase","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.buildPhase.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.environmentName","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.environmentName.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.fullEvent","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.fullEvent.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.logLink","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.logLink.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.openshiftProject","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.openshiftProject.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.projectName","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.projectName.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.remoteId","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.remoteId.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.route","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.route.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"meta.routes","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"meta.routes.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"project","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"project.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"severity","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"severity.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true},{"name":"uuid","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":false,"readFromDocValues":false},{"name":"uuid.keyword","type":"string","count":0,"scripted":false,"searchable":true,"aggregatable":true,"readFromDocValues":true}]';
 
@@ -107,19 +167,26 @@ export const OpendistroSecurityOperations = (
       ['lagoon-logs-*', lagoonLogs]
     );
 
-    groupProjectNames.forEach(projectName =>
-      indexPatterns.push(
-        [`application-logs-${projectName}-*`, applicationLogs],
-        [`router-logs-${projectName}-*`, routerLogs],
-        [`container-logs-${projectName}-*`, containerLogs],
-        [`lagoon-logs-${projectName}-*`, lagoonLogs]
-      )
-    );
+    // if we are on the global_tenant, we don't create project specific index patterns as they could be seen by everybody
+    // (everybody has access to the global tenant)
+    if (tenantName != 'global_tenant') {
+      groupProjectNames.forEach(projectName =>
+        indexPatterns.push(
+          [`application-logs-${projectName}-*`, applicationLogs],
+          [`router-logs-${projectName}-*`, routerLogs],
+          [`container-logs-${projectName}-*`, containerLogs],
+          [`lagoon-logs-${projectName}-*`, lagoonLogs]
+        )
+      );
+    }
+
+    const kibanaTenantName = tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+    const queryParameter = overwriteKibanaIndexPattern == 'true' ? `?overwrite=true` : '';
 
     for (const indexPattern of indexPatterns) {
       try {
         await kibanaClient.post(
-          `saved_objects/index-pattern/${indexPattern[0]}`,
+          `saved_objects/index-pattern/${indexPattern[0]}${queryParameter}`,
           {
             body: {
               attributes: {
@@ -129,7 +196,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: groupName
+              securitytenant: kibanaTenantName
             }
           }
         );
@@ -154,7 +221,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: groupName
+          securitytenant: kibanaTenantName
         }
       });
 
@@ -170,59 +237,66 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: groupName
+            securitytenant: kibanaTenantName
           }
         });
         logger.debug(
-          `${groupName}: Configured default index for tenant "${groupName}" to  "${defaultIndexPattern}"`
+          `${groupName}: Configured default index for tenant "${tenantName}" to  "${defaultIndexPattern}"`
         );
       } else {
         logger.debug(
-          `${groupName}: Configured default index for tenant "${groupName}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`
+          `${groupName}: Configured default index for tenant "${tenantName}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`
         );
       }
     } catch (err) {
       logger.error(`Kibana Error during config of default Index: ${err}`);
       // Don't fail if we have Kibana Errors, as they are "non-critical"
     }
-  },
-  deleteGroup: async groupName => {
-    // delete groups that have no Projects assigned to them
-    try {
-      await opendistroSecurityClient.delete(`roles/${groupName}`);
-      logger.debug(
-        `${groupName}: OpendistroSecurity Role "${groupName}" deleted`
-      );
-    } catch (err) {
-      // 404 Errors are expected and mean that the role does not exist
-      if (err.statusCode !== 404) {
-        logger.error(
-          `OpendistroSecurity Error during deletion of role "${groupName}": ${err}`
-        );
-      } else {
+    },
+    deleteTenant: async tenantName => {
+      try {
+        // Delete the Tenant for this Group
+        await opendistroSecurityClient.delete(`tenants/${tenantName}`);
         logger.debug(
-          `OpendistroSecurity Role "${groupName}" did not exist, skipping deletion`
+          `${tenantName}: Deleted Opendistro-Security Tenant "${tenantName}"`
         );
+      } catch (err) {
+        // 404 Errors are expected and mean that the role does not exist
+        if (err.statusCode !== 404) {
+          logger.error(
+            `Opendistro-Security Error during deletion of tenant "${tenantName}": ${err}`
+          );
+        } else {
+          logger.debug(
+            `Opendistro-Security tenant "${tenantName}" did not exist, skipping deletion`
+          );
+        }
       }
-    }
+    },
+    deleteGroup: async function(groupName) {
+    await this.deleteGroupWithSpecificTenant(groupName, groupName);
+    },
+    deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
+      // delete groups that have no Projects assigned to them
+      try {
+        await opendistroSecurityClient.delete(`roles/${groupName}`);
+        logger.debug(
+          `${groupName}: OpendistroSecurity Role "${groupName}" deleted`
+        );
+      } catch (err) {
+        // 404 Errors are expected and mean that the role does not exist
+        if (err.statusCode !== 404) {
+          logger.error(
+            `OpendistroSecurity Error during deletion of role "${groupName}": ${err}`
+          );
+        } else {
+          logger.debug(
+            `OpendistroSecurity Role "${groupName}" did not exist, skipping deletion`
+          );
+        }
+      }
 
-    try {
-      // Create a new Tenant for this Group
-      await opendistroSecurityClient.delete(`tenants/${groupName}`);
-      logger.debug(
-        `${groupName}: Deleted Opendistro-Security Tentant "${groupName}"`
-      );
-    } catch (err) {
-      // 404 Errors are expected and mean that the role does not exist
-      if (err.statusCode !== 404) {
-        logger.error(
-          `Opendistro-Security Error during deletion of tenant "${groupName}": ${err}`
-        );
-      } else {
-        logger.debug(
-          `Opendistro-Security tenant "${groupName}" did not exist, skipping deletion`
-        );
-      }
+      await this.deleteTenant(tenantName);
     }
-  }
-});
+  };
+};

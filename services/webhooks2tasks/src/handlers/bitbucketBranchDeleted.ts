@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
@@ -18,6 +18,13 @@ export async function bitbucketBranchDeleted(webhook: WebhookRequestData, projec
       branch: body.push.changes[0].old.name,
       branchName: body.push.changes[0].old.name,
       projectName: project.name,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     const result = await getOpenShiftInfoForProject(project.name);

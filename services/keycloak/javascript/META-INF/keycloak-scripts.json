@@ -1,0 +1,91 @@
+{
+  "mappers": [
+    {
+      "name": "[Lagoon] Groups and Roles",
+      "description": "Gets a users groups and roles",
+      "fileName": "mappers/groups-and-roles.js"
+    }
+  ],
+  "policies": [
+    {
+      "name": "[Lagoon] Users role for realm is Platform Owner",
+      "description": "Checks the users role for the realm is Platform Owner or higher",
+      "fileName": "policies/users-role-for-realm-is-platform-owner.js"
+    },
+    {
+      "name": "[Lagoon] Users role for realm is Admin",
+      "description": "Checks the users role for the realm is Admin",
+      "fileName": "policies/users-role-for-realm-is-admin.js"
+    },
+    {
+      "name": "[Lagoon] Users role for group is Developer",
+      "description": "Checks the users role for a group is Developer or higher",
+      "fileName": "policies/users-role-for-group-is-developer.js"
+    },
+    {
+      "name": "[Lagoon] Users role for project is Developer",
+      "description": "Checks the users role for a project is Developer or higher",
+      "fileName": "policies/users-role-for-project-is-developer.js"
+    },
+    {
+      "name": "[Lagoon] User has access to project",
+      "description": "Checks that the user has access to a project via groups",
+      "fileName": "policies/user-has-access-to-project.js"
+    },
+    {
+      "name": "[Lagoon] Users role for project is Reporter",
+      "description": "Checks the users role for a project is Reporter or higher",
+      "fileName": "policies/users-role-for-project-is-reporter.js"
+    },
+    {
+      "name": "[Lagoon] User has access to own data",
+      "description": "Checks that the current user is same as queried",
+      "fileName": "policies/user-has-access-to-own-data.js"
+    },
+    {
+      "name": "[Lagoon] Users role for group is Guest",
+      "description": "Checks the users role for a group is Guest or higher",
+      "fileName": "policies/users-role-for-group-is-guest.js"
+    },
+    {
+      "name": "[Lagoon] Users role for group is Maintainer",
+      "description": "Checks the users role for a group is Maintainer or higher",
+      "fileName": "policies/users-role-for-group-is-maintainer.js"
+    },
+    {
+      "name": "[Lagoon] Users role for project is Guest",
+      "description": "Checks the users role for a project is Guest or higher",
+      "fileName": "policies/users-role-for-project-is-guest.js"
+    },
+    {
+      "name": "[Lagoon] Users role for project is Maintainer",
+      "description": "Checks the users role for a project is Maintainer or higher",
+      "fileName": "policies/users-role-for-project-is-maintainer.js"
+    },
+    {
+      "name": "[Lagoon] Users role for group is Reporter",
+      "description": "Checks the users role for a group is Reporter or higher",
+      "fileName": "policies/users-role-for-group-is-reporter.js"
+    },
+    {
+      "name": "[Lagoon] Users role for group is Owner",
+      "description": "Checks the users role for a group is Owner or higher",
+      "fileName": "policies/users-role-for-group-is-owner.js"
+    },
+    {
+      "name": "[Lagoon] Users role for project is Owner",
+      "description": "Checks the users role for a project is Owner or higher",
+      "fileName": "policies/users-role-for-project-is-owner.js"
+    },
+    {
+      "name": "[Lagoon] User is owner of organization",
+      "description": "Checks that the user is owner of an organization via attribute",
+      "fileName": "policies/user-is-owner-of-organization.js"
+    },
+    {
+      "name": "[Lagoon] User is viewer of organization",
+      "description": "Checks that the user is viewer of an organization via attribute",
+      "fileName": "policies/user-is-viewer-of-organization.js"
+    }
+  ]
+}

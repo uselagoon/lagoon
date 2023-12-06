@@ -2,37 +2,17 @@ import { path } from 'ramda';
 import { withFilter } from 'graphql-subscriptions';
 import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
 import { ForbiddenError } from 'apollo-server-express';
-import logger from '../logger';
+import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
 
-/* eslint-disable class-methods-use-this */
-class LoggerConverter {
-  child() {
-    return {
-      debug: logger.debug,
-      trace: logger.silly,
-      error: logger.error
-    };
-  }
-
-  error(...args) {
-    return logger.error.apply(args);
-  }
-
-  debug(...args) {
-    // @ts-ignore
-    return logger.debug(args);
-  }
-
-  trace(...args) {
-    // @ts-ignore
-    return logger.silly(args);
-  }
-}
-/* eslint-enable class-methods-use-this */
+export const EVENTS = {
+  DEPLOYMENT: 'api.subscription.deployment',
+  BACKUP: 'api.subscription.backup',
+  TASK: 'api.subscription.task'
+};
 
 export const config = {
   host: getConfigFromEnv('RABBITMQ_HOST', 'broker'),
@@ -46,7 +26,7 @@ export const config = {
 export const pubSub = new AmqpPubSub({
   config: config.connectionUrl,
   // @ts-ignore
-  logger: new LoggerConverter()
+  logger
 });
 
 const createSubscribe = (events): ResolverFn => async (
@@ -75,8 +55,7 @@ const createSubscribe = (events): ResolverFn => async (
 
   const filtered = withFilter(
     () => pubSub.asyncIterator(events),
-    (payload, variables) =>
-      payload.environment === String(variables.environment)
+    (payload, variables) => payload.environment === variables.environment
   );
 
   return filtered(rootValue, args, context, info);

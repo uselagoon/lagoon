@@ -11,23 +11,10 @@ services:
       lagoon.persistent.name: nginx
     environment:
       LAGOON_PROJECT: ci-drupal
+      LAGOON_ROUTE: drupal8-mariadb.docker.amazee.io
     volumes:
-      - ./web:/app/web:delegated
-    depends_on:
-      - builder
-  varnish-myname:
-    networks:
-      - amazeeio-network
-      - default
-    build:
-      context: .
-      dockerfile: varnish.dockerfile
-    labels:
-      lagoon.type: varnish
-      lagoon.name: varnish
-    depends_on:
-      - nginx
-  nginx-myname:
+      - .:/app:delegated
+  nginx:
     networks:
       - amazeeio-network
       - default
@@ -41,14 +28,14 @@ services:
       lagoon.name: nginx
       lagoon.deployment.servicetype: nginx
     volumes:
-      - ./web:/app/web:delegated
+      - .:/app:delegated
     depends_on:
-      - builder
-    expose:
+      - cli
+    ports:
       - "8080"
     environment:
-      - AMAZEEIO_URL=drupal.docker.amazee.io
-  php-myname:
+      LAGOON_LOCALDEV_URL: drupal9-mariadb.docker.amazee.io
+  php:
     build:
       context: .
       dockerfile: php.dockerfile
@@ -58,9 +45,9 @@ services:
       lagoon.name: nginx
       lagoon.deployment.servicetype: php
     volumes:
-      - ./web:/app/web:delegated
+      - .:/app:delegated
     depends_on:
-      - builder
+      - cli
   mariadb:
     build:
       context: .
@@ -73,15 +60,6 @@ services:
       dockerfile: redis.dockerfile
     labels:
       lagoon.type: redis
-  solr:
-    networks:
-      - amazeeio-network
-      - default
-    build:
-      context: .
-      dockerfile: solr.dockerfile
-    labels:
-      lagoon.type: solr
 networks:
   amazeeio-network:
     external: true

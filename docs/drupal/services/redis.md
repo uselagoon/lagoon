@@ -2,50 +2,40 @@
 
 We recommend using [Redis](https://redis.io/) for internal caching. Add the Redis service to `docker-compose.yaml`.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
   redis:
-    image: amazeeio/redis
+    image: uselagoon/redis-5
     labels:
       lagoon.type: redis
     << : *default-user # Uses the defined user from top.
     environment:
       << : *default-environment
 ```
-{% endtab %}
-{% endtabs %}
 
 Also, to configure Redis, add the following to your `settings.php`.
 
-### Drupal 7
+## Drupal 7
 
-{% tabs %}
-{% tab title="settings.php" %}
-```php
-if(getenv('LAGOON')){
-  $conf['redis_client_interface'] = 'PhpRedis';
-  $conf['redis_client_host'] = 'redis';
-  $conf['lock_inc'] = 'sites/all/modules/contrib/redis/redis.lock.inc';
-  $conf['path_inc'] = 'sites/all/modules/contrib/redis/redis.path.inc';
-  $conf['cache_backends'][] = 'sites/all/modules/contrib/redis/redis.autoload.inc';
-  $conf['cache_default_class'] = 'Redis_Cache';
-  $conf['cache_class_cache_form'] = 'DrupalDatabaseCache';
-  $conf['cache_class_cache_field'] = 'DrupalDatabaseCache';
-}
+```php title="settings.php"
+  if(getenv('LAGOON')){
+    $conf['redis_client_interface'] = 'PhpRedis';
+    $conf['redis_client_host'] = 'redis';
+    $conf['lock_inc'] = 'sites/all/modules/contrib/redis/redis.lock.inc';
+    $conf['path_inc'] = 'sites/all/modules/contrib/redis/redis.path.inc';
+    $conf['cache_backends'][] = 'sites/all/modules/contrib/redis/redis.autoload.inc';
+    $conf['cache_default_class'] = 'Redis_Cache';
+    $conf['cache_class_cache_form'] = 'DrupalDatabaseCache';
+    $conf['cache_class_cache_field'] = 'DrupalDatabaseCache';
+  }
 ```
-{% endtab %}
-{% endtabs %}
 
 Depending on file system structure, the module paths may need to be updated.
 
-### Drupal 8
+## Drupal 8
 
 The Drupal 8 config is largely stock. Notably, Redis is disabled while Drupal is being installed.
 
-{% tabs %}
-{% tab title="settings.php" %}
-```php
+```php title="settings.php"
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
@@ -86,25 +76,19 @@ if (getenv('LAGOON')){
   }
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 ### Persistent
 
 Redis can also be configured as a persistent backend.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 redis:
-  image: amazeeio/redis-persistent
+  image: uselagoon/redis-5-persistent
   labels:
     lagoon.type: redis-persistent
   environment:
     << : *default-environment
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Environment Variables
 
@@ -120,12 +104,11 @@ Environment variables are meant to store some common information about Redis.
 
 Here is a snippet to implement a Redis failover in case of the Redis container not being available \(for example, during maintenance\)
 
-The following is inserted into Drupal's active `settings.php` file. 
+The following is inserted into Drupal's active `settings.php` file.
 
-{% tabs %}
-{% tab title="settings.php" %}
-```text
-if (getenv('LAGOON') {
+```php title="settings.php"
+if (getenv('LAGOON')) {
+  $contrib_path = is_dir('sites/all/modules/contrib') ? 'sites/all/modules/contrib' : 'sites/all/modules';
   $redis = DRUPAL_ROOT . '/sites/all/modules/contrib/redis';
 
   if (file_exists("$redis/redis.module")) {
@@ -137,8 +120,8 @@ if (getenv('LAGOON') {
       // Ensure that there is a connection to redis.
       $client = Redis_Client::getClient();
       $response = $client->ping();
-      if (!strpos($response, 'PONG')) {
-        throw new Exception('Invalid redis response.');
+      if (!$response) {
+      throw new \Exception('Redis could be reached but is not responding correctly.');
       }
       $conf['redis_client_interface'] = 'PhpRedis';
       $conf['lock_inc'] = $contrib_path . '/redis/redis.lock.inc';
@@ -156,8 +139,4 @@ if (getenv('LAGOON') {
     }
   }
 }
-
 ```
-{% endtab %}
-{% endtabs %}
-

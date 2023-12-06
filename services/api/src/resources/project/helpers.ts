@@ -1,10 +1,52 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { asyncPipe } from '@lagoon/commons/dist/util';
+import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+// import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
+  const checkOrgProjectViewPermission = async (hasPermission, pid) => {
+    // helper that allows fall through of permission check
+    // for viewProject:organization to view:project
+    // this allows queries to be performed by organization owners
+    // then falling through to the default project view for general users
+    const rows = await query(sqlClientPool, Sql.selectProject(pid));
+    const project = rows[0];
+    if (project.organization != null) {
+      try {
+        await hasPermission('organization', 'viewProject', {
+          organization: project.organization
+        });
+        // if the organization owner has permission to view project, return
+        return
+      } catch (err) {
+        // otherwise fall through to project view permission check
+      }
+    }
+    // finally check the user view:project permission
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  }
+  const checkOrgProjectUpdatePermission = async (hasPermission, pid) => {
+    // helper checks the permission to updateProject:organization
+    // or the update:project permission
+    const rows = await query(sqlClientPool, Sql.selectProject(pid));
+    const project = rows[0];
+    if (project.organization != null) {
+      // if the project is in an organization, only the organization owner should be able to do this
+      await hasPermission('organization', 'updateProject', {
+        organization: project.organization
+      });
+    } else {
+      // if not in a project, follow the standard rbac
+      await hasPermission('project', 'update', {
+        project: project.id
+      });
+    }
+  }
+
   const aliasOpenshiftToK8s = (projects: any[]) => {
     return projects.map(project => {
       return {
@@ -37,14 +79,27 @@ export const Helpers = (sqlClientPool: Pool) => {
     return R.prop(0, rows);
   };
 
+  const getProjectByOrganizationId = async (
+    organizationId: number
+  ) => {
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectProjectsByOrganizationId(organizationId)
+    );
+    return rows;
+  };
+
   const getProjectsByIds = (projectIds: number[]) =>
     query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
   return {
+    checkOrgProjectViewPermission,
+    checkOrgProjectUpdatePermission,
     aliasOpenshiftToK8s,
     getProjectById,
     getProjectsByIds,
     getProjectByEnvironmentId,
+    getProjectByOrganizationId,
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(
         sqlClientPool,
@@ -66,7 +121,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return parseInt(pid, 10);
     },
-    getProjectByProjectInput: async projectInput => {
+    getProjectByProjectInput: async (projectInput) => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
@@ -104,10 +159,37 @@ export const Helpers = (sqlClientPool: Pool) => {
     getAllProjects: async () => query(sqlClientPool, Sql.selectAllProjects()),
     getAllProjectsNotIn: async ids =>
       query(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
+    getAllProjectsIn: async ids =>
+      query(sqlClientPool, Sql.selectAllProjectsIn(ids)),
     getAllProjectNames: async () =>
       R.map(
         R.prop('name'),
         await query(sqlClientPool, Sql.selectAllProjectNames())
-      )
+      ),
+    deleteProjectById: async (id: number) => {
+      // logger.debug(`deleting project ${id} notifications`)
+      await query(
+        sqlClientPool,
+        Sql.deleteNotifications(id)
+      );
+      // logger.debug(`deleting project ${id} environment variables`)
+      // clean up environment variables for project
+      await query(
+        sqlClientPool,
+        Sql.deleteEnvironmentVariables(id)
+      );
+      // logger.debug(`deleting project ${id} deploytarget configurations`)
+      // clean up deploytarget configurations
+      await query(
+        sqlClientPool,
+        Sql.deleteDeployTargetConfigs(id)
+      );
+      // logger.debug(`deleting project ${id}`)
+      // delete the project
+      await query(
+        sqlClientPool,
+        Sql.deleteProject(id)
+      );
+    }
   };
 };

@@ -5,8 +5,8 @@
     git_files: "node{{ node_version }}/"
     branch: "{{ source_environment }}"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }} for branch {{ source_environment }}, which will deploy our source environment"
   hosts: localhost
@@ -14,10 +14,11 @@
   vars:
     branch: "{{ source_environment }}"
     project: "{{ project }}"
+    namespace:  "{{ project }}-{{ source_environment }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ source_environment }}"
@@ -32,9 +33,9 @@
     source_environment: "{{ source_environment }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/api/promote.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/promote.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: ""
@@ -49,7 +50,7 @@
     project: "{{ project }}"
     branch: "{{ promote_environment }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -58,7 +59,7 @@
     project: "{{ project }}"
     branch: "{{ source_environment }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -67,7 +68,7 @@
     url: "{{ check_url_promote }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -76,4 +77,4 @@
     url: "{{ check_url_source }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

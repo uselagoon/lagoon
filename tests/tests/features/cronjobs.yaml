@@ -5,8 +5,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
@@ -14,8 +14,9 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_PWD_/app' which is added via a cronjob"
   hosts: localhost
@@ -24,7 +25,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_PWD_/app"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_SINGLE' which is added via a cronjob"
   hosts: localhost
@@ -33,7 +34,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_SINGLE"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_MULTIPLE' which is added via a cronjob with multiple commands"
   hosts: localhost
@@ -42,7 +43,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_MULTIPLE"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_STAR1' which is added via a cronjob"
   hosts: localhost
@@ -51,7 +52,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_STAR1"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_H1' which is added via a cronjob"
   hosts: localhost
@@ -60,7 +61,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_H1"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'CRONJOB_NATIVE' which is added via a cronjob"
   hosts: localhost
@@ -69,7 +70,7 @@
     url: "{{ check_url }}"
     expected_content: "CRONJOB_NATIVE"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 # This is where we need to modify the lagoon versions and do another deploy
 - name: "{{ testname }} - change .lagoon.yml to remove cron, git push"
@@ -79,7 +80,7 @@
     git_files: "features/"
     overwrite_lagoon_yml: ".lagoon-no-cronjobs.yml"
   tasks:
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the newest changes for cron removal"
   hosts: localhost
@@ -87,8 +88,9 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 # Pause while the cronjob project redeploys
 - name: "{{ testname }} - wait for 60 seconds to give an eventual running deployment time to run"
@@ -97,7 +99,7 @@
   vars:
     seconds: "60"
   tasks:
-  - include: ../../tasks/pause.yaml
+  - ansible.builtin.include_tasks: ../../tasks/pause.yaml
 
 # Run cron removal test
 - name: "{{ testname }} - check if {{ project }} had its native cronjob removed correctly"
@@ -106,7 +108,7 @@
   vars:
     url: "{{ check_url }}/ts"
   tasks:
-  - include: ../../checks/check-url-ts.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-ts.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -115,7 +117,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -124,4 +126,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

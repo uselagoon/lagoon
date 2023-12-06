@@ -1,6 +1,6 @@
 import amqp, { ChannelWrapper } from 'amqp-connection-manager';
-import { logger } from '@lagoon/commons/dist/local-logging';
-import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
 import { processQueue } from './processQueue';
 
@@ -10,6 +10,7 @@ initSendToLagoonTasks();
 const rabbitmqHost = process.env.RABBITMQ_HOST || "broker"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
+
 // @ts-ignore
 const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 

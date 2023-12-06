@@ -1,30 +1,30 @@
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Hello World!'"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Hello World!' on {{ prod_branch }}"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ prod_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Standby Hello World!'"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Standby Hello World!' on {{ standby_branch }}"
   hosts: localhost
   serial: 1
   vars:
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Standby Hello World!"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - check if custom domain 'active-moving-route.com' is created and allows secure traffic"
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ prod_branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "active-moving-route.com"
     expected_content: "Hello World!"
   tasks:
-  - include: ../../checks/check-url-content-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content-host.yaml
 
 - name: "{{ testname }} - check if custom domain 'standby-moving-route.com' is created and allows secure traffic"
   hosts: localhost
@@ -34,4 +34,4 @@
     host: "standby-moving-route.com"
     expected_content: "Standby Hello World!"
   tasks:
-  - include: ../../checks/check-url-content-host.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content-host.yaml

@@ -1,0 +1,9 @@
+- name: "{{ testname }} - THIRD TEST: check if custom domain 'test1.example.com' is added from the environment variables"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "test1.example.com"
+    expected_returncode: 200
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode-host.yaml

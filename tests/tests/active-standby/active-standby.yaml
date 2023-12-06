@@ -4,39 +4,43 @@
   serial: 1
   vars:
     git_files: "active-standby/first/"
+    branch: "{{ prod_branch }}"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - active branch api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
-    branch: "{{ branch }}"
+    branch: "{{ prod_branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ prod_branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - standby branch init git, add files, commit, git push"
   hosts: localhost
   serial: 1
   vars:
     git_files: "active-standby/second/"
+    branch: "{{ standby_branch }}"
   tasks:
-  - include: git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: git-add-commit-push.yaml
 
-- name: "{{ testname }} - standby branch api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+- name: "{{ testname }} - standby branch api deployEnvironmentBranch {{ standby_branch }} on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
   vars:
+    branch: "{{ standby_branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ standby_branch | regex_replace('/', '-') }}"
   tasks:
-  - include: deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: pre-switch-check.yaml
+- ansible.builtin.import_playbook: pre-switch-check.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ branch }}"
     project: "{{ project }}"
 
 - name: "{{ testname }} - api switchActiveStandby on {{ project }}, which should switch the routes"
@@ -45,46 +49,45 @@
   vars:
     project: "{{ project }}"
   tasks:
-  - include: deploy-active-standby.yaml
+  - ansible.builtin.include_tasks: deploy-active-standby.yaml
 
-- include: post-switch-check.yaml
+- ansible.builtin.import_playbook: post-switch-check.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ branch }}"
     project: "{{ project }}"
 
-- name: "{{ testname }} - active branch api deleteEnvironment on {{ project }}, which should remove all resources"
+- name: "{{ testname }} - api deleteEnvironment {{ prod_branch }} on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
   vars:
     project: "{{ project }}"
-    branch: "{{ branch }}"
+    branch: "{{ prod_branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
-- name: "{{ testname }} - standby branch api deleteEnvironment on {{ project }}, which should remove all resources"
+- name: "{{ testname }} - check if {{ prod_branch }} for {{ project }} does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
-    project: "{{ project }}"
-    # branch: "{{ standby_branch }}"
-  tasks:
-  - include: remove.yaml
-
-- name: "{{ testname }} - active branch check if site for {{ project }} does not exist anymore"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ prod_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ error_code_check }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
-- name: "{{ testname }} - standby branch check if site for {{ project }} does not exist anymore"
+- name: "{{ testname }} - api deleteEnvironment {{ standby_branch }} on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ standby_branch }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if {{ standby_branch }} for {{ project }} does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ error_code_check }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

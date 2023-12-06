@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sqlClientPool } from '../clients/sqlClient';
 import { esClient } from '../clients/esClient';
 import redisClient from '../clients/redisClient';
@@ -21,6 +21,7 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
     : /.*/;
 
   const allGroups = await GroupModel.loadAllGroups();
+
   let groupsQueue = (allGroups as Group[]).map(group => ({
     group,
     retries: 0
@@ -42,10 +43,21 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
         group
       );
       const projectIds = R.join(',')(projectIdsArray);
-      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroup(
-        group.name,
-        projectIds
-      );
+
+      let roleName = group.name;
+      if (group.type && group.type == 'project-default-group') {
+        roleName = 'p' + projectIds;
+      }
+
+      let tenantName = group.name;
+      if (group.type && group.type == 'project-default-group') {
+        tenantName = 'global_tenant';
+      }
+
+      await OpendistroSecurityOperations(
+        sqlClientPool,
+        GroupModel
+      ).syncGroupWithSpecificTenant(roleName, tenantName, projectIds);
     } catch (err) {
       if (retries < 3) {
         logger.warn(`Error syncing, adding to end of queue: ${err.message}`);

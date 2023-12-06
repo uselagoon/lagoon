@@ -1,6 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -40,6 +41,13 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       repoUrl: body.repository.html_url,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     // Don't trigger deploy if only the PR body was edited.
     if (skipRedeploy(body)) {
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
@@ -56,6 +64,8 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       return;
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
@@ -69,11 +79,12 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
+      buildName: buildName
     }
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, meta,
         `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;

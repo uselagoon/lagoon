@@ -1,12 +1,17 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/mariadb-10.4:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/mariadb-10.6:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 RUN apk add --no-cache openssh-keygen
+
+COPY ./legacy-migration-scripts/* /legacy-migration-scripts/
+RUN chown -R mysql /legacy-migration-scripts/ \
+    && /bin/fix-permissions /legacy-migration-scripts/
+
 USER mysql
 
 ENV MARIADB_DATABASE=infrastructure \
@@ -15,6 +20,5 @@ ENV MARIADB_DATABASE=infrastructure \
     MARIADB_CHARSET=utf8 \
     MARIADB_COLLATION=utf8_general_ci
 
-COPY ./docker-entrypoint-initdb.d/* /docker-entrypoint-initdb.d/
-RUN chown -R mysql /docker-entrypoint-initdb.d/; /bin/fix-permissions /docker-entrypoint-initdb.d/
 COPY ./rerun_initdb.sh /rerun_initdb.sh
+COPY ./legacy_rerun_initdb.sh /legacy_rerun_initdb.sh

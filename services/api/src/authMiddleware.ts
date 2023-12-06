@@ -1,18 +1,23 @@
 import * as R from 'ramda';
 import { Request, Response, NextFunction } from 'express';
-import logger from './logger';
+import { decode } from 'jsonwebtoken';
 import {
+  isLegacyToken,
+  isKeycloakToken,
   getGrantForKeycloakToken,
   getCredentialsForLegacyToken
 } from './util/auth';
+import { userActivityLogger } from './loggers/userActivityLogger';
+const { getClientIp } = require('@supercharge/request-ip');
 
 export type RequestWithAuthData = Request & {
   legacyCredentials: any;
   authToken: string;
   kauth: any;
+  ipAddress?: any;
 };
 
-const parseBearerToken = R.compose(
+const getBearerTokenFromHeader = R.compose(
   R.ifElse(
     splits =>
       // @ts-ignore
@@ -30,90 +35,99 @@ const parseBearerToken = R.compose(
   R.defaultTo('')
 );
 
-const prepareToken = async (
+const authenticateJWT = async (
   req: RequestWithAuthData,
   res: Response,
   next: NextFunction
 ) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
-    next();
-    return;
+    return next();
   }
 
   // @ts-ignore
-  const token = parseBearerToken(req.get('Authorization'));
+  const token = getBearerTokenFromHeader(req.get('Authorization'));
 
-  if (token == null) {
-    logger.debug('No Bearer Token');
+  if (token === null) {
     res
       .status(401)
-      .send({ errors: [{ message: 'Unauthorized - Bearer Token Required' }] });
+      .send({ errors: [{ message: 'Unauthorized - Bearer token required' }] });
+    return;
+  }
+
+  // Fail early if the JWT data isn't valid
+  const decodedToken = decode(token, { json: true, complete: true });
+  if (decodedToken === null) {
+    res.status(401).send({
+      errors: [{ message: 'Unauthorized - Bearer token malformed' }]
+    });
     return;
   }
 
   req.authToken = token;
 
-  next();
-};
+  if (isLegacyToken(decodedToken)) {
+    try {
+      const legacyCredentials = await getCredentialsForLegacyToken(token);
+      req.legacyCredentials = legacyCredentials;
 
-const keycloak = async (
-  req: RequestWithAuthData,
-  res: Response,
-  next: NextFunction
-) => {
-  // Allow access to status without auth.
-  if (req.url === '/status') {
-    next();
-    return;
-  }
+      const { sub, iss } = legacyCredentials;
+      const username = sub ? sub : 'unknown';
+      const source = iss ? iss : 'unknown';
+      userActivityLogger.user_auth(
+        `Legacy authentication granted for '${username}' from '${source}'`,
+        {
+          user: legacyCredentials ? legacyCredentials : null,
+          headers: req.headers
+        }
+      );
 
-  try {
-    const grant = await getGrantForKeycloakToken(req.authToken);
+      return next();
+    } catch (e) {
+      res.status(401).send({
+        errors: [
+          { message: `Unauthorized - Legacy token invalid: ${e.message}` }
+        ]
+      });
+      return;
+    }
+  } else if (isKeycloakToken(decodedToken)) {
+    try {
+      const grant: any = await getGrantForKeycloakToken(token);
+      req.kauth = { grant };
 
-    req.kauth = { grant };
-  } catch (e) {
-    // It might be a legacy token, so continue on.
-    logger.debug(`Keycloak token auth failed: ${e.message}`);
-  }
+      const {
+        azp: source,
+        preferred_username,
+        email
+      } = grant.access_token.content;
+      const username = preferred_username ? preferred_username : 'unknown';
 
-  next();
-};
+      userActivityLogger.user_auth(
+        `Keycloak authentication granted for '${username} (${
+          email ? email : 'unknown'
+        })' from '${source}'`,
+        {
+          user: grant ? grant.access_token.content : null,
+          headers: req.headers
+        }
+      );
 
-const legacy = async (
-  req: RequestWithAuthData,
-  res: Response,
-  next: NextFunction
-) => {
-  // Allow access to status without auth.
-  if (req.url === '/status') {
-    next();
-    return;
-  }
-
-  // Allow keycloak authenticated sessions
-  if (req.kauth) {
-    next();
-    return;
-  }
-
-  try {
-    const legacyCredentials = await getCredentialsForLegacyToken(req.authToken);
-
-    req.legacyCredentials = legacyCredentials;
-
-    next();
-  } catch (e) {
-    res.status(403).send({
-      errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }]
+      return next();
+    } catch (e) {
+      res.status(401).send({
+        errors: [
+          { message: `Unauthorized - Keycloak token invalid: ${e.message}` }
+        ]
+      });
+      return;
+    }
+  } else {
+    res.status(401).send({
+      errors: [{ message: `Unauthorized - Bearer token unrecognized` }]
     });
+    return;
   }
 };
 
-export const authMiddleware = [
-  prepareToken,
-  // First attempt to validate token with keycloak.
-  keycloak,
-  // Then validate legacy token.
-  legacy
-];
+export const authMiddleware = [authenticateJWT];

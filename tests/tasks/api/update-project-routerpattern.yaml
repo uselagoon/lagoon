@@ -1,0 +1,33 @@
+- name: "Update project routerpattern for {{ project }} to openshift {{ openshift }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body: '{ "query": "query($project: String!) {projectByName(name:$project){id,name}}", "variables": {"project":"{{ project }}"}}'
+      register: apiresponse
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - name: "{{ testname }} - save project id as fact"
+      set_fact:
+        project_id: "{{ apiresponse.json.data.projectByName.id }}"
+    - name: "Update project routerpattern for {{ project }} to openshift {{ openshift }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./update-project-routerpattern.gql") }}'
+      register: apiresponse
+    - name: "Update project routerpattern for {{ project }} to openshift {{ openshift }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+      retries: 10
+      delay: 30

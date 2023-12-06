@@ -1,0 +1,20 @@
+- name: "{{ testname }} - POST api delete envVariable with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
+  block:
+    - ansible.builtin.include_tasks: refresh-token.yaml
+    - name: "{{ testname }} - POST api delete envVariable with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./delete-environment-variable.gql") }}'
+      register: apiresponse
+
+    - name: "{{ testname }} - POST api delete envVariable with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - fail:
+        msg: "error deleting environment variable"
+      when: apiresponse.json.errors[0].message is defined and apiresponse.json.errors[0].message is not search("doesn't exist")

@@ -16,7 +16,7 @@ export const config: {
     : undefined
 };
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
   host: config.hostname,
   port: config.port,
   password: config.pass,
@@ -27,10 +27,11 @@ redisClient.on('error', function(error) {
   console.error(error);
 });
 
+export const get = promisify(redisClient.get).bind(redisClient);
 const hgetall = promisify(redisClient.hgetall).bind(redisClient);
 const smembers = promisify(redisClient.smembers).bind(redisClient);
 const sadd = promisify(redisClient.sadd).bind(redisClient);
-const del = promisify(redisClient.del).bind(redisClient);
+export const del = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
   resource: string;
@@ -46,20 +47,18 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
     group ? `${group}:` : ''
   }${scope}`;
 
-export const getRedisCache = async (resourceScope: IUserResourceScope) => {
-  const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
-  const key = hashKey(resourceScope);
+export const getRedisKeycloakCache = async (key: string) => {
+  const redisHash = await hgetall(`cache:keycloak`);
 
   return R.prop(key, redisHash);
 };
 
-export const saveRedisCache = async (
-  resourceScope: IUserResourceScope,
+export const saveRedisKeycloakCache = async (
+  key: string,
   value: number | string
 ) => {
-  const key = hashKey(resourceScope);
   await redisClient.hmset(
-    `cache:authz:${resourceScope.currentUserId}`,
+    `cache:keycloak`,
     key,
     value
   );
@@ -75,8 +74,8 @@ export const deleteProjectGroupsCache = async projectId =>
   del(`project-groups:${projectId}`);
 
 export default {
-  getRedisCache,
-  saveRedisCache,
+  getRedisKeycloakCache,
+  saveRedisKeycloakCache,
   deleteRedisUserCache,
   getProjectGroupsCache,
   saveProjectGroupsCache

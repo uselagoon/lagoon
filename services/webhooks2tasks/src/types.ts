@@ -28,6 +28,10 @@ export interface deployData {
   headSha?: string,
   baseBranchName?: string,
   baseSha?: string,
+  buildName?: string,
+  buildPriority?: string,
+  bulkId?: string,
+  buildVariables?: any,
 };
 
 export interface WebhookRequestData {
@@ -43,6 +47,7 @@ export interface WebhookRequestData {
 export interface Project {
   slack: any,
   name: string,
+  deploymentsDisabled: number,
   openshift: any,
   productionEnvironment?: string
 };

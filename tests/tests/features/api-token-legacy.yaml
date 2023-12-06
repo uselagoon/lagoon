@@ -1,0 +1,18 @@
+- name: "SSH AUTH LEGACY - Get Grant via SSH"
+  hosts: localhost
+  serial: 1
+  vars:
+    ssh_token_host: "{{ ssh_host }}"
+    ssh_token_port: "{{ ssh_auth_port }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
+
+- name: "SSH AUTH LEGACY - Check if token is allowed for API request"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/"
+    bearer_token: "{{ token }}"
+    expected_content: '{"status":"success","data":{}}'
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-api-request.yaml

@@ -1,0 +1,23 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-services-{{ cluster_type }}
+    git_repo_name: services.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: services/services.yaml
+  vars:
+    testname: "SERVICES {{ cluster_type|upper }}"
+    git_repo_name: services.git
+    project: ci-services-{{ cluster_type }}
+    branch: services
+    check_url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    openshift_project_name: ci-services-{{ cluster_type }}-services
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-services-{{ cluster_type }}

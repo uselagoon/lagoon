@@ -5,47 +5,25 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
-const generateDownloadLink = file => {
-  const url = s3Client.getSignedUrl('getObject', {
-    Key: file.s3Key,
+// if this is google cloud storage or not
+const isGCS = process.env.S3_FILES_GCS || 'false'
+
+export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
+  s3Client.getSignedUrl('getObject', {
+    Key: s3Key,
     Expires: 300 // 5 minutes
   });
 
-  return {
-    ...file,
-    download: url
-  };
-};
-
-const fileIsDeleted = file => file.deleted !== '0000-00-00 00:00:00';
-
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  const rowsPerms = await query(
-    sqlClientPool,
-    taskSql.selectPermsForTask(tid)
-  );
-
-  await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
-  });
-
-  const rows = await query(sqlClientPool, Sql.selectTaskFiles(tid));
-
-  return R.pipe(
-    R.sort(R.descend(R.prop('created'))),
-    R.reject(fileIsDeleted),
-    R.map(generateDownloadLink)
-  )(rows);
-};
+  _args,
+  { sqlClientPool }
+) => query(sqlClientPool, Sql.selectTaskFiles(tid));
 
 export const uploadFilesForTask: ResolverFn = async (
   root,
   { input: { task, files } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rowsPerms = await query(
     sqlClientPool,
@@ -61,8 +39,8 @@ export const uploadFilesForTask: ResolverFn = async (
     const s3_key = `tasks/${task}/${newFile.filename}`;
     const params = {
       Key: s3_key,
-      Body: newFile.stream,
-      ACL: 'private'
+      Body: newFile.createReadStream(),
+      ...(isGCS == 'false' && {ACL: 'private'}),
     };
     // @ts-ignore
     await s3Client.upload(params).promise();
@@ -89,13 +67,27 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
+  userActivityLogger(`User uploaded files for task '${task}' on project
+      '${R.path(
+      ['0', 'pid'],
+      rowsPerms
+    )}'`,
+    {
+      project: '',
+      event: 'api:uploadFilesForTask',
+      data: {
+        rows
+      }
+    }
+  );
+
   return R.prop(0, rows);
 };
 
 export const deleteFilesForTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
 
@@ -116,6 +108,14 @@ export const deleteFilesForTask: ResolverFn = async (
   await s3Client.deleteObjects(params).promise();
 
   await query(sqlClientPool, Sql.deleteFileTask(id));
+
+  userActivityLogger(`User deleted files for task '${id}'`, {
+    project: '',
+    event: 'api:deleteFilesForTask',
+    data: {
+      id
+    }
+  });
 
   return 'success';
 };

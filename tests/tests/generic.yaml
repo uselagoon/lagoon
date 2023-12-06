@@ -1,0 +1,21 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-generic-{{ cluster_type }}
+    git_repo_name: generic.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: generic/generic.yaml
+  vars:
+    testname: "Generic {{ cluster_type|upper }}"
+    git_repo_name: generic.git
+    project: ci-generic-{{ cluster_type }}
+    branch: generic-main
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-generic-{{ cluster_type }}

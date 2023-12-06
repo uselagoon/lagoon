@@ -4,7 +4,7 @@
 
 In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP files into your Git repository.
 
-If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repo that best suits your needs to get started!
+If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repository that best suits your needs to get started!
 
 Here is a summary of the Lagoon- and Drupal-specific files you will find:
 
@@ -28,27 +28,23 @@ Unfortunately the Drupal community has not decided on a standardized `WEBROOT` f
 
 If you installed Drupal via composer, please check your `composer.json` and make sure that the `name` is NOT `drupal/drupal`, as this could confuse Drush and other tools of the Drupal universe, just rename it to something like `myproject/drupal`
 
-## 2. Customise `docker-compose.yml`
+## 2. Customize `docker-compose.yml`
 
 Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 x-environment:
   &default-environment
     LAGOON_PROJECT: *lagoon-project
     # Route that should be used locally. If you are using pygmy, this route *must* end with .docker.amazee.io.
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
 ```
-{% endtab %}
-{% endtabs %}
 
 ## 3. Build Images
 
 First, we need to build the defined images:
 
-```bash
+```bash title="Build images"
 docker-compose build
 ```
 
@@ -60,7 +56,7 @@ Usually, building is not necessary every time you edit your Drupal code \(as the
 
 Now that the images are built, we can start the containers:
 
-```bash
+```bash title="Start containers"
 docker-compose up -d
 ```
 
@@ -70,7 +66,7 @@ This will bring up all containers. After the command is done, you can check with
 
 In a local development environment, you probably want all dependencies downloaded and installed, so connect to the `cli` container and run `composer install`:
 
-```bash
+```bash title="Run composer install in CLI"
 docker-compose exec cli bash
 composer install
 ```
@@ -88,14 +84,14 @@ If you get a 500 or similar error, make sure everything loaded properly with Com
 
 Finally it's time to install Drupal, but just before that we want to make sure everything works. We suggest using Drush for that:
 
-```bash
+```bash title="Drush status"
 docker-compose exec cli bash
 drush status
 ```
 
 This should return something like:
 
-```bash
+```bash title="Drush status result"
 [drupal-example]cli-drupal:/app$ drush status
 [notice] Missing database table: key_value
 Drupal version       :  8.6.1
@@ -117,21 +113,20 @@ Drupal root          :  /app/web
 Site path            :  sites/default
 ```
 
-{% hint style="warning" %}
-You may have to tell pygmy about your public key before the next step.
+!!! warning
+    You may have to tell pygmy about your public key before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
-{% endhint %}
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent)
 
 Now it is time to install Drupal \(if instead you would like to import an existing SQL file, please [skip to step 7](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump), but we suggest you start with a clean Drupal installation in the beginning to be sure everything works\).
 
-```bash
+```bash title="Install Drupal"
 drush site-install
 ```
 
 This should output something like:
 
-```bash
+```bash title="drush site-install"
 [drupal-example]cli-drupal:/app$ drush site-install
 You are about to DROP all tables in your 'drupal' database. Do you want to continue? (y/n): y
 Starting Drupal installation. This takes a while. Consider using the --notify global option.
@@ -149,7 +144,7 @@ If you already have an existing Drupal site, you probably want to import its dat
 
 There are many different ways to create a database dump. If your current hosting provider has Drush installed, you can use the following:
 
-```bash
+```bash title="Drush sql-dump"
 drush sql-dump --result-file=dump.sql
 
 Database dump saved to dump.sql
@@ -159,14 +154,14 @@ Now you have a `dump.sql` file that contains your whole database.
 
 Copy this file into your Git repository and connect to the `cli`, and you should see the file in there:
 
-```bash
+```bash title="Viewing dump.sql"
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```
 
 Now you can drop the current database, and then import the dump.
 
-```bash
+```bash title="Import dump.sql"
 drush sql-drop
 
 drush sql-cli < dump.sql
@@ -178,7 +173,6 @@ Verify that everything works with visiting the URL of your project. You should h
 
 A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers, add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
 
-## 9. Done!
+## 9. Done
 
 You are done with your local setup. The Lagoon team wishes happy Drupaling!
-

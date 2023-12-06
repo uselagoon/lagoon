@@ -4,8 +4,8 @@
   vars:
     git_files: "features/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
   hosts: localhost
@@ -13,8 +13,9 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: >
     {{ testname }} - check that the namespace is labelled correctly
@@ -26,7 +27,7 @@
     - "lagoon.sh/project={{ project }}"
     - "lagoon.sh/environment={{ branch }}"
   tasks:
-  - include: ../../checks/check-namespace-labels.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-namespace-labels.yaml
 
 - name: >
     {{ testname }} - api deleteEnvironment on {{ project }}, which should remove
@@ -37,4 +38,4 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml

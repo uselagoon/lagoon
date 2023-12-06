@@ -1,28 +1,28 @@
 # See the docs for a detailed explanation about this file:
-# https://lagoon.readthedocs.io/en/latest/administering_lagoon/graphql_api/#create-first-project
+# https://docs.lagoon.sh/administering-lagoon/graphql-queries/#creating-the-first-project
 
-# 1. Create an OpenShift
+# 1. Create a cluster (Kubernetes or OpenShift)
 mutation {
-  addOpenshift(
+  addKubernetes(
     input: {
       # TODO: Fill in the name field
-      # This is the unique identifier of the OpenShift
+      # This is the unique identifier of the Kubernetes cluster
       name: ""
       # TODO: Fill in consoleUrl field
-      # This is the URL of the OpenShift console (without any `/console` suffix)
+      # This is the URL of the Kubernetes cluster
       consoleUrl: ""
       # TODO: Fill in the token field
-      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+      # This is the token of the `lagoon` service account created in this cluster (this is the same token that we also used during installation of Lagoon)
       token: ""
     }
   ) {
     name
-    # TODO: Make a note of the openshift ID that comes back in the response
+    # TODO: Make a note of the Kubernetes ID that comes back in the response
     id
   }
 }
 
-# 2. Create a project and assign it the OpenShift
+# 2. Create a project and assign it the Cluster
 mutation {
   addProject(
     input: {
@@ -32,9 +32,9 @@ mutation {
       # TODO: Fill in the private key field (replace newlines with '\n')
       # This is the private key for a project, which is used to access the git code.  If no private key is added, Lagoon will create a private key, which can later be accessed by loading the project.
       privateKey: ""
-      # TODO: Fill in the openshift field
-      # This is the id of the OpenShift to assign to the project
-      openshift: 0
+      # TODO: Fill in the kubernetes field
+      # This is the ID of the Kubernetes or OpenShift to assign to the project
+      kubernetes: 0
       # TODO: Fill in the name field
       # This is the project name
       gitUrl: ""
@@ -45,7 +45,7 @@ mutation {
     }
   ) {
     name
-    openshift {
+    kubernetes {
       name
       id
     }

@@ -1,4 +1,4 @@
-# Solr
+# Solr-Drupal
 
 ## Standard use
 
@@ -10,22 +10,16 @@ To implement schema customizations for Solr in your project, look to how Lagoon 
 
 * In the `solr` section of your `docker-compose.yml` file, replace `image: amazeeio/solr:7.7` with:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
   build:
     context: .
     dockerfile: solr.dockerfile
 ```
-{% endtab %}
-{% endtabs %}
 
 * Place your schema files in your code repository. We typically like to use `.lagoon/solr`.
 * Create a `solr.dockerfile`.
 
-{% tabs %}
-{% tab title="solr.dockerfile" %}
-```bash
+```bash title="solr.dockerfile"
 FROM amazeeio/solr:7.7
 
 COPY .lagoon/solr /solr-conf/conf
@@ -34,8 +28,6 @@ RUN precreate-core drupal /solr-conf
 
 CMD ["solr-foreground"]
 ```
-{% endtab %}
-{% endtabs %}
 
 The goal is to have your Solr configuration files exist at `/solr-conf/conf` in the image you are building.
 
@@ -43,9 +35,7 @@ The goal is to have your Solr configuration files exist at `/solr-conf/conf` in 
 
 To implement multiple cores, you will also need to ship your own Solr schema as above. The only change needed is to the `CMD` of the Dockerfile - repeat the pattern of `precreate-core corename /solr-conf/ ;` for each core you require.
 
-{% tabs %}
-{% tab title="solr.dockerfile" %}
-```bash
+```bash title="solr.dockerfile"
 FROM amazeeio/solr:7.7-drupal
 
 RUN precreate-core drupal-index1 /solr-conf && \
@@ -54,6 +44,3 @@ RUN precreate-core drupal-index1 /solr-conf && \
 
 CMD ["solr-foreground"]
 ```
-{% endtab %}
-{% endtabs %}
-

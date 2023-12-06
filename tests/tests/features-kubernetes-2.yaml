@@ -1,23 +1,21 @@
 ---
-- include: features/random-wait.yaml
-
-- include: features/api-token.yaml
+- ansible.builtin.import_playbook: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-multiproject1-{{ cluster_type }}
     git_repo_name: multiproject.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-multiproject2-{{ cluster_type }}
     git_repo_name: multiproject.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: features/multiproject.yaml
+- ansible.builtin.import_playbook: features/multiproject.yaml
   vars:
     testname: "MULTIPROJECT {{ cluster_type|upper }} - two projects with same git url"
     git_repo_name: multiproject.git
@@ -29,22 +27,22 @@
     custom_domain1: "multiproject1.com"
     custom_domain2: "multiproject2.com"
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-multiproject1-{{ cluster_type }}
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-multiproject2-{{ cluster_type }}
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-features-subfolder-{{ cluster_type }}
     git_repo_name: features-subfolder.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
     sub_folder: subfolder1/subfolder2
 
-- include: features/subfolder.yaml
+- ansible.builtin.import_playbook: features/subfolder.yaml
   vars:
     testname: "SUBFOLDER {{ cluster_type|upper }}"
     git_repo_name: features-subfolder.git
@@ -52,6 +50,24 @@
     branch: subfolder
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-features-subfolder-{{ cluster_type }}
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-features-cronjobs-{{ cluster_type }}
+    git_repo_name: features-cronjobs.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: features/cronjobs.yaml
+  vars:
+    testname: "CRONJOBS {{ cluster_type|upper }}"
+    git_repo_name: features-cronjobs.git
+    project: ci-features-cronjobs-{{ cluster_type }}
+    branch: branch/cronjob
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-features-cronjobs-{{ cluster_type }}

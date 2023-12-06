@@ -4,11 +4,11 @@ import {
   config as harborConfig,
   harborClient
 } from '../../clients/harborClient';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import { query } from '../../util/db';
+import { query, knex } from '../../util/db';
 
 const lagoonWebhookAddress = getLagoonRouteFromEnv(
   /webhook-handler/,
@@ -39,7 +39,7 @@ async function createHarborProject(harborClient, lagoonProjectName: string) {
   } catch (err) {
     if (err.statusCode == 409) {
       // 409 means project already exists
-      logger.info(
+      logger.debug(
         `Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor; continuing with existing project`
       );
     } else {
@@ -130,7 +130,7 @@ async function createRobot(
     // 409 means project already exists
     // 201 means project created successfully
     if (err.statusCode == 409) {
-      logger.warn(
+      logger.debug(
         `Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`
       );
     } else {
@@ -156,22 +156,17 @@ async function removeHarborEnvVars(
       sqlClientPool,
       PSql.selectProjectByName(lagoonProjectName)
     );
-    const env_vars = await query(
-      sqlClientPool,
-      `SELECT *
-      FROM env_vars
-      WHERE project = :id
-      AND scope = 'internal_container_registry'`,
-      {
-        id: result[0].id
-      }
-    );
+    let queryBuilder = knex('env_vars')
+      .where('project', '=', result[0].id)
+      .andWhere('scope', '=', 'internal_container_registry');
+
+    const env_vars = await query(sqlClientPool, queryBuilder.toString());
 
     for (var i = 0; i < env_vars.length; i++) {
       old_env_vars.push(env_vars[i]);
     }
   } catch (err) {
-    logger.info(
+    logger.error(
       `Unable to get current env vars for project: ${lagoonProjectName}`,
       err
     );
@@ -246,7 +241,7 @@ async function resetHarborWebhook(
       old_webhooks.push(res.body[i]);
     }
   } catch (err) {
-    logger.info(
+    logger.error(
       `Unable to retrieve list of current webhooks for Harbor Project: ${lagoonProjectName}`,
       err
     );
@@ -448,7 +443,7 @@ export const createHarborOperations = (sqlClientPool: Pool) => ({
       // 400 means the project id is invalid
       // 404 means project doesn't exist
       // 412 means project still contains repositories
-      logger.info(
+      logger.error(
         `Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`
       );
     }

@@ -10,9 +10,7 @@ Check to be sure that all routes have been set up in your `.lagoon.yml`. Be awar
 
 If you use Certificate Authority \(CA\) signed certificates, you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
 
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
+```yaml title=".lagoon.yml"
 environments:
   main:
     routes:
@@ -24,14 +22,10 @@ environments:
             tls-acme: 'false'
             insecure: Allow
 ```
-{% endtab %}
-{% endtabs %}
 
 As soon as the DNS entries point towards your Lagoon installation, you can switch the flags: `tls-acme` to `true` and `insecure` to `Redirect`
 
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
+```yaml title=".lagoon.yml"
 environments:
   main:
     routes:
@@ -43,16 +37,13 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
 ```
-{% endtab %}
-{% endtabs %}
 
-{% hint style="info" %}
-As checking every page of your website might be a bit a tedious job, you can make use of [mixed-content-scan](https://github.com/bramus/mixed-content-scan). This will crawl the entire site and give you back pages that include assets from a non-HTTPS site.
-{% endhint %}
+!!! Note
+    As checking every page of your website might be a bit a tedious job, you can make use of [mixed-content-scan](https://github.com/bramus/mixed-content-scan). This will crawl the entire site and give you back pages that include assets from a non-HTTPS site.
 
 ### Redirects
 
-If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx/#redirects-map-conf).
+If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx.md#redirects-mapconf).
 
 ### Cron jobs
 
@@ -66,9 +57,23 @@ To make it as smooth as possible for you to get your site pointing to our server
 
 Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live \(TTL\) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time_to_live#DNS_records).
 
-{% hint style="info" %}
-We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.
-{% endhint %}
+### Recommended settings for Fastly (CNAME record):
+
+The recommended method of pointing your domain's DNS records at Lagoon is via a CNAME record as shown below:
+<!-- markdown-link-check-disable-next-line -->
+`CNAME`: `cdn.amazee.io`
+
+### Alternate Settings for Fastly (A records):
+
+If your DNS provider does not support the use of CNAME records, you can use these A records instead. Please ensure you set up individual records for each IP listed below:
+
+* `A`: `151.101.2.191`
+* `A`: `151.101.66.191`
+* `A`: `151.101.130.191`
+* `A`: `151.101.194.191`
+
+!!! Note
+    We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.
 
 ### Root Domains
 
@@ -91,5 +96,4 @@ Lagoon understands the concept of development and production environments. Devel
 
 During project setup, the production environment should already be defined. If that's omitted, your environment will run in development mode. You can check if the environment is set as production environment in the Lagoon user interface. If the production environment is not set, let your Lagoon administrator know, and they will configure the system accordingly.
 
-![The production environment is labelled in green on the left. ](../.gitbook/assets/lagoon-ui-production.png)
-
+![The production environment is labelled in green on the left. ](./lagoon-ui-production.png)

@@ -4,11 +4,15 @@ import { query, isPatchEmpty } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
 
+
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
   [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
+  [R.equals('ECDSA_SHA2_NISTP256'), R.always('ecdsa-sha2-nistp256')],
+  [R.equals('ECDSA_SHA2_NISTP384'), R.always('ecdsa-sha2-nistp384')],
+  [R.equals('ECDSA_SHA2_NISTP521'), R.always('ecdsa-sha2-nistp521')],
   [R.T, R.identity]
 ]);
 
@@ -29,7 +33,7 @@ export const addSshKey: ResolverFn = async (
   {
     input: { id, name, keyValue, keyType: unformattedKeyType, user: userInput }
   },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
   // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
@@ -68,6 +72,24 @@ export const addSshKey: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(insertId));
 
+  userActivityLogger(`User added ssh key '${name}'`, {
+    project: '',
+    event: 'api:addSshKey',
+    payload: {
+      input: {
+        id,
+        name,
+        keyValue,
+        keyType,
+        keyFingerprint: getSshKeyFingerprint(keyFormatted)
+      },
+      data: {
+        sshKeyId: insertId,
+        user
+      }
+    }
+  });
+
   return R.prop(0, rows);
 };
 
@@ -80,7 +102,7 @@ export const updateSshKey: ResolverFn = async (
       patch: { name, keyType: unformattedKeyType, keyValue }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
 
@@ -122,13 +144,21 @@ export const updateSshKey: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
+  userActivityLogger(`User updated ssh key '${id}'`, {
+    project: '',
+    event: 'api:updateSshKey',
+    payload: {
+      patch
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteSshKey: ResolverFn = async (
   root,
   { input: { name } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // Map from sshKey name to id and throw on several error cases
   const skidResult = await query(
@@ -147,9 +177,11 @@ export const deleteSshKey: ResolverFn = async (
     throw new Error(`Not found: '${name}'`);
   }
 
+  const skid = R.path(['0', 'id'], skidResult) as number;
+
   const perms = await query(
     sqlClientPool,
-    Sql.selectUserIdsBySshKeyId(R.path(['0', 'id'], skidResult))
+    Sql.selectUserIdsBySshKeyId(skid)
   );
   const userIds = R.map(R.prop('usid'), perms);
 
@@ -157,7 +189,29 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
+  let res = await query(
+    sqlClientPool,
+    Sql.deleteUserSshKeyByKeyId(skid)
+  );
+  res = await query(
+    sqlClientPool,
+    Sql.deleteSshKeyByKeyId(skid)
+  );
+
+  userActivityLogger(`User deleted ssh key '${name}'`, {
+    project: '',
+    event: 'api:deleteSshKey',
+    payload: {
+      input: {
+        name
+      },
+      data: {
+        ssh_key_name: name,
+        ssh_key_id: skid,
+        user: userIds
+      }
+    }
+  });
 
   return 'success';
 };
@@ -165,7 +219,7 @@ export const deleteSshKey: ResolverFn = async (
 export const deleteSshKeyById: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
@@ -174,9 +228,31 @@ export const deleteSshKeyById: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKeyById(:id)', { id });
+  let res = await query(
+    sqlClientPool,
+    Sql.deleteUserSshKeyByKeyId(id)
+  );
+  res = await query(
+    sqlClientPool,
+    Sql.deleteSshKeyByKeyId(id)
+  );
 
   // TODO: Check rows for success
+
+  userActivityLogger(`User deleted ssh key with id '${id}'`, {
+    project: '',
+    event: 'api:deleteSshKeyById',
+    payload: {
+      input: {
+        id
+      },
+      data: {
+        ssh_key_id: id,
+        user: userIds
+      }
+    }
+  });
+
   return 'success';
 };
 

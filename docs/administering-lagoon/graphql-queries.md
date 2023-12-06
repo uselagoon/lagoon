@@ -4,21 +4,15 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
-```bash
-./create_jwt.sh
-```
-
-This can also be done with the `oc` command:
-
-```bash
-oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
+```bash title="Generate JWT token."
+./create_jwt.py
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
 
-We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
+We also need the URL of the API endpoint, which can be found under "Ingresses" in your Kubernetes UI or via kubectl on the command line. Make a note of this endpoint URL, which we will also need.
 
 To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.com/skevy/graphiql-app), a desktop GraphQL client with features such as autocomplete. To continue with the next steps, install and start the app.
 
@@ -29,11 +23,11 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29.png)
+![Editing HTTP Headers in GraphiQL.](./graphiql-2020-01-29-18-05-54.png)
 
 Enter this in the left panel
 
-```graphql
+```graphql title="Running a query"
 query allProjects{
   allProjects {
     name
@@ -41,7 +35,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32.png)
+![Running a query in GraphiQL.](./graphiql-2020-01-29-20-10-32.png)
 
 And press the ▶️ button \(or press CTRL+ENTER\).
 
@@ -49,11 +43,11 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/tree/2ad44d8d193ef68357474ad5382afae14a320967/docs/administering-lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](../administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+1. `kubernetes` : The Kubernetes (or Openshift) cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
 2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
@@ -66,7 +60,7 @@ In Lagoon, each developer authenticates via their SSH key\(s\). This determines 
 
 To allow access to the project, we first need to add a new group to the API:
 
-```graphql
+```graphql title="Add group to API"
 mutation {
   addGroup (
     input: {
@@ -82,7 +76,7 @@ mutation {
 
 Then we need to add a new user to the API:
 
-```graphql
+```graphql title="Add new user to API"
 mutation {
   addUser(
     input: {
@@ -100,7 +94,7 @@ mutation {
 
 Then we can add an SSH public key for the user to the API:
 
-```graphql
+```graphql title="Add SSH public key for the user to API"
 mutation {
   addSshKey(
     input: {
@@ -111,7 +105,7 @@ mutation {
       # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`).
       keyValue: ""
       # TODO: Fill in the keyType field.
-      # Valid values are either SSH_RSA or SSH_ED25519.
+      # Valid values are either SSH_RSA, SSH_ED25519, ECDSA_SHA2_NISTP256/384/521
       keyType: SSH_RSA
       user: {
         # TODO: Fill in the userId field.
@@ -128,7 +122,7 @@ mutation {
 
 After we add the key, we need to add the user to a group:
 
-```graphql
+```graphql title="Add user to group"
 mutation {
   addUserToGroup (
     input: {
@@ -166,7 +160,7 @@ As notifications can be quite different in terms of the information they need, e
 
 As with users, we first add the notification:
 
-```graphql
+```graphql title="Add notification"
 mutation {
   addNotificationSlack(
     input: {
@@ -188,7 +182,7 @@ mutation {
 
 After the notification is created, we can now assign it to our project:
 
-```graphql
+```graphql title="Assign notification to project"
 mutation {
   addNotificationToProject(
     input: {
@@ -217,26 +211,25 @@ Now for every deployment you will receive messages in your defined channel.
 
 ## Example GraphQL queries
 
-### Adding a new OpenShift target
+### Adding a new Kubernetes target
 
-{% hint style="info" %}
-In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
-{% endhint %}
+!!! Note
+    In Lagoon, both `addKubernetes` and `addOpenshift` can be used for both Kubernetes and OpenShift targets - either will work interchangeably.
 
-The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+The cluster to which Lagoon should deploy.
 
-```graphql
+```graphql title="Add Kubernetes target"
 mutation {
-  addOpenshift(
+  addKubernetes(
     input: {
       # TODO: Fill in the name field.
-      # This is the unique identifier of the OpenShift.
+      # This is the unique identifier of the cluster.
       name: ""
       # TODO: Fill in consoleUrl field.
-      # This is the URL of the OpenShift console (without any `/console` suffix).
+      # This is the URL of the Kubernetes cluster
       consoleUrl: ""
       # TODO: Fill in the token field.
-      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon).
+      # This is the token of the `lagoon` service account created in this cluster (this is the same token that we also used during installation of Lagoon).
       token: ""
     }
   ) {
@@ -250,23 +243,22 @@ mutation {
 
 This query will add a group to a project. Users of that group will be able to access the project. They will be able to make changes, based on their role in that group.
 
-```graphql
+```graphql title="Add a group to a project"
 mutation {
-  mutation {
-    addGroupsToProject (
-      input: {
-        project: {
-          #TODO: Enter the name of the project.
-          name: ""
-        }
-        groups: {
-          #TODO: Enter the name of the group that will be added to the project.
-          name: ""
-        }
+  addGroupsToProject (
+    input: {
+      project: {
+        #TODO: Enter the name of the project.
+        name: ""
       }
-    ) {
-      id
+      groups: {
+        #TODO: Enter the name of the group that will be added to the project.
+        name: ""
+      }
     }
+  ) {
+    id
+  }
 }
 ```
 
@@ -278,7 +270,7 @@ If you omit the `privateKey` field, a new SSH key for the project will be genera
 
 If you would like to reuse a key from another project. you will need to supply the key in the `addProject` mutation.
 
-```graphql
+```graphql title="Add a new project"
 mutation {
   addProject(
     input: {
@@ -288,9 +280,9 @@ mutation {
       # TODO: Fill in the private key field (replace newlines with '\n').
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
-      # TODO: Fill in the OpenShift field.
-      # This is the id of the OpenShift to assign to the project.
-      openshift: 0
+      # TODO: Fill in the Kubernetes field.
+      # This is the ID of the Kubernetes or OpenShift to assign to the project.
+      kubernetes: 0
       # TODO: Fill in the name field.
       # This is the project name.
       gitUrl: ""
@@ -301,7 +293,7 @@ mutation {
     }
   ) {
     name
-    openshift {
+    kubernetes {
       name
       id
     }
@@ -316,15 +308,15 @@ mutation {
 
 ### List projects and groups
 
-This is a good query to see an overview of all projects, OpenShifts and groups that exist within our Lagoon.
+This is a good query to see an overview of all projects, clusters and groups that exist within our Lagoon.
 
-```graphql
+```graphql title="Get an overview of all projects, clusters, and groups"
 query {
   allProjects {
     name
     gitUrl
   }
-  allOpenshifts {
+  allKubernetes {
     name
     id
   }
@@ -352,7 +344,7 @@ query {
 
 If you want a detailed look at a single project, this query has been proven quite good:
 
-```graphql
+```graphql title="Take a detailed look at one project"
 query {
   projectByName(
     # TODO: Fill in the project name.
@@ -376,7 +368,7 @@ query {
       deployType
       environmentType
     }
-    openshift {
+    kubernetes {
       id
     }
   }
@@ -387,7 +379,7 @@ query {
 
 Don't remember the name of a project, but know the Git URL? Search no longer, there is a GraphQL query for that:
 
-```graphql
+```graphql title="Query project by Git URL"
 query {
   projectByGitUrl(gitUrl: "git@server.com:org/repo.git") {
     name
@@ -401,7 +393,7 @@ The Lagoon GraphQL API can not only display objects and create objects, it also 
 
 Update the branches to deploy within a project:
 
-```graphql
+```graphql title="Update deploy branches."
 mutation {
   updateProject(
     input: { id: 109, patch: { branches: "^(prod|stage|dev|update)$" } }
@@ -413,11 +405,10 @@ mutation {
 
 Update the production environment within a project:
 
-{% hint style="warning" %}
-This requires a redeploy in order for the changes to be reflected in the containers.
-{% endhint %}
+!!! warning
+    This requires a redeploy in order for the changes to be reflected in the containers.
 
-```graphql
+```graphql title="Update prod environment"
  mutation {
    updateProject(
     input: { id: 109, patch: { productionEnvironment: "main" } }
@@ -429,7 +420,7 @@ This requires a redeploy in order for the changes to be reflected in the contain
 
 You can also combine multiple changes at once:
 
-```graphql
+```graphql title="Update prod environment and set deploy branches."
 mutation {
   updateProject(
     input: {
@@ -449,7 +440,7 @@ mutation {
 
 You can also use the Lagoon GraphQL API to delete an environment. You'll need to know the project name and the environment name in order to run the command.
 
-```graphql
+```graphql title="Delete environment."
 mutation {
   deleteEnvironment(
     input: {
@@ -469,7 +460,7 @@ mutation {
 
 Want to see what groups and users have access to a project? Want to know what their roles are? Do I have a query for you! Using the query below you can search for a project and display the groups, users, and roles that are assigned to that project.
 
-```graphql
+```graphql title="Query groups, users, and roles assigned to project"
 query search{
   projectByName(
     #TODO: Enter the name of the project.
@@ -480,7 +471,7 @@ query search{
     productionEnvironment,
     pullrequests,
     gitUrl,
-    openshift {
+    kubernetes {
       id
     },
      groups{
@@ -512,7 +503,7 @@ Updates to metadata expect a key/value pair. It operates as an `UPSERT`, meaning
 
 You may have any number of k/v pairs stored against a project.
 
-```graphql
+```graphql title="Add a key/value pair to metadata"
 mutation {
   updateProjectMetadata(
     input: { id: 1,  patch: { key: "type", value: "saas" } }
@@ -529,7 +520,7 @@ Queries may be by `key` only \(e.g return all projects where a specific key exis
 
 All projects that have the `version` tag:
 
-```graphql
+```graphql title="Query by metadata"
 query projectsByMetadata {
   projectsByMetadata(metadata: [{key: "version"] ) {
     id
@@ -540,7 +531,7 @@ query projectsByMetadata {
 
 All projects that have the `version` tag, specifically version `8`:
 
-```graphql
+```graphql title="Query by metadata"
 query projectsByMetadata {
   projectsByMetadata(metadata: [{key: "version", value: "8"] ) {
     id
@@ -553,7 +544,7 @@ query projectsByMetadata {
 
 Metadata can be removed on a per-key basis. Other metadata key/value pairs will persist.
 
-```graphql
+```graphql title="Remove metadata"
 mutation {
   removeProjectMetadataByKey (
     input: { id: 1,  key: "version" }
@@ -563,4 +554,3 @@ mutation {
   }
 }
 ```
-
