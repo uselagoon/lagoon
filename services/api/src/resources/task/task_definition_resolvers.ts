@@ -142,8 +142,16 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForGroups(projectGroupsFiltered)
   );
 
+  const systemWideRows = await query(
+    sqlClientPool,
+    Sql.selectAdvancedTaskDefinitionsForSystem()
+  );
+
   //@ts-ignore
-  let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
+  let totalRows = R.concat(R.concat(R.concat(environmentRows, projectRows), groupRows), systemWideRows);
+
+  //@ts-ignore
+  let rows = R.uniqBy(o => o.name, totalRows);
 
   //now we filter the permissions
   const currentUsersPermissionForProject = await currentUsersAdvancedTaskRBACRolesForProject(
@@ -731,9 +739,7 @@ const getAdvancedTaskTarget = advancedTask => {
   } else if (advancedTask.groupName != null) {
     return AdvancedTaskDefinitionTarget.Group;
   } else {
-    //Currently, we don't support environment level tasks
-    throw Error('Images and System Wide Tasks are not yet supported');
-    // return AdvancedTaskDefinitionTarget.Environment
+    return AdvancedTaskDefinitionTarget.SystemWide;
   }
 };
 
@@ -766,7 +772,7 @@ async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterfac
     //if they pass this, they can do basically anything
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
-    throw Error('Adding Images and System Wide Tasks are not yet supported');
+    // throw Error('Adding Images and System Wide Tasks are not yet supported');
   } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.deployTokenInjection != false || input.adminOnlyView != false) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');

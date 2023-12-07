@@ -248,6 +248,13 @@ export const Sql = {
     .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('group_name', 'in', groups)
     .toString(),
+  selectAdvancedTaskDefinitionsForSystem:() =>
+    knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+    .where('environment','is', null)
+    .andWhere('project','is', null)
+    .andWhere('group','is', null)
+    .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>
     knex('advanced_task_definition')
     .where('id', id)
