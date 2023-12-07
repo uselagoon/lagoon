@@ -134,12 +134,10 @@ export const Sql = {
         environment: environment,
         identifier: identifier
       });
-
     if (service != undefined) {
       q.where('lagoon_service', service);
     }
-
-    return q.del().toString()
+    return q.del().toString();
   },
   deleteProblemsFromSource: (environment, source, service) =>
     knex('environment_problem')
