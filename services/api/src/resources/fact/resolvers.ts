@@ -331,7 +331,7 @@ export const addFactsByName: ResolverFn = async (
   }
 
   const returnFacts = await processAddFacts(
-    R.map((fact) => {return {environment: envId, ...fact};}, facts),
+    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
     sqlClientPool,
     hasPermission,
     adminScopes,

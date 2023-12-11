@@ -52,6 +52,11 @@ UPSTREAM_TAG ?= latest
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= edge
 
+# OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
+# set this to a particular build image if required, defaults to nothing to consume what the chart provides
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
+
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
 USE_CALICO_CNI ?= false
@@ -70,6 +75,9 @@ PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
 
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
+
+# Clear all data from the API on a retest run, usually to clear up after a failure. Set false to preserve
+CLEAR_API_DATA ?= true
 
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
@@ -152,7 +160,6 @@ services :=	api \
 			actions-handler \
 			backup-handler \
 			broker \
-			broker-single \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
@@ -177,8 +184,7 @@ build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/backup-handler: services/backup-handler/Dockerfile
-build/broker-single: services/broker/Dockerfile
-build/broker: build/broker-single
+build/broker: services/broker/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
@@ -193,17 +199,11 @@ service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
-build/local-registry: local-dev/registry/Dockerfile
-build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
-build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
 build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher \
-									local-registry \
-									local-dbaas-provider \
-									local-mongodb-dbaas-provider
+									local-api-data-watcher-pusher
 
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -271,16 +271,6 @@ drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-serv
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
-
-.PHONY: local-registry-up
-local-registry-up: build/local-registry
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
-
-# broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
-# when running kubernetes tests
-.PHONY: broker-up
-broker-up: build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
 
 #######
 ####### Publishing Images
@@ -496,6 +486,8 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_INSTALL_REGISTRY=true \
@@ -528,6 +520,8 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
@@ -581,6 +575,8 @@ k3d/dev: build
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
@@ -629,6 +625,7 @@ k3d/retest:
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
+			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \

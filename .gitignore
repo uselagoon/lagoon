@@ -33,3 +33,4 @@ k3dconfig.*
 lagoon-charts.*
 calico.yaml
 .devcontainer
+docker-compose.override.yml

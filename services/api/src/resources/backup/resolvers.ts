@@ -18,13 +18,8 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { getEnvVarsByProjectId } from '../env-variables/resolvers';
 import { logger } from '../../loggers/logger';
 
-export const getRestoreLocation: ResolverFn = async (
-  restore,
-  args,
-  context,
-) => {
-  const { restoreLocation, backupId } = restore;
-  const { sqlClientPool, hasPermission } = context;
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+  let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
@@ -100,39 +95,31 @@ export const getRestoreLocation: ResolverFn = async (
 
 
     // before generating the signed url, check the object exists
-    let exists = false
     const restoreLoc = await s3Client.headObject({
       Bucket: R.prop(2, s3Parts),
       Key: R.prop(3, s3Parts)
     });
     try {
-      await Promise.all([restoreLoc.promise()]).then(data => {
-        // the file exists
-      }).catch(err => {
-        if (err) throw err;
-      });
-      exists = true
-    } catch(err) {
-      exists = false
-    }
-    if (exists) {
-      return s3Client.getSignedUrl('getObject', {
+      const data = await Promise.resolve(restoreLoc.promise());
+      restoreSize = data.ContentLength
+      const restLoc = await s3Client.getSignedUrl('getObject', {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
         Expires: 300 // 5 minutes
-      });
-    } else {
+      })
+      return [restLoc, restoreSize];
+    } catch(err) {
       await query(
         sqlClientPool,
         Sql.deleteRestore({
           backupId
         })
       );
-      return ""
+      return ["", restoreSize];
     }
   }
 
-  return restoreLocation;
+  return [restoreLocation, restoreSize];
 };
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
@@ -410,8 +397,13 @@ export const getRestoreByBackupId: ResolverFn = async (
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );
-
-  return R.prop(0, rows);
+  const row = R.prop(0, rows)
+  if (row && row.restoreLocation != null) {
+    // if the restore has a location, determine the signed url and the reported size of the object in Bytes
+    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
+    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+  }
+  return row;
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
