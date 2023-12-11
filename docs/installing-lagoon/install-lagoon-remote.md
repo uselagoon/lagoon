@@ -77,6 +77,6 @@ Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../d
     ```bash title="Install Lagoon remote"
     helm upgrade --install --create-namespace \
       --namespace lagoon \
-      -f remote-values.yaml \
+      -f lagoon-remote-values.yml \
       lagoon-remote lagoon/lagoon-remote
     ```
