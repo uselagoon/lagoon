@@ -16,10 +16,10 @@ nav:
   - .lagoon.yml: using-lagoon-the-basics/lagoon-yml.md
   - docker-compose.yml: using-lagoon-the-basics/docker-compose-yml.md
   - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
+  - Lagoon Build Errors and Warnings: using-lagoon-the-basics/lagoon-build-errors-and-warnings.md
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
   - Commons: docker-images/commons.md
-  - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
@@ -53,6 +53,7 @@ nav:
     - Subfolders: drupal/subfolders.md
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+    - Automatic Updates: drupal/automatic-updates.md
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:
@@ -155,7 +156,7 @@ theme:
     - scheme: slate
       primary: 'blue'
       toggle:
-        icon: material/brightness-7
+        icon: material/white-balance-sunny
         name: Switch to light mode
 
   favicon: images/lagoon-icon.png
@@ -220,6 +221,8 @@ plugins:
   - search
   - redirects:
       redirect_maps:
+        'lagoon-build-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md'
+        'docker-compose-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md#docker-compose-errors'
         'lagoon/README.md': 'README.md'
         'lagoon/getting-started/README.md': 'README.md'
         'lagoon/using-lagoon-advanced/deploytarget_configs.md': 'using-lagoon-advanced/deploytarget-configs.md'
@@ -240,7 +243,7 @@ plugins:
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
-        'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
+        'lagoon/docker-images/elasticsearch.md': 'docker-images/opensearch.md'
         'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
         'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
         'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'

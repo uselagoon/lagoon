@@ -35,7 +35,8 @@ CREATE OR REPLACE PROCEDURE
     IN facts_ui                        int(1),
     IN production_build_priority       int,
     IN development_build_priority      int,
-    IN development_environments_limit  int
+    IN development_environments_limit  int,
+    IN organization                    int
   )
   BEGIN
     DECLARE new_pid int;
@@ -86,7 +87,8 @@ CREATE OR REPLACE PROCEDURE
         pullrequests,
         openshift,
         openshift_project_pattern,
-        development_environments_limit
+        development_environments_limit,
+        organization
     )
     SELECT
         id,
@@ -117,7 +119,8 @@ CREATE OR REPLACE PROCEDURE
         pullrequests,
         os.id,
         openshift_project_pattern,
-        development_environments_limit
+        development_environments_limit,
+        organization
     FROM
         openshift AS os
     WHERE
@@ -1524,6 +1527,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_organization_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_priority_to_deployment()
 
   BEGIN
@@ -1718,6 +1739,96 @@ CREATE OR REPLACE PROCEDURE
       t.task_name = CONCAT('lagoon-task-', (SELECT LEFT(UUID(), 6)))
     WHERE
       t.task_name IS NULL;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_slack()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_slack'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_slack`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_rocketchat()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_rocketchat'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_rocketchat`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_email()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_email'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_email`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_microsoftteams()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_microsoftteams'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_microsoftteams`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_webhook()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_webhook'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_webhook`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
   END;
 $$
 
@@ -2560,7 +2671,13 @@ CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
+CALL add_organization_to_project();
 CALL add_build_image_to_openshift();
+CALL add_organization_to_notification_slack();
+CALL add_organization_to_notification_rocketchat();
+CALL add_organization_to_notification_email();
+CALL add_organization_to_notification_microsoftteams();
+CALL add_organization_to_notification_webhook();
 CALL clean_stale_project_data();
 CALL add_environment_exclude_self_type_to_advanced_task_argument();
 CALL drop_foreign_key_from_project();

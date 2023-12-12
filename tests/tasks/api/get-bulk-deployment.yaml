@@ -1,6 +1,6 @@
 - name: "{{ testname }} - Trigger a bulk deployment for environments to {{ graphql_url }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - debug:
         msg: "{{ bulk_deploy_id }}"
     - name: "{{ testname }} - POST api check new bulk deployments for environments to {{ graphql_url }}"
@@ -23,7 +23,7 @@
       retries: 30
       delay: 10
 
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - POST api check running bulk deployments for environments to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
@@ -44,7 +44,7 @@
       retries: 60
       delay: 10
 
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - POST api check completed bulk deployments for environments to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

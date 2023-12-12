@@ -4,5 +4,5 @@
   vars:
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-github/push-delete.yaml
-  - include: ../../tasks/webhook-gitlab/push-delete.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-github/push-delete.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push-delete.yaml

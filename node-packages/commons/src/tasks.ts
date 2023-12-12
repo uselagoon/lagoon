@@ -17,7 +17,8 @@ import {
   getEnvironmentByName,
   addDeployment,
   Project,
-  DeployTarget
+  DeployTarget,
+  getOrganizationById
 } from './api';
 import {
   deployTargetBranches,
@@ -166,6 +167,14 @@ class EnvironmentLimit extends Error {
     this.name = 'EnvironmentLimit';
   }
 }
+
+class OrganizationEnvironmentLimit extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'OrganizationEnvironmentLimit';
+  }
+}
+
 
 // add the lagoon actions queue publisher functions
 export const initSendToLagoonActions = function() {
@@ -692,6 +701,12 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
     }
   }
 
+  if (project.organization) {
+    // check the environment quota, this prevents environments being deployed by the api or webhooks
+    const curOrg = await getOrganizationById(project.organization);
+    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":curOrg.quotaRoute.toString(), "scope":"internal_system"})
+  }
+
   // handle any bulk deploy related injections here
   let varPrefix = "LAGOON_BULK_DEPLOY"
   switch (bulkTask) {
@@ -751,6 +766,19 @@ export const createDeployTask = async function(deployData: any) {
 
   const project = await getActiveSystemForProject(projectName, 'Deploy');
   const environments = await getEnvironmentsForProject(projectName);
+
+  if (project.organization) {
+    // if this would be a new environment, check it against the environment quota
+    if (!environments.project.environments.map(e => e.name).find(i => i === branchName)) {
+      // check the environment quota, this prevents environments being deployed by the api or webhooks
+      const curOrg = await getOrganizationById(project.organization);
+      if (curOrg.environments.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
+        throw new OrganizationEnvironmentLimit(
+          `'${branchName}' would exceed organization environment quota: ${curOrg.environments.length}/${curOrg.quotaEnvironment}`
+        );
+      }
+    }
+  }
 
   // environments =
   //  { project:
@@ -1053,28 +1081,6 @@ const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   return config;
 };
 
-// creates the route/ingress migration config
-const migrateHosts = (destinationNamespace, sourceNamespace) => {
-  const randId = Math.random().toString(36).substring(7);
-  const migrateName = `host-migration-${randId}`;
-  let config = {
-    apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'HostMigration',
-    metadata: {
-      name: migrateName,
-      annotations: {
-          'dioscuri.amazee.io/migrate':'true'
-      }
-    },
-    spec: {
-      destinationNamespace: destinationNamespace,
-      activeEnvironment: sourceNamespace,
-    },
-  };
-
-  return config;
-};
-
 export const getTaskProjectEnvironmentVariables =async (projectName: string, environmentId: number) => {
   // inject variables into tasks the same way it is in builds
   // this makes variables available to tasks the same way for consumption
@@ -1295,18 +1301,15 @@ export const createMiscTask = async function(taskData: any) {
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
           break;
-        case 'deploytarget:route:migrate':
+        case 'deploytarget:task:activestandby':
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
-          // first generate the migration CRD
-          const migrateConf = migrateHosts(
-            makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
-            makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task
           var jsonPayload: any = {
             productionEnvironment: taskData.data.productionEnvironment.name,
             standbyEnvironment: taskData.data.environment.name,
-            crd: migrateConf
+            sourceNamespace: makeSafe(taskData.data.environment.openshiftProjectName),
+            destinationNamespace: makeSafe(taskData.data.productionEnvironment.openshiftProjectName)
           }
           // encode it
           const jsonPayloadBytes = new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')
@@ -1329,7 +1332,7 @@ export const createMiscTask = async function(taskData: any) {
         case 'deploytarget:task:advanced':
           // inject variables into advanced tasks the same way it is in builds and standard tasks
           const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
-            project.name,
+            taskData.data.project.name,
             taskData.data.environment.id
           )
           miscTaskData.project.variables = {

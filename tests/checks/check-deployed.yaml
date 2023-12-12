@@ -5,7 +5,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the branch name"
   hosts: localhost
@@ -14,7 +14,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash inside an environment variable set during buildtime"
   hosts: localhost
@@ -23,7 +23,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_GIT_SHA_BUILDTIME={{ expected_head }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the branch name inside an environment variable set during buildtime"
   hosts: localhost
@@ -32,7 +32,7 @@
     url: "{{ url }}"
     expected_content: "LAGOON_GIT_BRANCH_BUILDTIME={{ expected_branch }}"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env file"
   hosts: localhost
@@ -41,7 +41,7 @@
     url: "{{ url }}"
     expected_content: "VARIABLE_SET_BY_DOTENV=true"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the env variable set by .env.defaults file"
   hosts: localhost
@@ -50,4 +50,4 @@
     url: "{{ url }}"
     expected_content: "VARIABLE_SET_BY_DOTENV_DEFAULTS=true"
   tasks:
-  - include: check-url-content.yaml
+  - ansible.builtin.include_tasks: check-url-content.yaml

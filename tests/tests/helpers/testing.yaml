@@ -2,4 +2,4 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

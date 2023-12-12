@@ -124,31 +124,21 @@ const getSqlPredicate = (predicate) => {
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups },
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes },
   info
 ) => {
 
-  let isAdmin = false;
   let userProjectIds: number[];
 
-  try {
-    // admin check, if passed then pre-set authz
-    await hasPermission('project', 'viewAll');
-    isAdmin = true;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.debug('No grant available for getProjectsByFactSearch');
-      return [];
-    }
-
+  if (!adminScopes.projectViewAll) {
     const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
     }, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
-  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
+  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
   return { projects: rows, count };
 }
@@ -156,33 +146,24 @@ export const getProjectsByFactSearch: ResolverFn = async (
 export const getEnvironmentsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes }
 ) => {
 
-  let isAdmin = false;
   let userProjectIds: number[];
-  try {
-    await hasPermission('project', 'viewAll');
-    isAdmin = true;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.debug('No grant available for getEnvironmentsByFactSearch');
-      return [];
-    }
-
+  if (!adminScopes.projectViewAll) {
     const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
     }, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
-  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
+  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
   return { environments: rows, count };
 }
 
-export const processAddFacts = async (facts, sqlClientPool, hasPermission) => {
+export const processAddFacts = async (facts, sqlClientPool, hasPermission, adminScopes) => {
   const environments = facts.reduce((environmentList, fact) => {
     if (fact.environment == undefined) {
       logger.error(`No environment ID given for fact: ${fact.name}`);
@@ -196,14 +177,26 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission) => {
     return environmentList;
   }, []);
 
-  for (let i = 0; i < environments.length; i++) {
-    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environments[i]
-    );
-    await hasPermission('fact', 'add', {
-      project: env.project
-    });
-  };
+  // admin bypass to skip heavy haspermission checks
+  if (!adminScopes.projectViewAll) {
+    let projectIds = []
+    for (let i = 0; i < environments.length; i++) {
+      const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+        environments[i]
+      );
+      // collect the project ids
+      projectIds.push(env.project)
+    };
+
+    // unique the project ids for more efficient permission checks against projects
+    projectIds = [...new Set(projectIds)];
+
+    for (const pid in projectIds) {
+      await hasPermission('fact', 'add', {
+        project: projectIds[pid]
+      });
+    }
+  }
 
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
@@ -290,9 +283,9 @@ export const addFact: ResolverFn = async (
 export const addFacts: ResolverFn = async (
   root,
   { input: { facts } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
-  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission);
+  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
   userActivityLogger(`User added facts to environment'`, {
     project: '',
@@ -338,9 +331,10 @@ export const addFactsByName: ResolverFn = async (
   }
 
   const returnFacts = await processAddFacts(
-    R.map((fact) => {return {environment: envId, ...fact};}, facts),
+    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
     sqlClientPool,
-    hasPermission
+    hasPermission,
+    adminScopes,
   );
 
   userActivityLogger(`User added facts to '${project}:${environment}'`, {

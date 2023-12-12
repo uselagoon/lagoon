@@ -5,8 +5,8 @@
   vars:
     git_files: "node{{ node_version }}/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
@@ -16,9 +16,9 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -29,7 +29,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
   - set_fact:
       second_commit_hash: "{{ current_head }}"
 
@@ -37,7 +37,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch with sha of second commit on {{ project }}, which should deploy the second commit"
   hosts: localhost
@@ -48,10 +48,10 @@
     sha: "{{ second_commit_hash }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-sha.yaml
 
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
@@ -66,9 +66,9 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -84,9 +84,9 @@
     sha: "{{ second_commit_hash }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-sha.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ second_commit_hash }}"
     expected_branch: "{{ branch }}"
@@ -100,7 +100,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -109,4 +109,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

@@ -1,6 +1,6 @@
 - name: "Delete project {{ project }} from openshift {{ openshift }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "Delete project {{ project }} from openshift {{ openshift }}"
       uri:
         url: "{{ graphql_url }}"
