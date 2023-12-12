@@ -609,7 +609,7 @@ export const getControllerBuildData = async function(deployData: any) {
     bulkType.Deploy
   )
 
-  let organization = {}
+  let organization = null;
   if (lagoonProjectData.organization != null) {
     const curOrg = await getOrganizationById(lagoonProjectData.organization);
     organization = {
