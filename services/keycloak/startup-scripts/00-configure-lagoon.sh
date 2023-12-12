@@ -48,16 +48,14 @@ function sync_client_secrets {
 # would've been created by the function, and halting execution if found.
 
 function import_test_realm {
-  # handle importing a realm from a snapshot of a raw install of 2.15.4
-  if [ $KEYCLOAK_TEST_REALM_IMPORT ]; then
-    echo Importing test realm
+  # handle importing a realm from a snapshot of a raw install of 2.16.0
     if /opt/jboss/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
         echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
         return 0
     fi
-    /opt/jboss/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/keycloak/lagoon-test-realm-2.15.4.json
-    echo test realm import complete
-  fi
+    echo Importing realm
+    /opt/jboss/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/seed/lagoon-realm-2.16.0.json
+    echo realm import complete
 }
 
 function configure_lagoon_realm {
@@ -2496,34 +2494,35 @@ function configure_keycloak {
     configure_admin_email
     configure_smtp_settings
     configure_realm_settings
-    configure_opendistro_security_client
-    configure_api_client
-    add_group_viewall
-    add_deployment_cancel
-    configure_task_cron
-    configure_task_uli
-    configure_problems_system
-    configure_facts_system
-    configure_harbor_scan_system
-    configure_advanced_task_system
-    remove_billing_modifier
-    update_openshift_view_permission
-    configure_service_api_client
-    configure_token_exchange
-    update_add_env_var_to_project
-    migrate_to_js_provider
-    add_delete_env_var_permissions
-    configure_lagoon_opensearch_sync_client
-    add_organization_permissions
-    update_env_var_view_permissions
-    add_user_viewall
-    add_update_additional_platform_owner_permissions
-    create_or_update_delete_advanced_task_permissions
-    change_groupadd_to_owner_role
-    change_project_groupadd_to_owner_role
-    add_development_task_cancel
-    add_production_task_cancel
-    add_organization_viewall
+
+    # configure_opendistro_security_client
+    # configure_api_client
+    # add_group_viewall
+    # add_deployment_cancel
+    # configure_task_cron
+    # configure_task_uli
+    # configure_problems_system
+    # configure_facts_system
+    # configure_harbor_scan_system
+    # configure_advanced_task_system
+    # remove_billing_modifier
+    # update_openshift_view_permission
+    # configure_service_api_client
+    # configure_token_exchange
+    # update_add_env_var_to_project
+    # migrate_to_js_provider
+    # add_delete_env_var_permissions
+    # configure_lagoon_opensearch_sync_client
+    # add_organization_permissions
+    # update_env_var_view_permissions
+    # add_user_viewall
+    # add_update_additional_platform_owner_permissions
+    # create_or_update_delete_advanced_task_permissions
+    # change_groupadd_to_owner_role
+    # change_project_groupadd_to_owner_role
+    # add_development_task_cancel
+    # add_production_task_cancel
+    # add_organization_viewall
     #post 2.16.0+ migrations after this point
 
 
