@@ -234,7 +234,13 @@ export const getGroupsByProjectId: ResolverFn = async (
         }
       }
     }
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
+    let userProjectGroups = []
+    for (const ug of userGroups) {
+      const pg = projectGroups.find(i => i.id === ug.id)
+      if (pg) {
+        userProjectGroups.push(pg)
+      }
+    }
 
     return userProjectGroups;
   }
@@ -259,7 +265,6 @@ export const getGroupsByUserId: ResolverFn = async (
     }
   }
   const currentUserGroups = keycloakUsersGroups;
-  // const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
 
   return currentUserGroups;
 };
