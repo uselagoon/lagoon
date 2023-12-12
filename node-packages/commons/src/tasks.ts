@@ -18,6 +18,7 @@ import {
   addDeployment,
   Project,
   DeployTarget,
+  getOrganizationByIdWithEnvs,
   getOrganizationById
 } from './api';
 import {
@@ -601,12 +602,22 @@ export const getControllerBuildData = async function(deployData: any) {
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    result.project,
+    lagoonProjectData,
     environment.addOrUpdateEnvironment,
     deployTarget.openshift,
     bulkId, bulkName, buildPriority, buildVariables,
     bulkType.Deploy
   )
+
+  let organization = null;
+  if (lagoonProjectData.organization != null) {
+    const curOrg = await getOrganizationById(lagoonProjectData.organization);
+    organization = {
+      name: curOrg.name,
+      id: curOrg.id,
+    }
+  }
+
 
   // this is what will be returned and sent to the controllers via message queue, it is the lagoonbuild controller spec
   var buildDeployData: any = {
@@ -631,6 +642,7 @@ export const getControllerBuildData = async function(deployData: any) {
       project: {
         id: lagoonProjectData.id,
         name: projectName,
+        organization: organization,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
@@ -704,7 +716,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
   if (project.organization) {
     // check the environment quota, this prevents environments being deployed by the api or webhooks
     const curOrg = await getOrganizationById(project.organization);
-    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":curOrg.quotaRoute.toString(), "scope":"internal_system"})
+    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":`"${curOrg.quotaRoute}"`, "scope":"internal_system"})
   }
 
   // handle any bulk deploy related injections here
@@ -771,7 +783,7 @@ export const createDeployTask = async function(deployData: any) {
     // if this would be a new environment, check it against the environment quota
     if (!environments.project.environments.map(e => e.name).find(i => i === branchName)) {
       // check the environment quota, this prevents environments being deployed by the api or webhooks
-      const curOrg = await getOrganizationById(project.organization);
+      const curOrg = await getOrganizationByIdWithEnvs(project.organization);
       if (curOrg.environments.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
         throw new OrganizationEnvironmentLimit(
           `'${branchName}' would exceed organization environment quota: ${curOrg.environments.length}/${curOrg.quotaEnvironment}`
@@ -1139,6 +1151,15 @@ export const createTaskTask = async function(taskData: any) {
     environment: envVars,
   }
 
+  if (project.organization != null) {
+    const curOrg = await getOrganizationById(project.organization);
+    const organization = {
+      name: curOrg.name,
+      id: curOrg.id,
+    }
+    taskData.project.organization = organization
+  }
+
   if (typeof projectSystem.activeSystemsTask === 'undefined') {
     throw new UnknownActiveSystem(
       `No active system for 'task' for project ${project.name}`
@@ -1354,6 +1375,14 @@ export const createMiscTask = async function(taskData: any) {
           break;
       }
       // send the task to the queue
+      if (project.organization != null) {
+        const curOrg = await getOrganizationById(project.organization);
+        const organization = {
+          name: curOrg.name,
+          id: curOrg.id,
+        }
+        miscTaskData.project.organization = organization
+      }
       return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     default:
       break;
