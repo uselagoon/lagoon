@@ -2381,19 +2381,19 @@ const typeDefs = gql`
     addWorkflow(input: AddWorkflowInput!): Workflow
     updateWorkflow(input: UpdateWorkflowInput): Workflow
     deleteWorkflow(input: DeleteWorkflowInput!): String
-    taskDrushArchiveDump(environment: Int!): Task
-    taskDrushSqlDump(environment: Int!): Task
-    taskDrushCacheClear(environment: Int!): Task
-    taskDrushCron(environment: Int!): Task
+    taskDrushArchiveDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushSqlDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushCacheClear(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushCron(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
-    ): Task
+    ): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushRsyncFiles(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
-    ): Task
-    taskDrushUserLogin(environment: Int!): Task
+    ): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushUserLogin(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
