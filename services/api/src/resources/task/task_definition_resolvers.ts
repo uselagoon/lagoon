@@ -147,8 +147,6 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForSystem()
   );
 
-
-
   //@ts-ignore
   let totalRows = R.concat(R.concat(R.concat(environmentRows, projectRows), groupRows), systemWideRows);
 
@@ -161,11 +159,8 @@ export const resolveTasksForEnvironment = async (
     proj.projectId
   );
 
-
   //@ts-ignore
   rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
-
-
 
   const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
 
