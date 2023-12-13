@@ -120,6 +120,18 @@ The values that the user selects will be available as environment variables in t
 
 ![Task Arguments](./custom-task-arguments.png)
 
+
+### System wide tasks
+
+Platform administrators are able to register system wide tasks. These tasks will appear for all environments, subject to the user's permission to invoke them.
+
+Creating a system wide task is almost exactly the same as other task types, with two exceptions.
+
+First, you set the `systemWide: true` field in your `addAdvancedTaskDefinition` mutation.
+
+Second, you make sure you have *not* specified `groupName`, `project`, or `environment` - which would defeat the purpose, since these fields are used to target specific contexts.
+
+
 ### Confirmation
 
 When the `confirmationText` field has text, it will be displayed with a confirmation modal in the UI before the user is able to run the task.
