@@ -156,6 +156,7 @@ const typeDefs = gql`
     groupName: String
     environment: Int
     project: Int
+    systemWide: Boolean
     permission: TaskPermission
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
@@ -178,6 +179,7 @@ const typeDefs = gql`
     groupName: String
     environment: Int
     project: Int
+    systemWide: Boolean
     permission: TaskPermission
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
@@ -1672,6 +1674,7 @@ const typeDefs = gql`
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
     adminOnlyView: Boolean
+    systemWide: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
