@@ -131,6 +131,7 @@ services:
     ports:
       - '8088:8080'
     environment:
+      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth/
       - KEYCLOAK_ADMIN_EMAIL=admin@example.com
       # Uncomment for local new relic tracking
       # - NEW_RELIC_LICENSE_KEY=

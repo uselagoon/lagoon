@@ -12,7 +12,7 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:21.1.0
+FROM quay.io/keycloak/keycloak:21.1.2
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
