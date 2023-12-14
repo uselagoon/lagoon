@@ -18,6 +18,7 @@ import {
   addDeployment,
   Project,
   DeployTarget,
+  getOrganizationByIdWithEnvs,
   getOrganizationById
 } from './api';
 import {
@@ -601,12 +602,22 @@ export const getControllerBuildData = async function(deployData: any) {
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
-    result.project,
+    lagoonProjectData,
     environment.addOrUpdateEnvironment,
     deployTarget.openshift,
     bulkId, bulkName, buildPriority, buildVariables,
     bulkType.Deploy
   )
+
+  let organization = null;
+  if (lagoonProjectData.organization != null) {
+    const curOrg = await getOrganizationById(lagoonProjectData.organization);
+    organization = {
+      name: curOrg.name,
+      id: curOrg.id,
+    }
+  }
+
 
   // this is what will be returned and sent to the controllers via message queue, it is the lagoonbuild controller spec
   var buildDeployData: any = {
@@ -631,6 +642,7 @@ export const getControllerBuildData = async function(deployData: any) {
       project: {
         id: lagoonProjectData.id,
         name: projectName,
+        organization: organization,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
@@ -704,7 +716,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
   if (project.organization) {
     // check the environment quota, this prevents environments being deployed by the api or webhooks
     const curOrg = await getOrganizationById(project.organization);
-    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":curOrg.quotaRoute.toString(), "scope":"internal_system"})
+    project.envVariables.push({"name":"LAGOON_ROUTE_QUOTA", "value":`"${curOrg.quotaRoute}"`, "scope":"internal_system"})
   }
 
   // handle any bulk deploy related injections here
@@ -771,10 +783,10 @@ export const createDeployTask = async function(deployData: any) {
     // if this would be a new environment, check it against the environment quota
     if (!environments.project.environments.map(e => e.name).find(i => i === branchName)) {
       // check the environment quota, this prevents environments being deployed by the api or webhooks
-      const curOrg = await getOrganizationById(project.organization);
-      if (curOrg.environments.length >= curOrg.quotaEnvironment) {
+      const curOrg = await getOrganizationByIdWithEnvs(project.organization);
+      if (curOrg.environments.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
         throw new OrganizationEnvironmentLimit(
-          `'${branchName}' would exceed the organization environment quota of ${curOrg.quotaEnvironment}`
+          `'${branchName}' would exceed organization environment quota: ${curOrg.environments.length}/${curOrg.quotaEnvironment}`
         );
       }
     }
@@ -1081,28 +1093,6 @@ const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   return config;
 };
 
-// creates the route/ingress migration config
-const migrateHosts = (destinationNamespace, sourceNamespace) => {
-  const randId = Math.random().toString(36).substring(7);
-  const migrateName = `host-migration-${randId}`;
-  let config = {
-    apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'HostMigration',
-    metadata: {
-      name: migrateName,
-      annotations: {
-          'dioscuri.amazee.io/migrate':'true'
-      }
-    },
-    spec: {
-      destinationNamespace: destinationNamespace,
-      activeEnvironment: sourceNamespace,
-    },
-  };
-
-  return config;
-};
-
 export const getTaskProjectEnvironmentVariables =async (projectName: string, environmentId: number) => {
   // inject variables into tasks the same way it is in builds
   // this makes variables available to tasks the same way for consumption
@@ -1159,6 +1149,15 @@ export const createTaskTask = async function(taskData: any) {
   taskData.project.variables = {
     project: projectVars,
     environment: envVars,
+  }
+
+  if (project.organization != null) {
+    const curOrg = await getOrganizationById(project.organization);
+    const organization = {
+      name: curOrg.name,
+      id: curOrg.id,
+    }
+    taskData.project.organization = organization
   }
 
   if (typeof projectSystem.activeSystemsTask === 'undefined') {
@@ -1323,18 +1322,15 @@ export const createMiscTask = async function(taskData: any) {
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
           break;
-        case 'deploytarget:route:migrate':
+        case 'deploytarget:task:activestandby':
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
-          // first generate the migration CRD
-          const migrateConf = migrateHosts(
-            makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
-            makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task
           var jsonPayload: any = {
             productionEnvironment: taskData.data.productionEnvironment.name,
             standbyEnvironment: taskData.data.environment.name,
-            crd: migrateConf
+            sourceNamespace: makeSafe(taskData.data.environment.openshiftProjectName),
+            destinationNamespace: makeSafe(taskData.data.productionEnvironment.openshiftProjectName)
           }
           // encode it
           const jsonPayloadBytes = new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')
@@ -1357,7 +1353,7 @@ export const createMiscTask = async function(taskData: any) {
         case 'deploytarget:task:advanced':
           // inject variables into advanced tasks the same way it is in builds and standard tasks
           const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
-            project.name,
+            taskData.data.project.name,
             taskData.data.environment.id
           )
           miscTaskData.project.variables = {
@@ -1379,6 +1375,14 @@ export const createMiscTask = async function(taskData: any) {
           break;
       }
       // send the task to the queue
+      if (project.organization != null) {
+        const curOrg = await getOrganizationById(project.organization);
+        const organization = {
+          name: curOrg.name,
+          id: curOrg.id,
+        }
+        miscTaskData.project.organization = organization
+      }
       return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     default:
       break;

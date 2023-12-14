@@ -18,6 +18,6 @@
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-github/push.yaml
-  - include: ../../tasks/webhook-bitbucket/push.yaml
-  - include: ../../tasks/webhook-gitlab/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-github/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-bitbucket/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push.yaml

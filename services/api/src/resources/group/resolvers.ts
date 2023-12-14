@@ -190,10 +190,10 @@ export const getGroupsByProjectId: ResolverFn = async (
   _input,
   { hasPermission, sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
 ) => {
+  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
     try {
-      const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
       return projectGroups;
     } catch (err) {
       if (!keycloakGrant) {
@@ -202,7 +202,6 @@ export const getGroupsByProjectId: ResolverFn = async (
       }
     }
   } else {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
@@ -237,7 +236,13 @@ export const getGroupsByProjectId: ResolverFn = async (
         }
       }
     }
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
+    let userProjectGroups = []
+    for (const ug of userGroups) {
+      const pg = projectGroups.find(i => i.id === ug.id)
+      if (pg) {
+        userProjectGroups.push(pg)
+      }
+    }
 
     return userProjectGroups;
   }
@@ -262,7 +267,6 @@ export const getGroupsByUserId: ResolverFn = async (
     }
   }
   const currentUserGroups = keycloakUsersGroups;
-  // const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
 
   return currentUserGroups;
 };

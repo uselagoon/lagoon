@@ -31,7 +31,7 @@ export const get = promisify(redisClient.get).bind(redisClient);
 const hgetall = promisify(redisClient.hgetall).bind(redisClient);
 const smembers = promisify(redisClient.smembers).bind(redisClient);
 const sadd = promisify(redisClient.sadd).bind(redisClient);
-const del = promisify(redisClient.del).bind(redisClient);
+export const del = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
   resource: string;

@@ -1,7 +1,7 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:1.18-alpine3.17 AS builder
+FROM golang:1.21-alpine AS builder
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/actions-handler/

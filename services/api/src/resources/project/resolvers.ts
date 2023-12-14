@@ -67,7 +67,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
+  { order, createdAfter, gitUrl, buildImage },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -97,6 +97,10 @@ export const getAllProjects: ResolverFn = async (
 
   if (gitUrl) {
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
+  }
+
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
 
   if (userProjectIds) {
@@ -280,6 +284,11 @@ export const addProject = async (
     }
   }
 
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -676,6 +685,11 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'

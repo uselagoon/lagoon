@@ -34,7 +34,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
 
 	switch message.Meta.Key {
-	case "kubernetes:route:migrate", "deploytarget:route:migrate":
+	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby":
 		// if the result is from an active/standby task, handle updating the project here
 		switch message.Meta.JobStatus {
 		case "complete", "succeeded":
@@ -58,10 +58,16 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 			json.Unmarshal(decodeData, advTask)
 			// then prepare the patch operation
 			updateProject := schema.UpdateProjectPatchInput{
-				ProductionEnvironment:        &advTask.StandbyProductionEnvironment, // these are inverted because of how the task works
-				StandbyProductionEnvironment: &advTask.ProductionEnvironment,        // these are inverted because of how the task works
+				ProductionEnvironment:        &advTask.ProductionEnvironment,
+				StandbyProductionEnvironment: &advTask.StandbyProductionEnvironment,
 				ProductionRoutes:             &advTask.ProductionRoutes,
 				StandbyRoutes:                &advTask.StandbyRoutes,
+			}
+			switch message.Meta.Key {
+			case "kubernetes:route:migrate", "deploytarget:route:migrate":
+				// the old task had these inverted, so this keeps that inversion in place for now
+				updateProject.ProductionEnvironment = &advTask.StandbyProductionEnvironment
+				updateProject.StandbyProductionEnvironment = &advTask.ProductionEnvironment
 			}
 			// update the project in the api
 			updatedProject, err := lagoon.UpdateProject(ctx, int(project.ID), updateProject, l)

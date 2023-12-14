@@ -1,6 +1,6 @@
 - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
   block:
-    - include: refresh-token.yaml
+    - ansible.builtin.include_tasks: refresh-token.yaml
     - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

@@ -6,4 +6,4 @@
     project: "{{ project }}"
     openshift: 2001
   tasks:
-  - include: ../../tasks/api/delete-project.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-project.yaml

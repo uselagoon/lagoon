@@ -9,7 +9,7 @@ import { logger } from '../loggers/logger';
 // @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { saveRedisKeycloakCache, get, redisClient } from '../clients/redisClient';
+import { saveRedisKeycloakCache, get, del, redisClient } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
 import { log } from 'winston';
@@ -137,7 +137,7 @@ export const Group = (clients: {
         path: keycloakGroup.path,
         attributes: keycloakGroup.attributes,
         subGroups: keycloakGroup.subGroups,
-        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup)),
+        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup), 10) || null, // if it exists set it or null
       })
     );
 
@@ -627,6 +627,11 @@ export const Group = (clients: {
 
   const deleteGroup = async (id: string): Promise<void> => {
     try {
+      const keycloakGroup = await keycloakAdminClient.groups.findOne({
+        id,
+        briefRepresentation: false,
+      });
+      await del(`cache:keycloak:group-id:${keycloakGroup.name}`);
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {

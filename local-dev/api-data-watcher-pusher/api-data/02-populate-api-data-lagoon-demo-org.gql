@@ -1,0 +1,219 @@
+mutation PopulateApi {
+
+  # Organizations
+  UIOrganization1: addOrganization(input: {
+    id: 1
+    name: "lagoon-demo-organization"
+    friendlyName: "Lagoon Demo Organization"
+    description: "An organization for testing"
+    quotaProject: 5
+    quotaEnvironment: 4
+    quotaGroup: 10
+    quotaNotification: 10
+  }) {
+    id
+    name
+    quotaProject
+    quotaEnvironment
+    quotaGroup
+    quotaNotification
+  }
+
+  UIOrganizationUser: addUser(
+    input: {
+      email: "orguser@example.com"
+      comment: "test user that will be in a group in an organization"
+    }
+  ) {
+    id
+  }
+  UIOrganizationViewer: addUser(
+    input: {
+      email: "orgviewer@example.com"
+      comment: "user that will be an organization viewer"
+    }
+  ) {
+    id
+  }
+  UIOrganizationOwner: addUser(
+    input: {
+      email: "orgowner@example.com"
+      comment: "user that will be an organization owner"
+    }
+  ) {
+    id
+  }
+
+  UIOrganizationGroup: addGroupToOrganization(
+    input: {
+      name: "lagoon-demo-organization-group"
+      organization: 1}
+  ) {
+    id
+  }
+
+  UIOrganizationUserToGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"orguser@example.com"
+      }
+      group: {
+        name: "lagoon-demo-organization-group"
+      }
+      role: MAINTAINER
+    }
+  ) {
+    name
+  }
+
+  UIOrganizationAddViewer: addUserToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: 1}) {
+    id
+  }
+
+  UIOrganizationAddOwner: addUserToOrganization(input: {user: {email: "orgowner@example.com"}, organization: 1, owner: true}) {
+    id
+  }
+
+  UIOrganizationNotificationSlack: addNotificationSlack(input: {organization: 1, name: "slack-test", channel: "lobby", webhook: "http://slack.example.com/hooks/abcdefg"}) {
+    id
+  }
+
+  UIOrganizationNotificationRocketChat: addNotificationRocketChat(input: {organization: 1, name: "rocketchat-test", channel: "lobby", webhook: "http://rocketchat.example.com/hooks/abcdefg"}) {
+    id
+  }
+
+  UIOrganizationNotificationEmail: addNotificationEmail(input: {organization: 1, name: "email-test", emailAddress: "fake@example.com"}) {
+    id
+  }
+
+  UIOrganizationNotificationWebhook: addNotificationWebhook(input: {organization: 1, name: "webhook-test", webhook: "http://webhook.example.com"}) {
+    id
+  }
+
+  UIOrganizationNotificationTeams: addNotificationMicrosoftTeams(input: {organization: 1, name: "teams-test", webhook: "http://teams.example.com/hooks/sdgsgsgs"}) {
+    id
+  }
+
+  AddUIKubernetesToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 4
+      organization: 1
+    }) {
+      id
+    }
+
+  UIKubernetes2: addKubernetes(
+    input: {
+      id: 5
+      name: "ui-kubernetes-2"
+      consoleUrl: "https://localhost:8443/"
+    }
+  ) {
+    id
+  }
+
+  AddUIKubernetes2ToOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 5
+      organization: 1
+    }) {
+      id
+    }
+
+  UIProject1: addProject(
+    input: {
+      id: 180
+      organization: 1
+      name: "lagoon-demo-org"
+      availability: HIGH
+      openshift: 5
+      gitUrl: "ssh://git@example.com/lagoon-demo-org.git"
+      productionEnvironment: "main"
+      problemsUi: 1
+      factsUi: 1
+    }
+  ) {
+    id
+  }
+
+
+  UIOrganizationProjectGroup: addGroupsToProject(
+    input: {
+      project: {
+        name: "lagoon-demo-org"
+      }
+      groups: [
+        {
+          name: "lagoon-demo-organization-group"
+        }
+      ]
+    }
+  ) {
+    id
+  }
+
+  UIOrganizationProjectEnvironment1: addOrUpdateEnvironment(
+    input: {
+      id: 30
+      name: "main"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "main"
+      environmentType: PRODUCTION
+      openshiftProjectName: "lagoon-demo-org-main"
+    }
+  ) {
+    id
+  }
+
+  UIOrganizationProjectEnvironment1Update: updateEnvironment(
+    input: {
+      id: 30
+      patch: {
+        route: "https://lagoondemoorg.example.org"
+        routes: "https://lagoondemoorg.example.org,https://nginx.main.lagoon-demo-org.ui-kubernetes.lagoon.sh"
+      }
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment2: addOrUpdateEnvironment(
+    input: {
+      id: 31
+      name: "staging"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "staging"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "lagoon-demo-org-staging"
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment3: addOrUpdateEnvironment(
+    input: {
+      id: 32
+      name: "development"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "development"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "lagoon-demo-org-development"
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment4: addOrUpdateEnvironment(
+    input: {
+      id: 33
+      name: "pr-15"
+      project: 180
+      deployType: PULLREQUEST
+      deployBaseRef: "target"
+      deployHeadRef: "source"
+      deployTitle: "pr-15"
+      environmentType: DEVELOPMENT
+      openshiftProjectName: "lagoon-demo-org-pr-15"
+    }
+  ) {
+    id
+  }
+}
