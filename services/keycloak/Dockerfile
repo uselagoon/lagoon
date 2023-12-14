@@ -72,10 +72,10 @@ COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
 COPY startup-scripts /opt/keycloak/startup-scripts
-
 COPY themes/lagoon /opt/keycloak/themes/lagoon
-
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
+
+COPY lagoon-realm-2.16.0.json /lagoon/seed/lagoon-realm-2.16.0.json
 
 RUN /opt/keycloak/bin/kc.sh build
 

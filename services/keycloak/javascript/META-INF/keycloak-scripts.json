@@ -8,6 +8,11 @@
   ],
   "policies": [
     {
+      "name": "Default Policy",
+      "description": "A policy that grants access only for users within this realm",
+      "fileName": "policies/default-policy.js"
+    },
+    {
       "name": "[Lagoon] Users role for realm is Platform Owner",
       "description": "Checks the users role for the realm is Platform Owner or higher",
       "fileName": "policies/users-role-for-realm-is-platform-owner.js"
