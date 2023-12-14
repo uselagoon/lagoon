@@ -566,6 +566,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationRocketChat {
@@ -575,6 +576,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationSlack {
@@ -584,6 +586,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationEmail {
@@ -592,6 +595,7 @@ const typeDefs = gql`
     emailAddress: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationWebhook {
@@ -600,6 +604,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type UnassignedNotification {
