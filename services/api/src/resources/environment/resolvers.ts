@@ -1,6 +1,10 @@
 import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
+import {
+  createRemoveTask,
+  createMiscTask,
+  seedNamespace
+} from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
@@ -804,6 +808,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
+        idled: input.patch.idled
       }
     })
   );
@@ -845,7 +850,8 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
-        created: input.patch.created
+        created: input.patch.created,
+        idled: input.patch.idled
       },
       data: withK8s,
       ...auditLog,
@@ -1127,4 +1133,154 @@ export const getServiceContainersByServiceId: ResolverFn = async (
     Sql.selectContainersByServiceId(sid)
   );
   return await rows;
+};
+
+export const environmentIdling = async (
+  root,
+  input,
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
+
+  if (!environment) {
+    throw new Error(
+      'Invalid environment ID'
+    );
+  }
+
+  await hasPermission('environment', 'view', {
+    project: environment.project
+  });
+
+  // don't try idle if the environment is already idled or unidled
+  if (environment.idled && input.idle) {
+    throw new Error(
+      `environment is already idled`
+    );
+  }
+  if (!environment.idled && !input.idle) {
+    throw new Error(
+      `environment is already unidled`
+    );
+  }
+
+  const project = await projectHelpers(sqlClientPool).getProjectById(
+    environment.project
+  );
+
+  await hasPermission('deployment', 'cancel', {
+    project: project.id
+  });
+
+  const data = {
+    environment,
+    project,
+    idling: {
+      idle: input.idle,
+      forceScale: input.disableAutomaticUnidling
+    }
+  };
+
+  userActivityLogger(`User requested environment idling for '${environment.name}'`, {
+    project: '',
+    event: 'api:idleEnvironment',
+    payload: {
+      project: project.name,
+      environment: environment.name,
+      idle: input.idle,
+      disableAutomaticUnidling: input.disableAutomaticUnidling,
+    }
+  });
+
+  try {
+    await createMiscTask({ key: 'environment:idling', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:idleEnvironment',
+      { environment: environment.id },
+      `Environment idle attempt possibly failed, reason: ${error}`
+    );
+    throw new Error(
+      error.message
+    );
+  }
+};
+
+export const environmentService = async (
+  root,
+  input,
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
+
+  if (!environment) {
+    throw new Error(
+      'Invalid environment ID'
+    );
+  }
+
+  await hasPermission('environment', 'view', {
+    project: environment.project
+  });
+
+  // don't try idle if the environment is already idled or unidled
+  if (environment.idled && input.idle) {
+    throw new Error(
+      `environment is already idled`
+    );
+  }
+  if (!environment.idled && !input.idle) {
+    throw new Error(
+      `environment is already unidled`
+    );
+  }
+
+  const project = await projectHelpers(sqlClientPool).getProjectById(
+    environment.project
+  );
+
+  await hasPermission('deployment', 'cancel', {
+    project: project.id
+  });
+
+  const data = {
+    environment,
+    project,
+    lagoonService: {
+      name: input.serviceName,
+      state: input.state
+    }
+  };
+
+  userActivityLogger(`User requested environment idling for '${environment.name}'`, {
+    project: '',
+    event: 'api:idleEnvironment',
+    payload: {
+      project: project.name,
+      environment: environment.name,
+      idle: input.idle,
+      disableAutomaticUnidling: input.disableAutomaticUnidling,
+    }
+  });
+
+  try {
+    await createMiscTask({ key: 'environment:idling', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:idleEnvironment',
+      { environment: environment.id },
+      `Environment idle attempt possibly failed, reason: ${error}`
+    );
+    throw new Error(
+      error.message
+    );
+  }
 };

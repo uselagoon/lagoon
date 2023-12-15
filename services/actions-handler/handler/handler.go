@@ -157,6 +157,8 @@ func (m *Messenger) Consumer() {
 			err = m.handleRemoval(ctx, messageQueue, logMsg, messageID)
 		case "task":
 			err = m.handleTask(ctx, messageQueue, logMsg, messageID)
+		case "idling":
+			err = m.handleIdling(ctx, messageQueue, logMsg, messageID)
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
