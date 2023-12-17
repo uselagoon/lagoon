@@ -382,18 +382,22 @@ export const deleteFact: ResolverFn = async (
 
 export const deleteFactsFromSource: ResolverFn = async (
   root,
-  { input: { environment: environmentId, source } },
+  { input: { environment: environmentId, source, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
+  if(environment == null) {
+    throw new Error(`Unable to find environment with id: ${environmentId}`);
+  }
+
   await hasPermission('fact', 'delete', {
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
+  await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
   userActivityLogger(`User deleted facts`, {
     project: '',
@@ -401,7 +405,8 @@ export const deleteFactsFromSource: ResolverFn = async (
     payload: {
       data: {
         environment: environmentId,
-        source
+        source,
+        service
       }
     }
   });

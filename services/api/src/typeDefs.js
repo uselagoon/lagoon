@@ -378,6 +378,7 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+    service: String
   }
 
   type FactReference {
