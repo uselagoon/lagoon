@@ -139,6 +139,13 @@ export const Sql = {
     }
     return q.del().toString();
   },
+  deleteProblemsForEnvironment: (environment) => { // This should be used primarily to remove problems when deleting an environment
+    let q = knex('environment_problem')
+      .where({
+        environment: environment
+      });
+    return q.del().toString();
+  },
   deleteProblemsFromSource: (environment, source, service) =>
     knex('environment_problem')
       .where({

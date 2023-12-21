@@ -3,6 +3,8 @@ import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+import { Sql as problemSql } from '../problem/sql';
+import { Sql as factSql } from '../fact/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 // import { logger } from '../../loggers/logger';
 
@@ -48,6 +50,19 @@ export const Helpers = (sqlClientPool: Pool) => {
         sqlClientPool,
         Sql.deleteEnvironment(name, pid)
       );
+
+      // Here we clean up insights attached to the environment
+
+      await query(
+        sqlClientPool,
+        factSql.deleteFactsForEnvironment(eid)
+      );
+
+      await query(
+        sqlClientPool,
+        problemSql.deleteProblemsForEnvironment(eid)
+      );
+
     },
     getEnvironmentsDeploytarget: async (eid) => {
       const rows = await query(
