@@ -22,7 +22,15 @@ app.use(json());
 app.use(
   morgan('combined', {
     skip: (req, res) => {
-      return req.originalUrl.startsWith('/status');
+      if (req.originalUrl.startsWith('/status')) {
+        return req.originalUrl.startsWith('/status')
+      }
+      if (req.originalUrl.startsWith('/favicon.ico')) {
+        return req.originalUrl.startsWith('/favicon.ico')
+      }
+      if (req.originalUrl.startsWith('/.well-known')) {
+        return req.originalUrl.startsWith('/.well-known')
+      }
     },
     stream: {
       write: message => logger.info(message.trim())

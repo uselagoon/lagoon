@@ -44,6 +44,10 @@ const authenticateJWT = async (
   if (req.url === '/status') {
     return next();
   }
+  // Allow access to status without auth.
+  if (req.url === '/.well-known/appspecific/sh.lagoon.discovery.json') {
+    return next();
+  }
 
   // @ts-ignore
   const token = getBearerTokenFromHeader(req.get('Authorization'));
