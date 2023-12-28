@@ -975,7 +975,7 @@ const typeDefs = gql`
     """
     The size of the restored file in bytes
     """
-    restoreSize: Int
+    restoreSize: Float
     created: String
   }
 
