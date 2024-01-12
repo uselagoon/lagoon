@@ -20,12 +20,12 @@ The platform-wide owner has access to every Lagoon group, like the group owner r
 
 The organization owner role allows for the creation and deletion of projects, groups, and notifications within their organization.
 
-They can add users to groups, change the roles of users within those groups, and associate projects to groups easily. This gives them the ability to see who has access very easily, and also be able to remove users access just as quickly.
+They can add users to groups, change the roles of users within those groups, and associate projects with groups. This gives the organization owner the ability to clearly see who has access, and quickly add and remove users.
 
-Having the ability to now also create notifications means that owners can create slack or other notifications directly, and also associated these notifications to projects themselves.
+Organization owners now also have the ability to create Slack or other notifications directly, and associate those notifications with a project without requiring help from a Lagoon administrator.
 
 !!! Warning "NOTE"
-    By default this role does not allow organization owners to create environments or trigger deployments within a project. They can add themselves to a group with a role that does grant them this permission though. When creating a project, an organization owner can opt to be added as an owner of the project default group though.
+    By default this role does not allow organization owners to create environments or trigger deployments within a project. They can add themselves to a group with a role that does grant them this permission. When creating a project, an organization owner can opt to be added as an owner of the project default group.
 
 #### Organization Viewer
 
