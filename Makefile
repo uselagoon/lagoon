@@ -1,4 +1,4 @@
-ZsSHELL := /bin/bash
+SHELL := /bin/bash
 # amazee.io lagoon Makefile The main purpose of this Makefile is to provide easier handling of
 # building images and running tests It understands the relation of the different images (like
 # nginx-drupal is based on nginx) and builds them in the correct order Also it knows which
@@ -356,7 +356,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.10.1
 K3D_IMAGE = docker.io/rancher/k3s:v1.27.3-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = keycloak-migrations
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
