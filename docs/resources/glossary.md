@@ -12,7 +12,7 @@ description: >-
 | Active/Standby | Active/Standby deployments, also known as blue/green deployments, are a way to seamlessly switch over your production content. |
 | Ansible| An open-source suite of software tools that enables infrastructure as code.|
 | AWS | Amazon Web Services |
-| AWS Glacier | A secure and inexpensive S3 storage for long-term backup. |
+| Amazon S3 Glacier | A secure and inexpensive S3 storage for long-term backup. |
 | BitBucket | Git hosting owned by Atlassian, which integrates with their tools.|
 | Brew | Homebrew is a package manager for OSX. |
 | CA | A Certificate Authority is a trusted entity that issues Secure Sockets Layer (SSL) certificates.|
