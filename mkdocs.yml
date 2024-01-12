@@ -36,6 +36,13 @@ nav:
   - Set Up a New Project: using-lagoon-the-basics/setup-project.md
   - Configure Webhooks: using-lagoon-the-basics/configure-webhooks.md
   - First Deployment: using-lagoon-the-basics/first-deployment.md
+<<<<<<< HEAD
+=======
+  - .lagoon.yml: using-lagoon-the-basics/lagoon-yml.md
+  - docker-compose.yml: using-lagoon-the-basics/docker-compose-yml.md
+  - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
+  - Lagoon Build Errors and Warnings: using-lagoon-the-basics/lagoon-build-errors-and-warnings.md
+>>>>>>> 63b8d2b447941f0a1f6fae7b5e5d995e2c29ad91
   - Going Live: using-lagoon-the-basics/going-live.md
 - Using Lagoon - Advanced:
   - Overview: using-lagoon-advanced/index.md
@@ -61,7 +68,6 @@ nav:
     - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
 - Docker Images:
   - Commons: docker-images/commons.md
-  - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
@@ -82,6 +88,7 @@ nav:
   - Drupal:
     - Overview: applications/drupal/index.md
     - Services:
+<<<<<<< HEAD
       - Overview: applications/drupal/services/README.md
       - MariaDB: applications/drupal/services/mariadb.md
       - NGINX: applications/drupal/services/nginx.md
@@ -95,6 +102,22 @@ nav:
     - Subfolders: applications/drupal/subfolders.md
     - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
+=======
+      - Overview: drupal/services/README.md
+      - MariaDB: drupal/services/mariadb.md
+      - NGINX: drupal/services/nginx.md
+      - PHP-cli: drupal/services/php-cli.md
+      - Redis: drupal/services/redis.md
+      - Solr: drupal/services/solr.md
+      - Varnish: drupal/services/varnish.md
+    - Step by Step - Getting Drupal ready to run on Lagoon: drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
+    - First Deployment of Drupal: drupal/first-deployment-of-drupal.md
+    - Drush 9: drupal/drush-9.md
+    - Subfolders: drupal/subfolders.md
+    - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
+    - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+    - Automatic Updates: drupal/automatic-updates.md
+>>>>>>> 63b8d2b447941f0a1f6fae7b5e5d995e2c29ad91
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:
@@ -170,7 +193,7 @@ theme:
     - scheme: slate
       primary: 'blue'
       toggle:
-        icon: material/brightness-7
+        icon: material/white-balance-sunny
         name: Switch to light mode
 
   favicon: images/lagoon-icon.png
@@ -235,6 +258,8 @@ plugins:
   - search
   - redirects:
       redirect_maps:
+        'lagoon-build-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md'
+        'docker-compose-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md#docker-compose-errors'
         'lagoon/README.md': 'README.md'
         'lagoon/getting-started/README.md': 'README.md'
         'lagoon/using-lagoon-advanced/deploytarget_configs.md': 'using-lagoon-advanced/deploytarget-configs.md'
@@ -255,7 +280,7 @@ plugins:
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
-        'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
+        'lagoon/docker-images/elasticsearch.md': 'docker-images/opensearch.md'
         'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
         'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
         'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'

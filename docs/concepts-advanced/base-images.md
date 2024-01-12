@@ -84,7 +84,11 @@ If your project makes use of [queues](https://laravel.com/docs/5.8/queues), you 
 
 ## Understanding the process of building a base image
 
+<<<<<<< HEAD:docs/concepts-advanced/base-images.md
 There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../using-lagoon-advanced/using-harbor/README.md).
+=======
+There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../administering-lagoon/using-harbor/README.md).
+>>>>>>> 63b8d2b447941f0a1f6fae7b5e5d995e2c29ad91:docs/using-lagoon-advanced/base-images.md
 
 ### Makefile and build assumptions
 

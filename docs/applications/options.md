@@ -37,7 +37,7 @@ Lagoon supports Redis as a cache backend. In production, some users provision a 
 
 ## Search
 
-Lagoon supports Elasticsearch, Solr and (soon) OpenSearch as search providers. External search providers can also be configured if required.
+Lagoon supports Elasticsearch, Solr and OpenSearch as search providers. External search providers can also be configured if required.
 
 ## Ingress/Routes
 

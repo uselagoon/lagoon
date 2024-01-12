@@ -52,7 +52,7 @@ Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE
 7. **Lagoon is completely integration tested**. This means we can test the whole process. From receiving Git webhooks to deploying into a Docker container, the same Git hash is deployed in the cluster.
 8. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
-We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac) ‌
+We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [Lucid Chart](https://lucid.app/documents/view/cb441054-e04a-4389-b98b-c75bcda8ea0d) ‌
 
 ## History of Lagoon
 

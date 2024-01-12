@@ -1,9 +1,9 @@
 ---
-- include: features/api-token.yaml
+- ansible.builtin.import_playbook: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-active-standby-{{ cluster_type }}
     git_repo_name: active-standby.git
@@ -11,7 +11,7 @@
     prod_env: master-a
     standby_env: master-b
 
-- include: active-standby/active-standby.yaml
+- ansible.builtin.import_playbook: active-standby/active-standby.yaml
   vars:
     testname: "ACTIVE_STANDBY"
     git_repo_name: active-standby.git
@@ -20,6 +20,6 @@
     standby_branch: master-b
     error_code_check: 404
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-active-standby-{{ cluster_type }}

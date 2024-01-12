@@ -1,6 +1,6 @@
 - name: "Start deployEnvironmentBranch (SHA) loop with 3 retries"
   block:
-    - include: refresh-token.yaml
+    - ansible.builtin.include_tasks: refresh-token.yaml
     - name: "Set the retry count to {{ retry_count }}"
       set_fact:
         retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"

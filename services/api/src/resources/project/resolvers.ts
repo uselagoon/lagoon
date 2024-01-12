@@ -67,7 +67,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
+  { order, createdAfter, gitUrl, buildImage },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -99,6 +99,10 @@ export const getAllProjects: ResolverFn = async (
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
   }
 
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
+  }
+
   if (userProjectIds) {
     queryBuilder = queryBuilder.whereIn('id', userProjectIds);
   }
@@ -124,19 +128,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -152,19 +144,7 @@ export const getProjectById: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -180,19 +160,7 @@ export const getProjectByGitUrl: ResolverFn = async (
 
   const project = withK8s[0];
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -211,19 +179,7 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  try {
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
-  } catch (err) {
-    // if the user hasn't got permission to view the project, but the project is in the organization
-    // allow the user to get the project
-    if (project.organization != null) {
-      await hasPermission('organization', 'viewProject', {
-        organization: project.organization
-      });
-    }
-  }
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -293,11 +249,14 @@ export const addProject = async (
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
-    userAlreadyHasAccess = true
+    // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
+    if (!input.addOrgOwner) {
+      userAlreadyHasAccess = true
+    }
     // check the project quota before adding the project
     const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
-    if (projects.length >= organization.quotaProject) {
+    if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
       throw new Error(
         `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
       );
@@ -325,6 +284,11 @@ export const addProject = async (
     }
   }
 
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -721,6 +685,11 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'

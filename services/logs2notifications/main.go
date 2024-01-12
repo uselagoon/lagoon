@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cheshir/go-mq"
+	mq "github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/handler"
 )
 
@@ -167,7 +167,7 @@ func main() {
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
-			{
+			mq.ExchangeConfig{
 				Name: "lagoon-logs",
 				Type: "direct",
 				Options: mq.Options{
@@ -179,7 +179,7 @@ func main() {
 			},
 		},
 		Consumers: mq.Consumers{
-			{
+			mq.ConsumerConfig{
 				Name:    "notifications-queue",
 				Queue:   "lagoon-logs:notifications",
 				Workers: mqWorkers,
@@ -192,7 +192,7 @@ func main() {
 			},
 		},
 		Queues: mq.Queues{
-			{
+			mq.QueueConfig{
 				Name:     "lagoon-logs:notifications",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{
@@ -204,7 +204,7 @@ func main() {
 			},
 		},
 		Producers: mq.Producers{
-			{
+			mq.ProducerConfig{
 				Name:     "lagoon-logs",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{

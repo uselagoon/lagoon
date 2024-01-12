@@ -21,7 +21,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ## Included `default.vcl` configuration file
 
-The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](./#environment-variables)\).
+The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](#environment-variables)\).
 
 ## Environment Variables
 

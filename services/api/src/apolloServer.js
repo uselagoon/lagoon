@@ -374,9 +374,9 @@ const apolloServer = new ApolloServer({
 
         // operationName is set by the client and optional. rootFieldName is
         // set by the API type defs.
-        // operationName would be "getHighCottonProjectId" and rootFieldName
+        // operationName would be "getLagoonDemoProjectId" and rootFieldName
         // would be "getProjectByName" with a query like:
-        // query getHighCottonProjectId { getProjectByName(name: "high-cotton") { id } }
+        // query getLagoonDemoProjectId { getProjectByName(name: "lagoon-demo") { id } }
         const transactionName = operationName ? operationName : rootFieldName;
         newrelic.setTransactionName(`graphql (${transactionName})`);
         newrelic.addCustomAttribute('gqlQuery', queryString);

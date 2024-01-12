@@ -1,6 +1,6 @@
 - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ graphql_url }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

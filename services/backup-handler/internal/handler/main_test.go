@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/amazeeio/lagoon-cli/pkg/api"
+	"github.com/uselagoon/lagoon-cli/pkg/api"
 )
 
 func checkEqual(t *testing.T, got, want interface{}, msgs ...interface{}) {

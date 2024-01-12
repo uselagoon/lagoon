@@ -1,6 +1,6 @@
 - name: "Update project routerpattern for {{ project }} to openshift {{ openshift }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

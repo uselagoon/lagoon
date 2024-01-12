@@ -102,6 +102,7 @@ Here is a table that lists the roles and the access they have:
     | deployEnvironmentBranch | environment | deploy:development | projectID |
     | deployEnvironmentPullrequest | environment | deploy:development | projectID |
     | deployEnvironmentPromote | environment | deploy:development | projectID |
+    | userCanSshToEnvironment | environment | ssh:development | projectID |
     | getNotificationsByProjectId | notification | view | projectID |
     | addTask | task | add:development | projectID |
     | taskDrushArchiveDump | task | drushArchiveDump:development | projectID |
@@ -165,6 +166,7 @@ Here is a table that lists the roles and the access they have:
     | deployEnvironmentBranch | environment | deploy:production | projectID |
     | deployEnvironmentPullrequest | environment | deploy:production | projectID |
     | deployEnvironmentPromote | environment | deploy:production | projectID |
+    | userCanSshToEnvironment | environment | ssh:production | projectID |
     | updateGroup | group | update | groupID |
     | deleteGroup | group | delete | groupID |
     | addUserToGroup | group | addUser | groupID |

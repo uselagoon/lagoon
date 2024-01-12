@@ -12,6 +12,7 @@ If you are running Lagoon locally, you can access that UI at [localhost:8084](ht
 
 Once logged in, the first screen is a list of all repositories your user has access to. Each "repository" in Harbor correlates to a project in Lagoon.
 
+<<<<<<< HEAD:docs/using-lagoon-advanced/using-harbor/README.md
 ![Harbor Projects Overview](../../images/projects_overview.png)
 
 Within each Harbor repository, you'll see a list of container images from all environments with a single Lagoon project.
@@ -21,3 +22,14 @@ Within each Harbor repository, you'll see a list of container images from all en
 From here, you can drill down into an individual container in order to see its details, including an overview of its security scan results.
 
 ![Harbor Container Overview](../../images/container_overview.png)
+=======
+![Harbor Projects Overview](projects_overview.png)
+
+Within each Harbor repository, you'll see a list of container images from all environments with a single Lagoon project.
+
+![Harbor Repositories Overview](repositories_overview.png)
+
+From here, you can drill down into an individual container in order to see its details, including an overview of its security scan results.
+
+![Harbor Container Overview](container_overview.png)
+>>>>>>> 63b8d2b447941f0a1f6fae7b5e5d995e2c29ad91:docs/administering-lagoon/using-harbor/README.md

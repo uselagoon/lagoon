@@ -1,6 +1,6 @@
 - name: "Add deploy target to project {{ project }}"
   block:
-    - include: refresh-token.yaml
+    - ansible.builtin.include_tasks: refresh-token.yaml
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"

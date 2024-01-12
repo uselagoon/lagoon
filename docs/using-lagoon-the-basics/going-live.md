@@ -43,7 +43,7 @@ environments:
 
 ### Redirects
 
-If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../../docker-images/nginx/#redirects-mapconf).
+If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx.md#redirects-mapconf).
 
 ### Cron jobs
 

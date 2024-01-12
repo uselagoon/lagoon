@@ -248,6 +248,7 @@ const {
   updateOrganization,
   deleteOrganization,
   getOrganizationById,
+  getOrganizationByName,
   addDeployTargetToOrganization,
   removeDeployTargetFromOrganization,
   getDeployTargetsByOrganizationId,
@@ -258,9 +259,9 @@ const {
   getGroupsByNameAndOrganizationId,
   getOwnersByOrganizationId,
   getProjectsByOrganizationId,
-  addProjectToOrganization,
+  addExistingProjectToOrganization,
   removeProjectFromOrganization,
-  addGroupToOrganization,
+  addExistingGroupToOrganization,
   getGroupsByOrganizationsProject,
   getGroupCountByOrganizationProject,
   getProjectGroupOrganizationAssociation, // WIP resolver
@@ -268,6 +269,8 @@ const {
   getNotificationsForOrganizationProjectId,
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
+  checkBulkImportProjectsAndGroupsToOrganization,
+  bulkImportProjectsAndGroupsToOrganization
 } = require('./resources/organization/resolvers');
 
 const {
@@ -522,9 +525,6 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
   },
-  Restore: {
-    restoreLocation: getRestoreLocation,
-  },
   Workflow: {
     advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },
@@ -577,9 +577,11 @@ const resolvers = {
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
     allOrganizations: getAllOrganizations,
     organizationById: getOrganizationById,
+    organizationByName: getOrganizationByName,
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
+    checkBulkImportProjectsAndGroupsToOrganization
   },
   Mutation: {
     addProblem,
@@ -704,13 +706,15 @@ const resolvers = {
     addOrganization,
     updateOrganization,
     deleteOrganization,
-    addGroupToOrganization,
-    addProjectToOrganization,
+    addGroupToOrganization: addGroup,
+    addExistingGroupToOrganization,
+    addExistingProjectToOrganization,
     removeProjectFromOrganization,
     addDeployTargetToOrganization,
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
+    bulkImportProjectsAndGroupsToOrganization
   },
   Subscription: {
     backupChanged: backupSubscriber,

@@ -31,7 +31,7 @@ export const get = promisify(redisClient.get).bind(redisClient);
 const hgetall = promisify(redisClient.hgetall).bind(redisClient);
 const smembers = promisify(redisClient.smembers).bind(redisClient);
 const sadd = promisify(redisClient.sadd).bind(redisClient);
-const del = promisify(redisClient.del).bind(redisClient);
+export const del = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
   resource: string;
@@ -46,29 +46,6 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
   `${resource}:${project ? `${project}:` : ''}${
     group ? `${group}:` : ''
   }${scope}`;
-
-export const getRedisCache = async (resourceScope: IUserResourceScope): Promise<string> => {
-  const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
-  const key = hashKey(resourceScope);
-
-  return R.prop(key, redisHash);
-};
-
-export const saveRedisCache = async (
-  resourceScope: IUserResourceScope,
-  value: string
-) => {
-  const key = hashKey(resourceScope);
-  const timeout = getConfigFromEnv('CACHE_PERMISSION_TTL', '500');
-  redisClient.multi()
-  .hset(
-    `cache:authz:${resourceScope.currentUserId}`,
-    key,
-    value
-  )
-  .expire(`cache:authz:${resourceScope.currentUserId}`, parseInt(timeout, 10))
-  .exec();
-};
 
 export const getRedisKeycloakCache = async (key: string) => {
   const redisHash = await hgetall(`cache:keycloak`);
@@ -97,8 +74,6 @@ export const deleteProjectGroupsCache = async projectId =>
   del(`project-groups:${projectId}`);
 
 export default {
-  getRedisCache,
-  saveRedisCache,
   getRedisKeycloakCache,
   saveRedisKeycloakCache,
   deleteRedisUserCache,

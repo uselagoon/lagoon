@@ -1,14 +1,17 @@
  <!--
-**IMPORTANT: Please do not create a Pull Request without creating an issue first.**
-Please provide enough information and context so that others can review your pull request:
+**IMPORTANT: Please provide enough information and context so that others can review your pull request:**
  -->
 
 <!-- You can skip this if you're fixing a typo. -->
-# Checklist
+# General Checklist
 
 - [ ] Affected Issues have been mentioned in the Closing issues section
 - [ ] Documentation has been written/updated
 - [ ] PR title is ready for inclusion in changelog
+
+# Database Migrations
+
+- [ ] If your PR contains a database migation, it **MUST** be the latest in date order alphabetically
 
 Explain the **details** for making this change. What existing problem does the pull request solve?
 

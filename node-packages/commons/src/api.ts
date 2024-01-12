@@ -1140,6 +1140,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
     {
       project:projectByName(name: "${project}"){
         id
+        organization
         openshift  {
           ...${deployTargetMinimalFragment}
         }
@@ -1256,10 +1257,10 @@ export const getEnvironmentsForProject = (
   }
 `);
 
-export async function getOrganizationById(organization: number): Promise<any> {
+export async function getOrganizationByIdWithEnvs(id: number): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      organization:organizationById(organization: ${organization}) {
+      organization:organizationById(id: ${id}) {
         id
         name
         friendlyName
@@ -1268,6 +1269,7 @@ export async function getOrganizationById(organization: number): Promise<any> {
         quotaEnvironment
         quotaGroup
         quotaNotification
+        quotaRoute
         environments {
           name
           id
@@ -1282,7 +1284,31 @@ export async function getOrganizationById(organization: number): Promise<any> {
   `);
 
   if (!result || !result.organization) {
-    throw new OrganizationNotFound(`Cannot find organization ${organization}`);
+    throw new OrganizationNotFound(`Cannot find organization ${id}`);
+  }
+
+  return result.organization;
+}
+
+export async function getOrganizationById(id: number): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      organization:organizationById(id: ${id}) {
+        id
+        name
+        friendlyName
+        description
+        quotaProject
+        quotaEnvironment
+        quotaGroup
+        quotaRoute
+        quotaNotification
+      }
+    }
+  `);
+
+  if (!result || !result.organization) {
+    throw new OrganizationNotFound(`Cannot find organization ${id}`);
   }
 
   return result.organization;
