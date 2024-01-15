@@ -42,11 +42,11 @@ You can upload your SSH key(s) through the UI. Log in as you normally would.
 
 In the upper right hand corner, click on Settings:
 
-![Click "Settings" in the upper right hand corner](./drupal-example project 2021-11-18 19-03-22.png)
+![Click "Settings" in the upper right hand corner](./ui-settings.png)
 
 You will then see a page where you can upload your SSH key(s), and it will show any uploaded keys. Paste your key into the text box, give it a name, and click "Add." That's it! Add additional keys as needed.
 
-![Paste your key into the text box.](./settings 2021-11-18 19-03-48.png)
+![Paste your key into the text box.](./ui-ssh.png)
 
 ### Via Command Line
 
