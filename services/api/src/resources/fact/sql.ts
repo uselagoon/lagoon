@@ -48,6 +48,13 @@ export const Sql = {
       })
       .del()
       .toString(),
+  deleteFactsForEnvironment: (environment) => // Used when removing environments.
+      knex('environment_fact')
+        .where({
+          environment
+        })
+        .del()
+        .toString(),
   deleteFactsFromSource: (environment, source, service) => {
     let query =  knex('environment_fact')
       .where({ environment, source });
