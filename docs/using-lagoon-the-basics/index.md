@@ -16,7 +16,7 @@ brew install pygmy;
 pygmy up
 ```
 
-1. HomeBrew is the easiest way to install Pygmy, see the docs for more info.
+1. HomeBrew is the easiest way to install Pygmy, see the Pygmy docs for more info.
 
 [Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 

@@ -6,21 +6,6 @@ The Lagoon base images are pre-configured with Xdebug but, for performance
 reasons, the extension is not loaded by default. To enable the extension, the
 `XDEBUG_ENABLE` environment variable must be set to `true`:
 
-<<<<<<< HEAD
-### Locally \(pygmy and Lando\)
-
-1. If your project is based off the lagoon-examples `docker-compose.yml`
-      file, the environment variable already exists. Uncomment these lines:
-      [https://github.com/lagoon-examples/drupal9-base/blob/main/docker-compose.yml#L16-L17](https://github.com/lagoon-examples/drupal9-base/blob/main/docker-compose.yml#L16-L17).
-2. Make sure to rebuild and restart the containers after changing this
-      setting.
-
-### Remotely \(dev/prod\)
-
-1. You can
-      [use the Lagoon API to add the environment variable to a running environment](../concepts-advanced/environment-variables.md#runtime-environment-variables-lagoon-api).
-2. Make sure to redeploy the environment after changing this setting.
-=======
 - **Locally** (Pygmy and Lando)
   1.  If your project is based off the lagoon-examples `docker-compose.yml`
       file, the environment variable already exists. [Uncomment these lines](https://github.com/lagoon-examples/drupal10-base/blob/main/docker-compose.yml#L14-L15).
@@ -31,7 +16,6 @@ reasons, the extension is not loaded by default. To enable the extension, the
       [use the Lagoon API to add the environment variable to a running environment](environment-variables.md#runtime-environment-variables-lagoon-api).
   2.  Make sure to redeploy the environment after changing this any
       environment variables.
->>>>>>> 63b8d2b447941f0a1f6fae7b5e5d995e2c29ad91
 
 ## Activate Xdebug Extension
 

@@ -21,8 +21,8 @@ Members of organizations can be given the following roles:
 
     If you need to change quotas, please contact your Lagoon administrator.
 
-An _org owner_ can do everything to do with administering an organization aside from changing quotas.
+An _organization owner_ can do everything to do with administering an organization aside from changing quotas. They can add and delete users, groups, projects, deploy targets, and notifcations
 
-An _org viewer_ is a read-only role that can only view the organization, but cannot make any changes or additions.
+An _organization viewer_ is a read-only role that can only view the organization, but cannot make any changes or additions. They can view the projects, groups, users, and notifications within an organization but cannot modify them.
 
 A user who has not been assigned as an owner or viewer cannot see the organization.
