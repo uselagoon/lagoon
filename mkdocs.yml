@@ -58,6 +58,8 @@ nav:
     - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
     - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
     - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
+- Lagoonizing:
+    - Lagoonizing Your Exisiting Site: lagoonizing/index.md
 - Docker Images:
   - Commons: docker-images/commons.md
   - MariaDB: docker-images/mariadb.md
