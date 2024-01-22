@@ -12,7 +12,7 @@ All deprecations are listed below, with the most recent announcements at the top
 
 ### Lagoon v2.18.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.18.0
-* The standard drupal based tasks that Lagoon ships with (drush ....) have been flagged as deprecated and should not be used anymore. These will need to be replaced with [custom tasks](https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/). Example replacement tasks will be provided when these are completely deprecated.
+* The standard drupal based tasks that Lagoon ships with (drush ....) have been flagged as deprecated and should not be used anymore. These will need to be replaced with [custom tasks](https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/). Example replacement tasks will be provided prior to their removal.
 
 ### Lagoon v2.17.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.17.0
