@@ -10,6 +10,10 @@ Deprecations will be tracked by the release they are announced in, and then upda
 ## Deprecation History
 All deprecations are listed below, with the most recent announcements at the top.
 
+### Lagoon v2.18.0
+release link: https://github.com/uselagoon/lagoon/releases/tag/v2.18.0
+* The standard drupal based tasks that Lagoon ships with (drush ....) have been flagged as deprecated and should not be used anymore. These will need to be replaced with [custom tasks](https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/). Example replacement tasks will be provided when these are completely deprecated.
+
 ### Lagoon v2.17.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.17.0
 * This release introduces a new active/standby task image that does not require the use of the [dioscuri controller](https://github.com/amazeeio/dioscuri). Dioscuri is deprecated and will eventually be removed from the `lagoon-remote` helm chart. If you use active/standby functionality in your clusters, you should upgrade to lagoon v2.17.0 and update your remote clusters to the version of the `lagoon-remote` helm chart the v2.17.0 release says to use (see release notes for v2.17.0)
