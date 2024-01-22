@@ -284,6 +284,11 @@ export const addProject = async (
     }
   }
 
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -680,6 +685,11 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'

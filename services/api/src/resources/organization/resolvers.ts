@@ -551,7 +551,13 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
       }
     }
   }
-  const userProjectGroups = R.intersection(orgProjectGroups, userGroups);
+  let userProjectGroups = []
+  for (const ug of userGroups) {
+    const pg = orgProjectGroups.find(i => i.id === ug.id)
+    if (pg) {
+      userProjectGroups.push(pg)
+    }
+  }
 
   return userProjectGroups;
 };

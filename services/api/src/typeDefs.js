@@ -309,6 +309,7 @@ const typeDefs = gql`
   input DeleteProblemInput {
     environment: Int!
     identifier: String!
+    service: String
   }
 
   input DeleteProblemsFromSourceInput {
@@ -567,6 +568,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationRocketChat {
@@ -576,6 +578,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationSlack {
@@ -585,6 +588,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationEmail {
@@ -593,6 +597,7 @@ const typeDefs = gql`
     emailAddress: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationWebhook {
@@ -601,6 +606,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type UnassignedNotification {
@@ -971,7 +977,7 @@ const typeDefs = gql`
     """
     The size of the restored file in bytes
     """
-    restoreSize: Int
+    restoreSize: Float
     created: String
   }
 
