@@ -15,7 +15,6 @@
 		"route": "https://example.com",
 		"routes": ["https://active.example.com", "https://example.com", "https://main.example.com", "https://nginx-example-com-main.example.com", "https://varnish-example-com-main.example.com"],
 		"startTime": "2022-10-28 10:26:47",
-		"services": ["varnish", "cli", "solr-php-persistent", "redis", "nginx", "php"],
 		"clusterName": "cluster-01"
 	}
 }

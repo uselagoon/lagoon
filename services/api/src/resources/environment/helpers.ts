@@ -37,7 +37,7 @@ export const Helpers = (sqlClientPool: Pool) => {
         sqlClientPool,
         Sql.deleteEnvironmentVariables(eid)
       );
-      // clean up servies
+      // clean up services
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
       await query(
         sqlClientPool,
@@ -148,6 +148,27 @@ export const Helpers = (sqlClientPool: Pool) => {
         ]
       // @ts-ignore
       ])(environmentInput);
-    }
+    },
+    getEnvironmentServices: async (eid: number) => {
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectServicesByEnvironmentId(
+          eid
+        )
+      );
+      return rows;
+    },
+    resetServiceContainers: async (serviceId: number, containers: any) => {
+      await query(
+        sqlClientPool,
+        Sql.deleteServiceContainers(serviceId)
+      );
+      for (const container of containers){
+        await query(
+          sqlClientPool,
+          Sql.insertServiceContainer(serviceId, container.name)
+        );
+      }
+    },
   };
 };

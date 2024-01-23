@@ -39,7 +39,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 
 	// set up a lagoon client for use in the following process
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
-	deployment, err := lagoon.GetDeploymentByName(ctx, message.Namespace, message.Meta.BuildName, l)
+	deployment, err := lagoon.GetDeploymentByName(ctx, message.Meta.Project, message.Meta.Environment, message.Meta.BuildName, false, l)
 	if err != nil {
 		m.toLagoonLogs(messageQueue, map[string]interface{}{
 			"severity": "error",
@@ -61,6 +61,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 		return nil
 	}
 	var environmentID uint
+	environment := &schema.Environment{}
 	// determine the environment id from the message
 	if message.Meta.ProjectID == nil && message.Meta.EnvironmentID == nil {
 		project, err := lagoon.GetMinimalProjectByName(ctx, message.Meta.Project, l)
@@ -77,17 +78,17 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			}
 			return err
 		}
-		environment, err := lagoon.GetEnvironmentByName(ctx, message.Meta.Environment, project.ID, l)
+		environment, err = lagoon.GetEnvironmentByName(ctx, message.Meta.Environment, project.ID, l)
 		if err != nil {
 			// send the log to the lagoon-logs exchange to be processed
 			m.toLagoonLogs(messageQueue, map[string]interface{}{
 				"severity": "error",
 				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
-				"meta":     project,
+				"meta":     environment,
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get project - %v", prefix, err))
+				log.Println(fmt.Sprintf("%sERROR: unable to get environment - %v", prefix, err))
 			}
 			return err
 		}
@@ -95,6 +96,20 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 	} else {
 		// pull the id from the message
 		environmentID = *message.Meta.EnvironmentID
+		environment, err = lagoon.GetEnvironmentByID(ctx, environmentID, l)
+		if err != nil {
+			// send the log to the lagoon-logs exchange to be processed
+			m.toLagoonLogs(messageQueue, map[string]interface{}{
+				"severity": "error",
+				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+				"meta":     environment,
+				"message":  err.Error(),
+			})
+			if m.EnableDebug {
+				log.Println(fmt.Sprintf("%sERROR: unable to get environment - %v", prefix, err))
+			}
+			return err
+		}
 	}
 
 	// prepare the deployment patch for later step
@@ -169,7 +184,8 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			return err
 		}
 		log.Println(fmt.Sprintf("%supdated environment", prefix))
-		if message.Meta.Services != nil {
+		// @TODO START @DEPRECATED this should be removed when the `setEnvironmentServices` mutation gets removed from the API
+		if message.Meta.Services != nil { // @DEPRECATED
 			existingServices := []string{}
 			for _, s := range updateEnvironment.Services {
 				existingServices = append(existingServices, s.Name)
@@ -191,6 +207,72 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 				}
 				log.Println(fmt.Sprintf("%supdated environment services - %v", prefix, strings.Join(message.Meta.Services, ",")))
 			}
+		} // END @DEPRECATED
+		// services now provide additional information
+		if message.Meta.EnvironmentServices != nil {
+			// collect all the errors as this process runs through
+			errs := []error{}
+			// run through the environments services that currently exist
+			for _, eService := range environment.Services {
+				exists := false
+				for _, mService := range message.Meta.EnvironmentServices {
+					if eService.Name == mService.Name {
+						exists = true
+					}
+				}
+				// remove any that don't exist in the environment anymore
+				if !exists {
+					// delete it
+					s2del := schema.DeleteEnvironmentServiceInput{EnvironmentID: environmentID, Name: eService.Name}
+					setServices, err := lagoon.DeleteEnvironmentService(ctx, s2del, l)
+					if err != nil {
+						// send the log to the lagoon-logs exchange to be processed
+						m.toLagoonLogs(messageQueue, map[string]interface{}{
+							"severity": "error",
+							"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+							"meta":     setServices,
+							"message":  err.Error(),
+						})
+						if m.EnableDebug {
+							log.Println(fmt.Sprintf("%sERROR: unable to delete environment services - %v", prefix, err))
+						}
+						errs = append(errs, err)
+					}
+				}
+			}
+			// then update all the existing services
+			for _, mService := range message.Meta.EnvironmentServices {
+				var containers []schema.ServiceContainerInput
+				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers}
+				// add or update it
+				setServices, err := lagoon.AddOrUpdateEnvironmentService(ctx, s2add, l)
+				if err != nil {
+					// send the log to the lagoon-logs exchange to be processed
+					m.toLagoonLogs(messageQueue, map[string]interface{}{
+						"severity": "error",
+						"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+						"meta":     setServices,
+						"message":  err.Error(),
+					})
+					if m.EnableDebug {
+						log.Println(fmt.Sprintf("%sERROR: unable to update environment services - %v", prefix, err))
+					}
+					errs = append(errs, err)
+				}
+			}
+			// consolidate error messages down to a single error to return
+			var errMsg []string
+			errMsgs := false
+			for _, err := range errs {
+				if err != nil {
+					errMsgs = true
+					errMsg = append(errMsg, err.Error())
+				}
+			}
+			if errMsgs {
+				return fmt.Errorf(strings.Join(errMsg, ","))
+			}
+			log.Println(fmt.Sprintf("%supdated environment services", prefix))
 		}
 	}
 	return nil

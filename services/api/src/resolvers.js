@@ -124,6 +124,10 @@ const {
   userCanSshToEnvironment,
   getEnvironmentUrl,
   getEnvironmentsByKubernetes,
+  addOrUpdateEnvironmentService,
+  getEnvironmentByServiceId,
+  getServiceContainersByServiceId,
+  deleteEnvironmentService,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -466,6 +470,9 @@ const resolvers = {
   Fact: {
     references: getFactReferencesByFactId,
   },
+  EnvironmentService: {
+    containers: getServiceContainersByServiceId,
+  },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
@@ -714,7 +721,9 @@ const resolvers = {
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
-    bulkImportProjectsAndGroupsToOrganization
+    bulkImportProjectsAndGroupsToOrganization,
+    addOrUpdateEnvironmentService,
+    deleteEnvironmentService
   },
   Subscription: {
     backupChanged: backupSubscriber,
