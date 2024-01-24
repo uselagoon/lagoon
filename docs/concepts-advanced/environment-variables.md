@@ -134,6 +134,10 @@ mutation addContainerRegistryEnv {
 }
 ```
 
+### Global Environment Variables \(Lagoon API\)
+
+Global environment variables are available as both a build-time environment variable so that it may be consumed by builds, and also a runtime variable so that it is available within running containers.
+
 ## Environment Files \(existing directly in the Git Repo\)
 
 If you have environment variables that can safely be saved within a Git repository, we suggest adding them directly into the Git repository in an environment file. These variables will also be available within local development environments and are therefore more portable.

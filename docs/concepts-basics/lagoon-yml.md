@@ -250,6 +250,11 @@ that's important!):
 
 ### SSL Configuration `tls-acme`
 
+!!! Warning
+    If you switch from `tls-acme: true` to `tls-acme: false` this will remove any previously
+    generated certificates for this route. This could result in unexpected behaviour if you're
+    using an external CDN and do any certificate pinning.
+
 * `tls-acme`: Configures automatic TLS certificate generation via Let's Encrypt.
   Default is `true`, set to `false` to disable automatic certificates.
 * `insecure`: Configures HTTP connections. Default is `Allow`.
@@ -266,10 +271,7 @@ that's important!):
 !!! Info
     If you plan to switch from a SSL certificate signed by a Certificate
     Authority (CA) to a Let's Encrypt certificate, it's best to get in touch
-    with your Lagoon administrator to oversee the transition. There are [known
-    issues](https://github.com/tnozicka/openshift-acme/issues/68) during the
-    transition. The workaround would be manually removing the CA certificate and
-    then triggering the Let's Encrypt process.
+    with your Lagoon administrator to oversee the transition.
 
 ### Monitoring a specific path
 
