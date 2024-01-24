@@ -16,6 +16,21 @@ The platform-wide admin has access to everything across all of Lagoon. That incl
 
 The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.
 
+#### Organization Owner
+
+The organization owner role allows for the creation and deletion of projects, groups, and notifications within their organization.
+
+They can add users to groups, change the roles of users within those groups, and associate projects with groups. This gives the organization owner the ability to clearly see who has access, and quickly add and remove users.
+
+Organization owners now also have the ability to create Slack or other notifications directly, and associate those notifications with a project without requiring help from a Lagoon administrator.
+
+!!! Warning "NOTE"
+    By default this role does not allow organization owners to create environments or trigger deployments within a project. They can add themselves to a group with a role that does grant them this permission. When creating a project, an organization owner can opt to be added as an owner of the project default group.
+
+#### Organization Viewer
+
+The organization view has access to view the projects, group and user access, and notifications within their organization.
+
 ### Group Roles
 
 #### Owner
@@ -330,6 +345,39 @@ Here is a table that lists the roles and the access they have:
     | getTaskById | task | view | projectID |
     | addUser | user | add |  |
 
+=== "Organization Viewer"
+
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | getOrganizationById | organization | view | organizationId |
+    | getProjectByEnvironmentId | organization | viewProject | organizationId |
+    | getGroupsByOrganizationId | organization | viewGroup | organizationId |
+    | getUsersByOrganizationId | organization | viewUsers | organizationId |
+    | getUserByEmailAndOrganizationId | organization | viewUser | organizationId |
+    | getNotificationsByOrganizationId | organization | viewNotification | organizationId |
+
+=== "Organization Owner"
+
+    | **Name** | **Resource** | **Scope** | **Attributes** |
+    | :--- | :--- | :--- | :--- |
+    | getOrganizationById | organization | view | organizationId |
+    | getProjectByEnvironmentId | organization | viewProject | organizationId |
+    | getGroupsByOrganizationId | organization | viewGroup | organizationId |
+    | getUsersByOrganizationId | organization | viewUsers | organizationId |
+    | getUserByEmailAndOrganizationId | organization | viewUser | organizationId |
+    | getNotificationsByOrganizationId | organization | viewNotification | organizationId |
+    | addProject | organization | addProject | organizationId |
+    | updateProject | organization | updateProject | organizationId |
+    | deleteProject | organization | deleteProject | organizationId |
+    | addGroup | organization | addGroup | organizationId |
+    | deleteGroup | organization | removeGroup | organizationId |
+    | addNotificationSlack | organization | addNotification | organizationId |
+    | updateNotificationSlack | organization | updateNotification | organizationId |
+    | deleteNotificationSlack | organization | removeNotification | organizationId |
+    | addUserToOrganization | organization | addOwner | organizationId |
+    | addUserToOrganization | organization | addViewer | organizationId |
+    | updateOrganization | organization | updateOrganization | organizationId |
+
 === "Platform-Wide Owner"
 
     | **Name** | **Resource** | **Scope** | **Attributes** |
@@ -445,6 +493,27 @@ Here is a table that lists the roles and the access they have:
     | getTaskByRemoteId | task | view | projectID |
     | getTaskById | task | view | projectID |
     | addUser | user | add |  |
+    | getAllOrganizations | organization | viewAll |  |
+    | addOrganization | add | viewAll |  |
+    | updateOrganization | update | viewAll |  |
+    | deleteOrganization | delete | viewAll |  |
+    | getOrganizationById | organization | view | organizationId |
+    | getProjectByEnvironmentId | organization | viewProject | organizationId |
+    | getGroupsByOrganizationId | organization | viewGroup | organizationId |
+    | getUsersByOrganizationId | organization | viewUsers | organizationId |
+    | getUserByEmailAndOrganizationId | organization | viewUser | organizationId |
+    | getNotificationsByOrganizationId | organization | viewNotification | organizationId |
+    | addProject | organization | addProject | organizationId |
+    | updateProject | organization | updateProject | organizationId |
+    | deleteProject | organization | deleteProject | organizationId |
+    | addGroup | organization | addGroup | organizationId |
+    | deleteGroup | organization | removeGroup | organizationId |
+    | addNotificationSlack | organization | addNotification | organizationId |
+    | updateNotificationSlack | organization | updateNotification | organizationId |
+    | deleteNotificationSlack | organization | removeNotification | organizationId |
+    | addUserToOrganization | organization | addOwner | organizationId |
+    | addUserToOrganization | organization | addViewer | organizationId |
+    | updateOrganization | organization | updateOrganization | organizationId |
 
 === "Platform-Wide Admin"
 
@@ -568,3 +637,24 @@ Here is a table that lists the roles and the access they have:
     | getTaskByRemoteId | task | view | projectID |
     | getTaskById | task | view | projectID |
     | addUser | user | add |  |
+    | getAllOrganizations | organization | viewAll |  |
+    | addOrganization | add | viewAll |  |
+    | updateOrganization | update | viewAll |  |
+    | deleteOrganization | delete | viewAll |  |
+    | getOrganizationById | organization | view | organizationId |
+    | getProjectByEnvironmentId | organization | viewProject | organizationId |
+    | getGroupsByOrganizationId | organization | viewGroup | organizationId |
+    | getUsersByOrganizationId | organization | viewUsers | organizationId |
+    | getUserByEmailAndOrganizationId | organization | viewUser | organizationId |
+    | getNotificationsByOrganizationId | organization | viewNotification | organizationId |
+    | addProject | organization | addProject | organizationId |
+    | updateProject | organization | updateProject | organizationId |
+    | deleteProject | organization | deleteProject | organizationId |
+    | addGroup | organization | addGroup | organizationId |
+    | deleteGroup | organization | removeGroup | organizationId |
+    | addNotificationSlack | organization | addNotification | organizationId |
+    | updateNotificationSlack | organization | updateNotification | organizationId |
+    | deleteNotificationSlack | organization | removeNotification | organizationId |
+    | addUserToOrganization | organization | addOwner | organizationId |
+    | addUserToOrganization | organization | addViewer | organizationId |
+    | updateOrganization | organization | updateOrganization | organizationId |
