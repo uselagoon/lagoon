@@ -56,7 +56,7 @@ This is the first of two files we’ll create and set up to get your site ready 
 
 !!! warning "Warning"
 
-    Lagoon only reads the labels, service names, image names and build definitions from a docker-compose.yml file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. This is intentional, as the docker-compose file is there to define your local environment configuration. Lagoon learns from the lagoon.type the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
+    Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. This is intentional, as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
 
 Let’s walk through setting up some basic services. In this example, we’ll set up NGINX, PHP, and MariaDB, which you’ll need for many systems like Drupal, Laravel, and other content management systems.
 
@@ -114,6 +114,7 @@ services:
       lagoon.type: mariadb
 ```
 
+
 Now let’s break down what each of these options mean.
 
 ### Basic Settings
@@ -122,7 +123,7 @@ Now let’s break down what each of these options mean.
 This is the machine name of your project, define it here. We’ll use “drupal-example.”
 
 `x-volumes`:
-This tells Lagoon what to mount into the container. Your web application lives in /app, but you can add or change this if needed.
+This tells Lagoon what to mount into the container. Your web application lives in `/app`, but you can add or change this if needed.
 
 `x-environment`:
 
@@ -135,7 +136,7 @@ You are unlikely to need to change this, unless you are on Linux and would like 
 
 ### `services`
 
-This defines all the services you want to deploy. Unfortunately, docker-compose calls them services, even though they are actually defining the containers. Going forward we'll be calling them services, and throughout this documentation.
+This defines all the services you want to deploy. Unfortunately, `docker-compose` calls them services, even though they are actually defining the containers. Going forward we'll be calling them services, and throughout this documentation.
 
 The **name** of the service (`nginx`, `php`, and `mariadb` in the example above) is used by Lagoon as the name of the Kubernetes pod (yet another term - again, we'll be calling them services) that is generated, plus any additional Kubernetes objects that are created based on the defined `lagoon.type`. This could be things like services, routes, persistent storage, etc.
 
@@ -541,12 +542,6 @@ Unfortunately the Drupal community has not decided on a standardized webroot fol
 
 First, we need to build the defined images:
 
-This may take several minutes and you’ll get a long response, which should look something like this.
-
-This will tell docker-compose to build the Docker images for all containers that have a build: definition in docker-compose.yml. Usually for Drupal this includes cli, nginx and php. We do this because we want to run specific build commands (like composer install) or inject specific environment variables (like WEBROOT) into the images.
-
-Usually building is not needed every time you edit your Drupal code (as the code is mounted into the containers from your host), but rebuilding does not hurt. Plus Lagoon will build the exact same Docker images also during a deployment, you can therefore check that your build will also work during a deployment with just running docker-compose build again.
-
 ```bash title="build your images"
 docker-compose build
 ```
@@ -567,7 +562,7 @@ docker-compose up -d
 
 You will get a response something like this:
 
-```bash
+```bash title="containers started"
 ➜  lagoon-test git:(main) docker-compose up -d
 Recreating lagoon-test_cli_1   ... done
 Starting lagoon-test_redis_1   ... done
@@ -580,7 +575,7 @@ Recreating lagoon-test_varnish_1 ... done
 
 This will bring up all containers. After the command is done, you can check with `docker-compose ps` to ensure that they are all fully up and have not crashed. That response should look something like this:
 
-```bash
+```bash title="view running containers"
 ➜  lagoon-test git:(main) docker-compose ps
 Name                       Command               State            Ports
 ----------------------------------------------------------------------------------------
@@ -599,7 +594,7 @@ If there is a problem, check the logs with `docker-compose logs -f [servicename]
 
 If you’re running a Drupal 8+ project, you should be using Composer, and you’ll need to get all dependencies downloaded and installed. Connect into the cli container and run composer install:
 
-```bash
+```bash title="re-run composer install"
 docker-compose exec cli bash
 [drupal-example]cli-drupal:/app$ composer install
 ```
@@ -617,14 +612,14 @@ If you get a 500 or similar error, make sure that everything is loaded properly 
 
 Finally it's time to install Drupal, but just before that we want to make sure everything works. We suggest using Drush for that with `drush status`:
 
-```bash
+```bash title="run drush status"
 docker-compose exec cli bash
 [drupal-example]cli-drupal:/app$ drush status
 ```
 
 The above command should return something like the following:
 
-```bash
+```bash title="drush status results"
 [drupal-example]cli-drupal:/app$ drush status
 [notice] Missing database table: key_value
 Drupal version       :  8.6.1
@@ -652,12 +647,12 @@ Site path            :  sites/default
 
 Now it’s time to install Drupal (if instead you would like to import an existing SQL File, please skip to the next step, but we suggest you install a clean Drupal in the beginning to be sure everything works.)
 
-```bash
+```bash title="run drush si"
 [drupal-example]cli-drupal:/app$ drush site-install
 ```
 This should output something like:
 
-```bash
+```bash title="drush si results"
 [drupal-example]cli-drupal:/app$ drush site-install
 You are about to DROP all tables in your 'drupal' database. Do you want to continue? (y/n): y
 Starting Drupal installation. This takes a while. Consider using the --notify global option.
@@ -671,7 +666,7 @@ Now you can visit the URL defined in `LAGOON_ROUTE` and you should see a fresh a
 
 If you have an already existing Drupal site you probably want to import its database over to your local site. There are many different ways on how to create a database dump, if your current hosting provider has Drush installed, you can use the following:
 
-```bash
+```bash title="drush sql-dump"
 [your-existing-site]$ drush sql-dump --result-file=dump.sql
 Database dump saved to dump.sql                         [success]
 ```
@@ -679,14 +674,14 @@ Database dump saved to dump.sql                         [success]
 Now you have a `dump.sql` file that contains your whole database.
 Copy this file into your local Git repository and connect to the CLI, you should see the file in there:
 
-```bash
+```bash title="here's our dump file"
 [drupal-example] docker-compose exec cli bash
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```
 Now you can import the dump after dropping the current database (still connected to the cli):
 
-```bash
+```bash title="dump existing db and import dump file"
 [drupal-example]cli-drupal:/app$ drush sql-drop
 Do you really want to drop all tables in the database drupal? (y/n): y
 [drupal-example]cli-drupal:/app$ drush sql-cli < dump.sql
