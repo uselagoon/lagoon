@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
+import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
@@ -14,12 +15,12 @@ import {
   getAdvancedTaskDefinitionType
 } from './models/taskRegistration';
 import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
-import sql from '../user/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
 import { Environment } from '../../resolvers';
-import { generateTaskName } from '@lagoon/commons/dist/util';
+import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
+import { logger } from '../../loggers/logger';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -86,7 +87,7 @@ export const advancedTaskDefinitionById = async (
 export const getRegisteredTasksByEnvironmentId = async (
   { id },
   {},
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   let rows;
 
@@ -94,8 +95,10 @@ export const getRegisteredTasksByEnvironmentId = async (
     rows = await resolveTasksForEnvironment(
       {},
       { environment: id },
-      { sqlClientPool, hasPermission, models }
+      { sqlClientPool, hasPermission, models, keycloakGroups }
     );
+
+    rows = await Filters.filterAdminTasks(hasPermission, rows);
   }
 
   return rows;
@@ -104,7 +107,7 @@ export const getRegisteredTasksByEnvironmentId = async (
 export const resolveTasksForEnvironment = async (
   root,
   { environment },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   const environmentDetails = await environmentHelpers(
     sqlClientPool
@@ -127,8 +130,9 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForProject(proj.project)
   );
 
-  const projectGroups = await models.GroupModel.loadGroupsByProjectId(
-    proj.projectId
+  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(
+    proj.projectId,
+    keycloakGroups
   );
 
   const projectGroupsFiltered = R.pluck('name', projectGroups);
@@ -169,7 +173,6 @@ export const resolveTasksForEnvironment = async (
     //@ts-ignore
     rows[i].advancedTaskDefinitionArguments = processedArgs;
   }
-
   return rows;
 };
 
@@ -235,6 +238,9 @@ export const addAdvancedTaskDefinition = async (
     advancedTaskDefinitionArguments,
     created,
     confirmationText,
+    deployTokenInjection,
+    projectKeyInjection,
+    adminOnlyView,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -247,9 +253,20 @@ export const addAdvancedTaskDefinition = async (
     project
   );
 
+  input.deployTokenInjection = input.deployTokenInjection || false;
+  input.projectKeyInjection = input.projectKeyInjection || false;
+  input.adminOnlyView = input.adminOnlyView || false;
+
   await checkAdvancedTaskPermissions(input, hasPermission, models, projectObj);
 
   validateAdvancedTaskDefinitionData(input, image, command, type);
+
+  // We need to validate the incoming data
+  // first, we actually only want either groupName, environment, or project
+  if(environment && groupName || environment && project || project && groupName) {
+    throw Error("Only one of `environment`, `project`, or `groupName` should be set when creating a custom task.");
+  }
+
 
   //let's see if there's already an advanced task definition with this name ...
   // Note: this will all be scoped to either System, group, project, or environment
@@ -313,12 +330,22 @@ export const addAdvancedTaskDefinition = async (
       group_name: groupName,
       permission,
       confirmation_text: confirmationText,
+      deploy_token_injection: deployTokenInjection,
+      project_key_injection: projectKeyInjection,
+      admin_only_view: adminOnlyView,
     })
   );
 
   //now attach arguments
   if(advancedTaskDefinitionArguments) {
     for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
+      if (advancedTaskDefinitionArguments[i].defaultValue) {
+        let typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, null, environment);
+        let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(advancedTaskDefinitionArguments[i].type);
+        if(!(await validator.validateInput(advancedTaskDefinitionArguments[i].defaultValue))) {
+          throw new Error(`Invalid input defaultValue "${advancedTaskDefinitionArguments[i].defaultValue}" for type "${advancedTaskDefinitionArguments[i].type}" given for argument "${advancedTaskDefinitionArguments[i].name}"`);
+        }
+      }
       await query(
         sqlClientPool,
         Sql.insertAdvancedTaskDefinitionArgument({
@@ -326,6 +353,8 @@ export const addAdvancedTaskDefinition = async (
           advanced_task_definition: insertId,
           name: advancedTaskDefinitionArguments[i].name,
           type: advancedTaskDefinitionArguments[i].type,
+          defaultValue: advancedTaskDefinitionArguments[i].defaultValue,
+          optional: advancedTaskDefinitionArguments[i].optional,
           displayName: advancedTaskDefinitionArguments[i].displayName,
         })
       );
@@ -333,12 +362,13 @@ export const addAdvancedTaskDefinition = async (
   }
 
   userActivityLogger(`User added advanced task definition '${name}'`, {
+    project: '',
+    event: 'api:addTaskDefinition',
+    payload: {
       project: project,
-      event: 'api:updateTaskDefinition',
-      payload: {
-        taskDef: insertId
-      }
-    });
+      taskDef: insertId
+    }
+  });
 
   return await atb.advancedTaskDefinitionById(
     insertId
@@ -360,7 +390,10 @@ export const updateAdvancedTaskDefinition = async (
         command,
         permission,
         advancedTaskDefinitionArguments,
-        confirmationText
+        confirmationText,
+        deployTokenInjection,
+        projectKeyInjection,
+        adminOnlyView,
       }
     }
   },
@@ -385,7 +418,10 @@ export const updateAdvancedTaskDefinition = async (
 
   await checkAdvancedTaskPermissions(task, hasPermission, models, projectObj);
 
-  validateAdvancedTaskDefinitionData(patch, image, command, type);
+  // we will merge the patch into the advanced task to double check that the final data is still valid
+  task = {...task, ...patch};
+
+  validateAdvancedTaskDefinitionData(task, image, command, type);
 
   //We actually don't want them to be able to update group, project, environment - so those aren't
   await query(
@@ -399,7 +435,10 @@ export const updateAdvancedTaskDefinition = async (
         command,
         service,
         permission,
-        confirmation_text: confirmationText
+        confirmation_text: confirmationText,
+        deploy_token_injection: deployTokenInjection,
+        project_key_injection: projectKeyInjection,
+        admin_only_view: adminOnlyView,
       }
     })
   );
@@ -421,6 +460,8 @@ export const updateAdvancedTaskDefinition = async (
             advanced_task_definition: id,
             name: advancedTaskDefinitionArguments[i].name,
             displayName: advancedTaskDefinitionArguments[i].displayName,
+            defaultValue: advancedTaskDefinitionArguments[i].defaultValue,
+            optional: advancedTaskDefinitionArguments[i].optional,
             type: advancedTaskDefinitionArguments[i].type
           })
         );
@@ -428,9 +469,10 @@ export const updateAdvancedTaskDefinition = async (
     }
 
     userActivityLogger(`User updated advanced task definition '${id}'`, {
-      project: task.project,
+      project: '',
       event: 'api:updateTaskDefinition',
       payload: {
+        project: task.project,
         taskDef: id
       }
     });
@@ -463,7 +505,7 @@ const getProjectByEnvironmentIdOrProjectId = async (
 export const invokeRegisteredTask = async (
   root,
   { advancedTaskDefinition, environment, argumentValues },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, keycloakGroups }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
 
@@ -472,7 +514,8 @@ export const invokeRegisteredTask = async (
     hasPermission,
     advancedTaskDefinition,
     environment,
-    models
+    models,
+    keycloakGroups
   );
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -493,6 +536,11 @@ export const invokeRegisteredTask = async (
       let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
       if(!taskArgDef) {
         throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
+      }
+
+      // if the value is empty and there is a default value on the argument
+      if (value.trim() === "" && taskArgDef["defaultValue"]) {
+          value = taskArgDef["defaultValue"]
       }
 
       //@ts-ignore
@@ -531,12 +579,15 @@ export const invokeRegisteredTask = async (
 
         taskCommand += `${task.command}`;
 
-        const taskData = await Helpers(sqlClientPool).addTask({
+        const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
           name: task.name,
           taskName: generateTaskName(),
           environment: environment,
           service: task.service,
           command: taskCommand,
+          deployTokenInjection: task.deployTokenInjection,
+          projectKeyInjection: task.projectKeyInjection,
+          adminOnlyView: task.adminOnlyView,
           execute: true
         });
         return taskData;
@@ -554,7 +605,7 @@ export const invokeRegisteredTask = async (
         }
 
 
-        const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
+        const advancedTaskData = await Helpers(sqlClientPool, hasPermission).addAdvancedTask({
           name: task.name,
           taskName: generateTaskName(),
           created: undefined,
@@ -564,6 +615,9 @@ export const invokeRegisteredTask = async (
           service: task.service || 'cli',
           image: task.image, //the return data here is basically what gets dropped into the DB.
           payload: payload,
+          deployTokenInjection: task.deployTokenInjection,
+          projectKeyInjection: task.projectKeyInjection,
+          adminOnlyView: task.adminOnlyView,
           remoteId: undefined,
           execute: true
         });
@@ -581,13 +635,19 @@ const getNamedAdvancedTaskForEnvironment = async (
   hasPermission,
   advancedTaskDefinition,
   environment,
-  models
+  models,
+  keycloakGroups
 ):Promise<AdvancedTaskDefinitionInterface> => {
-  let rows = await resolveTasksForEnvironment(
+  let rows;
+
+  rows = await resolveTasksForEnvironment(
     {},
     { environment },
-    { sqlClientPool, hasPermission, models }
+    { sqlClientPool, hasPermission, models, keycloakGroups }
   );
+
+  rows = await Filters.filterAdminTasks(hasPermission, rows);
+
   //@ts-ignore
   const taskDef = R.find(o => o.id == advancedTaskDefinition, rows);
   if (taskDef == undefined) {
@@ -677,29 +737,6 @@ const getAdvancedTaskTarget = advancedTask => {
   }
 };
 
-// const advancedTaskFunctions = sqlClientPool => {
-//   return {
-//     advancedTaskDefinitionById: async function(id) {
-//       const rows = await query(
-//         sqlClientPool,
-//         Sql.selectAdvancedTaskDefinition(id)
-//       );
-//       let taskDef = R.prop(0, rows);
-//       taskDef.advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(
-//         taskDef.id
-//       );
-//       return taskDef;
-//     },
-//     advancedTaskDefinitionArguments: async function(task_definition_id) {
-//       const rows = await query(
-//         sqlClientPool,
-//         Sql.selectAdvancedTaskDefinitionArguments(task_definition_id)
-//       );
-//       let taskDefArgs = rows;
-//       return taskDefArgs;
-//     }
-//   };
-// };
 
 function validateAdvancedTaskDefinitionData(input: any, image: any, command: any, type: any) {
   switch (getAdvancedTaskDefinitionType(<AdvancedTaskDefinitionInterface>input)) {
@@ -730,7 +767,7 @@ async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterfac
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
     throw Error('Adding Images and System Wide Tasks are not yet supported');
-  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image) {
+  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.deployTokenInjection != false || input.adminOnlyView != false) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');
   } else if (input.groupName) {

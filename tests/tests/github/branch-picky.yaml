@@ -5,8 +5,8 @@
   vars:
     git_files: "node{{ node_version }}/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - webhook github push first commit hash to repo"
   hosts: localhost
@@ -15,9 +15,9 @@
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-github/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-github/push.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -30,7 +30,7 @@
   vars:
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-github/push-delete.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-github/push-delete.yaml
 
 - name: "{{ testname }} - check if site for project does not exist anymore"
   hosts: localhost
@@ -39,4 +39,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

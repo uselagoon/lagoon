@@ -1,4 +1,5 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { getUser } from '@lagoon/commons/dist/gitlab/api';
 import { removeUserFromGroup } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
@@ -7,7 +8,10 @@ export async function gitlabUserProjectRemove(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    const { project_path: projectName, user_id: userId, user_email: userEmail } = body;
+    const { project_path: projectName, user_id: userId } = body;
+
+    const gitlabUser = await getUser(userId);
+    const { email: userEmail } = gitlabUser;
 
     const meta = {
       data: body,

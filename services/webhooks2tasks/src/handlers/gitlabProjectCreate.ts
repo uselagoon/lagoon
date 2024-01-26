@@ -1,7 +1,7 @@
 import R from 'ramda';
 import sshpk from 'sshpk';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { getProject, addDeployKeyToProject } from '@lagoon/commons/dist/gitlabApi';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { getProject, addDeployKeyToProject } from '@lagoon/commons/dist/gitlab/api';
 import { addProject, addGroupToProject, sanitizeGroupName } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';

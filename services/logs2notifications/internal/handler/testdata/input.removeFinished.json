@@ -1,0 +1,14 @@
+{
+    "severity":"success",
+    "project":"project-name",
+    "uuid":"",
+    "event":"task:remove-kubernetes:finished",
+    "meta":{
+        "environment":"release/1",
+        "project":"project-name",
+        "openshiftProject":"release/1",
+        "openshiftProjectName":"project-name-release-1",
+        "projectName":"project-name"
+        },
+    "message":"*[project-name]* remove `release/1`"
+}

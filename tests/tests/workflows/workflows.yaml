@@ -5,8 +5,8 @@
   vars:
     git_files: "tasks/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
@@ -16,7 +16,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'TO BE REPLACED' which is added by hand"
   hosts: localhost
@@ -25,14 +25,14 @@
     url: "{{ check_url }}"
     expected_content: "TO BE REPLACED"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - POST api Add task to {{ project }} via {{ graphql_url }}"
   hosts: localhost
   serial: 1
   tasks:
-    - include: ../../tasks/api/refresh-token.yaml
-    - include: ./create-and-register-task.yaml
+    - ansible.builtin.include_tasks: ../../tasks/api/refresh-token.yaml
+    - ansible.builtin.include_tasks: ./create-and-register-task.yaml
 
 - name: debugger
   hosts: localhost
@@ -49,7 +49,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'REPLACED BY TASK' which is added by the task"
   hosts: localhost
@@ -58,7 +58,7 @@
     url: "{{ check_url }}"
     expected_content: "REPLACED BY TASK"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
 - name: "{{ testname }} - Delete created workflow"
   hosts: localhost
@@ -66,7 +66,7 @@
   vars:
     deleteWorkflowId: "{{ workflowCreateApiResponse.json.data.addWorkflow.id }}"
   tasks:
-  - include: ./post-api-delete-workflow.yaml
+  - ansible.builtin.include_tasks: ./post-api-delete-workflow.yaml
 
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
@@ -76,7 +76,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -85,4 +85,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

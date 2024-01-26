@@ -1,6 +1,6 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { removeUserFromGroup, sanitizeGroupName } from '@lagoon/commons/dist/api';
-import { getGroup } from '@lagoon/commons/dist/gitlabApi';
+import { getGroup, getUser } from '@lagoon/commons/dist/gitlab/api';
 
 import { WebhookRequestData } from '../types';
 
@@ -20,7 +20,10 @@ export async function gitlabUserGroupRemove(webhook: WebhookRequestData) {
   }
 
   try {
-    const { group_path: groupName, user_id: gitlabUserId, user_email: userEmail } = body;
+    const { group_path: groupName, user_id: gitlabUserId } = body;
+
+    const gitlabUser = await getUser(gitlabUserId);
+    const { email: userEmail } = gitlabUser;
 
     const meta = {
       data: body,

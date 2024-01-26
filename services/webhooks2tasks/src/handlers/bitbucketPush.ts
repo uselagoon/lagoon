@@ -1,6 +1,6 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
-import { generateBuildId } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -31,6 +31,13 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       repoUrl: body.repository.links.html.href,
       sha: sha,
       shortSha: sha.substring(0, 7),
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     let buildName = generateBuildId();

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cheshir/go-mq"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/handler"
+	mq "github.com/cheshir/go-mq/v2"
+	"github.com/uselagoon/lagoon/services/workflows/internal/handler"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&lagoonAppID, "lagoon-app-id", "actions-handler",
+	flag.StringVar(&lagoonAppID, "lagoon-app-id", "workflows",
 		"The appID to use that will be sent with messages.")
 	flag.StringVar(&mqUser, "rabbitmq-username", "guest",
 		"The username of the rabbitmq user.")
@@ -56,9 +56,9 @@ func main() {
 		"The jwt signing token key or secret.")
 	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
 		"The jwt audience.")
-	flag.StringVar(&jwtSubject, "jwt-subject", "actions-handler",
+	flag.StringVar(&jwtSubject, "jwt-subject", "workflows",
 		"The jwt audience.")
-	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
+	flag.StringVar(&jwtIssuer, "jwt-issuer", "workflows",
 		"The jwt audience.")
 	flag.StringVar(&workflowsQueueName, "workflows-queue-name", "lagoon-logs:workflows",
 		"The name of the queue in rabbitmq to use.")
@@ -100,7 +100,7 @@ func main() {
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
-			{
+			mq.ExchangeConfig{
 				Name: "lagoon-logs",
 				Type: "direct",
 				Options: mq.Options{
@@ -112,7 +112,7 @@ func main() {
 			},
 		},
 		Consumers: mq.Consumers{
-			{
+			mq.ConsumerConfig{
 				Name:    "items-queue",
 				Queue:   "lagoon-logs:workflows",
 				Workers: mqWorkers,
@@ -125,7 +125,7 @@ func main() {
 			},
 		},
 		Queues: mq.Queues{
-			{
+			mq.QueueConfig{
 				Name:     "lagoon-logs:workflows",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{

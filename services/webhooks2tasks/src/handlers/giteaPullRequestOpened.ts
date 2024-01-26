@@ -1,7 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
-import { generateBuildId } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -29,6 +29,13 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
       pullrequestUrl: body.pull_request.html_url,
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     // Don't trigger deploy if the head and base repos are different
@@ -59,7 +66,7 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, meta,
         `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> opened in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;

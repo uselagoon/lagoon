@@ -1,12 +1,13 @@
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { getConfigFromEnv } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import S3 from 'aws-sdk/clients/s3';
 import { Sql } from './sql';
@@ -15,16 +16,10 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { getEnvVarsByProjectId } from '../env-variables/resolvers';
-import { EVENTS } from './events';
 import { logger } from '../../loggers/logger';
 
-export const getRestoreLocation: ResolverFn = async (
-  restore,
-  args,
-  context,
-) => {
-  const { restoreLocation, backupId } = restore;
-  const { sqlClientPool, hasPermission } = context;
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+  let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
@@ -87,63 +82,60 @@ export const getRestoreLocation: ResolverFn = async (
 
     // We have to generate a new client every time because the endpoint is parsed
     // from the s3 url.
+    const URL = require('url').URL;
+    const restoreLocationURL = new URL(restoreLocation);
     const s3Client = new S3({
       accessKeyId,
       secretAccessKey,
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
-      endpoint: `https://${R.prop(1, s3Parts)}`,
+      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
       region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
 
     // before generating the signed url, check the object exists
-    let exists = false
     const restoreLoc = await s3Client.headObject({
       Bucket: R.prop(2, s3Parts),
       Key: R.prop(3, s3Parts)
     });
     try {
-      await Promise.all([restoreLoc.promise()]).then(data => {
-        // the file exists
-      }).catch(err => {
-        if (err) throw err;
-      });
-      exists = true
-    } catch(err) {
-      exists = false
-    }
-    if (exists) {
-      return s3Client.getSignedUrl('getObject', {
+      const data = await Promise.resolve(restoreLoc.promise());
+      restoreSize = data.ContentLength
+      const restLoc = await s3Client.getSignedUrl('getObject', {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
         Expires: 300 // 5 minutes
-      });
-    } else {
+      })
+      return [restLoc, restoreSize];
+    } catch(err) {
       await query(
         sqlClientPool,
         Sql.deleteRestore({
           backupId
         })
       );
-      return ""
+      return ["", restoreSize];
     }
   }
 
-  return restoreLocation;
+  return [restoreLocation, restoreSize];
 };
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { includeDeleted, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
-  await hasPermission('backup', 'view', {
-    project: environment.project
-  });
+
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('backup', 'view', {
+      project: environment.project
+    });
+  }
 
   let queryBuilder = knex('environment_backup')
     .where('environment', environmentId)
@@ -186,22 +178,20 @@ export const addBackup: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.ADDED, backup);
+  pubSub.publish(EVENTS.BACKUP, backup);
 
-  userActivityLogger(
-    `User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`,
-    {
+  userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+    project: '',
+    event: 'api:addBackup',
+    payload: {
+      id,
+      environment,
       project: environment.project,
-      event: 'api:addBackup',
-      payload: {
-        id,
-        environment,
-        source,
-        backupId,
-        created
-      }
+      source,
+      backupId,
+      created
     }
-  );
+  });
 
   return backup;
 };
@@ -218,9 +208,6 @@ export const deleteBackup: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteBackup(backupId));
-
-  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
@@ -275,7 +262,7 @@ export const addRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   // Allow creating restore data w/o executing the restore
   if (execute === false) {
@@ -308,18 +295,16 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
-  userActivityLogger(
-    `User restored a backup '${backupId}' for project ${projectData.name}`,
-    {
+  userActivityLogger(`User restored a backup '${backupId}' for project ${projectData.name}`, {
+    project: '',
+    event: 'api:addRestore',
+    payload: {
+      restoreId: restoreData.id,
       project: projectData.name,
-      event: 'api:addRestore',
-      payload: {
-        restoreId: restoreData.id,
-        backupId,
-        data
-      }
+      backupId,
+      data
     }
-  );
+  });
 
   try {
     await createMiscTask({ key: 'restic:backup:restore', data });
@@ -388,7 +373,7 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
@@ -412,12 +397,15 @@ export const getRestoreByBackupId: ResolverFn = async (
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );
-
-  return R.prop(0, rows);
+  const row = R.prop(0, rows)
+  if (row && row.restoreLocation != null) {
+    // if the restore has a location, determine the signed url and the reported size of the object in Bytes
+    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
+    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+  }
+  return row;
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.BACKUP.ADDED,
-  EVENTS.BACKUP.UPDATED,
-  EVENTS.BACKUP.DELETED
+  EVENTS.BACKUP
 ]);

@@ -1,5 +1,8 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import validator from 'validator';
+// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -8,26 +11,28 @@ import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
+import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
-import sql from '../user/sql';
+import { Helpers as organizationHelpers } from '../organization/helpers';
+import { Helpers as notificationHelpers } from '../notification/helpers';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
+import GitUrlParse from 'git-url-parse';
 
-const isAdminCheck = async (hasPermission) => {
+const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
+
+const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
+
+const isValidGitUrl = value => {
   try {
-    // check user is admin
-    await hasPermission('project', 'viewAll');
-    return true;
-  } catch (err) {
-    return false;
+    GitUrlParse(value)
+    return true
+  } catch (error) {
+    return false
   }
-};
-
-const isValidGitUrl = value =>
-  /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
-    value
-  );
+}
 
 export const getPrivateKey: ResolverFn = async (
   project,
@@ -45,24 +50,43 @@ export const getPrivateKey: ResolverFn = async (
   }
 };
 
+export const getProjectDeployKey: ResolverFn = async (
+  project,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
+
+    const keyParts = privateKey.toPublic().toString().split(' ');
+    return keyParts[0] + " " + keyParts[1]
+  } catch (err) {
+    return null;
+  }
+};
+
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { order, createdAfter, gitUrl, buildImage },
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
 
   try {
+    // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
   } catch (err) {
+    // else user
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getAllProjects');
       return [];
     }
+    // get the project ids from the users groups
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');
@@ -73,6 +97,10 @@ export const getAllProjects: ResolverFn = async (
 
   if (gitUrl) {
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
+  }
+
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
 
   if (userProjectIds) {
@@ -86,15 +114,7 @@ export const getAllProjects: ResolverFn = async (
   const rows = await query(sqlClientPool, queryBuilder.toString());
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  // This resolver is used for the main UI page and is quite slow. Since we've
-  // already authorized the user has access to all the projects we are
-  // returning, AND all user roles are allowed to view all environments, we can
-  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
-  // resolver.
-  //
-  // @TODO: When this performance issue is fixed for real, remove this hack as
-  // it hardcodes a "everyone can view environments" authz rule.
-  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
+  return withK8s;
 };
 
 export const getProjectByEnvironmentId: ResolverFn = async (
@@ -102,22 +122,13 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM environment e
-    JOIN project p ON e.project = p.id
-    WHERE e.id = :eid
-    LIMIT 1`,
-    { eid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -127,21 +138,13 @@ export const getProjectById: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM project p
-    WHERE p.id = :pid
-    LIMIT 1`,
-    { pid }
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectById(pid));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -151,21 +154,13 @@ export const getProjectByGitUrl: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE git_url = :git_url
-    LIMIT 1`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByGitUrl(args.gitUrl));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   const project = withK8s[0];
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -175,13 +170,8 @@ export const getProjectByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT *
-    FROM project
-    WHERE name = :name`,
-    args
-  );
+  const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 
@@ -189,9 +179,7 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
 
   return project;
 };
@@ -199,20 +187,24 @@ export const getProjectByName: ResolverFn = async (
 export const getProjectsByMetadata: ResolverFn = async (
   root,
   { metadata },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups },
+  info
 ) => {
   let userProjectIds: number[];
+
   try {
+    // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getProjectsByMetadata');
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');
@@ -237,16 +229,66 @@ export const getProjectsByMetadata: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString(), queryArgs);
-  return Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  return withK8s;
 };
 
 export const addProject = async (
   root,
   { input },
-  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger }
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
-  await hasPermission('project', 'add');
 
+  // Add the user who submitted this request to the project
+  let userAlreadyHasAccess = false;
+  if (adminScopes.projectViewAll) {
+    userAlreadyHasAccess = true
+  }
+  if (input.organization != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: input.organization
+    });
+    // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
+    if (!input.addOrgOwner) {
+      userAlreadyHasAccess = true
+    }
+    // check the project quota before adding the project
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
+    if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
+      throw new Error(
+        `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
+      );
+    }
+    const deploytarget = input.kubernetes || input.openshift;
+    if (deploytarget) {
+      const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(input.organization);
+      let validDeployTarget = false
+      for (const dt of deploytargets) {
+        if (dt.dtid == deploytarget) {
+          validDeployTarget = true
+        }
+      }
+      if (!validDeployTarget) {
+        throw new Error('The provided deploytarget is not valid for this organization');
+      }
+    }
+  } else {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+      await hasPermission('project', 'add');
+    } else {
+      throw new Error(
+        'Project creation is restricted to organizations only'
+      );
+    }
+  }
+
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -260,7 +302,18 @@ export const addProject = async (
   }
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
-    throw new Error('Must provide keycloak or openshift field');
+    throw new Error('Must provide kubernetes or openshift field');
+  }
+
+  // check if project already exists before doing anything else
+  const pidResult = await query(
+    sqlClientPool,
+    Sql.selectProjectIdByName(input.name)
+  );
+  if (R.length(pidResult) >= 1) {
+    throw new Error(
+      `Error creating project '${input.name}'. Project already exists.`
+    );
   }
 
   let keyPair: any = {};
@@ -288,9 +341,26 @@ export const addProject = async (
   // check if a user has permission to disable deployments of a project or not
   let deploymentsDisabled = 0;
   if (input.deploymentsDisabled) {
-    const canDisableProject = await isAdminCheck(hasPermission);
-    if (canDisableProject) {
+    if (adminScopes.projectViewAll) {
       deploymentsDisabled = input.deploymentsDisabled
+    }
+  }
+
+  let buildImage = null;
+  if (input.buildImage) {
+    if (adminScopes.projectViewAll) {
+      buildImage = input.buildImage
+    } else {
+      throw new Error('Setting build image is only available to administrators.');
+    }
+  }
+
+  let sharedBaasBucket = null;
+  if(typeof input.sharedBaasBucket == "boolean") {
+    if (adminScopes.projectViewAll) {
+      sharedBaasBucket = input.sharedBaasBucket
+    } else {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
     }
   }
 
@@ -317,14 +387,19 @@ export const addProject = async (
 
   // Create a default group for this project
   let group;
+  let attributes = {
+    type: ['project-default-group'],
+    'lagoon-projects': [project.id],
+    'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
+  };
+  // add the organization attribute if this exists
+  if (input.organization != null) {
+    attributes['lagoon-organization'] = [input.organization];
+  }
   try {
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
-      attributes: {
-        type: ['project-default-group'],
-        'lagoon-projects': [project.id],
-        'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
-      }
+      attributes: attributes
     });
   } catch (err) {
     logger.error(
@@ -365,7 +440,7 @@ export const addProject = async (
         sqlClientPool,
         sshKeySql.insertSshKey({
           id: null,
-          name: 'auto-add via api',
+          name: `default-user@${project.name}`,
           keyValue: keyParts[1],
           keyType: keyParts[0],
           keyFingerprint: getSshKeyFingerprint(keyPair.public)
@@ -393,15 +468,6 @@ export const addProject = async (
     );
   }
 
-  // Add the user who submitted this request to the project
-  let userAlreadyHasAccess;
-  try {
-    await hasPermission('project', 'viewAll');
-    userAlreadyHasAccess = true;
-  } catch (e) {
-    userAlreadyHasAccess = false;
-  }
-
   if (!userAlreadyHasAccess && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
@@ -416,12 +482,13 @@ export const addProject = async (
     }
   }
 
-  const harborOperations = createHarborOperations(sqlClientPool);
-
-  await harborOperations.addProject(project.name, project.id);
+  if (DISABLE_CORE_HARBOR == "false") {
+    const harborOperations = createHarborOperations(sqlClientPool);
+    await harborOperations.addProject(project.name, project.id);
+  }
 
   userActivityLogger(`User added a project '${project.name}'`, {
-    project: project.name,
+    project: '',
     event: 'api:addProject',
     payload: {
       input,
@@ -435,19 +502,72 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
   const project = await Helpers(sqlClientPool).getProjectById(pid);
 
-  await hasPermission('project', 'delete', {
-    project: pid
-  });
+  // if the project is in an organization then check the organization delete project permission
+  // otherwise fall back to the non-organization permission check
+  if (project.organization != null) {
+    await hasPermission('organization', 'deleteProject', {
+      organization: project.organization
+    });
+  } else {
+    await hasPermission('project', 'delete', {
+      project: pid
+    });
+  }
+
+  // check for existing environments
+  const rows = await query(
+    sqlClientPool, Sql.selectEnvironmentsByProjectId(pid)
+  );
+
+  if (rows.length > 0) {
+    // throw error if there are any existing environments
+    throw new Error(
+      'Unable to delete project, there are existing environments that need to be removed first'
+    );
+  }
+
+  try {
+    // remove all notifications from project
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
+  } catch (err) {
+    logger.error(
+      `Could not remove notifications from project ${project.name}: ${err.message}`
+    );
+  }
 
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
-  // Remove the default group and user
+  // Remove the project from all groups it is associated to
+  try {
+    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
+    // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
+    for (const groupInput of projectGroups) {
+      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+      await models.GroupModel.removeProjectFromGroup(project.id, group);
+      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+        group.name,
+        projectIds
+      );
+    }
+  } catch (err) {
+    logger.error(
+      `Could not remove project from associated groups ${project.name}: ${err.message}`
+    );
+
+  }
+
+  // Remove the default project group
   try {
     const group = await models.GroupModel.loadGroupByName(
       `project-${project.name}`
@@ -463,6 +583,7 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // Remove the default user
   try {
     const user = await models.UserModel.loadUserByUsername(
       `default-user@${project.name}`
@@ -475,12 +596,13 @@ export const deleteProject: ResolverFn = async (
   }
 
   // @TODO discuss if we want to delete projects in harbor or not
-  //const harborOperations = createHarborOperations(sqlClientPool);
-
-  //const harborResults = await harborOperations.deleteProject(project.name)
+  // if (DISABLE_CORE_HARBOR == "false") {
+  //   const harborOperations = createHarborOperations(sqlClientPool);
+  //   const harborResults = await harborOperations.deleteProject(project.name)
+  // }
 
   userActivityLogger(`User deleted a project '${project.name}'`, {
-    project: project.name,
+    project: '',
     event: 'api:deleteProject',
     payload: {
       input: {
@@ -525,11 +647,14 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   await hasPermission('project', 'update', {
     project: id
@@ -537,9 +662,21 @@ export const updateProject: ResolverFn = async (
 
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
-    const canDisableProject = await isAdminCheck(hasPermission);
-    if (canDisableProject == false) {
-      deploymentsDisabled = 0;
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  if(typeof sharedBaasBucket == "boolean") {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting shared baas bucket is only available to administrators.');
+    }
+  }
+
+  // check if a user has permission to change the build image of a project or not
+  if (buildImage) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Setting build image is only available to administrators.');
     }
   }
 
@@ -548,10 +685,24 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'
       );
+    }
+  }
+
+  // if the name is provided in a patch, check that the user trying to rename the project is an admin.
+  // renaming projects is prohibited because lagoon uses the project name for quite a few things
+  // which if changed can have unintended consequences for any existing environments
+  if (patch.name) {
+    if (!adminScopes.projectViewAll) {
+      throw new Error('Project renaming is only available to administrators.');
     }
   }
 
@@ -565,8 +716,64 @@ export const updateProject: ResolverFn = async (
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
-  // TODO If the privateKey changes, automatically remove the old one from the
-  // default user and link the new one.
+  // If the privateKey is changed, automatically add the new one to the default user
+  if (patch.privateKey && patch.privateKey !== oldProject.privateKey) {
+    let keyPair: any = {};
+    try {
+
+      const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
+      const publicKey = privateKey.toPublic();
+
+      keyPair = {
+        ...keyPair,
+        private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
+        public: publicKey.toString()
+      };
+
+      const keyParts = keyPair.public.split(' ');
+
+      try {
+        const { insertId } = await query(
+          sqlClientPool,
+          sshKeySql.insertSshKey({
+            id: null,
+            name: 'auto-add via api',
+            keyValue: keyParts[1],
+            keyType: keyParts[0],
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
+        );
+        const user = await models.UserModel.loadUserByUsername(
+          `default-user@${oldProject.name}`
+        );
+        await query(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+        );
+
+        // remove the old public key from the default user
+        const skidResult = await query(
+          sqlClientPool,
+          SshKeySql.selectSshKeyByFingerprint(getSshKeyFingerprint(sshpk.parsePrivateKey(R.prop('privateKey', oldProject)).toPublic()))
+        );
+        const skid = R.path(['0', 'id'], skidResult) as number;
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteUserSshKeyByKeyId(skid)
+        );
+        await query(
+          sqlClientPool,
+          SshKeySql.deleteSshKeyByKeyId(skid)
+        );
+      } catch (err) {
+        logger.error(
+          `Could not update default project user for ${oldProject.name}: ${err.message}`
+        );
+      }
+    } catch (err) {
+      throw new Error(`There was an error with the privateKey: ${err.message}`);
+    }
+  }
 
   // const originalProject = await Helpers(sqlClientPool).getProjectById(id);
   // const originalName = R.prop('name', originalProject);
@@ -628,7 +835,10 @@ export const updateProject: ResolverFn = async (
         pullrequests,
         openshift,
         openshiftProjectPattern,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     })
   );
@@ -698,9 +908,10 @@ export const updateProject: ResolverFn = async (
   // }
 
   userActivityLogger(`User updated project '${oldProject.name}'`, {
-    project: oldProject.name,
+    project: '',
     event: 'api:updateProject',
     payload: {
+      project: oldProject.name,
       patch: {
         name,
         gitUrl,
@@ -728,7 +939,10 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization,
+        buildImage,
+        sharedBaasBucket
       }
     }
   });

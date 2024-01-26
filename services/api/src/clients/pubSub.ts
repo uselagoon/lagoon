@@ -2,11 +2,17 @@ import { path } from 'ramda';
 import { withFilter } from 'graphql-subscriptions';
 import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
 import { ForbiddenError } from 'apollo-server-express';
-const pubSubLogger = require('../loggers/pubSubLogger');
+import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
+
+export const EVENTS = {
+  DEPLOYMENT: 'api.subscription.deployment',
+  BACKUP: 'api.subscription.backup',
+  TASK: 'api.subscription.task'
+};
 
 export const config = {
   host: getConfigFromEnv('RABBITMQ_HOST', 'broker'),
@@ -20,7 +26,7 @@ export const config = {
 export const pubSub = new AmqpPubSub({
   config: config.connectionUrl,
   // @ts-ignore
-  logger: pubSubLogger
+  logger
 });
 
 const createSubscribe = (events): ResolverFn => async (

@@ -4,12 +4,14 @@
 >
 > * from [mongodb.com](https://www.mongodb.com/)
 
-[Lagoon `MongoDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/Dockerfile). Based on the official package `mongodb` provided by the `alpine:3.8` image.
+## Supported Versions
+
+4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/4.Dockerfile) - `uselagoon/mongo-4`
 
 This Dockerfile is intended to be used to set up a standalone MongoDB database server.
 
-## Lagoon & OpenShift adaptions
+## Lagoon adaptions
 
-This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user, and therefore also on Kubernetes or OpenShift.

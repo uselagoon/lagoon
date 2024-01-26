@@ -2,13 +2,13 @@
 
 ## How do I contact my Lagoon administrator?
 
-You should have either a private RocketChat or Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
+You should have a private Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
 
 ## I found a bug! 🐞
 
 If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please DO NOT file a GitHub issue for them.
 
-## I'm interested in amazee.io's hosting services with Lagoon!
+## I'm interested in amazee.io's hosting services with Lagoon
 
 That's great news! You can contact them via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
 
@@ -18,7 +18,7 @@ We have backups available for files and databases, typically taken every 24 hour
 
 We keep up to 7 daily backups and 4 weekly backups.
 
-If you ever need to recover or restore a backup feel free to submit a ticket or send us a message via chat and we will be more than happy to help!
+If you ever need to recover or restore a backup, feel free to submit a ticket or send us a message via chat and we will be more than happy to help!
 
 ## How can I download a database dump?
 
@@ -30,9 +30,9 @@ The first thing to try is what is listed in [our documentation about SSL](../usi
 
 If you follow those steps, and you are still seeing an error, please submit a ticket or send us a message on chat and we can help resolve this for you.
 
-## I'm getting an "Array" error when running a drush command
+## I'm getting an "Array" error when running a Drush command
 
-This was a bug that was prevalent in drush versions 8.1.16 and 8.1.17. There error would look something like this:
+This was a bug that was prevalent in Drush versions 8.1.16 and 8.1.17. There error would look something like this:
 
 ```text
 The command could not be executed successfully (returned: Array [error]
@@ -52,7 +52,7 @@ Error: no database record could be found for source @main [error]
 
 Upgrading Drush should fix that for you. We strongly suggest that you use version 8.3 or newer. Once Drush is upgraded the command should work!
 
-## I'm seeing an Internal Server Error when trying to access my Kibana logs!
+## I'm seeing an Internal Server Error when trying to access my Kibana logs
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -71,7 +71,7 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
 
-## How can I check the status of a build
+## How can I check the status of a build?
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PyrlZqTjf68" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -85,7 +85,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## How do I remove a route?
 
-You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use either the private RocketChat or Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io.
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io or on [Discord](https://discord.gg/te5hHe95JE).
 
 ## When I run `pygmy status`, no keys are loaded
 
@@ -99,7 +99,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
 
-## When I start pygmy I see an "address already in use" error?
+## When I start Pygmy I see an "address already in use" error?
 
 `Error starting userland proxy: listen tcp 0.0.0.0:80: bind: address already in use Error: failed to start containers: amazeeio-haproxy`
 
@@ -109,7 +109,7 @@ This is a known error! Most of the time it means that there is already something
 netstat -ltnp | grep -w ':80'
 ```
 
-That should list everything running on port 80. Kill the process running on port 80. Once port 80 is freed up, pygmy should start up with no further errors.
+That should list everything running on port 80. Kill the process running on port 80. Once port 80 is freed up, Pygmy should start up with no further errors.
 
 ## How can I change branches/PR environments/production on my project?
 
@@ -117,7 +117,7 @@ You can make that change using the Lagoon API! You can find the documentation fo
 
 ## How do I add a redirect?
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rWb-PkRDhY4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## How can I add new users \(and SSH keys\) to my project/group?
 
@@ -173,4 +173,4 @@ We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed
 
 ## I have a question that isn't answered here
 
-You can reach out to the team via [RocketChat](https://amazeeio.rocket.chat/home) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).
+You can reach out to the team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

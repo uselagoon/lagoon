@@ -1,0 +1,12 @@
+{
+	"type": "build",
+	"namespace": "example-com-main",
+	"meta": {
+		"buildName": "lagoon-build-lvhl2f",
+		"buildPhase": "cancelled",
+		"endTime": "2022-10-28 09:50:42",
+		"environment": "main",
+		"project": "example-com",
+		"startTime": "2022-10-28 09:50:42"
+	}
+}

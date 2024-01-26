@@ -1,0 +1,88 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    git_repo_name: features-variables.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: api/add-environment.yaml
+  vars:
+    name: lagoon-api-variables
+    project: ci-features-api-variables-{{ cluster_type }}
+    environmentType: PRODUCTION
+
+- ansible.builtin.import_playbook: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_PROJECT"
+    envValue: "4A65DC68F2"
+    envScope: "GLOBAL"
+
+- ansible.builtin.import_playbook: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_OVERRIDE"
+    envValue: "74B3E42B54"
+    envScope: "GLOBAL"
+
+- ansible.builtin.import_playbook: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_BUILD"
+    envValue: "AEF177FCF4"
+    envScope: "BUILD"
+
+- ansible.builtin.import_playbook: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_RUNTIME"
+    envValue: "90AEC657F8"
+    envScope: "RUNTIME"
+
+- ansible.builtin.import_playbook: features/lagoon-api-variables.yaml
+  vars:
+    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-api-variables-{{ cluster_type }}
+    branch: lagoon-api-variables
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    git_repo_name: features-variables.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    branch: slash/branch1
+    expected_dot_env: slash/branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- ansible.builtin.import_playbook: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    branch: branch1
+    expected_dot_env: branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    project: ci-features-dotenv-variables-{{ cluster_type }}

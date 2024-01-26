@@ -1,18 +1,12 @@
 import * as R from 'ramda';
-import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
+import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import * as api from '@lagoon/commons/dist/api';
-import { logger } from '@lagoon/commons/dist/local-logging';
-
-interface GitlabUser {
-  name: string,
-  email: string,
-  id: number,
-};
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 
 const usernameExistsRegex = /Username.*?exists/;
 
 (async () => {
-  const allUsers = await gitlabApi.getAllUsers() as GitlabUser[];
+  const allUsers = await gitlabApi.getAllUsers();
 
   logger.info(`Syncing ${allUsers.length} users`);
 

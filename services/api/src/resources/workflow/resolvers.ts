@@ -52,7 +52,7 @@ export const addWorkflow: ResolverFn = async (
   );
 
   userActivityLogger(`User added a workflow '${insertId}'`, {
-    project: input.project || '',
+    project: '',
     event: 'api:addWorkflow',
     payload: {
       data: {
@@ -109,7 +109,7 @@ export const updateWorkflow: ResolverFn = async (
   );
 
   userActivityLogger(`User updated a workflow '${id}'`, {
-    project: project || '',
+    project: '',
     event: 'api:updateWorkflow',
     payload: {
       id: id,

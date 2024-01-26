@@ -1,13 +1,11 @@
 ---
-- include: features/random-wait.yaml
-
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-gitlab-{{ cluster_type }}
     git_repo_name: gitlab.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: gitlab/skip-deployment.yaml
+- ansible.builtin.import_playbook: gitlab/skip-deployment.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - skip deployment"
     node_version: 16
@@ -16,7 +14,7 @@
     branch: skip
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: gitlab/branch.yaml
+- ansible.builtin.import_playbook: gitlab/branch.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - slash branch"
     node_version: 16
@@ -25,7 +23,7 @@
     branch: gitlab/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: gitlab/pullrequest.yaml
+- ansible.builtin.import_playbook: gitlab/pullrequest.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - PULLREQUEST"
     node_version: 16
@@ -33,6 +31,6 @@
     project: ci-gitlab-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-gitlab-{{ cluster_type }}

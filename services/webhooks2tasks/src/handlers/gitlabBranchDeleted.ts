@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
@@ -19,6 +19,13 @@ export async function gitlabBranchDeleted(webhook: WebhookRequestData, project: 
       branchName: body.ref.replace('refs/heads/',''),
       projectName: project.name,
       repoFullName: body.project.path_with_namespace,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     const result = await getOpenShiftInfoForProject(project.name);

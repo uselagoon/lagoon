@@ -1,7 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
-import { generateBuildId } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -32,6 +32,13 @@ export async function giteaPush(webhook: WebhookRequestData, project: Project) {
       branchName: branchName,
       commitUrl: afterUrl,
       event: event,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     let buildName = generateBuildId();

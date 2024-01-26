@@ -10,10 +10,10 @@ local-dev/helm
 local-dev/minishift
 local-dev/minikube
 local-dev/k3d
+local-dev/kind
+local-dev/kubectl
 local-dev/jq
 local-dev/stern
-k3d
-local-dev/kubectl
 **/v8-*
 node_modules/
 build/*
@@ -29,5 +29,8 @@ yarn-error.log*
 site
 kubeconfig.*
 kindconfig.*
-kind
+k3dconfig.*
 lagoon-charts.*
+calico.yaml
+.devcontainer
+docker-compose.override.yml

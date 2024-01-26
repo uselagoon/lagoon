@@ -1,9 +1,9 @@
 - name: "{{ testname }} - Trigger a bulk deployment for environments to {{ graphql_url }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - debug:
         msg: "{{ bulk_deploy_id }}"
-    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+    - name: "{{ testname }} - POST api check new bulk deployments for environments to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
@@ -13,12 +13,18 @@
         body:
           query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
       register: apiresponse
-      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "new"
+      until:
+        - apiresponse.json.data.deploymentsByBulkId[0].status is defined
+        - apiresponse.json.data.deploymentsByBulkId[1].status is defined
+        - apiresponse.json.data.deploymentsByBulkId[2].status is defined
+        - apiresponse.json.data.deploymentsByBulkId[3].status is defined
+        - apiresponse.json.data.deploymentsByBulkId[4].status is defined
+        - apiresponse.json.data.deploymentsByBulkId[5].status is defined
       retries: 30
       delay: 10
 
-    - include: admin-token.yaml
-    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check running bulk deployments for environments to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
@@ -28,12 +34,18 @@
         body:
           query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
       register: apiresponse
-      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "running"
-      retries: 30
+      until:
+        - apiresponse.json.data.deploymentsByBulkId[0].status != "new"
+        - apiresponse.json.data.deploymentsByBulkId[1].status != "new"
+        - apiresponse.json.data.deploymentsByBulkId[2].status != "new"
+        - apiresponse.json.data.deploymentsByBulkId[3].status != "new"
+        - apiresponse.json.data.deploymentsByBulkId[4].status != "new"
+        - apiresponse.json.data.deploymentsByBulkId[5].status != "new"
+      retries: 60
       delay: 10
 
-    - include: admin-token.yaml
-    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check completed bulk deployments for environments to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
@@ -43,8 +55,14 @@
         body:
           query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
       register: apiresponse
-      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "complete"
-      retries: 30
+      until:
+        - apiresponse.json.data.deploymentsByBulkId[0].status == "complete"
+        - apiresponse.json.data.deploymentsByBulkId[1].status == "complete"
+        - apiresponse.json.data.deploymentsByBulkId[2].status == "complete"
+        - apiresponse.json.data.deploymentsByBulkId[3].status == "complete"
+        - apiresponse.json.data.deploymentsByBulkId[4].status == "complete"
+        - apiresponse.json.data.deploymentsByBulkId[5].status == "complete"
+      retries: 60
       delay: 10
 
     - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"

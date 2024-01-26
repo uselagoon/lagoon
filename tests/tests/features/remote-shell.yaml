@@ -4,8 +4,8 @@
   vars:
     git_files: "node{{ node_version }}/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
@@ -15,17 +15,7 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
-
-- name: "{{ testname }} - check if we can connect via lagoon user"
-  hosts: localhost
-  serial: 1
-  vars:
-    username: lagoon
-    command: "rsh {{ project }}-remoteshell service=node env"
-    expected_content: "LAGOON_PROJECT={{ project }}"
-  tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check if we can connect via oc project user"
   hosts: localhost
@@ -35,7 +25,7 @@
     command: service=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if we can connect via oc project user and defining the container"
   hosts: localhost
@@ -45,7 +35,7 @@
     command: service=node container=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if we are on the right git hash via oc project user"
   hosts: localhost
@@ -55,7 +45,7 @@
     command: service=node env
     expected_content: "LAGOON_GIT_SHA={{ current_head }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - check if we are on the right git branch via oc project user"
   hosts: localhost
@@ -65,7 +55,7 @@
     command: service=node env
     expected_content: "LAGOON_GIT_BRANCH={{ branch }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/ssh-command.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -74,7 +64,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -83,4 +73,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

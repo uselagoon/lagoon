@@ -1,8 +1,0 @@
-'*':
-  host: lagoon-core-ssh.lagoon.svc
-  paths:
-    files: /app/web/sites/default/files
-  user: ${env-name}
-  ssh:
-    options: '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=FATAL -p 2020'
-    tty: false

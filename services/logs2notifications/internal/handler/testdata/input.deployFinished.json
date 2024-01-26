@@ -1,0 +1,14 @@
+{
+    "severity":"info",
+    "project":"ci-github-openshift",
+    "uuid":"",
+    "event":"task:deploy-openshift:finished",
+    "meta":{
+        "projectName":"ci-github-openshift",
+        "branchName":"lagoon-type-override",
+        "buildName":"lagoon-build-1234",
+        "route":"https://route1",
+        "routes":["https://route1","https://route2","https://route3"],
+        "logLink":"https://logs"
+    }
+}

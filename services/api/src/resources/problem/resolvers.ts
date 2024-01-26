@@ -34,7 +34,7 @@ export const getAllProblems: ResolverFn = async (
     }
   } catch (err) {
     if (err) {
-      logger.warn(err);
+      logger.warn(`getAllProblems: ${err.message}`);
       return [];
     }
   }
@@ -98,17 +98,19 @@ export const getProblemSources: ResolverFn = async (
 export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { severity, source },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  await hasPermission('problem', 'view', {
-    project: environment.project
-  });
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('problem', 'view', {
+      project: environment.project
+    });
+  }
 
-  const rows = await query(
+  let rows = await query(
     sqlClientPool,
     Sql.selectProblemsByEnvironmentId({
       environmentId,
@@ -116,6 +118,16 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
       source
     })
   );
+
+  //With some changes in Mariadb, we now have to stringify outgoing json
+  interface hasData {
+    data: string
+  }
+
+  rows = R.map((e:hasData) => {
+    e.data = JSON.stringify(e.data);
+    return e
+  }, rows);
 
   return R.sort(R.descend(R.prop('created')), rows);
 };
@@ -189,19 +201,22 @@ export const addProblem: ResolverFn = async (
         version: version || '',
         fixed_version: fixedVersion,
         links: links,
-        data,
+        data: JSON.stringify(data),
         created,
       }
     }
   });
 
-  return R.prop(0, rows);
+  let ret = R.prop(0, rows);
+  ret.data = JSON.stringify(data);
+
+  return ret;
 };
 
 export const deleteProblem: ResolverFn = async (
   root,
-  { input: { environment: environmentId, identifier } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { input: { environment: environmentId, identifier, service } },
+  { sqlClientPool, hasPermission, userActivityLogger  }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -211,7 +226,7 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
+  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
   userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
@@ -303,7 +318,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
   );
 
   userActivityLogger(`User added harbor scan regex matcher`, {
-    project: defaultLagoonProject || '',
+    project: '',
     event: 'api:addProblemHarborScanMatch',
     payload: {
       input: {

@@ -13,7 +13,7 @@ A custom container entrypoint, `services/harborregistry/entrypoint.sh`, then tra
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * **`HARBOR_NGINX_ENDPOINT`**
-  * This environment variable tells `harborregistry` where its Nginx ingress controller, `harbor-nginx`, is running in order to construct proper push and pull instructions in the UI, among other things.
+  * This environment variable tells `harborregistry` where its NGINX ingress controller, `harbor-nginx`, is running in order to construct proper push and pull instructions in the UI, among other things.
   * The default value is set to `http://harbor-nginx:8080` when run locally or during CI testing.
   * Lagoon attempts to obtain and set this variable automagically when run in production. If that process fails, this service will fail to run.
 * **`JOBSERVICE_SECRET`**

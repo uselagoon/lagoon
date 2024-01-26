@@ -38,12 +38,12 @@ environments:
             insecure: Redirect
 ```
 
-!!! Note "Note:"
+!!! Note
     As checking every page of your website might be a bit a tedious job, you can make use of [mixed-content-scan](https://github.com/bramus/mixed-content-scan). This will crawl the entire site and give you back pages that include assets from a non-HTTPS site.
 
 ### Redirects
 
-If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx/#redirects-mapconf).
+If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx.md#redirects-mapconf).
 
 ### Cron jobs
 
@@ -67,12 +67,12 @@ The recommended method of pointing your domain's DNS records at Lagoon is via a 
 
 If your DNS provider does not support the use of CNAME records, you can use these A records instead. Please ensure you set up individual records for each IP listed below:
 
-`A`: `151.101.2.191`
-`A`: `151.101.66.191`
-`A`: `151.101.130.191`
-`A`: `151.101.194.191`
+* `A`: `151.101.2.191`
+* `A`: `151.101.66.191`
+* `A`: `151.101.130.191`
+* `A`: `151.101.194.191`
 
-!!! Note "Note:"
+!!! Note
     We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.
 
 ### Root Domains

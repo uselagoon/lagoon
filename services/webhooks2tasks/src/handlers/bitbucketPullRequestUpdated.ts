@@ -1,7 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
-import { generateBuildId } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -22,6 +22,13 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       pullrequestUrl: body.pullrequest.destination.repository.links.html.href,
       repoName: body.repository.full_name,
       repoUrl: body.repository.links.html.href,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     const headRepoId = body.pullrequest.source.repository.uuid;
@@ -59,7 +66,7 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, meta,
         `*[${project.name}]* PR <${body.pullrequest.destination.repository.links.html.href}|#${body.pullrequest.id} (${body.title})> updated in <${body.pullrequest.destination.repository.links.html.href}|${body.pullrequest.destination.branch.name}>`
       )
       return;

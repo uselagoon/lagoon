@@ -8,11 +8,11 @@ This part explains how you can teach Node.js to behave like a real web server: f
 
 As an example we use a no-frills Node.js server with Express:
 
-```javascript
+```javascript title="app.js"
 const express = require('express');
 const app = express();
 
-// Adds a 5 sec delay for all requests.
+// Adds a 5 second delay for all requests.
 app.use((req, res, next) => setTimeout(next, 5000));
 
 app.get('/', function (req, res) {
@@ -26,13 +26,13 @@ const server = app.listen(3000, function () {
 
 This will just show "Hello World" in when the web server is visited at `localhost:3000`. Note the 5 second delay in the response in order to simulate a request that takes some computing time.
 
-## Part A: Allow requests to be finished.
+## Part A: Allow requests to be finished
 
 If we run the above example and stop the Node.js process while the request is handled \(within the 5 seconds\), we will see that the Node.js server immediately kills the connection, and our browser will show an error.
 
 To explain to our Node.js server that it should wait for all the requests to be finished before actually stopping itself, we add the following code:
 
-```javascript
+```javascript title="Graceful Shutdown"
 const startGracefulShutdown = () => {
   console.log('Starting shutdown of express...');
   server.close(function () {
@@ -78,19 +78,19 @@ With these script functionalities, we simplify the start of our application. We 
 
 and with the defined `scripts` section we can run our application just with:
 
-```text
+```bash title="Start application"
 yarn start
 ```
 
 or
 
-```text
+```bash title="Start application"
 npm start
 ```
 
 This is nice and makes the life of developers easier. So we also end up using the same within Dockerfiles:
 
-```text title=".dockerfile" 
+```text title=".dockerfile"
 CMD ["yarn", "start"]
 ```
 
@@ -100,7 +100,7 @@ If `yarn` or `npm` get a `SIGINT` or `SIGTERM` signal, they correctly forward th
 
 The solution for the problem is to not use Yarn or NPM to start your application and instead use `node` directly:
 
-```text
+```text title=".dockerfile"
 CMD ["node", "index.js"]
 ```
 

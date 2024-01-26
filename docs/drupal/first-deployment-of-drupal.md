@@ -12,7 +12,7 @@ With Lagoon, you create a new deployment by pushing into a branch that is config
 
 If you don't have any new code to push, don't worry, you can run
 
-```bash
+```bash title="Git push"
 git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
@@ -35,20 +35,20 @@ Depending on the post-rollout tasks defined in `.lagoon.yml` , you might have ru
 
 With full Drush site alias support in Lagoon, you can synchronize a local database with the remote Lagoon environment.
 
-!!! warning "Warning:"
+!!! warning
     You may have to tell pygmy about your public keys before the next step.
 
 If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent)
 
 First let's make sure that you can see the Drush site aliases:
 
-```bash
+```bash title="Get site aliases"
 drush sa
 ```
 
 This should return your just deployed environment \(let's assume you just pushed into `develop`\):
 
-```bash
+```bash title="Returned site aliases"
 [drupal-example]cli-drupal:/app$ drush sa
 @develop
 @self
@@ -57,13 +57,13 @@ default
 
 With this we can now synchronize the local database \(which is represented in Drush via the site alias `@self`\) with the remote one \(`@develop`\):
 
-```bash
+```bash title="Drush sql-sync"
 drush sql-sync @self @develop
 ```
 
 You should see something like:
 
-```http
+```bash title="Drush sql-sync results"
 [drupal-example]cli-drupal:/app$ drush sql-sync @self @develop
 You will destroy data in ssh.lagoon.amazeeio.cloud/drupal and replace with data from drupal.
 Do you really want to continue? (y/n): y
@@ -78,7 +78,7 @@ Starting to import dump file onto Destination database.
 
 Now let's try another deployment, again an empty push:
 
-```bash
+```bash title="Git push"
 git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
@@ -95,13 +95,13 @@ If it is still failing, check the logs link for more information.
 
 You probably guessed it: we can do it with Drush:
 
-```bash
+```bash title="Drush rsync"
 drush rsync @self:%files @develop:%files
 ```
 
 It should show you something like:
 
-```text
+```bash title="Drush rsync results"
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
 You will delete files in drupal-example-develop@ssh.lagoon.amazeeio.cloud:/app/web/sites/default/files and replace with data from /app/web/sites/default/files/
 Do you really want to continue? (y/n): y
@@ -109,7 +109,7 @@ Do you really want to continue? (y/n): y
 
 In some cases, though, it might not look correct, like here:
 
-```text
+```bash title="Drush rsync results"
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
 You will delete files in drupal-example-develop@ssh.lagoon.amazeeio.cloud:'/app/web/%files' and replace with data from '/app/web/%files'/
 Do you really want to continue? (y/n):

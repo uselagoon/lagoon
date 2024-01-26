@@ -9,7 +9,7 @@ export type RequestWithRequestData = Request & {
 
 const ipAddress = async (
   req: RequestWithRequestData,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
@@ -17,7 +17,7 @@ const ipAddress = async (
 
     req.headers.ipAddress = ipAddress;
   } catch (e) {
-    logger.debug(`Unable to gather request ip address: ${e.message}`);
+    logger.warn(`Unable to gather request ip address: ${e.message}`);
   }
 
   next();

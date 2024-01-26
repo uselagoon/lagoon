@@ -1,8 +1,0 @@
-- pipeline.id: lagoon-logs
-  path.config: "pipeline/lagoon-logs.conf"
-- pipeline.id: router-application-logs
-  path.config: "pipeline/router-application-logs.conf"
-- pipeline.id: service-logs
-  path.config: "pipeline/service-logs.conf"
-- pipeline.id: debug
-  path.config: "pipeline/debug.conf"

@@ -104,7 +104,7 @@ Environment variables are meant to store some common information about Redis.
 
 Here is a snippet to implement a Redis failover in case of the Redis container not being available \(for example, during maintenance\)
 
-The following is inserted into Drupal 7's active `settings.php` file.
+The following is inserted into Drupal's active `settings.php` file.
 
 ```php title="settings.php"
 if (getenv('LAGOON')) {
@@ -120,8 +120,8 @@ if (getenv('LAGOON')) {
       // Ensure that there is a connection to redis.
       $client = Redis_Client::getClient();
       $response = $client->ping();
-      if (!strpos($response, 'PONG')) {
-        throw new Exception('Invalid redis response.');
+      if (!$response) {
+      throw new \Exception('Redis could be reached but is not responding correctly.');
       }
       $conf['redis_client_interface'] = 'PhpRedis';
       $conf['lock_inc'] = $contrib_path . '/redis/redis.lock.inc';

@@ -1,7 +1,7 @@
 import R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
-import { generateBuildId } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -22,6 +22,13 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       pullrequestUrl: body.object_attributes.url,
       repoName: body.object_attributes.target.name,
       repoUrl: body.object_attributes.target.web_url,
+    }
+
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
     }
 
     const headRepoId = body.object_attributes.source.git_ssh_url
@@ -59,7 +66,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, meta,
         `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.iid} (${body.object_attributes.title})> opened in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;

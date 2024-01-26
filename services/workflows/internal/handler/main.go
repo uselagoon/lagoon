@@ -4,18 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Khan/genqlient/graphql"
-	"github.com/cheshir/go-mq"
-	"github.com/matryer/try"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoonclient"
 	"log"
 	"net/http"
 	"time"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon"
-	//lclient "github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/schema"
+
+	"github.com/Khan/genqlient/graphql"
+	mq "github.com/cheshir/go-mq/v2"
+	"github.com/matryer/try"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/jwt"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoonclient"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/lagoon"
+	//lclient "github.com/uselagoon/lagoon/services/workflows/internal/lagoon/client"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/jwt"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/schema"
 )
 
 // RabbitBroker .
@@ -32,7 +33,7 @@ type RabbitBroker struct {
 type LagoonAPI struct {
 	Endpoint        string `json:"endpoint"`
 	JWTAudience     string `json:"audience"`
-	TokenSigningKey string `json:"tokenSigningKey`
+	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
 }
@@ -45,27 +46,26 @@ type Action struct {
 }
 
 type LagoonLogMeta struct {
-	BranchName     string   `json:"branchName,omitempty"`
-	BuildName      string   `json:"buildName,omitempty"`
-	BuildPhase     string   `json:"buildPhase,omitempty"`
-	EndTime        string   `json:"endTime,omitempty"`
-	Environment    string   `json:"environment,omitempty"`
-	EnvironmentID  *uint    `json:"environmentId,omitempty"`
-	JobName        string   `json:"jobName,omitempty"`
-	JobStatus      string   `json:"jobStatus,omitempty"`
-	LogLink        string   `json:"logLink,omitempty"`
-	MonitoringURLs []string `json:"monitoringUrls,omitempty"`
-	Project        string   `json:"project,omitempty"`
-	ProjectID      *uint    `json:"projectId,omitempty"`
-	ProjectName    string   `json:"projectName,omitempty"`
-	RemoteID       string   `json:"remoteId,omitempty"`
-	Route          string   `json:"route,omitempty"`
-	Routes         []string `json:"routes,omitempty"`
-	StartTime      string   `json:"startTime,omitempty"`
-	Services       []string `json:"services,omitempty"`
-	Key            string   `json:"key,omitempty"`
-	AdvancedData   string   `json:"advancedData,omitempty"`
-	Cluster        string   `json:"clusterName,omitempty"`
+	BranchName    string   `json:"branchName,omitempty"`
+	BuildName     string   `json:"buildName,omitempty"`
+	BuildPhase    string   `json:"buildPhase,omitempty"`
+	EndTime       string   `json:"endTime,omitempty"`
+	Environment   string   `json:"environment,omitempty"`
+	EnvironmentID *uint    `json:"environmentId,omitempty"`
+	JobName       string   `json:"jobName,omitempty"`
+	JobStatus     string   `json:"jobStatus,omitempty"`
+	LogLink       string   `json:"logLink,omitempty"`
+	Project       string   `json:"project,omitempty"`
+	ProjectID     *uint    `json:"projectId,omitempty"`
+	ProjectName   string   `json:"projectName,omitempty"`
+	RemoteID      string   `json:"remoteId,omitempty"`
+	Route         string   `json:"route,omitempty"`
+	Routes        []string `json:"routes,omitempty"`
+	StartTime     string   `json:"startTime,omitempty"`
+	Services      []string `json:"services,omitempty"`
+	Key           string   `json:"key,omitempty"`
+	AdvancedData  string   `json:"advancedData,omitempty"`
+	Cluster       string   `json:"clusterName,omitempty"`
 }
 
 type LagoonLog struct {
@@ -105,7 +105,7 @@ func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, st
 // Consumer handles consuming messages sent to the queue that this action handler is connected to and processes them accordingly
 func (h *Messaging) Consumer() {
 
-	var messageQueue mq.MQ
+	messageQueue := &mq.MessageQueue{}
 	// if no mq is found when the goroutine starts, retry a few times before exiting
 	// default is 10 retry with 30 second delay = 5 minutes
 	err := try.Do(func(attempt int) (bool, error) {
@@ -211,7 +211,7 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 }
 
 // toLagoonLogs sends logs to the lagoon-logs message queue
-func (h *Messaging) toLagoonLogs(messageQueue mq.MQ, message map[string]interface{}) {
+func (h *Messaging) toLagoonLogs(messageQueue mq.MessageQueue, message map[string]interface{}) {
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
 		if h.EnableDebug {

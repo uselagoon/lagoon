@@ -1,13 +1,11 @@
 ---
-- include: features/random-wait.yaml
-
-- include: api/add-project.yaml
+- ansible.builtin.import_playbook: api/add-project.yaml
   vars:
     project: ci-github-{{ cluster_type }}
     git_repo_name: github.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: github/branch.yaml
+- ansible.builtin.import_playbook: github/branch.yaml
   vars:
     testname: "GITHUB {{ cluster_type|upper }} - slash branch"
     node_version: 16
@@ -17,7 +15,7 @@
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 # This project has a branch regex that does not match `banana`.
-- include: github/branch-picky.yaml
+- ansible.builtin.import_playbook: github/branch-picky.yaml
   vars:
     testname: "GITHUB {{ cluster_type|upper }} - picky branch"
     node_version: 16
@@ -26,7 +24,7 @@
     branch: github/slash/banana
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: github/pullrequest.yaml
+- ansible.builtin.import_playbook: github/pullrequest.yaml
   vars:
     testname: "GITHUB {{ cluster_type|upper }} - PULLREQUEST"
     node_version: 16
@@ -34,7 +32,7 @@
     project: ci-github-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
 
-- include: github/skip-deployment.yaml
+- ansible.builtin.import_playbook: github/skip-deployment.yaml
   vars:
     testname: "GITHUB {{ cluster_type|upper }} - skip deployment"
     branch: skip
@@ -43,6 +41,6 @@
     project: ci-github-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ route_suffix }}"
 
-- include: api/delete-project.yaml
+- ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-github-{{ cluster_type }}

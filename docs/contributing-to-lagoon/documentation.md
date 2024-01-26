@@ -2,28 +2,35 @@
 
 We really value anything that you can offer us!
 
-We've made building and viewing the documentation really easy, and the team is always ready to help out with reviews or pointers.
+We've made building and viewing the documentation really straightforward, and the team is always ready to help out with reviews or pointers.
 
 We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://squidfunk.github.io/mkdocs-material/) theme.
 
 ## Viewing and updating docs locally
 
-From the root of this repo, just run:
+From the root of the Lagoon repository (you'll need Docker), run:
 
-```bash
-docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
+```bash title="Get local docs up and running."
+docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material
 ```
 
 <!-- markdown-link-check-disable-next-line -->
 This will start a development server on [http://127.0.0.1:8000](http://127.0.0.1:8000), configured to live-reload on any updates.
-The Docker image contains all the necessary extensions.
 
-## Editing in the cloud
+The customized Docker image contains all the necessary extensions.
 
-Each documentation page also has an "edit" pencil in the top right, that will take you to the correct page in the git repository.
+Alternatively, to run the `mkdocs` package locally, you'll need to install mkdocs, and then install all of the necessary plugins.
 
-Feel free to contribute here too - you can always use the inbuilt [github.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor).
-It's got basic markdown previews, but none of the mkdocs loveliness
+```bash title="Install mkdocs"
+pip3 install -r docs/requirements.txt
+mkdocs serve
+```
+
+## Editing in the Cloud
+
+Each documentation page also has an "edit" pencil in the top right, that will take you to the correct page in the Git repository.
+
+Feel free to contribute here, too - you can always use the built-in [github.dev web-based editor](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor). It's got basic Markdown previews, but none of the mkdocs loveliness.
 
 ## How we deploy documentation
 

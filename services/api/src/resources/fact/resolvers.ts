@@ -1,23 +1,27 @@
 import * as R from 'ramda';
 import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
 import { Service } from 'aws-sdk';
+import * as api from '@lagoon/commons/dist/api';
+import { getEnvironmentsByProjectId } from '../environment/resolvers';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
-  { id: environmentId, environmentAuthz },
+  { id: environmentId },
   { keyFacts, limit, summary },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('fact', 'view', {
       project: environment.project
     });
@@ -120,65 +124,104 @@ const getSqlPredicate = (predicate) => {
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes },
+  info
 ) => {
 
-  let isAdmin = false;
   let userProjectIds: number[];
-  try {
-    await hasPermission('project', 'viewAll');
-    isAdmin = true;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
-      return [];
-    }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+  if (!adminScopes.projectViewAll) {
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
-  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
+  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
-  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
-  // keycloak checks at the environments level.
-  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
-
-  return { projects: rowsWithEnvironmentAuthz, count };
+  return { projects: rows, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes }
 ) => {
 
-  let isAdmin = false;
   let userProjectIds: number[];
-  try {
-    await hasPermission('project', 'viewAll');
-    isAdmin = true;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
-      return [];
-    }
-
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+  if (!adminScopes.projectViewAll) {
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
-    });
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
-  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
+  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, adminScopes.projectViewAll);
 
-  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
-  // keycloak checks at the environments level.
-  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
+  return { environments: rows, count };
+}
 
-  return { environments: rowsWithEnvironmentAuthz, count };
+export const processAddFacts = async (facts, sqlClientPool, hasPermission, adminScopes) => {
+  const environments = facts.reduce((environmentList, fact) => {
+    if (fact.environment == undefined) {
+      logger.error(`No environment ID given for fact: ${fact.name}`);
+      throw new Error(`No environment ID given for fact: ${fact.name}`);
+    }
+
+    let { environment } = fact;
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
+    }
+    return environmentList;
+  }, []);
+
+  // admin bypass to skip heavy haspermission checks
+  if (!adminScopes.projectViewAll) {
+    let projectIds = []
+    for (let i = 0; i < environments.length; i++) {
+      const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+        environments[i]
+      );
+      // collect the project ids
+      projectIds.push(env.project)
+    };
+
+    // unique the project ids for more efficient permission checks against projects
+    projectIds = [...new Set(projectIds)];
+
+    for (const pid in projectIds) {
+      await hasPermission('fact', 'add', {
+        project: projectIds[pid]
+      });
+    }
+  }
+
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
+    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
+    const {
+      insertId
+    } = await query(
+      sqlClientPool,
+      Sql.insertFact({
+        environment,
+        name,
+        value,
+        source,
+        description,
+        type,
+        keyFact,
+        category,
+        service
+      })
+    );
+
+    const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
+    returnFacts.push(R.prop(0, rows));
+  }
+  return returnFacts;
 }
 
 export const addFact: ResolverFn = async (
@@ -186,6 +229,11 @@ export const addFact: ResolverFn = async (
   { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  if (environmentId == undefined) {
+    logger.error(`No environment ID given for fact: ${name}`)
+    throw new Error(`No environment ID given for fact: ${name}`)
+  }
+
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
@@ -235,53 +283,64 @@ export const addFact: ResolverFn = async (
 export const addFacts: ResolverFn = async (
   root,
   { input: { facts } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
+  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
-  const environments = facts.reduce((environmentList, fact) => {
-    let { environment } = fact;
-    if (!environmentList.includes(environment)) {
-      environmentList.push(environment);
-    }
-    return environmentList;
-  }, []);
-
-  for (let i = 0; i < environments.length; i++) {
-    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environments[i]
-    );
-    await hasPermission('fact', 'add', {
-      project: env.project
-    });
-  };
-
-  const returnFacts = [];
-  for (let i = 0; i < facts.length; i++) {
-    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
-    const {
-      insertId
-    } = await query(
-      sqlClientPool,
-      Sql.insertFact({
-        environment,
-        name,
-        value,
-        source,
-        description,
-        type,
-        keyFact,
-        category,
-        service
-      }),
-    );
-
-    const rows =  await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
-    returnFacts.push(R.prop(0, rows));
-  }
-
-  userActivityLogger(`User added facts to environments'`, {
+  userActivityLogger(`User added facts to environment'`, {
     project: '',
     event: 'api:addFacts',
+    payload: {
+      data: {
+        returnFacts
+      }
+    }
+  });
+
+  return returnFacts;
+};
+
+export const addFactsByName: ResolverFn = async (
+  root,
+  { input: { project, environment, facts } },
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models, adminScopes }
+) => {
+
+  if (!project || !environment) {
+    throw new Error("Both 'project' and 'environment' require values"); //Presumably this'll be taken care of via the schema, but let's check either way.
+  }
+
+  let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('environment', 'view', {
+      project: lagoonProject
+    });
+  }
+  let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
+
+  if (environments.length == 0) {
+    throw new Error(`No environments found for project '${project}'`);
+  }
+
+  let envId = R.reduce((acc, e) => {
+   return e.name === environment ? e.id : acc;
+  }, null, environments);
+
+  if (!envId) {
+    throw new Error(`No environment '${environment}' found for project '${project}'`);
+  }
+
+  const returnFacts = await processAddFacts(
+    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
+    sqlClientPool,
+    hasPermission,
+    adminScopes,
+  );
+
+  userActivityLogger(`User added facts to '${project}:${environment}'`, {
+    project: project,
+    environment: environment,
+    event: 'api:addFactsByName',
     payload: {
       data: {
         returnFacts

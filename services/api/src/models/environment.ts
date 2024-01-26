@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { Pool } from 'mariadb';
-import { query } from '../util/db';
+import { query, knex } from '../util/db';
 import { logger } from '../loggers/logger';
 import { esClient } from '../clients/esClient';
 
@@ -16,7 +16,6 @@ export interface Environment {
   deleted?: string; // timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
-  monitoringUrls?: string; // text COLLATE utf8_bin DEFAULT NULL,
   autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
   deployBaseRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   deployHeadRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
@@ -51,15 +50,13 @@ export const EnvironmentModel = (clients: { sqlClientPool: Pool }) => {
    * @return {Promise<[Environments]>} An array of all project environments
    */
   const projectEnvironments = async (pid, type, includeDeleted = false) => {
-    const environments: [Environment] = await query(
-      sqlClientPool,
-      `SELECT *
-      FROM environment e
-      WHERE e.project = :pid
-      ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-      ${type ? 'AND e.environment_type = :type' : ''}`,
-      { pid, type }
-    );
+    let query = knex('environment')
+      .where(knex.raw('project = ?', pid))
+
+    if (!includeDeleted) { query = query.andWhere('deleted', '0000-00-00 00:00:00') }
+    if (type) { query = query.andWhere(knex.raw('environment_type = ?', type)) }
+
+    const environments: [Environment] = await query(sqlClientPool, query.toString());
     return environments;
   };
 

@@ -1,16 +1,17 @@
-# **Lagoon Logging**
+# Lagoon Logging
 
 Lagoon integrates with OpenSearch to store application, container and router logs. Lagoon Logging collects the application, router and container logs from Lagoon projects, and sends them to the logs concentrator.  It needs to be installed onto each `lagoon-remote` instance.
 
 In addition, it should be installed in the `lagoon-core` cluster to collect logs from the `lagoon-core` service.  This is configured in the `LagoonLogs` section.
 
-Logging Overview: [**https://lucid.app/lucidchart/b1da011f-2b91-4798-9518-4164b19d327d/view**](https://lucid.app/lucidchart/b1da011f-2b91-4798-9518-4164b19d327d/view)** **
+Logging Overview: [Lucid Chart](https://lucid.app/lucidchart/70f9610e-cfd7-42e8-8b5b-3d03293a439c/view?page=Uq-x~LhSIxrp&invitationId=inv_4e891071-f795-4ada-bbd3-2ff63b8eb1f7#)
 
 See also: [Logging](../logging/logging.md).
 
 Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
 
-1. Create` lagoon-logging-values.yaml`:
+1. Create `lagoon-logging-values.yaml`:
+
     ```yaml title="lagoon-logging-values.yaml"
     tls:
       caCert: |
@@ -43,9 +44,10 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
       rabbitMQPassword: <<RabbitMQ Lagoon Password>>
     excludeNamespaces: {}
     ```
+
 2. Install `lagoon-logging`:
 
-    ```
+    ```bash title="Install lagoon-logging"
     helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
 
     helm upgrade --install --create-namespace \
@@ -53,12 +55,14 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
       -f lagoon-logging-values.yaml \
       lagoon-logging lagoon/lagoon-logging
     ```
+
 ## Logging NGINX Ingress Controller
 
 If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
 
 1. The ingress controller must be installed in the namespace `ingress-nginx`
-2. Add the content of this file to `ingress-nginx:
+2. Add the content of this file to `ingress-nginx`:
+
     ```yaml title="ingress-nginx log-format-upstream"
     controller:
       config:
@@ -88,3 +92,5 @@ If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
           "service_port": "$service_port"
           }
     ```
+
+3. Your logs should start flowing!
