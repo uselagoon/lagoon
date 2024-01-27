@@ -85,7 +85,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## How do I remove a route?
 
-You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io or on [Discord](https://discord.gg/te5hHe95JE).
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at [support@amazee.io](mailto:support@amazee.io) or on [Discord](https://discord.gg/te5hHe95JE).
 
 ## When I run `pygmy status`, no keys are loaded
 
@@ -105,7 +105,7 @@ This usually means that there is no database uploaded to the project. [Follow ou
 
 This is a known error! Most of the time it means that there is already something running on port 80. You can find the culprit by running the following query:
 
-```bash
+```bash title=""
 netstat -ltnp | grep -w ':80'
 ```
 
