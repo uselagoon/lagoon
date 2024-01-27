@@ -26,8 +26,8 @@ Learn more about Lagoon, pygmy, and [Local Development Environments](local-devel
 
 * General: [set up a new project in Lagoon](setup-project.md)
 * General: [first deployment](first-deployment.md)
-* Drupal: [first deployment in Drupal](../drupal/first-deployment-of-drupal.md)
-* Drupal: [Lagoonize your Drupal site](../drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
+* Drupal: [first deployment in Drupal](../applications/drupal/first-deployment-of-drupal.md)
+* Drupal: [Lagoonize your Drupal site](../applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
 * All: [build and deployment process of Lagoon](../concepts-basics/build-and-deploy-process.md)
 
 ## Overview of Lagoon Configuration Files

@@ -34,7 +34,7 @@ If you follow those steps, and you are still seeing an error, please submit a ti
 
 This was a bug that was prevalent in Drush versions 8.1.16 and 8.1.17. There error would look something like this:
 
-```text
+```bash
 The command could not be executed successfully (returned: Array [error]
 (
 [default] => Array
@@ -97,7 +97,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
-This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
+This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../applications/drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
 
 ## When I start Pygmy I see an "address already in use" error?
 
@@ -105,7 +105,7 @@ This usually means that there is no database uploaded to the project. [Follow ou
 
 This is a known error! Most of the time it means that there is already something running on port 80. You can find the culprit by running the following query:
 
-```text
+```bash
 netstat -ltnp | grep -w ':80'
 ```
 
@@ -119,7 +119,7 @@ You can make that change using the Lagoon API! You can find the documentation fo
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/rWb-PkRDhY4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## How can I add new users \(and SSH keys\) to my project/group?
+## How can I add new users (and SSH keys) to my project/group?
 
 This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../interacting/graphql-queries.md#allowing-access-to-the-project).
 
@@ -151,25 +151,25 @@ Authentication also happens automatically via SSH Public & Private Key Authentic
 
 We can definitely help with that. Once you have your own SSL certificate, feel free to submit a ticket or send us a message via chat and we will be more than happy to help! You will need to send us the following files:
 
-* Certificate key \(.key\)
-* Certificate file \(.crt\)
-* Intermediate certificates \(.crt\)
+* Certificate key (.key)
+* Certificate file (.crt)
+* Intermediate certificates (.crt)
 
 Also, you will need to [set the `tls-acme` option in `.lagoon.yml` to false](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
 
-## Is it possible to mount an external volume \(EFS/Fuse/SMB/etc\) into Lagoon?
+## Is it possible to mount an external volume (EFS/Fuse/SMB/etc) into Lagoon?
 
 Mounting an external volume would need to be handled completely inside of your containers, Lagoon does not provide a provision for this type of connection as part of the platform.
 
-A developer can handle this by installing the necessary packages into the container \(via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)\), and ensuring the volume mount is connected via a [pre- or post-rollout task](../concepts-basics/lagoon-yml.md#tasks).
+A developer can handle this by installing the necessary packages into the container (via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)), and ensuring the volume mount is connected via a [pre- or post-rollout task](../concepts-basics/lagoon-yml.md#tasks).
 
 ## Is there a way to stop a Lagoon build?
 
 If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by users with admin access to the cluster.
 
-## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
+## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI (port 9200/8983) from a browser?
 <!-- markdown-link-check-disable-next-line -->
-We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
+We suggest only exposing web services (NGINX/Varnish/Node.js) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
 ## I have a question that isn't answered here
 

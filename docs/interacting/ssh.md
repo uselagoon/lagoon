@@ -42,11 +42,11 @@ You can upload your SSH key(s) through the UI. Log in as you normally would.
 
 In the upper right hand corner, click on Settings:
 
-![Click "Settings" in the upper right hand corner](./ui-settings.png)
+![Click "Settings" in the upper right hand corner](../images/ui-settings.png)
 
 You will then see a page where you can upload your SSH key(s), and it will show any uploaded keys. Paste your key into the text box, give it a name, and click "Add." That's it! Add additional keys as needed.
 
-![Paste your key into the text box.](./ui-ssh.png)
+![Paste your key into the text box.](../images/ui-ssh.png)
 
 ### Via Command Line
 
