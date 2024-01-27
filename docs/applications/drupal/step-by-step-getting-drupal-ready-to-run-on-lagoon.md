@@ -8,8 +8,8 @@ If you're working on a Drupal project, you can check out one of the various Drup
 
 Here is a summary of the Lagoon- and Drupal-specific files you will find:
 
-* `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults. If you would like to edit or modify, please check the [documentation for `.lagoon.yml`](../concepts-basics/lagoon-yml.md).
-* `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. We hope that it's well-commented enough to be self-describing. If you would like to find out more, see [documentation for `docker-compose.yml`](../concepts-basics/docker-compose-yml.md).
+* `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults. If you would like to edit or modify, please check the [documentation for `.lagoon.yml`](../../concepts-basics/lagoon-yml.md).
+* `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. We hope that it's well-commented enough to be self-describing. If you would like to find out more, see [documentation for `docker-compose.yml`](../../concepts-basics/docker-compose-yml.md).
 * `sites/default/*` - These `.php` and `.yml` files tell Drupal how to communicate with Lagoon containers both locally and in production. They also provide a straightforward system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal settings files into your Drupal. Therefore, you can edit them however you like. Like all other files, they contain sensible defaults and some commented parts.
 * `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all site aliases there are.
 * `drush/drushrc.php` - Some sensible defaults for Drush commands.
@@ -24,7 +24,7 @@ Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in `.
 
 Unfortunately the Drupal community has not decided on a standardized `WEBROOT` folder name. Some projects put Drupal within `web`, and others within `docroot` or somewhere else. The Lagoon Drupal settings files assume that your Drupal is within `web`, but if this is different for your Drupal, please adapt the files accordingly.
 
-### Note about composer.json
+### Note about `composer.json`
 
 If you installed Drupal via composer, please check your `composer.json` and make sure that the `name` is NOT `drupal/drupal`, as this could confuse Drush and other tools of the Drupal universe, just rename it to something like `myproject/drupal`
 

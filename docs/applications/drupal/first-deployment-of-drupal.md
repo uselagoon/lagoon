@@ -4,7 +4,7 @@
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup-project.md) and you have set up the project in Lagoon. If not, don't worry! Follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../../using-lagoon-the-basics/setup-project.md) and you have set up the project in Lagoon. If not, don't worry! Follow the [Step-by-Step Guide](./step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
 
 ## 2. Push
 
@@ -19,13 +19,13 @@ git push
 
 This will trigger a push, and the Git hosting will inform Lagoon about this push via the configured webhook.
 
-If all is correct, you will see a notification in your configured chat system \(this is configured by your friendly Lagoon administrator\):
+If all is correct, you will see a notification in your configured chat system (this is configured by your friendly Lagoon administrator):
 
-![Slack notification of a deployment starting.](./first_deployment_slack_start.jpg)
+![Slack notification of a deployment starting.](../../images/first_deployment_slack_start.jpg)
 
-This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../concepts-basics/build-and-deploy-process.md).
+This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../../concepts-basics/build-and-deploy-process.md).
 
-You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
+You can also check your Lagoon UI to see the progress of any deployment (your Lagoon administrator has the info).
 
 ## 3. A fail
 
@@ -85,9 +85,9 @@ git push
 
 This time all should be green:
 
-![Deployment Success!](./first_deployment_slack_success.jpg)
+![Deployment Success!](../../images/first_deployment_slack_success.jpg)
 
-Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will probably not have images yet, which we will handle in [Step 6](first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
+Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will probably not have images yet, which we will handle in [Step 6](./first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
 
 If it is still failing, check the logs link for more information.
 
@@ -121,7 +121,7 @@ The reason for that is that the Drupal cannot resolve the path of the files dire
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, like so:
 
-![Slack notification of complete deployment.](./first_deployment_slack_2nd_success.jpg)
+![Slack notification of complete deployment.](../../images/first_deployment_slack_2nd_success.jpg)
 
 This tells you:
 
@@ -136,7 +136,7 @@ That's it! We hope that wasn't too hard - making devOps accessible is what we ar
 
 That's the beauty of Lagoon: it's exactly the same: Push the branch name you defined to be your production branch and that one will be deployed.
 
-## Failure? Don't worry.
+## Failure? Don't worry
 
 Did the deployment fail? Oh no! But we're here to help:
 

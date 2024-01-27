@@ -8,6 +8,7 @@ site_author: The Lagoon Authors
 nav:
 - Home: README.md
 - Lagoon Concepts - The Basics:
+  - Overview: concepts-basics/index.md
   - .lagoon.yml: concepts-basics/lagoon-yml.md
   - docker-compose.yml: concepts-basics/docker-compose-yml.md
   - Build and Deploy Process: concepts-basics/build-and-deploy-process.md
@@ -20,6 +21,7 @@ nav:
     - Organizations: concepts-basics/building-blocks/organizations.md
     - Roles: concepts-basics/building-blocks/roles.md
 - Lagoon Concepts - Advanced:
+  - Overview: concepts-advanced/index.md
   - Service Types: concepts-advanced/service-types.md
   - Environment Types: concepts-advanced/environment-types.md
   - Environment Variables: concepts-advanced/environment-variables.md
@@ -95,6 +97,7 @@ nav:
     - Subfolders: applications/drupal/subfolders.md
     - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
+    - Automatic Updates: applications/drupal/automatic-updates.md
   - WordPress:
     - Overview: applications/wordpress.md
   - Node.js-based:

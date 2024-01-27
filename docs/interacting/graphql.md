@@ -2,7 +2,7 @@
 
 ## Connect to GraphQL API
 
-API interactions in Lagoon are done via GraphQL. In order to authenticate to the API, you need a JWT \(JSON Web Token\), which will authenticate you against the API via your SSH public key.
+API interactions in Lagoon are done via GraphQL. In order to authenticate to the API, you need a JWT (JSON Web Token), which will authenticate you against the API via your SSH public key.
 
 To generate this token, use the remote shell via the `token` command:
 
@@ -29,7 +29,7 @@ Enter the API endpoint URL. Then click on "Edit HTTP Headers" and add a new Head
 * "Header name": `Authorization`
 * "Header value": `Bearer [jwt token]` \(make sure that the JWT token has no spaces, that won't work\)
 
-![Editing HTTP Headers in the GraphiQL UI.](./graphiql-2020-01-29-18-05-54.png)
+![Editing HTTP Headers in the GraphiQL UI.](../images/graphiql-2020-01-29-18-05-54.png)
 
 Close the HTTP Header overlay \(press ESC\) and now you are ready to make your first GraphQL Request!
 
@@ -54,7 +54,7 @@ query whatIsThere {
 
 And press the ▶️ button \(or press CTRL+ENTER\).
 
-![Entering a query in the GraphiQL UI.](./graphiql-2020-01-29-18-07-28.png)
+![Entering a query in the GraphiQL UI.](../images/graphiql-2020-01-29-18-07-28.png)
 
 If all went well, you should see your first GraphQL response.
 
@@ -62,7 +62,9 @@ If all went well, you should see your first GraphQL response.
 
 The Lagoon GraphQL API can not only display objects and create objects, but it also has the capability to update existing objects. All of Lagoon's GraphQL uses best practices.
 
-_Mutation queries in GraphQL modify the data in the data store, and return a value. They can be used to insert, update, and delete data. Mutations are defined as a part of the schema._
+!!! info
+
+    Mutation queries in GraphQL modify the data in the data store, and return a value. They can be used to insert, update, and delete data. Mutations are defined as a part of the schema._
 
 Update the branches to deploy within a project:
 
