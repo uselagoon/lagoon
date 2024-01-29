@@ -10,7 +10,7 @@ If you've found a bug or security issue, please send your findings to [support@a
 
 ## I'm interested in amazee.io's hosting services with Lagoon
 
-That's great news! You can contact them via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
+That's great news! You can contact them via email at [sales@amazee.io](mailto:sales@amazee.io).
 
 ## How can I restore a backup?
 
