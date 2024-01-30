@@ -7,7 +7,7 @@ site_author: The Lagoon Authors
 
 nav:
 - Home: README.md
-- Lagoon Concepts - The Basics:
+- Basic Lagoon Concepts:
   - Overview: concepts-basics/index.md
   - .lagoon.yml: concepts-basics/lagoon-yml.md
   - docker-compose.yml: concepts-basics/docker-compose-yml.md
@@ -20,7 +20,7 @@ nav:
     - Deploy Targets: concepts-basics/building-blocks/deploy-targets.md
     - Organizations: concepts-basics/building-blocks/organizations.md
     - Roles: concepts-basics/building-blocks/roles.md
-- Lagoon Concepts - Advanced:
+- Advanced Lagoon Concepts:
   - Overview: concepts-advanced/index.md
   - Service Types: concepts-advanced/service-types.md
   - Environment Types: concepts-advanced/environment-types.md
@@ -30,6 +30,56 @@ nav:
   - Base Images: concepts-advanced/base-images.md
   - Workflows: concepts-advanced/workflows.md
   - Feature Flags: concepts-advanced/feature-flags.md
+- Lagoonizing:
+    - Lagoonizing Your Exisiting Site: lagoonizing/index.md
+    - Docker Images:
+      - Commons: docker-images/commons.md
+      - MariaDB: docker-images/mariadb.md
+      - MongoDB: docker-images/mongodb.md
+      - Node.js: docker-images/nodejs.md
+      - NGINX: docker-images/nginx.md
+      - OpenSearch: docker-images/opensearch.md
+      - PHP-CLI: docker-images/php-cli.md
+      - PHP-FPM: docker-images/php-fpm.md
+      - Python: docker-images/python.md
+      - PostgreSQL: docker-images/postgres.md
+      - RabbitMQ: docker-images/rabbitmq.md
+      - Ruby: docker-images/ruby.md
+      - Solr: docker-images/solr.md
+      - Redis: docker-images/redis.md
+      - Varnish: docker-images/varnish.md
+    - Configuring Applications:
+      - Overview: applications/index.md
+      - Options: applications/options.md
+      - Drupal:
+        - Overview: applications/drupal/index.md
+        - Services:
+          - Overview: applications/drupal/services/README.md
+          - MariaDB: applications/drupal/services/mariadb.md
+          - NGINX: applications/drupal/services/nginx.md
+          - PHP-cli: applications/drupal/services/php-cli.md
+          - Redis: applications/drupal/services/redis.md
+          - Solr: applications/drupal/services/solr.md
+          - Varnish: applications/drupal/services/varnish.md
+        - Step by Step - Getting Drupal ready to run on Lagoon: applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
+        - First Deployment of Drupal: applications/drupal/first-deployment-of-drupal.md
+        - Drush 9: applications/drupal/drush-9.md
+        - Subfolders: applications/drupal/subfolders.md
+        - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
+        - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
+        - Automatic Updates: applications/drupal/automatic-updates.md
+      - WordPress:
+        - Overview: applications/wordpress.md
+      - Node.js-based:
+        - Overview: applications/node.md
+      - PHP-based:
+        - Overview: applications/php.md
+      - Python-based:
+        - Overview: applications/python.md
+      - Ruby-based:
+        - Overview: applications/ruby.md
+      - Other:
+        - Overview: applications/other.md
 - Using Lagoon - The Basics:
   - Overview: using-lagoon-the-basics/index.md
   - Local Development Environments: using-lagoon-the-basics/local-development-environments.md
@@ -60,59 +110,6 @@ nav:
     - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
     - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
     - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
-- Lagoonizing:
-    - Lagoonizing Your Exisiting Site: lagoonizing/index.md
-- Docker Images:
-  - Commons: docker-images/commons.md
-  - MariaDB: docker-images/mariadb.md
-  - MongoDB: docker-images/mongodb.md
-  - Node.js: docker-images/nodejs.md
-  - NGINX: docker-images/nginx.md
-  - OpenSearch: docker-images/opensearch.md
-  - PHP-CLI: docker-images/php-cli.md
-  - PHP-FPM: docker-images/php-fpm.md
-  - Python: docker-images/python.md
-  - PostgreSQL: docker-images/postgres.md
-  - RabbitMQ: docker-images/rabbitmq.md
-  - Ruby: docker-images/ruby.md
-  - Solr: docker-images/solr.md
-  - Redis: docker-images/redis.md
-  - Varnish: docker-images/varnish.md
-- Configuring Applications:
-  - Overview: applications/index.md
-  - Options: applications/options.md
-  - Drupal:
-    - Overview: applications/drupal/index.md
-    - Services:
-      - Overview: applications/drupal/services/README.md
-      - MariaDB: applications/drupal/services/mariadb.md
-      - NGINX: applications/drupal/services/nginx.md
-      - PHP-cli: applications/drupal/services/php-cli.md
-      - Redis: applications/drupal/services/redis.md
-      - Solr: applications/drupal/services/solr.md
-      - Varnish: applications/drupal/services/varnish.md
-    - Step by Step - Getting Drupal ready to run on Lagoon: applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
-    - First Deployment of Drupal: applications/drupal/first-deployment-of-drupal.md
-    - Drush 9: applications/drupal/drush-9.md
-    - Subfolders: applications/drupal/subfolders.md
-    - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
-    - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
-    - Automatic Updates: applications/drupal/automatic-updates.md
-  - WordPress:
-    - Overview: applications/wordpress.md
-  - Node.js-based:
-    - Overview: applications/node.md
-  - PHP-based:
-    - Overview: applications/php.md
-  - Python-based:
-    - Overview: applications/python.md
-  - Ruby-based:
-    - Overview: applications/ruby.md
-  - Other:
-    - Overview: applications/other.md
-- Understanding Logs:
-  - Logging: logging/logging.md
-  - Kibana Examples: logging/kibana-examples.md
 - Interacting with Lagoon:
   - Using the UI: interacting/lagoon-ui.md
   - Working with Orgs: interacting/organizations.md
@@ -120,6 +117,9 @@ nav:
   - SSH: interacting/ssh.md
   - GraphQL API: interacting/graphql-queries.md
   - Role-Based Access Control (RBAC): interacting/rbac.md
+  - Understanding Logs:
+    - Logging: logging/logging.md
+    - Kibana Examples: logging/kibana-examples.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
   - EFS Provisioner: installing-lagoon/efs-provisioner.md
