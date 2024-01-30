@@ -10,7 +10,7 @@ The builder variant of those images comes with additional tooling that is needed
 
 * 12 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-12`
 * 14 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-14`
-* 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/16.Dockerfile) (Security Support until September 2023) - `uselagoon/node-16`
+* 16 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-16`
 * 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (Security Support until April 2025) - `uselagoon/node-18`
 * 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (Security Support until April 2026) - `uselagoon/node-20`
 
