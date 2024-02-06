@@ -53,7 +53,7 @@ Lagoon utilizes a default 'standard' `StorageClass` for most workloads, and the 
 
 Lagoon also requires a `StorageClass` called 'bulk' to be available to support persistant pod replicas (across nodes). This `StorageClass` should support `ReadWriteMany` (RWX) access mode and should be configured to be dynamic provisioning and expandable where possible. See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes for more information, and the [production drivers list](https://kubernetes-csi.github.io/docs/drivers.html) for a complete list of compatible drivers.
 
-We have curently only included the instructions for (the now deprecated) [EFS Provisioner](./efs-provisioner.md). The production [EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver) has issues with provisioning more than 120 PVCs. We are awaiting upstream possible fixes [here](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/761) and [here](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732) - but most other providers CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.
+We have curently only included the instructions a generic Bulk Storage provisioner using NFS [Bulk Storage Provisioner](./bulk-storage-provisioner.md). In AWS the production [EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver) is limited to provisioning no more than 1000 PVCs. We are awaiting an upstream possible fix [here](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732) - but most other providers CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.
 
 ## How much Kubernetes experience/knowledge is required?
 
