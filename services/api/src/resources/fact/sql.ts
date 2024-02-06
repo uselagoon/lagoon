@@ -55,11 +55,18 @@ export const Sql = {
         })
         .del()
         .toString(),
-  deleteFactsFromSource: (environment, source) =>
-    knex('environment_fact')
-      .where({ environment, source })
-      .del()
-      .toString(),
+  deleteFactsFromSource: (environment, source, service) => {
+    let query =  knex('environment_fact')
+      .where({ environment, source });
+
+      if(service != null) {
+        query = query.andWhere("service", "=", service)
+      }
+
+    query = query.del();
+
+    return query.toString();
+  },
   selectFactReferenceByDatabaseId: (id: number) =>
     knex('environment_fact_reference')
       .where({ id })

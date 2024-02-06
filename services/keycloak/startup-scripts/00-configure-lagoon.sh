@@ -124,6 +124,25 @@ function configure_realm_settings {
 
 }
 
+function configure_lagoon_redirect_uris {
+  # this will always run, and will always ensure that the redirect uris are up to date
+  # changes to redirect uris should be made via the chart/envvars
+  # the value of this variable is a comma separated list of redirect uris
+  # eg KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS="http://localhost:8888/redirect1,http://localhost:8888/redirect2"
+  #
+  if [ "$KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS" != "" ]; then
+    echo "Updating lagoon-ui redirect URIs"
+    redirect_uris=$(echo $KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS | tr "," "\n")
+    update_redirect_uri="["
+    for addr in $redirect_uris;do
+        update_redirect_uri+="\"$addr\","
+    done
+    update_redirect_uri=$(echo $update_redirect_uri | sed 's/,*$//g')]
+    LAGOON_UI_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh update clients/${LAGOON_UI_CLIENT_ID} -s redirectUris=$update_redirect_uri --config "$CONFIG_PATH" -r ${KEYCLOAK_REALM:-master}
+  fi
+}
+
 ##############
 # Migrations #
 ##############
@@ -186,6 +205,7 @@ function configure_keycloak {
     configure_admin_email
     configure_smtp_settings
     configure_realm_settings
+    configure_lagoon_redirect_uris
 
     check_migrations_version
     #post 2.18.0+ migrations after this point

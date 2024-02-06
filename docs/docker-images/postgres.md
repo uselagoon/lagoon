@@ -9,6 +9,7 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 * 13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/13.Dockerfile) (Security Support until November 2025) - `uselagoon/postgres-13`
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (Security Support until November 2026) - `uselagoon/postgres-14`
 * 15 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/15.Dockerfile) (Security Support until November 2027) - `uselagoon/postgres-15`
+* 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/16.Dockerfile) (Security Support until November 2028) - `uselagoon/postgres-16`
 
 !!! Tip
     We stop updating EOL PostgreSQL images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)

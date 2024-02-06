@@ -11,11 +11,12 @@ The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
 ## Supported versions
 
-* 7.3 \(available for compatibility only, no longer officially supported\)
-* 7.4 \(available for compatibility only, no longer officially supported\)
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) (Security Support until November 2023) - `uselagoon/php-8.0-cli`
+* 7.3 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-7.3-cli`
+* 7.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-7.4-cli`
+* 8.0 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-8.0-cli`
 * 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) (Security Support until November 2024) - `uselagoon/php-8.1-cli`
 * 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.2.Dockerfile) (Security Support until December 2025) - `uselagoon/php-8.2-cli`
+* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.3.Dockerfile) (Security Support until December 2026) - `uselagoon/php-8.3-cli`
 
 All PHP versions use their own Dockerfiles.
 
@@ -51,7 +52,7 @@ RUN apk del nodejs-current \
 ## Environment variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md). The [php-fpm
+variables](../concepts-advanced/environment-variables.md). The [php-fpm
 environment variables](php-fpm.md#environment-variables) also apply.
 
 | Name                       | Default | Description                                           |

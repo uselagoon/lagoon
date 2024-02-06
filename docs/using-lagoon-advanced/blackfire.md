@@ -36,7 +36,7 @@ After restarting the containers, you should be able to profile via the [Blackfir
 
 ## Remote Usage of Blackfire
 
-In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](environment-variables.md). Important: Environment variables set in the `docker-compose.yml` for local development are not used by Lagoon in remote environments!
+In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](../concepts-advanced/environment-variables.md). Important: Environment variables set in the `docker-compose.yml` for local development are not used by Lagoon in remote environments!
 
 ## Debugging
 
