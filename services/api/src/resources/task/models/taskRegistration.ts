@@ -41,6 +41,7 @@ export interface AdvancedTaskDefinitionInterface {
   deployTokenInjection?: boolean;
   projectKeyInjection?: boolean;
   adminOnlyView?: boolean;
+  systemWide?: boolean;
   advancedTaskDefinitionArguments?: Partial<AdvancedTaskDefinitionArguments>;
 }
 
@@ -65,7 +66,7 @@ export const getAdvancedTaskDefinitionType = (taskDef:AdvancedTaskDefinitionInte
   }
 
 export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
-  return taskDef.project == null && taskDef.environment == null && taskDef.groupName == null;
+  return taskDef.systemWide == true;
 }
 
 export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
