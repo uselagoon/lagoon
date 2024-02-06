@@ -34,6 +34,58 @@ function sync_client_secrets {
   fi
 }
 
+function configure_admin_email {
+  # Configure the admin user with an email address so that email configuration can be enabled in the lagoon realm
+  # this will always update the email address of the admin user if it is defined
+  if [ "$KEYCLOAK_ADMIN_EMAIL" != "" ]; then
+    echo Configuring admin user email to ${KEYCLOAK_ADMIN_EMAIL}
+    ADMIN_USER_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get users -r master --config $CONFIG_PATH -q username=admin | jq -r '.[0]|.id')
+    /opt/jboss/keycloak/bin/kcadm.sh update users/${ADMIN_USER_ID} --config $CONFIG_PATH -s "email=${KEYCLOAK_ADMIN_EMAIL}"
+  fi
+
+}
+
+function configure_smtp_settings {
+  # this checks if the file containing the json data for email configuration exists
+  if [ "$KEYCLOAK_ADMIN_EMAIL" == "" ] && [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
+    echo "Admin email must be set to configure lagoon realm email server settings"
+    return 0
+  fi
+  if [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
+    echo Configuring lagoon realm email server settings
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-smtp-settings.json
+  fi
+
+}
+
+function configure_realm_settings {
+  # this checks if the file containing the json data for realm settings exists
+  if [ -f "/lagoon/keycloak/keycloak-realm-settings.json" ]; then
+    echo Configuring lagoon realm settings
+    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-realm-settings.json
+  fi
+
+}
+
+function configure_lagoon_redirect_uris {
+  # this will always run, and will always ensure that the redirect uris are up to date
+  # changes to redirect uris should be made via the chart/envvars
+  # the value of this variable is a comma separated list of redirect uris
+  # eg KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS="http://localhost:8888/redirect1,http://localhost:8888/redirect2"
+  #
+  if [ "$KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS" != "" ]; then
+    echo "Updating lagoon-ui redirect URIs"
+    redirect_uris=$(echo $KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS | tr "," "\n")
+    update_redirect_uri="["
+    for addr in $redirect_uris;do
+        update_redirect_uri+="\"$addr\","
+    done
+    update_redirect_uri=$(echo $update_redirect_uri | sed 's/,*$//g')]
+    LAGOON_UI_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh update clients/${LAGOON_UI_CLIENT_ID} -s redirectUris=$update_redirect_uri --config "$CONFIG_PATH" -r ${KEYCLOAK_REALM:-master}
+  fi
+}
+
 ##############
 # Migrations #
 ##############
@@ -89,39 +141,6 @@ function configure_lagoon_realm {
         /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uid ${user_id} --rolename admin
         echo "Gave user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' the role 'admin'"
     fi
-}
-
-function configure_admin_email {
-  # Configure the admin user with an email address so that email configuration can be enabled in the lagoon realm
-  # this will always update the email address of the admin user if it is defined
-  if [ "$KEYCLOAK_ADMIN_EMAIL" != "" ]; then
-    echo Configuring admin user email to ${KEYCLOAK_ADMIN_EMAIL}
-    ADMIN_USER_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get users -r master --config $CONFIG_PATH -q username=admin | jq -r '.[0]|.id')
-    /opt/jboss/keycloak/bin/kcadm.sh update users/${ADMIN_USER_ID} --config $CONFIG_PATH -s "email=${KEYCLOAK_ADMIN_EMAIL}"
-  fi
-
-}
-
-function configure_smtp_settings {
-  # this checks if the file containing the json data for email configuration exists
-  if [ "$KEYCLOAK_ADMIN_EMAIL" == "" ] && [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
-    echo "Admin email must be set to configure lagoon realm email server settings"
-    return 0
-  fi
-  if [ -f "/lagoon/keycloak/keycloak-smtp-settings.json" ]; then
-    echo Configuring lagoon realm email server settings
-    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-smtp-settings.json
-  fi
-
-}
-
-function configure_realm_settings {
-  # this checks if the file containing the json data for realm settings exists
-  if [ -f "/lagoon/keycloak/keycloak-realm-settings.json" ]; then
-    echo Configuring lagoon realm settings
-    /opt/jboss/keycloak/bin/kcadm.sh update realms/lagoon --config $CONFIG_PATH -f /lagoon/keycloak/keycloak-realm-settings.json
-  fi
-
 }
 
 function configure_opendistro_security_client {
@@ -2510,6 +2529,7 @@ function configure_keycloak {
     add_development_task_cancel
     add_production_task_cancel
     add_organization_viewall
+    configure_lagoon_redirect_uris
 
 
     # always run last
