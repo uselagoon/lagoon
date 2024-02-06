@@ -98,7 +98,7 @@ make kind/get-admin-creds
 
 This will retrieve the necessary credentials to interact with the Lagoon.
 
-* The JWT is an admin-scoped token for use as a bearer token with your local GraphQL client. [See more in our GraphQL documentation](../using-lagoon-advanced/graphql.md).
+* The JWT is an admin-scoped token for use as a bearer token with your local GraphQL client. [See more in our GraphQL documentation](../interacting/graphql.md).
 * There is a token for use with the "admin" user in Keycloak, who can access all users, groups, roles, etc.
 * There is also a token for use with the "lagoonadmin" user in Lagoon, which can be allocated default groups, permissions, etc.
 
@@ -177,7 +177,7 @@ The individual routines relevant to Kubernetes are:
 
 Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a feature of [Yarn](https://yarnpkg.com/en/docs), called [Yarn workspaces](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces need a `package.json` in the project's root directory that defines the workspaces.
 
-The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \([see `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md)\). Node.js itself is watching the code via `nodemon` , and restarts the Node.js process automatically on a change.
+The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \([see `docker-compose.yml`](../concepts-basics/docker-compose-yml.md)\). Node.js itself is watching the code via `nodemon` , and restarts the Node.js process automatically on a change.
 
 ### lagoon-commons
 
