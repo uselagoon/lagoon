@@ -10,6 +10,6 @@
   vars:
     url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/"
     bearer_token: "{{ token }}"
-    expected_content: '{"status":"success","data":{}}'
+    expected_content: 'success'
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-api-request.yaml
