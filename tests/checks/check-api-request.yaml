@@ -6,6 +6,6 @@
     headers:
       Authorization: "Bearer {{ bearer_token }}"
   register: result
-  until: result.content is match(expected_content)
+  until: result.content is search(expected_content)
   retries: 1
   delay: 0

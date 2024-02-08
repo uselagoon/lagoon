@@ -1,4 +1,8 @@
-# Overview
+# Using Lagoon - Overview
+
+This section covers some of the basic features and functionality in Lagoon. If you're familiar with these, move on to [Using Lagoon - Advanced](../concepts-advanced/index.md).
+
+If you need help, contact your Lagoon administrator or reach out to the community and maintainers in our [Discord](../community/discord.md).
 
 ## Requirements
 
@@ -16,7 +20,7 @@ brew install pygmy;
 pygmy up
 ```
 
-1. HomeBrew is the easiest way to install Pygmy, see the docs for more info.
+1. HomeBrew is the easiest way to install Pygmy, see the Pygmy docs for more info.
 
 [Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 
@@ -26,19 +30,19 @@ Learn more about Lagoon, pygmy, and [Local Development Environments](local-devel
 
 * General: [set up a new project in Lagoon](setup-project.md)
 * General: [first deployment](first-deployment.md)
-* Drupal: [first deployment in Drupal](../drupal/first-deployment-of-drupal.md)
-* Drupal: [Lagoonize your Drupal site](../drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
-* All: [build and deployment process of Lagoon](build-and-deploy-process.md)
+* Drupal: [first deployment in Drupal](../applications/drupal/first-deployment-of-drupal.md)
+* Drupal: [Lagoonize your Drupal site](../applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md)
+* All: [build and deployment process of Lagoon](../concepts-basics/build-and-deploy-process.md)
 
 ## Overview of Lagoon Configuration Files
 
 ### `.lagoon.yml`
 
-This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [documentation for `.lagoon.yml`](lagoon-yml.md).
+This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [documentation for `.lagoon.yml`](../concepts-basics/lagoon-yml.md).
 
 ### `docker-compose.yml`
 
-This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [documentation for `docker-compose.yml`](docker-compose-yml.md).
+This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [documentation for `docker-compose.yml`](../concepts-basics/docker-compose-yml.md).
 
 ### Dockerfiles
 

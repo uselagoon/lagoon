@@ -1,0 +1,6 @@
+{
+    "themes": [{
+        "name" : "lagoon",
+        "types": [ "login", "email", "account" ]
+    }]
+}

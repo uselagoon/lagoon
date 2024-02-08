@@ -1,8 +1,11 @@
 FROM maven:3.8.2-jdk-11 as builder
-
+# build the custom token mapper in builder
 COPY custom-mapper/. .
-
 RUN mvn clean compile package
+
+FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
+RUN mkdir -p /mnt/rootfs
+RUN dnf install --installroot /mnt/rootfs nc jq openssl curl unzip --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
 
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
@@ -14,16 +17,13 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:17.0.1-legacy
+FROM quay.io/keycloak/keycloak:21.1.2
+COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
-
-RUN microdnf install -y nc jq unzip \
-    && microdnf clean all \
-    && rm -rf /var/cache/yum
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=keycloak
@@ -35,10 +35,6 @@ COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
-
-# Fix permissions for JBoss home directory
-RUN chgrp -R 0 $JBOSS_HOME &&\
-    chmod -R g+rw $JBOSS_HOME
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -80,16 +76,20 @@ ENV TMPDIR=/tmp \
     LAGOON_DB_HOST=api-db \
     JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
 
-VOLUME /opt/jboss/keycloak/standalone/data
+VOLUME /opt/keycloak/data
 
+COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
-COPY startup-scripts /opt/jboss/startup-scripts
-COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
-COPY configure-ds-pool.cli /opt/jboss/tools/cli/databases/configure-ds-pool.cli
-COPY themes/lagoon /opt/jboss/keycloak/themes/lagoon
-COPY --from=commons /tmp/lagoon-scripts.jar /opt/jboss/keycloak/standalone/deployments/lagoon-scripts.jar
-COPY --from=builder /target/custom-protocol-mapper-1.0.0.jar /opt/jboss/keycloak/standalone/deployments/custom-protocol-mapper-1.0.0.jar
+
+COPY startup-scripts /opt/keycloak/startup-scripts
+COPY themes/lagoon /opt/keycloak/themes/lagoon
+COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
+COPY --from=builder /target/custom-protocol-mapper-1.0.0.jar /opt/keycloak/providers/custom-protocol-mapper-1.0.0.jar
+
+COPY lagoon-realm-2.16.0.json /lagoon/seed/lagoon-realm-2.16.0.json
+
+RUN /opt/keycloak/bin/kc.sh build
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
-CMD ["-b", "0.0.0.0"]
+CMD ["start"]

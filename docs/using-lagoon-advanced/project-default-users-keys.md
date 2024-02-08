@@ -4,7 +4,7 @@ When a Lagoon project is created, by default an associated SSH "project key" is 
 
 The result of this is that from inside the CLI pod of any environment it is possible to SSH to any other environment within the same project. This access is used for running tasks from the command line such as synchronizing databases between environments \(e.g. drush `sql-sync`\).
 
-There is more information on the `MAINTAINER` role available in the [RBAC](https://docs.lagoon.sh/lagoon/administering-lagoon/rbac) documentation.
+There is more information on the `MAINTAINER` role available in the [RBAC](../interacting/rbac.md) documentation.
 
 ## Specifying the project key
 

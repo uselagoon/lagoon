@@ -8,4 +8,8 @@ _Please remember that this is not to replace your current support channels - tho
 
 We ask that all community members review our [Participation](participation.md) and [Moderation](moderation.md) Guidelines, as well as the [Code of Conduct](../code-of-conduct.md).
 
-In addition to our [Zoom Community Hours](https://dev.to/uselagoon/lagoon-community-hours-2022-4bd4), we'll also be hosting Community Hours on Discord in 2023!
+## Community Hours
+
+Our Community hours are currently on hold as we survey the community to better determine the community's needs. [Please fill our the survey here](https://forms.gle/CFgQLCp3zu9fEFcM8).
+
+If you need a hand with Lagoon, please reach out on [Discord](https://discord.gg/te5hHe95JE) or shoot us an email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

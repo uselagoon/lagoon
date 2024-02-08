@@ -1,10 +1,5 @@
 # DeployTarget Configurations
 
-!!! Danger
-    This is an alpha feature in Lagoon.
-    The way DeployTarget Configurations work could change in future releases.
-    If you decide to use this feature, you do so at your own risk.
-
 DeployTarget configurations are a way to define how a project can deploy to multiple clusters. This feature is useful when you have two clusters, one which could be dedicated for running production workloads, and another that is used for running development workloads.
 
 The configuration for these is not limited to just a production/development split though, so projects could perceivably target more than one specific cluster.

@@ -75,7 +75,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
+            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
@@ -110,7 +110,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,image-cache,workflows,ssh-legacy] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -130,7 +130,7 @@ pipeline {
         stage ('3: run third test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[services,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }
