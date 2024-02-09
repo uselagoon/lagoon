@@ -113,24 +113,7 @@ let transportOptions: {
   timeout: 60000
 };
 
-if (!envHasConfig('JWTSECRET') || !envHasConfig('JWTAUDIENCE')) {
-  logger.error(
-    'Unable to create api token due to missing `JWTSECRET`/`JWTAUDIENCE` environment variables'
-  );
-} else {
-  const apiAdminToken = createJWTWithoutUserId({
-    payload: {
-      role: 'admin',
-      iss: 'lagoon-commons',
-      aud: getConfigFromEnv('JWTAUDIENCE')
-    },
-    jwtSecret: getConfigFromEnv('JWTSECRET')
-  });
-
-  transportOptions.headers.Authorization = `Bearer ${apiAdminToken}`;
-}
-
-const transport = new Transport(`${getConfigFromEnv('API_HOST', 'http://api:3000')}/graphql`, transportOptions);
+const transport = new Transport(`${getConfigFromEnv('API_HOST', 'http://api:3000')}/graphql`, {transportOptions});
 
 export const graphqlapi = new Lokka({ transport });
 
