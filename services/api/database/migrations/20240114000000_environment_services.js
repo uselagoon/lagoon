@@ -27,6 +27,7 @@ exports.down = async function(knex) {
         table.dropColumn('type');
         table.dropColumn('updated');
         table.dropColumn('created');
+        table.dropUnique(['name', 'environment'], 'service_environment');
     })
     .dropTable('environment_service_container')
 };
