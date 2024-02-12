@@ -139,4 +139,48 @@ export const Sql = {
       .join('project', 'e.project', '=', 'project.id')
       .where(knex.raw('e.openshift_project_name = ?', openshiftProjectName))
       .toString(),
+  selectEnvironmentServiceById: (id: number) =>
+    knex('environment_service')
+      .where('id', '=', id)
+      .toString(),
+  selectEnvironmentServiceByName: (name: string, eid: number) =>
+    knex('environment_service')
+      .where('environment', '=', eid)
+      .andWhere('name', '=', name)
+      .toString(),
+  deleteEnvironmentServiceById: (id: number) =>
+    knex('environment_service')
+      .where('id', id)
+      .delete()
+      .toString(),
+  selectEnvironmentByServiceId: (id: number) =>
+    knex('environment_service')
+      .select('e.*')
+      .join('environment AS e', 'environment_service.environment', '=', 'e.id')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('environment_service.id = ?', id))
+      .limit(1)
+      .toString(),
+  // sekect all the containers for a particular service
+  selectContainersByServiceId: (id: number) =>
+    knex('environment_service_container')
+      .where('service_id', '=', id)
+      .toString(),
+  // deletes all containers associated to a service
+  deleteServiceContainers: (id: number) =>
+    knex('environment_service_container')
+      .where('service_id', '=', id)
+      .delete()
+      .toString(),
+  // add a new service container
+  insertServiceContainer: (
+    serviceId: number,
+    name: string,
+  ) =>
+    knex('environment_service_container')
+      .insert({
+        serviceId,
+        name,
+      })
+      .toString(),
 };

@@ -958,6 +958,14 @@ const typeDefs = gql`
   type EnvironmentService {
     id: Int
     name: String
+    type: String
+    containers: [ServiceContainer]
+    created: String
+    updated: String
+  }
+
+  type ServiceContainer {
+    name: String
   }
 
   type Backup {
@@ -1533,6 +1541,23 @@ const typeDefs = gql`
     openshiftProjectPattern: String
     kubernetes: Int
     kubernetesNamespacePattern: String
+  }
+
+  input AddEnvironmentServiceInput {
+    id: Int
+    environment: Int!
+    name: String!
+    type: String!
+    containers: [ServiceContainerInput]
+  }
+
+  input ServiceContainerInput {
+    name: String!
+  }
+
+  input DeleteEnvironmentServiceInput {
+    name: String!
+    environment: Int!
   }
 
   input AddOrUpdateEnvironmentStorageInput {
@@ -2404,7 +2429,7 @@ const typeDefs = gql`
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
-    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
+    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
@@ -2475,6 +2500,8 @@ const typeDefs = gql`
     This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
     """
     bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
+    addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
+    deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
   }
 
   type Subscription {
