@@ -1,0 +1,62 @@
+name: Test database migration and rollback
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'services/api/database/**'
+      - '.github/workflows/test-db-migrations.yml'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'services/api/database/**'
+      - '.github/workflows/test-db-migrations.yml'
+
+jobs:
+  makeup:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout PR
+        uses: actions/checkout@v4
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          fetch-depth: "0"
+          ref: ${{ github.event.pull_request.head.sha }}
+      -
+        name: Checkout Branch or Tag
+        uses: actions/checkout@v4
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          fetch-depth: "0"
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build necessary images
+        run: |
+          make build
+      -
+        name: Bring up a docker compose lagoon
+        run: |
+          make up
+      -
+        name: Show initial migration logs
+        run: |
+          docker compose -p lagoon logs api-init
+      -
+        name: Initiate rollback
+        run: |
+          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:rollback --all --cwd /app/services/api/database'
+      -
+        name: Reperform initial migration
+        run: |
+          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:latest --cwd /app/services/api/database'
+      -
+        name: Remove testing setup
+        run: |
+          make down
