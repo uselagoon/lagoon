@@ -1367,11 +1367,15 @@ export const addDeployment = (
   completed: string = null,
   priority: number = null,
   bulkId: string = null,
-  bulkName: string = null
+  bulkName: string = null,
+  sourceUser = null,
+  sourceType = null,
 ): Promise<any> =>
   graphqlapi.mutate(
     `
-  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $priority: Int, $bulkId: String, $bulkName: String) {
+  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
+    $started: String, $completed: String, $priority: Int, $bulkId: String, $bulkName: String,
+    $sourceUser: String, $sourceType: DeploymentSourceType) {
     addDeployment(input: {
         name: $name
         status: $status
@@ -1384,6 +1388,8 @@ export const addDeployment = (
         priority: $priority
         bulkId: $bulkId
         bulkName: $bulkName
+        sourceUser: $sourceUser
+        sourceType: $sourceType
     }) {
       ...${deploymentFragment}
     }
@@ -1400,7 +1406,9 @@ export const addDeployment = (
       completed,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      sourceUser,
+      sourceType,
     }
   );
 
@@ -1416,10 +1424,14 @@ export const addDeployment = (
     service = null,
     command = null,
     execute = false,
+    sourceUser = null,
+    sourceType = null,
   ) =>
     graphqlapi.mutate(
       `
-    ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $service: String, $command: String, $execute: Boolean) {
+    ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
+      $started: String, $completed: String, $service: String, $command: String, $execute: Boolean,
+      $sourceUser: String, $sourceType: TaskSourceType) {
       addTask(input: {
           name: $name
           status: $status
@@ -1432,6 +1444,8 @@ export const addDeployment = (
           service: $service
           command: $command
           execute: $execute
+          sourceUser: $sourceUser
+          sourceType: $sourceType
       }) {
         ...${taskFragment}
       }
@@ -1449,6 +1463,8 @@ export const addDeployment = (
         service,
         command,
         execute,
+        sourceUser,
+        sourceType,
       },
     );
 

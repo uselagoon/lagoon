@@ -12,6 +12,7 @@ export interface ResolverFn {
       sqlClientPool: Pool,
       hasPermission: hasPermission,
       keycloakGrant: any | null,
+      legacyGrant: any | null,
       userActivityLogger: any | null,
       models: {
         UserModel,

@@ -317,6 +317,13 @@ const resolvers = {
     MAINTAINER: 'maintainer',
     OWNER: 'owner'
   },
+  DeploymentSourceType: {
+    API: 'api',
+    WEBHOOK: 'webhook'
+  },
+  TaskSourceType: {
+    API: 'api',
+  },
   ProjectOrderType: {
     NAME: 'name',
     CREATED: 'created'

@@ -48,6 +48,12 @@ export async function githubPullRequestOpened(webhook: WebhookRequestData, proje
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.sender.login) {
+      sourceUser = body.sender.login
+    }
     const data: deployData = {
       repoUrl: body.repository.html_url,
       repoName: body.repository.full_name,
@@ -61,7 +67,9 @@ export async function githubPullRequestOpened(webhook: WebhookRequestData, proje
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     try {

@@ -5,6 +5,7 @@ import { Helpers } from './helpers';
 import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import {
   TaskRegistration,
@@ -529,8 +530,8 @@ const getProjectByEnvironmentIdOrProjectId = async (
 
 export const invokeRegisteredTask = async (
   root,
-  { advancedTaskDefinition, environment, argumentValues },
-  { sqlClientPool, hasPermission, models, keycloakGroups }
+  { advancedTaskDefinition, environment, argumentValues, sourceType },
+  { sqlClientPool, hasPermission, models, keycloakGroups, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
 
@@ -603,7 +604,10 @@ export const invokeRegisteredTask = async (
         }
 
         taskCommand += `${task.command}`;
-
+        if (!sourceType) {
+          sourceType = "API"
+        }
+        const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
         const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
           name: task.name,
           taskName: generateTaskName(),
@@ -613,7 +617,9 @@ export const invokeRegisteredTask = async (
           deployTokenInjection: task.deployTokenInjection,
           projectKeyInjection: task.projectKeyInjection,
           adminOnlyView: task.adminOnlyView,
-          execute: true
+          execute: true,
+          sourceType: sourceType,
+          sourceUser: sourceUser,
         });
         return taskData;
         break;
