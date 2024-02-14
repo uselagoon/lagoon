@@ -132,6 +132,15 @@ const typeDefs = gql`
     GUEST
   }
 
+  enum DeploymentSourceType {
+    API
+    WEBHOOK
+  }
+
+  enum TaskSourceType {
+    API
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -1008,6 +1017,15 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    """
+    The username or email address that triggered this deployment.
+    For webhook requests, the username or email address will attempt to be extracted from the webhook payload depending on the source of the webhook
+    """
+    sourceUser: String
+    """
+    The source of this task from the available deplyoment trigger types
+    """
+    sourceType: DeploymentSourceType
   }
 
   type Insight {
@@ -1047,6 +1065,14 @@ const typeDefs = gql`
     remoteId: String
     logs: String
     files: [File]
+    """
+    The username or email address that triggered the task.
+    """
+    sourceUser: String
+    """
+    The source of this task from the available task trigger types
+    """
+    sourceType: TaskSourceType
   }
 
   type AdvancedTask {
@@ -1616,6 +1642,8 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    sourceUser: String
+    sourceType: DeploymentSourceType
   }
 
   input DeleteDeploymentInput {
@@ -1657,6 +1685,8 @@ const typeDefs = gql`
     command: String
     remoteId: String
     execute: Boolean
+    sourceUser: String
+    sourceType: TaskSourceType
   }
 
 

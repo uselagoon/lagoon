@@ -66,6 +66,12 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.sender.login) {
+      sourceUser = body.sender.login
+    }
     const data: deployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
@@ -79,7 +85,9 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     try {

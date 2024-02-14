@@ -47,7 +47,12 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
     }
 
     let buildName = generateBuildId();
-
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.pullrequest.author.username) {
+      sourceUser = body.pullrequest.author.username
+    }
     const data: deployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.links.html.href,
@@ -61,7 +66,9 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.pullrequest.id}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     try {
