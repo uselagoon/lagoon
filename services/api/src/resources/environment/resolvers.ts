@@ -731,6 +731,7 @@ export const deleteAllEnvironments: ResolverFn = async (
   return 'success';
 };
 
+// @deprecated in favor of addOrUpdateEnvironmentService and deleteEnvironmentService, will eventually be removed
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
@@ -745,7 +746,11 @@ export const setEnvironmentServices: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteServices(environmentId));
 
-  for (const service of services) {
+  // remove any duplicates, since there is no other identifying information related to these duplicates don't matter.
+  // as this function is also being deprecated its usage over time will eventually drop
+  // this means removal of duplicates is an acceptable trade off while the transition takes place
+  var uniq = services.filter((value, index, array) => array.indexOf(value) === index);
+  for (const service of uniq) {
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
