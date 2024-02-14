@@ -45,7 +45,9 @@ services:
       - CONSOLE_LOGGING_LEVEL=trace
   api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api
-    command: ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database
+    command: >
+      sh -c "./node_modules/.bin/knex migrate:list --cwd /app/services/api/database
+      && ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database"
     volumes:
       - ./services/api/database:/app/services/api/database
       - ./node-packages:/app/node-packages:delegated
@@ -213,10 +215,6 @@ services:
     environment:
       - MINIO_ROOT_USER=minio
       - MINIO_ROOT_PASSWORD=minio123
-  local-registry:
-    image: ${IMAGE_REPO:-lagoon}/local-registry
-    ports:
-      - '5000:5000'
   drush-alias:
     image: uselagoon/drush-alias:latest
     ports:

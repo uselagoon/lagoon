@@ -28,6 +28,8 @@ export const Sql = {
     type = null,
     advanced_image = null,
     advanced_payload = null,
+    sourceUser = null,
+    sourceType = null,
   }: {
     id: number;
     name: string;
@@ -46,6 +48,8 @@ export const Sql = {
     type?: string;
     advanced_image?: string;
     advanced_payload?: string;
+    sourceUser?: string;
+    sourceType?: string;
   }) =>
     knex('task')
       .insert({
@@ -66,6 +70,8 @@ export const Sql = {
         type,
         advanced_image,
         advanced_payload,
+        sourceUser,
+        sourceType,
       })
       .toString(),
   deleteTask: (id: number) =>

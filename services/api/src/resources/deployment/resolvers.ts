@@ -336,10 +336,12 @@ export const addDeployment: ResolverFn = async (
       priority,
       bulkId,
       bulkName,
-      buildStep
+      buildStep,
+      sourceUser,
+      sourceType,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -348,6 +350,12 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
+  if (!sourceUser) {
+      sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  }
+  if (!sourceType) {
+    sourceType = "API"
+  }
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({
@@ -362,7 +370,9 @@ export const addDeployment: ResolverFn = async (
       priority,
       bulkId,
       bulkName,
-      buildStep
+      buildStep,
+      sourceType,
+      sourceUser,
     })
   );
 
@@ -602,7 +612,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
 
   try {
@@ -667,7 +677,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
-
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   let deployData: {
     [key: string]: any;
   } = {
@@ -678,6 +688,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
   let meta: {
     [key: string]: any;
@@ -804,7 +816,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -821,6 +833,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
   const deployData = {
     type: 'branch',
@@ -832,6 +845,8 @@ export const deployEnvironmentBranch: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -908,7 +923,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -927,6 +942,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
 
   let buildName = generateBuildId();
 
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
     type: 'pullrequest',
     projectName: project.name,
@@ -942,6 +958,8 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -1014,7 +1032,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const destProject = await projectHelpers(
     sqlClientPool
@@ -1052,6 +1070,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 
   let buildName = generateBuildId();
 
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
     type: 'promote',
     projectName: destProject.name,
@@ -1062,6 +1081,8 @@ export const deployEnvironmentPromote: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -1125,7 +1146,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1223,6 +1244,8 @@ export const switchActiveStandby: ResolverFn = async (
   };
 
   // try it now
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceType = "API"
   try {
     // add a task into the environment
     var date = new Date();
@@ -1238,7 +1261,9 @@ export const switchActiveStandby: ResolverFn = async (
       null,
       '',
       '',
-      false
+      false,
+      sourceUser,
+      sourceType,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
 

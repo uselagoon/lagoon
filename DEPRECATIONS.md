@@ -13,6 +13,7 @@ All deprecations are listed below, with the most recent announcements at the top
 ### Lagoon v2.18.0
 release link: https://github.com/uselagoon/lagoon/releases/tag/v2.18.0
 * The standard drupal based tasks that Lagoon ships with (drush ....) have been flagged as deprecated and should not be used anymore. These will need to be replaced with [custom tasks](https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/). Example replacement tasks will be provided prior to their removal.
+* This release introduces a deprecation of the `setEnvironmentServices` mutation to updated services for an environment, it is being replaced with `addOrUpdateEnvironmentService` and `deleteEnvironmentService`. This is becaues the type is being refactored to support additional information, and eventually additional functionality. For now, the actions-handler service will still support the older `setEnvironmentServices` for backwards compatability for a short period to allow older versions of `lagoon-remote` to still work, but a new version of `lagoon-remote` will be available that will no longer provides the payload that the actions-handler uses.
 
 ### Lagoon v2.17.0
 

@@ -203,24 +203,6 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   );
 };
 
-export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
-  { id: eid },
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  const environment = await Helpers(sqlClientPool).getEnvironmentById(eid);
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectServicesByEnvironmentId(eid)
-  );
-
-  return rows;
-};
-
 export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   root,
   args,
@@ -747,6 +729,7 @@ export const deleteAllEnvironments: ResolverFn = async (
   return 'success';
 };
 
+// @deprecated in favor of addOrUpdateEnvironmentService and deleteEnvironmentService, will eventually be removed
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
@@ -761,7 +744,11 @@ export const setEnvironmentServices: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteServices(environmentId));
 
-  for (const service of services) {
+  // remove any duplicates, since there is no other identifying information related to these duplicates don't matter.
+  // as this function is also being deprecated its usage over time will eventually drop
+  // this means removal of duplicates is an acceptable trade off while the transition takes place
+  var uniq = services.filter((value, index, array) => array.indexOf(value) === index);
+  for (const service of uniq) {
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
@@ -805,4 +792,140 @@ export const userCanSshToEnvironment: ResolverFn = async (
   } catch (err) {
     return null;
   }
+};
+
+// this is used to add or update a service in an environment, and the associated containers of that service
+// this extends the capabalities of the service now and allows for additional functionality for individual services
+export const addOrUpdateEnvironmentService: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(
+    input.environment
+  );
+  await hasPermission('environment', `update:${environment.environmentType}`, {
+    project: environment.project
+  });
+
+  let updateData = {
+    name: input.name,
+    type: input.type,
+    environment: environment.id,
+    updated: knex.fn.now(),
+  };
+
+  const createOrUpdateSql = knex('environment_service')
+    .insert({
+      ...updateData,
+    })
+    .onConflict('id')
+    .merge({
+      ...updateData
+    }).toString();
+
+  const { insertId } = await query(
+    sqlClientPool,
+    createOrUpdateSql);
+
+  // reset this services containers (delete all and add the current ones)
+  await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
+
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
+
+  userActivityLogger(`User updated environment '${environment.name}' service '${input.name}`, {
+    project: '',
+    event: 'api:updateEnvironmentService',
+    payload: {
+      environment
+    }
+  });
+
+  // parese the response through the servicecontainer helper
+  return R.prop(0, rows);
+};
+
+// delete an environment service from the environment
+export const deleteEnvironmentService: ResolverFn = async (
+  root,
+  { input: { name, environment: eid } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentById(eid))
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
+
+  if (!environment) {
+    return null;
+  }
+
+  const services = await query(sqlClientPool, Sql.selectEnvironmentServiceByName(name, eid));
+  const service = services[0];
+
+  if (!service) {
+    return null;
+  }
+
+  await hasPermission('environment', `delete:${environment.environmentType}`, {
+    project: environment.project
+  });
+
+  await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
+
+  userActivityLogger(`User deleted environment '${environment.name}' service '${service.name}`, {
+    project: '',
+    event: 'api:deleteEnvironmentService',
+    payload: {
+      service,
+    }
+  });
+
+  return 'success';
+};
+
+// this is only ever called by the services resolver, which is called by the environment resolver
+// no need to do additional permission checks at this time
+export const getEnvironmentByServiceId: ResolverFn = async (
+  { id: service_id },
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByServiceId(service_id))
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
+
+  if (!environment) {
+    return null;
+  }
+
+  return environment;
+};
+
+// this is only ever called by the main environment resolver by the `services` field
+// no need to do additional permission checks at this time
+export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
+  { id: eid },
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectServicesByEnvironmentId(eid)
+  );
+  return rows;
+};
+
+// this is only ever called by the services resolver, which is called by the environment resolver
+// no need to do additional permission checks at this time
+export const getServiceContainersByServiceId: ResolverFn = async (
+  { id: sid },
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectContainersByServiceId(sid)
+  );
+  return await rows;
 };

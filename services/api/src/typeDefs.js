@@ -132,6 +132,15 @@ const typeDefs = gql`
     GUEST
   }
 
+  enum DeploymentSourceType {
+    API
+    WEBHOOK
+  }
+
+  enum TaskSourceType {
+    API
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -958,6 +967,14 @@ const typeDefs = gql`
   type EnvironmentService {
     id: Int
     name: String
+    type: String
+    containers: [ServiceContainer]
+    created: String
+    updated: String
+  }
+
+  type ServiceContainer {
+    name: String
   }
 
   type Backup {
@@ -1000,6 +1017,15 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    """
+    The username or email address that triggered this deployment.
+    For webhook requests, the username or email address will attempt to be extracted from the webhook payload depending on the source of the webhook
+    """
+    sourceUser: String
+    """
+    The source of this task from the available deplyoment trigger types
+    """
+    sourceType: DeploymentSourceType
   }
 
   type Insight {
@@ -1039,6 +1065,14 @@ const typeDefs = gql`
     remoteId: String
     logs: String
     files: [File]
+    """
+    The username or email address that triggered the task.
+    """
+    sourceUser: String
+    """
+    The source of this task from the available task trigger types
+    """
+    sourceType: TaskSourceType
   }
 
   type AdvancedTask {
@@ -1535,6 +1569,23 @@ const typeDefs = gql`
     kubernetesNamespacePattern: String
   }
 
+  input AddEnvironmentServiceInput {
+    id: Int
+    environment: Int!
+    name: String!
+    type: String!
+    containers: [ServiceContainerInput]
+  }
+
+  input ServiceContainerInput {
+    name: String!
+  }
+
+  input DeleteEnvironmentServiceInput {
+    name: String!
+    environment: Int!
+  }
+
   input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
@@ -1591,6 +1642,8 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    sourceUser: String
+    sourceType: DeploymentSourceType
   }
 
   input DeleteDeploymentInput {
@@ -1632,6 +1685,8 @@ const typeDefs = gql`
     command: String
     remoteId: String
     execute: Boolean
+    sourceUser: String
+    sourceType: TaskSourceType
   }
 
 
@@ -2404,7 +2459,7 @@ const typeDefs = gql`
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
-    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
+    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
@@ -2475,6 +2530,8 @@ const typeDefs = gql`
     This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
     """
     bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
+    addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
+    deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
   }
 
   type Subscription {

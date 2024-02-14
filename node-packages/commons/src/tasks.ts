@@ -372,7 +372,9 @@ export const getControllerBuildData = async function(deployData: any) {
     buildPriority,
     bulkId,
     bulkName,
-    buildVariables
+    buildVariables,
+    sourceUser,
+    sourceType,
   } = deployData;
 
   var environmentName = makeSafe(branchName)
@@ -593,7 +595,9 @@ export const getControllerBuildData = async function(deployData: any) {
       null, null, null, null,
       buildPriority,
       bulkId,
-      bulkName
+      bulkName,
+      sourceUser,
+      sourceType,
     );
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);

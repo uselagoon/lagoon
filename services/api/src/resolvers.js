@@ -124,6 +124,10 @@ const {
   userCanSshToEnvironment,
   getEnvironmentUrl,
   getEnvironmentsByKubernetes,
+  addOrUpdateEnvironmentService,
+  getEnvironmentByServiceId,
+  getServiceContainersByServiceId,
+  deleteEnvironmentService,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -313,6 +317,13 @@ const resolvers = {
     MAINTAINER: 'maintainer',
     OWNER: 'owner'
   },
+  DeploymentSourceType: {
+    API: 'api',
+    WEBHOOK: 'webhook'
+  },
+  TaskSourceType: {
+    API: 'api',
+  },
   ProjectOrderType: {
     NAME: 'name',
     CREATED: 'created'
@@ -465,6 +476,9 @@ const resolvers = {
   },
   Fact: {
     references: getFactReferencesByFactId,
+  },
+  EnvironmentService: {
+    containers: getServiceContainersByServiceId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -714,7 +728,9 @@ const resolvers = {
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
-    bulkImportProjectsAndGroupsToOrganization
+    bulkImportProjectsAndGroupsToOrganization,
+    addOrUpdateEnvironmentService,
+    deleteEnvironmentService
   },
   Subscription: {
     backupChanged: backupSubscriber,

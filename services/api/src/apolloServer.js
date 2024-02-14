@@ -127,6 +127,7 @@ const apolloServer = new ApolloServer({
       let keycloakUsersGroups = []
       let groupRoleProjectIds = []
       const keycloakGrant = grant
+      let legacyGrant = legacyCredentials ? legacyCredentials : null
       if (keycloakGrant) {
         // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
@@ -143,6 +144,7 @@ const apolloServer = new ApolloServer({
           ? keycloakHasPermission(grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant,
+        legacyGrant,
         requestCache,
         models: {
           UserModel: User.User(modelClients),
@@ -189,6 +191,7 @@ const apolloServer = new ApolloServer({
       let keycloakUsersGroups = []
       let groupRoleProjectIds = []
       const keycloakGrant = req.kauth ? req.kauth.grant : null
+      let legacyGrant = req.legacyCredentials ? req.legacyCredentials : null
       if (keycloakGrant) {
         // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
@@ -241,6 +244,7 @@ const apolloServer = new ApolloServer({
         hasPermission,
         keycloakGrant,
         requestCache,
+        legacyGrant,
         userActivityLogger: (message, meta) => {
           let defaultMeta = {
             user: req.kauth

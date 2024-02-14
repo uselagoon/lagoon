@@ -13,6 +13,7 @@ import { saveRedisKeycloakCache } from '../clients/redisClient';
 
 interface ILegacyToken {
   iat: string;
+  exp: string;
   iss: string;
   sub: string;
   aud: string;
@@ -105,7 +106,26 @@ export const getCredentialsForLegacyToken = async token => {
     throw new Error('Decoding token resulted in "null" or "undefined".');
   }
 
-  const { role = 'none', aud, sub, iss, iat } = decoded;
+  const { role = 'none', aud, sub, iss, iat, exp } = decoded;
+
+  // check the expiration on legacy tokens, reject them if necessary
+  const maxExpiry = getConfigFromEnv('LEGACY_EXPIRY_MAX', '3600') // 1hour default
+  const rejectLegacyExpiry = getConfigFromEnv('LEGACY_EXPIRY_REJECT', 'false') // don't reject intially, just log
+  if (exp) {
+    if ((parseInt(exp)-parseInt(iat)) > parseInt(maxExpiry)) {
+      const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(parseInt(exp)-parseInt(iat))} is greater than ${parseInt(maxExpiry)}`
+      logger.warn(msg);
+      if (rejectLegacyExpiry == "true") {
+        throw new Error(msg);
+      }
+    }
+  } else {
+    const msg = `Legacy token (sub:${sub}; iss:${iss}) has no expiry`
+    logger.warn(msg);
+    if (rejectLegacyExpiry == "true") {
+      throw new Error(msg);
+    }
+  }
 
   if (aud !== getConfigFromEnv('JWTAUDIENCE')) {
     throw new Error('Token audience mismatch.');

@@ -32,6 +32,8 @@ export interface deployData {
   buildPriority?: string,
   bulkId?: string,
   buildVariables?: any,
+  sourceUser?: string,
+  sourceType?: string,
 };
 
 export interface WebhookRequestData {

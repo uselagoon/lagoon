@@ -48,6 +48,12 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.user.username) {
+      sourceUser = body.user.username
+    }
     const data: deployData = {
       repoUrl: body.object_attributes.target.web_url,
       repoName: body.object_attributes.target.name,
@@ -61,7 +67,9 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.object_attributes.iid}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     try {

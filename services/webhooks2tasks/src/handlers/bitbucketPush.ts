@@ -42,12 +42,20 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.actor.username) {
+      sourceUser = body.actor.username
+    }
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``
