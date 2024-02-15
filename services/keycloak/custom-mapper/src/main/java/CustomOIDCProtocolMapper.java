@@ -26,6 +26,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
@@ -89,7 +91,7 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
         Map<String, String> groupProjectIds = new HashMap();
         Map<String, String> projectGroupProjectIds = new HashMap();
         UserModel user = userSession.getUser();
-        Set<GroupModel> groups = user.getGroups();
+        Set<GroupModel> groups = user.getGroupsStream().collect(Collectors.toSet());;
         for (GroupModel group : groups) {
             if(group.getFirstAttribute("type").equals("role-subgroup")) {
                 GroupModel parent = group.getParent();
@@ -137,7 +139,7 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
         }
 
         // add all roles the user is part of
-        Set<RoleModel> userRoles = user.getRoleMappings();
+        Set<RoleModel> userRoles = user.getRoleMappingsStream().collect(Collectors.toSet());
         for (RoleModel role : userRoles) {
             String roleName = role.getName();
             groupsAndRoles.add(roleName);
