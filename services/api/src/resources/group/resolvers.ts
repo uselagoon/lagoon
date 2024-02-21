@@ -546,7 +546,7 @@ export const addUserToGroup: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput)
+    email: R.prop('email', userInput)
   });
 
   if (R.isEmpty(groupInput)) {
@@ -598,7 +598,7 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput)
+    email: R.prop('email', userInput)
   });
 
   if (R.isEmpty(groupInput)) {
