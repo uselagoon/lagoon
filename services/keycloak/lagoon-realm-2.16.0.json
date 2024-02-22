@@ -2378,7 +2378,7 @@
             "config": {
               "resources": "[\"openshift\"]",
               "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
           },
           {
