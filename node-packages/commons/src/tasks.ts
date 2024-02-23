@@ -117,7 +117,6 @@ const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(proc
 //    * `api`
 //    * `webhooks2tasks`
 const CI = process.env.CI || "false"
-const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
@@ -662,7 +661,6 @@ export const getControllerBuildData = async function(deployData: any) {
         deployTarget: deployTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
-        registry: registry,
         monitoring: {
           contact: alertContact,
           statuspageID: uptimeRobotStatusPageId,
