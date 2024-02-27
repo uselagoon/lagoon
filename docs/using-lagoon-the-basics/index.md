@@ -12,19 +12,9 @@ To run a Lagoon Project, your system must meet the requirements to run Docker. W
 
 ### Local Development Environments
 
-TL;DR: install and start `pygmy`:
+You can choose from pygmy, Lando, or DDEV - it's up to you!
 
-```bash
-brew tap pygmystack/pygmy; # (1)
-brew install pygmy;
-pygmy up
-```
-
-1. HomeBrew is the easiest way to install Pygmy, see the Pygmy docs for more info.
-
-[Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
-
-Learn more about Lagoon, pygmy, and [Local Development Environments](local-development-environments.md)
+Learn more about Lagoon and [Local Development Environments](local-development-environments.md)
 
 ## Step by Step Guides
 
