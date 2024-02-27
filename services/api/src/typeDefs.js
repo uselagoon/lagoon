@@ -950,13 +950,15 @@ const typeDefs = gql`
     id: Int
     environment: Environment
     persistentStorageClaim: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
   }
 
   type EnvironmentHoursMonth {
@@ -1590,6 +1592,19 @@ const typeDefs = gql`
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
+  }
+
+  input AddOrUpdateStorageOnEnvironmentInput {
+    environment: Int!
+    persistentStorageClaim: String!
+    """
+    kibUsed is a float to allow for greater than 32-bit integer inputs
+    """
+    kibUsed: Float!
     """
     Date in format 'YYYY-MM-DD'
     """
@@ -2320,6 +2335,9 @@ const typeDefs = gql`
     """
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
+    ): EnvironmentStorage  @deprecated(reason: "Use addOrUpdateStorageonEnvironment instead")
+    addOrUpdateStorageonEnvironment(
+      input: AddOrUpdateStorageOnEnvironmentInput!
     ): EnvironmentStorage
     addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
     updateNotificationSlack(
