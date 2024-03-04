@@ -1,5 +1,4 @@
 import * as R from 'ramda';
-import { parsePrivateKey } from 'sshpk';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sanitizeGroupName } from '@lagoon/commons/dist/api';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
@@ -10,10 +9,7 @@ import redisClient from '../clients/redisClient';
 import { query } from '../util/db';
 import { Group } from '../models/group';
 import { User } from '../models/user';
-import {
-  generatePrivateKey,
-  getSshKeyFingerprint
-} from '../resources/sshKey';
+import { validateKey, generatePrivateKey as genpk } from '../util/func';
 import { Sql as sshKeySql } from '../resources/sshKey/sql';
 
 interface GitlabProject {
@@ -26,8 +22,6 @@ interface GitlabProject {
     full_path: string;
   };
 }
-
-const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
@@ -83,13 +77,13 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     if (R.prop('privateKey', project)) {
       let keyPair = {} as any;
       try {
-        const privateKey = parsePrivateKey(R.prop('privateKey', project));
-        const publicKey = privateKey.toPublic();
-
+        const privkey = new Buffer((R.prop('privateKey', project))).toString('base64')
+        const publickey = await validateKey(privkey, "private")
         keyPair = {
           ...keyPair,
-          private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-          public: publicKey.toString()
+          private: R.replace(/\n/g, '\n', (R.prop('privateKey', project)).toString('openssh')),
+          public: publickey['publickey'],
+          fingerprint: publickey['sha256fingerprint']
         };
       } catch (err) {
         throw new Error(
@@ -101,9 +95,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       // Delete users with current key
       const userRows = await query(
         sqlClientPool,
-        sshKeySql.selectUserIdsBySshKeyFingerprint(
-          getSshKeyFingerprint(keyPair.public)
-        )
+        sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint)
       );
 
       for (const userRow of userRows) {
@@ -151,12 +143,12 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     // ////////////////
 
     // Generate new keypair
-    const privateKey = generatePrivateKeyEd25519();
-    const publicKey = privateKey.toPublic();
-
+    const genkey = await genpk()
     const keyPair = {
-      private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-      public: publicKey.toString()
+      private: genkey['privatekeypem'],
+      public: genkey['publickey'],
+      fingerprint: genkey['sha256fingerprint'],
+      type: genkey['type']
     };
 
     // Save the newly generated key
@@ -172,9 +164,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     // Find or create a user that has the public key linked to them
     const userRows = await query(
       sqlClientPool,
-      sshKeySql.selectUserIdsBySshKeyFingerprint(
-        getSshKeyFingerprint(keyPair.public)
-      )
+      sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint)
     );
     const userId = R.path([0, 'usid'], userRows) as string;
 
@@ -196,7 +186,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
             name: 'auto-add via reset',
             keyValue: keyParts[1],
             keyType: keyParts[0],
-            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+            keyFingerprint: keyPair.fingerprint
           })
         );
         await query(

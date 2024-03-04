@@ -1,20 +1,10 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
-import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
-
+import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
-
-const sshKeyTypeToString = R.cond([
-  [R.equals('SSH_RSA'), R.always('ssh-rsa')],
-  [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
-  [R.equals('ECDSA_SHA2_NISTP256'), R.always('ecdsa-sha2-nistp256')],
-  [R.equals('ECDSA_SHA2_NISTP384'), R.always('ecdsa-sha2-nistp384')],
-  [R.equals('ECDSA_SHA2_NISTP521'), R.always('ecdsa-sha2-nistp521')],
-  [R.T, R.identity]
-]);
 
 export const getUserSshKeys: ResolverFn = async (
   { id: userId },
@@ -31,19 +21,26 @@ export const getUserSshKeys: ResolverFn = async (
 export const addSshKey: ResolverFn = async (
   root,
   {
-    input: { id, name, keyValue, keyType: unformattedKeyType, user: userInput }
+    input: { id, name, publicKey, keyValue, keyType, user: userInput }
   },
   { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
-  const keyType = sshKeyTypeToString(unformattedKeyType);
-  // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
-  const keyValueParts = keyValue.split(' ');
-  const keyFormatted = formatSshKey({
-    keyType,
-    keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue
-  });
+  let keyFormatted = ""
+  if (!publicKey) {
+    keyType = keyType.replaceAll('_', '-').toLowerCase();
+    // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
+    const keyValueParts = keyValue.split(' ');
+    keyFormatted = formatSshKey({
+      keyType,
+      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue
+    });
+  } else {
+    keyFormatted = publicKey
+  }
 
-  if (!validateSshKey(keyFormatted)) {
+  const pkey = new Buffer(keyFormatted).toString('base64')
+  const vkey = await validateKey(pkey, "public")
+  if (!vkey['sha256fingerprint']) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
@@ -61,9 +58,9 @@ export const addSshKey: ResolverFn = async (
     Sql.insertSshKey({
       id,
       name,
-      keyValue,
-      keyType,
-      keyFingerprint: getSshKeyFingerprint(keyFormatted)
+      keyValue: vkey['value'],
+      keyType: vkey['type'],
+      keyFingerprint: vkey['sha256fingerprint']
     })
   );
   await query(
@@ -79,9 +76,9 @@ export const addSshKey: ResolverFn = async (
       input: {
         id,
         name,
-        keyValue,
-        keyType,
-        keyFingerprint: getSshKeyFingerprint(keyFormatted)
+        keyValue: vkey['value'],
+        keyType: vkey['type'],
+        keyFingerprint: vkey['sha256fingerprint']
       },
       data: {
         sshKeyId: insertId,
@@ -99,13 +96,11 @@ export const updateSshKey: ResolverFn = async (
     input: {
       id,
       patch,
-      patch: { name, keyType: unformattedKeyType, keyValue }
+      patch: { name, publicKey, keyType, keyValue }
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const keyType = sshKeyTypeToString(unformattedKeyType);
-
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
@@ -117,17 +112,25 @@ export const updateSshKey: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  let keyFingerprint = null;
-  if (keyType || keyValue) {
-    const keyFormatted = formatSshKey({ keyType, keyValue });
+  let keyFormatted = ""
+  if (!publicKey) {
+    keyType = keyType.replaceAll('_', '-').toLowerCase();
+    // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
+    const keyValueParts = keyValue.split(' ');
+    keyFormatted = formatSshKey({
+      keyType,
+      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue
+    });
+  } else {
+    keyFormatted = publicKey
+  }
 
-    if (!validateSshKey(keyFormatted)) {
-      throw new Error(
-        'Invalid SSH key format! Please verify keyType + keyValue'
-      );
-    }
-
-    keyFingerprint = getSshKeyFingerprint(keyFormatted);
+  const pkey = new Buffer(keyFormatted).toString('base64')
+  const vkey = await validateKey(pkey, "public")
+  if (!vkey['sha256fingerprint']) {
+    throw new Error(
+      'Invalid SSH key format! Please verify keyType + keyValue'
+    );
   }
 
   await query(
@@ -136,9 +139,9 @@ export const updateSshKey: ResolverFn = async (
       id,
       patch: {
         name,
-        keyType,
-        keyValue,
-        keyFingerprint
+        keyType: vkey['type'],
+        keyValue: vkey['value'],
+        keyFingerprint: vkey['sha256fingerprint']
       }
     })
   );
