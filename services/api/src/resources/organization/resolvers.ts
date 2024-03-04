@@ -932,7 +932,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput)
+    email: R.prop('email', userInput)
   });
 
   // check the organization exists
