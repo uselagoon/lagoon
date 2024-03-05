@@ -6,7 +6,10 @@ import { Sql } from './sql';
 import { Sql as problemSql } from '../problem/sql';
 import { Sql as factSql } from '../fact/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
-// import { logger } from '../../loggers/logger';
+import { Sql as deploymentSql } from '../deployment/sql';
+import { Sql as taskSql } from '../task/sql';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
+import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (environments: any[]) => {
@@ -31,6 +34,8 @@ export const Helpers = (sqlClientPool: Pool) => {
     aliasOpenshiftToK8s,
     getEnvironmentById,
     deleteEnvironment: async (name: string, eid: number, pid: number) => {
+      const environmentData = await Helpers(sqlClientPool).getEnvironmentById(eid);
+      const projectData = await projectHelpers(sqlClientPool).getProjectById(pid);
       // clean up environment variables
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment variables`)
       await query(
@@ -43,7 +48,18 @@ export const Helpers = (sqlClientPool: Pool) => {
         sqlClientPool,
         Sql.deleteServices(eid)
       );
-      // @TODO: environment_storage, deployment, environment_backup, task, environment_problem, environment_fact
+      // @TODO: environment_storage, environment_backup, environment_problem, environment_fact
+      // purge all history for this environment, including logs and files from s3
+      try {
+        await HistoryRetentionEnforcer().cleanupAllDeployments(projectData, environmentData) // remove all deployments and associated files
+      } catch (e) {
+        logger.error(`error running deployment retention enforcer: ${e}`)
+      }
+      try {
+        await HistoryRetentionEnforcer().cleanupAllTasks(projectData, environmentData) // remove all tasks and associated files
+      } catch (e) {
+        logger.error(`error running task retention enforcer: ${e}`)
+      }
       // delete the environment
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid}`)
       await query(
