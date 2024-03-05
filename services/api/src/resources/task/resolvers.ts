@@ -18,6 +18,7 @@ import sha1 from 'sha1';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -330,7 +331,21 @@ export const deleteTask: ResolverFn = async (
     project: R.path(['0', 'pid'], rows)
   });
 
+  const task = await Helpers(sqlClientPool, hasPermission).getTaskByTaskInput({id: id})
+
+  if (!task) {
+    throw new Error(
+      `Invalid task input`
+    );
+  }
+
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(task.environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
   await query(sqlClientPool, Sql.deleteTask(id));
+
+  // pass the task to the HistoryRetentionEnforcer
+  await HistoryRetentionEnforcer().cleanupTask(projectData, environmentData, task)
 
   userActivityLogger(`User deleted task '${id}'`, {
     project: '',
