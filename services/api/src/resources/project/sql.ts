@@ -16,6 +16,12 @@ export const Sql = {
       .whereNotIn('id', ids)
       .orderBy('id', 'asc')
       .toString(),
+  selectAllProjectIDsNotIn: (ids) =>
+    knex('project')
+      .select(knex.raw('group_concat(id) as project_ids'))
+      .whereNotIn('id', ids)
+      .orderBy('id', 'asc')
+      .toString(),
   selectAllProjectsIn: (ids: number) =>
     knex('project')
       .select('id')
