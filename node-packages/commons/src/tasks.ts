@@ -1450,3 +1450,23 @@ export const consumeTaskMonitor = async function(
     }
   });
 }
+
+  // leverages the `misc` queue to handle retention policy only messages to controller
+  // this is essentially a clone of createMiscTask, but specifically for retention policies
+export const createRetentionPolicyTask = async function(policyData: any) {
+  var policyPayload: any = {
+    key: `deploytarget:${policyData.key}`,
+    misc: {}
+  }
+  switch (`deploytarget:${policyData.key}`) {
+    case 'deploytarget:harborpolicy:update':
+      // remote-controller has a basic payload resource under `misc` called `miscResource` which can store bytes
+      // so this b64 encodes the payload event and inserts it into the miscResource so that the remote-controller will understand it
+      const payloadBytes = new Buffer(JSON.stringify(policyData.data.event).replace(/\\n/g, "\n")).toString('base64')
+      policyPayload.misc.miscResource = payloadBytes
+      break;
+    default:
+      break;
+  }
+  return sendToLagoonTasks(policyData.data.target+':misc', policyPayload);
+}
