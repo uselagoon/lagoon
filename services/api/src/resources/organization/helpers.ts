@@ -9,6 +9,10 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getOrganizationById = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectOrganization(id));
     return R.prop(0, rows);
+  }
+  const getOrganizationByName = async (name: string) => {
+    const rows = await query(sqlClientPool, Sql.selectOrganizationByName(name));
+    return R.prop(0, rows);
   };
   const getOrganizationByName = async (name: string) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationByName(name));
@@ -66,6 +70,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   };
   return {
     getOrganizationById,
+    getOrganizationByName,
     getProjectsByOrganizationId,
     getDeployTargetsByOrganizationId,
     getNotificationsForOrganizationId,

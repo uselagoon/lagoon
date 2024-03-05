@@ -20,6 +20,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { TaskSourceType, AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -341,7 +342,21 @@ export const deleteTask: ResolverFn = async (
     project: R.path(['0', 'pid'], rows)
   });
 
+  const task = await Helpers(sqlClientPool, hasPermission).getTaskByTaskInput({id: id})
+
+  if (!task) {
+    throw new Error(
+      `Invalid task input`
+    );
+  }
+
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(task.environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
   await query(sqlClientPool, Sql.deleteTask(id));
+
+  // pass the task to the HistoryRetentionEnforcer
+  await HistoryRetentionEnforcer().cleanupTask(projectData, environmentData, task)
 
   const auditLog: AuditLog = {
     resource: {

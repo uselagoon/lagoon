@@ -278,4 +278,56 @@ export const Sql = {
     .where('advanced_task_definition', taskId)
     .del()
     .toString(),
+  // this selects all tasks for the environment and returns everything outside of the requested retain value
+  selectTaskHistoryRetention: (id: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM task
+      WHERE environment=`+id+` AND admin_only_view=0 AND id NOT IN (
+        SELECT id
+        FROM (
+          SELECT id
+          FROM task
+          WHERE environment=`+id+` AND admin_only_view=0
+          ORDER BY id DESC
+          LIMIT `+retain+`
+        ) t
+      );`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything outside of the requested retain days value
+  selectTaskHistoryRetentionDays: (environment: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM task WHERE environment=`+environment+` AND admin_only_view=0 AND created >= NOW() - INTERVAL `+retain+` DAY;`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything outside of the requested retain months value
+  selectTaskHistoryRetentionMonths: (environment: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM task WHERE environment=`+environment+` AND admin_only_view=0 AND created >= NOW() - INTERVAL `+retain+` MONTH;`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything
+  selectTaskHistoryForEnvironment: (environment: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM task WHERE environment=`+environment+`;`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteTaskHistory: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM task
+      WHERE environment=`+environment+` AND admin_only_view=0 AND id NOT IN (
+        SELECT id
+        FROM (
+          SELECT id
+          FROM task
+          WHERE environment=`+environment+` AND admin_only_view=0
+          ORDER BY id DESC
+          LIMIT `+retain+`
+        ) t
+      );`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteTaskHistoryDays: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM task WHERE environment=`+environment+` AND admin_only_view=0 AND created >= NOW() - INTERVAL `+retain+` DAY;`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteTaskHistoryMonths: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM task WHERE environment=`+environment+` AND admin_only_view=0 AND created >= NOW() - INTERVAL `+retain+` MONTH;`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteTaskHistoryForEnvironment: (environment: number) =>
+    knex.raw(`DELETE FROM task WHERE environment=`+environment+`;`)
+      .toString(),
 };

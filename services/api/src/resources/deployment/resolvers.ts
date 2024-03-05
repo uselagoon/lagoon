@@ -18,6 +18,8 @@ import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as retentionHelpers } from '../retentionpolicy/helpers';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
@@ -358,6 +360,10 @@ export const addDeployment: ResolverFn = async (
   sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   sourceType ??= DeploymentSourceType.API
 
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environment.project
+  );
+
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({
@@ -377,9 +383,8 @@ export const addDeployment: ResolverFn = async (
       sourceUser,
     })
   );
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
-  const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
-  const deployment = R.prop(0, rows);
   const auditLog: AuditLog = {
     resource: {
       id: environment.id,
@@ -401,6 +406,9 @@ export const addDeployment: ResolverFn = async (
     }
   });
 
+  // pass to the HistoryRetentionEnforcer to clean up deployments based on any retention policies
+  await HistoryRetentionEnforcer().cleanupDeployments(projectData, environment)
+
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
@@ -416,8 +424,15 @@ export const deleteDeployment: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  const rows = await query(sqlClientPool, Sql.selectDeployment(id));
-  const deployment = R.prop(0, rows);
+
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id)
+
+  if (!deployment) {
+    throw new Error(
+      `Invalid deployment input`
+    );
+  }
+
   const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(
     deployment.environment
   );
@@ -434,6 +449,15 @@ export const deleteDeployment: ResolverFn = async (
       details: deployment.name,
     },
   };
+
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(deployment.environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
+  await query(sqlClientPool, Sql.deleteDeployment(id));
+
+  // pass the deployment to the HistoryRetentionEnforcer
+  await HistoryRetentionEnforcer().cleanupDeployment(projectData, environmentData, deployment)
+
   userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
@@ -478,9 +502,10 @@ export const updateDeployment: ResolverFn = async (
     Sql.selectPermsForDeployment(id)
   );
 
+  const projectId = R.path(['0', 'pid'], permsDeployment)
   // Check access to modify deployment as it currently stands
   await hasPermission('deployment', 'update', {
-    project: R.path(['0', 'pid'], permsDeployment)
+    project: projectId
   });
 
   await query(
@@ -503,14 +528,20 @@ export const updateDeployment: ResolverFn = async (
     })
   );
 
-  const rows = await query(sqlClientPool, Sql.selectDeployment(id));
-  const deployment = R.prop(0, rows);
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
     deployment.environment
   );
+
+  try {
+    // handle retention policy hooks
+    await retentionHelpers(sqlClientPool).postDeploymentProjectPolicyHook(parseInt(projectId.toString(), 10), status)
+  } catch (e) {
+    logger.warn(`failed to perform postDeploymentProjectPolicyHook: ${e}`)
+  }
 
   const auditLog: AuditLog = {
     resource: {

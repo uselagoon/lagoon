@@ -75,5 +75,57 @@ export const Sql = {
       .select({ pid: 'environment.project' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
       .where('deployment.id', id)
-      .toString()
+      .toString(),
+  // this selects all deployments for the environment and returns everything outside of the requested retain value
+  selectDeploymentHistoryRetention: (environment: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM deployment
+      WHERE environment=`+environment+` AND id NOT IN (
+        SELECT id
+        FROM (
+          SELECT id
+          FROM deployment
+          WHERE environment=`+environment+`
+          ORDER BY id DESC
+          LIMIT `+retain+`
+        ) d
+      );`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything outside of the requested retain days value
+  selectDeploymentHistoryRetentionDays: (environment: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM deployment WHERE environment=`+environment+` AND created >= NOW() - INTERVAL `+retain+` DAY;`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything outside of the requested retain months value
+  selectDeploymentHistoryRetentionMonths: (environment: number, retain: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM deployment WHERE environment=`+environment+` AND created >= NOW() - INTERVAL `+retain+` MONTH;`)
+      .toString(),
+  // this selects all tasks for the environment and returns everything
+  selectDeploymentHistoryForEnvironment: (environment: number) =>
+    knex.raw(`SELECT id, name, remote_id FROM deployment WHERE environment=`+environment+`;`)
+      .toString(),
+  // same as select, except it deletes all deployments for the environment outside of the requested retain value
+  deleteDeploymentHistory: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM deployment
+      WHERE environment=`+environment+` AND id NOT IN (
+        SELECT id
+        FROM (
+          SELECT id
+          FROM deployment
+          WHERE environment=`+environment+`
+          ORDER BY id DESC
+          LIMIT `+retain+`
+        ) d
+      );`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteDeploymentHistoryDays: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM deployment WHERE environment=`+environment+` AND created >= NOW() - INTERVAL `+retain+` DAY;`)
+      .toString(),
+  // same as select, except it deletes all tasks for the environment outside of the requested retain value
+  deleteDeploymentHistoryMonths: (environment: number, retain: number) =>
+    knex.raw(`DELETE FROM deployment WHERE environment=`+environment+` AND created >= NOW() - INTERVAL `+retain+` MONTH;`)
+      .toString(),
+  // delete all deployments for environment
+  deleteDeploymentHistoryForEnvironment: (environment: number) =>
+    knex.raw(`DELETE FROM deployment WHERE environment=`+environment+`;`)
+      .toString(),
 };

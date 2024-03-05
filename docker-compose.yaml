@@ -126,6 +126,8 @@ services:
   actions-handler:
     image: ${IMAGE_REPO:-lagoon}/actions-handler:${IMAGE_REPO_ACTIONS_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
+    environment:
+      - S3_FILES_HOST=http://172.17.0.1:9000
     depends_on:
       - broker
   ssh:

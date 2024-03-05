@@ -793,6 +793,11 @@ const typeDefs = gql`
     """
     buildImage: String
     sharedBaasBucket: Boolean
+    """
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
+    if the project is associated to an organization, and the organization has any retention policies
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1083,6 +1088,10 @@ const typeDefs = gql`
     notifications(type: NotificationType): [Notification]
     created: String
     envVariables: [EnvKeyValue]
+    """
+    retentionPolicies are the available retention policies to an organization
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   input AddOrganizationInput {
@@ -1128,6 +1137,11 @@ const typeDefs = gql`
     groups: [OrgGroupInterface]
     groupCount: Int
     notifications: [OrganizationNotification]
+    """
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
+    if the project is associated to an organization, and the organization has any retention policies
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1486,6 +1500,7 @@ const typeDefs = gql`
     checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
     allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
     getAuditLogs(input: AuditLogInput): [AuditLog]
+    listRetentionPolicies(type: RetentionPolicyType, name: String): [RetentionPolicy]
   }
 
   type ProjectGroupsToOrganization {
@@ -2387,6 +2402,167 @@ const typeDefs = gql`
     name: String
   }
 
+  """
+  RetentionPolicyType is the types of retention policies supported in Lagoon
+  """
+  enum RetentionPolicyType {
+    HARBOR
+    HISTORY
+  }
+
+  """
+  HarborRetentionPolicy is the type for harbor retention policies
+  """
+  type HarborRetentionPolicy {
+    enabled: Boolean
+    rules: [HarborRetentionRule]
+    schedule: String
+  }
+  type HarborRetentionRule {
+    name: String
+    """
+    Pattern is based on doublestar path pattern matching and globbing (harbor uses this)
+    Example, '[^pr\\-]*/*' to exclude pullrequests in a pattern, and 'pr-*' to only match pullrequest environments
+    https://github.com/bmatcuk/doublestar#patterns
+    """
+    pattern: String
+    latestPulled: Int
+  }
+
+  """
+  HarborRetentionPolicyInput is the input for a HarborRetentionPolicy
+  """
+  input HarborRetentionPolicyInput {
+    enabled: Boolean!
+    rules: [HarborRetentionRuleInput!]
+    schedule: String!
+  }
+  input HarborRetentionRuleInput {
+    name: String!
+    pattern: String!
+    latestPulled: Int!
+  }
+
+  """
+  HistoryRetentionType is the types of retention policies supported in Lagoon
+  """
+  enum HistoryRetentionType {
+    COUNT
+    DAYS
+    MONTHS
+  }
+
+  """
+  HistoryRetentionPolicy is the type for history retention policies
+  """
+  type HistoryRetentionPolicy {
+    enabled: Boolean
+    deploymentHistory: Int
+    """
+    HistoryRetentionType to use
+    COUNT to retain up to X number items of history
+    DAYS to retain up to X number of days of history
+    MONTHS to retain up to X number of months of history
+    """
+    deploymentType: HistoryRetentionType
+    taskHistory: Int
+    """
+    HistoryRetentionType to use
+    COUNT to retain up to X number items of history
+    DAYS to retain up to X number of days of history
+    MONTHS to retain up to X number of months of history
+    """
+    taskType: HistoryRetentionType
+  }
+
+  """
+  HistoryRetentionPolicyInput is the input for a HistoryRetentionPolicy
+  """
+  input HistoryRetentionPolicyInput {
+    enabled: Boolean!
+    deploymentHistory: Int!
+    deploymentType: HistoryRetentionType!
+    taskHistory: Int!
+    taskType: HistoryRetentionType!
+  }
+
+  """
+  RetentionPolicyConfiguration is a union type of different retention policies supported in Lagoon
+  """
+  union RetentionPolicyConfiguration = HarborRetentionPolicy | HistoryRetentionPolicy
+
+  """
+  RetentionPolicy is the return type for retention policies in Lagoon
+  """
+  type RetentionPolicy {
+    id: Int
+    name: String
+    type: String
+    """
+    configuration is the return type of union based retention policy configurations, the type of retention policy
+    influences the return type needed here
+    """
+    configuration: RetentionPolicyConfiguration
+    created: String
+    updated: String
+    """
+    source is where the retention policy source is coming from, this field is only populated when a project or organization
+    lists the available retention polices, and is used to indicate if a project is consuiming a retention policy from the project directly
+    or from the organization itself
+    """
+    source: String
+  }
+
+  """
+  AddRetentionPolicyInput is used as the input for updating a retention policy, this is a union type
+  Currently only the 'harbor' type is supported as an input, if other retention policies are added in the future
+  They will be subfields of this input, the RetentionPolicyType must match the subfield input type
+  """
+  input AddRetentionPolicyInput {
+    id: Int
+    name: String!
+    type: RetentionPolicyType!
+    harbor: HarborRetentionPolicyInput
+    history: HistoryRetentionPolicyInput
+  }
+
+  """
+  UpdateRetentionPolicyPatchInput is used as the input for updating a retention policy, this is a union type
+  Currently only the 'harbor' type is supported as a patch input, if other retention policies are added in the future
+  They will be subfields of this patch input
+  """
+  input UpdateRetentionPolicyPatchInput {
+    name: String
+    harbor: HarborRetentionPolicyInput
+    history: HistoryRetentionPolicyInput
+  }
+
+  """
+  UpdateRetentionPolicyInput is used as the input for updating a retention policy
+  """
+  input UpdateRetentionPolicyInput {
+    id: Int!
+    patch: UpdateRetentionPolicyPatchInput
+  }
+
+  """
+  RetentionPolicyScope is the types of retention policies scopes in Lagoon
+  """
+  enum RetentionPolicyScope {
+    GLOBAL
+    ORGANIZATION
+    PROJECT
+  }
+
+  """
+  AddRetentionPolicyLinkInput is used as the input for associating a retention policy with a scope
+  """
+  input AddRetentionPolicyLinkInput {
+    id: Int!
+    scope: RetentionPolicyScope!
+    scopeName: String
+  }
+
   type Mutation {
     """
     Add Environment or update if it is already existing
@@ -2602,6 +2778,26 @@ const typeDefs = gql`
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
     addPlatformRoleToUser(user: UserInput!, role: PlatformRole!): User
     removePlatformRoleFromUser(user: UserInput!, role: PlatformRole!): User
+    """
+    Create a retention policy
+    """
+    createRetentionPolicy(input: AddRetentionPolicyInput!): RetentionPolicy
+    """
+    Update a retention policy
+    """
+    updateRetentionPolicy(input: UpdateRetentionPolicyInput!): RetentionPolicy
+    """
+    Delete a retention policy
+    """
+    deleteRetentionPolicy(id: Int!): String
+    """
+    Add an existing retention policy to a resource type
+    """
+    addRetentionPolicyLink(input: AddRetentionPolicyLinkInput!): RetentionPolicy
+    """
+    Remove an existing retention policy from a resource type
+    """
+    removeRetentionPolicyLink(input: AddRetentionPolicyLinkInput!): String
   }
 
   type Subscription {
