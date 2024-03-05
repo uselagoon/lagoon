@@ -24,6 +24,16 @@ type LagoonAPI struct {
 	Version         string `json:"version"`
 }
 
+// S3Configuration .
+type S3Configuration struct {
+	S3FilesAccessKeyID     string
+	S3FilesSecretAccessKey string
+	S3FilesBucket          string
+	S3FilesRegion          string
+	S3FilesOrigin          string
+	S3IsGCS                bool
+}
+
 // Action is the structure of an action that is received via the message queue.
 type Action struct {
 	Type      string                 `json:"type"`      // defines the action type
@@ -35,6 +45,7 @@ type Action struct {
 type Messenger struct {
 	Config                  mq.Config
 	LagoonAPI               LagoonAPI
+	S3Configuration         S3Configuration
 	ConnectionAttempts      int
 	ConnectionRetryInterval int
 	ActionsQueueName        string
@@ -43,10 +54,11 @@ type Messenger struct {
 }
 
 // New returns a messaging with config
-func New(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInterval int, actionsQueueName, controllerQueueName string, enableDebug bool) *Messenger {
+func New(config mq.Config, lagoonAPI LagoonAPI, s3Configuration S3Configuration, startupAttempts int, startupInterval int, actionsQueueName, controllerQueueName string, enableDebug bool) *Messenger {
 	return &Messenger{
 		Config:                  config,
 		LagoonAPI:               lagoonAPI,
+		S3Configuration:         s3Configuration,
 		ConnectionAttempts:      startupAttempts,
 		ConnectionRetryInterval: startupInterval,
 		ActionsQueueName:        actionsQueueName,
@@ -107,6 +119,10 @@ func (m *Messenger) Consumer() {
 		// and perform the steps to run the mutation against the lagoon api
 		case "deployEnvironmentLatest":
 			err = m.handleDeployEnvironment(ctx, messageQueue, action, messageID)
+		// check if this a `retentionCleanup` type of action
+		// and perform the steps to clean up anything related to the retention clean up event type
+		case "retentionCleanup":
+			err = m.handleRetention(ctx, messageQueue, action, messageID)
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
