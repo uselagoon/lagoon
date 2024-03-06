@@ -18,11 +18,11 @@
 $conf['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 ```
 
-## Drupal 8+ with cache tag purging
+## Drupal 10+ with cache tag purging
 
 Use Composer to get the latest version of the module:
 
-```bash title="Install Fastly"
+```bash title="Download the Fastly Drupal module and dependencies"
 composer require drupal/fastly drupal/http_cache_control drupal/purge
 ```
 
@@ -30,7 +30,7 @@ You will need to enable the following modules:
 
 * `fastly`
 * `fastlypurger`
-* `http_cache_control` \(2.x\)
+* `http_cache_control` (2.x)
 * `purge`
 * `purge_ui` (technically optional, but this is really handy to have enabled on production)
 * `purge_processor_lateruntime`
@@ -40,12 +40,10 @@ You will need to enable the following modules:
 
 ### Configure the Fastly module in Drupal
 
-Configure the Fastly service ID and API token. You can use runtime environment variables, or you can edit the settings form found at `/admin/config/services/fastly`:
+Configure the Fastly service ID and API token. A Site ID is generated for you automatically. You can use runtime environment variables, or you can edit the settings form found at `/admin/config/services/fastly`:
 
 * `FASTLY_API_TOKEN`
 * `FASTLY_API_SERVICE`
-
-A `site ID` is required, the module will generate one for you when you first install it. The idea behind the site ID is that it is a unique string which is appended as a cache tag on all requests. Thus, you are able to purge a single site from Fastly, even though multiple sites may flow through the same service in Fastly.
 
 #### Set the purge options
 
@@ -57,20 +55,20 @@ A `4` character cache tag is plenty for most sites, a `5` character cache tag is
 !!! Note
     Soft purging should be used, this means the object in Fastly is marked as stale, rather than being evicted entirely so that it can be used in the event the origin is down (with the feature [serve while stale](https://developer.fastly.com/solutions/tutorials/stale/)).
 
-![Fastly admin UI for purging. Shows the configuration options for cache tag length and using soft purge](https://camo.githubusercontent.com/8d0fb54560570966c2387c9b88c76d366f5d85e2f8901b644a06ca3f41210ed2/68747470733a2f2f692e6962622e636f2f34677777644c762f666173746c792d70757267652e706e67)
+![Fastly admin UI for purging. Shows the configuration options for cache tag length and using soft purge](../images/fastly-cachetag.png)
 
 #### Set the Stale Content Options
 
 Set the options to what makes sense for your site. Minimum 1 hour (`3600`), maximum 1 week (`604800`). Generally something like the following will be fine:
 
-1. Stale while revalidate - on, 14440 seconds
-2. Stale if error - on, 604800 seconds
+1. Stale while revalidate - on, `14440` seconds
+2. Stale if error - on, `604800` seconds
 
-![Fastly admin UI for stale](https://camo.githubusercontent.com/716e9ae28671301f840c8e650ad48f0b7a997c6783859e23d1147904635a27dd/68747470733a2f2f692e6962622e636f2f4d5334736838622f666173746c792d7374616c652e706e67)
+![Fastly admin UI for stale](../images/fastly-swr.png)
 
-Optionally configure the webhooks \(so you can ping Slack for instance when a cache purge is sent\).
+Optionally configure the webhooks (so you can ping Slack for instance when a cache purge is sent).
 
-![Fastly admin UI for webhooks](https://camo.githubusercontent.com/984a7649f481135762f14304340d6dab85d7edc785018a19b758a831e8337acf/68747470733a2f2f692e6962622e636f2f78317a735a48702f70757267652d776562686f6f6b2e706e67)
+![Fastly admin UI for webhooks](../images/fastly-webhook.png)
 
 ### Configure the Purge module
 
@@ -83,15 +81,17 @@ Set up the following options:
 * Drupal Origin: Tag
 * Fastly: E, Tag, URL
 
+![Purge admin UI configuration for purgers](../images/fastly-invalidate.png)
+
 #### Queue
 
 * Queuers: Core tags queuer, Purge block(s)
 * Queue: Database
 * Processors: Core processor, Late runtime processor, Purge block(s)
 
-![Fastly Admin UI configuration](https://camo.githubusercontent.com/c4020852ed509b77dc52ae16572b048f49a38b0f88a901ae4593ed970d481f95/68747470733a2f2f692e6962622e636f2f4659304c7363432f666173746c792e706e67)
+![Purge admin UI configuration for queues](../images/fastly-queue.png)
 
-What this means is that we will be using Drupal's built in core tag queuer \(add tags to the queue\), the queue will be stored in the database (default), and the queue will be processed by
+What this means is that we will be using Drupal's built-in core tag queuer (add tags to the queue), the queue will be stored in the database (default), and the queue will be processed by
 
 * Cron processor
 * Late runtime processor
@@ -186,12 +186,14 @@ From the above headers we can see that:
 
 If you ever want to remove a specific page from cache manually, there are ways to do this.
 
-```bash title="Single page U"
+```bash title="Purge Fastly by single URL"
 curl -Ssi -XPURGE -H 'Fastly-Soft-Purge:1' -H "Fastly-Key:$FASTLY_API_TOKEN" https://www.example.com/subpage
 ```
 
 You can also purge by cache tag:
 
-```bash title="Cache tags"
+```bash title="Purge Fastly by cache tag"
 curl -XPOST -H 'Fastly-Soft-Purge:1' -H "Fastly-Key:$FASTLY_API_TOKEN" https://api.fastly.com/service/$FASTLY_API_SERVICE/purge/<surrogatekey>
 ```
+
+You can also use the [Fastly CLI](https://github.com/fastly/cli) which helps to make this a little nicer.
