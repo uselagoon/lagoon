@@ -37,6 +37,18 @@ export const Sql = {
       .select('nt.*', 'pn.*', knex.raw('? as orig_type', [type]))
       .toString();
   },
+  // TODO - better solution than union
+  selectAllNotifications:() => {
+      let query = knex.union([
+        knex('notification_slack').select(knex.raw('"slack" as Type, id, name, webhook')),
+        knex('notification_webhook').select(knex.raw('"webhook" as Type, id, name, webhook')),
+        knex('notification_rocketchat').select(knex.raw('"rocketchat" as Type, id, name, webhook')),
+        knex('notification_microsoftteams').select(knex.raw('"microsoftteams" as Type, id, name, webhook')),
+        knex('notification_email').select(knex.raw('"email" as Type, id, name, email_address')),
+      ])
+
+      return query.toString();
+  },
   deleteProjectNotification: input => {
     const deleteQuery = knex.raw(
       `DELETE pn

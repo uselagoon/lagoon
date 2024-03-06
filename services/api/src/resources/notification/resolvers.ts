@@ -705,3 +705,16 @@ export const removeAllNotificationsFromAllProjects: ResolverFn = async (
   // TODO: Check rows for success
   return 'success';
 };
+
+// WIP
+export const getAllNotifications: ResolverFn = async (
+  root,
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  await hasPermission('notification', 'view');
+
+  const rows = await query(sqlClientPool, Sql.selectAllNotifications())
+  return rows;
+
+};
