@@ -134,7 +134,7 @@ const apolloServer = new ApolloServer({
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
         // grab the users project ids and roles in the first request
-        groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+        groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
       }
 
       return {
@@ -198,7 +198,7 @@ const apolloServer = new ApolloServer({
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
         // grab the users project ids and roles in the first request
-        groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+        groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
       }
 
       // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
