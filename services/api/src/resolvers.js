@@ -152,6 +152,7 @@ const {
   deleteNotificationWebhook,
   getNotificationsByProjectId,
   getNotificationsByOrganizationId,
+  getNotificationByNameAndType,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
@@ -595,7 +596,8 @@ const resolvers = {
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
-    checkBulkImportProjectsAndGroupsToOrganization
+    checkBulkImportProjectsAndGroupsToOrganization,
+    notificationByNameAndType: getNotificationByNameAndType
   },
   Mutation: {
     addProblem,

@@ -705,3 +705,46 @@ export const removeAllNotificationsFromAllProjects: ResolverFn = async (
   // TODO: Check rows for success
   return 'success';
 };
+
+export const getNotificationByNameAndType: ResolverFn = async (
+  root,
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+
+  let notificationName: string;
+  let notificationType: string;
+
+  if (args) {
+    notificationName = args.name;
+    notificationType = args.type;
+  }
+
+  const row = await query(sqlClientPool, Sql.selectNotificationByNameAndType(notificationName, notificationType));
+  let res = row[0];
+
+  const nid = await Helpers(sqlClientPool).getAssignedNotificationIds({
+    name: notificationName,
+    type: notificationType
+  });
+
+  if (nid == res.id) {
+    res = await query(
+      sqlClientPool,
+      Sql.selectProjectNotificationByNameAndType(notificationName, notificationType),
+    );
+  }
+
+  if (!res) {
+    return null;
+  }
+
+  const result = res[0]
+  result.type = notificationType;
+
+  await hasPermission('notification', 'view', {
+    notification: result.id,
+  });
+  console.log(result);
+  return result;
+};

@@ -1456,6 +1456,10 @@ const typeDefs = gql`
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
+    Get a notification by its name and type
+    """
+    notificationByNameAndType(name: String, type: NotificationType) : Notification
+    """
     List all organizations
     """
     allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
