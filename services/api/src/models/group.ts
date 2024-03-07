@@ -224,7 +224,7 @@ export const Group = (clients: {
         R.filter(R.propEq('name', name))
       )(keycloakGroups);
 
-      if (R.isNil(group)) {
+      if (R.isEmpty(group)) {
         throw new GroupNotFoundError(`Group not found: ${name}`);
       }
 
