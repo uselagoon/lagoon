@@ -721,30 +721,30 @@ export const getNotificationByNameAndType: ResolverFn = async (
   }
 
   const row = await query(sqlClientPool, Sql.selectNotificationByNameAndType(notificationName, notificationType));
-  let res = row[0];
+  let notification = row[0];
 
   const nid = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name: notificationName,
     type: notificationType
   });
 
-  if (nid == res.id) {
-    res = await query(
+  if (nid == notification.id) {
+    const projectNotification = await query(
       sqlClientPool,
       Sql.selectProjectNotificationByNameAndType(notificationName, notificationType),
     );
+    notification = projectNotification[0]
   }
 
-  if (!res) {
+  if (!notification) {
     return null;
   }
 
-  const result = res[0]
+  const result = notification
   result.type = notificationType;
 
   await hasPermission('notification', 'view', {
     notification: result.id,
   });
-  console.log(result);
   return result;
 };
