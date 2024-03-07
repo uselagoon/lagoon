@@ -98,7 +98,7 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
                 String parentName = parent.getName();
                 List<String> projectIds = new ArrayList();
                 try (Connection c = DbUtil.getConnection()) {
-                    PreparedStatement statement = c.prepareStatement("SELECT project_id FROM group_projects WHERE group_id='"+parent.getId()+"'");
+                    PreparedStatement statement = c.prepareStatement("SELECT project_id FROM kc_group_projects WHERE group_id='"+parent.getId()+"'");
                     ResultSet resultSet = statement.executeQuery();
                     while (resultSet.next()) {
                         projectIds.add(resultSet.getString(1));
