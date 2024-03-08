@@ -19,21 +19,30 @@ export const up = async (migrate) => {
 
   // load all groups from keycloak
   const allGroups = await GroupModel.loadAllGroups();
-  // transform them into lagoon expected format
-  const keycloakGroups = await GroupModel.transformKeycloakGroups(allGroups);
-  for (const kg of keycloakGroups) {
-    // extract the project ids from the group
-    const groupProjects = await GroupModel.getProjectsFromGroupAndSubgroups(kg);
-    for (const pid of groupProjects) {
-      // add them to the database
-      logger.info(`Migrating project ${pid} and groupId ${kg.id} to database`)
-      await Helpers(sqlClientPool).addProjectToGroup(pid, kg.id)
-    }
-    // if the group is in an organization
-    if (R.prop('lagoon-organization', kg.attributes)) {
-      // add it to the database
-      logger.info(`Migrating groupId ${kg.id} in organization ${R.prop('lagoon-organization', kg.attributes)} to database`)
-      await Helpers(sqlClientPool).addOrganizationToGroup(parseInt(R.prop('lagoon-organization', kg.attributes)[0], 10), kg.id)
+  // flatten them out
+  const flattenGroups = (groups, group) => {
+    groups.push(R.omit(['subGroups'], group));
+    const flatSubGroups = group.subGroups.reduce(flattenGroups, []);
+    return groups.concat(flatSubGroups);
+  };
+  const fgs = R.pipe(
+    R.reduce(flattenGroups, []),
+    )(allGroups)
+  // loop over the groups ignoring `role-subgroup` groups
+  for (const fg of fgs) {
+    if (fg.attributes['type'] != "role-subgroup") {
+      const groupProjects = await GroupModel.getProjectsFromGroup(fg);
+      for (const pid of groupProjects) {
+        logger.info(`Migrating project ${pid} and group ${fg.name}/${fg.id} to database`)
+        // add the project group association to the database
+        await Helpers(sqlClientPool).addProjectToGroup(pid, fg.id)
+      }
+      // if the group is in an organization
+      if (R.prop('lagoon-organization', fg.attributes)) {
+        // add the organization group association to the database
+        logger.info(`Migrating group ${fg.name}/${fg.id} in organization ${R.prop('lagoon-organization', fg.attributes)} to database`)
+        await Helpers(sqlClientPool).addOrganizationToGroup(parseInt(R.prop('lagoon-organization', fg.attributes)[0], 10), fg.id)
+      }
     }
   }
 

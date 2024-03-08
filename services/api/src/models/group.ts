@@ -263,9 +263,10 @@ export const Group = (clients: {
     // briefRepresentation pulls all the group information from keycloak including the attributes
     // this means we don't need to iterate over all the groups one by one anymore to get the full group information
     const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
-    const keycloakGroups = await transformKeycloakGroups(fullGroups);
-
-    return keycloakGroups;
+    // no need to transform, just return the full response, only the `allGroups` and `deleteAllGroups` resolvers use this
+    // and the `sync-groups-opendistro-security` consumption of this helper sync script is going to
+    // go away in the future when we move to the `lagoon-opensearch-sync` supporting service
+    return fullGroups;
   };
 
   const loadParentGroup = async (groupInput: Group): Promise<Group> =>
@@ -463,6 +464,23 @@ export const Group = (clients: {
       let existingProjectsIds = [];
       existingProjectsIds.push(...existingProjects.map(epi => epi.id));
       return projectIdsArray.filter(item => existingProjectsIds.some(existingProjectsIds => existingProjectsIds === item))
+    } catch (err) {
+      return [];
+    }
+  };
+
+  // return only project ids that still exist in lagoon in the response for which projects this group has assigned
+  // in the past some groups could have been deleted from lagoon and their `attribute` in keycloak remained
+  const getProjectsFromGroup = async (
+    group: Group
+  ): Promise<number[]> => {
+    try {
+      const groupProjectIds = getProjectIdsFromGroup(group);
+      // remove deleted projects from the result to prevent null errors in user queries
+      const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(groupProjectIds);
+      let existingProjectsIds = [];
+      existingProjectsIds.push(...existingProjects.map(epi => epi.id));
+      return existingProjectsIds
     } catch (err) {
       return [];
     }
@@ -970,6 +988,7 @@ export const Group = (clients: {
     loadGroupsByProjectIdFromGroups,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,
+    getProjectsFromGroup,
     addGroup,
     updateGroup,
     deleteGroup,
