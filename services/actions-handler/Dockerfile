@@ -2,6 +2,10 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM golang:1.21-alpine AS builder
+
+# add Git to the builder
+RUN apk update && apk add git
+
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/actions-handler/
