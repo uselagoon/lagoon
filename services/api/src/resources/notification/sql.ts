@@ -37,7 +37,6 @@ export const Sql = {
       .select('nt.*', 'pn.*', knex.raw('? as orig_type', [type]))
       .toString();
   },
-  // TODO - better solution than union
   selectAllNotifications: (type: string) =>
     knex(`notification_${type}`)
       .select('*', knex.raw(`'${type}' as type`))
