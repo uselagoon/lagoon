@@ -353,7 +353,7 @@ mocks.EnvironmentStorage = (parent, args = {}, context, info) => ({
   id: faker.random.number(),
   environment: args.hasOwnProperty('environment') ? { id: args.environment.id } : { id: mocks.Environment().id },
   persistentStorageClaim: '',
-  bytesUsed: faker.random.number({ precision: 0.001 }), // Float
+  kibUsed: faker.random.number({ precision: 0.001 }), // Float
   updated: mocks.Date(),
 });
 
@@ -361,7 +361,7 @@ mocks.EnvironmentStorageMonth = () => {
   const date = new Date(mocks.Date());
   return {
     month: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    bytesUsed: faker.random.number({ precision: 0.001 }),
+    kibUsed: faker.random.number({ precision: 0.001 }),
   };
 };
 
