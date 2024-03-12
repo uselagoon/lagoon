@@ -357,7 +357,7 @@ mutation PopulateApi {
     type
   }
 
-  UIProject1Environment1addStorage: addOrUpdateStorageOnEnvironment(input:{
+  UIProject1Environment1addStorage1: addOrUpdateStorageOnEnvironment(input:{
     environment: 3
     persistentStorageClaim: "nginx"
     kibUsed: 200000
@@ -366,7 +366,7 @@ mutation PopulateApi {
     kibUsed
   }
 
-  UIProject1Environment1addStorage: addOrUpdateStorageOnEnvironment(input:{
+  UIProject1Environment1addStorage2: addOrUpdateStorageOnEnvironment(input:{
     environment: 3
     persistentStorageClaim: "mariadb"
     kibUsed: 200000

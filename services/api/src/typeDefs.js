@@ -2335,8 +2335,8 @@ const typeDefs = gql`
     """
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
-    ): EnvironmentStorage  @deprecated(reason: "Use addOrUpdateStorageonEnvironment instead")
-    addOrUpdateStorageonEnvironment(
+    ): EnvironmentStorage  @deprecated(reason: "Use addOrUpdateStorageOnEnvironment instead")
+    addOrUpdateStorageOnEnvironment(
       input: AddOrUpdateStorageOnEnvironmentInput!
     ): EnvironmentStorage
     addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
