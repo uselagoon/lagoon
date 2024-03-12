@@ -85,7 +85,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## How do I remove a route?
 
-You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at [support@amazee.io](mailto:support@amazee.io) or on [Discord](https://discord.gg/te5hHe95JE).
+Lagoon will detect the removal of routes from your `.lagoon.yml` during a deployment. Check the deployment logs to confirm that the routes were removed automatically or for instructions on how to remove them.
 
 ## When I run `pygmy status`, no keys are loaded
 

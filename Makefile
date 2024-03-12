@@ -334,6 +334,21 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+.PHONY: local-dev-yarn
+local-dev-yarn:
+	$(MAKE) local-dev-yarn-stop
+	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-20-builder
+	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
+	docker exec local-dev-yarn bash -c "cd /app/node-packages/commons && yarn build"
+	echo -e "use 'yarn workspace api add package@version' to update a package in workspace api"
+	docker exec -it local-dev-yarn bash
+	$(MAKE) local-dev-yarn-stop
+
+.PHONY: local-dev-yarn-stop
+local-dev-yarn-stop:
+	docker stop local-dev-yarn || true
+	docker rm local-dev-yarn || true
+
 .PHONY: ui-development
 ui-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
@@ -348,13 +363,13 @@ ui-logs-development: build-ui-logs-development
 
 ## CI targets
 
-KUBECTL_VERSION := v1.27.3
-HELM_VERSION := v3.13.1
+KUBECTL_VERSION := v1.28.6
+HELM_VERSION := v3.14.2
 K3D_VERSION = v5.6.0
 GOJQ_VERSION = v0.12.13
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.10.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.27.3-k3s1
+K3D_IMAGE = docker.io/rancher/k3s:v1.28.6-k3s2
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = keycloak-migrations
 TASK_IMAGES = task-activestandby
@@ -429,7 +444,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
 	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
 	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
-	./local-dev/helm repo add minio https://helm.min.io/
+	./local-dev/helm repo add minio https://charts.min.io/
 	./local-dev/helm repo add nats https://nats-io.github.io/k8s/helm/charts/
 	./local-dev/helm repo update
 

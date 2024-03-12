@@ -41,7 +41,7 @@ interface UserEdit {
 interface UserModel {
   loadAllUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
-  loadUserByUsername: (username: string) => Promise<User>;
+  loadUserByUsername: (email: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
   getAllOrganizationIdsForUser: (userInput: User) => Promise<number[]>;
@@ -236,22 +236,22 @@ export const User = (clients: {
   };
 
   // used by project resolver only, so leave this one out of redis for now
-  const loadUserByUsername = async (username: string): Promise<User> => {
+  const loadUserByUsername = async (email: string): Promise<User> => {
     const keycloakUsers = await keycloakAdminClient.users.find({
-      username
+      email
     });
 
     if (R.isEmpty(keycloakUsers)) {
-      throw new UserNotFoundError(`User not found: ${username}`);
+      throw new UserNotFoundError(`User not found: ${email}`);
     }
 
     const userId = R.pipe(
-      R.filter(R.propEq('username', username)),
+      R.filter(R.propEq('email', email)),
       R.path(['0', 'id'])
     )(keycloakUsers);
 
     if (R.isNil(userId)) {
-      throw new UserNotFoundError(`User not found: ${username}`);
+      throw new UserNotFoundError(`User not found: ${email}`);
     }
 
     // @ts-ignore
@@ -263,11 +263,11 @@ export const User = (clients: {
       return loadUserById(R.prop('id', userInput));
     }
 
-    if (R.prop('username', userInput)) {
-      return loadUserByUsername(R.prop('username', userInput));
+    if (R.prop('email', userInput)) {
+      return loadUserByUsername(R.prop('email', userInput));
     }
 
-    throw new Error('You must provide a user id or username');
+    throw new Error('You must provide a user id or email');
   };
 
   // used to list onwers of organizations
