@@ -461,6 +461,7 @@ const typeDefs = gql`
     keyType: String
     keyFingerprint: String
     created: String
+    lastUsed: String
   }
 
   type User {
