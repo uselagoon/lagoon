@@ -15,7 +15,8 @@
     "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
     "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
     "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
-    "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
+    "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js",
+    "migrations:lagoon": "node dist/migrations/lagoon/migrations.js"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -49,7 +50,7 @@
     "jsonwebtoken": "^8.0.1",
     "keycloak-admin": "https://github.com/amazeeio/keycloak-admin.git#bd015d2e34634f262c0827f00620657427e3c252",
     "keycloak-connect": "^5.0.0",
-    "knex": "^0.95.15",
+    "knex": "^3.0.1",
     "mariadb": "^2.5.2",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",

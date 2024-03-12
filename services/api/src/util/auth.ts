@@ -244,7 +244,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
           // but could happen elsewhere
           const keycloakUsersGroups = await UserModel.getAllGroupsForUser(currentUser.id);
           // grab the users project ids and roles in the first request
-          groupRoleProjectIds = await UserModel.getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+          groupRoleProjectIds = await UserModel.getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
 
           [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
         }
