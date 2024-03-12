@@ -452,6 +452,7 @@ const typeDefs = gql`
     # This just returns the group name, id and the role the user has in that group.
     # This is a neat way to visualize a users specific access without having to get all members of a group
     groupRoles: [GroupRoleInterface]
+    lastAccessed: String
   }
 
   type GroupMembership {
