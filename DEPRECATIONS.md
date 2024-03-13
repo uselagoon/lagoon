@@ -17,6 +17,7 @@ release link: https://github.com/uselagoon/lagoon/releases/tag/v2.18.0
 * The value for `registry` which was previously required by the `lagoon-core` chart is no longer required. If you are using this, you will need to add it under the new `unauthenticatedRegistry` setting when installing `lagoon-remote` in the `lagoon-build-deploy` section of your values file. If you aren't using an actual registry and have the example `disabled-only-use-harbor-via-deploy-controller.invalid` value, then you do not need to do anything except you can now remove the `registry` setting from your core values file.
 * The environment storage return field named `bytesUsed` is deprecated. The actual value stored is `kibibytes`. A new return field called `kibUsed` exists and should be used, the returned data is the same and both fields are still returned. `bytesUsed` will be removed in a future release, make any adjustments now to use `kibUsed`. This will be a breaking change in a future release.
 * `addOrUpdateEnvironmentStorage` is deprecated, `addOrUpdateStorageOnEnvironment` is the replacement to use as it supports the updated input value for `kibUsed`. `addOrUpdateEnvironmentStorage` will be completely removed in a future release.
+* The ability to configure projects to use different subsystems for managing deployments/tasks has been removed. Setting any values for the `activeSystems*` fields on the project will have no effect and the fields will be removed in a future release.
 
 ### Lagoon v2.17.0
 

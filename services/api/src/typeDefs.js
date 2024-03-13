@@ -681,31 +681,11 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
-    """
-    Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsDeploy: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsPromote: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerRemove' exists
-    """
-    activeSystemsRemove: String
-    """
-    Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_controllerJob' exists
-    """
-    activeSystemsTask: String
-    """
-    Which internal Lagoon System is responsible for miscellaneous tasks
-    Currently only 'lagoon_controllerMisc' exists
-    """
-    activeSystemsMisc: String
+    activeSystemsDeploy: String @deprecated(reason: "No longer in use")
+    activeSystemsPromote: String @deprecated(reason: "No longer in use")
+    activeSystemsRemove: String @deprecated(reason: "No longer in use")
+    activeSystemsTask: String @deprecated(reason: "No longer in use")
+    activeSystemsMisc: String @deprecated(reason: "No longer in use")
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed

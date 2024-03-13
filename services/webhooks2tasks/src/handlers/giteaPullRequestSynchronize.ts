@@ -99,8 +99,6 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: ${error}`

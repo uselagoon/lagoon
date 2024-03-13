@@ -6,38 +6,70 @@ import { logger } from './logs/local-logger';
 import { envHasConfig, getConfigFromEnv } from './util/config';
 
 export interface Project {
-  slack: any;
-  name: string;
-  openshift: DeployTarget;
+  autoIdle: number;
+  availability: ProjectAvailability;
+  branches: string;
+  buildImage: string;
+  created: string;
   deploymentsDisabled: number;
-  sharedBaasBucket?: boolean;
-  routerPattern?: string;
-  envVariables?: any;
-  gitUrl?: string;
-  subfolder?: string;
-  activesystemsdeploy?: string;
-  activesystemsremove?: string;
-  branches?: string;
-  productionenvironment?: string;
-  autoidle?: number;
-  storagecalc?: number;
-  pullrequests?: string;
-  openshiftprojectpattern?: string;
-  productionRoutes?: string;
-  standbyRoutes?: string;
-  productionEnvironment?: string;
-  standbyProductionEnvironment?: string;
-  organization?: number;
+  // deployTargetConfigs: ;
+  developmentBuildPriority: number;
+  developmentEnvironmentsLimit: number;
+  // environments: ;
+  envVariables: EnvKeyValue[];
+  factsUI: number;
+  gitUrl: string;
+  // groups: ;
+  id: number;
+  kubernetes: Kubernetes;
+  kubernetesNamespacePattern: string;
+  // metadata: ;
+  name: string;
+  // notifications: ;
+  openshift: Kubernetes;
+  openshiftProjectName: string;
+  openshiftProjectPattern: string;
+  organization: number;
+  privateKey: string;
+  problemsUI: string;
+  productionAlias: string;
+  productionBuildPriority: number;
+  productionEnvironment: string;
+  productionRoutes: string;
+  publicKey: string;
+  pullrequests: string;
+  routerPattern: string;
+  sharedBaasBucket: boolean;
+  standbyAlias: string;
+  standbyProductionEnvironment: string;
+  standbyRoutes: string;
+  storageCalc: number;
+  subfolder: string;
 }
 
-export interface DeployTarget {
+export interface Kubernetes {
+  buildImage: string;
+  cloudProvider: string;
+  cloudRegion: string;
+  consoleUrl: string;
+  created: string;
+  disabled: boolean;
+  friendlyName: string;
+  id: number;
+  monitoringConfig: any;
   name: string;
-  sharedBaasBucketName?: string;
-  routerPattern?: string;
-  disabled?: boolean;
-  id?: number
-  buildImage?: string
-  monitoringConfig?: any
+  routerPattern: string;
+  sharedBaasBucketName: string;
+  sshHost: string;
+  sshPort: string;
+  token: string;
+}
+
+export interface EnvKeyValue {
+  id: number;
+  name: string;
+  scope: EnvVariableScope;
+  value: string;
 }
 
 interface GroupPatch {
@@ -57,8 +89,6 @@ interface ProjectPatch {
   gitUrl?: string;
   subfolder?: string;
   routerPattern?: string;
-  activesystemsdeploy?: string;
-  activesystemsremove?: string;
   branches?: string;
   productionenvironment?: string;
   autoidle?: number;
@@ -103,6 +133,20 @@ enum EnvType {
   DEVELOPMENT = 'development'
 }
 
+enum ProjectAvailability {
+  STANDARD = 'STANDARD',
+  HIGH = 'HIGH',
+  POLYSITE = 'POLYSITE'
+}
+
+export enum EnvVariableScope {
+  BUILD = 'build',
+  RUNTIME = 'runtime',
+  GLOBAL = 'global',
+  CONTAINER_REGISTRY = 'container_registry',
+  INTERNAL_CONTAINER_REGISTRY = 'internal_container_registry'
+}
+
 let transportOptions: {
   headers: {
     Authorization?: string
@@ -116,8 +160,9 @@ let transportOptions: {
 const transport = new Transport(`${getConfigFromEnv('API_HOST', 'http://api:3000')}/graphql`, {transportOptions});
 
 export const graphqlapi = new Lokka({ transport });
+export const lagoonApi = graphqlapi;
 
-class ProjectNotFound extends Error {
+export class ProjectNotFound extends Error {
   constructor(message) {
     super(message);
     this.name = 'ProjectNotFound';
@@ -135,13 +180,6 @@ class EnvironmentNotFound extends Error {
   constructor(message) {
     super(message);
     this.name = 'EnvironmentNotFound';
-  }
-}
-
-class NoActiveSystemsDefined extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'NoActiveSystemsDefined';
   }
 }
 
@@ -613,24 +651,6 @@ export const deleteProject = (name: string): Promise<any> =>
     { name }
   );
 
-export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
-  const result = await graphqlapi.query(`
-    {
-      allProjects(gitUrl: "${gitUrl}") {
-        name
-        productionEnvironment
-        deploymentsDisabled
-      }
-    }
-  `);
-
-  if (!result || !result.allProjects || !result.allProjects.length) {
-    throw new ProjectNotFound(`Cannot find project for git repo ${gitUrl}`);
-  }
-
-  return result.allProjects;
-}
-
 export async function getProjectByName(project: string): Promise<any> {
   const result = await graphqlapi.query(`
     {
@@ -815,54 +835,6 @@ export async function getEmailInfoForProject(
   }
 
   return result.project.emails;
-}
-
-interface GetActiveSystemForProjectResult {
-  id: number;
-  branches: string;
-  pullrequests: string;
-  organization: number;
-  activeSystemsDeploy: string;
-  activeSystemsPromote: string;
-  activeSystemsRemove: string;
-  activeSystemsTask: string;
-  activeSystemsMisc: string;
-}
-
-export async function getActiveSystemForProject(
-  project: string,
-  task: 'Deploy' | 'Promote' | 'Remove' | 'Task' | 'Misc'
-): Promise<GetActiveSystemForProjectResult> {
-  const field = `activeSystems${task}`;
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        id
-        activeSystemsDeploy
-        activeSystemsPromote
-        activeSystemsRemove
-        activeSystemsTask
-        activeSystemsMisc
-        branches
-        pullrequests
-        organization
-      }
-    }
-  `);
-
-  if (!result || !result.project) {
-    throw new ProjectNotFound(
-      `Cannot find active-systems information for project ${project}`
-    );
-  }
-
-  if (!result.project[field]) {
-    throw new NoActiveSystemsDefined(
-      `Cannot find active system for task ${task} in project ${project}`
-    );
-  }
-
-  return result.project;
 }
 
 export async function getEnvironmentByName(
@@ -1118,40 +1090,71 @@ export async function deleteEnvironment(
   );
 }
 
-export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
+interface GetOpenshiftInfoForProjectResult {
+  project: Pick<
+    Project,
+    | 'autoIdle'
+    | 'availability'
+    | 'branches'
+    | 'buildImage'
+    | 'developmentBuildPriority'
+    | 'gitUrl'
+    | 'id'
+    | 'openshiftProjectPattern'
+    | 'organization'
+    | 'privateKey'
+    | 'productionAlias'
+    | 'productionBuildPriority'
+    | 'productionEnvironment'
+    | 'productionRoutes'
+    | 'pullrequests'
+    | 'routerPattern'
+    | 'sharedBaasBucket'
+    | 'standbyAlias'
+    | 'standbyProductionEnvironment'
+    | 'standbyRoutes'
+    | 'storageCalc'
+    | 'subfolder'
+  > & {
+    openshift: Pick<Kubernetes, keyof DeployTargetMinimalFragment>;
+    envVariables: Pick<EnvKeyValue, 'name' | 'scope' | 'value'>[];
+  };
+}
+
+export const getOpenShiftInfoForProject = (project: string): Promise<GetOpenshiftInfoForProjectResult> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
+        autoIdle
+        availability
+        branches
+        buildImage
+        developmentBuildPriority
+        envVariables {
+          name
+          scope
+          value
+        }
+        gitUrl
         id
-        organization
         openshift  {
           ...${deployTargetMinimalFragment}
         }
-        autoIdle
-        branches
-        pullrequests
-        availability
-        gitUrl
-        privateKey
-        subfolder
-        routerPattern
         openshiftProjectPattern
+        organization
+        privateKey
+        productionAlias
+        productionBuildPriority
         productionEnvironment
         productionRoutes
-        productionAlias
+        pullrequests
+        routerPattern
+        sharedBaasBucket
+        standbyAlias
         standbyProductionEnvironment
         standbyRoutes
-        standbyAlias
-        productionBuildPriority
         storageCalc
-        developmentBuildPriority
-        buildImage
-        sharedBaasBucket
-        envVariables {
-          name
-          value
-          scope
-        }
+        subfolder
       }
     }
 `);
@@ -1331,6 +1334,17 @@ fragment on Deployment {
   }
 }
 `);
+
+type DeployTargetMinimalFragment = Pick<
+  Kubernetes,
+  | 'id'
+  | 'name'
+  | 'routerPattern'
+  | 'buildImage'
+  | 'disabled'
+  | 'sharedBaasBucketName'
+  | 'monitoringConfig'
+>;
 
 const deployTargetMinimalFragment = graphqlapi.createFragment(`
 fragment on Openshift {
