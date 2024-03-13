@@ -1,6 +1,4 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   createDeployTask,
@@ -8,7 +6,6 @@ import {
   createPromoteTask,
   sendToLagoonActions,
   makeSafe
-  // @ts-ignore
 } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import {
@@ -22,30 +19,20 @@ import { Sql } from './sql';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-// @ts-ignore
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
-// @ts-ignore
 import S3 from 'aws-sdk/clients/s3';
-// @ts-ignore
 import sha1 from 'sha1';
-// @ts-ignore
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-// @ts-ignore
 import uuid4 from 'uuid4';
 
-// @ts-ignore
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
-// @ts-ignore
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
-// @ts-ignore
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-// @ts-ignore
 const region = process.env.S3_FILES_REGION
-// @ts-ignore
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
@@ -104,7 +91,6 @@ export const getBuildLog: ResolverFn = async (
     if (!data) {
       return null;
     }
-    // @ts-ignore
     let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
     return logMsg;
   } catch (e) {

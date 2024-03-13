@@ -684,159 +684,6 @@ export const allProjectsInGroup = (groupInput: {
     }
   );
 
-export async function getMicrosoftTeamsInfoForProject(
-  project: string, contentType = 'DEPLOYMENT'
-): Promise<any[]> {
-  const notificationsFragment = graphqlapi.createFragment(`
-    fragment on NotificationMicrosoftTeams {
-      webhook
-      contentType
-      notificationSeverityThreshold
-    }
-  `);
-
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}") {
-        microsoftTeams: notifications(type: MICROSOFTTEAMS, contentType: ${contentType}) {
-          ...${notificationsFragment}
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.project || !result.project.microsoftTeams) {
-    throw new ProjectNotFound(
-      `Cannot find Microsoft Teams information for project ${project}`
-    );
-  }
-
-  return result.project.microsoftTeams;
-}
-
-export async function getRocketChatInfoForProject(
-  project: string, contentType = 'DEPLOYMENT'
-): Promise<any[]> {
-  const notificationsFragment = graphqlapi.createFragment(`
-    fragment on NotificationRocketChat {
-      webhook
-      channel
-      contentType
-      notificationSeverityThreshold
-    }
-  `);
-
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}") {
-        rocketchats: notifications(type: ROCKETCHAT, contentType: ${contentType}) {
-          ...${notificationsFragment}
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.project || !result.project.rocketchats) {
-    throw new ProjectNotFound(
-      `Cannot find rocketchat information for project ${project}`
-    );
-  }
-
-  return result.project.rocketchats;
-}
-
-export async function getSlackinfoForProject(
-  project: string, contentType = 'DEPLOYMENT'
-): Promise<Project> {
-  const notificationsFragment = graphqlapi.createFragment(`
-    fragment on NotificationSlack {
-      webhook
-      channel
-      contentType
-      notificationSeverityThreshold
-    }
-  `);
-
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}") {
-        slacks: notifications(type: SLACK, contentType: ${contentType}) {
-          ...${notificationsFragment}
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.project || !result.project.slacks) {
-    throw new ProjectNotFound(
-      `Cannot find slack information for project ${project}`
-    );
-  }
-
-  return result.project.slacks;
-}
-
-export async function getWebhookNotificationInfoForProject(
-  project: string, contentType = 'DEPLOYMENT'
-): Promise<any[]> {
-  const notificationsFragment = graphqlapi.createFragment(`
-    fragment on NotificationWebhook {
-      webhook
-      contentType
-      notificationSeverityThreshold
-    }
-  `);
-
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}") {
-        webhook: notifications(type: WEBHOOK, contentType: ${contentType}) {
-          ...${notificationsFragment}
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.project || !result.project.webhook) {
-    throw new ProjectNotFound(
-      `Cannot find Webhook Notification information for project ${project}`
-    );
-  }
-
-  return result.project.webhook;
-}
-
-
-export async function getEmailInfoForProject(
-  project: string, contentType = 'DEPLOYMENT'
-): Promise<any[]> {
-  const notificationsFragment = graphqlapi.createFragment(`
-    fragment on NotificationEmail {
-      emailAddress
-      contentType
-      notificationSeverityThreshold
-    }
-  `);
-
-  const result = await graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}") {
-        emails: notifications(type: EMAIL, contentType: ${contentType}) {
-          ...${notificationsFragment}
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.project || !result.project.emails) {
-    throw new ProjectNotFound(
-      `Cannot find email information for project ${project}`
-    );
-  }
-
-  return result.project.emails;
-}
-
 export async function getEnvironmentByName(
   name: string,
   projectId: number,
@@ -863,37 +710,6 @@ export async function getEnvironmentByName(
   if (!result || !result.environmentByName) {
     throw new EnvironmentNotFound(
       `Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`
-    );
-  }
-
-  return result;
-}
-
-
-export async function getEnvironmentById(
-  id: number
-): Promise<any> {
-  const result = await graphqlapi.query(`
-    {
-      environmentById(id: ${id}) {
-        id,
-        name,
-        route,
-        routes,
-        deployType,
-        autoIdle,
-        environmentType,
-        openshiftProjectName,
-        updated,
-        created,
-        deleted,
-      }
-    }
-  `);
-
-  if (!result || !result.environmentById) {
-    throw new EnvironmentNotFound(
-      `Cannot find environment for id ${id}\n${result.environmentById}`
     );
   }
 
@@ -928,40 +744,6 @@ export async function getEnvironmentByIdWithVariables(
   if (!result || !result.environmentById) {
     throw new EnvironmentNotFound(
       `Cannot find environment for id ${id}\n${result.environmentById}`
-    );
-  }
-
-  return result;
-}
-
-export async function getDeploymentByName(
-  openshiftProjectName: string,
-  deploymentName: string,
-): Promise<any> {
-  const result = await graphqlapi.query(`
-    {
-      environment:environmentByOpenshiftProjectName( openshiftProjectName: "${openshiftProjectName}") {
-        id
-        name
-        openshiftProjectName
-        project {
-          id
-          name
-        }
-        deployments(name: "${deploymentName}") {
-          id
-          name
-          uiLink
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.environment) {
-    throw new EnvironmentNotFound(
-      `Cannot find deployment ${deploymentName} by projectName ${openshiftProjectName}\n${
-        result.environment
-      }`,
     );
   }
 
@@ -1050,45 +832,6 @@ export const addOrUpdateEnvironment = (
       openshiftProjectPattern
     }
   );
-
-export const updateEnvironment = (
-  environmentId: number,
-  patch: string
-): Promise<any> =>
-  graphqlapi.query(`
-    mutation {
-      updateEnvironment(input: {
-        id: ${environmentId},
-        patch: ${patch}
-      }) {
-        id
-        name
-      }
-    }
-  `);
-
-export async function deleteEnvironment(
-  name: string,
-  project: string,
-  execute: boolean = true
-): Promise<any> {
-  return graphqlapi.mutate(
-    `
-  ($name: String!, $project: String!, $execute: Boolean) {
-    deleteEnvironment(input: {
-      name: $name
-      project: $project
-      execute: $execute
-    })
-  }
-  `,
-    {
-      name,
-      project,
-      execute
-    }
-  );
-}
 
 interface GetOpenshiftInfoForProjectResult {
   project: Pick<
@@ -1300,25 +1043,6 @@ export async function getOrganizationById(id: number): Promise<any> {
   return result.organization;
 }
 
-export const setEnvironmentServices = (
-  environment: number,
-  services: string[]
-): Promise<any> =>
-  graphqlapi.mutate(
-    `
-  ($environment: Int!, $services: [String]!) {
-    setEnvironmentServices(input: {
-      environment: $environment
-      services: $services
-    }) {
-      id
-      name
-    }
-  }
-  `,
-    { environment, services }
-  );
-
 const deploymentFragment = graphqlapi.createFragment(`
 fragment on Deployment {
   id
@@ -1357,18 +1081,6 @@ fragment on Openshift {
   monitoringConfig
 }
 `);
-
-export const getDeploymentByRemoteId = (id: string): Promise<any> =>
-  graphqlapi.query(
-    `
-  query deploymentByRemoteId($id: String!) {
-    deploymentByRemoteId(id: $id) {
-      ...${deploymentFragment}
-    }
-  }
-`,
-    { id }
-  );
 
 export const addDeployment = (
   name: string,
@@ -1482,24 +1194,6 @@ export const addDeployment = (
       },
     );
 
-export const updateDeployment = (
-  id: number,
-  patch: DeploymentPatch
-): Promise<any> =>
-  graphqlapi.mutate(
-    `
-  ($id: Int!, $patch: UpdateDeploymentPatchInput!) {
-    updateDeployment(input: {
-      id: $id
-      patch: $patch
-    }) {
-      ...${deploymentFragment}
-    }
-  }
-`,
-    { id, patch }
-  );
-
 const taskFragment = graphqlapi.createFragment(`
 fragment on Task {
   id
@@ -1514,21 +1208,6 @@ fragment on Task {
   }
 }
 `);
-
-export const updateTask = (id: number, patch: TaskPatch): Promise<any> =>
-  graphqlapi.mutate(
-    `
-  ($id: Int!, $patch: UpdateTaskPatchInput!) {
-    updateTask(input: {
-      id: $id
-      patch: $patch
-    }) {
-      ...${taskFragment}
-    }
-  }
-`,
-    { id, patch }
-  );
 
 export const sanitizeGroupName = pipe(
   replace(/[^a-zA-Z0-9-]/g, '-'),
@@ -1721,33 +1400,3 @@ export const getProblemHarborScanMatches = () => graphqlapi.query(
       }
     }`
 );
-
-const bulkDeploymentFragment = graphqlapi.createFragment(`
-fragment on Deployment {
-  id
-  name
-  status
-  created
-  started
-  completed
-  remoteId
-  uiLink
-  environment {
-    name
-  }
-  priority
-  bulkId
-}
-`);
-
-export const getDeploymentsByBulkId = (id: string): Promise<any[]> =>
-  graphqlapi.query(
-    `
-  query deploymentsByBulkId($id: String!) {
-    deploymentsByBulkId(id: $id) {
-      ...${bulkDeploymentFragment}
-    }
-  }
-`,
-    { id }
-  );

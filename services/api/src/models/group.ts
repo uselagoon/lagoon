@@ -1,19 +1,14 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import { Pool } from 'mariadb';
-// @ts-ignore
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
-// @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 import { groupCacheExpiry, get, del, redisClient } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
-import { log } from 'winston';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];

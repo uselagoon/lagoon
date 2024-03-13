@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';

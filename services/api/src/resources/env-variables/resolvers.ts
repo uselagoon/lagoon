@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, knex } from '../../util/db';
@@ -6,7 +5,6 @@ import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql as projectSql } from '../project/sql';
-import { logger } from '../../loggers/logger';
 
 
 export const getEnvVarsByProjectId: ResolverFn = async (

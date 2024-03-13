@@ -1,8 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import validator from 'validator';
-// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
