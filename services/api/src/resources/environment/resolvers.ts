@@ -157,7 +157,9 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
 
-  return rows;
+  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
+  return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
+  // return rows;
 };
 
 export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
@@ -258,9 +260,7 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
     }
 
     // Only return projects the user can view
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub,
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -439,11 +439,22 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       : convertDateToMYSQLDateFormat(new Date().toISOString())
   };
 
+
+  // @DEPRECATE when `bytesUsed` is completely removed, this block can be removed
+  if (input.kibUsed) {
+    // remove the bytesUsed input if kilobytes is provided
+    delete input.bytesUsed
+  } else {
+    // else set kibUsed to the old required input, then remove the old input
+    input.kibUsed = input.bytesUsed
+    delete input.bytesUsed
+  }
+
   const createOrUpdateSql = knex('environment_storage')
     .insert(input)
     .onConflict('id')
     .merge({
-      bytesUsed: input.bytesUsed
+      kibUsed: input.kibUsed
     }).toString();
 
   const { insertId } = await query(
@@ -459,7 +470,9 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .toString()
   );
 
-  const environment = R.path([0], rows);
+  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
+  const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
+  // const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {

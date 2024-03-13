@@ -74,18 +74,18 @@ export const EnvironmentModel = (clients: { sqlClientPool: Pool }) => {
   };
 
   const environmentStorageMonthByEnvironmentId = async (eid, month) => {
-    const str = `
-      SELECT
-        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
-      FROM
-        environment_storage
-      WHERE
-        environment = :eid
-        AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
-        AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
-    `;
+    let q = knex('environment_storage')
+    .select(knex.raw('SUM(kib_used) as kib_used'))
+    .select(knex.raw('SUM(kib_used) as bytes_used')) // @DEPRECATE when `bytesUsed` is completely removed, this can be removed
+    .select(knex.raw(`max(DATE_FORMAT(updated, '%Y-%m')) as month`))
+    .where('environment', eid)
+    .andWhere(knex.raw(`YEAR(updated) = YEAR(STR_TO_DATE(?, '%Y-%m'))`, month))
+    .andWhere(knex.raw(`MONTH(updated) = MONTH(STR_TO_DATE(?, '%Y-%m'))`, month))
 
-    const rows = await query(sqlClientPool, str, { eid, month });
+    const rows = await query(sqlClientPool, q.toString());
+
+    rows.map(row => ({ ...row, bytesUsed: row.kibUsed})); // @DEPRECATE when `bytesUsed` is completely removed, this can be removed
+
     return rows[0];
   };
 
