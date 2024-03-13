@@ -20,7 +20,6 @@ export interface ResolverFn {
         ProjectModel,
         EnvironmentModel,
       },
-      keycloakGroups?: any | null,
       keycloakUsersGroups?: any | null,
       adminScopes?: any | null,
     },

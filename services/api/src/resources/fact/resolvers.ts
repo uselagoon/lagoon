@@ -131,9 +131,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
   let userProjectIds: number[];
 
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -151,9 +149,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
   let userProjectIds: number[];
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
