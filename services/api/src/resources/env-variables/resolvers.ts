@@ -312,6 +312,13 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
     sqlClientPool,
     projectSql.selectProject(projectId)
   );
+
+  if (name.trim().length == 0) {
+    throw new Error(
+      'A variable name must be provided.'
+    );
+  }
+
   const project = projectRows[0];
 
   let updateData = {};
@@ -331,7 +338,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       }
     );
     updateData = {
-      name,
+      name: name.trim(),
       value,
       scope,
       environment: environment.id,
@@ -344,7 +351,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       project: projectId
     });
     updateData = {
-      name,
+      name: name.trim(),
       value,
       scope,
       project: project.id,
