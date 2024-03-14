@@ -124,7 +124,7 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
-  { includeDeleted, limit },
+  { limit },
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
@@ -141,10 +141,6 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
     .where('environment', environmentId)
     .orderBy('created', 'desc')
     .orderBy('id', 'desc');
-
-  if (!includeDeleted) {
-    queryBuilder = queryBuilder.where('deleted', '0000-00-00 00:00:00');
-  }
 
   if (limit) {
     queryBuilder = queryBuilder.limit(limit);

@@ -965,7 +965,7 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
-    deleted: String
+    deleted: String @deprecated(reason: "This will be removed in a future release.")
     restore: Restore
   }
 
