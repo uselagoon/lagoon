@@ -8,7 +8,7 @@ const {
   addProblem,
   deleteProblem,
   deleteProblemsFromSource,
-  addProblemsFromSource,
+  addProblems,
   getProblemSources,
   getProblemHarborScanMatches,
   addProblemHarborScanMatch,
@@ -599,6 +599,7 @@ const resolvers = {
   },
   Mutation: {
     addProblem,
+    addProblems,
     addProblemHarborScanMatch,
     deleteProblem,
     deleteProblemsFromSource,
