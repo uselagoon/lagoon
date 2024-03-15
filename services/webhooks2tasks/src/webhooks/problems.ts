@@ -22,6 +22,17 @@ const enableHarborIntegration = (() => {
 	return false;
 })();
 
+
+// NOTE: Here we are going through the process of deprecating the Drutiny webhook
+const enableDrutinyIntegration = (() => {
+	if(process.env.ENABLE_DEPRECATED_DRUTINY_INTEGRATION && process.env.ENABLE_DEPRECATED_DRUTINY_INTEGRATION == "true") {
+    console.log("ENABLE_DEPRECATED_DRUTINY_INTEGRATION is 'true' -- enabling Drutiny webhook");
+		return true;
+	}
+  console.log("ENABLE_DEPRECATED_DRUTINY_INTEGRATION is not 'true' -- Drutiny webhook integration is not enabled");
+	return false;
+})();
+
 export async function processProblems(
     rabbitMsg,
     channelWrapperWebhooks
@@ -51,7 +62,12 @@ export async function processProblems(
         }
       break;
       case 'drutiny:resultset' :
-        await handle(processDrutinyResultset, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        if(enableDrutinyIntegration == true) {
+          console.log("NOTE: Drutiny webhook integration for Problems is deprecated and will be removed from Lagoon in an upcoming release");
+          await handle(processDrutinyResultset, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        } else {
+          console.log("NOTE: Drutiny webhook scan recieved but not processed because Drutiny webhook integration is disabled");
+        }
       break;
     }
     channelWrapperWebhooks.ack(rabbitMsg);
