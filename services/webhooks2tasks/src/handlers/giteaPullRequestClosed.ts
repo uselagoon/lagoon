@@ -64,8 +64,6 @@ export async function giteaPullRequestClosed(webhook: WebhookRequestData, projec
       meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.number} closed. No remove task created, reason: ${error}`

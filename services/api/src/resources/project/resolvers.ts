@@ -1,8 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import validator from 'validator';
-// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -623,11 +620,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -809,11 +801,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -915,11 +902,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,

@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -11,7 +10,6 @@ import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import validator from 'validator';
-import { log } from 'winston';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
