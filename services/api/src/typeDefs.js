@@ -1401,7 +1401,7 @@ const typeDefs = gql`
     """
     Returns all ProblemHarborScanMatchers
     """
-    allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    allProblemHarborScanMatchers: [ProblemHarborScanMatch] @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     """
     Returns all AdvancedTaskDefinitions
     """
@@ -2413,10 +2413,10 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
-    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
+    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     addFact(input: AddFactInput!): Fact
     addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
     addFactsByName(input: AddFactsByNameInput!): [Fact]
