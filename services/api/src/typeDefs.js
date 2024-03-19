@@ -686,31 +686,11 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
-    """
-    Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsDeploy: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsPromote: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerRemove' exists
-    """
-    activeSystemsRemove: String
-    """
-    Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_controllerJob' exists
-    """
-    activeSystemsTask: String
-    """
-    Which internal Lagoon System is responsible for miscellaneous tasks
-    Currently only 'lagoon_controllerMisc' exists
-    """
-    activeSystemsMisc: String
+    activeSystemsDeploy: String @deprecated(reason: "No longer in use")
+    activeSystemsPromote: String @deprecated(reason: "No longer in use")
+    activeSystemsRemove: String @deprecated(reason: "No longer in use")
+    activeSystemsTask: String @deprecated(reason: "No longer in use")
+    activeSystemsMisc: String @deprecated(reason: "No longer in use")
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -955,13 +935,15 @@ const typeDefs = gql`
     id: Int
     environment: Environment
     persistentStorageClaim: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
   }
 
   type EnvironmentHoursMonth {
@@ -1424,7 +1406,7 @@ const typeDefs = gql`
     """
     Returns all ProblemHarborScanMatchers
     """
-    allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    allProblemHarborScanMatchers: [ProblemHarborScanMatch] @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     """
     Returns all AdvancedTaskDefinitions
     """
@@ -1599,6 +1581,19 @@ const typeDefs = gql`
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
+  }
+
+  input AddOrUpdateStorageOnEnvironmentInput {
+    environment: Int!
+    persistentStorageClaim: String!
+    """
+    kibUsed is a float to allow for greater than 32-bit integer inputs
+    """
+    kibUsed: Float!
     """
     Date in format 'YYYY-MM-DD'
     """
@@ -2329,6 +2324,9 @@ const typeDefs = gql`
     """
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
+    ): EnvironmentStorage  @deprecated(reason: "Use addOrUpdateStorageOnEnvironment instead")
+    addOrUpdateStorageOnEnvironment(
+      input: AddOrUpdateStorageOnEnvironmentInput!
     ): EnvironmentStorage
     addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
     updateNotificationSlack(
@@ -2424,10 +2422,10 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
-    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
+    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     addFact(input: AddFactInput!): Fact
     addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
     addFactsByName(input: AddFactsByNameInput!): [Fact]

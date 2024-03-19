@@ -194,8 +194,14 @@ input AddOpenshiftInput {
 input AddOrUpdateEnvironmentStorageInput {
   environment: Int!
   persistentStorageClaim: String!
+  """
+  @deprecated(reason: "When bytesUsed is removed, kibUsed will become a required field")
+  """
   bytesUsed: Int!
-
+  """
+  kibUsed is a float to allow for greater than 32-bit integer inputs
+  """
+  kibUsed: Float
   """
   Date in format 'YYYY-MM-DD'
   """
@@ -811,13 +817,15 @@ type EnvironmentStorage {
   id: Int
   environment: Environment
   persistentStorageClaim: String
-  bytesUsed: Float
+  bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed field instead")
+  kibUsed: Float
   updated: String
 }
 
 type EnvironmentStorageMonth {
   month: String
-  bytesUsed: Float
+  bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed field instead")
+  kibUsed: Float
 }
 
 type EnvKeyValue {

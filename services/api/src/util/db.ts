@@ -21,6 +21,26 @@ export const knex = require('knex')({
   }
 });
 
+// set up the lagoon migrations table
+export const migrate = require('knex')({
+  client: 'mysql',
+  connection: {
+    host : process.env.API_DB_HOST || 'api-db',
+    port : process.env.API_DB_PORT || 3306,
+    user : process.env.API_DB_USER || 'api',
+    password : process.env.API_DB_PASSWORD || 'api',
+    database : process.env.API_DB_DATABASE || 'infrastructure'
+  },
+  pool: {
+    min: 2,
+    max: 10
+  },
+  migrations: {
+    tableName: 'lagoon_migrations',
+    directory: 'dist/migrations/lagoon/migrations'
+  },
+});
+
 /**
  * "Temporary" query utility for mariadb to replace mariasql. Intended to
  * reduce the pain of switching, not to markedly improve anything.
