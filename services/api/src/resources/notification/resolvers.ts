@@ -728,16 +728,16 @@ export const getNotificationByNameAndType: ResolverFn = async (
     type: notificationType
   });
 
+  if (!notification) {
+    throw new Error(`No notification found for ${notificationName}`)
+  }
+
   if (nid == notification.id) {
     const projectNotification = await query(
       sqlClientPool,
       Sql.selectProjectNotificationByNameAndType(notificationName, notificationType),
     );
     notification = projectNotification[0]
-  }
-
-  if (!notification) {
-    return null;
   }
 
   const result = notification
