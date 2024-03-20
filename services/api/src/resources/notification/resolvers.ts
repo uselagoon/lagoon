@@ -706,7 +706,6 @@ export const removeAllNotificationsFromAllProjects: ResolverFn = async (
   return 'success';
 };
 
-// WIP
 export const getAllNotifications: ResolverFn = async (
   root,
   args,
