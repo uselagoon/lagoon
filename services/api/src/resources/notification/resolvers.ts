@@ -711,7 +711,7 @@ export const getAllNotifications: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('notification', 'view');
+  await hasPermission('notification', 'viewAll');
 
   const rows = await Helpers(sqlClientPool).selectAllNotifications();
 
