@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -9,8 +8,8 @@ import { Sql } from './sql';
 import { arrayDiff } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as groupHelpers } from '../group/helpers';
 import validator from 'validator';
-import { log } from 'winston';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -340,7 +339,7 @@ export const getNotificationsForOrganizationProjectId: ResolverFn = async (
 export const getOwnersByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { hasPermission, models }
 ) => {
   await hasPermission('organization', 'view', {
     organization: oid,
@@ -353,13 +352,13 @@ export const getOwnersByOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, sqlClientPool }
 ) => {
   await hasPermission('organization', 'viewGroup', {
     organization: oid,
   });
 
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(oid, keycloakGroups);
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, oid)
 
   return orgGroups;
 };
@@ -368,13 +367,13 @@ export const getGroupsByOrganizationId: ResolverFn = async (
 export const getUsersByOrganizationId: ResolverFn = async (
   _,
   args,
-  { hasPermission, models, keycloakGrant, keycloakGroups }
+  { hasPermission, models, sqlClientPool }
 ) => {
   await hasPermission('organization', 'viewUsers', {
     organization: args.organization,
   });
 
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(args.organization, keycloakGroups);
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, args.organization)
 
   let members = []
   for (const group in orgGroups) {
@@ -450,7 +449,7 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
 export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
   { id: uid, organization },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { hasPermission, models, adminScopes }
 ) => {
   if (organization) {
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
@@ -497,9 +496,9 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
 export const getGroupCountByOrganizationProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models, keycloakGroups }
+  { sqlClientPool, models }
 ) => {
-  const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   return orgProjectGroups.length
 }
 
@@ -510,9 +509,9 @@ export const getGroupCountByOrganizationProject: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models, keycloakGrant, keycloakGroups, keycloakUsersGroups, adminScopes }
+  { sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
-  const orgProjectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   if (adminScopes.projectViewAll) {
     // if platform owner, this will show ALL groups on a project (those that aren't in the organization too, yes its possible with outside intervention :| )
     return orgProjectGroups;
@@ -532,7 +531,7 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
     for (const userOrg of usersOrgsArr) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pid);
       if (project.organization == userOrg) {
-        const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
+        const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, project.organization)
         for (const pGroup of orgGroups) {
           userGroups.push(pGroup)
         }
@@ -544,8 +543,8 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
     for (const userOrg of usersOrgsArr) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pid);
       if (project.organization == userOrg) {
-        const orgViewerGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(project.organization, keycloakGroups);
-        for (const pGroup of orgViewerGroups) {
+        const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, project.organization)
+        for (const pGroup of orgGroups) {
           userGroups.push(pGroup)
         }
       }
@@ -623,7 +622,7 @@ const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupName
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission, keycloakGroups }
+  { sqlClientPool, models, hasPermission }
 ) => {
   let pid = input.project;
   let oid = input.organization;
@@ -637,7 +636,7 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   const otherOrgs = []
 
   // get all the groups the requested project is in
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
 
   return "success";
@@ -649,7 +648,7 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
 export const removeProjectFromOrganization: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, models, keycloakGroups, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   // platform admin only
   await hasPermission('organization', 'add');
@@ -663,7 +662,7 @@ export const removeProjectFromOrganization: ResolverFn = async (
   }
 
   try {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
 
     let removeGroups = []
     for (const g in projectGroups) {
@@ -735,7 +734,7 @@ export const removeProjectFromOrganization: ResolverFn = async (
 export const addExistingProjectToOrganization: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
 
   let pid = input.project;
@@ -750,7 +749,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
   const otherOrgs = []
 
   // get all the groups the requested project is in
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
 
   // check if project.organization is already set?
@@ -923,7 +922,7 @@ export const addExistingGroupToOrganization: ResolverFn = async (
 export const removeUserFromOrganizationGroups: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organizationInput } },
-  { models, sqlClientPool, hasPermission, keycloakGroups, userActivityLogger }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   if (R.isEmpty(userInput)) {
@@ -945,7 +944,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   await hasPermission('organization', 'removeGroup', {
     organization: organizationInput,
   });
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(organizationInput, keycloakGroups);
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, organizationInput)
 
   // iterate through groups and remove the user
   let groupsRemoved = []
@@ -981,7 +980,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
 export const deleteOrganization: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   await hasPermission('organization', 'delete', {
     organization: input.id
@@ -1014,7 +1013,7 @@ export const deleteOrganization: ResolverFn = async (
     );
   }
 
-  const orgGroups = await models.GroupModel.loadGroupsByOrganizationIdFromGroups(orgResult.id, keycloakGroups);
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, orgResult.id)
   if (orgGroups.length > 0) {
     // throw error if there are any existing environments
     throw new Error(
@@ -1050,9 +1049,9 @@ export const deleteOrganization: ResolverFn = async (
   return 'success';
 };
 
-const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups) => {
+const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models) => {
   const groupProjectIds = [];
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   // get all the groups the requested project is in
   for (const group of projectGroups) {
     // for each group the project is in, get the list of projects that are also in this group
@@ -1069,7 +1068,7 @@ const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groups
   if (groupProjectIds.length > 0) {
     for (const pGroup of groupProjectIds) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(project.id, keycloakGroups);
+      const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
       // check if the project is already in the requested organization
       if (project.organization != oid && project.organization == null) {
         let alreadyAdded = false
@@ -1133,7 +1132,7 @@ const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groups
 export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission, keycloakGroups }
+  { sqlClientPool, models, hasPermission }
 ) => {
   let pid = input.project;
   let oid = input.organization;
@@ -1147,7 +1146,7 @@ export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async 
   const groupsInOtherOrgs = []
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
 
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
 };
@@ -1157,7 +1156,7 @@ export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async 
 export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   root,
   { input, detachNotifications },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
 
   let pid = input.project;
@@ -1172,7 +1171,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   const groupsInOtherOrgs = []
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models, keycloakGroups)
+  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
 
   // if anything comes back in projectsInOtherOrgs or groupsInOtherOrgs, then this mutation should fail and inform the user
   // to run the query first and return the fields that contain information about why it can't move the projects
@@ -1197,6 +1196,9 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             "lagoon-organization": [input.organization]
           }
         });
+        if (input.organization) {
+          await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
+        }
         groupsDone.push(group.id)
 
         // log this activity

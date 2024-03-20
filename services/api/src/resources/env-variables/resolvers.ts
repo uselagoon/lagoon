@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, knex } from '../../util/db';
@@ -6,7 +5,6 @@ import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql as projectSql } from '../project/sql';
-import { logger } from '../../loggers/logger';
 
 
 export const getEnvVarsByProjectId: ResolverFn = async (
@@ -312,6 +310,13 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
     sqlClientPool,
     projectSql.selectProject(projectId)
   );
+
+  if (name.trim().length == 0) {
+    throw new Error(
+      'A variable name must be provided.'
+    );
+  }
+
   const project = projectRows[0];
 
   let updateData = {};
@@ -331,7 +336,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       }
     );
     updateData = {
-      name,
+      name: name.trim(),
       value,
       scope,
       environment: environment.id,
@@ -344,7 +349,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       project: projectId
     });
     updateData = {
-      name,
+      name: name.trim(),
       value,
       scope,
       project: project.id,

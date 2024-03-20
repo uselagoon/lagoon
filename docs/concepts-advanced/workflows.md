@@ -75,20 +75,13 @@ In our example, we want to promote the Docker images from the `main` environment
 
 * First, we need a regular deployed environment with the name `main`. Make sure that the environment has deployed successfully.
 * Also, make sure that you don't have a branch called `production` in your Git repository. This could lead to weird confusions \(like people pushing into this branch, etc\).
-* Now trigger a promotion deployment via this `curl` request:
+* Now trigger a promotion deployment using the [lagoon cli](https://github.com/uselagoon/lagoon-cli):
 
-```bash title="Trigger a promotion deployment"
-  curl -X POST \
-      https://rest.lagoon.amazeeio.cloud/promote \
-      -H 'Content-Type: application/json' \
-      -d '{
-          "projectName":"myproject",
-          "sourceEnvironmentName": "main",
-          "branchName": "production"
-      }'
+```title="Trigger a promotion deployment"
+lagoon deploy promote --project="myproject" --source="main" --destination="production"
 ```
 
-This tells Lagoon that you want to promote from the source `main` to the destination `production` \(yes, it really uses `branchName` as destination, which is a bit unfortunate, but it will be fixed soon\).
+This tells Lagoon that you want to promote from the source `main` to the destination `production`.
 
 Lagoon will now do the following:
 

@@ -7,9 +7,6 @@ import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
-import { Service } from 'aws-sdk';
-import * as api from '@lagoon/commons/dist/api';
-import { getEnvironmentsByProjectId } from '../environment/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
@@ -131,9 +128,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
   let userProjectIds: number[];
 
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -151,9 +146,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
   let userProjectIds: number[];
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 

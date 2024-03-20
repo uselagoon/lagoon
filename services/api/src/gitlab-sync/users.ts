@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
-import * as api from '@lagoon/commons/dist/api';
+import { addUser, updateUser } from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 
 const usernameExistsRegex = /Username.*?exists/;
@@ -22,7 +22,7 @@ const usernameExistsRegex = /Username.*?exists/;
     }
 
     try {
-      await api.addUser(
+      await addUser(
         user.email,
         firstName,
         lastName,
@@ -34,7 +34,7 @@ const usernameExistsRegex = /Username.*?exists/;
         logger.error(`Could not sync (add) gitlab user ${user.email} id ${user.id}: ${err.message}`);
       } else {
         try {
-          await api.updateUser(
+          await updateUser(
             user.email,
             {
               email: user.email,
