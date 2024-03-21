@@ -20,7 +20,7 @@ func copyCertificates(ctx context.Context, c client.Client, ingress *networkv1.I
 			break
 		}
 		certificates = append(certificates, certificate)
-		fmt.Println(fmt.Sprintf(">> Copying certificate %s in namespace %s", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace))
+		fmt.Printf(">> Copying certificate %s in namespace %s\n", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace)
 	}
 	return certificates
 }
@@ -30,14 +30,13 @@ func createCertificates(ctx context.Context, c client.Client, destinationNamespa
 	for _, certificate := range certificates {
 		certificate.ObjectMeta.Namespace = destinationNamespace
 		certificate.ResourceVersion = ""
-		certificate.SelfLink = ""
 		certificate.UID = ""
 		err := c.Create(ctx, certificate)
 		if err != nil {
 			break
 		}
 		// secrets = append(secrets, certificate)
-		fmt.Println(fmt.Sprintf(">> Creating certificate %s in namespace %s", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace))
+		fmt.Printf(">> Creating certificate %s in namespace %s\n", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace)
 	}
 	return nil
 }
