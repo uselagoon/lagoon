@@ -204,6 +204,34 @@ function migrate_to_custom_group_mapper {
 
 }
 
+function add_notification_viewAll {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local view_all_notifications=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=View+All+Notifications --config $CONFIG_PATH)
+
+
+  if [ "$view_all_notifications" != "[ ]" ]; then
+      echo "notification:viewAll already configured"
+      return 0
+  fi
+
+  echo creating \"View All Notifications\" permissions
+
+  NOTIFICATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/resource?name=notification --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$NOTIFICATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"viewAll"}]'
+
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "View All Notifications",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["notification"],
+    "scopes": ["viewAll"],
+    "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+  }
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -230,6 +258,7 @@ function configure_keycloak {
 
     check_migrations_version
     migrate_to_custom_group_mapper
+    add_notification_viewAll
     #post 2.18.0+ migrations after this point
 
     # always run last
