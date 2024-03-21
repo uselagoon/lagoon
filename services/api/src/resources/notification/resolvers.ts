@@ -715,13 +715,5 @@ export const getAllNotifications: ResolverFn = async (
 
   const rows = await Helpers(sqlClientPool).selectAllNotifications();
 
-  const nids = await Helpers(sqlClientPool).selectAllProjectNotifications(rows);
-
-  rows.map((row => {
-    nids.map((nid => {
-      row.id == nid.id && row.type == nid.type ? row.pid = nid.pid : null
-    }))
-  }))
-
   return rows;
 };

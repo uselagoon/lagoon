@@ -87,13 +87,4 @@ export const Helpers = (sqlClientPool: Pool) => ({
 
     return result
   },
-  selectAllProjectNotifications: async (rows) => {
-    let nids = new(Array)
-    await Promise.all(rows.map(async (row) => {
-      let nid = await query(sqlClientPool,Sql.selectProjectNotificationByNotificationName({name: row.name, type: row.type}))
-      nid[0] != undefined ? nids.push(nid[0]) : ''
-    }))
-
-    return nids
-  },
 });
