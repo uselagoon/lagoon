@@ -2,7 +2,7 @@
 
 Newer releases of Lagoon have the capability to identify potential issues with the build, and highlight them as warnings without failing. This is also a way for the Lagoon team to inform users of pending deprecations and changes to functionality.
 
-For example, if the Lagoon team makes a change to a setting in `lagoon.yml`, and there’s something that users need to change, the warning will mention it, so users will be able to change it before it becomes a breaking change. They should be resolved ASAP wherever possible, as future releases of Lagoon may not be able to handle the errors, but they shouldn'y stop your build.
+For example, if the Lagoon team makes a change to a setting in `lagoon.yml`, and there’s something that users need to change, the warning will mention it, so users will be able to change it before it becomes a breaking change. They should be resolved ASAP wherever possible, as future releases of Lagoon may not be able to handle the errors, but they shouldn't stop your build.
 
 If you aren't sure how to resolve these errors, please reach out to your Lagoon administrator, or ask a question in the [Lagoon community](../community/discord.md).
 
