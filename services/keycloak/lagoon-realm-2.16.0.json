@@ -41,6 +41,32 @@
   "roles": {
     "realm": [
       {
+        "name": "default-roles-lagoon",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "offline_access",
+            "uma_authorization"
+          ],
+          "client": {
+            "account": [
+              "view-profile",
+              "manage-account"
+            ]
+          }
+        },
+        "clientRole": false,
+        "attributes": {}
+      },
+      {
+        "name": "offline_access",
+        "description": "${role_offline-access}",
+        "composite": false,
+        "clientRole": false,
+        "attributes": {}
+      },
+      {
         "name": "admin",
         "composite": true,
         "composites": {
@@ -108,12 +134,6 @@
         "attributes": {}
       },
       {
-        "name": "guest",
-        "composite": false,
-        "clientRole": false,
-        "attributes": {}
-      },
-      {
         "name": "uma_authorization",
         "description": "${role_uma_authorization}",
         "composite": false,
@@ -121,30 +141,137 @@
         "attributes": {}
       },
       {
-        "name": "default-roles-lagoon",
-        "description": "${role_default-roles}",
-        "composite": true,
-        "composites": {
-          "realm": [
-            "offline_access",
-            "uma_authorization"
-          ],
-          "client": {
-            "account": [
-              "view-profile",
-              "manage-account"
-            ]
-          }
-        },
+        "name": "guest",
+        "composite": false,
         "clientRole": false,
         "attributes": {}
       }
     ],
     "client": {
+      "lagoon-opendistro-security": [],
       "realm-management": [
+        {
+          "name": "query-realms",
+          "description": "${role_query-realms}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "query-clients",
+          "description": "${role_query-clients}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
         {
           "name": "view-realm",
           "description": "${role_view-realm}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "create-client",
+          "description": "${role_create-client}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-authorization",
+          "description": "${role_manage-authorization}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-clients",
+          "description": "${role_manage-clients}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "query-groups",
+          "description": "${role_query-groups}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "view-authorization",
+          "description": "${role_view-authorization}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "view-events",
+          "description": "${role_view-events}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-identity-providers",
+          "description": "${role_manage-identity-providers}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "query-users",
+          "description": "${role_query-users}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "view-identity-providers",
+          "description": "${role_view-identity-providers}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "view-clients",
+          "description": "${role_view-clients}",
+          "composite": true,
+          "composites": {
+            "client": {
+              "realm-management": [
+                "query-clients"
+              ]
+            }
+          },
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "impersonation",
+          "description": "${role_impersonation}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-events",
+          "description": "${role_manage-events}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-realm",
+          "description": "${role_manage-realm}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-users",
+          "description": "${role_manage-users}",
           "composite": false,
           "clientRole": true,
           "attributes": {}
@@ -181,141 +308,38 @@
           "attributes": {}
         },
         {
-          "name": "impersonation",
-          "description": "${role_impersonation}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-events",
-          "description": "${role_manage-events}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "query-users",
-          "description": "${role_query-users}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "uma_protection",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "view-authorization",
-          "description": "${role_view-authorization}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-clients",
-          "description": "${role_manage-clients}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "view-events",
-          "description": "${role_view-events}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
           "name": "view-users",
           "description": "${role_view-users}",
           "composite": true,
           "composites": {
             "client": {
               "realm-management": [
-                "query-groups",
-                "query-users"
+                "query-users",
+                "query-groups"
               ]
             }
           },
           "clientRole": true,
           "attributes": {}
-        },
+        }
+      ],
+      "security-admin-console": [],
+      "auth-server": [],
+      "admin-cli": [],
+      "lagoon-opensearch-sync": [],
+      "account-console": [],
+      "api": [
         {
-          "name": "query-groups",
-          "description": "${role_query-groups}",
+          "name": "uma_protection",
           "composite": false,
           "clientRole": true,
           "attributes": {}
-        },
+        }
+      ],
+      "broker": [
         {
-          "name": "view-identity-providers",
-          "description": "${role_view-identity-providers}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "view-clients",
-          "description": "${role_view-clients}",
-          "composite": true,
-          "composites": {
-            "client": {
-              "realm-management": [
-                "query-clients"
-              ]
-            }
-          },
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "query-clients",
-          "description": "${role_query-clients}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-realm",
-          "description": "${role_manage-realm}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-authorization",
-          "description": "${role_manage-authorization}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-identity-providers",
-          "description": "${role_manage-identity-providers}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-users",
-          "description": "${role_manage-users}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "query-realms",
-          "description": "${role_query-realms}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "create-client",
-          "description": "${role_create-client}",
+          "name": "read-token",
+          "description": "${role_read-token}",
           "composite": false,
           "clientRole": true,
           "attributes": {}
@@ -323,9 +347,30 @@
       ],
       "account": [
         {
-          "name": "view-groups",
-          "description": "${role_view-groups}",
+          "name": "manage-account-links",
+          "description": "${role_manage-account-links}",
           "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "view-profile",
+          "description": "${role_view-profile}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "manage-account",
+          "description": "${role_manage-account}",
+          "composite": true,
+          "composites": {
+            "client": {
+              "account": [
+                "manage-account-links"
+              ]
+            }
+          },
           "clientRole": true,
           "attributes": {}
         },
@@ -337,8 +382,15 @@
           "attributes": {}
         },
         {
-          "name": "manage-account-links",
-          "description": "${role_manage-account-links}",
+          "name": "view-consent",
+          "description": "${role_view-consent}",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "delete-account",
+          "description": "${role_delete-account}",
           "composite": false,
           "clientRole": true,
           "attributes": {}
@@ -358,41 +410,15 @@
           "attributes": {}
         },
         {
-          "name": "view-consent",
-          "description": "${role_view-consent}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "view-profile",
-          "description": "${role_view-profile}",
-          "composite": false,
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "manage-account",
-          "description": "${role_manage-account}",
-          "composite": true,
-          "composites": {
-            "client": {
-              "account": [
-                "manage-account"
-              ]
-            }
-          },
-          "clientRole": true,
-          "attributes": {}
-        },
-        {
-          "name": "delete-account",
-          "description": "${role_delete-account}",
+          "name": "view-groups",
+          "description": "${role_view-groups}",
           "composite": false,
           "clientRole": true,
           "attributes": {}
         }
-      ]
+      ],
+      "lagoon-ui": [],
+      "service-api": []
     }
   },
   "defaultRole": {
@@ -438,6 +464,74 @@
   "webAuthnPolicyPasswordlessCreateTimeout": 0,
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister": false,
   "webAuthnPolicyPasswordlessAcceptableAaguids": [],
+  "users": [
+    {
+      "username": "service-account-api",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "serviceAccountClientId": "api",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-lagoon"
+      ],
+      "clientRoles": {
+        "api": [
+          "uma_protection"
+        ]
+      },
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "username": "service-account-auth-server",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "serviceAccountClientId": "auth-server",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-lagoon"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "username": "service-account-lagoon-opensearch-sync",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "serviceAccountClientId": "lagoon-opensearch-sync",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-lagoon"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "query-groups"
+        ]
+      },
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "username": "service-account-service-api",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "serviceAccountClientId": "service-api",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-lagoon"
+      ],
+      "notBefore": 0,
+      "groups": []
+    }
+  ],
   "scopeMappings": [
     {
       "clientScope": "offline_access",
@@ -469,7 +563,9 @@
       "redirectUris": [
         "/realms/lagoon/account/*"
       ],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -486,8 +582,8 @@
       "nodeReRegistrationTimeout": 0,
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -509,7 +605,9 @@
       "redirectUris": [
         "/realms/lagoon/account/*"
       ],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -537,8 +635,8 @@
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -556,7 +654,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -573,8 +673,8 @@
       "nodeReRegistrationTimeout": 0,
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -591,7 +691,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -650,8 +752,8 @@
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -664,222 +766,6 @@
         "allowRemoteResourceManagement": true,
         "policyEnforcementMode": "ENFORCING",
         "resources": [
-          {
-            "name": "openshift",
-            "ownerManagedAccess": false,
-            "displayName": "openshift",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "view:token"
-              },
-              {
-                "name": "update"
-              },
-              {
-                "name": "viewAll"
-              },
-              {
-                "name": "deleteAll"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "ssh_key",
-            "ownerManagedAccess": false,
-            "displayName": "ssh_key",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "removeAll"
-              },
-              {
-                "name": "update"
-              },
-              {
-                "name": "deleteAll"
-              },
-              {
-                "name": "view:user"
-              },
-              {
-                "name": "delete"
-              },
-              {
-                "name": "view:project"
-              }
-            ]
-          },
-          {
-            "name": "backup",
-            "ownerManagedAccess": false,
-            "displayName": "backup",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "deleteAll"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "harbor_scan_match",
-            "ownerManagedAccess": false,
-            "displayName": "Harbor scan match",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "deployment",
-            "ownerManagedAccess": false,
-            "displayName": "deployment",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "view"
-              },
-              {
-                "name": "cancel"
-              },
-              {
-                "name": "update"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "advanced_task",
-            "ownerManagedAccess": false,
-            "displayName": "advanced_task",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "invoke:developer"
-              },
-              {
-                "name": "invoke:guest"
-              },
-              {
-                "name": "delete:advanced"
-              },
-              {
-                "name": "create:advanced"
-              },
-              {
-                "name": "invoke:maintainer"
-              }
-            ]
-          },
-          {
-            "name": "problem",
-            "ownerManagedAccess": false,
-            "displayName": "problem",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "environment",
-            "ownerManagedAccess": false,
-            "displayName": "environment",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "deploy:production"
-              },
-              {
-                "name": "addOrUpdate:production"
-              },
-              {
-                "name": "viewAll"
-              },
-              {
-                "name": "storage"
-              },
-              {
-                "name": "deleteAll"
-              },
-              {
-                "name": "addOrUpdate:development"
-              },
-              {
-                "name": "update:development"
-              },
-              {
-                "name": "ssh:development"
-              },
-              {
-                "name": "delete:development"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "deploy:development"
-              },
-              {
-                "name": "deleteNoExec"
-              },
-              {
-                "name": "ssh:production"
-              },
-              {
-                "name": "delete:production"
-              },
-              {
-                "name": "update:production"
-              }
-            ]
-          },
           {
             "name": "env_var",
             "ownerManagedAccess": false,
@@ -925,6 +811,120 @@
               },
               {
                 "name": "project:view"
+              }
+            ]
+          },
+          {
+            "name": "project",
+            "ownerManagedAccess": false,
+            "displayName": "project",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "addNotification"
+              },
+              {
+                "name": "add"
+              },
+              {
+                "name": "removeNotification"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "removeGroup"
+              },
+              {
+                "name": "update"
+              },
+              {
+                "name": "viewAll"
+              },
+              {
+                "name": "deleteAll"
+              },
+              {
+                "name": "delete"
+              },
+              {
+                "name": "viewPrivateKey"
+              },
+              {
+                "name": "addGroup"
+              }
+            ]
+          },
+          {
+            "name": "group",
+            "ownerManagedAccess": false,
+            "displayName": "group",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "addUser"
+              },
+              {
+                "name": "add"
+              },
+              {
+                "name": "removeUser"
+              },
+              {
+                "name": "update"
+              },
+              {
+                "name": "viewAll"
+              },
+              {
+                "name": "deleteAll"
+              },
+              {
+                "name": "delete"
+              }
+            ]
+          },
+          {
+            "name": "harbor_scan_match",
+            "ownerManagedAccess": false,
+            "displayName": "Harbor scan match",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "delete"
+              }
+            ]
+          },
+          {
+            "name": "advanced_task",
+            "ownerManagedAccess": false,
+            "displayName": "advanced_task",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "invoke:developer"
+              },
+              {
+                "name": "invoke:guest"
+              },
+              {
+                "name": "delete:advanced"
+              },
+              {
+                "name": "create:advanced"
+              },
+              {
+                "name": "invoke:maintainer"
               }
             ]
           },
@@ -1016,9 +1016,9 @@
             ]
           },
           {
-            "name": "user",
+            "name": "notification",
             "ownerManagedAccess": false,
-            "displayName": "user",
+            "displayName": "notification",
             "attributes": {},
             "uris": [],
             "scopes": [
@@ -1026,13 +1026,34 @@
                 "name": "add"
               },
               {
-                "name": "getBySshKey"
+                "name": "removeAll"
+              },
+              {
+                "name": "view"
               },
               {
                 "name": "update"
               },
               {
-                "name": "viewAll"
+                "name": "deleteAll"
+              },
+              {
+                "name": "delete"
+              }
+            ]
+          },
+          {
+            "name": "backup",
+            "ownerManagedAccess": false,
+            "displayName": "backup",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "view"
               },
               {
                 "name": "deleteAll"
@@ -1061,35 +1082,68 @@
             ]
           },
           {
-            "name": "Default Resource",
-            "type": "urn:api:resources:default",
+            "name": "deployment",
             "ownerManagedAccess": false,
-            "attributes": {},
-            "uris": [
-              "/*"
-            ]
-          },
-          {
-            "name": "project",
-            "ownerManagedAccess": false,
-            "displayName": "project",
+            "displayName": "deployment",
             "attributes": {},
             "uris": [],
             "scopes": [
               {
-                "name": "addNotification"
+                "name": "view"
               },
+              {
+                "name": "cancel"
+              },
+              {
+                "name": "update"
+              },
+              {
+                "name": "delete"
+              }
+            ]
+          },
+          {
+            "name": "ssh_key",
+            "ownerManagedAccess": false,
+            "displayName": "ssh_key",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
               {
                 "name": "add"
               },
               {
-                "name": "removeNotification"
+                "name": "removeAll"
               },
               {
-                "name": "view"
+                "name": "update"
               },
               {
-                "name": "removeGroup"
+                "name": "deleteAll"
+              },
+              {
+                "name": "view:user"
+              },
+              {
+                "name": "delete"
+              },
+              {
+                "name": "view:project"
+              }
+            ]
+          },
+          {
+            "name": "user",
+            "ownerManagedAccess": false,
+            "displayName": "user",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "getBySshKey"
               },
               {
                 "name": "update"
@@ -1102,13 +1156,88 @@
               },
               {
                 "name": "delete"
-              },
-              {
-                "name": "viewPrivateKey"
-              },
-              {
-                "name": "addGroup"
               }
+            ]
+          },
+          {
+            "name": "problem",
+            "ownerManagedAccess": false,
+            "displayName": "problem",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "delete"
+              }
+            ]
+          },
+          {
+            "name": "environment",
+            "ownerManagedAccess": false,
+            "displayName": "environment",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "deploy:production"
+              },
+              {
+                "name": "addOrUpdate:production"
+              },
+              {
+                "name": "viewAll"
+              },
+              {
+                "name": "storage"
+              },
+              {
+                "name": "deleteAll"
+              },
+              {
+                "name": "addOrUpdate:development"
+              },
+              {
+                "name": "update:development"
+              },
+              {
+                "name": "ssh:development"
+              },
+              {
+                "name": "delete:development"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "deploy:development"
+              },
+              {
+                "name": "deleteNoExec"
+              },
+              {
+                "name": "ssh:production"
+              },
+              {
+                "name": "delete:production"
+              },
+              {
+                "name": "update:production"
+              }
+            ]
+          },
+          {
+            "name": "Default Resource",
+            "type": "urn:api:resources:default",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [
+              "/*"
             ]
           },
           {
@@ -1190,47 +1319,20 @@
             ]
           },
           {
-            "name": "notification",
+            "name": "openshift",
             "ownerManagedAccess": false,
-            "displayName": "notification",
+            "displayName": "openshift",
             "attributes": {},
             "uris": [],
             "scopes": [
               {
                 "name": "add"
-              },
-              {
-                "name": "removeAll"
               },
               {
                 "name": "view"
               },
               {
-                "name": "update"
-              },
-              {
-                "name": "deleteAll"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
-            "name": "group",
-            "ownerManagedAccess": false,
-            "displayName": "group",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "addUser"
-              },
-              {
-                "name": "add"
-              },
-              {
-                "name": "removeUser"
+                "name": "view:token"
               },
               {
                 "name": "update"
@@ -1267,17 +1369,9 @@
         ],
         "policies": [
           {
-            "name": "[Lagoon] Users role for project is Developer",
-            "description": "Checks the users role for a project is Developer or higher",
-            "type": "script-policies/users-role-for-project-is-developer.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] Users role for group is Guest",
-            "description": "Checks the users role for a group is Guest or higher",
-            "type": "script-policies/users-role-for-group-is-guest.js",
+            "name": "[Lagoon] Users role for group is Reporter",
+            "description": "Checks the users role for a group is Reporter or higher",
+            "type": "script-policies/users-role-for-group-is-reporter.js",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {}
@@ -1291,49 +1385,17 @@
             "config": {}
           },
           {
-            "name": "[Lagoon] Users role for group is Reporter",
-            "description": "Checks the users role for a group is Reporter or higher",
-            "type": "script-policies/users-role-for-group-is-reporter.js",
+            "name": "Default Policy",
+            "description": "A policy that grants access only for users within this realm",
+            "type": "script-policies/default-policy.js",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {}
           },
           {
-            "name": "[Lagoon] Users role for realm is Admin",
-            "description": "Checks the users role for the realm is Admin",
-            "type": "script-policies/users-role-for-realm-is-admin.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] Users role for realm is Platform Owner",
-            "description": "Checks the users role for the realm is Platform Owner or higher",
-            "type": "script-policies/users-role-for-realm-is-platform-owner.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] User has access to project",
-            "description": "Checks that the user has access to a project via groups",
-            "type": "script-policies/user-has-access-to-project.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] Users role for group is Developer",
-            "description": "Checks the users role for a group is Developer or higher",
-            "type": "script-policies/users-role-for-group-is-developer.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] Users role for group is Owner",
-            "description": "Checks the users role for a group is Owner or higher",
-            "type": "script-policies/users-role-for-group-is-owner.js",
+            "name": "[Lagoon] Users role for project is Maintainer",
+            "description": "Checks the users role for a project is Maintainer or higher",
+            "type": "script-policies/users-role-for-project-is-maintainer.js",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {}
@@ -1347,9 +1409,17 @@
             "config": {}
           },
           {
-            "name": "[Lagoon] User has access to own data",
-            "description": "Checks that the current user is same as queried",
-            "type": "script-policies/user-has-access-to-own-data.js",
+            "name": "[Lagoon] Users role for realm is Admin",
+            "description": "Checks the users role for the realm is Admin",
+            "type": "script-policies/users-role-for-realm-is-admin.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
+            "name": "[Lagoon] Users role for project is Owner",
+            "description": "Checks the users role for a project is Owner or higher",
+            "type": "script-policies/users-role-for-project-is-owner.js",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {}
@@ -1363,9 +1433,17 @@
             "config": {}
           },
           {
-            "name": "[Lagoon] Users role for project is Maintainer",
-            "description": "Checks the users role for a project is Maintainer or higher",
-            "type": "script-policies/users-role-for-project-is-maintainer.js",
+            "name": "[Lagoon] User has access to project",
+            "description": "Checks that the user has access to a project via groups",
+            "type": "script-policies/user-has-access-to-project.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
+            "name": "[Lagoon] Users role for project is Developer",
+            "description": "Checks the users role for a project is Developer or higher",
+            "type": "script-policies/users-role-for-project-is-developer.js",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {}
@@ -1379,6 +1457,30 @@
             "config": {}
           },
           {
+            "name": "[Lagoon] User has access to own data",
+            "description": "Checks that the current user is same as queried",
+            "type": "script-policies/user-has-access-to-own-data.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
+            "name": "[Lagoon] Users role for realm is Platform Owner",
+            "description": "Checks the users role for the realm is Platform Owner or higher",
+            "type": "script-policies/users-role-for-realm-is-platform-owner.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
+            "name": "[Lagoon] Users role for group is Developer",
+            "description": "Checks the users role for a group is Developer or higher",
+            "type": "script-policies/users-role-for-group-is-developer.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
             "name": "[Lagoon] Users role for group is Maintainer",
             "description": "Checks the users role for a group is Maintainer or higher",
             "type": "script-policies/users-role-for-group-is-maintainer.js",
@@ -1387,216 +1489,40 @@
             "config": {}
           },
           {
-            "name": "Default Policy",
-            "description": "A policy that grants access only for users within this realm",
-            "type": "script-policies/default-policy.js",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {}
-          },
-          {
-            "name": "[Lagoon] Users role for project is Owner",
-            "description": "Checks the users role for a project is Owner or higher",
-            "type": "script-policies/users-role-for-project-is-owner.js",
+            "name": "[Lagoon] Users role for group is Owner",
+            "description": "Checks the users role for a group is Owner or higher",
+            "type": "script-policies/users-role-for-group-is-owner.js",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {}
           },
           {
-            "name": "Add SSH Key",
-            "type": "scope",
+            "name": "[Lagoon] Users role for group is Guest",
+            "description": "Checks the users role for a group is Guest or higher",
+            "type": "script-policies/users-role-for-group-is-guest.js",
             "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"ssh_key\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
           },
           {
-            "name": "Delete All Groups",
+            "name": "View Environment Variable for Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Run Drush sql-sync to Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"drushSqlSync:destination:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Organization",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"organization\"]",
-              "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
-              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
-            }
-          },
-          {
-            "name": "View Deployments",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"deployment\"]",
-              "scopes": "[\"view\"]",
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:view:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
           },
           {
-            "name": "Delete All Backups",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"backup\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Get SSH Keys for User",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"ssh_key\"]",
-              "scopes": "[\"view:user\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "View Environment Metrics",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"storage\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Update Group",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for group is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Delete Environment Variable from Production Environment",
+            "name": "Add Environment Variable to Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:delete:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Add Notification to Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"addNotification\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Delete Environment Variable from Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"project:delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Cancel Development Task",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"cancel:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Delete All SSH Keys",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"ssh_key\"]",
-              "scopes": "[\"removeAll\",\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "View All Groups",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Delete SSH Key",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"ssh_key\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Cancel Production Task",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"cancel:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "View Environment Variable Value for Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:viewValue:development\"]",
+              "scopes": "[\"environment:add:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
@@ -1612,25 +1538,58 @@
             }
           },
           {
-            "name": "View All Organizations",
+            "name": "Add Task to Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"organization\"]",
-              "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "resources": "[\"task\"]",
+              "scopes": "[\"add:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
-            "name": "View Environment Variable for Project",
+            "name": "Invoke Task Developer",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"project:view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+              "resources": "[\"advanced_task\"]",
+              "scopes": "[\"invoke:developer\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "View Project Private Key",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"viewPrivateKey\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
+            }
+          },
+          {
+            "name": "Delete Task",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Update SSH Key",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"ssh_key\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1645,46 +1604,13 @@
             }
           },
           {
-            "name": "Delete All Projects",
+            "name": "Add Problem",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "View Harbor Scan Match",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"harbor_scan_match\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Run Drush cache-clear",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"drushCacheClear:production\",\"drushCacheClear:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Add Deployment to Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"deploy:development\"]",
+              "resources": "[\"problem\"]",
+              "scopes": "[\"add\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
@@ -1700,69 +1626,36 @@
             }
           },
           {
-            "name": "Manage Organization",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"organization\"]",
-              "scopes": "[\"addNotification\",\"removeNotification\",\"addProject\",\"updateNotification\",\"updateProject\",\"removeGroup\",\"deleteProject\",\"addViewer\",\"addOwner\",\"addGroup\"]",
-              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Invoke Task Developer",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"advanced_task\"]",
-              "scopes": "[\"invoke:developer\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Run Drush uli on Production Environment",
+            "name": "Cancel Production Task",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"task\"]",
-              "scopes": "[\"drushUserLogin:production\"]",
+              "scopes": "[\"cancel:production\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
             }
           },
           {
-            "name": "Delete Deployment",
+            "name": "View Openshift",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"deployment\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "resources": "[\"openshift\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
           },
           {
-            "name": "User can SSH to Development Environment",
+            "name": "Run Drush sql-sync to Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"ssh:development\"]",
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushSqlSync:destination:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Add Deployment to Production Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"deploy:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
             }
           },
           {
@@ -1777,50 +1670,6 @@
             }
           },
           {
-            "name": "Add Group",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"Default Policy\"]"
-            }
-          },
-          {
-            "name": "View Project Private Key",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"viewPrivateKey\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
-            }
-          },
-          {
-            "name": "View All Openshifts",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"openshift\"]",
-              "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Delete Problem",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"problem\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
             "name": "Run Drush cron",
             "type": "scope",
             "logic": "POSITIVE",
@@ -1832,46 +1681,90 @@
             }
           },
           {
-            "name": "Update Restore",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"restore\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Get User By SSH Key",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"user\"]",
-              "scopes": "[\"getBySshKey\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Delete Task",
+            "name": "View Task",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"task\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
           },
           {
-            "name": "View Backups",
+            "name": "Update Group",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"backup\"]",
+              "resources": "[\"group\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for group is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Deployments",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"deployment\"]",
               "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "Delete Group",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"group\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for group is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Delete Environment Variable",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Get SSH Keys for User",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"ssh_key\"]",
+              "scopes": "[\"view:user\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Add Task to Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"add:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Delete Environment Variable from Development Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:delete:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
@@ -1887,23 +1780,133 @@
             }
           },
           {
-            "name": "Add User to Group",
+            "name": "Delete Problem",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"addUser\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for group is Owner\"]"
+              "resources": "[\"problem\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
-            "name": "Delete Environment Variable",
+            "name": "Run Drush sql-dump",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushSqlDump:production\",\"drushSqlDump:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "View Organization",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
+              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
+            }
+          },
+          {
+            "name": "Delete All SSH Keys",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"ssh_key\"]",
+              "scopes": "[\"removeAll\",\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "Update Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Problems",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"problem\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Delete SSH Key",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"ssh_key\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Delete All Notifications",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"notification\"]",
+              "scopes": "[\"removeAll\",\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "View Facts",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"fact\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Delete Environment Variable from Project",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"env_var\"]",
+              "scopes": "[\"project:delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Delete All Projects",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "Delete Deployment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"deployment\"]",
               "scopes": "[\"delete\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
             }
@@ -1931,14 +1934,47 @@
             }
           },
           {
-            "name": "User can SSH to Production Environment",
+            "name": "Update Task",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"ssh:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "resources": "[\"task\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Update Restore",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"restore\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "View Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "Manage Organization",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"addNotification\",\"removeNotification\",\"addProject\",\"updateNotification\",\"updateProject\",\"removeGroup\",\"deleteProject\",\"addViewer\",\"addOwner\",\"addGroup\"]",
+              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1953,6 +1989,116 @@
             }
           },
           {
+            "name": "Update User",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"user\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "View All Organizations",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Delete Environment Variable from Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:delete:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Delete All Groups",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"group\"]",
+              "scopes": "[\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "User can SSH to Development Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"ssh:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Run Drush uli on Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushUserLogin:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Environment Variable for Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"project:view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "View Environment Variable for Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:view:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "Delete All Users",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"user\"]",
+              "scopes": "[\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "Get User By SSH Key",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"user\"]",
+              "scopes": "[\"getBySshKey\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
             "name": "Add Harbor Scan Match",
             "type": "scope",
             "logic": "POSITIVE",
@@ -1961,39 +2107,6 @@
               "resources": "[\"harbor_scan_match\"]",
               "scopes": "[\"add\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Run Drush archive-dump",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"drushArchiveDump:production\",\"drushArchiveDump:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Add Environment Variable to Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"project:add\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Add User",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"user\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"Default Policy\"]"
             }
           },
           {
@@ -2019,36 +2132,69 @@
             }
           },
           {
-            "name": "Delete Environment",
+            "name": "Delete Project",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"environment\"]",
+              "resources": "[\"project\"]",
               "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
             }
           },
           {
-            "name": "Update Production Environment",
+            "name": "Add Group",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"update:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "resources": "[\"group\"]",
+              "scopes": "[\"add\"]",
+              "applyPolicies": "[\"Default Policy\"]"
             }
           },
           {
-            "name": "Delete Development Environment",
+            "name": "View Backups",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"delete:development\"]",
+              "resources": "[\"backup\"]",
+              "scopes": "[\"view\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Remove Groups from Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"removeGroup\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View All Environments",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "View Environment Metrics",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"storage\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2063,145 +2209,13 @@
             }
           },
           {
-            "name": "Update Development Environment",
+            "name": "Add Deployment to Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"environment\"]",
-              "scopes": "[\"update:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Add Restore",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"restore\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Delete Group",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for group is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Add Problem",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"problem\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Environment Variable for Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:view:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Add Task to Production Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"add:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Delete Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
-            }
-          },
-          {
-            "name": "Add Backup",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"backup\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Update Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Invoke Task Guest",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"advanced_task\"]",
-              "scopes": "[\"invoke:guest\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\"]"
-            }
-          },
-          {
-            "name": "Delete Harbor Scan Match",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"harbor_scan_match\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Add Task to Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"add:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Notification",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"notification\"]",
-              "scopes": "[\"view\"]",
+              "scopes": "[\"deploy:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
@@ -2217,61 +2231,6 @@
             }
           },
           {
-            "name": "View All Environments",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Delete All Notifications",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"notification\"]",
-              "scopes": "[\"removeAll\",\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Update Deployment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"deployment\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "View Environment Variable for Production Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:view:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Add or Update Production Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"addOrUpdate:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
             "name": "Delete All Environments",
             "type": "scope",
             "logic": "POSITIVE",
@@ -2280,6 +2239,127 @@
               "resources": "[\"environment\"]",
               "scopes": "[\"deleteAll\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "Add Environment Variable to Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:add:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Run Drush archive-dump",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushArchiveDump:production\",\"drushArchiveDump:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Create Image Based Task",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"advanced_task\"]",
+              "scopes": "[\"create:advanced\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Delete Fact",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"fact\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "View All Groups",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"group\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Invoke Task Guest",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"advanced_task\"]",
+              "scopes": "[\"invoke:guest\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\"]"
+            }
+          },
+          {
+            "name": "Add Backup",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"backup\"]",
+              "scopes": "[\"add\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Run Drush rsync to Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushRsync:destination:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View All Users",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"user\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Delete Development Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"delete:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Delete Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
             }
           },
           {
@@ -2305,212 +2385,80 @@
             }
           },
           {
-            "name": "Run Drush uli on Development Environment",
+            "name": "Cancel Development Task",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"task\"]",
-              "scopes": "[\"drushUserLogin:development\"]",
+              "scopes": "[\"cancel:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
-            "name": "Delete All Users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"user\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
-            "name": "Update SSH Key",
+            "name": "Add SSH Key",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"ssh_key\"]",
-              "scopes": "[\"update\"]",
+              "scopes": "[\"add\"]",
               "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
-            "name": "Update Task",
+            "name": "Delete Harbor Scan Match",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+              "resources": "[\"harbor_scan_match\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
             }
           },
           {
-            "name": "Update User",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"user\"]",
-              "scopes": "[\"update\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Run Drush rsync from Any Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"drushRsync:source:development\",\"drushRsync:source:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Openshift",
+            "name": "View All Openshifts",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"openshift\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "View Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "View All Users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"user\"]",
               "scopes": "[\"viewAll\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
-            "name": "View Task",
+            "name": "Update Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Add Groups to Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"addGroup\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
-            }
-          },
-          {
-            "name": "Add Environment Variable to Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:add:development\"]",
+              "resources": "[\"environment\"]",
+              "scopes": "[\"update:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
-            "name": "View Environment Variable Value for Project",
+            "name": "User can SSH to Production Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"project:viewValue\"]",
+              "resources": "[\"environment\"]",
+              "scopes": "[\"ssh:production\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
             }
           },
           {
-            "name": "Run Drush sql-dump",
+            "name": "Update Production Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"task\"]",
-              "scopes": "[\"drushSqlDump:production\",\"drushSqlDump:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Problems",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"problem\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Add Environment Variable to Production Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:add:production\"]",
+              "resources": "[\"environment\"]",
+              "scopes": "[\"update:production\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
-            }
-          },
-          {
-            "name": "Delete Fact",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"fact\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View Facts",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"fact\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Create Image Based Task",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"advanced_task\"]",
-              "scopes": "[\"create:advanced\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2525,14 +2473,80 @@
             }
           },
           {
-            "name": "Run Drush sql-sync to Production Environment",
+            "name": "View Environment Variable Value for Development Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"environment:viewValue:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Add or Update Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"addOrUpdate:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "Run Drush cache-clear",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"task\"]",
-              "scopes": "[\"drushSqlSync:destination:production\"]",
+              "scopes": "[\"drushCacheClear:production\",\"drushCacheClear:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "View Environment Variable Value for Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"project:viewValue\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Notification",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"notification\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Add User to Group",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"group\"]",
+              "scopes": "[\"addUser\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for group is Owner\"]"
             }
           },
           {
@@ -2547,58 +2561,25 @@
             }
           },
           {
-            "name": "Delete Environment Variable from Development Environment",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"env_var\"]",
-              "scopes": "[\"environment:delete:development\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "View All Projects",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
-            }
-          },
-          {
-            "name": "Run Drush rsync to Production Environment",
+            "name": "Run Drush rsync from Any Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"task\"]",
-              "scopes": "[\"drushRsync:destination:production\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "scopes": "[\"drushRsync:source:development\",\"drushRsync:source:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
-            "name": "View Project",
+            "name": "Run Drush uli on Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Remove Groups from Project",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"removeGroup\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushUserLogin:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
             }
           },
           {
@@ -2621,6 +2602,127 @@
               "resources": "[\"project\"]",
               "scopes": "[\"removeNotification\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Notification to Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"addNotification\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Groups to Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"addGroup\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Owner\"]"
+            }
+          },
+          {
+            "name": "Delete All Backups",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"backup\"]",
+              "scopes": "[\"deleteAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "View All Projects",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"project\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Update Deployment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"deployment\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Environment Variable to Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"env_var\"]",
+              "scopes": "[\"project:add\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Restore",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"restore\"]",
+              "scopes": "[\"add\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "View Harbor Scan Match",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"harbor_scan_match\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
+            }
+          },
+          {
+            "name": "Run Drush sql-sync to Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"task\"]",
+              "scopes": "[\"drushSqlSync:destination:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Deployment to Production Environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment\"]",
+              "scopes": "[\"deploy:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add User",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"user\"]",
+              "scopes": "[\"add\"]",
+              "applyPolicies": "[\"Default Policy\"]"
             }
           }
         ],
@@ -2888,7 +2990,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -2904,6 +3008,19 @@
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
+        {
+          "name": "Client IP Address",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.session.note": "clientAddress",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "clientAddress",
+            "jsonType.label": "String"
+          }
+        },
         {
           "name": "Client ID",
           "protocol": "openid-connect",
@@ -2929,25 +3046,12 @@
             "claim.name": "clientHost",
             "jsonType.label": "String"
           }
-        },
-        {
-          "name": "Client IP Address",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usersessionmodel-note-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.session.note": "clientAddress",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "clientAddress",
-            "jsonType.label": "String"
-          }
         }
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -2965,7 +3069,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": true,
       "consentRequired": false,
@@ -2982,8 +3088,8 @@
       "nodeReRegistrationTimeout": 0,
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3037,8 +3143,8 @@
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3055,7 +3161,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -3071,6 +3179,19 @@
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
+        {
+          "name": "Client IP Address",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usersessionmodel-note-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.session.note": "clientAddress",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "clientAddress",
+            "jsonType.label": "String"
+          }
+        },
         {
           "name": "Client ID",
           "protocol": "openid-connect",
@@ -3096,25 +3217,12 @@
             "claim.name": "clientHost",
             "jsonType.label": "String"
           }
-        },
-        {
-          "name": "Client IP Address",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usersessionmodel-note-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.session.note": "clientAddress",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "clientAddress",
-            "jsonType.label": "String"
-          }
         }
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3168,8 +3276,8 @@
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3187,7 +3295,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": true,
       "consentRequired": false,
@@ -3205,8 +3315,8 @@
       "nodeReRegistrationTimeout": 0,
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3219,6 +3329,32 @@
         "allowRemoteResourceManagement": false,
         "policyEnforcementMode": "ENFORCING",
         "resources": [
+          {
+            "name": "Users",
+            "ownerManagedAccess": false,
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "user-impersonated"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "manage-group-membership"
+              },
+              {
+                "name": "impersonate"
+              },
+              {
+                "name": "map-roles"
+              },
+              {
+                "name": "manage"
+              }
+            ]
+          },
           {
             "name": "client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
             "type": "Client",
@@ -3246,32 +3382,6 @@
               },
               {
                 "name": "token-exchange"
-              }
-            ]
-          },
-          {
-            "name": "Users",
-            "ownerManagedAccess": false,
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "user-impersonated"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "manage-group-membership"
-              },
-              {
-                "name": "impersonate"
-              },
-              {
-                "name": "map-roles"
-              },
-              {
-                "name": "manage"
               }
             ]
           },
@@ -3308,15 +3418,6 @@
         ],
         "policies": [
           {
-            "name": "Client service-api Policy",
-            "type": "client",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "clients": "[\"service-api\"]"
-            }
-          },
-          {
             "name": "Client auth-server Policy",
             "type": "client",
             "logic": "POSITIVE",
@@ -3326,33 +3427,12 @@
             }
           },
           {
-            "name": "manage.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
-            "type": "scope",
+            "name": "Client service-api Policy",
+            "type": "client",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"manage\"]"
-            }
-          },
-          {
-            "name": "user-impersonated.permission.users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"Users\"]",
-              "scopes": "[\"user-impersonated\"]"
-            }
-          },
-          {
-            "name": "map-roles-composite.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"map-roles-composite\"]"
+              "clients": "[\"service-api\"]"
             }
           },
           {
@@ -3366,73 +3446,22 @@
             }
           },
           {
-            "name": "map-roles-client-scope.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
-              "scopes": "[\"map-roles-client-scope\"]"
-            }
-          },
-          {
-            "name": "token-exchange.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
-              "scopes": "[\"token-exchange\"]"
-            }
-          },
-          {
-            "name": "admin-impersonating.permission.users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "AFFIRMATIVE",
-            "config": {
-              "resources": "[\"Users\"]",
-              "scopes": "[\"impersonate\"]",
-              "applyPolicies": "[\"Client service-api Policy\",\"Client auth-server Policy\"]"
-            }
-          },
-          {
-            "name": "map-roles-client-scope.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "name": "map-roles-composite.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"map-roles-client-scope\"]"
+              "scopes": "[\"map-roles-composite\"]"
             }
           },
           {
-            "name": "token-exchange.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "name": "manage.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"token-exchange\"]"
-            }
-          },
-          {
-            "name": "view.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"view\"]"
-            }
-          },
-          {
-            "name": "manage.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
               "scopes": "[\"manage\"]"
             }
           },
@@ -3447,13 +3476,83 @@
             }
           },
           {
-            "name": "manage-group-membership.permission.users",
+            "name": "configure.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
+              "scopes": "[\"configure\"]"
+            }
+          },
+          {
+            "name": "token-exchange.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
+              "scopes": "[\"token-exchange\"]"
+            }
+          },
+          {
+            "name": "view.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
+              "scopes": "[\"view\"]"
+            }
+          },
+          {
+            "name": "view.permission.users",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"Users\"]",
-              "scopes": "[\"manage-group-membership\"]"
+              "scopes": "[\"view\"]"
+            }
+          },
+          {
+            "name": "map-roles-client-scope.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
+              "scopes": "[\"map-roles-client-scope\"]"
+            }
+          },
+          {
+            "name": "manage.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
+              "scopes": "[\"manage\"]"
+            }
+          },
+          {
+            "name": "map-roles-client-scope.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
+              "scopes": "[\"map-roles-client-scope\"]"
+            }
+          },
+          {
+            "name": "user-impersonated.permission.users",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"Users\"]",
+              "scopes": "[\"user-impersonated\"]"
             }
           },
           {
@@ -3467,13 +3566,44 @@
             }
           },
           {
-            "name": "configure.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
+            "name": "admin-impersonating.permission.users",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"Users\"]",
+              "scopes": "[\"impersonate\"]",
+              "applyPolicies": "[\"Client service-api Policy\",\"Client auth-server Policy\"]"
+            }
+          },
+          {
+            "name": "manage-group-membership.permission.users",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
-              "scopes": "[\"configure\"]"
+              "resources": "[\"Users\"]",
+              "scopes": "[\"manage-group-membership\"]"
+            }
+          },
+          {
+            "name": "view.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
+              "scopes": "[\"view\"]"
+            }
+          },
+          {
+            "name": "manage.permission.users",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"Users\"]",
+              "scopes": "[\"manage\"]"
             }
           },
           {
@@ -3497,33 +3627,13 @@
             }
           },
           {
-            "name": "view.permission.users",
+            "name": "token-exchange.permission.client.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",
             "config": {
-              "resources": "[\"Users\"]",
-              "scopes": "[\"view\"]"
-            }
-          },
-          {
-            "name": "manage.permission.users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"Users\"]",
-              "scopes": "[\"manage\"]"
-            }
-          },
-          {
-            "name": "view.permission.client.dfed8377-a5b0-47bb-a878-775a13d47806",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"client.resource.dfed8377-a5b0-47bb-a878-775a13d47806\"]",
-              "scopes": "[\"view\"]"
+              "resources": "[\"client.resource.be3aa27a-12ad-4ab8-b43b-3aaf9192d10a\"]",
+              "scopes": "[\"token-exchange\"]"
             }
           }
         ],
@@ -3611,8 +3721,8 @@
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3629,7 +3739,9 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [],
-      "webOrigins": [],
+      "webOrigins": [
+        "*"
+      ],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
@@ -3646,16 +3758,29 @@
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
         {
-          "name": "Client IP Address",
+          "name": "Client Host",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usersessionmodel-note-mapper",
           "consentRequired": false,
           "config": {
-            "user.session.note": "clientAddress",
+            "user.session.note": "clientHost",
             "id.token.claim": "true",
             "access.token.claim": "true",
-            "claim.name": "clientAddress",
+            "claim.name": "clientHost",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "User Realm Roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "claim.name": "realm_roles",
+            "multivalued": "true",
+            "userinfo.token.claim": "false"
           }
         },
         {
@@ -3675,28 +3800,15 @@
           }
         },
         {
-          "name": "Group Membership",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-group-membership-mapper",
-          "consentRequired": false,
-          "config": {
-            "full.path": "true",
-            "id.token.claim": "false",
-            "access.token.claim": "true",
-            "claim.name": "group_membership",
-            "userinfo.token.claim": "false"
-          }
-        },
-        {
-          "name": "Client Host",
+          "name": "Client IP Address",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usersessionmodel-note-mapper",
           "consentRequired": false,
           "config": {
-            "user.session.note": "clientHost",
+            "user.session.note": "clientAddress",
             "id.token.claim": "true",
             "access.token.claim": "true",
-            "claim.name": "clientHost",
+            "claim.name": "clientAddress",
             "jsonType.label": "String"
           }
         },
@@ -3714,23 +3826,23 @@
           }
         },
         {
-          "name": "User Realm Roles",
+          "name": "Group Membership",
           "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "protocolMapper": "oidc-group-membership-mapper",
           "consentRequired": false,
           "config": {
+            "full.path": "true",
             "id.token.claim": "false",
             "access.token.claim": "true",
-            "claim.name": "realm_roles",
-            "multivalued": "true",
+            "claim.name": "group_membership",
             "userinfo.token.claim": "false"
           }
         }
       ],
       "defaultClientScopes": [
         "web-origins",
-        "profile",
         "roles",
+        "profile",
         "email"
       ],
       "optionalClientScopes": [
@@ -3742,6 +3854,200 @@
     }
   ],
   "clientScopes": [
+    {
+      "name": "email",
+      "description": "OpenID Connect built-in scope: email",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "${emailScopeConsentText}"
+      },
+      "protocolMappers": [
+        {
+          "name": "email verified",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "emailVerified",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email_verified",
+            "jsonType.label": "boolean"
+          }
+        },
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "email",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "email",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "name": "web-origins",
+      "description": "OpenID Connect scope for add allowed web origins to the access token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false",
+        "consent.screen.text": ""
+      },
+      "protocolMappers": [
+        {
+          "name": "allowed web origins",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-allowed-origins-mapper",
+          "consentRequired": false,
+          "config": {}
+        }
+      ]
+    },
+    {
+      "name": "roles",
+      "description": "OpenID Connect scope for add user roles to the access token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "${rolesScopeConsentText}"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience resolve",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-resolve-mapper",
+          "consentRequired": false,
+          "config": {}
+        },
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        },
+        {
+          "name": "client roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "foo",
+            "access.token.claim": "true",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "role_list",
+      "description": "SAML role list",
+      "protocol": "saml",
+      "attributes": {
+        "consent.screen.text": "${samlRoleListScopeConsentText}",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "role list",
+          "protocol": "saml",
+          "protocolMapper": "saml-role-list-mapper",
+          "consentRequired": false,
+          "config": {
+            "single": "false",
+            "attribute.nameformat": "Basic",
+            "attribute.name": "Role"
+          }
+        }
+      ]
+    },
+    {
+      "name": "microprofile-jwt",
+      "description": "Microprofile - JWT built-in scope",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "upn",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "upn",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "user.attribute": "foo",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "name": "address",
+      "description": "OpenID Connect built-in scope: address",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "${addressScopeConsentText}"
+      },
+      "protocolMappers": [
+        {
+          "name": "address",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-address-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute.formatted": "formatted",
+            "user.attribute.country": "country",
+            "user.attribute.postal_code": "postal_code",
+            "userinfo.token.claim": "true",
+            "user.attribute.street": "street",
+            "id.token.claim": "true",
+            "user.attribute.region": "region",
+            "access.token.claim": "true",
+            "user.attribute.locality": "locality"
+          }
+        }
+      ]
+    },
     {
       "name": "phone",
       "description": "OpenID Connect built-in scope: phone",
@@ -3807,17 +4113,14 @@
           }
         },
         {
-          "name": "website",
+          "name": "full name",
           "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "protocolMapper": "oidc-full-name-mapper",
           "consentRequired": false,
           "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "website",
             "id.token.claim": "true",
             "access.token.claim": "true",
-            "claim.name": "website",
-            "jsonType.label": "String"
+            "userinfo.token.claim": "true"
           }
         },
         {
@@ -3835,6 +4138,62 @@
           }
         },
         {
+          "name": "family name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "lastName",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "family_name",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "nickname",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "nickname",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "nickname",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "username",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "middle name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "middleName",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "middle_name",
+            "jsonType.label": "String"
+          }
+        },
+        {
           "name": "updated at",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-attribute-mapper",
@@ -3845,6 +4204,48 @@
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "updated_at",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "website",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "website",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "website",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "profile",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "profile",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "profile",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "birthdate",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "birthdate",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "birthdate",
             "jsonType.label": "String"
           }
         },
@@ -3877,101 +4278,6 @@
           }
         },
         {
-          "name": "middle name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "middleName",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "middle_name",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "username",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "preferred_username",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "nickname",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "nickname",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "nickname",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "full name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-full-name-mapper",
-          "consentRequired": false,
-          "config": {
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "userinfo.token.claim": "true"
-          }
-        },
-        {
-          "name": "profile",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "profile",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "profile",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "birthdate",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "birthdate",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "birthdate",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "family name",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "lastName",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "family_name",
-            "jsonType.label": "String"
-          }
-        },
-        {
           "name": "given name",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-property-mapper",
@@ -3988,200 +4294,6 @@
       ]
     },
     {
-      "name": "microprofile-jwt",
-      "description": "Microprofile - JWT built-in scope",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false"
-      },
-      "protocolMappers": [
-        {
-          "name": "groups",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-realm-role-mapper",
-          "consentRequired": false,
-          "config": {
-            "multivalued": "true",
-            "user.attribute": "foo",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "groups",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "upn",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "username",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "upn",
-            "jsonType.label": "String"
-          }
-        }
-      ]
-    },
-    {
-      "name": "web-origins",
-      "description": "OpenID Connect scope for add allowed web origins to the access token",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "false",
-        "display.on.consent.screen": "false",
-        "consent.screen.text": ""
-      },
-      "protocolMappers": [
-        {
-          "name": "allowed web origins",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-allowed-origins-mapper",
-          "consentRequired": false,
-          "config": {}
-        }
-      ]
-    },
-    {
-      "name": "email",
-      "description": "OpenID Connect built-in scope: email",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "true",
-        "consent.screen.text": "${emailScopeConsentText}"
-      },
-      "protocolMappers": [
-        {
-          "name": "email",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "email",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "email verified",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-property-mapper",
-          "consentRequired": false,
-          "config": {
-            "userinfo.token.claim": "true",
-            "user.attribute": "emailVerified",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "email_verified",
-            "jsonType.label": "boolean"
-          }
-        }
-      ]
-    },
-    {
-      "name": "roles",
-      "description": "OpenID Connect scope for add user roles to the access token",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "false",
-        "display.on.consent.screen": "true",
-        "consent.screen.text": "${rolesScopeConsentText}"
-      },
-      "protocolMappers": [
-        {
-          "name": "audience resolve",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-resolve-mapper",
-          "consentRequired": false,
-          "config": {}
-        },
-        {
-          "name": "realm roles",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-realm-role-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.attribute": "foo",
-            "access.token.claim": "true",
-            "claim.name": "realm_access.roles",
-            "jsonType.label": "String",
-            "multivalued": "true"
-          }
-        },
-        {
-          "name": "client roles",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-client-role-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.attribute": "foo",
-            "access.token.claim": "true",
-            "claim.name": "resource_access.${client_id}.roles",
-            "jsonType.label": "String",
-            "multivalued": "true"
-          }
-        }
-      ]
-    },
-    {
-      "name": "address",
-      "description": "OpenID Connect built-in scope: address",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "true",
-        "consent.screen.text": "${addressScopeConsentText}"
-      },
-      "protocolMappers": [
-        {
-          "name": "address",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-address-mapper",
-          "consentRequired": false,
-          "config": {
-            "user.attribute.formatted": "formatted",
-            "user.attribute.country": "country",
-            "user.attribute.postal_code": "postal_code",
-            "userinfo.token.claim": "true",
-            "user.attribute.street": "street",
-            "id.token.claim": "true",
-            "user.attribute.region": "region",
-            "access.token.claim": "true",
-            "user.attribute.locality": "locality"
-          }
-        }
-      ]
-    },
-    {
-      "name": "role_list",
-      "description": "SAML role list",
-      "protocol": "saml",
-      "attributes": {
-        "consent.screen.text": "${samlRoleListScopeConsentText}",
-        "display.on.consent.screen": "true"
-      },
-      "protocolMappers": [
-        {
-          "name": "role list",
-          "protocol": "saml",
-          "protocolMapper": "saml-role-list-mapper",
-          "consentRequired": false,
-          "config": {
-            "single": "false",
-            "attribute.nameformat": "Basic",
-            "attribute.name": "Role"
-          }
-        }
-      ]
-    },
-    {
       "name": "offline_access",
       "description": "OpenID Connect built-in scope: offline_access",
       "protocol": "openid-connect",
@@ -4192,17 +4304,17 @@
     }
   ],
   "defaultDefaultClientScopes": [
-    "profile",
-    "email",
     "roles",
+    "web-origins",
     "role_list",
-    "web-origins"
+    "email",
+    "profile"
   ],
   "defaultOptionalClientScopes": [
-    "microprofile-jwt",
     "offline_access",
-    "address",
-    "phone"
+    "phone",
+    "microprofile-jwt",
+    "address"
   ],
   "browserSecurityHeaders": {
     "contentSecurityPolicyReportOnly": "",
@@ -4225,17 +4337,6 @@
   "components": {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
       {
-        "name": "Max Clients Limit",
-        "providerId": "max-clients",
-        "subType": "anonymous",
-        "subComponents": {},
-        "config": {
-          "max-clients": [
-            "200"
-          ]
-        }
-      },
-      {
         "name": "Allowed Protocol Mapper Types",
         "providerId": "allowed-protocol-mappers",
         "subType": "anonymous",
@@ -4250,49 +4351,6 @@
             "oidc-sha256-pairwise-sub-mapper",
             "saml-user-property-mapper",
             "oidc-address-mapper"
-          ]
-        }
-      },
-      {
-        "name": "Allowed Client Scopes",
-        "providerId": "allowed-client-templates",
-        "subType": "authenticated",
-        "subComponents": {},
-        "config": {
-          "allow-default-scopes": [
-            "true"
-          ]
-        }
-      },
-      {
-        "name": "Trusted Hosts",
-        "providerId": "trusted-hosts",
-        "subType": "anonymous",
-        "subComponents": {},
-        "config": {
-          "host-sending-registration-request-must-match": [
-            "true"
-          ],
-          "client-uris-must-match": [
-            "true"
-          ]
-        }
-      },
-      {
-        "name": "Allowed Protocol Mapper Types",
-        "providerId": "allowed-protocol-mappers",
-        "subType": "authenticated",
-        "subComponents": {},
-        "config": {
-          "allowed-protocol-mapper-types": [
-            "saml-user-attribute-mapper",
-            "oidc-full-name-mapper",
-            "saml-role-list-mapper",
-            "oidc-usermodel-property-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "oidc-address-mapper",
-            "saml-user-property-mapper",
-            "oidc-sha256-pairwise-sub-mapper"
           ]
         }
       },
@@ -4315,11 +4373,65 @@
         }
       },
       {
+        "name": "Trusted Hosts",
+        "providerId": "trusted-hosts",
+        "subType": "anonymous",
+        "subComponents": {},
+        "config": {
+          "host-sending-registration-request-must-match": [
+            "true"
+          ],
+          "client-uris-must-match": [
+            "true"
+          ]
+        }
+      },
+      {
         "name": "Full Scope Disabled",
         "providerId": "scope",
         "subType": "anonymous",
         "subComponents": {},
         "config": {}
+      },
+      {
+        "name": "Max Clients Limit",
+        "providerId": "max-clients",
+        "subType": "anonymous",
+        "subComponents": {},
+        "config": {
+          "max-clients": [
+            "200"
+          ]
+        }
+      },
+      {
+        "name": "Allowed Client Scopes",
+        "providerId": "allowed-client-templates",
+        "subType": "authenticated",
+        "subComponents": {},
+        "config": {
+          "allow-default-scopes": [
+            "true"
+          ]
+        }
+      },
+      {
+        "name": "Allowed Protocol Mapper Types",
+        "providerId": "allowed-protocol-mappers",
+        "subType": "authenticated",
+        "subComponents": {},
+        "config": {
+          "allowed-protocol-mapper-types": [
+            "saml-user-attribute-mapper",
+            "oidc-full-name-mapper",
+            "saml-role-list-mapper",
+            "oidc-usermodel-property-mapper",
+            "oidc-usermodel-attribute-mapper",
+            "oidc-address-mapper",
+            "saml-user-property-mapper",
+            "oidc-sha256-pairwise-sub-mapper"
+          ]
+        }
       }
     ],
     "org.keycloak.userprofile.UserProfileProvider": [
@@ -4330,6 +4442,19 @@
       }
     ],
     "org.keycloak.keys.KeyProvider": [
+      {
+        "name": "hmac-generated",
+        "providerId": "hmac-generated",
+        "subComponents": {},
+        "config": {
+          "priority": [
+            "100"
+          ],
+          "algorithm": [
+            "HS256"
+          ]
+        }
+      },
       {
         "name": "rsa-generated",
         "providerId": "rsa-generated",
@@ -4350,19 +4475,6 @@
           ],
           "algorithm": [
             "RSA-OAEP"
-          ]
-        }
-      },
-      {
-        "name": "hmac-generated",
-        "providerId": "hmac-generated",
-        "subComponents": {},
-        "config": {
-          "priority": [
-            "100"
-          ],
-          "algorithm": [
-            "HS256"
           ]
         }
       },
