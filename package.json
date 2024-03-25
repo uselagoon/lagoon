@@ -12,14 +12,8 @@
     "services/*"
   ],
   "devDependencies": {
-    "prettier": "^1.14.2"
-  },
-  "resolutions-comment": [
-    "Used to override security release for nested dependencies",
-    "serialize-javascript: Can probably be removed when next.js upgrades to ^9.0"
-  ],
-  "resolutions": {
-    "serialize-javascript": "^2.1.1"
+    "prettier": "^3.2.5",
+    "yarn-audit-fix": "^10.0.7"
   },
   "scripts": {
     "glow": "glow check"
