@@ -336,6 +336,8 @@ export const User = (clients: {
             continue
           }
         }
+        // only set the users role-group as the subgroup, this is because `loadGroupByName` retrieves all the subgroups not just the one the user is in
+        parentGroup.subGroups = [ug]
         userGroups.push(parentGroup);
       }
     }
