@@ -156,7 +156,7 @@ nav:
   - FAQ: resources/faq.md
   - Glossary: resources/glossary.md
   - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
-  - Lagoon Examples: https://github.com/uselagoon/lagoon-examples
+  - Lagoon Examples: https://github.com/lagoon-examples
 - Other Tools:
   - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
 
