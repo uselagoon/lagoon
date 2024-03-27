@@ -95,7 +95,7 @@ endif
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -234,17 +234,17 @@ s3-images += $(service-images)
 .PHONY: build
 build:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
+	$(call docker_build,default)
 
 .PHONY: build-list
 build-list:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
+	$(call docker_build,--print) | jq -r '.target | keys[] | "build/"+.'
 
 .PHONY: build-ui-logs-development
 build-ui-logs-development:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
+	$(call docker_build,ui-logs-development)
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -538,7 +538,8 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
 			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+			SKIP_INSTALL_REGISTRY=true
 
 # k3d/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
 # the deployments should be restarted to trigger any updated code changes
