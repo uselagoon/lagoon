@@ -13,24 +13,6 @@ export const Sql = {
     knex('env_vars')
       .where('project', projectId)
       .toString(),
-  selectBackupsByEnvironmentId: ({
-    environmentId,
-    includeDeleted
-  }: {
-    environmentId: number;
-    includeDeleted: boolean;
-  }) => {
-    const query = knex('environment_backup')
-      .where('environment', environmentId)
-      .orderBy('created', 'desc')
-      .orderBy('id', 'desc');
-
-    if (includeDeleted) {
-      return query.toString();
-    }
-
-    return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
-  },
   insertBackup: ({
     id,
     environment,
@@ -56,7 +38,7 @@ export const Sql = {
   deleteBackup: (backupId: string) =>
     knex('environment_backup')
       .where('backup_id', backupId)
-      .update({ deleted: knex.fn.now() })
+      .delete()
       .toString(),
   truncateBackup: () =>
     knex('environment_backup')
