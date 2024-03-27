@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { parsePrivateKey } from 'sshpk';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
-import * as api from '@lagoon/commons/dist/api';
+import { sanitizeGroupName } from '@lagoon/commons/dist/api';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { sqlClientPool } from '../clients/sqlClient';
@@ -65,7 +65,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
     const gitlabProject = R.find(
       (findProject: GitlabProject) =>
-        api.sanitizeGroupName(findProject.path) === project.name
+        sanitizeGroupName(findProject.path) === project.name
     )(allGitlabProjects);
 
     // Load default group
@@ -176,7 +176,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         getSshKeyFingerprint(keyPair.public)
       )
     );
-    const userId = R.path([0, 'usid'], userRows);
+    const userId = R.path([0, 'usid'], userRows) as string;
 
     let user;
     if (!userId) {
@@ -209,7 +209,6 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         );
       }
     } else {
-      // @ts-ignore
       user = await UserModel.loadUserById(userId);
     }
 

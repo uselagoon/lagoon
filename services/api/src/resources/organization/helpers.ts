@@ -1,6 +1,4 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';

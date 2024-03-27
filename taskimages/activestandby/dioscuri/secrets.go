@@ -30,10 +30,10 @@ func checkSecrets(ctx context.Context,
 			)
 			if err != nil {
 				if apierrors.IsNotFound(err) {
-					// fmt.Println(fmt.Sprintf(">> Secret %s for ingress %s doesn't exist in namespace %s", hosts.SecretName, hosts, destinationNamespace))
+					// fmt.Printf(">> Secret %s for ingress %s doesn't exist in namespace %s", hosts.SecretName, hosts, destinationNamespace))
 					return nil
 				}
-				return fmt.Errorf("Error getting secret, error was: %v", err)
+				return fmt.Errorf("error getting secret, error was: %v", err)
 			}
 			// return fmt.Errorf("Secret %s for ingress %s exists in namespace %s, skipping ingress", hosts.SecretName, hosts, destinationNamespace)
 		}
@@ -51,7 +51,7 @@ func copySecrets(ctx context.Context, c client.Client, ingress *networkv1.Ingres
 			break
 		}
 		secrets = append(secrets, secret)
-		fmt.Println(fmt.Sprintf(">> Copying secret %s in namespace %s", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace))
+		fmt.Printf(">> Copying secret %s in namespace %s\n", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace)
 	}
 	return secrets
 }
@@ -61,14 +61,13 @@ func createSecrets(ctx context.Context, c client.Client, destinationNamespace st
 	for _, secret := range secrets {
 		secret.ObjectMeta.Namespace = destinationNamespace
 		secret.ResourceVersion = ""
-		secret.SelfLink = ""
 		secret.UID = ""
 		err := c.Create(ctx, secret)
 		if err != nil {
 			break
 		}
 		secrets = append(secrets, secret)
-		fmt.Println(fmt.Sprintf(">> Creating secret %s in namespace %s", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace))
+		fmt.Printf(">> Creating secret %s in namespace %s\n", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace)
 	}
 	return nil
 }
@@ -82,7 +81,7 @@ func deleteOldSecrets(ctx context.Context, c client.Client, namespace string, in
 		if err == nil {
 			certificates[tls.SecretName] = false
 			if err = c.Delete(ctx, certificate); err != nil {
-				fmt.Println(fmt.Sprintf(">> Unable to delete certificate %s in namespace %s; error was: %v", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace, err))
+				fmt.Printf(">> Unable to delete certificate %s in namespace %s; error was: %v\n", certificate.ObjectMeta.Name, certificate.ObjectMeta.Namespace, err)
 				continue
 			}
 			certificates[tls.SecretName] = true
@@ -92,12 +91,12 @@ func deleteOldSecrets(ctx context.Context, c client.Client, namespace string, in
 		if err == nil {
 			secrets[tls.SecretName] = false
 			if err = c.Delete(ctx, secret); err != nil {
-				fmt.Println(fmt.Sprintf(">> Unable to patch secret %s in namespace %s; error was: %v", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace, err))
+				fmt.Printf(">> Unable to patch secret %s in namespace %s; error was: %v\n", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace, err)
 				continue
 			}
 			secrets[tls.SecretName] = true
 		} // else the secret didn't exist, so nothing to try and delete
-		// fmt.Println(fmt.Sprintf(">> Added delete annotation to secret %s in namespace %s", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace))
+		// fmt.Printf(">> Added delete annotation to secret %s in namespace %s", secret.ObjectMeta.Name, secret.ObjectMeta.Namespace))
 	}
 	return certificates, secrets
 }

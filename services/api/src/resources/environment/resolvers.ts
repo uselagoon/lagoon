@@ -1,7 +1,5 @@
 import * as R from 'ramda';
-// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-// @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -311,7 +309,6 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
-  // @ts-ignore
   const pid = input.project.toString();
   const openshiftProjectName =
     input.kubernetesNamespaceName || input.openshiftProjectName;

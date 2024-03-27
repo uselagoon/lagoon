@@ -3,8 +3,6 @@
 import uuid4 from 'uuid4';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { harborScanningCompleted } from '../handlers/problems/harborScanningCompleted';
-import { processHarborVulnerabilityList } from '../handlers/problems/processHarborVulnerabilityList';
 import { processDrutinyResultset }  from '../handlers/problems/processDrutinyResults';
 
 import {
@@ -33,23 +31,6 @@ export async function processProblems(
     } = webhook;
 
     switch(webhook.event) {
-      case 'harbor:scanningcompleted' :
-        if(enableHarborIntegration == true) {
-          console.log("NOTE: Harbor integration for Problems is deprecated and will be removed from Lagoon in an upcoming release");
-          await handle(harborScanningCompleted, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
-        } else {
-          console.log("NOTE: Harbor scan recieved but not processed because Harbor/Trivy integration is disabled");
-        }
-
-        break
-      case 'harbor:scanningresultfetched' :
-        if(enableHarborIntegration == true) {
-          console.log("NOTE: Harbor integration for Problems is deprecated and will be removed from Lagoon in an upcoming release");
-          await handle(processHarborVulnerabilityList, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
-        } else {
-          console.log("NOTE: Harbor scan recieved but not processed because Harbor/Trivy integration is disabled");
-        }
-      break;
       case 'drutiny:resultset' :
         await handle(processDrutinyResultset, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
       break;

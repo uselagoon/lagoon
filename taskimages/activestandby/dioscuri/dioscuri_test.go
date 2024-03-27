@@ -3,7 +3,6 @@ package dioscuri
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -49,17 +48,6 @@ func GetFakeClient() (client.Client, error) {
 	}
 
 	return fakeClient, nil
-}
-
-func getNamespaces(c client.Client) error {
-	v := &corev1.NamespaceList{}
-	listOption := (&client.ListOptions{}).ApplyOptions([]client.ListOption{})
-	err := c.List(context.Background(), v, listOption)
-	if err != nil {
-		return err
-	}
-	fmt.Println(v)
-	return nil
 }
 
 func Test_checkKubernetesServices(t *testing.T) {
@@ -133,8 +121,8 @@ func Test_checkKubernetesServices(t *testing.T) {
 			if err = json.Unmarshal(r1, seedIngressList); err != nil {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.args.seedIngressList, err)
 			}
-			ingressToMigrate := &networkv1.IngressList{}
-			if err := checkKubernetesServices(tt.args.ctx, fakeClient, seedIngressList, ingressToMigrate, tt.args.destinationNamespace); (err != nil) != tt.wantErr {
+			ingressToMigrate, err := checkKubernetesServices(tt.args.ctx, fakeClient, seedIngressList, tt.args.destinationNamespace)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("checkKubernetesServices() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			r1, err = os.ReadFile(tt.want)
@@ -145,7 +133,7 @@ func Test_checkKubernetesServices(t *testing.T) {
 			if err = json.Unmarshal(r1, wantIngressList); err != nil {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
 			}
-			if !reflect.DeepEqual(ingressToMigrate, wantIngressList) {
+			if !reflect.DeepEqual(ingressToMigrate, wantIngressList) && !tt.wantErr {
 				gotB, _ := json.Marshal(ingressToMigrate)
 				wantB, _ := json.Marshal(wantIngressList)
 				t.Errorf("checkKubernetesServices() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
@@ -156,7 +144,6 @@ func Test_checkKubernetesServices(t *testing.T) {
 
 func TestRunMigration(t *testing.T) {
 	type args struct {
-		c            client.Client
 		rData        *ReturnData
 		podName      string
 		podNamespace string
@@ -243,7 +230,7 @@ func TestRunMigration(t *testing.T) {
 			if *tt.args.rData != tt.want {
 				gotB, _ := json.Marshal(tt.args.rData)
 				wantB, _ := json.Marshal(tt.want)
-				t.Errorf("getIngressWithLabel() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				t.Errorf("RunMigration() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
 			}
 		})
 	}

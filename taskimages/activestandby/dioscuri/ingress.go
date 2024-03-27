@@ -22,7 +22,7 @@ func getIngressWithLabel(ctx context.Context, c client.Client,
 		client.MatchingLabels(map[string]string{"dioscuri.amazee.io/migrate": "true"}),
 	})
 	if err := c.List(context.TODO(), &dioscuriIngress, listOption); err != nil {
-		return nil, fmt.Errorf("Unable to get any ingress: %v", err)
+		return nil, fmt.Errorf("unable to get any ingress: %v", err)
 	}
 	for _, i := range dioscuriIngress.Items {
 		// remove the old label if it exists
@@ -31,7 +31,7 @@ func getIngressWithLabel(ctx context.Context, c client.Client,
 			&i,
 			map[string]interface{}{"dioscuri.amazee.io/migrate": nil, "activestandby.lagoon.sh/migrate": "true"},
 		); err != nil {
-			return nil, fmt.Errorf("Unable to patch ingress with updated label: %v", err)
+			return nil, fmt.Errorf("unable to patch ingress with updated label: %v", err)
 		}
 	}
 	// collect ingress ingress with new lagoon.sh labels
@@ -41,7 +41,7 @@ func getIngressWithLabel(ctx context.Context, c client.Client,
 		client.MatchingLabels(map[string]string{"activestandby.lagoon.sh/migrate": "true"}),
 	})
 	if err := c.List(context.TODO(), &ingress, listOption); err != nil {
-		return nil, fmt.Errorf("Unable to get any ingress: %v", err)
+		return nil, fmt.Errorf("unable to get any ingress: %v", err)
 	}
 	return &ingress, nil
 }
@@ -56,19 +56,19 @@ func individualIngressMigration(ctx context.Context,
 	newIngress := &networkv1.Ingress{}
 	err := c.Get(context.TODO(), types.NamespacedName{Namespace: sourceNamespace, Name: ingress.ObjectMeta.Name}, oldIngress)
 	if err != nil {
-		return newIngress, fmt.Errorf("Ingress %s in namespace %s doesn't exist: %v", ingress.ObjectMeta.Name, sourceNamespace, err)
+		return newIngress, fmt.Errorf("ingress %s in namespace %s doesn't exist: %v", ingress.ObjectMeta.Name, sourceNamespace, err)
 	}
 	ingressSecrets := copySecrets(ctx, c, oldIngress)
 	if err := createSecrets(ctx, c, destinationNamespace, ingressSecrets); err != nil {
-		return newIngress, fmt.Errorf("Unable to create secrets in destination namespace, error was: %v", err)
+		return newIngress, fmt.Errorf("unable to create secrets in destination namespace, error was: %v", err)
 	}
 	ingressCerts := copyCertificates(ctx, c, oldIngress)
 	if err := createCertificates(ctx, c, destinationNamespace, ingressCerts); err != nil {
-		return newIngress, fmt.Errorf("Unable to create secrets in destination namespace, error was: %v", err)
+		return newIngress, fmt.Errorf("unable to create secrets in destination namespace, error was: %v", err)
 	}
 	// if we ever need to do anything for any ingress with `tls-acme: true` enabled on them, for now, info only
 	// if oldIngress.Annotations["kubernetes.io/tls-acme"] == "true" {
-	// 	fmt.Println(fmt.Sprintf("Lets Encrypt is enabled for %s", oldIngress.Spec.Host))
+	// 	fmt.Printf("Lets Encrypt is enabled for %s", oldIngress.Spec.Host))
 	// }
 	// actually migrate here
 	// we need to create a new ingress now, but we need to swap the namespace to the destination.
@@ -77,11 +77,11 @@ func individualIngressMigration(ctx context.Context,
 	// set the newingress namespace as the destination namespace
 	newIngress.ObjectMeta.Namespace = destinationNamespace
 	newIngress.ObjectMeta.ResourceVersion = ""
-	// fmt.Println(fmt.Sprintf("Attempting to migrate ingress %s - %s", newIngress.ObjectMeta.Name, newIngress.Spec.Host))
+	// fmt.Printf("Attempting to migrate ingress %s - %s", newIngress.ObjectMeta.Name, newIngress.Spec.Host))
 	if err := migrateIngress(ctx, c, newIngress, oldIngress); err != nil {
-		return newIngress, fmt.Errorf("Error migrating ingress %s in namespace %s: %v", ingress.ObjectMeta.Name, sourceNamespace, err)
+		return newIngress, fmt.Errorf("error migrating ingress %s in namespace %s: %v", ingress.ObjectMeta.Name, sourceNamespace, err)
 	}
-	fmt.Println(fmt.Sprintf("> Done migrating ingress %s", ingress.ObjectMeta.Name))
+	fmt.Printf("> Done migrating ingress %s\n", ingress.ObjectMeta.Name)
 	return newIngress, nil
 }
 
@@ -92,13 +92,13 @@ func migrateIngress(ctx context.Context,
 	oldIngress *networkv1.Ingress,
 ) error {
 	// delete old ingress from the old namespace
-	fmt.Println(fmt.Sprintf("> Removing old ingress %s in namespace %s", oldIngress.ObjectMeta.Name, oldIngress.ObjectMeta.Namespace))
+	fmt.Printf("> Removing old ingress %s in namespace %s\n", oldIngress.ObjectMeta.Name, oldIngress.ObjectMeta.Namespace)
 	if err := removeIngress(ctx, c, oldIngress); err != nil {
 		return err
 	}
 	// add ingress
 	if err := addIngressIfNotExist(ctx, c, newIngress); err != nil {
-		return fmt.Errorf("Unable to create ingress %s in %s: %v", newIngress.ObjectMeta.Name, newIngress.ObjectMeta.Namespace, err)
+		return fmt.Errorf("unable to create ingress %s in %s: %v", newIngress.ObjectMeta.Name, newIngress.ObjectMeta.Namespace, err)
 	}
 	return nil
 }
@@ -106,13 +106,13 @@ func migrateIngress(ctx context.Context,
 // add any ingress if they don't already exist in the new namespace
 func addIngressIfNotExist(ctx context.Context, c client.Client, ingress *networkv1.Ingress) error {
 	// add ingress
-	// fmt.Println(fmt.Sprintf(">> Getting existing ingress %s in namespace %s", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
+	// fmt.Printf(">> Getting existing ingress %s in namespace %s", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
 	err := c.Get(ctx, types.NamespacedName{Namespace: ingress.ObjectMeta.Namespace, Name: ingress.ObjectMeta.Name}, ingress)
 	if err != nil {
 		// there is no ingress in the destination namespace, then we create it
-		fmt.Println(fmt.Sprintf(">> Creating ingress %s in namespace %s", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
+		fmt.Printf(">> Creating ingress %s in namespace %s\n", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace)
 		if err := c.Create(ctx, ingress); err != nil {
-			return fmt.Errorf("Unable to create ingress %s in %s: %v", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace, err)
+			return fmt.Errorf("unable to create ingress %s in %s: %v", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace, err)
 		}
 	}
 	return nil
@@ -130,7 +130,7 @@ func updateIngress(ctx context.Context, c client.Client, newIngress *networkv1.I
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("Unable to create mergepatch for %s, error was: %v", newIngress.ObjectMeta.Name, err)
+				return fmt.Errorf("unable to create mergepatch for %s, error was: %v", newIngress.ObjectMeta.Name, err)
 			}
 			certificates, secrets := deleteOldSecrets(ctx, c, oldIngressNamespace, newIngress)
 			if len(certificates) > 0 {
@@ -138,7 +138,7 @@ func updateIngress(ctx context.Context, c client.Client, newIngress *networkv1.I
 				fmt.Println(">> The following certificates remained in the namespace:")
 				for c, b := range certificates {
 					if !b {
-						fmt.Println(fmt.Sprintf(">>> %s", c))
+						fmt.Printf(">>> %s\n", c)
 					}
 				}
 			}
@@ -146,13 +146,13 @@ func updateIngress(ctx context.Context, c client.Client, newIngress *networkv1.I
 				fmt.Println(">> The following secrets remained in the namespace:")
 				for c, b := range secrets {
 					if !b {
-						fmt.Println(fmt.Sprintf(">>> %s", c))
+						fmt.Printf(">>> %s\n", c)
 					}
 				}
 			}
-			fmt.Println(fmt.Sprintf(">> Patching ingress %s in namespace %s", newIngress.ObjectMeta.Name, newIngress.ObjectMeta.Namespace))
+			fmt.Printf(">> Patching ingress %s in namespace %s\n", newIngress.ObjectMeta.Name, newIngress.ObjectMeta.Namespace)
 			if err := c.Patch(ctx, newIngress, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
-				return fmt.Errorf("Unable to patch ingress %s, error was: %v", newIngress.ObjectMeta.Name, err)
+				return fmt.Errorf("unable to patch ingress %s, error was: %v", newIngress.ObjectMeta.Name, err)
 			}
 			return nil
 		}
@@ -160,19 +160,19 @@ func updateIngress(ctx context.Context, c client.Client, newIngress *networkv1.I
 		checkInterval := time.Duration(5)
 		time.Sleep(checkInterval * time.Second)
 	}
-	return fmt.Errorf("There was an error checking if the old ingress still exists before trying to patch the new ingress, there may be an issue with the ingress")
+	return fmt.Errorf("there was an error checking if the old ingress still exists before trying to patch the new ingress, there may be an issue with the ingress")
 }
 
 func checkOldIngressExists(c client.Client, ingress *networkv1.Ingress, sourceNamespace string) bool {
-	// fmt.Println(fmt.Sprintf(">> Checking ingress %s is not in source namespace %s", ingress.ObjectMeta.Name, sourceNamespace))
+	// fmt.Printf(">> Checking ingress %s is not in source namespace %s", ingress.ObjectMeta.Name, sourceNamespace))
 	getIngress := &networkv1.Ingress{}
 	err := c.Get(context.TODO(), types.NamespacedName{Namespace: sourceNamespace, Name: ingress.ObjectMeta.Name}, getIngress)
 	if err != nil {
 		// there is no ingress in the source namespace
-		fmt.Println(fmt.Sprintf(">> Ingress %s is not in source namespace %s", ingress.ObjectMeta.Name, sourceNamespace))
+		fmt.Printf(">> Ingress %s is not in source namespace %s\n", ingress.ObjectMeta.Name, sourceNamespace)
 		return false
 	}
-	// fmt.Println(fmt.Sprintf(">> Ingress %s is in source namespace %s", ingress.ObjectMeta.Name, sourceNamespace))
+	// fmt.Printf(">> Ingress %s is in source namespace %s", ingress.ObjectMeta.Name, sourceNamespace))
 	return true
 }
 
@@ -180,10 +180,10 @@ func checkOldIngressExists(c client.Client, ingress *networkv1.Ingress, sourceNa
 func removeIngress(ctx context.Context, c client.Client, ingress *networkv1.Ingress) error {
 	// remove ingress
 	if err := c.Delete(ctx, ingress); err != nil {
-		return fmt.Errorf("Unable to delete ingress %s in %s: %v", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace, err)
+		return fmt.Errorf("unable to delete ingress %s in %s: %v", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace, err)
 	}
 	// check that the ingress is actually deleted before continuing
-	// fmt.Println(fmt.Sprintf(">> Check ingress %s in %s deleted", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
+	// fmt.Printf(">> Check ingress %s in %s deleted", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
 	try.MaxRetries = 60
 	err := try.Do(func(attempt int) (bool, error) {
 		var ingressErr error
@@ -194,7 +194,7 @@ func removeIngress(ctx context.Context, c client.Client, ingress *networkv1.Ingr
 		if err != nil {
 			// the ingress doesn't exist anymore, so exit the retry
 			ingressErr = nil
-			fmt.Println(fmt.Sprintf(">> Ingress %s in %s deleted", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace))
+			fmt.Printf(">> Ingress %s in %s deleted\n", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace)
 		} else {
 			// if the ingress still exists wait 5 seconds before trying again
 			msg := fmt.Sprintf(">> Ingress %s in %s still exists", ingress.ObjectMeta.Name, ingress.ObjectMeta.Namespace)
@@ -218,10 +218,10 @@ func patchIngress(ctx context.Context, c client.Client, ingress *networkv1.Ingre
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("Unable to create mergepatch for %s, error was: %v", ingress.ObjectMeta.Name, err)
+		return fmt.Errorf("unable to create mergepatch for %s, error was: %v", ingress.ObjectMeta.Name, err)
 	}
 	if err := c.Patch(ctx, ingress, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
-		return fmt.Errorf("Unable to patch ingress %s, error was: %v", ingress.ObjectMeta.Name, err)
+		return fmt.Errorf("unable to patch ingress %s, error was: %v", ingress.ObjectMeta.Name, err)
 	}
 	return nil
 }

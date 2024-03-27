@@ -1,6 +1,12 @@
 import * as R from 'ramda';
 import * as bitbucketApi from '@lagoon/commons/dist/bitbucketApi';
-import * as api from '@lagoon/commons/dist/api';
+import {
+  addUserToGroup,
+  removeUserFromGroup,
+  getGroupMembersByGroupName,
+  getProjectsByGroupName,
+  addUser as apiAddUser
+} from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import redis, { ClientOpts } from 'redis';
 import { promisify } from 'util';
@@ -46,7 +52,7 @@ const isNotEmpty = R.complement(R.isEmpty);
 // Returns false if adding user failed and no user exists.
 const addUser = async (email: string): Promise<boolean> => {
   try {
-    await api.addUser(email);
+    await apiAddUser(email);
   } catch (err) {
     if (!userExistsTest(err.message)) {
       logger.error(
@@ -174,7 +180,7 @@ const syncUsersForProjects = async (redis, projects) => {
 
               //Now we check if we need to change this users' permissions
               if(getUsersCurrentPermission(lagoonUsersInGroupTotal, email) != BitbucketPermsToLagoonPerms[bbPerm]) {
-                await api.addUserToGroup(
+                await addUserToGroup(
                   email,
                   lagoonProjectGroup,
                   BitbucketPermsToLagoonPerms[bbPerm]
@@ -209,7 +215,7 @@ const syncUsersForProjects = async (redis, projects) => {
 
           for (const user of deleteUsers) {
             try {
-              await api.removeUserFromGroup(user, lagoonProjectGroup);
+              await removeUserFromGroup(user, lagoonProjectGroup);
             } catch (err) {
               logger.error(
                 `Could not remove user (${user}) from group (${lagoonProjectGroup}): ${err.message}`
@@ -248,7 +254,7 @@ function getUsersCurrentPermission(lagoonUsers, email) {
 }
 
 async function getLagoonUsersForGroup(lagoonProjectGroup: string) {
-  const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
+  const currentMembersQuery = await getGroupMembersByGroupName(lagoonProjectGroup);
   const lagoonUsers = R.pipe(R.pathOr([], ['groupByName','members']))(currentMembersQuery);
   return lagoonUsers;
 }
@@ -294,7 +300,7 @@ const getRedisClient = () => {
   // @ts-ignore
   redisObj.redisClient.on("ready", async function() {
       // Get all bitbucket related lagoon projects
-      const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
+      const groupQuery = await getProjectsByGroupName(LAGOON_SYNC_GROUP);
       const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
         object
       ];

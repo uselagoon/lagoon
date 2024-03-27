@@ -1,7 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-// @ts-ignore
 import validator from 'validator';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';

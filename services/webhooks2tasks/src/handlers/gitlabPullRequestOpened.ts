@@ -81,8 +81,6 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.object_attributes.iid} opened. No deploy task created, reason: ${error}`

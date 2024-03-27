@@ -41,6 +41,9 @@ export const Helpers = (sqlClientPool: Pool) => {
                 for (const o in groups) {
                   projectGroups.push(await models.GroupModel.loadGroupById(groups[o]))
                 }
+                projectGroups.sort(function(a, b) {
+                    return a.name.localeCompare(b.name);
+                });
                 return projectGroups
             }
             return []
@@ -57,6 +60,9 @@ export const Helpers = (sqlClientPool: Pool) => {
                 for (const o in groups) {
                     orgGroups.push(await models.GroupModel.loadGroupById(groups[o]))
                 }
+                orgGroups.sort(function(a, b) {
+                    return a.name.localeCompare(b.name);
+                });
                 return orgGroups
             }
             return []

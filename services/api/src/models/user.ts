@@ -1,10 +1,8 @@
-// @ts-ignore
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
-// @ts-ignore
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
-import { Group, isRoleSubgroup } from './group';
+import { Group } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { Sql } from '../resources/user/sql';
@@ -338,6 +336,8 @@ export const User = (clients: {
             continue
           }
         }
+        // only set the users role-group as the subgroup, this is because `loadGroupByName` retrieves all the subgroups not just the one the user is in
+        parentGroup.subGroups = [ug]
         userGroups.push(parentGroup);
       }
     }

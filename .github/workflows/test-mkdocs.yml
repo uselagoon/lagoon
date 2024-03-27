@@ -1,0 +1,38 @@
+name: Test mkdocs
+on:
+  push:
+    branches:
+      - 'docs/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/test-mkdocs.yml'
+
+jobs:
+  mkdocs:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      -
+        name: Install mkdocs and dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mkdocs
+          pip install -r docs/requirements.txt
+      -
+        name: Check docs build ok in native mkdocs
+        run: |
+          mkdocs -V
+          mkdocs build -s
+      -
+        name: Check docs build ok with amazee.io mkdocs image
+        run: |
+          docker run --rm ghcr.io/amazeeio/mkdocs-material -V
+          docker run --rm -p 8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material build -s

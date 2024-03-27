@@ -2,10 +2,12 @@ import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.UserSessionModel;
+import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.mappers.*;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.IDToken;
 import org.jboss.logging.Logger;
 
 import org.keycloak.models.IdentityProviderMapperModel;
@@ -44,21 +46,26 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
     static {
         ProviderConfigProperty property;
         property = new ProviderConfigProperty();
-        property.setName(ProtocolMapperUtils.USER_ATTRIBUTE);
-        property.setLabel(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_LABEL);
-        property.setHelpText(ProtocolMapperUtils.USER_MODEL_ATTRIBUTE_HELP_TEXT);
-        property.setType(ProviderConfigProperty.STRING_TYPE);
-        configProperties.add(property);
-
-        property = new ProviderConfigProperty();
         property.setName(ProtocolMapperUtils.MULTIVALUED);
         property.setLabel(ProtocolMapperUtils.MULTIVALUED_LABEL);
         property.setHelpText(ProtocolMapperUtils.MULTIVALUED_HELP_TEXT);
         property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
         configProperties.add(property);
 
+        property = new ProviderConfigProperty();
+        property.setName(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN);
+        property.setLabel(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN_LABEL);
+        property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        configProperties.add(property);
+
+        property = new ProviderConfigProperty();
+        property.setName(OIDCAttributeMapperHelper.INCLUDE_IN_ID_TOKEN);
+        property.setLabel(OIDCAttributeMapperHelper.INCLUDE_IN_ID_TOKEN_LABEL);
+        property.setType(ProviderConfigProperty.BOOLEAN_TYPE);
+        configProperties.add(property);
     }
-     */
+    */
+
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {
         return configProperties;
@@ -84,9 +91,7 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
         return "A mapper that can retrieve groups and projects from the lagoon API to store in the token";
     }
 
-    public AccessToken transformAccessToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession keycloakSession,
-                                            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-
+    public List<Object> generateGroups(UserSessionModel userSession) {
         List<Object> groupsAndRoles = new ArrayList();
         Map<String, String> groupProjectIds = new HashMap();
         Map<String, String> projectGroupProjectIds = new HashMap();
@@ -145,6 +150,25 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
             groupsAndRoles.add(roleName);
         };
 
+        return groupsAndRoles;
+    }
+
+    public IDToken transformIDToken(IDToken token, ProtocolMapperModel mappingModel, KeycloakSession keycloakSession,
+                                            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
+
+        List<Object> groupsAndRoles = generateGroups(userSession);
+
+        token.getOtherClaims().put("groups", groupsAndRoles);
+
+        setClaim(token, mappingModel, userSession, keycloakSession, clientSessionCtx);
+        return token;
+    }
+
+    public AccessToken transformAccessToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession keycloakSession,
+                                            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
+
+        List<Object> groupsAndRoles = generateGroups(userSession);
+
         token.getOtherClaims().put("groups", groupsAndRoles);
 
         setClaim(token, mappingModel, userSession, keycloakSession, clientSessionCtx);
@@ -157,7 +181,10 @@ public class CustomOIDCProtocolMapper extends AbstractOIDCProtocolMapper impleme
         mapper.setName(name);
         mapper.setProtocolMapper(PROVIDER_ID);
         mapper.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
-        Map<String, String> config = new HashMap<String, String>();
+        Map<String, String> config = new HashMap<>();
+        config.put(ProtocolMapperUtils.MULTIVALUED, "true");
+        config.put(OIDCAttributeMapperHelper.TOKEN_CLAIM_NAME, "groups");
+        config.put(OIDCAttributeMapperHelper.JSON_TYPE, "JSON");
         config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "true");
         config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ID_TOKEN, "true");
         config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");

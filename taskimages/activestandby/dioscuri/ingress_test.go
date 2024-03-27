@@ -134,7 +134,6 @@ func Test_patchIngress(t *testing.T) {
 func Test_individualIngressMigration(t *testing.T) {
 	type args struct {
 		ctx                  context.Context
-		ingress              *networkv1.Ingress
 		seedIngress          string
 		sourceNamespace      string
 		destinationNamespace string

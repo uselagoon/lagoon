@@ -1,6 +1,11 @@
 import * as R from 'ramda';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
-import * as api from '@lagoon/commons/dist/api';
+import {
+  sanitizeGroupName,
+  addGroupWithParent,
+  addGroup,
+  addUserToGroup
+} from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 
 interface GitlabGroup {
@@ -21,15 +26,15 @@ const convertRoleNumberToString = R.cond([
 ]);
 
 const syncGroup = async group => {
-  const groupName = api.sanitizeGroupName(group.full_path);
+  const groupName = sanitizeGroupName(group.full_path);
   logger.debug(`Processing ${group.name} (${groupName})`);
 
   try {
     if (group.parent_id) {
       const parentGroup = await gitlabApi.getGroup(group.parent_id);
-      await api.addGroupWithParent(groupName, api.sanitizeGroupName(parentGroup.full_path));
+      await addGroupWithParent(groupName, sanitizeGroupName(parentGroup.full_path));
     } else {
-      await api.addGroup(groupName);
+      await addGroup(groupName);
     }
   } catch (err) {
     if (!R.test(groupExistsRegex, err.message)) {
@@ -42,7 +47,7 @@ const syncGroup = async group => {
   for (const member of groupMembers) {
     const user = await gitlabApi.getUser(member.id);
 
-    await api.addUserToGroup(user.email, groupName, convertRoleNumberToString(member.access_level));
+    await addUserToGroup(user.email, groupName, convertRoleNumberToString(member.access_level));
   }
 };
 

@@ -298,8 +298,6 @@ mutation {
       id
     }
     gitUrl
-    activeSystemsDeploy
-    activeSystemsRemove
     branches
     pullrequests
   }

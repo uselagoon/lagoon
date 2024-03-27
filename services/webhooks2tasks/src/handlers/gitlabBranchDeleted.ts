@@ -60,8 +60,6 @@ export async function gitlabBranchDeleted(webhook: WebhookRequestData, project: 
       meta.error = error
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:remove:handledButNoTask`, meta,
             `*[${project.name}]* \`${meta.branch}\` deleted. No remove task created, reason: ${error}`

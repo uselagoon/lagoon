@@ -51,6 +51,7 @@ const keysRoute = async (
     // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
     // @ts-ignore
     R.map(sshKey => [toFingerprint(sshKey), sshKey]),
+  // @ts-ignore error TS2554: Expected 0 arguments, but got 1.
   )(keys);
 
   const result = R.propOr('', fingerprint, fingerprintKeyMap);

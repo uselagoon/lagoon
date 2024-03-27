@@ -1,7 +1,14 @@
 import * as R from 'ramda';
 import * as sshpk from 'sshpk';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
-import * as api from '@lagoon/commons/dist/api';
+import {
+  sanitizeGroupName,
+  sanitizeProjectName,
+  addProject,
+  getProjectByName,
+  addGroupToProject,
+  addUserToGroup
+} from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 
 interface GitlabProject {
@@ -26,7 +33,7 @@ const convertRoleNumberToString = R.cond([
 
 const syncProject = async (project) => {
   const { id, path, ssh_url_to_repo: gitUrl, namespace } = project;
-  const projectName = api.sanitizeProjectName(path);
+  const projectName = sanitizeProjectName(path);
   const openshift = 1;
   const productionenvironment = "master";
   logger.debug(`Processing ${projectName}`);
@@ -38,11 +45,11 @@ const syncProject = async (project) => {
 
   let lagoonProject;
   try {
-    const result = await api.addProject(projectName, gitUrl, openshift, productionenvironment);
+    const result = await addProject(projectName, gitUrl, openshift, productionenvironment);
     lagoonProject = R.prop('addProject', result);
   } catch (err) {
     if (R.test(projectExistsRegex, err.message)) {
-      lagoonProject = await api.getProjectByName(projectName);
+      lagoonProject = await getProjectByName(projectName);
     } else {
       throw new Error(`Could not sync (add) gitlab project ${projectName}: ${err.message}`);
     }
@@ -65,14 +72,14 @@ const syncProject = async (project) => {
 
   // In Gitlab each project has an Owner, which is in this case a Group that already should be created before.
   // We add this owner Group to the Project.
-  await api.addGroupToProject(projectName, api.sanitizeGroupName(namespace.full_path));
+  await addGroupToProject(projectName, sanitizeGroupName(namespace.full_path));
 
   const projectMembers = await gitlabApi.getProjectMembers(project.id);
 
   for (const member of projectMembers) {
     const user = await gitlabApi.getUser(member.id);
 
-    await api.addUserToGroup(user.email, `project-${projectName}`, convertRoleNumberToString(member.access_level));
+    await addUserToGroup(user.email, `project-${projectName}`, convertRoleNumberToString(member.access_level));
   }
 };
 

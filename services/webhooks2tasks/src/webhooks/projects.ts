@@ -1,7 +1,7 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
-import { getProjectsByGitUrl } from '@lagoon/commons/dist/api';
+import { Project as LagoonProject, ProjectNotFound, lagoonApi } from '@lagoon/commons/dist/api';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { githubPullRequestClosed } from '../handlers/githubPullRequestClosed';
 import { githubPullRequestOpened } from '../handlers/githubPullRequestOpened';
@@ -33,13 +33,31 @@ export async function processProjects(
   channelWrapperWebhooks: ChannelWrapper
 ): Promise<void> {
   const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString());
-
-  let projects: Project[];
-
   const { webhooktype, event, giturl, uuid, body } = webhook;
 
   try {
-    projects = await getProjectsByGitUrl(giturl);
+    const result = await lagoonApi.query(
+      `
+      query webhookProcessProjects($giturl: String!) {
+        allProjects(gitUrl: $giturl) {
+          name
+          deploymentsDisabled
+        }
+      }
+    `,
+      { giturl }
+    ) as {
+      allProjects: Pick<
+        LagoonProject,
+        'name' | 'deploymentsDisabled'
+      >[];
+    }
+
+    if (!result || !result.allProjects || !result.allProjects.length) {
+      throw new ProjectNotFound(`Cannot find project for git repo ${giturl}`);
+    }
+
+    var projects = result.allProjects;
   } catch (error) {
     if (error.name == 'ProjectNotFound') {
       const meta = {

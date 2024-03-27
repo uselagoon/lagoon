@@ -36,7 +36,7 @@ func main() {
 		// read the legacy deployer token if for some reason the serviceaccount is not found.
 		token, err = os.ReadFile("/var/run/secrets/lagoon/deployer/token")
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Task failed to find a kubernetes token to use, error was: %v", err))
+			fmt.Printf("Task failed to find a kubernetes token to use, error was: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -51,19 +51,19 @@ func main() {
 	// create the client using the rest config.
 	c, err := client.New(config, client.Options{})
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Task failed creating the kubernetes client, error was: %v", err))
+		fmt.Printf("Task failed creating the kubernetes client, error was: %v\n", err)
 		os.Exit(1)
 	}
 
 	// decode the payload data and unmarshal it.
 	payloadBytes, err := base64.StdEncoding.DecodeString(JSONPayload)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to decode the supplied payload data, error was: %v", err))
+		fmt.Printf("Task failed to decode the supplied payload data, error was: %v\n", err)
 		os.Exit(1)
 	}
 	var payloadData map[string]interface{}
 	if err := json.Unmarshal(payloadBytes, &payloadData); err != nil {
-		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the supplied payload data, error was: %v", err))
+		fmt.Printf("Task failed to unsmarshal the supplied payload data, error was: %v\n", err)
 		os.Exit(1)
 	}
 
