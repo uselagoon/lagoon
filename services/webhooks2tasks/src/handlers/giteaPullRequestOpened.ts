@@ -70,6 +70,8 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {

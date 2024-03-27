@@ -22,6 +22,7 @@ import { gitlabBranchDeleted } from '../handlers/gitlabBranchDeleted';
 import { gitlabPullRequestClosed } from '../handlers/gitlabPullRequestClosed';
 import { gitlabPullRequestOpened } from '../handlers/gitlabPullRequestOpened';
 import { gitlabPullRequestUpdated } from '../handlers/gitlabPullRequestUpdated';
+import crypto from 'crypto';
 
 import {
   WebhookRequestData,
@@ -138,6 +139,15 @@ export async function processProjects(
       channelWrapperWebhooks.ack(rabbitMsg);
     }
     return;
+  }
+
+  // if there are more than 1 projects returned, it is probably a polysite deployment
+  if (projects.length > 1) {
+    // label them as a bulk or grouped deployment
+    // assign a random uuid
+    webhook.bulkId = crypto.randomUUID()
+    // and then add the name as polysite indicating what type of event started it
+    webhook.bulkName = `Polysite - ${webhooktype}:${event} - ${new Date().toISOString()}`
   }
 
   projects.forEach(async project => {

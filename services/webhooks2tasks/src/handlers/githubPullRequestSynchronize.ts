@@ -88,6 +88,8 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {

@@ -70,6 +70,8 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {
