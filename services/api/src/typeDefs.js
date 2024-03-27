@@ -920,6 +920,10 @@ const typeDefs = gql`
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
     workflows: [Workflow]
+    """
+    Is the environment currently idled
+    """
+    idled: Boolean
   }
 
   type EnvironmentHitsMonth {
@@ -2530,6 +2534,7 @@ const typeDefs = gql`
     bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
     addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
+    environmentIdling(id: Int!, idle: Boolean!, disableAutomaticUnidling: Boolean): String
   }
 
   type Subscription {
