@@ -1,5 +1,4 @@
 import * as R from 'ramda';
-import * as sshpk from 'sshpk';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import {
   sanitizeGroupName,
@@ -10,6 +9,7 @@ import {
   addUserToGroup
 } from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { validateKey } from '../util/func';
 
 interface GitlabProject {
   id: number,
@@ -56,14 +56,10 @@ const syncProject = async (project) => {
   }
 
   try {
-    const privateKey = R.pipe(
-      R.prop('privateKey'),
-      sshpk.parsePrivateKey,
-    )(lagoonProject);
-    //@ts-ignore
-    const publicKey = privateKey.toPublic();
+    const privkey = new Buffer((R.prop('privateKey', lagoonProject))).toString('base64')
+    const publickey = await validateKey(privkey, "private")
 
-    await gitlabApi.addDeployKeyToProject(id, publicKey.toString());
+    await gitlabApi.addDeployKeyToProject(id, publickey['publickey']);
   } catch (err) {
     if (!err.message.includes('has already been taken')) {
       throw new Error(`Could not add deploy_key to gitlab project ${id}, reason: ${err}`);

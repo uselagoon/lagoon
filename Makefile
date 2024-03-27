@@ -160,6 +160,7 @@ services :=	api \
 			actions-handler \
 			backup-handler \
 			broker \
+			sshkey-handler \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
@@ -185,6 +186,7 @@ build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/backup-handler: services/backup-handler/Dockerfile
 build/broker: services/broker/Dockerfile
+build/sshkey-handler: services/sshkey-handler/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
@@ -253,7 +255,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = actions-handler broker sshkey-handler logs2notifications api api-db api-redis sshkey-handler keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -351,15 +353,15 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db sshkey-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db sshkey-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler sshkey-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 
 ## CI targets
 
@@ -371,7 +373,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.10.1
 K3D_IMAGE = docker.io/rancher/k3s:v1.28.6-k3s2
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = prerelease/lagoon_v218
+CHARTS_TREEISH = prerelease/lagoon_v218-crypto
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
@@ -481,7 +483,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-K3D_SERVICES = api api-db api-redis auth-server actions-handler broker keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
+K3D_SERVICES = api api-db api-redis auth-server actions-handler broker sshkey-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
 K3D_TESTS = local-api-data-watcher-pusher local-git tests
 K3D_TOOLS = k3d helm kubectl jq stern
 
@@ -517,7 +519,7 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install --helm-extra-args "--timeout 60m"
 
-LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server actions-handler sshkey-handler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: k3d/setup
