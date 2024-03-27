@@ -161,6 +161,7 @@ nav:
   - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
   - Lagoon Sync: https://github.com/uselagoon/lagoon-sync
   - Client Libraries: other-tools/client-libraries.md
+- ... | releases/*
 
 theme:
   name: 'material'
@@ -238,6 +239,7 @@ markdown_extensions:
 
 plugins:
   - search
+  - awesome-pages
   - redirects:
       redirect_maps:
         # Shortcut URLs for build and compose errors
