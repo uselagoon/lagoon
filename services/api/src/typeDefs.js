@@ -432,6 +432,7 @@ const typeDefs = gql`
     FACT
     ENVIRONMENT
     PROJECT
+    PROJECT_METADATA
   }
 
   input FactFilterAtom {
