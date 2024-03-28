@@ -227,5 +227,14 @@ export const Sql = {
   truncateProjectNotification: () =>
     knex('project_notification')
       .truncate()
-      .toString()
+      .toString(),
+  selectNotificationByNameAndType: (name: string, type: string) =>
+    knex(`notification_${type}`)
+      .where('name', '=', name)
+      .toString(),
+  selectProjectNotificationByNameAndType: (name: string, type: string) =>
+    knex(`notification_${type}`)
+      .join('project_notification', `notification_${type}.id`, '=', 'project_notification.nid' )
+      .where('name', '=', name)
+      .toString(),
 };
