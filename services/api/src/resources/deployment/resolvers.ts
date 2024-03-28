@@ -735,7 +735,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       break;
 
     default:
-      return `Error: Unknown deploy type ${environment.deployType}`;
+      throw new Error(`Error: Unknown deploy type ${environment.deployType}`);
   }
 
   userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
@@ -784,7 +784,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`
         );
-        return `Error: ${error.message}`;
+        throw new Error(error.message);
     }
   }
 };
@@ -886,7 +886,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error}`
         );
-        return `Error: ${error}`;
+        throw new Error(error.message);
     }
   }
 };
@@ -999,7 +999,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
         );
-        return `Error: ${error.message}`;
+        throw new Error(error.message);
     }
   }
 };
@@ -1124,7 +1124,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
         );
-        return `Error: ${error.message}`;
+        throw new Error(error.message);
     }
   }
 };
