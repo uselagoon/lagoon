@@ -1,0 +1,3 @@
+
+- name: "Add a new user '{{ user_email }}'"
+  command: lagoon add user -E {{ user_email }}

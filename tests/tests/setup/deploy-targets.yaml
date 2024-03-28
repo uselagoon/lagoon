@@ -1,0 +1,4 @@
+---
+- include: ../../tasks/cli/add-deploy-target.yaml
+  vars:
+    target: "kickstart-openshift"

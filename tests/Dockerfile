@@ -38,11 +38,16 @@ RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 |
 
 RUN git config --global user.email "deploytest@lagoon.sh" && git config --global user.name deploytest
 
+# download lagoon cli
+RUN DOWNLOAD_PATH=$(curl -sL "https://api.github.com/repos/uselagoon/lagoon-cli/releases/latest" | grep "browser_download_url" | cut -d \" -f 4 | grep "linux-arm64" | head -1) && wget -O /usr/local/bin/lagoon $DOWNLOAD_PATH && chmod +x /usr/local/bin/lagoon
+
 COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_FORCE_COLOR=true \
     SSH_AUTH_SOCK=/tmp/ssh-agent \
     KEYCLOAK_URL=http://keycloak:8080 \
+    KEYCLOAK_ADMIN_USER=admin \
+    KEYCLOAK_ADMIN_PASSWORD=jKkenTkokHmeWdOJtvhAFTiLnABUmDHs \
     JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
     JWTUSER=test-suite

@@ -1,0 +1,13 @@
+---
+- include: ../../tasks/cli/add-notification.yaml
+  vars:
+    name: "amazeeio--lagoon-local-ci"
+    notification_type: "rocketchat"
+    channel: "lagoon-local-ci"
+    webhook: "https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn"
+
+- include: ../../tasks/cli/add-notification.yaml
+  vars:
+    name: "local-email-testing"
+    notification_type: "email"
+    email_address: "mail@example.com"
