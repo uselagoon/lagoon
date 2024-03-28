@@ -165,16 +165,24 @@ export const addBackup: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertBackup({
-      id,
-      environment: environmentId,
-      source,
-      backupId,
-      created
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertBackup({
+        id,
+        environment: environmentId,
+        source,
+        backupId,
+        created
+      })
+    ));
+  } catch(error) {
+    throw new Error(
+      `Error adding backup. Backup already exists.`
+    );
+  };
+
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
@@ -246,16 +254,24 @@ export const addRestore: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertRestore({
-      id,
-      backupId,
-      status,
-      restoreLocation,
-      created
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertRestore({
+        id,
+        backupId,
+        status,
+        restoreLocation,
+        created
+      })
+    ));
+  } catch(error) {
+    throw new Error(
+      `Error adding restore. Restore already exists.`
+    );
+  };
+
   let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
   const restoreData = R.prop(0, rows);
 

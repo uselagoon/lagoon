@@ -56,16 +56,24 @@ export const addSshKey: ResolverFn = async (
     users: [user.id]
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertSshKey({
-      id,
-      name,
-      keyValue,
-      keyType,
-      keyFingerprint: getSshKeyFingerprint(keyFormatted)
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertSshKey({
+        id,
+        name,
+        keyValue,
+        keyType,
+        keyFingerprint: getSshKeyFingerprint(keyFormatted)
+      })
+    ));
+  } catch(error) {
+    throw new Error(
+      `Error adding SSH key. Key already exists.`
+    );
+  };
+
   await query(
     sqlClientPool,
     Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
@@ -130,18 +138,25 @@ export const updateSshKey: ResolverFn = async (
     keyFingerprint = getSshKeyFingerprint(keyFormatted);
   }
 
-  await query(
-    sqlClientPool,
-    Sql.updateSshKey({
-      id,
-      patch: {
-        name,
-        keyType,
-        keyValue,
-        keyFingerprint
-      }
-    })
-  );
+  try {
+    await query(
+      sqlClientPool,
+      Sql.updateSshKey({
+        id,
+        patch: {
+          name,
+          keyType,
+          keyValue,
+          keyFingerprint
+        }
+      })
+    );
+  } catch(error) {
+    throw new Error(
+      `Error updating SSH key. Key already exists.`
+    );
+  };
+
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
   userActivityLogger(`User updated ssh key '${id}'`, {
