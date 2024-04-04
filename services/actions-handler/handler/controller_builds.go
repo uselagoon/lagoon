@@ -39,7 +39,23 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 
 	// set up a lagoon client for use in the following process
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
-	deployment, err := lagoon.GetDeploymentByName(ctx, message.Meta.Project, message.Meta.Environment, message.Meta.BuildName, false, l)
+	environment, err := lagoon.GetEnvironmentByNamespace(ctx, message.Namespace, l)
+	if err != nil || environment == nil {
+		if err != nil {
+			m.toLagoonLogs(messageQueue, map[string]interface{}{
+				"severity": "error",
+				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+				"meta":     environment,
+				"message":  err.Error(),
+			})
+			if m.EnableDebug {
+				log.Println(fmt.Sprintf("%sERROR:unable to get environment by namespace - %v", prefix, err))
+			}
+			return err
+		}
+	}
+	environmentID := environment.ID
+	deployment, err := lagoon.GetDeploymentByName(ctx, message.Meta.Project, environment.Name, message.Meta.BuildName, false, l)
 	if err != nil {
 		m.toLagoonLogs(messageQueue, map[string]interface{}{
 			"severity": "error",
@@ -60,58 +76,6 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 		}
 		return nil
 	}
-	var environmentID uint
-	environment := &schema.Environment{}
-	// determine the environment id from the message
-	if message.Meta.ProjectID == nil && message.Meta.EnvironmentID == nil {
-		project, err := lagoon.GetMinimalProjectByName(ctx, message.Meta.Project, l)
-		if err != nil {
-			// send the log to the lagoon-logs exchange to be processed
-			m.toLagoonLogs(messageQueue, map[string]interface{}{
-				"severity": "error",
-				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
-				"meta":     project,
-				"message":  err.Error(),
-			})
-			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get project - %v", prefix, err))
-			}
-			return err
-		}
-		environment, err = lagoon.GetEnvironmentByName(ctx, message.Meta.Environment, project.ID, l)
-		if err != nil {
-			// send the log to the lagoon-logs exchange to be processed
-			m.toLagoonLogs(messageQueue, map[string]interface{}{
-				"severity": "error",
-				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
-				"meta":     environment,
-				"message":  err.Error(),
-			})
-			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get environment - %v", prefix, err))
-			}
-			return err
-		}
-		environmentID = environment.ID
-	} else {
-		// pull the id from the message
-		environmentID = *message.Meta.EnvironmentID
-		environment, err = lagoon.GetEnvironmentByID(ctx, environmentID, l)
-		if err != nil {
-			// send the log to the lagoon-logs exchange to be processed
-			m.toLagoonLogs(messageQueue, map[string]interface{}{
-				"severity": "error",
-				"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
-				"meta":     environment,
-				"message":  err.Error(),
-			})
-			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get environment - %v", prefix, err))
-			}
-			return err
-		}
-	}
-
 	// prepare the deployment patch for later step
 	statusType := schema.StatusTypes(strings.ToUpper(buildStatus))
 	updateDeploymentPatch := schema.UpdateDeploymentPatchInput{
