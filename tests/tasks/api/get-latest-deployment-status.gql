@@ -1,0 +1,19 @@
+query environmentByKubernetesNamespaceName {
+  environmentByKubernetesNamespaceName(
+    kubernetesNamespaceName: "{{ namespace }}"
+  ){
+    deployments(limit: 1){
+      id
+      name
+      status
+      bulkId
+      bulkName
+      priority
+      started
+      created
+      completed
+      sourceUser
+      sourceType
+    }
+  }
+}
