@@ -4,7 +4,7 @@
  */
 exports.up = async function(knex) {
     return knex.schema
-    .raw(`DELETE es1 FROM environment_service es1 INNER JOIN environment_service es2  WHERE  es1.id < es2.id AND es1.name = es2.name;`)
+    .raw(`DELETE o FROM environment_service AS o LEFT JOIN (SELECT MIN(id) AS id FROM environment_service GROUP BY environment, name) AS i ON o.id = i.id WHERE i.id IS NULL;`)
     .alterTable('environment_service', function (table) {
         table.string('type', 300);
         table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
