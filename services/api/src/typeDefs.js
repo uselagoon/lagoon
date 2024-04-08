@@ -2076,7 +2076,6 @@ const typeDefs = gql`
   input UpdateNotificationMicrosoftTeamsPatchInput {
     name: String
     webhook: String
-    channel: String
   }
   input UpdateNotificationEmailPatchInput {
     name: String
