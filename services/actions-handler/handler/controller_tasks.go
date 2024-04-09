@@ -31,7 +31,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	}
 
 	// set up a lagoon client for use in the following process
-	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
+	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 
 	switch message.Meta.Key {
 	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby":

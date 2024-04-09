@@ -27,7 +27,7 @@ func (m *Messenger) handleRemoval(ctx context.Context, messageQueue *mq.MessageQ
 	}
 
 	// set up a lagoon client for use in the following process
-	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
+	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 	execute := false
 	deletedEnvironment, err := lagoon.DeleteEnvironment(ctx, message.Meta.Environment, message.Meta.Project, execute, l)
 	if err != nil {

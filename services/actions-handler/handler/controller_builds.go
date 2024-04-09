@@ -38,7 +38,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 	}
 
 	// set up a lagoon client for use in the following process
-	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
+	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 	environment, err := lagoon.GetEnvironmentByNamespace(ctx, message.Namespace, l)
 	if err != nil || environment == nil {
 		if err != nil {

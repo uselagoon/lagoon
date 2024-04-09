@@ -43,7 +43,7 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.Me
 	// the action data can contain multiple storage claims, so iterate over them here
 	var errs []error
 	for _, sc := range storageClaims.Claims {
-		l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
+		l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 		var envID int
 		var hasErr error
 		// if this is a newer storage calculator with the `kibUsed` field, use the new mutation
