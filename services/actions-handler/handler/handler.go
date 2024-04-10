@@ -21,6 +21,7 @@ type LagoonAPI struct {
 	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
+	Version         string `json:"version"`
 }
 
 // Action is the structure of an action that is received via the message queue.
