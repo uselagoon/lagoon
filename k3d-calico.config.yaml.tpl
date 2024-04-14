@@ -14,17 +14,20 @@ registries:
       docker.io:
         endpoint:
         - "https://imagecache.amazeeio.cloud"
-      "registry.${K3D_NODE_IP}.nip.io:32080":
+      "registry.${LAGOON_K3D_NETWORK}.nip.io":
         endpoint:
-          - http://registry.${K3D_NODE_IP}.nip.io:32080
+          - https://registry.${LAGOON_K3D_NETWORK}.nip.io
     configs:
-        "registry.${K3D_NODE_IP}.nip.io:32080":
-            tls:
-            insecure_skip_verify: true
+      "registry.${LAGOON_K3D_NETWORK}.nip.io":
+        tls:
+          insecure_skip_verify: true
 options:
   k3s: # options passed on to K3s itself
     extraArgs: # additional arguments passed to the `k3s server|agent` command; same as `--k3s-arg`
       - arg: --disable=traefik
+        nodeFilters:
+          - server:*
+      - arg: --disable=servicelb
         nodeFilters:
           - server:*
       - arg: --flannel-backend=none

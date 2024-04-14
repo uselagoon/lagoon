@@ -4,7 +4,7 @@
  * Don't change anything here, it's magic!
  */
 
-$aliasUrl = "http://lagoon-core-drush-alias.lagoon.svc.cluster.local:8080/aliases.drushrc.php.stub";
+$aliasUrl = "http://lagoon-core-drush-alias.lagoon-core.svc.cluster.local:8080/aliases.drushrc.php.stub";
 $aliasCheckTimeout = 5;
 
 //do a head check against the alias stub file, report on failure

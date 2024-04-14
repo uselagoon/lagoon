@@ -5,6 +5,19 @@ Development of Lagoon locally can now be performed on a local Kubernetes cluster
 !!! Note
     The full Lagoon stack relies on a range of upstream projects which are currently incompatible with ARM-based architectures, such as the the M1/M2 Apple Silicon-based machines. For this reason, running or developing `lagoon-core` or `lagoon-remote` locally on these architectures is not currently supported. See https://github.com/uselagoon/lagoon/issues/3189 for more information.
 
+## Required command line tools
+
+Some tools are required that are not downloaded/linked by the makefile, some systems may have these installed already.
+
+* `envsubst`
+* `wget`
+
+Mac users can install these via brew:
+
+```
+brew install wget gettext
+```
+
 ## Docker
 
 Docker must be installed to build and run Lagoon locally.
@@ -22,6 +35,21 @@ You will need to update your insecure registries in Docker. [Read the instructio
 ### Allocate Enough Docker Resources
 
 Running a Lagoon, Kubernetes, or Docker cluster on your local machine consumes a lot of resources. We recommend that you give your Docker host a minimum of 8 CPU cores and 12GB RAM.
+
+### MacOS Docker Networking
+
+Unfortunately Docker for Mac runs Docker inside a lightweight VM. This makes some of the functionality that Linux users enjoy, unusable in MacOS. That functionality is the ability to route to container IP addresses within the docker networks directly. On MacOS this is not possible out of the box.
+
+You can install the following package https://github.com/chipmk/docker-mac-net-connect. What this software does is create a tunnel between the Docker VM and the host and creates routes for the internal docker networks to the host. This allows you to access the Lagoon services in the docker network that is exposed inside of k3d the same way users developing on Linux would.
+
+```
+# Install via Homebrew
+$ brew install chipmk/tap/docker-mac-net-connect
+# Run the service and register it to launch at boot
+$ sudo brew services start chipmk/tap/docker-mac-net-connect
+# Stop the service
+$ sudo brew services stop chipmk/tap/docker-mac-net-connect
+```
 
 ## Build Lagoon Locally
 
@@ -41,10 +69,31 @@ We have provided a number of routines in the [Makefile](https://github.com/usela
 make -j8 build
 ```
 
+### Deploy a local Lagoon development stack without test suites
+
+The make file offers a command that allows you to spin up Lagoon inside of a k3d cluster locally and explore its functionality.
+
+Using the following make command will create a k3d cluster, install Lagoon and all of the necessary components to get you up and running and ready to explore.
+
+```bash title="Deploy local stack"
+make k3d/local-stack
+```
+
+!!! warning
+    This can take some time to complete as it will install a lot of components necessary to make Lagoon work. This includes things like ingress-nginx, harbor, and all the additional services to make exploring Lagoon easy.
+
+At the end of the process, the command will provide some useful information that will get you up and running and able to log in to the UI or using the API with tools like the Lagoon CLI.
+
+### Run the Lagoon test-suite
+
+If you're developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options
+
 1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
 ```bash title="Start tests"
-make kind/test
+make k3d/test
+# or use retest if you already have a local stack running
+make k3d/retest
 ```
 
 !!! warning
@@ -52,12 +101,12 @@ make kind/test
 
 This process will:
 
-1. Download the correct versions of the local development tools if not installed - `kind`, `kubectl`, `helm`, `jq`.
+1. Download the correct versions of the local development tools if not installed - `k3d`, `kubectl`, `helm`, `jq`.
 2. Update the necessary Helm repositories for Lagoon to function.
 3. Ensure all of the correct images have been built in the previous step.
-4. Create a local [KinD](https://kind.sigs.k8s.io/) cluster, which provisions an entire running Kubernetes cluster in a local Docker container. This cluster has been configured to talk to a provisioned image registry that we will be pushing the built Lagoon images to. It has also been configured to allow access to the host filesystem for local development.
+4. Create a local K3D cluster, which provisions an entire running Kubernetes cluster in a local Docker container. This cluster has been configured to talk to a provisioned image registry that we will be pushing the built Lagoon images to. It has also been configured to allow access to the host filesystem for local development.
 5. Clone Lagoon from [https://github.com/uselagoon/lagoon-charts](https://github.com/uselagoon/lagoon-charts) \(use the `CHARTS_TREEISH` variable in the Makefile to control which branch if needed\).
-6. Install the Harbor Image registry into the KinD cluster and configure its ingress and access properly.
+6. Install the Harbor Image registry into the K3D cluster and configure its ingress and access properly.
 7. Docker will push the built images for Lagoon into the Harbor image registry.
 8. It then uses the [Makefile from lagoon-charts](https://github.com/uselagoon/lagoon-charts/blob/main/Makefile) to perform the rest of the setup steps.
 9. A suitable ingress controller is installed - we use the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/).
@@ -72,82 +121,106 @@ Ideally, all of the tests pass and it's all done!
 
 ### View the test progress and your local cluster
 
-The test routine creates a local Kubeconfig file \(called `kubeconfig.kind.lagoon` in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like [Lens](https://k8slens.dev/), [Octant](https://octant.dev/), [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) or [Portainer](https://www.portainer.io/) in our workflows. Lagoon Core, Remote and Tests all build in the `Lagoon` namespace, and each environment creates its own namespace to run, so make sure to use the correct context when inspecting.
+The test routine creates a local Kubeconfig file \(called `kubeconfig.k3d.lagoon` in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like [Lens](https://k8slens.dev/), [Octant](https://octant.dev/), [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) or [Portainer](https://www.portainer.io/) in our workflows. Lagoon Core and the tests build in the `lagoon-core` namespace, Remote is installed in the `Lagoon` namespace. Each lagoon test environment creates its own namespace to run, so make sure to use the correct context when inspecting.
 
 In order to use kubectl with the local cluster, you will need to use the correct Kubeconfig. This can be done for every command or it can be added to your preferred tool:
 
-```bash title="kubeconfig.kind.lagoon"
-KUBECONFIG=./kubeconfig.kind.lagoon kubectl get pods -n lagoon
+```bash title="kubeconfig.k3d.lagoon"
+KUBECONFIG=./kubeconfig.k3d.lagoon kubectl get pods -n lagoon
 ```
 
-The Helm charts used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.kind.lagoon` where you can see the configuration. We'll cover how to make easy modifications later in this documentation.
+The Helm charts used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.k3d.lagoon` where you can see the configuration. We'll cover how to make easy modifications later in this documentation.
 
 ### Interact with your local Lagoon cluster
 
 The Makefile includes a few simple routines that will make interacting with the installed Lagoon simpler:
 
+#### Port forwarding
+
+Clusters deployed by this makefile will provide loadbalancers and individual IPs, but if you choose to you can port-forward some services using the following
+
 ```bash title="Create local ports"
-make kind/port-forwards
+make k3d/port-forwards
 ```
 
 This will create local ports to expose the UI \(6060\), API \(7070\) and Keycloak \(8080\). Note that this logs to `stdout`, so it should be performed in a secondary terminal/window.
 
-```bash title="Retrieve admin creds"
-make kind/get-admin-creds
-```
+#### Lagoon credentials/information
 
 This will retrieve the necessary credentials to interact with the Lagoon.
 
+```bash title="Retrieve admin creds"
+make k3d/get-lagoon-details
+```
+
 * The JWT is an admin-scoped token for use as a bearer token with your local GraphQL client. [See more in our GraphQL documentation](../interacting/graphql.md).
 * There is a token for use with the "admin" user in Keycloak, who can access all users, groups, roles, etc.
-* There is also a token for use with the "lagoonadmin" user in Lagoon, which can be allocated default groups, permissions, etc.
 
-```bash title="Re-push images"
-make kind/dev
+It is also possible to get the command snippet to add the configuration for the local-stack to your lagoon-cli.
+
+```bash title="Retrieve admin creds"
+make k3d/get-lagoon-cli-details
 ```
+
+#### Rebuild Lagoon core and push images
 
 This will re-push the images listed in `KIND_SERVICES` with the correct tag, and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`.
 
-```bash title="Build typescript services"
-make kind/local-dev-patch
+```bash title="Re-push images"
+make k3d/dev
 ```
 
+#### Patch with local node.js
+
 This will build the typescript services, using your locally installed Node.js \(it should be &gt;16.0\). It will then:
+
+```bash title="Build typescript services"
+make k3d/local-dev-patch
+```
+
 
 * Mount the "dist" folders from the Lagoon services into the correct lagoon-core pods in Kubernetes
 * Redeploy the lagoon-core chart with the services running with `nodemon`watching the code for changes
 * This will facilitate "live" development on Lagoon.
 * Note that occasionally the pod in Kubernetes may require redeployment for a change to show. Clean any build artifacts from those services if you're rebuilding different branches with `git clean -dfx` as the dist folders are ignored by Git.
 
-```bash title="Initiate logging"
-make kind/local-dev-logging
-```
+#### Install simple Logging support
 
 This will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs \(Lagoon and project\) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging).
 
-```bash title="Re-run tests."
-make kind/retest
-# OR
-make kind/retest TESTS='[features-kubernetes]'
+```bash title="Initiate logging"
+make k3d/local-dev-logging
 ```
+
+#### Re run specific tests
 
 This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git, and the data-watcher-pusher\). You can specify tests to run by passing the TESTS variable inline.
 
-If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g `rm build/tests && make build/tests && make kind/push-images IMAGES='tests' && make kind/retest TESTS='[api]'`
-
-```bash title="Push all images"
-make kind/push-images
+```bash title="Re-run tests."
+make k3d/retest
 # OR
-make kind/push-images IMAGES='tests local-git'
+make k3d/retest TESTS='[features-kubernetes]'
 ```
+
+If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g `rm build/tests && make build/tests && make k3d/push-images IMAGES='tests' && make k3d/retest TESTS='[api]'`
+
+#### Push images
 
 This will push all the images up to the image registry. Specifying `IMAGES` will tag and push specific images.
 
-```bash title="Remove cluster"
-make kind/clean
+```bash title="Push all images"
+make k3d/push-images
+# OR
+make k3d/push-images IMAGES='tests local-git'
 ```
 
-This will remove the KinD Lagoon cluster from your local Docker.
+#### Tear down
+
+This will remove the K3D Lagoon cluster from your local Docker.
+
+```bash title="Remove cluster"
+make k3d/clean
+```
 
 ### Ansible
 
@@ -201,10 +274,27 @@ Make sure to run `yarn` in Lagoon's root directory, since some services have com
 ### I get an error resolving the `nip.io` domains
 
 ```text title="Error"
-Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
+Error response from daemon: Get https://registry.172.18.0.2.nip.io/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
 ```
 
 This can happen if your local resolver filters private IPs from results. You can work around this by editing `/etc/resolv.conf` and adding a line like `nameserver 8.8.8.8` at the top to use a public resolver that doesn't filter results.
+
+### I want to be able to test email in a demo environment using the lagoon built in ssmtp configuration entrypoints
+
+This k3d cluster installs a mail catching service that is available at `mxout.lagoon.svc:25` within the cluster (it also has a web interface `make k3d/get-lagoon-details` for details). Some images in lagoon support `SSMTP_MAILHUB` variable, which can be added to a project using the lagoon-cli, or the following graphql via the API.
+
+```
+addOrUpdateEnvVariableByName(
+    input: {
+        project: "lagoon-demo"
+        scope: RUNTIME
+        name: "SSMTP_MAILHUB"
+        value: "mxout.lagoon.svc:25"
+    }
+) {
+    id
+}
+```
 
 ## Example workflows
 
@@ -212,7 +302,14 @@ Here are some development scenarios and useful workflows for getting things done
 
 ### Add tests
 
-1. Repeat the first step above.
+An example
+
+1. Deploy the lagoon and run the test you're modifying.
+
+```bash title="Deploy Lagoon"
+make k3d/test TESTS=[features-variables]
+```
+
 2. Edit `tests/tests/features-variables.yaml` and add a test case.
 3. Rebuild the `tests` image.
 
@@ -224,11 +321,11 @@ make -j8 build/tests
 1. Push the new `tests` image into the cluster registry.
 
 ```bash title="Push test image"
-make kind/push-images IMAGES=tests
+make k3d/push-images IMAGES=tests
 ```
 
 1. Rerun the tests.
 
 ```bash title="Re-run tests"
-make kind/retest TESTS='[features-variables]'
+make k3d/retest TESTS=[features-variables]
 ```
