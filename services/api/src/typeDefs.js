@@ -1109,6 +1109,7 @@ const typeDefs = gql`
     groups: [OrgGroupInterface]
     owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
+    created: String
   }
 
   input AddOrganizationInput {
