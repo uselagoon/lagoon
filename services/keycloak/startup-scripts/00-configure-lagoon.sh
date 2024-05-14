@@ -204,6 +204,15 @@ function migrate_to_custom_group_mapper {
 
 }
 
+function service-api_add_query-groups_permission {
+	if /opt/keycloak/bin/kcadm.sh get-roles -r lagoon --uusername service-account-service-api --cclientid realm-management --config /tmp/kcadm.config | jq -e '.[].name|contains("query-groups")' >/dev/null; then
+		echo "service-api already has query-groups realm-management role"
+	else
+		echo "adding service-api query-groups realm-management role"
+		/opt/keycloak/bin/kcadm.sh add-roles -r lagoon --uusername service-account-service-api --cclientid realm-management --rolename query-groups --config $CONFIG_PATH
+	fi
+}
+
 ##################
 # Initialization #
 ##################
@@ -231,6 +240,7 @@ function configure_keycloak {
     check_migrations_version
     migrate_to_custom_group_mapper
     #post 2.18.0+ migrations after this point
+    service-api_add_query-groups_permission
 
     # always run last
     sync_client_secrets
