@@ -1065,8 +1065,11 @@ const checkProjectGroups = async (groupProjectIds, projectIds, projectsGroups, m
           groupProjectIds.push({group: group.name, project: project})
           projectsGroups.push(group)
         }
-        // recurse the project
-        await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, project)
+        // recurse the project if it hasn't already had been done
+        let index2 = projectIds.findIndex((item) => item === project);
+        if (index2 === -1) {
+          await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, project)
+        }
       }
     }
   }
