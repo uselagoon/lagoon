@@ -828,34 +828,11 @@ export const Group = (clients: {
     groups: Group[]
   ): Promise<void> => {
     for (const g in groups) {
-      const group = groups[g]
-      const groupProjectIds = getProjectIdsFromGroup(group)
-      const newGroupProjects = R.pipe(
-        R.without([projectId]),
-        R.uniq,
-        R.join(',')
-        // @ts-ignore
-      )(groupProjectIds);
-
       try {
-        await keycloakAdminClient.groups.update(
-          {
-            id: group.id
-          },
-          {
-            name: group.name,
-            attributes: {
-              ...group.attributes,
-              'lagoon-projects': [newGroupProjects],
-              'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
-            }
-          }
-        );
-        // purge the caches to ensure current data
-        await purgeGroupCache(group)
+        await removeProjectFromGroup(projectId, groups[g])
       } catch (err) {
         throw new Error(
-          `Error setting projects for group ${group.name}: ${err.message}`
+          `Error setting projects for group ${groups[g].name}: ${err.message}`
         );
       }
     }
