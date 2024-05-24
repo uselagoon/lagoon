@@ -38,7 +38,7 @@
    * Server: `<DOCKER>`
    * Configuration file\(s\): `./docker-compose.yml`
    * Service: `cli`
-   * Lifecycle: `Connect to existing container ('docker-compose exec')`
+   * Lifecycle: `Connect to existing container ('docker compose exec')`
 5. Path mappings:
    * Local path: `<ROOT_PATH>`
    * Remote path\*: `/app`
@@ -79,7 +79,7 @@
 
 ### Some final checks to run before you run a test
 
-1. You have the project up and running:  `$ docker-compose up -d`
+1. You have the project up and running:  `$ docker compose up -d`
 2. The project is working without any errors, visit the site just to make sure it all works as expected - this is not 100% necessary, but nice to know it is working normally.
 3. We should be ready to run some tests!
 

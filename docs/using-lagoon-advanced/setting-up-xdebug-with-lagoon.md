@@ -107,7 +107,7 @@ debugging.
   `nc -l 9003`, then in a new terminal window, run:
 
   ```bash title="Verify Docker for Mac networking"
-  docker-compose run cli nc -zv host.docker.internal 9003
+  docker compose run cli nc -zv host.docker.internal 9003
   ```
 
   You should see a message like:

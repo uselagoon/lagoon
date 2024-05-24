@@ -30,7 +30,7 @@ postgres:
     lagoon.type: postgres
   ports:
     # exposes the port 5432 with a random local port
-    # find it with `docker-compose port postgres 5432`
+    # find it with `docker compose port postgres 5432`
     - "5432"
   volumes:
    	# mounts a named volume at the default path for Postgres

@@ -85,7 +85,7 @@ To test Varnish locally, change the following in `docker-compose.yml`:
 
 * Set `VARNISH_BYPASS` to `false` in the Varnish service section.
 * Set `LAGOON_ENVIRONMENT_TYPE` to `production` in the `x-environment` section.
-* Run `docker-compose up -d` , which restarts all services with the new environment variables.
+* Run `docker compose up -d` , which restarts all services with the new environment variables.
 
 Now you should be able to test Varnish!
 <!-- markdown-link-check-disable -->
@@ -127,6 +127,6 @@ Varnish doesn't cache? Or something else not working? Here a couple of ways to d
 <!-- markdown-link-check-disable -->
 * Run `drush p-debug-en` to enable debug logging of the purge module. This should show you debugging in the Drupal log under `admin/reports/dblog`.
 * Make sure that Drupal sends proper cache headers. To best test this, use the URL that Lagoon generates for bypassing the Varnish cache, \(locally in our Drupal example this is [http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)\). Check for the `Cache-Control: max-age=900, public` header, where the `900` is what you configured in `$config['system.performance']['cache']['page']['max_age']`.
-* Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` \(see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly\).
+* Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` \(see `docker-compose.yml` and run `docker compose up -d varnish` to make sure the environment variable is configured correctly\).
 * If all fails, and before you flip your table \(╯°□°）╯︵ ┻━┻, talk to the Lagoon team, we're happy to help.
 <!-- markdown-link-check-enable -->

@@ -46,7 +46,7 @@ Use the following labels in your `docker-compose.yml` file to configure it:
         ports:
         # local development only
             # this exposes the port 3000 with a random local port
-            # find it with `docker-compose port node 3000`
+            # find it with `docker compose port node 3000`
             - "3000"
         volumes:
         # local development only

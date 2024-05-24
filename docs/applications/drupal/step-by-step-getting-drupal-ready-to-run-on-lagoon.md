@@ -45,29 +45,29 @@ x-environment:
 First, we need to build the defined images:
 
 ```bash title="Build images"
-docker-compose build
+docker compose build
 ```
 
 This will tell `docker-compose` to build the Docker images for all containers that have a `build:` definition in the `docker-compose.yml`. Usually for Drupal this is the case for the `cli`, `nginx` and `php` images. We do this because we want to run specific **build** commands \(like `composer install`\) or inject specific environment variables \(like `WEBROOT`\) into the images.
 
-Usually, building is not necessary every time you edit your Drupal code \(as the code is mounted into the containers from your host\), but rebuilding does not hurt. Plus, Lagoon will build the exact same Docker images during a deploy, so you can check that your build will also work during a deployment by just running `docker-compose build` again.
+Usually, building is not necessary every time you edit your Drupal code \(as the code is mounted into the containers from your host\), but rebuilding does not hurt. Plus, Lagoon will build the exact same Docker images during a deploy, so you can check that your build will also work during a deployment by just running `docker compose build` again.
 
 ## 4. Start Containers
 
 Now that the images are built, we can start the containers:
 
 ```bash title="Start containers"
-docker-compose up -d
+docker compose up -d
 ```
 
-This will bring up all containers. After the command is done, you can check with `docker-compose ps` to ensure that they are all fully up and have not crashed. If there is a problem, check the logs with `docker-compose logs -f [servicename]`.
+This will bring up all containers. After the command is done, you can check with `docker compose ps` to ensure that they are all fully up and have not crashed. If there is a problem, check the logs with `docker compose logs -f [servicename]`.
 
 ## 5. Rerun `composer install` \(for Composer projects only\)
 
 In a local development environment, you probably want all dependencies downloaded and installed, so connect to the `cli` container and run `composer install`:
 
 ```bash title="Run composer install in CLI"
-docker-compose exec cli bash
+docker compose exec cli bash
 composer install
 ```
 
@@ -85,7 +85,7 @@ If you get a 500 or similar error, make sure everything loaded properly with Com
 Finally it's time to install Drupal, but just before that we want to make sure everything works. We suggest using Drush for that:
 
 ```bash title="Drush status"
-docker-compose exec cli bash
+docker compose exec cli bash
 drush status
 ```
 

@@ -52,7 +52,7 @@ node --inspect=0.0.0.0:9229
 4 . Rebuild/restart the containers:
 
 ```bash title="Restart containers"
-rm build/api && make build/api && docker-compose restart api
+rm build/api && make build/api && docker compose restart api
 ```
 
 5 . Restart VScode.
