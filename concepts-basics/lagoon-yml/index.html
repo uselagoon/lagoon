@@ -1,0 +1,4753 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="The Lagoon Authors">
+      
+      
+        <link rel="canonical" href="https://docs.lagoon.sh/concepts-basics/lagoon-yml/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../docker-compose-yml/">
+      
+      <link rel="icon" href="../../images/lagoon-icon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>.lagoon.yml - Lagoon Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M64 32C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h224V368c0-26.5 21.5-48 48-48h112V96c0-35.3-28.7-64-64-64H64zm384 320H336c-8.8 0-16 7.2-16 16v112l32-32 64-64 32-32z"/></svg>');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M96 0C43 0 0 43 0 96v320c0 53 43 96 96 96h320c17.7 0 32-14.3 32-32s-14.3-32-32-32v-64c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H96zm0 384h256v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-40-176h24v-64h-24c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-80c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-144c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/></svg>');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M480 32c0-12.9-7.8-24.6-19.8-29.6S434.5.2 425.3 9.3L381.7 53c-48 48-113.1 75-181 75H64c-35.3 0-64 28.7-64 64v96c0 35.3 28.7 64 64 64v128c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V352h8.7c67.9 0 133 27 181 75l43.6 43.6c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6V300.4c18.6-8.8 32-32.5 32-60.4s-13.4-51.6-32-60.4V32zm-64 76.7v262.6C357.2 317.8 280.5 288 200.7 288H192v-96h8.7c79.8 0 156.5-29.8 215.3-83.3z"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7l233.4-233.3c12.5-12.5 32.8-12.5 45.3 0z"/></svg>');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-86.2-346.7c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1 0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6-13.3 0-24-10.7-24-24v-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1 0-8.4-6.8-15.1-15.1-15.1h-58.3c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32 14.3-32 32-32 32 14.3 32 32z"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7.2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8.2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg>');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M459.1 52.4 442.6 6.5c-1.9-3.9-6.1-6.5-10.5-6.5s-8.5 2.6-10.4 6.5l-16.5 45.9-46 16.8c-4.3 1.6-7.3 5.9-7.2 10.4 0 4.5 3 8.7 7.2 10.2l45.7 16.8 16.8 45.8c1.5 4.4 5.8 7.5 10.4 7.5s8.9-3.1 10.4-7.5l16.5-45.8 45.7-16.8c4.2-1.5 7.2-5.7 7.2-10.2 0-4.6-3-8.9-7.2-10.4l-45.6-16.8zm-132.4 53c-12.5-12.5-32.8-12.5-45.3 0l-2.9 2.9c-22-8-45.8-12.3-70.5-12.3C93.1 96 0 189.1 0 304s93.1 208 208 208 208-93.1 208-208c0-24.7-4.3-48.5-12.2-70.5l2.9-2.9c12.5-12.5 12.5-32.8 0-45.3l-80-80zM200 192c-57.4 0-104 46.6-104 104v8c0 8.8-7.2 16-16 16s-16-7.2-16-16v-8c0-75.1 60.9-136 136-136h8c8.8 0 16 7.2 16 16s-7.2 16-16 16h-8z"/></svg>');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9V464c0 26.5 21.5 48 48 48h48v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h64v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h48c26.5 0 48-21.5 48-48v-65.1zM224 256c0 35.3-28.7 64-64 64s-64-28.7-64-64 28.7-64 64-64 64 28.7 64 64zm128 64c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64z"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32v64h128c35.3 0 64 28.7 64 64v288c0 35.3-28.7 64-64 64H160c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h128V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zM264 256c0-22.1-17.9-40-40-40s-40 17.9-40 40 17.9 40 40 40 40-17.9 40-40zm152 40c22.1 0 40-17.9 40-40s-17.9-40-40-40-40 17.9-40 40 17.9 40 40 40zM48 224h16v192H48c-26.5 0-48-21.5-48-48v-96c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48h-16V224h16z"/></svg>');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M288 0H128c-17.7 0-32 14.3-32 32s14.3 32 32 32v132.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6 0 480.9 31.1 512 69.4 512h309.2c38.3 0 69.4-31.1 69.4-69.4 0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32S337.7 0 320 0h-32zm-96 196.8V64h64v132.8c0 23.7 6.6 46.9 19 67.1l34.5 56.1h-171l34.5-56.1c12.4-20.2 19-43.4 19-67.1z"/></svg>');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M0 216C0 149.7 53.7 96 120 96h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V216zm256 0c0-66.3 53.7-120 120-120h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64h-64c-35.3 0-64-28.7-64-64V216z"/></svg>');}</style>
+
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-W1SJFEVFDB"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-W1SJFEVFDB",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-W1SJFEVFDB",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lagoonyml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Lagoon Documentation" class="md-header__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lagoon Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              .lagoon.yml
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m3.55 19.09 1.41 1.41 1.8-1.79-1.42-1.42M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6c0-3.32-2.69-6-6-6m8 7h3v-2h-3m-2.76 7.71 1.8 1.79 1.41-1.41-1.79-1.8M20.45 5l-1.41-1.4-1.8 1.79 1.42 1.42M13 1h-2v3h2M6.76 5.39 4.96 3.6 3.55 5l1.79 1.81 1.42-1.42M1 13h3v-2H1m12 9h-2v3h2"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/uselagoon/lagoon/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Lagoon Documentation" class="md-nav__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    Lagoon Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/uselagoon/lagoon/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="true">
+          Basic Lagoon Concepts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basic Lagoon Concepts" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basic Lagoon Concepts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          .lagoon.yml
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        .lagoon.yml
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-settings" class="md-nav__link">
+    General Settings
+  </a>
+  
+    <nav class="md-nav" aria-label="General Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose-yaml" class="md-nav__link">
+    docker-compose-yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment_variablesgit_sha" class="md-nav__link">
+    environment_variables.git_sha
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    Routes
+  </a>
+  
+    <nav class="md-nav" aria-label="Routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerate" class="md-nav__link">
+    routes.autogenerate
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    Tasks
+  </a>
+  
+    <nav class="md-nav" aria-label="Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-rollout-tasks-pre_rolloutirun" class="md-nav__link">
+    Pre-Rollout Tasks - pre_rollout.[i].run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-rollout-tasks-post_rolloutirun" class="md-nav__link">
+    Post-Rollout Tasks - post_rollout.[i].run
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-Rollout Tasks - post_rollout.[i].run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-post-rollout-tasks" class="md-nav__link">
+    Example post-rollout tasks
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backup-retention" class="md-nav__link">
+    Backup Retention
+  </a>
+  
+    <nav class="md-nav" aria-label="Backup Retention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionmonthly" class="md-nav__link">
+    backup-retention.production.monthly
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionweekly" class="md-nav__link">
+    backup-retention.production.weekly
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductiondaily" class="md-nav__link">
+    backup-retention.production.daily
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionhourly" class="md-nav__link">
+    backup-retention.production.hourly
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backup-schedule" class="md-nav__link">
+    Backup Schedule
+  </a>
+  
+    <nav class="md-nav" aria-label="Backup Schedule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-scheduleproduction" class="md-nav__link">
+    backup-schedule.production
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environments" class="md-nav__link">
+    Environments
+  </a>
+  
+    <nav class="md-nav" aria-label="Environments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameroutes" class="md-nav__link">
+    environments.[name].routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-configuration-tls-acme" class="md-nav__link">
+    SSL Configuration tls-acme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-a-specific-path" class="md-nav__link">
+    Monitoring a specific path
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-annotations" class="md-nav__link">
+    Ingress annotations
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingress annotations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    Restrictions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-annotations-redirects" class="md-nav__link">
+    Ingress annotations redirects
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trusted-reverse-proxies" class="md-nav__link">
+    Trusted Reverse Proxies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametypes" class="md-nav__link">
+    Environments.[name].types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametemplates" class="md-nav__link">
+    environments.[name].templates
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-template-override" class="md-nav__link">
+    Example Template Override
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamerollouts" class="md-nav__link">
+    environments.[name].rollouts
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].rollouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-rollout-type-example" class="md-nav__link">
+    Custom Rollout Type Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameautogenerateroutes" class="md-nav__link">
+    environments.[name].autogenerateRoutes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamecronjobs" class="md-nav__link">
+    environments.[name].cronjobs
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].cronjobs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cron-job-example" class="md-nav__link">
+    Cron Job Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#polysite" class="md-nav__link">
+    Polysite
+  </a>
+  
+    <nav class="md-nav" aria-label="Polysite">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#polysite-example" class="md-nav__link">
+    Polysite Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specials" class="md-nav__link">
+    Specials
+  </a>
+  
+    <nav class="md-nav" aria-label="Specials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    api
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    ssh
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-registries" class="md-nav__link">
+    container-registries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consuming-a-custom-or-private-container-registry-image" class="md-nav__link">
+    Consuming a custom or private container registry image
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-lagoonyml" class="md-nav__link">
+    Example .lagoon.yml
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-compose-yml/" class="md-nav__link">
+        docker-compose.yml
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-and-deploy-process/" class="md-nav__link">
+        Build and Deploy Process
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2_5" type="checkbox" id="__nav_2_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_5" tabindex="0" aria-expanded="false">
+          Building Blocks of Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Building Blocks of Lagoon" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_5">
+          <span class="md-nav__icon md-icon"></span>
+          Building Blocks of Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/users/" class="md-nav__link">
+        Users
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/groups/" class="md-nav__link">
+        Groups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/projects/" class="md-nav__link">
+        Projects
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/notifications/" class="md-nav__link">
+        Notifications
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/deploy-targets/" class="md-nav__link">
+        Deploy Targets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/organizations/" class="md-nav__link">
+        Organizations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-blocks/roles/" class="md-nav__link">
+        Roles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="false">
+          Advanced Lagoon Concepts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Advanced Lagoon Concepts" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Advanced Lagoon Concepts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/service-types/" class="md-nav__link">
+        Service Types
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/environment-types/" class="md-nav__link">
+        Environment Types
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/environment-variables/" class="md-nav__link">
+        Environment Variables
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/environment-idling/" class="md-nav__link">
+        Environment Idling
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/backups/" class="md-nav__link">
+        Backups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/base-images/" class="md-nav__link">
+        Base Images
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/workflows/" class="md-nav__link">
+        Workflows
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-advanced/feature-flags/" class="md-nav__link">
+        Feature Flags
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Lagoonizing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Lagoonizing" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Lagoonizing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lagoonizing/" class="md-nav__link">
+        Lagoonizing Your Exisiting Site
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_2" type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" tabindex="0" aria-expanded="false">
+          Docker Images
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Docker Images" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          Docker Images
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/commons/" class="md-nav__link">
+        Commons
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/mariadb/" class="md-nav__link">
+        MariaDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/mongodb/" class="md-nav__link">
+        MongoDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/nodejs/" class="md-nav__link">
+        Node.js
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/nginx/" class="md-nav__link">
+        NGINX
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/opensearch/" class="md-nav__link">
+        OpenSearch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/php-cli/" class="md-nav__link">
+        PHP-CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/php-fpm/" class="md-nav__link">
+        PHP-FPM
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/python/" class="md-nav__link">
+        Python
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/postgres/" class="md-nav__link">
+        PostgreSQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/rabbitmq/" class="md-nav__link">
+        RabbitMQ
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/ruby/" class="md-nav__link">
+        Ruby
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/solr/" class="md-nav__link">
+        Solr
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/redis/" class="md-nav__link">
+        Redis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/varnish/" class="md-nav__link">
+        Varnish
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" tabindex="0" aria-expanded="false">
+          Configuring Applications
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Configuring Applications" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          Configuring Applications
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/options/" class="md-nav__link">
+        Options
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_3" type="checkbox" id="__nav_4_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_3" tabindex="0" aria-expanded="false">
+          Drupal
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Drupal" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          Drupal
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_3_2" type="checkbox" id="__nav_4_3_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_3_2" tabindex="0" aria-expanded="false">
+          Services
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Services" data-md-level="4">
+        <label class="md-nav__title" for="__nav_4_3_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          Services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/mariadb/" class="md-nav__link">
+        MariaDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/nginx/" class="md-nav__link">
+        NGINX
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/php-cli/" class="md-nav__link">
+        PHP-cli
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/redis/" class="md-nav__link">
+        Redis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/solr/" class="md-nav__link">
+        Solr
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/varnish/" class="md-nav__link">
+        Varnish
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/" class="md-nav__link">
+        Step by Step - Getting Drupal ready to run on Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/first-deployment-of-drupal/" class="md-nav__link">
+        First Deployment of Drupal
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/drush-9/" class="md-nav__link">
+        Drush 9
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/subfolders/" class="md-nav__link">
+        Subfolders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/integrate-drupal-and-fastly/" class="md-nav__link">
+        Integrate Drupal & Fastly
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/phpunit-and-phpstorm/" class="md-nav__link">
+        PHPUnit and PhpStorm
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/automatic-updates/" class="md-nav__link">
+        Automatic Updates
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_4" type="checkbox" id="__nav_4_3_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_4" tabindex="0" aria-expanded="false">
+          WordPress
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="WordPress" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          WordPress
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/wordpress/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_5" type="checkbox" id="__nav_4_3_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_5" tabindex="0" aria-expanded="false">
+          Node.js-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Node.js-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          Node.js-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/node/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_6" type="checkbox" id="__nav_4_3_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_6" tabindex="0" aria-expanded="false">
+          PHP-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="PHP-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          PHP-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/php/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_7" type="checkbox" id="__nav_4_3_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_7" tabindex="0" aria-expanded="false">
+          Python-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Python-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_7">
+          <span class="md-nav__icon md-icon"></span>
+          Python-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/python/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_8" type="checkbox" id="__nav_4_3_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_8" tabindex="0" aria-expanded="false">
+          Ruby-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Ruby-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_8">
+          <span class="md-nav__icon md-icon"></span>
+          Ruby-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/ruby/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_9" type="checkbox" id="__nav_4_3_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_9" tabindex="0" aria-expanded="false">
+          Other
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Other" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_9">
+          <span class="md-nav__icon md-icon"></span>
+          Other
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/other/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Using Lagoon - The Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Using Lagoon - The Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Using Lagoon - The Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/local-development-environments/" class="md-nav__link">
+        Local Development Environments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/setup-project/" class="md-nav__link">
+        Set Up a New Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/configure-webhooks/" class="md-nav__link">
+        Configure Webhooks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/first-deployment/" class="md-nav__link">
+        First Deployment
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/lagoon-build-errors-and-warnings/" class="md-nav__link">
+        Lagoon Build Errors and Warnings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/going-live/" class="md-nav__link">
+        Going Live
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" tabindex="0" aria-expanded="false">
+          Using Lagoon - Advanced
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Using Lagoon - Advanced" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Using Lagoon - Advanced
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/active-standby/" class="md-nav__link">
+        Active/Standby
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/triggering-deployments/" class="md-nav__link">
+        Triggering Deployments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/private-repositories/" class="md-nav__link">
+        Private Repositories
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/simplesaml/" class="md-nav__link">
+        SimpleSAML
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/project-default-users-keys/" class="md-nav__link">
+        Project Default Users and SSH Keys
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/nodejs/" class="md-nav__link">
+        Node.js Graceful Shutdown
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/setting-up-xdebug-with-lagoon/" class="md-nav__link">
+        Setting up Xdebug with Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/custom-tasks/" class="md-nav__link">
+        Custom Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/deploytarget-configs/" class="md-nav__link">
+        DeployTarget Configs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/blackfire/" class="md-nav__link">
+        Blackfire
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_6_12" type="checkbox" id="__nav_6_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_12" tabindex="0" aria-expanded="false">
+          Harbor
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Harbor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_12">
+          <span class="md-nav__icon md-icon"></span>
+          Harbor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/" class="md-nav__link">
+        Using Harbor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/security-scanning/" class="md-nav__link">
+        Security Scanning
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/" class="md-nav__link">
+        Harbor Settings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/" class="md-nav__link">
+        Harbor-Core
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/" class="md-nav__link">
+        Harbor-Database
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/" class="md-nav__link">
+        Harbor-Jobservice
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/" class="md-nav__link">
+        Harbor-Trivy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/" class="md-nav__link">
+        HarborRegistry
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/" class="md-nav__link">
+        HarborRegistryCtl
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" tabindex="0" aria-expanded="false">
+          Interacting with Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Interacting with Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Interacting with Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/lagoon-ui/" class="md-nav__link">
+        Using the UI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/organizations/" class="md-nav__link">
+        Working with Orgs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/graphql/" class="md-nav__link">
+        GraphQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/ssh/" class="md-nav__link">
+        SSH
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/graphql-queries/" class="md-nav__link">
+        GraphQL API
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/rbac/" class="md-nav__link">
+        Role-Based Access Control (RBAC)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_7_7" type="checkbox" id="__nav_7_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_7" tabindex="0" aria-expanded="false">
+          Understanding Logs
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Understanding Logs" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_7">
+          <span class="md-nav__icon md-icon"></span>
+          Understanding Logs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../logging/logging/" class="md-nav__link">
+        Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../logging/kibana-examples/" class="md-nav__link">
+        Kibana Examples
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" tabindex="0" aria-expanded="false">
+          Installing Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Installing Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Installing Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/requirements/" class="md-nav__link">
+        Requirements
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/efs-provisioner/" class="md-nav__link">
+        EFS Provisioner
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/install-harbor/" class="md-nav__link">
+        Install Harbor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-core/" class="md-nav__link">
+        Install Lagoon Core
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/install-lagoon-remote/" class="md-nav__link">
+        Install Lagoon Remote
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-cli/" class="md-nav__link">
+        Install the Lagoon CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/querying-graphql/" class="md-nav__link">
+        Querying with GraphQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/create-user/" class="md-nav__link">
+        Create Lagoon User
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/add-project/" class="md-nav__link">
+        Add a Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/deploy-project/" class="md-nav__link">
+        Deploy Your Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/add-group/" class="md-nav__link">
+        Add Group
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-logging/" class="md-nav__link">
+        Lagoon Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/opendistro/" class="md-nav__link">
+        OpenDistro
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/logs-concentrator/" class="md-nav__link">
+        Logs Concentrator
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-backups/" class="md-nav__link">
+        Lagoon Backups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-files/" class="md-nav__link">
+        Lagoon Files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/gitlab/" class="md-nav__link">
+        GitLab
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/update-lagoon/" class="md-nav__link">
+        Updating
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9" tabindex="0" aria-expanded="false">
+          Contributing to Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Contributing to Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing to Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/documentation/" class="md-nav__link">
+        Documentation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-of-conduct/" class="md-nav__link">
+        Code of Conduct
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/developing-lagoon/" class="md-nav__link">
+        Developing Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/tests/" class="md-nav__link">
+        Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/api-debugging/" class="md-nav__link">
+        API Debugging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/releasing/" class="md-nav__link">
+        Releasing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_10" tabindex="0" aria-expanded="false">
+          Community
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Community" data-md-level="1">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Community
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-of-conduct/" class="md-nav__link">
+        Code of Conduct
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/discord/" class="md-nav__link">
+        Discord
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/participation/" class="md-nav__link">
+        Participation Guidelines
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/moderation/" class="md-nav__link">
+        Moderation Guidelines
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_11" tabindex="0" aria-expanded="false">
+          Resources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Resources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Resources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/tutorials-and-webinars/" class="md-nav__link">
+        Tutorials, Webinars, and Videos
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/lagoon-examples" class="md-nav__link">
+        Lagoon Examples
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_12" type="checkbox" id="__nav_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12" tabindex="0" aria-expanded="false">
+          Other Tools
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Other Tools" data-md-level="1">
+        <label class="md-nav__title" for="__nav_12">
+          <span class="md-nav__icon md-icon"></span>
+          Other Tools
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://uselagoon.github.io/lagoon-cli/" class="md-nav__link">
+        Lagoon CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/uselagoon/lagoon-sync" class="md-nav__link">
+        Lagoon Sync
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../other-tools/client-libraries/" class="md-nav__link">
+        Client Libraries
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_13" type="checkbox" id="__nav_13" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_13" tabindex="0" aria-expanded="false">
+          Releases
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Releases" data-md-level="1">
+        <label class="md-nav__title" for="__nav_13">
+          <span class="md-nav__icon md-icon"></span>
+          Releases
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/policy/" class="md-nav__link">
+        Policy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.19.0/" class="md-nav__link">
+        2.19.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.2/" class="md-nav__link">
+        2.18.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.1/" class="md-nav__link">
+        2.18.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.0/" class="md-nav__link">
+        2.18.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.17.0/" class="md-nav__link">
+        2.17.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.16.0/" class="md-nav__link">
+        2.16.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.4/" class="md-nav__link">
+        2.15.4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.3/" class="md-nav__link">
+        2.15.3
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.2/" class="md-nav__link">
+        2.15.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.1/" class="md-nav__link">
+        2.15.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.0/" class="md-nav__link">
+        2.15.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.2/" class="md-nav__link">
+        2.14.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.1/" class="md-nav__link">
+        2.14.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.0/" class="md-nav__link">
+        2.14.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.13.0/" class="md-nav__link">
+        2.13.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.12.0/" class="md-nav__link">
+        2.12.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.11.0/" class="md-nav__link">
+        2.11.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.10.0/" class="md-nav__link">
+        2.10.0
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-settings" class="md-nav__link">
+    General Settings
+  </a>
+  
+    <nav class="md-nav" aria-label="General Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose-yaml" class="md-nav__link">
+    docker-compose-yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment_variablesgit_sha" class="md-nav__link">
+    environment_variables.git_sha
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    Routes
+  </a>
+  
+    <nav class="md-nav" aria-label="Routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerate" class="md-nav__link">
+    routes.autogenerate
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    Tasks
+  </a>
+  
+    <nav class="md-nav" aria-label="Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-rollout-tasks-pre_rolloutirun" class="md-nav__link">
+    Pre-Rollout Tasks - pre_rollout.[i].run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-rollout-tasks-post_rolloutirun" class="md-nav__link">
+    Post-Rollout Tasks - post_rollout.[i].run
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-Rollout Tasks - post_rollout.[i].run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-post-rollout-tasks" class="md-nav__link">
+    Example post-rollout tasks
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backup-retention" class="md-nav__link">
+    Backup Retention
+  </a>
+  
+    <nav class="md-nav" aria-label="Backup Retention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionmonthly" class="md-nav__link">
+    backup-retention.production.monthly
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionweekly" class="md-nav__link">
+    backup-retention.production.weekly
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductiondaily" class="md-nav__link">
+    backup-retention.production.daily
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-retentionproductionhourly" class="md-nav__link">
+    backup-retention.production.hourly
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backup-schedule" class="md-nav__link">
+    Backup Schedule
+  </a>
+  
+    <nav class="md-nav" aria-label="Backup Schedule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backup-scheduleproduction" class="md-nav__link">
+    backup-schedule.production
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environments" class="md-nav__link">
+    Environments
+  </a>
+  
+    <nav class="md-nav" aria-label="Environments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameroutes" class="md-nav__link">
+    environments.[name].routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-configuration-tls-acme" class="md-nav__link">
+    SSL Configuration tls-acme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-a-specific-path" class="md-nav__link">
+    Monitoring a specific path
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-annotations" class="md-nav__link">
+    Ingress annotations
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingress annotations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    Restrictions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-annotations-redirects" class="md-nav__link">
+    Ingress annotations redirects
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trusted-reverse-proxies" class="md-nav__link">
+    Trusted Reverse Proxies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametypes" class="md-nav__link">
+    Environments.[name].types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametemplates" class="md-nav__link">
+    environments.[name].templates
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-template-override" class="md-nav__link">
+    Example Template Override
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamerollouts" class="md-nav__link">
+    environments.[name].rollouts
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].rollouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-rollout-type-example" class="md-nav__link">
+    Custom Rollout Type Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameautogenerateroutes" class="md-nav__link">
+    environments.[name].autogenerateRoutes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamecronjobs" class="md-nav__link">
+    environments.[name].cronjobs
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].cronjobs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cron-job-example" class="md-nav__link">
+    Cron Job Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#polysite" class="md-nav__link">
+    Polysite
+  </a>
+  
+    <nav class="md-nav" aria-label="Polysite">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#polysite-example" class="md-nav__link">
+    Polysite Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specials" class="md-nav__link">
+    Specials
+  </a>
+  
+    <nav class="md-nav" aria-label="Specials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#api" class="md-nav__link">
+    api
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    ssh
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-registries" class="md-nav__link">
+    container-registries
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consuming-a-custom-or-private-container-registry-image" class="md-nav__link">
+    Consuming a custom or private container registry image
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-lagoonyml" class="md-nav__link">
+    Example .lagoon.yml
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/uselagoon/lagoon/edit/main/docs/concepts-basics/lagoon-yml.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+
+
+
+<h1 id="lagoonyml">.lagoon.yml<a class="headerlink" href="#lagoonyml" title="Permanent link">#</a></h1>
+<p>The <code>.lagoon.yml</code> file is the central file to set up your project. It contains configuration in order to do the following:</p>
+<ul>
+<li><a href="./#routes">Define routes for accessing your sites</a>.</li>
+<li><a href="./#pre-rollout-tasks-pre_rolloutirun">Define pre-rollout tasks</a>.</li>
+<li><a href="./#post-rollout-tasks-post_rolloutirun">Define post-rollout tasks</a>.</li>
+<li><a href="./#ssl-configuration-tls-acme">Set up SSL certificates</a>.</li>
+<li><a href="./#environmentsnamecronjobs">Add cron jobs for environments</a>.</li>
+</ul>
+<p>The <code>.lagoon.yml</code> file must be placed at the root of your Git repository.</p>
+<h2 id="general-settings">General Settings<a class="headerlink" href="#general-settings" title="Permanent link">#</a></h2>
+<h3 id="docker-compose-yaml"><code>docker-compose-yaml</code><a class="headerlink" href="#docker-compose-yaml" title="Permanent link">#</a></h3>
+<p>Tells the build script which Docker Compose YAML file should be used, in order to learn which services and containers should be deployed. This defaults to <code>docker-compose.yml</code>, but could be used for a specific Lagoon Docker Compose YAML file if needed.</p>
+<h3 id="environment_variablesgit_sha"><code>environment_variables.git_sha</code><a class="headerlink" href="#environment_variablesgit_sha" title="Permanent link">#</a></h3>
+<p>This setting allows you to enable injecting the deployed Git SHA into your project as an environment variable. By default this is disabled. Setting the value to <code>true</code> sets the SHA as the environment variable <code>LAGOON_GIT_SHA</code>.</p>
+<h2 id="routes">Routes<a class="headerlink" href="#routes" title="Permanent link">#</a></h2>
+<p>Routes are used to direct traffic to services. Each service in an environnment
+can have routes, in which the domain names are defined manually or
+automatically. The top level <code>routes</code> section applies to all routes in all
+environments.</p>
+<h3 id="routesautogenerate"><code>routes.autogenerate</code><a class="headerlink" href="#routesautogenerate" title="Permanent link">#</a></h3>
+<p>This allows you to configure automatically created routes. <a href="#environmentsnameroutes">Manual
+routes</a> are defined per environment.</p>
+<ul>
+<li><code>enabled</code>: Set to <code>false</code> to disable autogenerated routes. Default is <code>true</code>.</li>
+<li><code>allowPullrequests</code>: Set to <code>true</code> to override <code>enabled: false</code> for pull
+  requests.<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">autogenerate</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">allowPullrequests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></div>
+</li>
+</ul>
+<ul>
+<li><code>insecure</code>: Configures HTTP connections. Default is <code>Allow</code>.<ul>
+<li><code>Allow</code>: Route will respond to HTTP and HTTPS.</li>
+<li><code>Redirect</code>: Route will redirect any HTTP request to HTTPS.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<p><code>prefixes</code>: Configure prefixes for the autogenerated routes of each
+  environment. This is useful for things like language prefix domains, or a
+  multi-domain site using the Drupal <code>domain</code> module.</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="w">  </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">autogenerate</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">      </span><span class="nt">prefixes</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">de</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fr</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">it</span>
+</span></code></pre></div>
+</li>
+</ul>
+<h2 id="tasks">Tasks<a class="headerlink" href="#tasks" title="Permanent link">#</a></h2>
+<p>There are different type of tasks you can define, and they differ in when exactly they are executed in a build flow:</p>
+<h3 id="pre-rollout-tasks-pre_rolloutirun">Pre-Rollout Tasks - <code>pre_rollout.[i].run</code><a class="headerlink" href="#pre-rollout-tasks-pre_rolloutirun" title="Permanent link">#</a></h3>
+<p>Here you can specify tasks which will run against your project <em>after</em> all images have been successfully built, but <em>before</em>:</p>
+<ul>
+<li>Any running containers are updated with the newly built images.</li>
+<li>Any other changes are made to your existing environment.</li>
+</ul>
+<p>This feature enables you to, for example, create a database dump before updating your application.
+This can make it easier to roll back in case of a problem with the deploy.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>The pre-rollout tasks run in the <em>existing pods before they are updated</em>, which means:</p>
+<ul>
+<li>Changes made to your Dockerfile since the last deploy will not be visible when pre-rollout tasks run.</li>
+<li>If there are no existing containers (e.g. on the initial deployment of a new environment), pre-rollout tasks are skipped.</li>
+</ul>
+</div>
+<h3 id="post-rollout-tasks-post_rolloutirun">Post-Rollout Tasks - <code>post_rollout.[i].run</code><a class="headerlink" href="#post-rollout-tasks-post_rolloutirun" title="Permanent link">#</a></h3>
+<p>Here you can specify tasks which need to run against your project, <em>after</em>:</p>
+<ul>
+<li>All images have been successfully built.</li>
+<li>All containers are updated with the new images.</li>
+<li>All containers are running have passed their readiness checks.</li>
+</ul>
+<p>Common uses for post-rollout tasks include running <code>drush updb</code>, <code>drush cim</code>, or clearing various caches.</p>
+<ul>
+<li><code>name</code><ul>
+<li>The name is an arbitrary label for making it easier to identify each task in the logs.</li>
+</ul>
+</li>
+<li><code>command</code><ul>
+<li>Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is <code>/app</code>. Keep this in mind if you need to <code>cd</code> into a specific location to run your task.</li>
+</ul>
+</li>
+<li><code>service</code><ul>
+<li>The service in which to run the task. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.</li>
+</ul>
+</li>
+<li><code>container</code><ul>
+<li>If the service has multiple containers (e.g. <code>nginx-php</code>), you will need to specify which container in the pod to connect to (e.g. the <code>php</code> container within the <code>nginx</code> pod).</li>
+</ul>
+</li>
+<li><code>shell</code><ul>
+<li>In which shell the task should be run. By default <code>sh</code> is used, but if the container also has other shells (like <code>bash</code>, you can define it here). This is useful if you want to run some small if/else bash scripts within the post-rollouts. <a href="#example-post-rollout-tasks">See the example below</a> to learn how to write a script with multiple lines.</li>
+</ul>
+</li>
+<li><code>when</code><ul>
+<li>The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.</li>
+</ul>
+</li>
+</ul>
+<p>Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level (see how on <a href="../../concepts-advanced/environment-variables/">Environment Variables</a>).</p>
+<ul>
+<li><code>LAGOON_PREROLLOUT_DISABLED=true</code></li>
+<li><code>LAGOON_POSTROLLOUT_DISABLED=true</code></li>
+</ul>
+<h4 id="example-post-rollout-tasks">Example post-rollout tasks<a class="headerlink" href="#example-post-rollout-tasks" title="Permanent link">#</a></h4>
+<p>Here are some useful examples of post-rollout tasks that you may want to use or adapt for your projects.</p>
+<p>Run only if Drupal not installed:</p>
+<div class="language-bash highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>-<span class="w"> </span>run:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>name:<span class="w"> </span>IF<span class="w"> </span>no<span class="w"> </span>Drupal<span class="w"> </span>installed
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>command:<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="c1"># (1)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nv">tables</span><span class="o">=</span><span class="k">$(</span>drush<span class="w"> </span>sqlq<span class="w"> </span><span class="s2">&quot;show tables like &#39;node&#39;;&quot;</span><span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$tables</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="c1">#### whatever you like</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">fi</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span>service:<span class="w"> </span>cli
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span>shell:<span class="w"> </span>bash
+</span></code></pre></div>
+<ol>
+<li>This shows how to create a multi-line command.</li>
+</ol>
+<p>Different tasks based on branch name:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Different tasks based on branch name</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">        </span><span class="no">### Runs if current branch is not &#39;production&#39;</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LAGOON_GIT_BRANCH != &quot;production&quot;</span>
+</span></code></pre></div>
+<p>Run shell script:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run Script</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;./scripts/script.sh&#39;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span></code></pre></div>
+<p>Target specific container in pod:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">show php env variables</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">env</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nt">container</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php</span>
+</span></code></pre></div>
+<p>Drupal &amp; Drush 9: Sync database &amp; files from master environment:</p>
+<div class="language-bash highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>-<span class="w"> </span>run:
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span>name:<span class="w"> </span>Sync<span class="w"> </span>DB<span class="w"> </span>and<span class="w"> </span>Files<span class="w"> </span>from<span class="w"> </span>master<span class="w"> </span><span class="k">if</span><span class="w"> </span>we<span class="w"> </span>are<span class="w"> </span>not<span class="w"> </span>on<span class="w"> </span>master
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span>command:<span class="w"> </span><span class="p">|</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="c1"># Only if we don&#39;t have a database yet</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nv">tables</span><span class="o">=</span><span class="k">$(</span>drush<span class="w"> </span>sqlq<span class="w"> </span><span class="s1">&#39;show tables;&#39;</span><span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$tables</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">          </span>drush<span class="w"> </span>sql-sync<span class="w"> </span>@lagoon.master<span class="w"> </span>@self<span class="w"> </span><span class="c1"># (1)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">          </span>drush<span class="w"> </span>rsync<span class="w"> </span>@lagoon.master:%files<span class="w"> </span>@self:%files<span class="w"> </span>--<span class="w"> </span>--omit-dir-times<span class="w"> </span>--no-perms<span class="w"> </span>--no-group<span class="w"> </span>--no-owner<span class="w"> </span>--chmod<span class="o">=</span><span class="nv">ugo</span><span class="o">=</span>rwX
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="k">fi</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span>service:<span class="w"> </span>cli
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span>when:<span class="w"> </span>LAGOON_ENVIRONMENT_TYPE<span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;production&quot;</span>
+</span></code></pre></div>
+<ol>
+<li>Make sure to use the correct aliases for your project here.</li>
+</ol>
+<h2 id="backup-retention">Backup Retention<a class="headerlink" href="#backup-retention" title="Permanent link">#</a></h2>
+<h3 id="backup-retentionproductionmonthly"><code>backup-retention.production.monthly</code><a class="headerlink" href="#backup-retentionproductionmonthly" title="Permanent link">#</a></h3>
+<p>Specify the number of monthly backups Lagoon should retain for your project's production environment(s).</p>
+<p>The global default is <code>1</code> if this value is not specified.</p>
+<h3 id="backup-retentionproductionweekly"><code>backup-retention.production.weekly</code><a class="headerlink" href="#backup-retentionproductionweekly" title="Permanent link">#</a></h3>
+<p>Specify the number of weekly backups Lagoon should retain for your project's production environment(s).</p>
+<p>The global default is <code>6</code> if this value is not specified.</p>
+<h3 id="backup-retentionproductiondaily"><code>backup-retention.production.daily</code><a class="headerlink" href="#backup-retentionproductiondaily" title="Permanent link">#</a></h3>
+<p>Specify the number of daily backups Lagoon should retain for your project's production environment(s).</p>
+<p>The global default is <code>7</code> if this value is not specified.</p>
+<h3 id="backup-retentionproductionhourly"><code>backup-retention.production.hourly</code><a class="headerlink" href="#backup-retentionproductionhourly" title="Permanent link">#</a></h3>
+<p>Specify the number of hourly backups Lagoon should retain for your project's production environment(s).</p>
+<p>The global default is <code>0</code> if this value is not specified.</p>
+<h2 id="backup-schedule">Backup Schedule<a class="headerlink" href="#backup-schedule" title="Permanent link">#</a></h2>
+<h3 id="backup-scheduleproduction"><code>backup-schedule.production</code><a class="headerlink" href="#backup-scheduleproduction" title="Permanent link">#</a></h3>
+<p>Specify the backup schedule for this project. Accepts cron-compatible syntax with the notable exception that the <code>Minute</code> block must be the letter <code>M</code>. Any other value in the <code>Minute</code> block will cause the Lagoon build to fail. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.</p>
+<p>The global default is <code>M H(22-2) * * *</code> if this value is not specified. Take note that these backups will use the cluster's local timezone.</p>
+<h2 id="environments">Environments<a class="headerlink" href="#environments" title="Permanent link">#</a></h2>
+<p>Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the <code>main</code> and <code>staging</code> environment.</p>
+<h3 id="environmentsnameroutes"><code>environments.[name].routes</code><a class="headerlink" href="#environmentsnameroutes" title="Permanent link">#</a></h3>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<p>Manual routes are domain names that are configured per environment to direct
+traffic to a service. Since all environments get <a href="#routesautogenerate">automatically created
+routes</a> by default, it is typical that manual routes are
+only setup for the production environment, using the main domain of the
+project's website like <code>www.example.com</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Since Lagoon has no control over the manual routes, you'll need to ensure
+the DNS records are configured properly at your DNS provider. You can likely
+set a <code>CNAME</code> record to point to the automatic route.</p>
+</div>
+<p>The first element after the environment is the target service, <code>nginx</code> in our
+example. This is how we identify which service incoming requests will be sent
+to.</p>
+<p>The simplest route is <code>example.com</code>, as seen in our <a href="#example-lagoonyml">example
+<code>.lagoon.yml</code></a> - you can see it has no additional
+configuration. This will assume that you want a Let's Encrypt certificate for
+your route and no redirect from HTTPS to HTTP.</p>
+<p>In the <code>"www.example.com"</code> example below, we see three more options (also
+notice the <code>:</code> at the end of the route and that the route is wrapped in <code>"</code>,
+that's important!):</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">hstsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></div>
+<h3 id="ssl-configuration-tls-acme">SSL Configuration <code>tls-acme</code><a class="headerlink" href="#ssl-configuration-tls-acme" title="Permanent link">#</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you switch from <code>tls-acme: true</code> to <code>tls-acme: false</code> this will remove any previously
+generated certificates for this route. This could result in unexpected behaviour if you're
+using an external CDN and do any certificate pinning.</p>
+</div>
+<ul>
+<li><code>tls-acme</code>: Configures automatic TLS certificate generation via Let's Encrypt.
+  Default is <code>true</code>, set to <code>false</code> to disable automatic certificates.</li>
+<li><code>insecure</code>: Configures HTTP connections. Default is <code>Allow</code>.<ul>
+<li><code>Allow</code>: Route will respond to HTTP and HTTPS.</li>
+<li><code>Redirect</code>: Route will redirect any HTTP request to HTTPS.</li>
+</ul>
+</li>
+<li><code>hstsEnabled</code>: Adds the <code>Strict-Transport-Security</code> header. Default is
+  <code>false</code>.</li>
+<li><code>hstsMaxAge</code>: Configures the <code>max-age</code> directive. Default is <code>31536000</code> (1
+  year).</li>
+<li><code>hstsPreload</code>: Sets the <code>preload</code> directive. Default is <code>false</code>.</li>
+<li><code>hstsIncludeSubdomains</code>: Sets the <code>includeSubDomains</code> directive. Default is
+  <code>false</code>.</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>If you plan to switch from a SSL certificate signed by a Certificate
+Authority (CA) to a Let's Encrypt certificate, it's best to get in touch
+with your Lagoon administrator to oversee the transition.</p>
+</div>
+<h3 id="monitoring-a-specific-path">Monitoring a specific path<a class="headerlink" href="#monitoring-a-specific-path" title="Permanent link">#</a></h3>
+<p>When <a href="https://uptimerobot.com/">UptimeRobot</a> is configured for your cluster (Kubernetes or OpenShift), Lagoon will inject annotations to each route/ingress for use by the <code>stakater/IngressControllerMonitor</code>. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a <code>monitoring-path</code> to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">      </span><span class="nt">monitoring-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/bypass-cache&quot;</span>
+</span></code></pre></div>
+<h3 id="ingress-annotations">Ingress annotations<a class="headerlink" href="#ingress-annotations" title="Permanent link">#</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.</p>
+</div>
+<ul>
+<li><code>annotations</code> can be a YAML map of <a href="https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/">annotations supported by the nginx-ingress controller</a>. This is specifically useful for easy redirects and other configurations.</li>
+</ul>
+<h4 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">#</a></h4>
+<p>Some annotations are disallowed or partially restricted in Lagoon.
+The table below describes these rules.</p>
+<p>If your <code>.lagoon.yml</code> contains one of these annotations it will cause a build failure.</p>
+<table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/auth-snippet</code></td>
+<td>Disallowed</td>
+</tr>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/configuration-snippet</code></td>
+<td>Restricted to <code>rewrite</code>, <code>add_header</code>, <code>set_real_ip</code>, and <code>more_set_headers</code> directives.</td>
+</tr>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/modsecurity-snippet</code></td>
+<td>Disallowed</td>
+</tr>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/server-snippet</code></td>
+<td>Restricted to <code>rewrite</code>, <code>add_header</code>, <code>set_real_ip</code>, and <code>more_set_headers</code> directives.</td>
+</tr>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/stream-snippet</code></td>
+<td>Disallowed</td>
+</tr>
+<tr>
+<td><code>nginx.ingress.kubernetes.io/use-regex</code></td>
+<td>Disallowed</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ingress-annotations-redirects">Ingress annotations redirects<a class="headerlink" href="#ingress-annotations-redirects" title="Permanent link">#</a></h4>
+<p>In this example any requests to <code>example.ch</code> will be redirected to <code>https://www.example.ch</code> while keeping folders or query parameters intact (<code>example.com/folder?query</code> -&gt; <code>https://www.example.ch/folder?query</code>).</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">      </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
+</span></code></pre></div>
+<p>You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to <code>example.de</code> to <code>https://www.google.com</code></p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.de&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">      </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.google.com</span>
+</span></code></pre></div>
+<h4 id="trusted-reverse-proxies">Trusted Reverse Proxies<a class="headerlink" href="#trusted-reverse-proxies" title="Permanent link">#</a></h4>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Kubernetes will only process a single <code>nginx.ingress.kubernetes.io/server-snippet</code> annotation. Please ensure that if you use this annotation on a non-production environment route that you also include the <code>add_header X-Robots-Tag "noindex, nofollow";</code> annotation as part of your server-snippet. This is needed to stop robots from crawling development environments as the default server-snippet set to prevent this in development environments in the ingress templates will get overwritten with any <code>server-snippets</code> set in <code>.lagoon.yml</code>.</p>
+</div>
+<p>Some configurations involve a reverse proxy (like a CDN) in front of the Kubernetes clusters. In these configurations, the IP of the reverse proxy will appear as the <code>REMOTE_ADDR</code> <code>HTTP_X_REAL_IP</code> <code>HTTP_X_FORWARDED_FOR</code> headers field in your applications. The original IP of the requester can be found in the <code>HTTP_X_ORIGINAL_FORWARDED_FOR</code> header.</p>
+<p>If you want the original IP to appear in the <code>REMOTE_ADDR</code> <code>HTTP_X_REAL_IP</code> <code>HTTP_X_FORWARDED_FOR</code> headers, you need to tell the ingress which reverse proxy IPs you want to trust:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">      </span><span class="nt">nginx.ingress.kubernetes.io/server-snippet</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">        </span><span class="no">set_real_ip_from 1.2.3.4/32;</span>
+</span></code></pre></div>
+<p>This example would trust the CIDR <code>1.2.3.4/32</code> (the IP <code>1.2.3.4</code> in this case). Therefore if there is a request sent to the Kubernetes cluster from the IP <code>1.2.3.4</code> the <code>X-Forwarded-For</code> Header is analyzed and its contents injected into <code>REMOTE_ADDR</code> <code>HTTP_X_REAL_IP</code> <code>HTTP_X_FORWARDED_FOR</code> headers.</p>
+<h3 id="environmentsnametypes"><code>Environments.[name].types</code><a class="headerlink" href="#environmentsnametypes" title="Permanent link">#</a></h3>
+<p>The Lagoon build process checks the <code>lagoon.type</code> label from the <code>docker-compose.yml</code> file in order to learn what type of service should be deployed (read more about them in the <a href="../docker-compose-yml/#custom-templates">documentation of <code>docker-compose.yml</code></a>).</p>
+<p>Sometimes you might want to override the <strong>type</strong> just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called <code>develop</code>:</p>
+<p><code>service-name: service-type</code></p>
+<ul>
+<li><code>service-name</code> is the name of the service from <code>docker-compose.yml</code> you would like to override.</li>
+<li><code>service-type</code> the type of the service you would like to use in your override.</li>
+</ul>
+<p>Example for setting up MariaDB_Galera:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">develop</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb-single</span>
+</span></code></pre></div>
+<h3 id="environmentsnametemplates"><code>environments.[name].templates</code><a class="headerlink" href="#environmentsnametemplates" title="Permanent link">#</a></h3>
+<p>The Lagoon build process checks the <code>lagoon.template</code> label from the <code>docker-compose.yml</code> file in order to check if the service needs a custom template file (read more about them in the <a href="../docker-compose-yml/">documentation of <code>docker-compose.yml</code></a>).</p>
+<p>Sometimes you might want to override the <strong>template</strong> just for a single environment, and not for all of them:</p>
+<p><code>service-name: template-file</code></p>
+<ul>
+<li><code>service-name</code> is the name of the service from <code>docker-compose.yml</code> you would like to override.</li>
+<li><code>template-file</code> is the path and name of the template to use for this service in this environment.</li>
+</ul>
+<h4 id="example-template-override">Example Template Override<a class="headerlink" href="#example-template-override" title="Permanent link">#</a></h4>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
+</span></code></pre></div>
+<h3 id="environmentsnamerollouts"><code>environments.[name].rollouts</code><a class="headerlink" href="#environmentsnamerollouts" title="Permanent link">#</a></h3>
+<p>The Lagoon build process checks the <code>lagoon.rollout</code> label from the <code>docker-compose.yml</code> file in order to check if the service needs a special rollout type (read more about them in the <a href="../docker-compose-yml/#custom-rollout-monitor-types">documentation of <code>docker-compose.yml</code></a>)</p>
+<p>Sometimes you might want to override the <strong>rollout type</strong> just for a single environment, especially if you also overwrote the template type for the environment:</p>
+<p><code>service-name: rollout-type</code></p>
+<ul>
+<li><code>service-name</code> is the name of the service from <code>docker-compose.yml</code> you would like to override.</li>
+<li><code>rollout-type</code> is the type of rollout. See <a href="../docker-compose-yml/#custom-rollout-monitor-types">documentation of <code>docker-compose.yml</code></a>) for possible values.</li>
+</ul>
+<h4 id="custom-rollout-type-example">Custom Rollout Type Example<a class="headerlink" href="#custom-rollout-type-example" title="Permanent link">#</a></h4>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
+</span></code></pre></div>
+<h3 id="environmentsnameautogenerateroutes"><code>environments.[name].autogenerateRoutes</code><a class="headerlink" href="#environmentsnameautogenerateroutes" title="Permanent link">#</a></h3>
+<p>This allows for any environments to get autogenerated routes when route autogeneration is disabled.</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">autogenerate</span><span class="p">:</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">develop</span><span class="p">:</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">autogenerateRoutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></div>
+<h3 id="environmentsnamecronjobs"><code>environments.[name].cronjobs</code><a class="headerlink" href="#environmentsnamecronjobs" title="Permanent link">#</a></h3>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Yd_JfDyfbR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<p>Cron jobs must be defined explicitly for each environment, since it is typically
+not desirable to run the same ones for all environments. Depending on the
+defined schedule, cron jobs may run as a Kubernetes native <code>CronJob</code> or as an
+in-pod cron job via the crontab of the defined service.</p>
+<h4 id="cron-job-example">Cron Job Example<a class="headerlink" href="#cron-job-example" title="Permanent link">#</a></h4>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Hourly Drupal Cron</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># Once per hour, at a random minute.</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Nightly Drupal Cron</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">0</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># Once per day, at a random minute from 00:00 to 00:59.</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span></code></pre></div>
+<ul>
+<li><code>name</code>: Any name that will identify the purpose and distinguish it from other
+  cron jobs.</li>
+<li>
+<p><code>schedule</code>: The schedule for executing the cron job. Lagoon uses an extended
+  version of the crontab format. If you're not sure about the syntax, use a
+  <a href="https://crontab.guru/">crontab generator</a>.</p>
+<ul>
+<li>You can specify <code>M</code> for the minute, and your cron job will run once per
+  hour at a random minute (the same minute each hour), or <code>M/15</code> to run it
+  every 15 mins, but with a random offset from the hour (like
+  <code>6,21,36,51</code>). It is a good idea to spread out your cron jobs using this
+  feature, rather than have them all fire off on minute <code>0</code>.</li>
+<li>You can specify <code>H</code> for the hour, and your cron job will run once per day
+  at a random hour (the same hour every day), or <code>H(2-4)</code> to run it once
+  per day within the hours of 2-4.</li>
+</ul>
+</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Timezones:</p>
+<ul>
+<li>The default timezone for cron jobs is UTC.</li>
+<li>Native cron jobs use the timezone of the node, which is UTC.</li>
+<li>In-pod cron jobs use the timezone of the defined service, which
+  can be configured to something other than UTC.</li>
+</ul>
+</div>
+<ul>
+<li><code>command</code>: The command to execute. This executes in the <code>WORKDIR</code> of the
+  service. For Lagoon images, this is <code>/app</code>.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Cronjobs may run in-pod, via crontab, which <a href="https://www.man7.org/linux/man-pages/man5/crontab.5.html">doesn't support multiline
+  commands</a>. If
+  you need a complex or multiline cron command, you must put it in a
+  script that can be used as the command. Consider whether a <a href="#tasks">pre- or post-rollout task</a> would work.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>Cronjobs run in Kubernetes pods, which means they can be interrupted due to pod rescheduling.
+  Therefore when creating a cronjob you must ensure that the command can be safely interrupted and re-run at the next cron interval.</p>
+</div>
+<ul>
+<li><code>service</code>: Which service of your project to run the command in. For most
+  projects, this should be the <code>cli</code> service.</li>
+</ul>
+<h2 id="polysite">Polysite<a class="headerlink" href="#polysite" title="Permanent link">#</a></h2>
+<p>In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In <code>.lagoon.yml</code> , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the <code>environments</code> becomes the second-level element, and the project name the top level.</p>
+<p>To utilize this, you will need to:</p>
+<ol>
+<li>Create two (or more) projects in Lagoon, each configured with the same Git URL and production branch, <strong>named per your .lagoon.yml</strong> (i.e <code>poly-project1</code> and <code>poly-project2</code> below)</li>
+<li>Add the deploy keys from each project to the Git repository.</li>
+<li>Configure the webhook for the repository (if required) - you can then push/deploy. Note that a push to the repository will simultaneously deploy all projects/branches for that Git URL.</li>
+</ol>
+<h3 id="polysite-example">Polysite Example<a class="headerlink" href="#polysite-example" title="Permanent link">#</a></h3>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">poly-project1</span><span class="p">:</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">      </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project1.com</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="nt">poly-project2</span><span class="p">:</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">      </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project2.com</span>
+</span></code></pre></div>
+<h2 id="specials">Specials<a class="headerlink" href="#specials" title="Permanent link">#</a></h2>
+<h3 id="api"><code>api</code><a class="headerlink" href="#api" title="Permanent link">#</a></h3>
+<details class="info" open="open">
+<summary>Info</summary>
+<p>If you run directly on amazee.io hosted Lagoon you will not need this key set.</p>
+</details>
+<p>With the key <code>api</code> you can define another URL that should be used by the Lagoon CLI and <code>drush</code> to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: <code>http://localhost:3000</code> This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.</p>
+<h3 id="ssh"><code>ssh</code><a class="headerlink" href="#ssh" title="Permanent link">#</a></h3>
+<details class="info" open="open">
+<summary>Info</summary>
+<p>If you run directly on amazee.io hosted Lagoon you will not need this key set.</p>
+</details>
+<p>With the key <code>ssh</code> you can define another SSH endpoint that should be used by the Lagoon CLI and <code>drush</code> to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: <code>localhost:2020</code> This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.</p>
+<h3 id="container-registries"><code>container-registries</code><a class="headerlink" href="#container-registries" title="Permanent link">#</a></h3>
+<p>The <code>container-registries</code> block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a <code>username</code>, <code>password</code>, and optionally the <code>url</code> for your registry. If you don't specify a <code>url</code> in your YAML, it will default to using Docker Hub.</p>
+<p>There are 2 ways to define the password used for your registry user.</p>
+<p>Create an environment variable in the Lagoon API with the type <code>container_registry</code>:</p>
+<ul>
+<li><code>lagoon add variable -p &lt;project_name&gt; -N &lt;registry_password_variable_name&gt; -V &lt;password_goes_here&gt; -S container_registry</code></li>
+<li>(see more on <a href="../../concepts-advanced/environment-variables/">Environment Variables</a>)</li>
+</ul>
+<p>The name of the variable you create can then be set as the password:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">container-registries</span><span class="p">:</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">my-custom-registry</span><span class="p">:</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myownregistryuser</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;registry_password_variable_name&gt;</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.own.registry.com</span>
+</span></code></pre></div>
+<p>You can also define the password directly in the <code>.lagoon.yml</code> file in plain text:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">container-registries</span><span class="p">:</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">docker-hub</span><span class="p">:</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dockerhubuser</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MySecretPassword</span>
+</span></code></pre></div>
+<h3 id="consuming-a-custom-or-private-container-registry-image">Consuming a custom or private container registry image<a class="headerlink" href="#consuming-a-custom-or-private-container-registry-image" title="Permanent link">#</a></h3>
+<p>To consume a custom or private container registry image, you need to update the service inside your <code>docker-compose.yml</code> file to use a build context instead of defining an image:</p>
+<div class="language-yaml highlight"><span class="filename">.docker-compose.yml</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dockerfile.mariadb</span>
+</span></code></pre></div>
+<p>Once the <code>docker-compose.yml</code> file has been updated to use a build, you need to create the <code>Dockerfile.&lt;service&gt;</code> and then set your private image as the <code>FROM &lt;repo&gt;/&lt;name&gt;:&lt;tag&gt;</code></p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="l l-Scalar l-Scalar-Plain">FROM dockerhubuser/my-private-database:tag</span>
+</span></code></pre></div>
+<h2 id="example-lagoonyml">Example <code>.lagoon.yml</code><a class="headerlink" href="#example-lagoonyml" title="Permanent link">#</a></h2>
+<p>This is an example <code>.lagoon.yml</code> which showcases all possible settings. You will need to adapt it to your project.</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">.lagoon.yml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-22-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-22-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-22-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-22-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-22-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-22-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-22-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-22-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-22-10">10</a></span>
+<span class="normal"><a href="#__codelineno-22-11">11</a></span>
+<span class="normal"><a href="#__codelineno-22-12">12</a></span>
+<span class="normal"><a href="#__codelineno-22-13">13</a></span>
+<span class="normal"><a href="#__codelineno-22-14">14</a></span>
+<span class="normal"><a href="#__codelineno-22-15">15</a></span>
+<span class="normal"><a href="#__codelineno-22-16">16</a></span>
+<span class="normal"><a href="#__codelineno-22-17">17</a></span>
+<span class="normal"><a href="#__codelineno-22-18">18</a></span>
+<span class="normal"><a href="#__codelineno-22-19">19</a></span>
+<span class="normal"><a href="#__codelineno-22-20">20</a></span>
+<span class="normal"><a href="#__codelineno-22-21">21</a></span>
+<span class="normal"><a href="#__codelineno-22-22">22</a></span>
+<span class="normal"><a href="#__codelineno-22-23">23</a></span>
+<span class="normal"><a href="#__codelineno-22-24">24</a></span>
+<span class="normal"><a href="#__codelineno-22-25">25</a></span>
+<span class="normal"><a href="#__codelineno-22-26">26</a></span>
+<span class="normal"><a href="#__codelineno-22-27">27</a></span>
+<span class="normal"><a href="#__codelineno-22-28">28</a></span>
+<span class="normal"><a href="#__codelineno-22-29">29</a></span>
+<span class="normal"><a href="#__codelineno-22-30">30</a></span>
+<span class="normal"><a href="#__codelineno-22-31">31</a></span>
+<span class="normal"><a href="#__codelineno-22-32">32</a></span>
+<span class="normal"><a href="#__codelineno-22-33">33</a></span>
+<span class="normal"><a href="#__codelineno-22-34">34</a></span>
+<span class="normal"><a href="#__codelineno-22-35">35</a></span>
+<span class="normal"><a href="#__codelineno-22-36">36</a></span>
+<span class="normal"><a href="#__codelineno-22-37">37</a></span>
+<span class="normal"><a href="#__codelineno-22-38">38</a></span>
+<span class="normal"><a href="#__codelineno-22-39">39</a></span>
+<span class="normal"><a href="#__codelineno-22-40">40</a></span>
+<span class="normal"><a href="#__codelineno-22-41">41</a></span>
+<span class="normal"><a href="#__codelineno-22-42">42</a></span>
+<span class="normal"><a href="#__codelineno-22-43">43</a></span>
+<span class="normal"><a href="#__codelineno-22-44">44</a></span>
+<span class="normal"><a href="#__codelineno-22-45">45</a></span>
+<span class="normal"><a href="#__codelineno-22-46">46</a></span>
+<span class="normal"><a href="#__codelineno-22-47">47</a></span>
+<span class="normal"><a href="#__codelineno-22-48">48</a></span>
+<span class="normal"><a href="#__codelineno-22-49">49</a></span>
+<span class="normal"><a href="#__codelineno-22-50">50</a></span>
+<span class="normal"><a href="#__codelineno-22-51">51</a></span>
+<span class="normal"><a href="#__codelineno-22-52">52</a></span>
+<span class="normal"><a href="#__codelineno-22-53">53</a></span>
+<span class="normal"><a href="#__codelineno-22-54">54</a></span>
+<span class="normal"><a href="#__codelineno-22-55">55</a></span>
+<span class="normal"><a href="#__codelineno-22-56">56</a></span>
+<span class="normal"><a href="#__codelineno-22-57">57</a></span>
+<span class="normal"><a href="#__codelineno-22-58">58</a></span>
+<span class="normal"><a href="#__codelineno-22-59">59</a></span>
+<span class="normal"><a href="#__codelineno-22-60">60</a></span>
+<span class="normal"><a href="#__codelineno-22-61">61</a></span>
+<span class="normal"><a href="#__codelineno-22-62">62</a></span>
+<span class="normal"><a href="#__codelineno-22-63">63</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="nt">docker-compose-yaml</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.yml</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3"></a><span class="nt">environment_variables</span><span class="p">:</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4"></a><span class="w">  </span><span class="nt">git_sha</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5"></a>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7"></a><span class="w">  </span><span class="nt">pre-rollout</span><span class="p">:</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush sql-dump</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mkdir -p /app/web/sites/default/files/private/ &amp;&amp; drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12"></a><span class="w">  </span><span class="nt">post-rollout</span><span class="p">:</span>
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cim</span>
+</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cim</span>
+</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17"></a><span class="w">        </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cr</span>
+</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cr</span>
+</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22"></a>
+</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23"></a><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24"></a><span class="w">  </span><span class="nt">autogenerate</span><span class="p">:</span>
+</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25"></a><span class="w">    </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26"></a>
+</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-22-29"><a id="__codelineno-22-29" name="__codelineno-22-29"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-22-30"><a id="__codelineno-22-30" name="__codelineno-22-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-22-31"><a id="__codelineno-22-31" name="__codelineno-22-31"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
+</span><span id="__span-22-32"><a id="__codelineno-22-32" name="__codelineno-22-32"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.net</span>
+</span><span id="__span-22-33"><a id="__codelineno-22-33" name="__codelineno-22-33"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-22-34"><a id="__codelineno-22-34" name="__codelineno-22-34"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-22-35"><a id="__codelineno-22-35" name="__codelineno-22-35"></a><span class="w">            </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-22-36"><a id="__codelineno-22-36" name="__codelineno-22-36"></a><span class="w">            </span><span class="nt">hstsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-22-37"><a id="__codelineno-22-37" name="__codelineno-22-37"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-22-38"><a id="__codelineno-22-38" name="__codelineno-22-38"></a><span class="w">            </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-22-39"><a id="__codelineno-22-39" name="__codelineno-22-39"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
+</span><span id="__span-22-40"><a id="__codelineno-22-40" name="__codelineno-22-40"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
+</span><span id="__span-22-41"><a id="__codelineno-22-41" name="__codelineno-22-41"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
+</span><span id="__span-22-42"><a id="__codelineno-22-42" name="__codelineno-22-42"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
+</span><span id="__span-22-43"><a id="__codelineno-22-43" name="__codelineno-22-43"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
+</span><span id="__span-22-44"><a id="__codelineno-22-44" name="__codelineno-22-44"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
+</span><span id="__span-22-45"><a id="__codelineno-22-45" name="__codelineno-22-45"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
+</span><span id="__span-22-46"><a id="__codelineno-22-46" name="__codelineno-22-46"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
+</span><span id="__span-22-47"><a id="__codelineno-22-47" name="__codelineno-22-47"></a><span class="w">    </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-22-48"><a id="__codelineno-22-48" name="__codelineno-22-48"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-49"><a id="__codelineno-22-49" name="__codelineno-22-49"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-22-50"><a id="__codelineno-22-50" name="__codelineno-22-50"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-51"><a id="__codelineno-22-51" name="__codelineno-22-51"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-22-52"><a id="__codelineno-22-52" name="__codelineno-22-52"></a><span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
+</span><span id="__span-22-53"><a id="__codelineno-22-53" name="__codelineno-22-53"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-22-54"><a id="__codelineno-22-54" name="__codelineno-22-54"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-55"><a id="__codelineno-22-55" name="__codelineno-22-55"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-22-56"><a id="__codelineno-22-56" name="__codelineno-22-56"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-57"><a id="__codelineno-22-57" name="__codelineno-22-57"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-22-58"><a id="__codelineno-22-58" name="__codelineno-22-58"></a><span class="w">  </span><span class="nt">feature/feature-branch</span><span class="p">:</span>
+</span><span id="__span-22-59"><a id="__codelineno-22-59" name="__codelineno-22-59"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-22-60"><a id="__codelineno-22-60" name="__codelineno-22-60"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-61"><a id="__codelineno-22-61" name="__codelineno-22-61"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;H</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-22-62"><a id="__codelineno-22-62" name="__codelineno-22-62"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-22-63"><a id="__codelineno-22-63" name="__codelineno-22-63"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span></code></pre></div></td></tr></table></div>
+<h2 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h2>
+<p>These settings have been deprecated and should be removed from use in your <code>.lagoon.yml</code>.</p>
+<ul>
+<li><code>routes.autogenerate.insecure</code><p>The <code>None</code> option is equivalent to <code>Redirect</code>.</p>
+</li>
+</ul>
+<ul>
+<li><code>environments.[name].monitoring_urls</code></li>
+<li><code>environments.[name].routes.[service].[route].hsts</code></li>
+<li><code>environments.[name].routes.[service].[route].insecure</code><p>The <code>None</code> option is equivalent to <code>Redirect</code>.</p>
+</li>
+</ul>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../javascript/tablesort.js"></script>
+      
+    
+  </body>
+</html>

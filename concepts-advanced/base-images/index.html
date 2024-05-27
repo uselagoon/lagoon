@@ -1,0 +1,3957 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="The Lagoon Authors">
+      
+      
+        <link rel="canonical" href="https://docs.lagoon.sh/concepts-advanced/base-images/">
+      
+      
+        <link rel="prev" href="../backups/">
+      
+      
+        <link rel="next" href="../workflows/">
+      
+      <link rel="icon" href="../../images/lagoon-icon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Base Images - Lagoon Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M64 32C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h224V368c0-26.5 21.5-48 48-48h112V96c0-35.3-28.7-64-64-64H64zm384 320H336c-8.8 0-16 7.2-16 16v112l32-32 64-64 32-32z"/></svg>');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M96 0C43 0 0 43 0 96v320c0 53 43 96 96 96h320c17.7 0 32-14.3 32-32s-14.3-32-32-32v-64c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H96zm0 384h256v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-40-176h24v-64h-24c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-80c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-144c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/></svg>');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M480 32c0-12.9-7.8-24.6-19.8-29.6S434.5.2 425.3 9.3L381.7 53c-48 48-113.1 75-181 75H64c-35.3 0-64 28.7-64 64v96c0 35.3 28.7 64 64 64v128c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V352h8.7c67.9 0 133 27 181 75l43.6 43.6c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6V300.4c18.6-8.8 32-32.5 32-60.4s-13.4-51.6-32-60.4V32zm-64 76.7v262.6C357.2 317.8 280.5 288 200.7 288H192v-96h8.7c79.8 0 156.5-29.8 215.3-83.3z"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M470.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L192 338.7l233.4-233.3c12.5-12.5 32.8-12.5 45.3 0z"/></svg>');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-86.2-346.7c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1 0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6-13.3 0-24-10.7-24-24v-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1 0-8.4-6.8-15.1-15.1-15.1h-58.3c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32 14.3-32 32-32 32 14.3 32 32z"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7.2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8.2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32z"/></svg>');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M459.1 52.4 442.6 6.5c-1.9-3.9-6.1-6.5-10.5-6.5s-8.5 2.6-10.4 6.5l-16.5 45.9-46 16.8c-4.3 1.6-7.3 5.9-7.2 10.4 0 4.5 3 8.7 7.2 10.2l45.7 16.8 16.8 45.8c1.5 4.4 5.8 7.5 10.4 7.5s8.9-3.1 10.4-7.5l16.5-45.8 45.7-16.8c4.2-1.5 7.2-5.7 7.2-10.2 0-4.6-3-8.9-7.2-10.4l-45.6-16.8zm-132.4 53c-12.5-12.5-32.8-12.5-45.3 0l-2.9 2.9c-22-8-45.8-12.3-70.5-12.3C93.1 96 0 189.1 0 304s93.1 208 208 208 208-93.1 208-208c0-24.7-4.3-48.5-12.2-70.5l2.9-2.9c12.5-12.5 12.5-32.8 0-45.3l-80-80zM200 192c-57.4 0-104 46.6-104 104v8c0 8.8-7.2 16-16 16s-16-7.2-16-16v-8c0-75.1 60.9-136 136-136h8c8.8 0 16 7.2 16 16s-7.2 16-16 16h-8z"/></svg>');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9V464c0 26.5 21.5 48 48 48h48v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h64v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h48c26.5 0 48-21.5 48-48v-65.1zM224 256c0 35.3-28.7 64-64 64s-64-28.7-64-64 28.7-64 64-64 64 28.7 64 64zm128 64c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64z"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32v64h128c35.3 0 64 28.7 64 64v288c0 35.3-28.7 64-64 64H160c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h128V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zM264 256c0-22.1-17.9-40-40-40s-40 17.9-40 40 17.9 40 40 40 40-17.9 40-40zm152 40c22.1 0 40-17.9 40-40s-17.9-40-40-40-40 17.9-40 40 17.9 40 40 40zM48 224h16v192H48c-26.5 0-48-21.5-48-48v-96c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48h-16V224h16z"/></svg>');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M288 0H128c-17.7 0-32 14.3-32 32s14.3 32 32 32v132.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6 0 480.9 31.1 512 69.4 512h309.2c38.3 0 69.4-31.1 69.4-69.4 0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32S337.7 0 320 0h-32zm-96 196.8V64h64v132.8c0 23.7 6.6 46.9 19 67.1l34.5 56.1h-171l34.5-56.1c12.4-20.2 19-43.4 19-67.1z"/></svg>');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M0 216C0 149.7 53.7 96 120 96h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V216zm256 0c0-66.3 53.7-120 120-120h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64h-64c-35.3 0-64-28.7-64-64V216z"/></svg>');}</style>
+
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-W1SJFEVFDB"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-W1SJFEVFDB",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-W1SJFEVFDB",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#base-images" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Lagoon Documentation" class="md-header__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lagoon Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Base Images
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m3.55 19.09 1.41 1.41 1.8-1.79-1.42-1.42M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6c0-3.32-2.69-6-6-6m8 7h3v-2h-3m-2.76 7.71 1.8 1.79 1.41-1.41-1.79-1.8M20.45 5l-1.41-1.4-1.8 1.79 1.42 1.42M13 1h-2v3h2M6.76 5.39 4.96 3.6 3.55 5l1.79 1.81 1.42-1.42M1 13h3v-2H1m12 9h-2v3h2"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/uselagoon/lagoon/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Lagoon Documentation" class="md-nav__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    Lagoon Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/uselagoon/lagoon/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Basic Lagoon Concepts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basic Lagoon Concepts" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basic Lagoon Concepts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/lagoon-yml/" class="md-nav__link">
+        .lagoon.yml
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/docker-compose-yml/" class="md-nav__link">
+        docker-compose.yml
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/build-and-deploy-process/" class="md-nav__link">
+        Build and Deploy Process
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2_5" type="checkbox" id="__nav_2_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_5" tabindex="0" aria-expanded="false">
+          Building Blocks of Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Building Blocks of Lagoon" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_5">
+          <span class="md-nav__icon md-icon"></span>
+          Building Blocks of Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/users/" class="md-nav__link">
+        Users
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/groups/" class="md-nav__link">
+        Groups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/projects/" class="md-nav__link">
+        Projects
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/notifications/" class="md-nav__link">
+        Notifications
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/deploy-targets/" class="md-nav__link">
+        Deploy Targets
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/organizations/" class="md-nav__link">
+        Organizations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts-basics/building-blocks/roles/" class="md-nav__link">
+        Roles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="true">
+          Advanced Lagoon Concepts
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Advanced Lagoon Concepts" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Advanced Lagoon Concepts
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../service-types/" class="md-nav__link">
+        Service Types
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-types/" class="md-nav__link">
+        Environment Types
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-variables/" class="md-nav__link">
+        Environment Variables
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment-idling/" class="md-nav__link">
+        Environment Idling
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backups/" class="md-nav__link">
+        Backups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Base Images
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Base Images
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-base-image" class="md-nav__link">
+    What is a base image?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derived-images" class="md-nav__link">
+    Derived images
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anatomy-of-a-base-image" class="md-nav__link">
+    Anatomy of a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Anatomy of a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metapackages" class="md-nav__link">
+    Metapackages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    docker-compose.yml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal" class="md-nav__link">
+    Drupal
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#laravel" class="md-nav__link">
+    Laravel
+  </a>
+  
+    <nav class="md-nav" aria-label="Laravel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queues" class="md-nav__link">
+    Queues
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-process-of-building-a-base-image" class="md-nav__link">
+    Understanding the process of building a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the process of building a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#makefile-and-build-assumptions" class="md-nav__link">
+    Makefile and build assumptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-image-build-variables" class="md-nav__link">
+    Base image build variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#makefile-targets" class="md-nav__link">
+    Makefile targets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-workflow-for-building-a-new-release-of-a-base-image" class="md-nav__link">
+    Example workflow for building a new release of a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Example workflow for building a new release of a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#releasing-a-new-version-of-a-base-image" class="md-nav__link">
+    Releasing a new version of a base image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-pull-down-the-base-image-locally" class="md-nav__link">
+    Step 1 - Pull down the base image locally
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-make-the-changes-to-the-repository" class="md-nav__link">
+    Step 2 - Make the changes to the repository
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-22-ensure-that-the-required-drupal-module-is-enabled-in-template-based-derived-images" class="md-nav__link">
+    Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-23-test" class="md-nav__link">
+    Step 2.3 - Test
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-tagging-images" class="md-nav__link">
+    Step 3 - Tagging images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#here-we-demonstrate-how-to-tag-an-image" class="md-nav__link">
+    Here we demonstrate how to tag an image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-git-tags-map-to-image-tags" class="md-nav__link">
+    How Git tags map to image tags
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-building-the-new-base-images" class="md-nav__link">
+    Step 4 - Building the new base images
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgement" class="md-nav__link">
+    Acknowledgement
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/" class="md-nav__link">
+        Workflows
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature-flags/" class="md-nav__link">
+        Feature Flags
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Lagoonizing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Lagoonizing" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Lagoonizing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lagoonizing/" class="md-nav__link">
+        Lagoonizing Your Exisiting Site
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_2" type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" tabindex="0" aria-expanded="false">
+          Docker Images
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Docker Images" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          Docker Images
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/commons/" class="md-nav__link">
+        Commons
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/mariadb/" class="md-nav__link">
+        MariaDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/mongodb/" class="md-nav__link">
+        MongoDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/nodejs/" class="md-nav__link">
+        Node.js
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/nginx/" class="md-nav__link">
+        NGINX
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/opensearch/" class="md-nav__link">
+        OpenSearch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/php-cli/" class="md-nav__link">
+        PHP-CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/php-fpm/" class="md-nav__link">
+        PHP-FPM
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/python/" class="md-nav__link">
+        Python
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/postgres/" class="md-nav__link">
+        PostgreSQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/rabbitmq/" class="md-nav__link">
+        RabbitMQ
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/ruby/" class="md-nav__link">
+        Ruby
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/solr/" class="md-nav__link">
+        Solr
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/redis/" class="md-nav__link">
+        Redis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/varnish/" class="md-nav__link">
+        Varnish
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" tabindex="0" aria-expanded="false">
+          Configuring Applications
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Configuring Applications" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          Configuring Applications
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/options/" class="md-nav__link">
+        Options
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_3" type="checkbox" id="__nav_4_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_3" tabindex="0" aria-expanded="false">
+          Drupal
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Drupal" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          Drupal
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_3_2" type="checkbox" id="__nav_4_3_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_3_2" tabindex="0" aria-expanded="false">
+          Services
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Services" data-md-level="4">
+        <label class="md-nav__title" for="__nav_4_3_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          Services
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/mariadb/" class="md-nav__link">
+        MariaDB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/nginx/" class="md-nav__link">
+        NGINX
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/php-cli/" class="md-nav__link">
+        PHP-cli
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/redis/" class="md-nav__link">
+        Redis
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/solr/" class="md-nav__link">
+        Solr
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/services/varnish/" class="md-nav__link">
+        Varnish
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/" class="md-nav__link">
+        Step by Step - Getting Drupal ready to run on Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/first-deployment-of-drupal/" class="md-nav__link">
+        First Deployment of Drupal
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/drush-9/" class="md-nav__link">
+        Drush 9
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/subfolders/" class="md-nav__link">
+        Subfolders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/integrate-drupal-and-fastly/" class="md-nav__link">
+        Integrate Drupal & Fastly
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/phpunit-and-phpstorm/" class="md-nav__link">
+        PHPUnit and PhpStorm
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/drupal/automatic-updates/" class="md-nav__link">
+        Automatic Updates
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_4" type="checkbox" id="__nav_4_3_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_4" tabindex="0" aria-expanded="false">
+          WordPress
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="WordPress" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          WordPress
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/wordpress/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_5" type="checkbox" id="__nav_4_3_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_5" tabindex="0" aria-expanded="false">
+          Node.js-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Node.js-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          Node.js-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/node/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_6" type="checkbox" id="__nav_4_3_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_6" tabindex="0" aria-expanded="false">
+          PHP-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="PHP-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_6">
+          <span class="md-nav__icon md-icon"></span>
+          PHP-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/php/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_7" type="checkbox" id="__nav_4_3_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_7" tabindex="0" aria-expanded="false">
+          Python-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Python-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_7">
+          <span class="md-nav__icon md-icon"></span>
+          Python-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/python/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_8" type="checkbox" id="__nav_4_3_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_8" tabindex="0" aria-expanded="false">
+          Ruby-based
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Ruby-based" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_8">
+          <span class="md-nav__icon md-icon"></span>
+          Ruby-based
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/ruby/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3_9" type="checkbox" id="__nav_4_3_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3_9" tabindex="0" aria-expanded="false">
+          Other
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Other" data-md-level="3">
+        <label class="md-nav__title" for="__nav_4_3_9">
+          <span class="md-nav__icon md-icon"></span>
+          Other
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/other/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Using Lagoon - The Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Using Lagoon - The Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Using Lagoon - The Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/local-development-environments/" class="md-nav__link">
+        Local Development Environments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/setup-project/" class="md-nav__link">
+        Set Up a New Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/configure-webhooks/" class="md-nav__link">
+        Configure Webhooks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/first-deployment/" class="md-nav__link">
+        First Deployment
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/lagoon-build-errors-and-warnings/" class="md-nav__link">
+        Lagoon Build Errors and Warnings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-the-basics/going-live/" class="md-nav__link">
+        Going Live
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" tabindex="0" aria-expanded="false">
+          Using Lagoon - Advanced
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Using Lagoon - Advanced" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Using Lagoon - Advanced
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/active-standby/" class="md-nav__link">
+        Active/Standby
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/triggering-deployments/" class="md-nav__link">
+        Triggering Deployments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/private-repositories/" class="md-nav__link">
+        Private Repositories
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/simplesaml/" class="md-nav__link">
+        SimpleSAML
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/project-default-users-keys/" class="md-nav__link">
+        Project Default Users and SSH Keys
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/nodejs/" class="md-nav__link">
+        Node.js Graceful Shutdown
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/setting-up-xdebug-with-lagoon/" class="md-nav__link">
+        Setting up Xdebug with Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/custom-tasks/" class="md-nav__link">
+        Custom Tasks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/deploytarget-configs/" class="md-nav__link">
+        DeployTarget Configs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/blackfire/" class="md-nav__link">
+        Blackfire
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_6_12" type="checkbox" id="__nav_6_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6_12" tabindex="0" aria-expanded="false">
+          Harbor
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Harbor" data-md-level="2">
+        <label class="md-nav__title" for="__nav_6_12">
+          <span class="md-nav__icon md-icon"></span>
+          Harbor
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/" class="md-nav__link">
+        Using Harbor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/security-scanning/" class="md-nav__link">
+        Security Scanning
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/" class="md-nav__link">
+        Harbor Settings
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/" class="md-nav__link">
+        Harbor-Core
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/" class="md-nav__link">
+        Harbor-Database
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/" class="md-nav__link">
+        Harbor-Jobservice
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/" class="md-nav__link">
+        Harbor-Trivy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/" class="md-nav__link">
+        HarborRegistry
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/" class="md-nav__link">
+        HarborRegistryCtl
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" tabindex="0" aria-expanded="false">
+          Interacting with Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Interacting with Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Interacting with Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/lagoon-ui/" class="md-nav__link">
+        Using the UI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/organizations/" class="md-nav__link">
+        Working with Orgs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/graphql/" class="md-nav__link">
+        GraphQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/ssh/" class="md-nav__link">
+        SSH
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/graphql-queries/" class="md-nav__link">
+        GraphQL API
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../interacting/rbac/" class="md-nav__link">
+        Role-Based Access Control (RBAC)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_7_7" type="checkbox" id="__nav_7_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_7" tabindex="0" aria-expanded="false">
+          Understanding Logs
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Understanding Logs" data-md-level="2">
+        <label class="md-nav__title" for="__nav_7_7">
+          <span class="md-nav__icon md-icon"></span>
+          Understanding Logs
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../logging/logging/" class="md-nav__link">
+        Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../logging/kibana-examples/" class="md-nav__link">
+        Kibana Examples
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" tabindex="0" aria-expanded="false">
+          Installing Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Installing Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Installing Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/requirements/" class="md-nav__link">
+        Requirements
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/efs-provisioner/" class="md-nav__link">
+        EFS Provisioner
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/install-harbor/" class="md-nav__link">
+        Install Harbor
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-core/" class="md-nav__link">
+        Install Lagoon Core
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/install-lagoon-remote/" class="md-nav__link">
+        Install Lagoon Remote
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-cli/" class="md-nav__link">
+        Install the Lagoon CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/querying-graphql/" class="md-nav__link">
+        Querying with GraphQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/create-user/" class="md-nav__link">
+        Create Lagoon User
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/add-project/" class="md-nav__link">
+        Add a Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/deploy-project/" class="md-nav__link">
+        Deploy Your Project
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/add-group/" class="md-nav__link">
+        Add Group
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-logging/" class="md-nav__link">
+        Lagoon Logging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/opendistro/" class="md-nav__link">
+        OpenDistro
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/logs-concentrator/" class="md-nav__link">
+        Logs Concentrator
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-backups/" class="md-nav__link">
+        Lagoon Backups
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/lagoon-files/" class="md-nav__link">
+        Lagoon Files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/gitlab/" class="md-nav__link">
+        GitLab
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing-lagoon/update-lagoon/" class="md-nav__link">
+        Updating
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9" tabindex="0" aria-expanded="false">
+          Contributing to Lagoon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Contributing to Lagoon" data-md-level="1">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Contributing to Lagoon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/documentation/" class="md-nav__link">
+        Documentation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-of-conduct/" class="md-nav__link">
+        Code of Conduct
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/developing-lagoon/" class="md-nav__link">
+        Developing Lagoon
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/tests/" class="md-nav__link">
+        Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/api-debugging/" class="md-nav__link">
+        API Debugging
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing-to-lagoon/releasing/" class="md-nav__link">
+        Releasing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_10" tabindex="0" aria-expanded="false">
+          Community
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Community" data-md-level="1">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Community
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-of-conduct/" class="md-nav__link">
+        Code of Conduct
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/discord/" class="md-nav__link">
+        Discord
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/participation/" class="md-nav__link">
+        Participation Guidelines
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/moderation/" class="md-nav__link">
+        Moderation Guidelines
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_11" tabindex="0" aria-expanded="false">
+          Resources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Resources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Resources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/faq/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/tutorials-and-webinars/" class="md-nav__link">
+        Tutorials, Webinars, and Videos
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/lagoon-examples" class="md-nav__link">
+        Lagoon Examples
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_12" type="checkbox" id="__nav_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12" tabindex="0" aria-expanded="false">
+          Other Tools
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Other Tools" data-md-level="1">
+        <label class="md-nav__title" for="__nav_12">
+          <span class="md-nav__icon md-icon"></span>
+          Other Tools
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://uselagoon.github.io/lagoon-cli/" class="md-nav__link">
+        Lagoon CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/uselagoon/lagoon-sync" class="md-nav__link">
+        Lagoon Sync
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../other-tools/client-libraries/" class="md-nav__link">
+        Client Libraries
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_13" type="checkbox" id="__nav_13" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_13" tabindex="0" aria-expanded="false">
+          Releases
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Releases" data-md-level="1">
+        <label class="md-nav__title" for="__nav_13">
+          <span class="md-nav__icon md-icon"></span>
+          Releases
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/policy/" class="md-nav__link">
+        Policy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.19.0/" class="md-nav__link">
+        2.19.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.2/" class="md-nav__link">
+        2.18.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.1/" class="md-nav__link">
+        2.18.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.18.0/" class="md-nav__link">
+        2.18.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.17.0/" class="md-nav__link">
+        2.17.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.16.0/" class="md-nav__link">
+        2.16.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.4/" class="md-nav__link">
+        2.15.4
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.3/" class="md-nav__link">
+        2.15.3
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.2/" class="md-nav__link">
+        2.15.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.1/" class="md-nav__link">
+        2.15.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.15.0/" class="md-nav__link">
+        2.15.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.2/" class="md-nav__link">
+        2.14.2
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.1/" class="md-nav__link">
+        2.14.1
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.14.0/" class="md-nav__link">
+        2.14.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.13.0/" class="md-nav__link">
+        2.13.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.12.0/" class="md-nav__link">
+        2.12.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.11.0/" class="md-nav__link">
+        2.11.0
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/2.10.0/" class="md-nav__link">
+        2.10.0
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-a-base-image" class="md-nav__link">
+    What is a base image?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derived-images" class="md-nav__link">
+    Derived images
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anatomy-of-a-base-image" class="md-nav__link">
+    Anatomy of a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Anatomy of a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metapackages" class="md-nav__link">
+    Metapackages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    docker-compose.yml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal" class="md-nav__link">
+    Drupal
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#laravel" class="md-nav__link">
+    Laravel
+  </a>
+  
+    <nav class="md-nav" aria-label="Laravel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queues" class="md-nav__link">
+    Queues
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-process-of-building-a-base-image" class="md-nav__link">
+    Understanding the process of building a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the process of building a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#makefile-and-build-assumptions" class="md-nav__link">
+    Makefile and build assumptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-image-build-variables" class="md-nav__link">
+    Base image build variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#makefile-targets" class="md-nav__link">
+    Makefile targets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-workflow-for-building-a-new-release-of-a-base-image" class="md-nav__link">
+    Example workflow for building a new release of a base image
+  </a>
+  
+    <nav class="md-nav" aria-label="Example workflow for building a new release of a base image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#releasing-a-new-version-of-a-base-image" class="md-nav__link">
+    Releasing a new version of a base image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-pull-down-the-base-image-locally" class="md-nav__link">
+    Step 1 - Pull down the base image locally
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-make-the-changes-to-the-repository" class="md-nav__link">
+    Step 2 - Make the changes to the repository
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-22-ensure-that-the-required-drupal-module-is-enabled-in-template-based-derived-images" class="md-nav__link">
+    Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-23-test" class="md-nav__link">
+    Step 2.3 - Test
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-tagging-images" class="md-nav__link">
+    Step 3 - Tagging images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#here-we-demonstrate-how-to-tag-an-image" class="md-nav__link">
+    Here we demonstrate how to tag an image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-git-tags-map-to-image-tags" class="md-nav__link">
+    How Git tags map to image tags
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-building-the-new-base-images" class="md-nav__link">
+    Step 4 - Building the new base images
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgement" class="md-nav__link">
+    Acknowledgement
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/uselagoon/lagoon/edit/main/docs/concepts-advanced/base-images.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+
+
+
+<h1 id="base-images">Base Images<a class="headerlink" href="#base-images" title="Permanent link">#</a></h1>
+<h2 id="what-is-a-base-image">What is a base image?<a class="headerlink" href="#what-is-a-base-image" title="Permanent link">#</a></h2>
+<p>A base image is a <a href="https://www.docker.com/">Docker</a> image that can be and is used by a project deployed on Lagoon. A base image provides a way to ensure that nothing is brought into the codebase/project from upstream that has not been audited. It also allows us to ensure that anything we might need on the deployed environment is available - from lower-level libraries to application-level themes and modules.</p>
+<p>Base images save time and resources when you know what system is being deployed to - if shared packages are included in the base image, they don’t have to be deployed to hundreds of sites individually.</p>
+<h2 id="derived-images">Derived images<a class="headerlink" href="#derived-images" title="Permanent link">#</a></h2>
+<p>A derived image is one that extends a base image. For example, you might need to make several blog sites. You take our Drupal image, customize it to include all of the modules and themes you need for your blog sites, and deploy them all with that blog image. Templates are derived from base images.</p>
+<p>All derived images should pull in the <code>composer.json</code> file (via repositories like <a href="https://packagist.org/">Packagist</a>, <a href="https://github.com/composer/satis">Satis</a>, or <a href="https://github.com/">GitHub</a>) so that they are using the most recent versions of the base packages.</p>
+<p>Further, the derived image includes a call to the script <code>/build/pre_composer</code>, which can be used by the base image to run scripts, updates, etc., downstream in the derived images. For instance, it should run by default when any package is updated or installed at the derived image, and the <code>pre_composer</code> script will then update the base image package.</p>
+<h2 id="anatomy-of-a-base-image">Anatomy of a base image<a class="headerlink" href="#anatomy-of-a-base-image" title="Permanent link">#</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>This document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.</p>
+</div>
+<p>Base images are managed with <a href="https://getcomposer.org/">Composer</a> and hosted in <a href="https://bitbucket.org/">BitBucket</a>, <a href="https://github.com/">GitHub</a>, or <a href="https://gitlab.com/">GitLab</a> (whatever your team is using). Each base image has its own repository.</p>
+<h3 id="metapackages">Metapackages<a class="headerlink" href="#metapackages" title="Permanent link">#</a></h3>
+<p>The metapackage is a Composer package that wraps several other components. These include, for example, the core files for Laravel or Drupal, along with any needed modules or themes. This way, you do not need to include Laravel or Drupal, etc., as a dependency in your project.</p>
+<p>Here’s an example from the <code>composer.json</code> in a Laravel base image:</p>
+<div class="language-text highlight"><span class="filename">composer.json</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&quot;require&quot;: {
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    &quot;amazeelabs/algm_laravel_baseimage&quot;: &quot;*&quot;
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>},
+</span></code></pre></div>
+<p>We only require this metapackage, which points to a GitHub repository.</p>
+<h3 id="docker-composeyml"><code>docker-compose.yml</code><a class="headerlink" href="#docker-composeyml" title="Permanent link">#</a></h3>
+<p>Other pieces of your project are defined in <a href="../../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code></a>. For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in <code>docker-compose.yml</code>.</p>
+<h3 id="drupal">Drupal<a class="headerlink" href="#drupal" title="Permanent link">#</a></h3>
+<p>The Drupal base image contains the following contributed tools and modules, in addition to Drupal core:</p>
+<ul>
+<li><a href="https://drupalconsole.com/">Drupal Console</a></li>
+<li><a href="https://www.drush.org/">Drush</a></li>
+<li><a href="https://www.drupal.org/project/config_installer">Configuration Installer</a></li>
+<li><a href="https://www.drupal.org/project/redis">Redis</a></li>
+<li><a href="https://www.drupal.org/project/poll">Poll</a></li>
+<li><a href="https://www.drupal.org/project/search_api">Search API</a></li>
+<li><a href="https://www.drupal.org/project/search_api_solr">Search API Solr</a></li>
+<li><a href="https://www.drupal.org/project/varnish_purge">Varnish Purge</a></li>
+<li><a href="https://www.drupal.org/project/purge">Purge</a></li>
+<li><a href="https://www.drupal.org/project/admin_toolbar">Admin Toolbar</a></li>
+<li><a href="https://www.drupal.org/project/cdn">CDN</a></li>
+<li><a href="https://www.drupal.org/project/password_policy">Password Policy</a></li>
+<li><a href="https://www.drupal.org/project/pathauto">Pathauto</a></li>
+<li><a href="https://www.drupal.org/project/ultimate_cron">Ultimate Cron</a></li>
+</ul>
+<h3 id="laravel">Laravel<a class="headerlink" href="#laravel" title="Permanent link">#</a></h3>
+<h4 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h4>
+<p>The base images have provided the default values for the environment variables used by Laravel.</p>
+<p>These are values for:</p>
+<ul>
+<li><code>DB_CONNECTION</code></li>
+<li><code>DB_HOST</code></li>
+<li><code>DB_PORT</code></li>
+<li><code>DB_DATABASE</code></li>
+<li><code>DB_USERNAME</code></li>
+<li><code>DB_PASSWORD</code></li>
+<li><code>REDIS_HOST</code></li>
+<li><code>REDIS_PASSWORD</code></li>
+<li><code>REDIS_PORT</code></li>
+</ul>
+<p>Ensure that your config files (typically located in <code>/config</code>) make use of these by default.</p>
+<h4 id="queues">Queues<a class="headerlink" href="#queues" title="Permanent link">#</a></h4>
+<p>If your project makes use of <a href="https://laravel.com/docs/5.8/queues">queues</a>, you can make use of the <code>artisan-worker</code> service. It is a worker container, used for executing <a href="https://laravel.com/docs/5.8/queues#running-the-queue-worker"><code>artisan queue:work</code></a>. This is disabled by default - look at the comments in <code>docker-compose.yml</code>.</p>
+<h2 id="understanding-the-process-of-building-a-base-image">Understanding the process of building a base image<a class="headerlink" href="#understanding-the-process-of-building-a-base-image" title="Permanent link">#</a></h2>
+<p>There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally (this is important when building new versions of the base image). After you’ve created and tested everything locally and pushed it up, the actual base image is built by <a href="https://jenkins.io/">Jenkins</a> and pushed to <a href="../../using-lagoon-advanced/using-harbor/">Harbor</a>.</p>
+<h3 id="makefile-and-build-assumptions">Makefile and build assumptions<a class="headerlink" href="#makefile-and-build-assumptions" title="Permanent link">#</a></h3>
+<p>If you're planning on running locally, there are some minimum environment variables that need to be present to build at all.</p>
+<h3 id="base-image-build-variables">Base image build variables<a class="headerlink" href="#base-image-build-variables" title="Permanent link">#</a></h3>
+<p>Variables injected into the base image build process and where to find them.</p>
+<ul>
+<li><code>BUILD_NUMBER</code> - This is injected by Jenkins automatically.</li>
+<li><code>GIT_BRANCH</code> - This is provided by the Jenkins build process itself. Depends on the branch being built at the time (develop, main, etc.).</li>
+<li><code>DOCKER_REPO</code>/<code>DOCKER_HUB</code> - This is defined inside the Jenkinsfile itself. It points to the Docker project and hub into which the resulting images will be pushed.</li>
+<li><code>DOCKER_USERNAME</code>/<code>DOCKER_PASSWORD</code> - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins (i.e. locally, to test, etc.) you have to run a <code>docker login</code> manually before running any of the make steps.</li>
+</ul>
+<p>In practice, this means that if you're running any of the <code>make</code> targets on your local machine, you'll want to ensure that these are available in the environment - even if this is just setting them when running make from the command line, as an example:</p>
+<div class="language-bash highlight"><span class="filename">Setting make targets locally</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">GIT_BRANCH</span><span class="o">=</span>example_branch_name<span class="w"> </span><span class="nv">DOCKER_HUB</span><span class="o">=</span>the_docker_hub_the_images_are_pushed_to<span class="w"> </span><span class="nv">DOCKER_REPO</span><span class="o">=</span>your_docker_repo_here<span class="w"> </span><span class="nv">BUILD_NUMBER</span><span class="o">=</span>&lt;some_integer&gt;<span class="w"> </span>make<span class="w"> </span>images_remove
+</span></code></pre></div>
+<h3 id="makefile-targets">Makefile targets<a class="headerlink" href="#makefile-targets" title="Permanent link">#</a></h3>
+<p>The most important targets are the following:</p>
+<ul>
+<li><code>images_build</code> : Given the environment variables, this will build and tag the images for publication.</li>
+<li><code>images_publish</code> : Pushes built images to a Docker repository.</li>
+<li><code>images_start</code> : Will start the images for testing, etc.</li>
+<li><code>images_test</code>: Runs basic tests against images.</li>
+<li><code>images_remove</code>: Removes previously built images, given the build environment variables.</li>
+</ul>
+<h3 id="example-workflow-for-building-a-new-release-of-a-base-image">Example workflow for building a new release of a base image<a class="headerlink" href="#example-workflow-for-building-a-new-release-of-a-base-image" title="Permanent link">#</a></h3>
+<p>There are several steps to the build process. Most of these are shared among the various base images. These mostly correspond to the Makefile target described above.</p>
+<ol>
+<li><strong>Docker Login</strong> - The Docker username, password, and URL for Harbor are passed to the Docker client.</li>
+<li><strong>Docker Build</strong> - The <code>make images_build</code> step is run now, which will:<ol>
+<li>Ensure that all environment variables are prepared for the build.</li>
+<li>Run a <code>docker-compose build</code>. This will produce several new Docker images from the current Git branch.</li>
+</ol>
+</li>
+<li><strong>Images Test</strong> - This will run the <code>make images_test</code> target, which will differ depending on the images being tested. In most cases this is a very straightforward test to ensure that the images can be started and interacted with in some way (installing Drupal, listing files, etc.)</li>
+<li><strong>Docker Push</strong> - This step runs the logic (contained in the make target <code>images_publish</code>) that will tag the images resulting from the <strong>Docker Build</strong> in Step 2 and push them to Harbor. This is described in more detail <a href="./#step-4-building-the-new-base-images">elsewhere</a> in this guide.</li>
+<li><strong>Docker Clean Images</strong> - Runs the make target <code>images_remove</code>, which simply deletes the newly built images from the Docker host now that they are in Harbor.</li>
+</ol>
+<h4 id="releasing-a-new-version-of-a-base-image">Releasing a new version of a base image<a class="headerlink" href="#releasing-a-new-version-of-a-base-image" title="Permanent link">#</a></h4>
+<p>There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc. images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying <em>images</em> on which the base images are built.</p>
+<p>The images that your project's base images are built on are the managed images maintained by the Lagoon team. We release updates to these underlying images on a monthly (or more fequent) basus. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the upstream images.</p>
+<p>In this section we will demonstrate the process of updating and tagging a new release of the Drupal 8 base image. We will add a new module (<a href="https://www.drupal.org/project/clamav">ClamAV</a>) to the base. We’re demonstrating on Drupal because it has the most complex setup of the base images. The steps that are common to every base image are noted below.</p>
+<h4 id="step-1-pull-down-the-base-image-locally">Step 1 - Pull down the base image locally<a class="headerlink" href="#step-1-pull-down-the-base-image-locally" title="Permanent link">#</a></h4>
+<p>This is just pulling down the Git repository locally. In the case of the Drupal 8 base image. In this example, we're using Bitbucket, so we will run:</p>
+<div class="language-bash highlight"><span class="filename">Clone Git repo.</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>clone<span class="w"> </span>ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
+</span></code></pre></div>
+<p><img alt="Running `git clone` on the base image repository." src="../../images/0.gif" /></p>
+<h4 id="step-2-make-the-changes-to-the-repository">Step 2 - Make the changes to the repository<a class="headerlink" href="#step-2-make-the-changes-to-the-repository" title="Permanent link">#</a></h4>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>What is demonstrated here is specific to the Drupal 8 base image. However, any changes (adding files, changing base Docker images, etc.) will be done in this step for all of the base images.</p>
+</div>
+<p>In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our <code>composer.json</code> file. This is done by running a <code>composer require</code>.</p>
+<p>Here we run:</p>
+<div class="language-bash highlight"><span class="filename">Install package with Composer require.</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>composer<span class="w"> </span>require<span class="w"> </span>drupal/clamav
+</span></code></pre></div>
+<p><img alt="Running `composer require drupal/clamav`" src="../../images/step2_require.gif" /></p>
+<p>When the Composer require process completes, the package should then appear in the <code>composer.json</code> file.</p>
+<p>Here we open the <code>composer.json</code> file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:</p>
+<p><img alt="Opening composer.json to check that ClamAV is now required." src="../../images/2.gif" /></p>
+<h4 id="step-22-ensure-that-the-required-drupal-module-is-enabled-in-template-based-derived-images">Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images<a class="headerlink" href="#step-22-ensure-that-the-required-drupal-module-is-enabled-in-template-based-derived-images" title="Permanent link">#</a></h4>
+<p>For any modules now added to the base image, we need to ensure that they’re enabled on the template-based derived images. This is done by adding the module to the Lagoon Bundle module located at <code>./web/modules/lagoon/lagoon_bundle</code>. Specifically, it requires you to add it as a dependency to the <code>dependencies</code> section of the <code>lagoon_bundle.info.yml</code> file. The Lagoon Bundle module is a utility module that exists only to help enforce dependencies across derived images.</p>
+<p>Here we open <code>web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml</code> and add <code>clamav:clamav</code> as a dependency:</p>
+<p><img alt="Adding ClamAV as a dependency of Lagoon Bundle." src="../../images/3.png" /></p>
+<p>Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies (in this case, the just-added ClamAV module) will also be enabled. This is enforced by a post-rollout script which enables <code>lagoon_bundle</code> on the derived images when they are rolled out.</p>
+<h4 id="step-23-test">Step 2.3 - Test<a class="headerlink" href="#step-23-test" title="Permanent link">#</a></h4>
+<p>This will depend on what you’re testing. In the case of adding the ClamAV module, we want to ensure that in the base image, the module is downloaded, and that the Lagoon Bundle module enables ClamAV when it is enabled.</p>
+<p>Here we check that the module is downloaded to <code>/app/web/modules/contrib</code>:</p>
+<p><img alt="Checking /app/web/modules/contrib to make sure ClamAV is downloaded. " src="../../images/4.gif" /></p>
+<p>And then we check that when we enable the <code>lagoon_bundle</code> module, it enables <code>clamav</code> by running:</p>
+<div class="language-bash highlight"><span class="filename">Enable module with Drush.</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>drush<span class="w"> </span>pm-enable<span class="w"> </span>lagoon_bundle<span class="w"> </span>-y
+</span></code></pre></div>
+<p><img alt="Running `drush pm-enable lagoon_bundle -y` and seeing that it also enables ClamAV" src="../../images/5.gif" /></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.</p>
+</div>
+<p>With our testing done, we can now tag and build the images.</p>
+<h4 id="step-3-tagging-images">Step 3 - Tagging images<a class="headerlink" href="#step-3-tagging-images" title="Permanent link">#</a></h4>
+<p>Images are versioned based on their <a href="https://git-scm.com/docs/git-tag">Git tags</a> - these should follow standard <a href="https://semver.org/">semantic versioning</a> (semver) practices. All tags should have the structure <strong>vX.Y.Z</strong> where X, Y, and Z are integers (to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag). This is an assumption that is used to determine the image tags, so it <em>must</em> be adhered to.</p>
+<p>In this example we will be tagging a new version of the Drupal 8 base image indicating that we have added ClamAV.</p>
+<h4 id="here-we-demonstrate-how-to-tag-an-image">Here we demonstrate how to tag an image<a class="headerlink" href="#here-we-demonstrate-how-to-tag-an-image" title="Permanent link">#</a></h4>
+<p>We check that we have committed (but not pushed) our changes, just as you would do for any regular commit and push, using <code>git log</code>.</p>
+<ol>
+<li>Commit your changes if you haven’t yet.</li>
+<li>We then check to see what tag we are on using <code>git tag</code>.</li>
+<li>Then, tag them using <code>git tag -a v0.0.9 -m “Adds clamAV to base.”</code><ol>
+<li><em>git  -a, --annotate:  Make an unsigned, annotated tag object</em></li>
+</ol>
+</li>
+<li>Next, we push our tags with <code>git push --tags</code>.</li>
+<li>And finally, push all of our changes with <code>git push</code>.</li>
+</ol>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>The tags must be pushed explicitly in their own step!</p>
+</div>
+<p><img alt="Demonstrating how to tag and push a base image." src="../../images/6.gif" /></p>
+<h4 id="how-git-tags-map-to-image-tags">How Git tags map to image tags<a class="headerlink" href="#how-git-tags-map-to-image-tags" title="Permanent link">#</a></h4>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>Depending on the build workflow, you will almost certainly push the changes via the <strong>develop</strong> branch before merging it into the <strong>main</strong> branch.</p>
+</div>
+<p>An important point to remember here is that the Jenkins base image build process will tag <em>images</em> based on the <em>most recent commit’s tag</em>.</p>
+<p>Images are tagged using the following rules, and images will be built for each of these that apply:</p>
+<ol>
+<li>When the <strong>main</strong> branch is built, it is tagged as <code>latest</code>.</li>
+<li>When the develop branch is built, it is tagged as <code>development</code>.</li>
+<li>If the commit being built is <em>tagged</em> then that branch will be built with that commit’s tag.<ol>
+<li>This is how we release a new version as we demonstrated above. It can also be used to make ad hoc builds with fairly arbitrary tags - be reasonable with the tag names, it has only been tested with <em>semver</em> tags.</li>
+</ol>
+</li>
+</ol>
+<h4 id="step-4-building-the-new-base-images">Step 4 - Building the new base images<a class="headerlink" href="#step-4-building-the-new-base-images" title="Permanent link">#</a></h4>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.</p>
+</div>
+<ol>
+<li>Visit your Lagoon Jenkins instance.</li>
+<li>Select the project you are working on (in this case, AIOBI Drupal 8 Base).</li>
+<li>Click the branch you would like to build.</li>
+<li>Click “Build Now.”</li>
+</ol>
+<p><img alt="Showing how to build a base image in the Jenkins UI." src="../../images/7.gif" /></p>
+<p>This will kick off the build process which, if successful, will push up the new images to Harbor.</p>
+<p>If the build is not successful, you can click into the build itself and read the logs to understand where it failed.</p>
+<p>As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the <strong>main</strong> branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.</p>
+<p><img alt="Screenshot from Harbor showing uploaded and tagged images." src="../../images/8.png" /></p>
+<h2 id="acknowledgement">Acknowledgement<a class="headerlink" href="#acknowledgement" title="Permanent link">#</a></h2>
+<p>The base image structure draws heavily (and, in fact, is a fork of) <a href="https://github.com/dennisarslan/denpal">Denpal</a>. It is based on the original <a href="https://github.com/drupal-composer/drupal-project">Drupal Composer Template</a>, but includes everything necessary to run on Lagoon (either the local development environment or on hosted Lagoon).</p>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../javascript/tablesort.js"></script>
+      
+    
+  </body>
+</html>
