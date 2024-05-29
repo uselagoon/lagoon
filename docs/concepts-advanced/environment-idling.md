@@ -22,7 +22,6 @@ The un-idling will take a couple of seconds, as the Kubernetes cluster needs to 
 
 ### Can I disable / prevent the Idler from idling my environment?
 
-Yes, there is a field `autoIdle` on the project \(impacts all environments\) and environment \(if you need to target just one environment\), as to whether idling is allowed to take place. A value of `1` indicates the project/environment is eligible for idling. If the project is set to `0` the environments will never be idled, even if the environment is set to `0`
-The default is always `1`\(idling is enabled\).
+The field `auto-idle` can be set at the project level \(impacts all environments\) or for a single environment \(target just one environment\), as to whether idling is allowed to take place. A value of `1` indicates the project/environment is eligible for idling. If the project is set to `0`, then all environments will never be idled. The default value is `1` \(idling is enabled\).
 
 Talk to your Lagoon administrator if you are unsure how to set these project/environment fields.
