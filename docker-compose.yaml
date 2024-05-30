@@ -1,4 +1,8 @@
 version: '3.2'
+
+volumes:
+  broker: {}
+
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
@@ -26,6 +30,17 @@ services:
     ports:
       - '15672:15672'
       - '5672:5672'
+    hostname: broker
+    volumes:
+      - broker:/var/lib/rabbitmq
+  broker-ff-enable:
+    image: ${IMAGE_REPO:-lagoon}/broker
+    entrypoint: /enable-feature-flags.sh
+    environment:
+      - SERVICE_NAME=broker
+    depends_on:
+      broker:
+        condition: service_started
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
     environment:
