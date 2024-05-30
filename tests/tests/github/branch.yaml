@@ -40,6 +40,16 @@
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/webhook-github/push.yaml
 
+- name: "{{ testname }} - api check deployment source user and type"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    sourceUser: "Schnitzel"
+    sourceType: "WEBHOOK"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-source.yaml
+
 - ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
@@ -77,6 +87,15 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+
+- name: "{{ testname }} - api check deployment status"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    buildStatus: "complete"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-status.yaml
 
 - name: "{{ testname }} - webhook github delete push"
   hosts: localhost

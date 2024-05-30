@@ -1,0 +1,11 @@
+{
+  "vhosts":[
+        {"name": "${RABBITMQ_DEFAULT_VHOST}"}
+  ],
+  "users": [
+        { "name": "${RABBITMQ_DEFAULT_USER}", "password": "${RABBITMQ_DEFAULT_PASS}", "tags": "administrator" }
+  ],
+  "permissions":[
+        { "user": "${RABBITMQ_DEFAULT_USER}", "vhost": "${RABBITMQ_DEFAULT_VHOST}", "configure": ".*", "write": ".*", "read": ".*" }
+  ]
+}

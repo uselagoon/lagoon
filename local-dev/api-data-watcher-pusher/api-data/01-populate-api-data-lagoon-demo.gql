@@ -320,13 +320,59 @@ mutation PopulateApi {
     id
   }
 
-  UIProject1Environment1addServices: setEnvironmentServices(
-    input:{
-      environment:3,
-      services:["cli", "nginx", "mariadb"]
+  UIProject1Environment1addServices1:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 3
+      name: "cli"
+      type: "cli-persistent"
+      containers: [{name: "cli"}]
     }
-  ) {
+  ){
     id
+    name
+    type
+  }
+  UIProject1Environment1addServices2:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 3
+      name: "nginx"
+      type: "nginx-php-persistent"
+      containers: [{name: "nginx"},{name:"php"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment1addServices3:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 3
+      name: "mariadb"
+      type: "mariadb-single"
+      containers: [{name: "mariadb"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+
+  UIProject1Environment1addStorage1: addOrUpdateStorageOnEnvironment(input:{
+    environment: 3
+    persistentStorageClaim: "nginx"
+    kibUsed: 200000
+  }) {
+    id
+    kibUsed
+  }
+
+  UIProject1Environment1addStorage2: addOrUpdateStorageOnEnvironment(input:{
+    environment: 3
+    persistentStorageClaim: "mariadb"
+    kibUsed: 200000
+  }) {
+    id
+    kibUsed
   }
 
   UIProject1Environment1addFacts: addFacts(

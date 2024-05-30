@@ -1,8 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import validator from 'validator';
-// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -18,6 +15,7 @@ import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import GitUrlParse from 'git-url-parse';
 
@@ -82,10 +80,7 @@ export const getAllProjects: ResolverFn = async (
       return [];
     }
     // get the project ids from the users groups
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub,
-
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -201,9 +196,7 @@ export const getProjectsByMetadata: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -275,7 +268,7 @@ export const addProject = async (
       }
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.projectViewAll) {
       await hasPermission('project', 'add');
     } else {
       throw new Error(
@@ -284,6 +277,11 @@ export const addProject = async (
     }
   }
 
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -395,7 +393,7 @@ export const addProject = async (
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
       attributes: attributes
-    });
+    }, project.id, input.organization);
   } catch (err) {
     logger.error(
       `Could not create default project group for ${project.name}: ${err.message}`
@@ -497,7 +495,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -540,7 +538,7 @@ export const deleteProject: ResolverFn = async (
 
   // Remove the project from all groups it is associated to
   try {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
     // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
     // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
     for (const groupInput of projectGroups) {
@@ -622,11 +620,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -680,6 +673,11 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'
@@ -803,11 +801,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -909,11 +902,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,

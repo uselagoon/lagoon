@@ -1,4 +1,3 @@
-// @ts-ignore
 import { unless, is, isNil, isEmpty, partialRight, complement } from 'ramda';
 
 export const isNumber = is(Number);

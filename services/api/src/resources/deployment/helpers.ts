@@ -14,7 +14,21 @@ export const Helpers = (sqlClientPool: Pool) => {
     return R.prop(0, rows);
   };
 
+  // getSourceUser can decode the keycloak or legacy grant into a username or issuer name
+  // this can then be stored against the deployment (or task) resource in the API when it is created
+  const getSourceUser =async (keycloakGrant, legacyGrant) => {
+    let sourceUser = "administrator"
+    if (keycloakGrant) {
+      sourceUser = keycloakGrant.access_token.content.email
+    }
+    if (legacyGrant) {
+      sourceUser = legacyGrant.iss
+    }
+    return sourceUser
+  }
+
   return {
+    getSourceUser,
     getDeploymentById,
     getDeploymentByDeploymentInput: async deploymentInput => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));

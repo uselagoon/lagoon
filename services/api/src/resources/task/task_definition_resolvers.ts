@@ -5,6 +5,8 @@ import { Helpers } from './helpers';
 import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as groupHelpers } from '../group/helpers';
+import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import {
   TaskRegistration,
@@ -21,6 +23,7 @@ import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/a
 import { Environment } from '../../resolvers';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { logger } from '../../loggers/logger';
+import sql from '../workflow/sql';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -87,7 +90,7 @@ export const advancedTaskDefinitionById = async (
 export const getRegisteredTasksByEnvironmentId = async (
   { id },
   {},
-  { sqlClientPool, hasPermission, models, keycloakGroups }
+  { sqlClientPool, hasPermission, models }
 ) => {
   let rows;
 
@@ -95,7 +98,7 @@ export const getRegisteredTasksByEnvironmentId = async (
     rows = await resolveTasksForEnvironment(
       {},
       { environment: id },
-      { sqlClientPool, hasPermission, models, keycloakGroups }
+      { sqlClientPool, hasPermission, models }
     );
 
     rows = await Filters.filterAdminTasks(hasPermission, rows);
@@ -107,7 +110,7 @@ export const getRegisteredTasksByEnvironmentId = async (
 export const resolveTasksForEnvironment = async (
   root,
   { environment },
-  { sqlClientPool, hasPermission, models, keycloakGroups }
+  { sqlClientPool, hasPermission, models }
 ) => {
   const environmentDetails = await environmentHelpers(
     sqlClientPool
@@ -130,10 +133,7 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForProject(proj.project)
   );
 
-  const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(
-    proj.projectId,
-    keycloakGroups
-  );
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, proj.projectId)
 
   const projectGroupsFiltered = R.pluck('name', projectGroups);
 
@@ -142,8 +142,16 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForGroups(projectGroupsFiltered)
   );
 
+  const systemWideRows = await query(
+    sqlClientPool,
+    Sql.selectAdvancedTaskDefinitionsForSystem()
+  );
+
   //@ts-ignore
-  let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
+  let totalRows = R.concat(R.concat(R.concat(environmentRows, projectRows), groupRows), systemWideRows);
+
+  //@ts-ignore
+  let rows = R.uniqBy(o => o.name, totalRows);
 
   //now we filter the permissions
   const currentUsersPermissionForProject = await currentUsersAdvancedTaskRBACRolesForProject(
@@ -173,6 +181,7 @@ export const resolveTasksForEnvironment = async (
     //@ts-ignore
     rows[i].advancedTaskDefinitionArguments = processedArgs;
   }
+
   return rows;
 };
 
@@ -241,6 +250,7 @@ export const addAdvancedTaskDefinition = async (
     deployTokenInjection,
     projectKeyInjection,
     adminOnlyView,
+    systemWide,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -256,6 +266,7 @@ export const addAdvancedTaskDefinition = async (
   input.deployTokenInjection = input.deployTokenInjection || false;
   input.projectKeyInjection = input.projectKeyInjection || false;
   input.adminOnlyView = input.adminOnlyView || false;
+  input.systemWide = input.systemWide || false;
 
   await checkAdvancedTaskPermissions(input, hasPermission, models, projectObj);
 
@@ -267,6 +278,17 @@ export const addAdvancedTaskDefinition = async (
     throw Error("Only one of `environment`, `project`, or `groupName` should be set when creating a custom task.");
   }
 
+  // If we have a system wide task, there should be no group/env/project
+  if(systemWide == true && (environment || groupName || project)) {
+    throw Error("When creating a system wide task, you cannot specify a group/project/environment");
+  }
+
+  if(systemWide == false && (environment == null && groupName == null && project == null)) {
+    throw Error("If you're trying to define a system wide task, set 'systemWide' to true, else set a target");
+  }
+
+
+
 
   //let's see if there's already an advanced task definition with this name ...
   // Note: this will all be scoped to either System, group, project, or environment
@@ -277,7 +299,8 @@ export const addAdvancedTaskDefinition = async (
       name,
       project,
       environment,
-      groupName
+      groupName,
+      systemWide
     )
   );
   let taskDef = R.prop(0, rows);
@@ -314,6 +337,7 @@ export const addAdvancedTaskDefinition = async (
     return taskDef;
   }
 
+
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertAdvancedTaskDefinition({
@@ -333,6 +357,7 @@ export const addAdvancedTaskDefinition = async (
       deploy_token_injection: deployTokenInjection,
       project_key_injection: projectKeyInjection,
       admin_only_view: adminOnlyView,
+      system_wide: systemWide,
     })
   );
 
@@ -504,8 +529,8 @@ const getProjectByEnvironmentIdOrProjectId = async (
 
 export const invokeRegisteredTask = async (
   root,
-  { advancedTaskDefinition, environment, argumentValues },
-  { sqlClientPool, hasPermission, models, keycloakGroups }
+  { advancedTaskDefinition, environment, argumentValues, sourceType },
+  { sqlClientPool, hasPermission, models, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
 
@@ -514,8 +539,7 @@ export const invokeRegisteredTask = async (
     hasPermission,
     advancedTaskDefinition,
     environment,
-    models,
-    keycloakGroups
+    models
   );
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -578,7 +602,10 @@ export const invokeRegisteredTask = async (
         }
 
         taskCommand += `${task.command}`;
-
+        if (!sourceType) {
+          sourceType = "API"
+        }
+        const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
         const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
           name: task.name,
           taskName: generateTaskName(),
@@ -588,7 +615,9 @@ export const invokeRegisteredTask = async (
           deployTokenInjection: task.deployTokenInjection,
           projectKeyInjection: task.projectKeyInjection,
           adminOnlyView: task.adminOnlyView,
-          execute: true
+          execute: true,
+          sourceType: sourceType,
+          sourceUser: sourceUser,
         });
         return taskData;
         break;
@@ -619,7 +648,7 @@ export const invokeRegisteredTask = async (
           projectKeyInjection: task.projectKeyInjection,
           adminOnlyView: task.adminOnlyView,
           remoteId: undefined,
-          execute: true
+          execute: true,
         });
 
         return advancedTaskData;
@@ -635,15 +664,14 @@ const getNamedAdvancedTaskForEnvironment = async (
   hasPermission,
   advancedTaskDefinition,
   environment,
-  models,
-  keycloakGroups
+  models
 ):Promise<AdvancedTaskDefinitionInterface> => {
   let rows;
 
   rows = await resolveTasksForEnvironment(
     {},
     { environment },
-    { sqlClientPool, hasPermission, models, keycloakGroups }
+    { sqlClientPool, hasPermission, models }
   );
 
   rows = await Filters.filterAdminTasks(hasPermission, rows);
@@ -731,9 +759,7 @@ const getAdvancedTaskTarget = advancedTask => {
   } else if (advancedTask.groupName != null) {
     return AdvancedTaskDefinitionTarget.Group;
   } else {
-    //Currently, we don't support environment level tasks
-    throw Error('Images and System Wide Tasks are not yet supported');
-    // return AdvancedTaskDefinitionTarget.Environment
+    return AdvancedTaskDefinitionTarget.SystemWide;
   }
 };
 
@@ -749,7 +775,7 @@ function validateAdvancedTaskDefinitionData(input: any, image: any, command: any
       break;
     case AdvancedTaskDefinitionType.command:
       if (!command || 0 === command.length) {
-        throw new Error('Unable to create Advanced task definition');
+        throw new Error('Unable to create Advanced task definition - no command provided');
       }
       break;
     default:
@@ -763,10 +789,7 @@ function validateAdvancedTaskDefinitionData(input: any, image: any, command: any
 
 async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterface, hasPermission: any, models: any, projectObj: any) {
   if (isAdvancedTaskDefinitionSystemLevelTask(input)) {
-    //if they pass this, they can do basically anything
-    //In the first release, we're not actually supporting this
-    //TODO: add checks once images are officially supported - for now, throw an error
-    throw Error('Adding Images and System Wide Tasks are not yet supported');
+    hasPermission('advanced_task', 'create:advanced');
   } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.deployTokenInjection != false || input.adminOnlyView != false) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');

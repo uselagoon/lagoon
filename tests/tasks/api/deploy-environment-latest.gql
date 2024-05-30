@@ -1,0 +1,10 @@
+mutation deployEnvironmentLatest {
+  deployEnvironmentLatest(input:{
+    environment:{
+      name: "{{ branch }}"
+      project:{
+        name: "{{ project }}"
+      }
+    }, returnData: true
+  })
+}

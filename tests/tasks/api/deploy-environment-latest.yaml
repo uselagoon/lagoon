@@ -1,0 +1,72 @@
+- name: "Start deployEnvironmentLatest (no SHA) loop with 3 retries"
+  block:
+    - ansible.builtin.include_tasks: refresh-token.yaml
+    - name: "Set the retry count to {{ retry_count }}"
+      set_fact:
+        retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
+    - name: "{{ testname }} - POST api deployEnvironmentLatest with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        return_content: true
+        body:
+          query: '{{ lookup("template", "./deploy-environment-latest.gql") }}'
+        #body: '{ "query": "mutation($branchName: String!, $projectName: String!) {deployEnvironmentLatest(input:{branchName:$branchName,project:{name:$projectName}})}", "variables": {"branchName":"{{ branch }}","projectName":"{{ project }}"}}'
+      register: apiresponse
+    - name: Print apiresponse
+      ansible.builtin.debug:
+        msg: "api response: {{ apiresponse }}"
+    - fail:
+        msg: "unsuccessful deploy"
+      when: apiresponse.json.data.deployEnvironmentLatest is not match("lagoon-build")
+    # - name: Get the build pod name
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     wait: yes
+    #     namespace: "{{ namespace }}"
+    #     label_selectors:
+    #       - lagoon.sh/jobType = build
+    #     field_selectors:
+    #       - status.phase=Running
+    #     wait_sleep: 1
+    #     wait_timeout: 60
+    #   register: build_pod
+    # - name: Print build_pod
+    #   ansible.builtin.debug:
+    #     msg: "build_pod: {{ build_pod.resources[0].metadata.name }} {{ build_pod.resources[0].status.phase }}"
+    - name: Wait until the build pod is completed
+      kubernetes.core.k8s_info:
+        kind: Pod
+        wait: yes
+        name: "{{ apiresponse.json.data.deployEnvironmentLatest }}"
+        namespace: "{{ namespace }}"
+        label_selectors:
+          - lagoon.sh/jobType = build
+        field_selectors:
+          - status.phase=Succeeded
+        wait_condition:
+          type: Ready
+          reason: PodCompleted
+          status: "False"
+        wait_sleep: 10
+        wait_timeout: 600
+      register: build_complete
+    - name: Print build_complete
+      ansible.builtin.debug:
+        msg: "build_complete: {{ build_complete.resources[0].metadata.name }} {{ build_complete.resources[0].status.phase }}"
+    - name: "Set the retry count back to 0 when successful"
+      set_fact:
+        retry_count: 0
+  rescue:
+    - fail:
+        msg: Ended after 3 retries
+      when: retry_count|int == 3
+    - name: Pause for retry
+      pause:
+        seconds: 10
+    - debug:
+        msg: "Failed to connect - Retrying..."
+    - include_tasks: ./deploy-environment-latest.yaml

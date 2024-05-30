@@ -1,4 +1,4 @@
-# Node.js
+# Ruby
 
 The [Lagoon `ruby` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/ruby). Based on [the official Python Alpine images](https://hub.docker.com/_/ruby/).
 

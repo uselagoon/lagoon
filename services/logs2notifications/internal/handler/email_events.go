@@ -60,7 +60,7 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	if err != nil {
 		eventSplit := strings.Split(notification.Event, ":")
 		if eventSplit[0] != "problem" {
-			return "", "", "", "", "", nil
+			return "", "", "", "", "", fmt.Errorf("no matching event")
 		}
 		if eventSplit[1] == "insert" {
 			tpl = "problemNotification"
@@ -127,7 +127,7 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	case "problemNotification":
 		eventSplit := strings.Split(notification.Event, ":")
 		if eventSplit[0] != "problem" && eventSplit[1] == "insert" {
-			return "", "", "", "", "", nil
+			return "", "", "", "", "", fmt.Errorf("no matching event")
 		}
 		mainHTMLTpl = `[{{.ProjectName}}] New problem found for <code>{{.EnvironmentName}}</code>
 		<ul><li>* Service: {{.ServiceName}}</li>{{ if ne .Severity "" }}
@@ -142,7 +142,7 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 			notification.Meta.EnvironmentName,
 		)
 	default:
-		return "", "", "", "", "", nil
+		return "", "", "", "", "", fmt.Errorf("no matching event")
 	}
 
 	var body bytes.Buffer

@@ -7,7 +7,6 @@ RUN apk add --no-cache \
       minio-client \
       moreutils \
       py3-jwt \
-      tini \
       wget
 
 ENV JWTSECRET=super-secret-string \

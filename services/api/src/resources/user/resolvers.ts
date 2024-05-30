@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
@@ -160,7 +159,7 @@ export const updateUser: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'update', {
@@ -187,7 +186,7 @@ export const resetUserPassword: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   // someone can reset their own password if they want to, but admins will be able to do this
@@ -207,7 +206,7 @@ export const deleteUser: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'delete', {
@@ -233,7 +232,7 @@ export const addUserToOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   let updateUser = {
@@ -284,7 +283,7 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('organization', 'addOwner', {

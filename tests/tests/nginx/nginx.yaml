@@ -46,6 +46,16 @@
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
+- name: "{{ testname }} - api check deployment source user and type for deploy environment"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    sourceUser: "ci-customer-user-rsa@example.com"
+    sourceType: "API"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-source.yaml
+
 - ansible.builtin.import_playbook: check-first.yaml
   vars:
     expected_head: "{{ current_head }}"
@@ -139,6 +149,35 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
+
+- name: "{{ testname }} - api deployEnvironmentLatest on {{ project }}, which should deploy the same as the last one"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-environment-latest.yaml
+
+- name: "{{ testname }} - api check deployment source user and type for deploy environment"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    sourceUser: "ci-customer-user-rsa@example.com"
+    sourceType: "API"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-source.yaml
+
+- name: "{{ testname }} - api check deployment status"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    buildStatus: "complete"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-status.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost

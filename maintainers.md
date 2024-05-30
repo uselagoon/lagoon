@@ -14,17 +14,17 @@ If you have any questions or want to contribute to Lagoon, you can check out the
 
 ## Lagoon core team
 
-The Lagoon core team is responsible for the priorisation, creation, development and delivery of Lagoon features.
+The Lagoon core team is responsible for the priorization, creation, development and delivery of Lagoon features.
 They are responsible for the development, testing and release processes.
 
 - Toby Bellwood
 - Alanna Burke
-- Tim Clifford
 - Davit Darsavelidze
 - Chris Goodwin
 - Ben Jackson
 - Blaize Kaye
 - Michael Schmid
+- Matt Swann
 - Brandon Williams
 
 ## Additional reviewers & primary contributors
@@ -38,7 +38,6 @@ They suggest and review features, develop integrations and tools, and work close
 - Sean Hamlin
 - Scott Leggett
 - Salvatore Pappalardo
-- Thom Toogood
 - Bastian Widmer
 - Justin Winter
 
@@ -46,7 +45,7 @@ The Lagoon team would also like to acknowledge the massive contributions from ev
 
 ## Scope of the Lagoon team
 
-Lagoon comprises a number of individual tools maintained by the Lagoon team in this GitHub organistion, with assistance from our primary contributors.
+Lagoon comprises a number of individual tools maintained by the Lagoon team in this GitHub organization, with assistance from our primary contributors.
 
 - [Lagoon](https://github.com/uselagoon)
 

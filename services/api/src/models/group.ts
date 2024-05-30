@@ -1,18 +1,14 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import { Pool } from 'mariadb';
-// @ts-ignore
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
-// @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { saveRedisKeycloakCache, get, del, redisClient } from '../clients/redisClient';
+import { groupCacheExpiry, get, del, redisClient } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
+import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
-import { log } from 'winston';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
@@ -35,6 +31,7 @@ export interface Group {
   // All subgroups according to keycloak.
   subGroups?: GroupRepresentation[];
   attributes?: IGroupAttributes;
+  realmRoles?: any[];
 }
 
 interface GroupMembership {
@@ -137,7 +134,7 @@ export const Group = (clients: {
         path: keycloakGroup.path,
         attributes: keycloakGroup.attributes,
         subGroups: keycloakGroup.subGroups,
-        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup)),
+        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup), 10) || null, // if it exists set it or null
       })
     );
 
@@ -160,33 +157,48 @@ export const Group = (clients: {
   };
 
   const loadGroupById = async (id: string): Promise<Group> => {
+    let group;
 
-    let keycloakGroup: Group
-    keycloakGroup = await keycloakAdminClient.groups.findOne({
-      id,
-      briefRepresentation: false,
-    });
-    if (R.isNil(keycloakGroup)) {
-      throw new GroupNotFoundError(`Group not found: ${id}`);
+    // check if the group is in the cache
+    try {
+      group = await getGroupCacheById(id)
+    } catch(err) {
+      logger.warn(`Error reading redis, falling back to direct lookup: ${err.message}`);
     }
+    // if not in the cache, check keycloak
+    if (!group) {
+      let keycloakGroup: Group
+      keycloakGroup = await keycloakAdminClient.groups.findOne({
+        id,
+        briefRepresentation: false,
+      });
+      if (R.isNil(keycloakGroup)) {
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      }
 
-    const groups = await transformKeycloakGroups([keycloakGroup]);
-    keycloakGroup = groups[0]
-
-    return keycloakGroup;
+      const groups = await transformKeycloakGroups([keycloakGroup]);
+      keycloakGroup = groups[0]
+      // then save the entry in the cache
+      try {
+        await saveGroupCache(keycloakGroup)
+      } catch (err) {
+        logger.info (`Error saving redis: ${err.message}`)
+      }
+      return keycloakGroup;
+    }
+    return group;
   };
 
   const loadGroupByName = async (name: string): Promise<Group> => {
-    const cacheKey = `cache:keycloak:group-id:${name}`;
-    let groupId;
+    let group;
 
     try {
-      groupId = await get(cacheKey);
+      group = await getGroupCacheByName(name)
     } catch(err) {
-      logger.info(`Error reading redis ${cacheKey}: ${err.message}`);
+      logger.warn(`Error reading redis, falling back to direct lookup: ${err.message}`);
     }
 
-    if (!groupId) {
+    if (!group) {
       const keycloakGroups = await keycloakAdminClient.groups.find({
         search: name
       });
@@ -202,28 +214,30 @@ export const Group = (clients: {
         return groups.concat(flatSubGroups);
       };
 
-      groupId = R.pipe(
+      group = R.pipe(
         R.reduce(flattenGroups, []),
-        R.filter(R.propEq('name', name)),
-        R.path(['0', 'id'])
-      )(keycloakGroups) as string;
+        R.filter(R.propEq('name', name))
+      )(keycloakGroups);
 
-      if (R.isNil(groupId)) {
+      if (R.isEmpty(group)) {
         throw new GroupNotFoundError(`Group not found: ${name}`);
       }
 
+      const keycloakGroup = await keycloakAdminClient.groups.findOne({
+        id: group[0].id,
+        briefRepresentation: false,
+      });
+      const groups = await transformKeycloakGroups([keycloakGroup]);
+      group = groups[0];
       try {
-        await redisClient.multi()
-        .set(cacheKey, groupId)
-        .expire(cacheKey, 172800) // 48 hours
-        .exec();
+        await saveGroupCache(group)
       } catch (err) {
-        logger.info (`Error saving redis ${cacheKey}: ${err.message}`)
+        logger.info (`Error saving redis: ${err.message}`)
       }
     }
 
     // @ts-ignore
-    return await loadGroupById(groupId);
+    return group;
   };
 
   const loadGroupByIdOrName = async (
@@ -244,9 +258,10 @@ export const Group = (clients: {
     // briefRepresentation pulls all the group information from keycloak including the attributes
     // this means we don't need to iterate over all the groups one by one anymore to get the full group information
     const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
-    const keycloakGroups = await transformKeycloakGroups(fullGroups);
-
-    return keycloakGroups;
+    // no need to transform, just return the full response, only the `allGroups` and `deleteAllGroups` resolvers use this
+    // and the `sync-groups-opendistro-security` consumption of this helper sync script is going to
+    // go away in the future when we move to the `lagoon-opensearch-sync` supporting service
+    return fullGroups;
   };
 
   const loadParentGroup = async (groupInput: Group): Promise<Group> =>
@@ -449,33 +464,73 @@ export const Group = (clients: {
     }
   };
 
+  // return only project ids that still exist in lagoon in the response for which projects this group has assigned
+  // in the past some groups could have been deleted from lagoon and their `attribute` in keycloak remained
+  const getProjectsFromGroup = async (
+    group: Group
+  ): Promise<number[]> => {
+    try {
+      const groupProjectIds = getProjectIdsFromGroup(group);
+      // remove deleted projects from the result to prevent null errors in user queries
+      const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(groupProjectIds);
+      let existingProjectsIds = [];
+      existingProjectsIds.push(...existingProjects.map(epi => epi.id));
+      return existingProjectsIds
+    } catch (err) {
+      return [];
+    }
+  };
+
   const getGroupMembership = async (
     group: Group
   ): Promise<GroupMembership[]> => {
     const UserModel = User(clients);
     const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
-
     let membership = [];
-    for (const roleSubgroup of roleSubgroups) {
-      const keycloakUsers = await keycloakAdminClient.groups.listMembers({
-        id: roleSubgroup.id,
-        briefRepresentation: false,
-      });
-
-      let members = [];
-      for (const keycloakUser of keycloakUsers) {
-        const users = await UserModel.transformKeycloakUsers([keycloakUser]);
-        const fullUser = users[0]
-        const member = {
-          user: fullUser,
-          role: roleSubgroup.realmRoles[0],
-          roleSubgroupId: roleSubgroup.id
-        };
-
-        members = [...members, member];
+    // check for members cache
+    const membersCacheKey = `cache:keycloak:group-members:${group.id}`;
+    try {
+      let data = await get(membersCacheKey);
+      if (data) {
+        let buff = Buffer.from(data, 'base64');
+        // set membership to cached data
+        membership = JSON.parse(buff.toString('utf-8'));
       }
+    } catch(err) {
+      logger.warn(`Error reading redis ${membersCacheKey}, falling back to direct lookup: ${err.message}`);
+    }
+    if (membership.length == 0) {
+      for (const roleSubgroup of roleSubgroups) {
+        const keycloakUsers = await keycloakAdminClient.groups.listMembers({
+          id: roleSubgroup.id,
+          briefRepresentation: false,
+        });
 
-      membership = [...membership, ...members];
+        let members = [];
+        for (const keycloakUser of keycloakUsers) {
+          const users = await UserModel.transformKeycloakUsers([keycloakUser]);
+          const fullUser = users[0]
+          const member = {
+            user: fullUser,
+            role: roleSubgroup.realmRoles[0],
+            roleSubgroupId: roleSubgroup.id
+          };
+
+          members = [...members, member];
+        }
+
+        membership = [...membership, ...members];
+      }
+      // save latest members cache
+      const data = Buffer.from(JSON.stringify(membership)).toString('base64')
+      try {
+        await redisClient.multi()
+        .set(membersCacheKey, data)
+        .expire(membersCacheKey, groupCacheExpiry) // 48 hours
+        .exec();
+      } catch (err) {
+        logger.info (`Error saving redis ${membersCacheKey}: ${err.message}`)
+      }
     }
 
     return membership;
@@ -484,19 +539,11 @@ export const Group = (clients: {
   const getGroupMemberCount = async (
     group: Group
   ): Promise<number> => {
-    const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
-    let membership = 0;
-    for (const roleSubgroup of roleSubgroups) {
-      const keycloakUsers = await keycloakAdminClient.groups.listMembers({
-        id: roleSubgroup.id
-      });
-
-      membership = membership + keycloakUsers.length;
-    }
-    return membership;
+    const membership = await getGroupMembership(group)
+    return membership.length;
   };
 
-  const addGroup = async (groupInput: Group): Promise<Group> => {
+  const addGroup = async (groupInput: Group, projectId?: number, organizationId?: number): Promise<Group> => {
     // Don't allow duplicate subgroup names
     try {
       const existingGroup = await loadGroupByName(groupInput.name);
@@ -530,6 +577,12 @@ export const Group = (clients: {
     }
 
     const group = await loadGroupById(response.id);
+    if (projectId) {
+      await groupHelpers(sqlClientPool).addProjectToGroup(projectId, group.id)
+    }
+    if (organizationId) {
+      await groupHelpers(sqlClientPool).addOrganizationToGroup(organizationId, group.id)
+    }
 
     // Set the parent group
     if (R.prop('parentGroupId', groupInput)) {
@@ -562,16 +615,6 @@ export const Group = (clients: {
       }
     }
 
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-    }
-
     return group;
   };
 
@@ -579,6 +622,7 @@ export const Group = (clients: {
     const oldGroup = await loadGroupById(groupInput.id);
 
     try {
+      await purgeGroupCache(oldGroup)
       await keycloakAdminClient.groups.update(
         {
           id: groupInput.id
@@ -612,16 +656,6 @@ export const Group = (clients: {
         });
       }
     }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-    }
     return newGroup;
   };
 
@@ -631,7 +665,8 @@ export const Group = (clients: {
         id,
         briefRepresentation: false,
       });
-      await del(`cache:keycloak:group-id:${keycloakGroup.name}`);
+      await groupHelpers(sqlClientPool).deleteGroup(id)
+      await purgeGroupCache(keycloakGroup)
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
@@ -639,16 +674,6 @@ export const Group = (clients: {
       } else {
         throw new Error(`Error deleting group ${id}: ${err}`);
       }
-    }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
   };
 
@@ -690,16 +715,7 @@ export const Group = (clients: {
     } catch (err) {
       throw new Error(`Could not add user to group: ${err.message}`);
     }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-    }
+    await purgeGroupCache(group)
     return await loadGroupById(group.id);
   };
 
@@ -707,6 +723,8 @@ export const Group = (clients: {
     user: User,
     group: Group
   ): Promise<Group> => {
+    // purge the caches to ensure current data
+    await purgeGroupCache(group, true)
     const members = await getGroupMembership(group);
     const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
 
@@ -722,19 +740,9 @@ export const Group = (clients: {
       } catch (err) {
         throw new Error(`Could not remove user from group: ${err.message}`);
       }
-
+      // purge after removing the user to ensure current data
+      await purgeGroupCache(group)
     }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-    }
-
     return await loadGroupById(group.id);
   };
 
@@ -755,6 +763,7 @@ export const Group = (clients: {
     }
 
     try {
+      await groupHelpers(sqlClientPool).addProjectToGroup(projectId, group.id)
       await keycloakAdminClient.groups.update(
         {
           id: group.id
@@ -768,20 +777,12 @@ export const Group = (clients: {
           }
         }
       );
+      // purge the caches to ensure current data
+      await purgeGroupCache(group)
     } catch (err) {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`
       );
-    }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
   };
 
@@ -798,6 +799,7 @@ export const Group = (clients: {
     )(groupProjectIds);
 
     try {
+      await groupHelpers(sqlClientPool).removeProjectFromGroup(projectId, group.id)
       await keycloakAdminClient.groups.update(
         {
           id: group.id
@@ -811,20 +813,12 @@ export const Group = (clients: {
           }
         }
       );
+      // purge the caches to ensure current data
+      await purgeGroupCache(group)
     } catch (err) {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`
       );
-    }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
   };
 
@@ -857,22 +851,13 @@ export const Group = (clients: {
             }
           }
         );
+        // purge the caches to ensure current data
+        await purgeGroupCache(group)
       } catch (err) {
         throw new Error(
           `Error setting projects for group ${group.name}: ${err.message}`
         );
       }
-    }
-
-    // once the project is remove from the groups, update the cache
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
     }
   };
 
@@ -883,6 +868,8 @@ export const Group = (clients: {
   ): Promise<void> => {
     for (const g in groups) {
       const group = groups[g]
+      // purge the caches to ensure current data
+      await purgeGroupCache(group, true)
       const members = await getGroupMembership(group);
       const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
 
@@ -898,16 +885,8 @@ export const Group = (clients: {
           throw new Error(`Could not remove user from group: ${err.message}`);
         }
       }
-    }
-
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
+      // purge the caches to ensure current data
+      await purgeGroupCache(group)
     }
   };
 
@@ -916,6 +895,8 @@ export const Group = (clients: {
     group: Group,
     project: String,
   ): Promise<Group> => {
+    // purge the caches to ensure current data
+    await purgeGroupCache(group, true)
     const members = await getGroupMembership(group);
 
     for (const u in members) {
@@ -932,20 +913,54 @@ export const Group = (clients: {
         }
       }
     }
-
-    // once the users are removed from the group, update the cache
-    const allGroups = await loadAllGroups();
-    const keycloakGroups = await transformKeycloakGroups(allGroups);
-    const data = Buffer.from(JSON.stringify(keycloakGroups)).toString('base64')
-    try {
-      // then attempt to save it to redis
-      await saveRedisKeycloakCache("allgroups", data);
-    } catch (err) {
-      logger.warn(`Couldn't save redis keycloak cache: ${err.message}`);
-    }
-
+    // purge the caches to ensure current data
+    await purgeGroupCache(group)
     return await loadGroupById(group.id);
   };
+
+  const purgeGroupCache = async (group: Group, membersOnly: Boolean=false): Promise<void> => {
+    if (!membersOnly) {
+      await del(`cache:keycloak:group-id:${group.name}`);
+      await del(`cache:keycloak:group:${group.id}`);
+    }
+    await del(`cache:keycloak:group-members:${group.id}`);
+  };
+
+  const saveGroupCache = async (group: Group): Promise<void> => {
+    const idCacheKey = `cache:keycloak:group:${group.id}`;
+    const nameCacheKey = `cache:keycloak:group-id:${group.name}`;
+    const data = Buffer.from(JSON.stringify(group)).toString('base64')
+    await redisClient.multi()
+      .set(nameCacheKey, group.id)
+      .expire(nameCacheKey, groupCacheExpiry) // 48 hours
+      .exec();
+    await redisClient.multi()
+      .set(idCacheKey, data)
+      .expire(idCacheKey, groupCacheExpiry) // 48 hours
+      .exec();
+  };
+
+  const getGroupCacheByName =async (name: String) => {
+    const nameCacheKey = `cache:keycloak:group-id:${name}`;
+    let group;
+    let groupId = await get(nameCacheKey);
+    group = await getGroupCacheById(groupId)
+  }
+
+  const getGroupCacheById = async (groupId: String): Promise<Group> => {
+    let group;
+    const idCacheKey = `cache:keycloak:group:${groupId}`;
+    try {
+      let data = await get(idCacheKey);
+      if (data) {
+        let buff = Buffer.from(data, 'base64');
+        group = JSON.parse(buff.toString('utf-8'));
+        return group
+      }
+    } catch(err) {
+      logger.warn(`Error reading redis ${idCacheKey}, falling back to direct lookup: ${err.message}`);
+    }
+  }
 
   return {
     loadAllGroups,
@@ -960,6 +975,7 @@ export const Group = (clients: {
     loadGroupsByProjectIdFromGroups,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,
+    getProjectsFromGroup,
     addGroup,
     updateGroup,
     deleteGroup,

@@ -1,6 +1,4 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   createDeployTask,
@@ -8,7 +6,6 @@ import {
   createPromoteTask,
   sendToLagoonActions,
   makeSafe
-  // @ts-ignore
 } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import {
@@ -22,30 +19,20 @@ import { Sql } from './sql';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-// @ts-ignore
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
-// @ts-ignore
 import S3 from 'aws-sdk/clients/s3';
-// @ts-ignore
 import sha1 from 'sha1';
-// @ts-ignore
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-// @ts-ignore
 import uuid4 from 'uuid4';
 
-// @ts-ignore
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
-// @ts-ignore
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
-// @ts-ignore
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-// @ts-ignore
 const region = process.env.S3_FILES_REGION
-// @ts-ignore
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
@@ -104,7 +91,6 @@ export const getBuildLog: ResolverFn = async (
     if (!data) {
       return null;
     }
-    // @ts-ignore
     let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
     return logMsg;
   } catch (e) {
@@ -136,9 +122,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -186,9 +170,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -340,10 +322,12 @@ export const addDeployment: ResolverFn = async (
       priority,
       bulkId,
       bulkName,
-      buildStep
+      buildStep,
+      sourceUser,
+      sourceType,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -352,6 +336,12 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
+  if (!sourceUser) {
+      sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  }
+  if (!sourceType) {
+    sourceType = "API"
+  }
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({
@@ -366,7 +356,9 @@ export const addDeployment: ResolverFn = async (
       priority,
       bulkId,
       bulkName,
-      buildStep
+      buildStep,
+      sourceType,
+      sourceUser,
     })
   );
 
@@ -606,7 +598,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
 
   try {
@@ -671,7 +663,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
-
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   let deployData: {
     [key: string]: any;
   } = {
@@ -682,6 +674,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
   let meta: {
     [key: string]: any;
@@ -808,7 +802,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -825,6 +819,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
   const deployData = {
     type: 'branch',
@@ -836,6 +831,8 @@ export const deployEnvironmentBranch: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -912,7 +909,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -931,6 +928,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
 
   let buildName = generateBuildId();
 
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
     type: 'pullrequest',
     projectName: project.name,
@@ -946,6 +944,8 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -1018,7 +1018,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   const destProject = await projectHelpers(
     sqlClientPool
@@ -1056,6 +1056,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 
   let buildName = generateBuildId();
 
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
     type: 'promote',
     projectName: destProject.name,
@@ -1066,6 +1067,8 @@ export const deployEnvironmentPromote: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
+    sourceType: "API",
+    sourceUser: sourceUser
   };
 
   const meta = {
@@ -1129,7 +1132,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1227,6 +1230,8 @@ export const switchActiveStandby: ResolverFn = async (
   };
 
   // try it now
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceType = "API"
   try {
     // add a task into the environment
     var date = new Date();
@@ -1242,12 +1247,14 @@ export const switchActiveStandby: ResolverFn = async (
       null,
       '',
       '',
-      false
+      false,
+      sourceUser,
+      sourceType,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
 
     // queue the task to trigger the migration
-    await createMiscTask({ key: 'route:migrate', data });
+    await createMiscTask({ key: 'task:activestandby', data });
 
     // return the task id and remote id
     var retData = {
@@ -1291,9 +1298,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 

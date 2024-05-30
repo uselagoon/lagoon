@@ -10,7 +10,7 @@ If you've found a bug or security issue, please send your findings to [support@a
 
 ## I'm interested in amazee.io's hosting services with Lagoon
 
-That's great news! You can contact them via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
+That's great news! You can contact them via email at [sales@amazee.io](mailto:sales@amazee.io).
 
 ## How can I restore a backup?
 
@@ -26,7 +26,7 @@ If you ever need to recover or restore a backup, feel free to submit a ticket or
 
 ## I'm getting an invalid SSL certificate error
 
-The first thing to try is what is listed in [our documentation about SSL](../using-lagoon-the-basics/lagoon-yml.md#ssl-configuration-tls-acme).
+The first thing to try is what is listed in [our documentation about SSL](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
 
 If you follow those steps, and you are still seeing an error, please submit a ticket or send us a message on chat and we can help resolve this for you.
 
@@ -34,7 +34,7 @@ If you follow those steps, and you are still seeing an error, please submit a ti
 
 This was a bug that was prevalent in Drush versions 8.1.16 and 8.1.17. There error would look something like this:
 
-```text
+```bash
 The command could not be executed successfully (returned: Array [error]
 (
 [default] => Array
@@ -85,7 +85,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## How do I remove a route?
 
-You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use the Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io or on [Discord](https://discord.gg/te5hHe95JE).
+Lagoon will detect the removal of routes from your `.lagoon.yml` during a deployment. Check the deployment logs to confirm that the routes were removed automatically or for instructions on how to remove them.
 
 ## When I run `pygmy status`, no keys are loaded
 
@@ -97,7 +97,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
-This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
+This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../applications/drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
 
 ## When I start Pygmy I see an "address already in use" error?
 
@@ -105,7 +105,7 @@ This usually means that there is no database uploaded to the project. [Follow ou
 
 This is a known error! Most of the time it means that there is already something running on port 80. You can find the culprit by running the following query:
 
-```text
+```bash title=""
 netstat -ltnp | grep -w ':80'
 ```
 
@@ -113,21 +113,21 @@ That should list everything running on port 80. Kill the process running on port
 
 ## How can I change branches/PR environments/production on my project?
 
-You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#updating-objects).
+You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../interacting/graphql-queries.md#updating-objects).
 
 ## How do I add a redirect?
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/rWb-PkRDhY4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## How can I add new users \(and SSH keys\) to my project/group?
+## How can I add new users (and SSH keys) to my project/group?
 
-This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project).
+This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../interacting/graphql-queries.md#allowing-access-to-the-project).
 
 ## Can an environment be completely deleted to roll out large code changes to my project?
 
 Environments are fully built from scratch at each deploy, dropping the old database and files and pushing your code would result in a fresh clean build, Don’t forget to re-sync!
 
-It is possible to delete an environment via GraphQL. You can find the instructions [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#deleting-environments).
+It is possible to delete an environment via GraphQL. You can find the instructions [in our GraphQL documentation](../interacting/graphql-queries.md#deleting-environments).
 
 ## How do I get my new environment variable to show up?
 
@@ -151,25 +151,25 @@ Authentication also happens automatically via SSH Public & Private Key Authentic
 
 We can definitely help with that. Once you have your own SSL certificate, feel free to submit a ticket or send us a message via chat and we will be more than happy to help! You will need to send us the following files:
 
-* Certificate key \(.key\)
-* Certificate file \(.crt\)
-* Intermediate certificates \(.crt\)
+* Certificate key (.key)
+* Certificate file (.crt)
+* Intermediate certificates (.crt)
 
-Also, you will need to [set the `tls-acme` option in `.lagoon.yml` to false](../using-lagoon-the-basics/lagoon-yml.md#ssl-configuration-tls-acme).
+Also, you will need to [set the `tls-acme` option in `.lagoon.yml` to false](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
 
-## Is it possible to mount an external volume \(EFS/Fuse/SMB/etc\) into Lagoon?
+## Is it possible to mount an external volume (EFS/Fuse/SMB/etc) into Lagoon?
 
 Mounting an external volume would need to be handled completely inside of your containers, Lagoon does not provide a provision for this type of connection as part of the platform.
 
-A developer can handle this by installing the necessary packages into the container \(via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)\), and ensuring the volume mount is connected via a [pre- or post-rollout task](../using-lagoon-the-basics/lagoon-yml.md#tasks).
+A developer can handle this by installing the necessary packages into the container (via the [Dockerfile](https://docs.docker.com/engine/reference/builder/)), and ensuring the volume mount is connected via a [pre- or post-rollout task](../concepts-basics/lagoon-yml.md#tasks).
 
 ## Is there a way to stop a Lagoon build?
 
 If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by users with admin access to the cluster.
 
-## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
+## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI (port 9200/8983) from a browser?
 <!-- markdown-link-check-disable-next-line -->
-We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
+We suggest only exposing web services (NGINX/Varnish/Node.js) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
 ## I have a question that isn't answered here
 
