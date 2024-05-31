@@ -469,6 +469,10 @@ cronjobs:
       you need a complex or multiline cron command, you must put it in a
       script that can be used as the command. Consider whether a [pre- or post-rollout task](#tasks) would work.
 
+!!! danger
+      Cronjobs run in Kubernetes pods, which means they can be interrupted due to pod rescheduling.
+      Therefore when creating a cronjob you must ensure that the command can be safely interrupted and re-run at the next cron interval.
+
 * `service`: Which service of your project to run the command in. For most
   projects, this should be the `cli` service.
 

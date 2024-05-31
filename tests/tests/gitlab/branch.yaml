@@ -78,6 +78,15 @@
     project: "{{ project }}"
     url: "{{ check_url }}"
 
+- name: "{{ testname }} - api check deployment status"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    buildStatus: "complete"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-status.yaml
+
 - name: "{{ testname }} - webhook gitlab delete push"
   hosts: localhost
   serial: 1

@@ -25,7 +25,7 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
 
-const checkOrgNotificationPermission = async (hasPermission, input) => {
+const checkOrgNotificationPermission = async (hasPermission, input, adminScopes) => {
   if (input.organization != null) {
     const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     if (organizationData === undefined) {
@@ -43,7 +43,7 @@ const checkOrgNotificationPermission = async (hasPermission, input) => {
       );
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false") {
+    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false" || adminScopes.projectViewAll) {
       await hasPermission('notification', 'add');
     } else {
       throw new Error(
@@ -56,41 +56,41 @@ const checkOrgNotificationPermission = async (hasPermission, input) => {
 export const addNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes}
 ) => {
-  await checkOrgNotificationPermission(hasPermission, input)
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_microsoftteams', input));
 };
 
 export const addNotificationEmail: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes}
 ) => {
-  await checkOrgNotificationPermission(hasPermission, input)
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_email', input));
 };
 
 export const addNotificationRocketChat: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  await checkOrgNotificationPermission(hasPermission, input)
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
 };
 
 export const addNotificationSlack: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes}
 ) => {
-  await checkOrgNotificationPermission(hasPermission, input)
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
 };
 
-export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
-  await checkOrgNotificationPermission(hasPermission, input)
+export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission, adminScopes}) => {
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
 };
 

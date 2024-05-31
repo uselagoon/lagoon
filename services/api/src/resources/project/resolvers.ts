@@ -268,7 +268,7 @@ export const addProject = async (
       }
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.projectViewAll) {
       await hasPermission('project', 'add');
     } else {
       throw new Error(

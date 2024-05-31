@@ -618,6 +618,7 @@ const resolvers = {
     deleteEnvironment,
     deleteAllEnvironments,
     addOrUpdateEnvironmentStorage,
+    addOrUpdateStorageOnEnvironment: addOrUpdateEnvironmentStorage,
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,

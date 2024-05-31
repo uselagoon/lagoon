@@ -539,16 +539,8 @@ export const Group = (clients: {
   const getGroupMemberCount = async (
     group: Group
   ): Promise<number> => {
-    const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
-    let membership = 0;
-    for (const roleSubgroup of roleSubgroups) {
-      const keycloakUsers = await keycloakAdminClient.groups.listMembers({
-        id: roleSubgroup.id
-      });
-
-      membership = membership + keycloakUsers.length;
-    }
-    return membership;
+    const membership = await getGroupMembership(group)
+    return membership.length;
   };
 
   const addGroup = async (groupInput: Group, projectId?: number, organizationId?: number): Promise<Group> => {

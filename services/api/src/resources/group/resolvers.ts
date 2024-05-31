@@ -344,7 +344,7 @@ export const addGroup: ResolverFn = async (
     }
   } else {
     // otherwise fall back
-    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION == "false") {
+    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION == "false" || adminScopes.projectViewAll) {
       await hasPermission('group', 'add');
     } else {
       throw new Error(

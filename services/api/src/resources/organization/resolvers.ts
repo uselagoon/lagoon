@@ -1049,26 +1049,43 @@ export const deleteOrganization: ResolverFn = async (
   return 'success';
 };
 
-const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models) => {
-  const groupProjectIds = [];
+// recursive check of a project and the groups of that project
+const checkProjectGroups = async (groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, pid) => {
   const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  // get all the groups the requested project is in
-  for (const group of projectGroups) {
-    // for each group the project is in, get the list of projects that are also in this group
-    if (R.prop('lagoon-projects', group.attributes)) {
-      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-      for (const project of groupProjects) {
-        groupProjectIds.push({group: group.name, project: project})
+  let index = projectIds.findIndex((item) => item === pid);
+  if (index === -1) {
+    projectIds.push(pid)
+    // get all the groups the requested project is in
+    for (const group of projectGroups) {
+      const groupProjectIdss = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id)
+      // for each group the project is in, get the list of projects that are also in this group
+      for (const project of groupProjectIdss) {
+        let index = groupProjectIds.findIndex((item) => item.group === group.name);
+        if (index === -1) {
+          groupProjectIds.push({group: group.name, project: project})
+          projectsGroups.push(group)
+        }
+        // recurse the project if it hasn't already had been done
+        let index2 = projectIds.findIndex((item) => item === project);
+        if (index2 === -1) {
+          await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, project)
+        }
       }
     }
   }
+}
+
+const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models) => {
+  const groupProjectIds = [];
+  const projectIds = [];
+  const projectsGroups = []
+  await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, pid)
 
   // for all the projects in the first projects group, iterate through the projects and the groups attached
   // to these projects and try to build out a map of all the groups and projects that are linked by the primary project
   if (groupProjectIds.length > 0) {
     for (const pGroup of groupProjectIds) {
       const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
       // check if the project is already in the requested organization
       if (project.organization != oid && project.organization == null) {
         let alreadyAdded = false
@@ -1096,32 +1113,32 @@ const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groups
           }
         }
       }
-      for (const group of projectGroups) {
-        // for every group that the project is in, check if the group is already in the requested organization
-        if (group.organization != oid && group.organization == null) {
+    }
+    for (const group of projectsGroups) {
+      // for every group that the project is in, check if the group is already in the requested organization
+      if (group.organization != oid && group.organization == null) {
+        let alreadyAdded = false
+        for (const f of groupsToMove) {
+          if (f.id == group.id) {
+            alreadyAdded = true
+          }
+        }
+        if (!alreadyAdded) {
+          // if it isn't already in the requested organization, add it to the list of groups that should be moved
+          groupsToMove.push(group)
+        }
+      } else {
+        // if the group is in a completely different organization
+        if (group.organization != oid) {
           let alreadyAdded = false
-          for (const f of groupsToMove) {
+          for (const f of groupsInOtherOrgs) {
             if (f.id == group.id) {
               alreadyAdded = true
             }
           }
           if (!alreadyAdded) {
-            // if it isn't already in the requested organization, add it to the list of groups that should be moved
-            groupsToMove.push(group)
-          }
-        } else {
-          // if the group is in a completely different organization
-          if (group.organization != oid) {
-            let alreadyAdded = false
-            for (const f of groupsInOtherOrgs) {
-              if (f.id == group.id) {
-                alreadyAdded = true
-              }
-            }
-            if (!alreadyAdded) {
-              // add it to the lsit of projects that will cause this check to fail
-              groupsInOtherOrgs.push(group)
-            }
+            // add it to the lsit of projects that will cause this check to fail
+            groupsInOtherOrgs.push(group)
           }
         }
       }

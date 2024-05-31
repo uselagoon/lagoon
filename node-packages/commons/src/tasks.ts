@@ -745,7 +745,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
       ...projectVars,
       {
         name: "LAGOON_ROUTE_QUOTA",
-        value: `"${curOrg.quotaRoute}"`,
+        value: `${curOrg.quotaRoute}`,
         scope: InternalEnvVariableScope.INTERNAL_SYSTEM
       }
     ];

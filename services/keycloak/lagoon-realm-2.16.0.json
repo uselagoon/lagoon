@@ -528,6 +528,11 @@
       "realmRoles": [
         "default-roles-lagoon"
       ],
+      "clientRoles": {
+        "realm-management": [
+          "query-groups"
+        ]
+      },
       "notBefore": 0,
       "groups": []
     }
