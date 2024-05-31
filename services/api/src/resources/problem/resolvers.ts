@@ -182,9 +182,13 @@ export const addProblem: ResolverFn = async (
       })
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding problem. Problem already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding problem. Problem already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(

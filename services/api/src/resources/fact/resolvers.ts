@@ -212,9 +212,13 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission, admin
         })
       ));
     } catch(error) {
-      throw new Error(
-        `Error adding fact. Fact already exists.`
-      );
+      if(error.text.includes("Duplicate entry")){
+        throw new Error(
+          `Error adding fact. Fact already exists.`
+        );
+      } else {
+        throw new Error(error.message);
+      }
     };
 
     const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
@@ -258,9 +262,13 @@ export const addFact: ResolverFn = async (
       }),
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding fact. Fact already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact. Fact already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(
@@ -446,9 +454,13 @@ export const addFactReference: ResolverFn = async (
       })
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding fact reference. Fact reference already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact reference. Fact reference already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(

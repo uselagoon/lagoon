@@ -26,9 +26,13 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
   try {
      ({insertId} = await query(sqlClientPool, createSql));
   } catch(error) {
-    throw new Error(
-      `Error adding notification ${input.name}. Notification already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding notification ${input.name}. Notification already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
@@ -520,9 +524,13 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
   try {
     await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   } catch(error) {
-    throw new Error(
-      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(
@@ -557,9 +565,13 @@ export const updateNotificationWebhook: ResolverFn = async (
   try {
     await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   } catch(error) {
-    throw new Error(
-      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(
@@ -591,9 +603,13 @@ export const updateNotificationEmail: ResolverFn = async (
   try {
     await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   } catch(error) {
-    throw new Error(
-      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(
@@ -625,9 +641,13 @@ export const updateNotificationRocketChat: ResolverFn = async (
   try {
     await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   } catch(error) {
-    throw new Error(
-      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(
@@ -659,9 +679,13 @@ export const updateNotificationSlack: ResolverFn = async (
   try {
     await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
   } catch(error) {
-    throw new Error(
-      `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(

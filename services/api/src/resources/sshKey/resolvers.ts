@@ -69,9 +69,13 @@ export const addSshKey: ResolverFn = async (
       })
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding SSH key. Key already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding SSH key. Key already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   await query(
@@ -152,9 +156,13 @@ export const updateSshKey: ResolverFn = async (
       })
     );
   } catch(error) {
-    throw new Error(
-      `Error updating SSH key. Key already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error updating SSH key. Key already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));

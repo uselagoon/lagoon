@@ -178,9 +178,13 @@ export const addBackup: ResolverFn = async (
       })
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding backup. Backup already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding backup. Backup already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
@@ -267,9 +271,13 @@ export const addRestore: ResolverFn = async (
       })
     ));
   } catch(error) {
-    throw new Error(
-      `Error adding restore. Restore already exists.`
-    );
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding restore. Restore already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
   };
 
   let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
