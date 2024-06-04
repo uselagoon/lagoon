@@ -85,7 +85,7 @@ description: >-
 | Puppet | An open-source software configuration management and deployment tool. |
 | PV | PersistentVolume -  a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using Storage Classes.|
 | PVC | Persistent Volume Claim - a request for storage by a user. |
-| Pygmy | An amazee.io flavored local development system. |
+| Pygmy | A Lagoon flavored local development system. |
 | Python | Python is an open-source, interpreted, high-level, general-purpose programming language. |
 | RabbitMQ | An open-source message-broker software. |
 | RBAC | Role-Based Access Control |

@@ -8,7 +8,7 @@
 If you are running Lagoon locally, you can access that UI at [localhost:8084](https://localhost:8084/). The username is `admin` and the password is `admin`.
 
 !!! Note
-    If you are hosting a site with a provider (such as amazee.io), they may not allow customer access to the Harbor UI.
+    If you are hosting a site with a provider, they may not allow customer access to the Harbor UI.
 
 Once logged in, the first screen is a list of all repositories your user has access to. Each "repository" in Harbor correlates to a project in Lagoon.
 

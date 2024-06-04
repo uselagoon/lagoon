@@ -14,7 +14,7 @@ Even though Lagoon has only a hard dependency on Docker and [Docker Compose](htt
 
 ### pygmy
 
-Lagoon has traditionally worked best with `pygmy` , which is the amazee.io flavored system of the above tools and works out of the box with Lagoon. It lives at [https://github.com/pygmystack/pygmy](https://github.com/pygmystack/pygmy)
+Lagoon has traditionally worked best with `pygmy` , which is a preconfigured system of the above tools and works out of the box with Lagoon. It lives at [https://github.com/pygmystack/pygmy](https://github.com/pygmystack/pygmy)
 
 `pygmy` is written in Golang, so to install it, run:
 

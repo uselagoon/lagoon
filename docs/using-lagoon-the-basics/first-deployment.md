@@ -28,13 +28,13 @@ git push
 
 This will trigger a push, and your Git hosting will inform Lagoon about this push via the configured webhook.
 
-If all is correct, you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon administrator\):
+If all is correct, you should see a notification in your configured chat system \(Contact {{ defaults.helpstring }} for this\):
 
 ![Slack notification that a push has been made in a Lagoonized repository.](../images/first_deployment_slack_start.jpg)
 
 This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](../concepts-basics/build-and-deploy-process.md).
 
-You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
+You can also check your Lagoon UI to see the progress of any deployment \(Contact {{ defaults.helpstring }} for this\).
 
 ## 3. It's done
 
@@ -63,5 +63,5 @@ Did the deployment fail? Oh no! But we're here to help:
 
 1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../applications/drupal/first-deployment-of-drupal.md), which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
-3. If you can't figure it out, just ask your Lagoon support, we are here to help!
+3. If you can't figure it out, just ask {{ defaults.helpstring }}, they are here to help!
 4. Reach out to us in your support channel or in [the community Discord](https://discord.gg/te5hHe95JE).

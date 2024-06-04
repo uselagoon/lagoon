@@ -1,12 +1,12 @@
 # FAQ
 
-## How do I contact my Lagoon administrator?
-
-You should have a private Slack channel that was set up for you to communicate - if not, or you've forgotten how to contact us, reach out at [support@amazee.io](mailto:support@amazee.io).
-
 ## I found a bug! 🐞
 
-If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please DO NOT file a GitHub issue for them.
+If you've found a bug, please raise a GitHub issue for it, or contact {{ defaults.helpstring }}.
+
+## I found a security issue! 🐞
+
+If you've found a security issue, please send your findings to [security@amazee.io](mailto:security@amazee.io). Please DO NOT file a GitHub issue for it.
 
 ## I'm interested in amazee.io's hosting services with Lagoon
 
@@ -97,7 +97,7 @@ This typically indicates an issue with Pygmy. You can find our troubleshooting d
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
-This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../applications/drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment).
+This usually means that there is no database uploaded to the project. [Follow our step-by-step guide to add a database to your project](../applications/drupal/first-deployment-of-drupal.md#4-synchronize-local-database-to-the-remote-lagoon-environment).
 
 ## When I start Pygmy I see an "address already in use" error?
 
@@ -137,8 +137,8 @@ Once you've added a runtime environment variable to your production environment 
 
 For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:
 
-* Server Hostname: `ssh.lagoon.amazeeio.cloud`
-* Port: 32222
+* Server Hostname: `{{ defaults.sshhostname }}`
+* Port: {{ defaults.sshport }}
 * Username: &lt;Project-Environment-Name&gt;
 
 Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _`PROJECTNAME-ENVIRONMENT`_.
@@ -173,4 +173,4 @@ We suggest only exposing web services (NGINX/Varnish/Node.js) in your deployed e
 
 ## I have a question that isn't answered here
 
-You can reach out to the team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).
+You should contact {{ defaults.helpstring }} for any hosting-related enquiries, but you can also reach out to the Lagoon team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

@@ -38,14 +38,14 @@ Running the query above will give you a general look at all the traffic to your 
 We are going to start off with the same query as above, but we are going to add a couple of things.
 
 * First, add the following fields: `client_ip` and `http_request`.
-* This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
+* This will show you a list of all IP addresses and the page they requested. Here is what we see for the amazee.io website:
 
 ![All IP addresses and the page they requested.](../images/kibana_example2.png)
 
 That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
 
 * We are going to add: `AND client_ip: "IP address"`.
-* That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our Amazee.io website:
+* That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our amazee.io website:
 
 ![Hits from a specific IP address.](../images/kibana_example3.png)
 

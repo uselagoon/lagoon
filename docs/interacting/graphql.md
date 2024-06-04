@@ -10,17 +10,17 @@ To generate this token, use the remote shell via the `token` command:
 ssh -p [PORT] -t lagoon@[HOST] token
 ```
 
-Example for amazee.io:
+{{ defaults.name }} connection string:
 
-```bash title="Get amazee.io token"
-ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
+```bash title="Get {{ defaults.name }} token"
+ssh -p {{ defaults.sshport }} -t lagoon@{{ defaults.sshhostname }} token
 ```
 
 This will return a long string, which is the JWT token.
 
-We also need the URL of the API endpoint. Ask your Lagoon administrator for this.
+We also need the URL of the API endpoint. Contact {{ defaults.helpstring }} for this.
 <!-- markdown-link-check-disable-next-line -->
-On amazee.io this is [`https://api.lagoon.amazeeio.cloud/graphql`](https://api.lagoon.amazeeio.cloud/graphql).
+For {{ defaults.name }} this is [`https://{{ defaults.apiaddress }}/graphql`](https://{{ defaults.apiaddress }}/graphql/graphql).
 
 Now we need a GraphQL client! Technically this is just HTTP, but we suggest GraphiQL. It has a nice UI that allows you to write GraphQL requests with autocomplete. Download, install and start it. \[[GraphiQL App](https://github.com/skevy/graphiql-app)\]
 
