@@ -2,7 +2,7 @@
 
 This section covers some of the basic features and functionality in Lagoon. If you're familiar with these, move on to [Using Lagoon - Advanced](../using-lagoon-advanced/index.md).
 
-If you need help, contact your Lagoon administrator or reach out to the community and maintainers in our [Discord](../community/discord.md).
+If you need help, contact {{ defaults.helpstring }} or reach out to the community and maintainers in our [Discord](../community/discord.md).
 
 ## Requirements
 

@@ -271,7 +271,7 @@ that's important!):
 !!! Info
     If you plan to switch from a SSL certificate signed by a Certificate
     Authority (CA) to a Let's Encrypt certificate, it's best to get in touch
-    with your Lagoon administrator to oversee the transition.
+    with {{ defaults.helpstring }} to oversee the transition.
 
 ### Monitoring a specific path
 
@@ -285,7 +285,7 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Ku
 ### Ingress annotations
 
 !!! Warning
-    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with {{ defaults.helpstring }} if this is supported.
 
 * `annotations` can be a YAML map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/). This is specifically useful for easy redirects and other configurations.
 
@@ -344,7 +344,7 @@ This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\)
 
 ### `Environments.[name].types`
 
-The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
+The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#types)\).
 
 Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database \(instead of letting the Service Broker/operator provision a shared one\) for your non-production environment called `develop`:
 
@@ -510,14 +510,14 @@ poly-project2:
 ???+ Info
     If you run directly on amazee.io hosted Lagoon you will not need this key set.
 
-With the key `api` you can define another URL that should be used by the Lagoon CLI and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
+With the key `api` you can define another URL that should be used by the Lagoon CLI and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where {{ defaults.helpstring }} tells you to do so.
 
 ### `ssh`
 
 ???+ Info
     If you run directly on amazee.io hosted Lagoon you will not need this key set.
 
-With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
+With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where {{ defaults.helpstring }} tells you to do so.
 
 ### `container-registries`
 

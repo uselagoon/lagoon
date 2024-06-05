@@ -32,9 +32,9 @@ If you don’t have one already, you’ll need a Git client of some kind. Comman
 - [GitHub Desktop](https://desktop.github.com/) (Mac, Windows)
 - [GitKraken](https://www.gitkraken.com/git-client) (Mac, Windows, Linux - free for public repositories)
 
-## What Your Lagoon Administrator Needs
+## What {{ defaults.helpstring }} Needs
 
-Your Lagoon administrator, the person who is setting up your Lagoon, will need some information, [which is detailed here](../using-lagoon-the-basics/setup-project.md).
+The person setting up your Lagoon, usually {{ defaults.helpstring }} will need some information, [which is detailed here](../using-lagoon-the-basics/setup-project.md).
 
 ## Configure Webhooks
 
@@ -379,7 +379,7 @@ The simplest route is the `example.com` example in our sample `.lagoon.yml` abov
 #### Annotations
 
 !!! info
-    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with {{ defaults.helpstring }} if this is supported.
 
 Annotations can be a YAML map of annotations supported by the `nginx-ingress` controller, this is specifically useful for easy redirects:
 
@@ -426,7 +426,7 @@ You can of course also redirect to any other URL not hosted on Lagoon. This will
 - Only the `max-age` parameter is required. The required max-age parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 !!! info
-    If you plan to switch from a SSL certificate signed by a Certificate Authority (CA) to a Let's Encrypt certificate, it's best to get in touch with your Lagoon administrator to oversee the transition.
+    If you plan to switch from a SSL certificate signed by a Certificate Authority (CA) to a Let's Encrypt certificate, it's best to get in touch with {{ defaults.helpstring }} to oversee the transition.
 
 #### `environments.[name].types`
 
@@ -693,7 +693,7 @@ A Drupal site also consists of the files directory. To migrate your files from y
 
 ## Deploy
 
-If you’ve done everything in this guide, and your amazee.io administrator has everything set up, you are now ready to deploy your site!
+If you’ve done everything in this guide, and {{ defaults.helpstring }} has everything set up, you are now ready to deploy your site!
 
 If you are deploying a Drupal site, [follow this deployment guide](../applications/drupal/first-deployment-of-drupal.md).
 

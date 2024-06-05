@@ -238,8 +238,18 @@ markdown_extensions:
       baselevel: 1
 
 plugins:
-  - search
+  - search:
+      lang:
+      - en
   - awesome-pages
+  - markdownextradata: {}
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
   - redirects:
       redirect_maps:
         # Shortcut URLs for build and compose errors

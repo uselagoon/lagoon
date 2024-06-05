@@ -123,7 +123,7 @@ The values that the user selects will be available as environment variables in t
 
 ### System wide tasks
 
-Platform administrators are able to register system wide tasks. These tasks will appear for all environments, subject to the user's permission to invoke them.
+Only {{ defaults.helpstring }} is able to register system wide tasks. These tasks will appear for all environments, subject to the user's permission to invoke them.
 
 Creating a system wide task is almost exactly the same as other task types, with two exceptions.
 

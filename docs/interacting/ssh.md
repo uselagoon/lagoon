@@ -62,14 +62,14 @@ Connecting is straightforward and follows the following pattern:
 ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST]
 ```
 
-* `PORT` - The remote shell SSH endpoint port (for amazee.io: `32222`).
-* `HOST` - The remote shell SSH endpoint host (for amazee.io `ssh.lagoon.amazeeio.cloud`).
+* `PORT` - The remote shell SSH endpoint port (for example: `{{ defaults.sshport }}`).
+* `HOST` - The remote shell SSH endpoint host (for example `{{ defaults.sshhostname }}`).
 * `PROJECT-ENVIRONMENT-NAME` - The environment you want to connect to. This is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`.
 
 As an example:
 
 ```bash title="SSH example"
-ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud
+ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }}
 ```
 
 This will connect you to the project `drupal-example` on the environment `main`.
@@ -91,7 +91,7 @@ ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] contai
 For example, to connect to the `php` container within the `nginx` pod:
 
 ```bash title="SSH to php container"
-ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx container=php
+ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
 ```
 
 ## Copying files
@@ -101,19 +101,19 @@ The common case of copying a file into your `cli` pod can be acheived with the u
 ### scp
 
 ```bash title="Copy file with scp"
-scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
+scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
 ```
 
 ### rsync
 
 ```bash title="Copy files with rsync"
-rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222' [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
+rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }}' [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
 ```
 
 ### tar
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [project_name]-[environment_name]@ssh.lagoon.amazee.io tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [project_name]-[environment_name]@{{ defaults.sshhostname }} tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
 ### Specifying non-CLI pod/service
@@ -123,7 +123,7 @@ In the rare case that you need to specify a non-CLI service you can specify the 
 Piping `tar` through the `ssh` connection is the simplest method, and can be used to copy a file or directory using the usual `tar` flags:
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [project_name]-[environment_name]@ssh.lagoon.amazee.io service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [project_name]-[environment_name]@{{ defaults.sshhostname }} service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
 You can also use `rsync` with a wrapper script to reorder the arguments to `ssh` in the manner required by Lagoon's SSH service:
@@ -132,13 +132,13 @@ You can also use `rsync` with a wrapper script to reorder the arguments to `ssh`
 #!/usr/bin/env sh
 svc=$1 user=$3 host=$4
 shift 4
-exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222 -l "$user" "$host" "$svc" "$@"
+exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }} -l "$user" "$host" "$svc" "$@"
 ```
 
 Put that in an executable shell script `rsh.sh` and specify the `service=...` in the `rsync` command:
 
 ```bash title="rsync to non-CLI pod"
-rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:/tmp/foo
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@{{ defaults.sshhostname }}:/tmp/foo
 ```
 
 The script could also be adjusted to also handle a `container=...` argument.
