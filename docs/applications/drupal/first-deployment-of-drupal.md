@@ -19,17 +19,17 @@ git push
 
 This will trigger a push, and the Git hosting will inform Lagoon about this push via the configured webhook.
 
-If all is correct, you will see a notification in your configured chat system \(Contact {{ defaults.helpstring }} to configure this\):
+If all is correct, you will see a notification in your configured chat system. \(Contact {{ defaults.helpstring }} to configure this\):
 
 ![Slack notification of a deployment starting.](../../images/first_deployment_slack_start.jpg)
 
 This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../../concepts-basics/build-and-deploy-process.md).
 
-You can also check your Lagoon UI to see the progress of any deployment \(Contact {{ defaults.helpstring }} for the URL if you don't have it\).
+You can also check your Lagoon UI to see the progress of any deployment. \(Contact {{ defaults.helpstring }} for the URL if you don't have it\).
 
 ## 3. A fail
 
-Depending on the post-rollout tasks defined in `.lagoon.yml` , you might have run some tasks like `drush updb` or `drush cr`. These Drush tasks depend on a database existing within the environment, which obviously does not exist yet. Let's fix that! Keep reading.
+Depending on the post-rollout tasks defined in `.lagoon.yml`, you might have run some tasks like `drush updb` or `drush cr`. These Drush tasks depend on a database existing within the environment, which obviously does not exist yet. Let's fix that! Keep reading.
 
 ## 4. Synchronize local database to the remote Lagoon environment
 
@@ -38,7 +38,7 @@ With full Drush site alias support in Lagoon, you can synchronize a local databa
 !!! warning
     You may have to tell pygmy about your public keys before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent).
 
 First let's make sure that you can see the Drush site aliases:
 
@@ -115,7 +115,7 @@ You will delete files in drupal-example-develop@{{ defaults.sshhostname }}:'/app
 Do you really want to continue? (y/n):
 ```
 
-The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do that the Drupal is not fully configured or has a missing database. For a workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files`, but we suggest that you actually check your local and remote Drupal \(you can test with `drush status` to see if the files directory is correctly configured\).
+The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do with Drupal not being fully configured or having a missing database. For a workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files`, but we suggest that you actually check your local and remote Drupal \(you can test with `drush status` to see if the files directory is correctly configured\).
 
 ## 6. It's done
 
