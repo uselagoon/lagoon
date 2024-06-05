@@ -6,7 +6,7 @@ Lagoon can utilize the [Aergia controller](https://github.com/amazeeio/aergia-co
 
 ### How does an environment get idled?
 
-The environment idler has many different configuration capabilities. Here are the defaults of a standard Lagoon installation \(these could be quite different in your Lagoon, Contact {{ defaults.helpstring }}!\)
+The environment idler has many different configuration capabilities. Here are the defaults of a standard Lagoon installation \(these could be quite different in your Lagoon, contact {{ defaults.helpstring }}!\)
 
 * Idling is tried every 4 hours.
 * Production environments are never idled.
