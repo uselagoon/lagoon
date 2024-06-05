@@ -86,7 +86,7 @@ Configuring the root domain \(e.g. example.com\) can be a bit tricky because the
 * CNAME at [CloudFlare](https://www.cloudflare.com/)
 * CNAME at [NS1](http://ns1.com)
 
-If your DNS provider needs an IP address for the root domain, get in touch contact {{ defaults.helpstring }} to give you the load balancer IP addresses.
+If your DNS provider needs an IP address for the root domain, get in touch with {{ defaults.helpstring }} to give you the load balancer IP addresses.
 
 ## Production environment
 
