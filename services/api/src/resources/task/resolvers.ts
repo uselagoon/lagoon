@@ -500,16 +500,16 @@ export const taskDrushArchiveDump: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
 TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
@@ -551,16 +551,16 @@ export const taskDrushSqlDump: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
 if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
@@ -603,16 +603,16 @@ export const taskDrushCacheClear: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command =
     'drupal_version=$(drush status | grep -i "drupal version" | awk \'{print $NF}\') && \
@@ -657,16 +657,16 @@ export const taskDrushCron: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
     project: '',
@@ -706,14 +706,6 @@ export const taskDrushSqlSync: ResolverFn = async (
   await envValidators(sqlClientPool).environmentExists(
     destinationEnvironmentId
   );
-  await envValidators(sqlClientPool).environmentsHaveSameProject([
-    sourceEnvironmentId,
-    destinationEnvironmentId
-  ]);
-  await envValidators(sqlClientPool).environmentHasService(
-    sourceEnvironmentId,
-    'cli'
-  );
 
   const sourceEnvironment = await environmentHelpers(
     sqlClientPool
@@ -735,6 +727,14 @@ export const taskDrushSqlSync: ResolverFn = async (
     {
       project: destinationEnvironment.project
     }
+  );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId
+  ]);
+  await envValidators(sqlClientPool).environmentHasService(
+    sourceEnvironmentId,
+    'cli'
   );
 
   userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
@@ -781,14 +781,6 @@ export const taskDrushRsyncFiles: ResolverFn = async (
   await envValidators(sqlClientPool).environmentExists(
     destinationEnvironmentId
   );
-  await envValidators(sqlClientPool).environmentsHaveSameProject([
-    sourceEnvironmentId,
-    destinationEnvironmentId
-  ]);
-  await envValidators(sqlClientPool).environmentHasService(
-    sourceEnvironmentId,
-    'cli'
-  );
 
   const sourceEnvironment = await environmentHelpers(
     sqlClientPool
@@ -810,6 +802,14 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     {
       project: destinationEnvironment.project
     }
+  );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId
+  ]);
+  await envValidators(sqlClientPool).environmentHasService(
+    sourceEnvironmentId,
+    'cli'
   );
 
   userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
@@ -850,16 +850,16 @@ export const taskDrushUserLogin: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushUserLogin:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
     project: '',
