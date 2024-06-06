@@ -82,7 +82,7 @@ x-environment:
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
     # Uncomment if you would like to have the system behave like in production
     #LAGOON_ENVIRONMENT_TYPE: production
-    # Uncomment to enable xdebug and then restart via `docker-compose up -d`
+    # Uncomment to enable xdebug and then restart via `docker compose up -d`
     #XDEBUG_ENABLE: "true"
 
 x-user:
@@ -543,27 +543,27 @@ Unfortunately the Drupal community has not decided on a standardized webroot fol
 First, we need to build the defined images:
 
 ```bash title="build your images"
-docker-compose build
+docker compose build
 ```
 
 This may take several minutes and you’ll get a long response, [which should look something like this](https://gist.github.com/AlannaBurke/1bdad6aab977b0994c245834e61b6b50).
 
 This will tell `docker-compose` to build the Docker images for all containers that have a `build:` definition in `docker-compose.yml`. Usually for Drupal this includes `cli`, `nginx` and `php`. We do this because we want to run specific build commands (like `composer install`) or inject specific environment variables (like `WEBROOT`) into the images.
 
-Usually building is not needed every time you edit your Drupal code (as the code is mounted into the containers from your host), but rebuilding does not hurt. Plus Lagoon will build the exact same Docker images during a deployment, so you check that your build will also work during a deployment by just running `docker-compose build` again.
+Usually building is not needed every time you edit your Drupal code (as the code is mounted into the containers from your host), but rebuilding does not hurt. Plus Lagoon will build the exact same Docker images during a deployment, so you check that your build will also work during a deployment by just running `docker compose build` again.
 
 ### Start Containers
 
 Now that the images are built, we can start the containers:
 
 ```bash title="start the containers"
-docker-compose up -d
+docker compose up -d
 ```
 
 You will get a response something like this:
 
 ```bash title="containers started"
-➜  lagoon-test git:(main) docker-compose up -d
+➜  lagoon-test git:(main) docker compose up -d
 Recreating lagoon-test_cli_1   ... done
 Starting lagoon-test_redis_1   ... done
 Starting lagoon-test_solr_1    ... done
@@ -573,10 +573,10 @@ Recreating lagoon-test_nginx_1 ... done
 Recreating lagoon-test_varnish_1 ... done
 ```
 
-This will bring up all containers. After the command is done, you can check with `docker-compose ps` to ensure that they are all fully up and have not crashed. That response should look something like this:
+This will bring up all containers. After the command is done, you can check with `docker compose ps` to ensure that they are all fully up and have not crashed. That response should look something like this:
 
 ```bash title="view running containers"
-➜  lagoon-test git:(main) docker-compose ps
+➜  lagoon-test git:(main) docker compose ps
 Name                       Command               State            Ports
 ----------------------------------------------------------------------------------------
 lagoon-test_cli_1       /sbin/tini -- /lagoon/entr ...   Up      9000/tcp
@@ -588,14 +588,14 @@ lagoon-test_solr_1      /sbin/tini -- /lagoon/entr ...   Up      0.0.0.0:32769->
 lagoon-test_varnish_1   /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
 ```
 
-If there is a problem, check the logs with `docker-compose logs -f [servicename]`.
+If there is a problem, check the logs with `docker compose logs -f [servicename]`.
 
 ### Re-Run `composer install`` (for Composer projects only)
 
 If you’re running a Drupal 8+ project, you should be using Composer, and you’ll need to get all dependencies downloaded and installed. Connect into the cli container and run composer install:
 
 ```bash title="re-run composer install"
-docker-compose exec cli bash
+docker compose exec cli bash
 [drupal-example]cli-drupal:/app$ composer install
 ```
 
@@ -613,7 +613,7 @@ If you get a 500 or similar error, make sure that everything is loaded properly 
 Finally it's time to install Drupal, but just before that we want to make sure everything works. We suggest using Drush for that with `drush status`:
 
 ```bash title="run drush status"
-docker-compose exec cli bash
+docker compose exec cli bash
 [drupal-example]cli-drupal:/app$ drush status
 ```
 
@@ -675,7 +675,7 @@ Now you have a `dump.sql` file that contains your whole database.
 Copy this file into your local Git repository and connect to the CLI, you should see the file in there:
 
 ```bash title="here's our dump file"
-[drupal-example] docker-compose exec cli bash
+[drupal-example] docker compose exec cli bash
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```

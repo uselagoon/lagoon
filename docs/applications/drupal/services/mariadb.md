@@ -37,10 +37,10 @@ $ docker port drupal_example_mariadb_1
 
 Or via `docker-compose` inside a Drupal repository:
 
-Run: `docker-compose port [service_name] [interal_port]`.
+Run: `docker compose port [service_name] [interal_port]`.
 
 ```bash title="Set ports"
-docker-compose port mariab 3306
+docker compose port mariab 3306
 0.0.0.0:32797
 ```
 

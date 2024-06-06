@@ -34,7 +34,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 		# tells Lagoon this is a MariaDB database
 			lagoon.type: mariadb
 		ports:
-			# exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
+			# exposes the port 3306 with a random local port, find it with `docker compose port mariadb 3306`
 			- "3306"
 		volumes:
 			# mounts a named volume at the default path for MariaDB

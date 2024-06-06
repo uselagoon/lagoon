@@ -40,6 +40,6 @@ In order to use Blackfire in deployed Lagoon environments the same enviornment v
 
 ## Debugging
 
-The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via `docker-compose logs` or via the Lagoon Logging Infrastructure for remote environments.
+The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via `docker compose logs` or via the Lagoon Logging Infrastructure for remote environments.
 
 By default the Logs are set to Level `3` (info), via the environment variable `BLACKFIRE_LOG_LEVEL` the level can be increased to `4` (debug) to generate more debugging ouput.

@@ -35,7 +35,7 @@ x-environment:
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
     # Uncomment if you want to have the system behave as it will in production
     #LAGOON_ENVIRONMENT_TYPE: production
-    # Uncomment to enable Xdebug and then restart via `docker-compose up -d`
+    # Uncomment to enable Xdebug and then restart via `docker compose up -d`
     #XDEBUG_ENABLE: "true"
 
 x-user:
@@ -244,7 +244,7 @@ no such service: container:amazeeio-ssh-agent
 
 BuildKit is a toolkit for converting source code to build artifacts in an efficient, expressive and repeatable manner.
 
-With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker-compose builds. To enable BuildKit for your Project or Environment, add `DOCKER_BUILDKIT=1` as a build-time variable to your Lagoon project or environment.
+With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker compose builds. To enable BuildKit for your Project or Environment, add `DOCKER_BUILDKIT=1` as a build-time variable to your Lagoon project or environment.
 
 ## Docker Compose Errors in Lagoon Builds
 

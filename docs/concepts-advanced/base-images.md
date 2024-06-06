@@ -122,7 +122,7 @@ There are several steps to the build process. Most of these are shared among the
 1. **Docker Login** - The Docker username, password, and URL for Harbor are passed to the Docker client.
 2. **Docker Build** - The `make images_build` step is run now, which will:
    1. Ensure that all environment variables are prepared for the build.
-   2. Run a `docker-compose build`. This will produce several new Docker images from the current Git branch.
+   2. Run a `docker compose build`. This will produce several new Docker images from the current Git branch.
 3. **Images Test** - This will run the `make images_test` target, which will differ depending on the images being tested. In most cases this is a very straightforward test to ensure that the images can be started and interacted with in some way \(installing Drupal, listing files, etc.\)
 4. **Docker Push** - This step runs the logic \(contained in the make target `images_publish`\) that will tag the images resulting from the **Docker Build** in Step 2 and push them to Harbor. This is described in more detail [elsewhere](base-images.md#step-4-building-the-new-base-images) in this guide.
 5. **Docker Clean Images** - Runs the make target `images_remove`, which simply deletes the newly built images from the Docker host now that they are in Harbor.
