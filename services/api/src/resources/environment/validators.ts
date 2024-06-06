@@ -10,8 +10,9 @@ export const Validators = (sqlClientPool: Pool) => ({
       Sql.selectEnvironmentById(environmentId)
     );
 
-    if (R.has('info', env)) {
-      throw new Error(`Environment ID ${environmentId} doesn't exist.`);
+    if (R.length(env) == 0) {
+      // environment doesn't exist, throw an unauthorized error
+      throw new Error(`Unauthorized: You don't have permission to "view" on "environment"`);
     }
   },
   environmentsHaveSameProject: async (environmentIds: number[]) => {
