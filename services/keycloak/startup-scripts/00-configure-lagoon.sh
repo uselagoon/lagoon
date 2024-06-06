@@ -332,6 +332,31 @@ EOF
 EOF
 }
 
+function migrate_remove_harbor_scan_permissions {
+  # The changes here match the changes that are made in the realm import script
+  # fresh installs will not need to perform this migration as the changes will already be in the import
+  # this will only run on existing installations to get it into a state that matches the realm import
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_harbor_scan_match=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Harbor+Scan+Match --config $CONFIG_PATH)
+
+  if [ "$view_harbor_scan_match" == "[ ]" ]; then
+      echo "view_harbor_scan_match already removed"
+      return 0
+  fi
+
+  echo Removing old harbor permissions
+
+  echo Delete view_harbor_scan_match permission
+  view_harbor_scan_match_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Harbor+Scan+Match --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_harbor_scan_match_id --config $CONFIG_PATH
+  echo Delete add_harbor_scan_match permission
+  add_harbor_scan_match_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Harbor+Scan+Match --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$add_harbor_scan_match_id --config $CONFIG_PATH
+  echo Delete delete_harbor_scan_match permission
+  delete_harbor_scan_match_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Harbor+Scan+Match --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_harbor_scan_match_id --config $CONFIG_PATH
+}
+
 ##################
 # Initialization #
 ##################
@@ -362,6 +387,7 @@ function configure_keycloak {
     service-api_add_query-groups_permission
     add_notification_view_all
     migrate_admin_organization_permissions
+    migrate_remove_harbor_scan_permissions
 
     # always run last
     sync_client_secrets

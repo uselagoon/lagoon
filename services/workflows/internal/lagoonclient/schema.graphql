@@ -208,15 +208,6 @@ input AddOrUpdateEnvironmentStorageInput {
   updated: String
 }
 
-input AddProblemHarborScanMatchInput {
-  name: String!
-  description: String!
-  defaultLagoonProject: String
-  defaultLagoonEnvironment: String
-  defaultLagoonService: String
-  regex: String!
-}
-
 input AddProblemInput {
   id: Int
   environment: Int!
@@ -554,10 +545,6 @@ input DeleteNotificationWebhookInput {
 
 input DeleteOpenshiftInput {
   name: String!
-}
-
-input DeleteProblemHarborScanMatchInput {
-  id: Int!
 }
 
 input DeleteProblemInput {
@@ -1072,14 +1059,8 @@ type Mutation {
   cancelDeployment(input: CancelDeploymentInput!): String
   addBackup(input: AddBackupInput!): Backup
   addProblem(input: AddProblemInput!): Problem
-  addProblemHarborScanMatch(
-    input: AddProblemHarborScanMatchInput!
-  ): ProblemHarborScanMatch
   deleteProblem(input: DeleteProblemInput!): String
   deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-  deleteProblemHarborScanMatch(
-    input: DeleteProblemHarborScanMatchInput!
-  ): String
   addFact(input: AddFactInput!): Fact
   addFacts(input: AddFactsInput!): [Fact]
   deleteFact(input: DeleteFactInput!): String
@@ -1257,16 +1238,6 @@ type Problem {
   data: String
   created: String
   deleted: String
-}
-
-type ProblemHarborScanMatch {
-  id: Int
-  name: String
-  description: String
-  defaultLagoonProject: String
-  defaultLagoonEnvironment: String
-  defaultLagoonService: String
-  regex: String
 }
 
 enum ProblemSeverityRating {
@@ -1695,11 +1666,6 @@ type Query {
   Returns LAGOON_VERSION
   """
   lagoonVersion: JSON
-
-  """
-  Returns all ProblemHarborScanMatchers
-  """
-  allProblemHarborScanMatchers: [ProblemHarborScanMatch]
 
   """
   Returns all AdvancedTaskDefinitions

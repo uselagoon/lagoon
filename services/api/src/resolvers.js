@@ -10,9 +10,6 @@ const {
   deleteProblemsFromSource,
   addProblemsFromSource,
   getProblemSources,
-  getProblemHarborScanMatches,
-  addProblemHarborScanMatch,
-  deleteProblemHarborScanMatch
 } = require('./resources/problem/resolvers');
 
 const {
@@ -581,7 +578,6 @@ const resolvers = {
     allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    allProblemHarborScanMatchers: getProblemHarborScanMatches,
     allUsers: getAllUsers,
     allNotifications: getAllNotifications,
     userByEmail: getUserByEmail,
@@ -601,10 +597,8 @@ const resolvers = {
   },
   Mutation: {
     addProblem,
-    addProblemHarborScanMatch,
     deleteProblem,
     deleteProblemsFromSource,
-    deleteProblemHarborScanMatch,
     addFact,
     addFacts,
     addFactsByName,

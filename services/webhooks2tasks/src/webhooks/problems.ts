@@ -10,16 +10,6 @@ import {
   Project
 } from '../types';
 
-// NOTE: Here we are going through the process of deprecating the Trivy integration
-const enableHarborIntegration = (() => {
-	if(process.env.ENABLE_DEPRECATED_TRIVY_INTEGRATION && process.env.ENABLE_DEPRECATED_TRIVY_INTEGRATION == "true") {
-    console.log("ENABLE_DEPRECATED_TRIVY_INTEGRATION is 'true' -- enabling Harbor/Trivy");
-		return true;
-	}
-  console.log("ENABLE_DEPRECATED_TRIVY_INTEGRATION is not 'true' -- Harbor/Trivy integration is not enabled");
-	return false;
-})();
-
 export async function processProblems(
     rabbitMsg,
     channelWrapperWebhooks

@@ -18,16 +18,6 @@ const standardEnvironmentReturn = {
   deleted: 'deleted'
 };
 
-const standardProblemHarborScanMatchReturn = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  default_lagoon_project: 'defaultLagoonProject',
-  default_lagoon_environment: 'defaultLagoonEnvironment',
-  default_lagoon_service: 'defaultLagoonServiceName',
-  regex: 'regex'
-};
-
 export const Sql = {
   selectAllProblems: ({
     source = [],

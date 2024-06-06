@@ -268,29 +268,6 @@ const typeDefs = gql`
     deleted: String
   }
 
-  type ProblemHarborScanMatch {
-    id: Int
-    name: String
-    description: String
-    defaultLagoonProject: String
-    defaultLagoonEnvironment: String
-    defaultLagoonService: String
-    regex: String
-  }
-
-  input AddProblemHarborScanMatchInput {
-    name: String!
-    description: String!
-    defaultLagoonProject: String
-    defaultLagoonEnvironment: String
-    defaultLagoonService: String
-    regex: String!
-  }
-
-  input DeleteProblemHarborScanMatchInput {
-    id: Int!
-  }
-
   input AddProblemInput {
     id: Int
     environment: Int!
@@ -1401,10 +1378,6 @@ const typeDefs = gql`
     """
     lagoonVersion: JSON
     """
-    Returns all ProblemHarborScanMatchers
-    """
-    allProblemHarborScanMatchers: [ProblemHarborScanMatch] @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
-    """
     Returns all AdvancedTaskDefinitions
     """
     allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
@@ -2420,10 +2393,8 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
-    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String @deprecated(reason: "Harbor-Trivy integration with core removed in Lagoon 2")
     addFact(input: AddFactInput!): Fact
     addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
     addFactsByName(input: AddFactsByNameInput!): [Fact]

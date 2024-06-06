@@ -278,36 +278,3 @@ export const deleteProblemsFromSource: ResolverFn = async (
 
   return 'success';
 };
-
-export const getProblemHarborScanMatches: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
-};
-
-export const addProblemHarborScanMatch: ResolverFn = async (
-  root,
-  {
-    input: {
-      name,
-      description,
-      defaultLagoonProject,
-      defaultLagoonEnvironment,
-      defaultLagoonService,
-      regex
-    }
-  },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
-};
-
-export const deleteProblemHarborScanMatch: ResolverFn = async (
-  root,
-  { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
-};

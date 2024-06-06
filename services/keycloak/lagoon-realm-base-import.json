@@ -892,24 +892,6 @@
             ]
           },
           {
-            "name": "harbor_scan_match",
-            "ownerManagedAccess": false,
-            "displayName": "Harbor scan match",
-            "attributes": {},
-            "uris": [],
-            "scopes": [
-              {
-                "name": "add"
-              },
-              {
-                "name": "view"
-              },
-              {
-                "name": "delete"
-              }
-            ]
-          },
-          {
             "name": "advanced_task",
             "ownerManagedAccess": false,
             "displayName": "advanced_task",
@@ -2148,17 +2130,6 @@
             }
           },
           {
-            "name": "Add Harbor Scan Match",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"harbor_scan_match\"]",
-              "scopes": "[\"add\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "Delete Production Environment",
             "type": "scope",
             "logic": "POSITIVE",
@@ -2467,17 +2438,6 @@
             }
           },
           {
-            "name": "Delete Harbor Scan Match",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"harbor_scan_match\"]",
-              "scopes": "[\"delete\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "View All Openshifts",
             "type": "scope",
             "logic": "POSITIVE",
@@ -2739,17 +2699,6 @@
               "resources": "[\"restore\"]",
               "scopes": "[\"add\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "View Harbor Scan Match",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"harbor_scan_match\"]",
-              "scopes": "[\"view\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
             }
           },
           {
