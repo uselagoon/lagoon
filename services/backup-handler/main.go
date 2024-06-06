@@ -39,6 +39,15 @@ func main() {
 	if len(os.Getenv("JWT_AUDIENCE")) == 0 {
 		log.Fatalln("JWT_AUDIENCE not set")
 	}
+	if len(os.Getenv("JWT_SUBJECT")) == 0 {
+		log.Fatalln("JWT_SUBJECT not set")
+	}
+	if len(os.Getenv("JWT_ISSUER")) == 0 {
+		log.Fatalln("JWT_ISSUER not set")
+	}
+	if len(os.Getenv("LAGOON_API_VERSION")) == 0 {
+		log.Fatalln("LAGOON_API_VERSION not set")
+	}
 	if len(os.Getenv("GRAPHQL_ENDPOINT")) == 0 {
 		log.Fatalln("GRAPHQL_ENDPOINT not set")
 	}
@@ -55,10 +64,13 @@ func main() {
 		QueueName:    "lagoon-webhooks:queue",
 		ExchangeName: "lagoon-webhooks",
 	}
-	graphQL := handler.GraphQLEndpoint{
+	graphQL := handler.LagoonAPI{
 		Endpoint:        os.Getenv("GRAPHQL_ENDPOINT"),
 		TokenSigningKey: os.Getenv("JWT_SECRET"),
 		JWTAudience:     os.Getenv("JWT_AUDIENCE"),
+		JWTSubject:      os.Getenv("JWT_SUBJECT"),
+		JWTIssuer:       os.Getenv("JWT_ISSUER"),
+		Version:         os.Getenv("LAGOON_API_VERSION"),
 	}
 
 	// set up the backup handler

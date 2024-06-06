@@ -1,16 +1,22 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/isayme/go-amqp-reconnect/rabbitmq"
 	"github.com/streadway/amqp"
-	"github.com/uselagoon/lagoon-cli/pkg/api"
+
+	"github.com/uselagoon/machinery/api/lagoon"
+	lclient "github.com/uselagoon/machinery/api/lagoon/client"
+	"github.com/uselagoon/machinery/api/schema"
+	"github.com/uselagoon/machinery/utils/jwt"
 )
 
 // BackupInterface .
@@ -24,7 +30,7 @@ type BackupHandler struct {
 	rabbitChannel *rabbitmq.Channel
 	amqpURI       string
 	Broker        RabbitBroker
-	Endpoint      GraphQLEndpoint
+	Endpoint      LagoonAPI
 }
 
 // RabbitBroker .
@@ -44,8 +50,18 @@ type GraphQLEndpoint struct {
 	TokenSigningKey string `json:"tokenSigningKey"`
 }
 
+// LagoonAPI .
+type LagoonAPI struct {
+	Endpoint        string `json:"endpoint"`
+	JWTAudience     string `json:"audience"`
+	TokenSigningKey string `json:"tokenSigningKey"`
+	JWTSubject      string `json:"subject"`
+	JWTIssuer       string `json:"issuer"`
+	Version         string `json:"version"`
+}
+
 // NewBackupHandler .
-func NewBackupHandler(broker RabbitBroker, graphql GraphQLEndpoint) (BackupInterface, error) {
+func NewBackupHandler(broker RabbitBroker, graphql LagoonAPI) (BackupInterface, error) {
 	var amqpURI string
 	amqpURI = fmt.Sprintf("amqp://%s:%s@%s:%s", broker.Username, broker.Password, broker.Hostname, broker.Port)
 	if broker.Username == "" && broker.Password == "" {
@@ -126,9 +142,18 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("unable to decode json data from webhook, error is %s:", err.Error())
 	} else {
 		// get backups from the API
-		lagoonAPI, err := api.New(b.Endpoint.TokenSigningKey, b.Endpoint.JWTAudience, b.Endpoint.Endpoint)
+
+		token, err := jwt.GenerateAdminToken(b.Endpoint.TokenSigningKey, b.Endpoint.JWTAudience, b.Endpoint.JWTSubject, b.Endpoint.JWTIssuer, time.Now().Unix(), 60)
 		if err != nil {
-			log.Printf("unable to connect api, error is %s:", err.Error())
+			// the token wasn't generated
+			log.Printf("unable to generate token: %v", err)
+			return
+		}
+		l := lclient.New(b.Endpoint.Endpoint, b.Endpoint.JWTSubject, b.Endpoint.Version, &token, false)
+		ctx := context.Background()
+		apiEnv, err := lagoon.GetEnvironmentByNamespace(ctx, backupData.Name, l)
+		if err != nil {
+			log.Printf("unable to connect to the api, error is %s:", err.Error())
 			return
 		}
 
@@ -144,17 +169,11 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 			// else handle snapshots
 		} else if backupData.Snapshots != nil {
 			// use the name from the webhook to get the environment in the api
-			environment := api.EnvironmentBackups{
-				OpenshiftProjectName: backupData.Name,
-			}
-			envBackups, err := lagoonAPI.GetEnvironmentBackups(environment)
+			backupsEnv, err := lagoon.GetBackupsForEnvironmentByName(ctx, apiEnv.Name, apiEnv.ProjectID, l)
 			if err != nil {
-				log.Printf("unable to get backups from api, error is %s:", err.Error())
+				log.Printf("unable to connect to the api, error is %s:", err.Error())
 				return
 			}
-			// unmarshal the result into the environment struct
-			var backupsEnv api.Environment
-			json.Unmarshal(envBackups, &backupsEnv)
 			// remove backups that no longer exists from the api
 			for index, backup := range backupsEnv.Backups {
 				// check that the backup in the api is not in the webhook payload
@@ -162,13 +181,10 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 					// if the backup in the api is not in the webhook payload
 					// remove it from the webhook payload data
 					removeSnapshot(backupData.Snapshots, index)
-					delBackup := api.DeleteBackup{
-						BackupID: backup.BackupID,
-					}
 					// now delete it from the api as it no longer exists
-					_, err := lagoonAPI.DeleteBackup(delBackup) // result is always success, or will error
+					_, err := lagoon.DeleteBackup(ctx, backup.BackupID, l)
 					if err != nil {
-						log.Printf("unable to delete backup from api, error is %s:", err.Error())
+						log.Printf("unable to delete backup %v from api, error is %s:", backup.BackupID, err.Error())
 						return
 					}
 					log.Printf("deleted backup %s for %s", backup.BackupID, backupsEnv.OpenshiftProjectName)
@@ -176,7 +192,7 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// if we get this far, then the payload data from the webhook should only have snapshots that are new or exist in the api
-			addBackups := ProcessBackups(backupData, backupsEnv)
+			addBackups := ProcessBackups(backupData, backupsEnv.Backups)
 			for _, backup := range addBackups {
 				b.addToMessageQueue(backup)
 			}
@@ -192,7 +208,7 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ProcessBackups actually process the backups here, check that the ones we want to add to the API aren't already in the API
-func ProcessBackups(backupData Backups, backupsEnv api.Environment) []Webhook {
+func ProcessBackups(backupData Backups, backupsEnv []schema.Backup) []Webhook {
 	var addBackups []Webhook
 	for _, snapshotData := range backupData.Snapshots {
 		// we want to check that we match the name to the project/environment properly and capture any prebackuppods too
@@ -224,7 +240,7 @@ func ProcessBackups(backupData Backups, backupsEnv api.Environment) []Webhook {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Printf("rabbit failure, error is %s:", err.Error())
+		log.Printf("rabbit failure, error is %s/%s:", msg, err.Error())
 	}
 }
 
@@ -248,8 +264,8 @@ func apiBackupInWebhook(snaphots []Snapshot, snaphot string) bool {
 	return false
 }
 
-func backupInEnvironment(environment api.Environment, backup string) bool {
-	for _, envBackup := range environment.Backups {
+func backupInEnvironment(environment []schema.Backup, backup string) bool {
+	for _, envBackup := range environment {
 		if envBackup.BackupID == backup {
 			return true
 		}
