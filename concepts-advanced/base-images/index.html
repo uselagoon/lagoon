@@ -4899,7 +4899,7 @@
 <li><strong>Docker Login</strong> - The Docker username, password, and URL for Harbor are passed to the Docker client.</li>
 <li><strong>Docker Build</strong> - The <code>make images_build</code> step is run now, which will:<ol>
 <li>Ensure that all environment variables are prepared for the build.</li>
-<li>Run a <code>docker-compose build</code>. This will produce several new Docker images from the current Git branch.</li>
+<li>Run a <code>docker compose build</code>. This will produce several new Docker images from the current Git branch.</li>
 </ol>
 </li>
 <li><strong>Images Test</strong> - This will run the <code>make images_test</code> target, which will differ depending on the images being tested. In most cases this is a very straightforward test to ensure that the images can be started and interacted with in some way (installing Drupal, listing files, etc.)</li>

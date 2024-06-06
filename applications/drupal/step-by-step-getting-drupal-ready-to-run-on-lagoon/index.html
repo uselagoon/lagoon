@@ -4638,18 +4638,18 @@
 </span></code></pre></div>
 <h2 id="3-build-images">3. Build Images<a class="headerlink" href="#3-build-images" title="Permanent link">#</a></h2>
 <p>First, we need to build the defined images:</p>
-<div class="language-bash highlight"><span class="filename">Build images</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker-compose<span class="w"> </span>build
+<div class="language-bash highlight"><span class="filename">Build images</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>build
 </span></code></pre></div>
 <p>This will tell <code>docker-compose</code> to build the Docker images for all containers that have a <code>build:</code> definition in the <code>docker-compose.yml</code>. Usually for Drupal this is the case for the <code>cli</code>, <code>nginx</code> and <code>php</code> images. We do this because we want to run specific <strong>build</strong> commands (like <code>composer install</code>) or inject specific environment variables (like <code>WEBROOT</code>) into the images.</p>
-<p>Usually, building is not necessary every time you edit your Drupal code (as the code is mounted into the containers from your host), but rebuilding does not hurt. Plus, Lagoon will build the exact same Docker images during a deploy, so you can check that your build will also work during a deployment by just running <code>docker-compose build</code> again.</p>
+<p>Usually, building is not necessary every time you edit your Drupal code (as the code is mounted into the containers from your host), but rebuilding does not hurt. Plus, Lagoon will build the exact same Docker images during a deploy, so you can check that your build will also work during a deployment by just running <code>docker compose build</code> again.</p>
 <h2 id="4-start-containers">4. Start Containers<a class="headerlink" href="#4-start-containers" title="Permanent link">#</a></h2>
 <p>Now that the images are built, we can start the containers:</p>
-<div class="language-bash highlight"><span class="filename">Start containers</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+<div class="language-bash highlight"><span class="filename">Start containers</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 </span></code></pre></div>
-<p>This will bring up all containers. After the command is done, you can check with <code>docker-compose ps</code> to ensure that they are all fully up and have not crashed. If there is a problem, check the logs with <code>docker-compose logs -f [servicename]</code>.</p>
+<p>This will bring up all containers. After the command is done, you can check with <code>docker compose ps</code> to ensure that they are all fully up and have not crashed. If there is a problem, check the logs with <code>docker compose logs -f [servicename]</code>.</p>
 <h2 id="5-rerun-composer-install-for-composer-projects-only">5. Rerun <code>composer install</code> (for Composer projects only)<a class="headerlink" href="#5-rerun-composer-install-for-composer-projects-only" title="Permanent link">#</a></h2>
 <p>In a local development environment, you probably want all dependencies downloaded and installed, so connect to the <code>cli</code> container and run <code>composer install</code>:</p>
-<div class="language-bash highlight"><span class="filename">Run composer install in CLI</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+<div class="language-bash highlight"><span class="filename">Run composer install in CLI</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>composer<span class="w"> </span>install
 </span></code></pre></div>
 <p>This might sound weird, as there was already a <code>composer install</code> executed during the build step, so let us explain:</p>
@@ -4661,7 +4661,7 @@
 <p>If you get a 500 or similar error, make sure everything loaded properly with Composer.</p>
 <h2 id="6-check-status-and-install-drupal">6. Check Status and Install Drupal<a class="headerlink" href="#6-check-status-and-install-drupal" title="Permanent link">#</a></h2>
 <p>Finally it's time to install Drupal, but just before that we want to make sure everything works. We suggest using Drush for that:</p>
-<div class="language-bash highlight"><span class="filename">Drush status</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+<div class="language-bash highlight"><span class="filename">Drush status</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>drush<span class="w"> </span>status
 </span></code></pre></div>
 <p>This should return something like:</p>

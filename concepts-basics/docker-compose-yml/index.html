@@ -4744,7 +4744,7 @@
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nt">LAGOON_ROUTE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://drupal-example.docker.amazee.io</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="c1"># Uncomment if you want to have the system behave as it will in production</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="c1">#LAGOON_ENVIRONMENT_TYPE: production</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="c1"># Uncomment to enable Xdebug and then restart via `docker-compose up -d`</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="c1"># Uncomment to enable Xdebug and then restart via `docker compose up -d`</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="c1">#XDEBUG_ENABLE: &quot;true&quot;</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="nt">x-user</span><span class="p">:</span>
@@ -4919,7 +4919,7 @@
 </ul>
 <h2 id="buildkit-and-lagoon">BuildKit and Lagoon<a class="headerlink" href="#buildkit-and-lagoon" title="Permanent link">#</a></h2>
 <p>BuildKit is a toolkit for converting source code to build artifacts in an efficient, expressive and repeatable manner.</p>
-<p>With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker-compose builds. To enable BuildKit for your Project or Environment, add <code>DOCKER_BUILDKIT=1</code> as a build-time variable to your Lagoon project or environment.</p>
+<p>With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker compose builds. To enable BuildKit for your Project or Environment, add <code>DOCKER_BUILDKIT=1</code> as a build-time variable to your Lagoon project or environment.</p>
 <h2 id="docker-compose-errors-in-lagoon-builds">Docker Compose Errors in Lagoon Builds<a class="headerlink" href="#docker-compose-errors-in-lagoon-builds" title="Permanent link">#</a></h2>
 <p>See the <a href="../../using-lagoon-the-basics/lagoon-build-errors-and-warnings/#docker-compose-errors">Lagoon Build Errors page</a> for how to resolve common build errors with Docker Compose.</p>
 <h2 id="common-docker-compose-issues">Common Docker Compose Issues<a class="headerlink" href="#common-docker-compose-issues" title="Permanent link">#</a></h2>

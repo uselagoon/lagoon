@@ -4530,7 +4530,7 @@
 <h2 id="remote-usage-of-blackfire">Remote Usage of Blackfire<a class="headerlink" href="#remote-usage-of-blackfire" title="Permanent link">#</a></h2>
 <p>In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding <a href="../../concepts-advanced/environment-variables/">environment variables to Lagoon</a>. Important: Environment variables set in the <code>docker-compose.yml</code> for local development are not used by Lagoon in remote environments!</p>
 <h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">#</a></h2>
-<p>The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via <code>docker-compose logs</code> or via the Lagoon Logging Infrastructure for remote environments.</p>
+<p>The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via <code>docker compose logs</code> or via the Lagoon Logging Infrastructure for remote environments.</p>
 <p>By default the Logs are set to Level <code>3</code> (info), via the environment variable <code>BLACKFIRE_LOG_LEVEL</code> the level can be increased to <code>4</code> (debug) to generate more debugging ouput.</p>
 
 

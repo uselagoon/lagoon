@@ -4553,7 +4553,7 @@
 </ul>
 <h3 id="generate-site-aliases">Generate Site Aliases<a class="headerlink" href="#generate-site-aliases" title="Permanent link">#</a></h3>
 <p>You can now convert your Drush aliases by running the following command in your project using the <code>cli</code> container:</p>
-<div class="language-bash highlight"><span class="filename">Generate Site Aliases</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>drush<span class="w"> </span>site:alias-convert<span class="w"> </span>/app/drush/sites<span class="w"> </span>--yes
+<div class="language-bash highlight"><span class="filename">Generate Site Aliases</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>drush<span class="w"> </span>site:alias-convert<span class="w"> </span>/app/drush/sites<span class="w"> </span>--yes
 </span></code></pre></div>
 <p>It's good practice to commit the resulting YAML files into your Git repository, so that they are in place for your fellow developers.</p>
 <h3 id="use-site-aliases">Use Site Aliases<a class="headerlink" href="#use-site-aliases" title="Permanent link">#</a></h3>

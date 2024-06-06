@@ -4711,7 +4711,7 @@ debugging.</p>
 <li>
 <p>Verify that Docker for Mac networking is not broken. On your host machine, run
   <code>nc -l 9003</code>, then in a new terminal window, run:</p>
-<div class="language-bash highlight"><span class="filename">Verify Docker for Mac networking</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker-compose<span class="w"> </span>run<span class="w"> </span>cli<span class="w"> </span>nc<span class="w"> </span>-zv<span class="w"> </span>host.docker.internal<span class="w"> </span><span class="m">9003</span>
+<div class="language-bash highlight"><span class="filename">Verify Docker for Mac networking</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>cli<span class="w"> </span>nc<span class="w"> </span>-zv<span class="w"> </span>host.docker.internal<span class="w"> </span><span class="m">9003</span>
 </span></code></pre></div>
 <p>You should see a message like:
 <code>host.docker.internal (192.168.65.2:9003) open</code>.</p>
