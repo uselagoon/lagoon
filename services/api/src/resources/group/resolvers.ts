@@ -212,10 +212,20 @@ export const getGroupsByProjectId: ResolverFn = async (
     // when listing project groups
     const userGroups = keycloakUsersGroups;
     const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
     const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
 
     if (usersOrgs != "" ) {
       const uOrgs = usersOrgs.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
+        }
+      }
+    }
+    if (usersOrgsAdmin != "" ) {
+      const uOrgs = usersOrgsAdmin.split(',');
       for (const userOrg of uOrgs) {
         const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
         for (const pGroup of orgGroups) {
@@ -751,9 +761,19 @@ export const getAllProjectsInGroup: ResolverFn = async (
       keycloakGrant.access_token.content.sub
     );
     const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
     const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
     if (usersOrgs != "" ) {
       const uOrgs = usersOrgs.split(',');
+      for (const userOrg of uOrgs) {
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        for (const pGroup of orgGroups) {
+          userGroups.push(pGroup)
+        }
+      }
+    }
+    if (usersOrgsAdmin != "" ) {
+      const uOrgs = usersOrgsAdmin.split(',');
       for (const userOrg of uOrgs) {
         const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
         for (const pGroup of orgGroups) {

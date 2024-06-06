@@ -389,6 +389,7 @@ export const getUsersByOrganizationId: ResolverFn = async (
       if (!exists) {
         // quick check to set the owner flag or not
         groupMembers[member].user.owner = false
+        groupMembers[member].user.admin = false
         groupMembers[member].user.comment = null
         if (groupMembers[member].user.attributes["comment"]) {
           groupMembers[member].user.comment = groupMembers[member].user.attributes["comment"][0]
@@ -397,6 +398,13 @@ export const getUsersByOrganizationId: ResolverFn = async (
           for (const a in groupMembers[member].user.attributes["lagoon-organizations"]) {
             if (parseInt(groupMembers[member].user.attributes["lagoon-organizations"][a]) == args.organization) {
               groupMembers[member].user.owner = true
+            }
+          }
+        }
+        if (groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
+          for (const a in groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
+            if (parseInt(groupMembers[member].user.attributes["lagoon-organizations-admin"][a]) == args.organization) {
+              groupMembers[member].user.admin = true
             }
           }
         }
@@ -423,6 +431,7 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(user.id, organization);
 
     user.owner = false
+    user.admin = false
     user.comment = null
     if (user.attributes["comment"]) {
       user.comment = user.attributes["comment"][0]
@@ -431,6 +440,13 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
       for (const a in user.attributes["lagoon-organizations"]) {
         if (parseInt(user.attributes["lagoon-organizations"][a]) == organization) {
           user.owner = true
+        }
+      }
+    }
+    if (user.attributes["lagoon-organizations-admin"]) {
+      for (const a in user.attributes["lagoon-organizations-admin"]) {
+        if (parseInt(user.attributes["lagoon-organizations-admin"][a]) == organization) {
+          user.admin = true
         }
       }
     }

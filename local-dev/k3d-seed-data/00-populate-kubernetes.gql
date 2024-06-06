@@ -198,6 +198,14 @@ mutation PopulateApi {
   ) {
     id
   }
+  UIOrganizationAdmin: addUser(
+    input: {
+      email: "orgadmin@example.com"
+      comment: "user that will be an organization admin"
+    }
+  ) {
+    id
+  }
   UIOrganizationOwner: addUser(
     input: {
       email: "orgowner@example.com"
@@ -230,6 +238,10 @@ mutation PopulateApi {
   }
 
   UIOrganizationAddViewer: addUserToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: 1}) {
+    id
+  }
+
+  UIOrganizationAddAdmin: addUserToOrganization(input: {user: {email: "orgadmin@example.com"}, organization: 1, admin: true}) {
     id
   }
 

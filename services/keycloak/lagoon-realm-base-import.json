@@ -1393,6 +1393,14 @@
             "config": {}
           },
           {
+            "name": "[Lagoon] User is admin of organization",
+            "description": "Checks that the user is admin of an organization via attribute",
+            "type": "script-policies/user-is-admin-of-organization.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
             "name": "Default Policy",
             "description": "A policy that grants access only for users within this realm",
             "type": "script-policies/default-policy.js",
@@ -1817,7 +1825,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
-              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
             }
           },
           {
@@ -1975,14 +1983,47 @@
             }
           },
           {
-            "name": "Manage Organization",
+            "name": "Manage Organization Owners",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"organization\"]",
-              "scopes": "[\"addNotification\",\"removeNotification\",\"addProject\",\"updateNotification\",\"updateProject\",\"removeGroup\",\"deleteProject\",\"addViewer\",\"addOwner\",\"addGroup\"]",
+              "scopes": "[\"addViewer\",\"addOwner\"]",
               "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Manage Organization Projects",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"addProject\",\"updateProject\",\"deleteProject\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Manage Organization Groups",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"removeGroup\",\"addGroup\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Manage Organization Notifications",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"addNotification\",\"removeNotification\",\"updateNotification\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {

@@ -181,6 +181,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       userGroupRole?: [string];
       organizationQuery?: [string];
       userOrganizations?: [string];
+      userOrganizationsAdmin?: [string];
       userOrganizationsView?: [string];
     } = {
       currentUser: [currentUser.id]
@@ -206,6 +207,13 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       claims = {
         ...claims,
         userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+      };
+    }
+    // check organization admin attributes
+    if (R.prop('lagoon-organizations-admin', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizationsAdmin: [`${R.prop('lagoon-organizations-admin', currentUser.attributes)}`]
       };
     }
     // check organization viewer attributes

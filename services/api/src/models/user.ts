@@ -24,6 +24,7 @@ export interface User {
   gitlabId?: string;
   attributes?: IUserAttributes;
   owner?: boolean;
+  admin?: boolean;
 }
 
 interface UserEdit {
@@ -79,12 +80,14 @@ const attrLens = R.lensPath(['attributes']);
 const commentLens = R.lensPath(['comment']);
 
 const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
+const lagoonOrganizationsAdminLens = R.lensPath(['lagoon-organizations-admin']);
 const lagoonOrganizationsViewerLens = R.lensPath(['lagoon-organizations-viewer']);
 
 const attrLagoonProjectsLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsLens,
+  lagoonOrganizationsAdminLens,
   lagoonOrganizationsViewerLens,
   R.lensPath([0])
 );
@@ -93,6 +96,13 @@ const attrLagoonOrgOwnerLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsLens,
+  R.lensPath([0])
+);
+
+const attrLagoonOrgAdminLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsAdminLens,
   R.lensPath([0])
 );
 
@@ -161,7 +171,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'owner']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -280,6 +290,16 @@ export const User = (clients: {
 
       return false;
     };
+    const adminFilter = attribute => {
+      if (attribute.name === 'lagoon-organizations-admin') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
     const viewerFilter = attribute => {
       if (attribute.name === 'lagoon-organizations-viewer') {
         const value = R.is(Array, attribute.value)
@@ -294,11 +314,15 @@ export const User = (clients: {
     const keycloakUsers = await keycloakAdminClient.users.find({briefRepresentation: false, max: -1});
 
     let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
+    let filteredAdmins = filterUsersByAttribute(keycloakUsers, adminFilter);
     let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
       filteredOwners[f1].owner = true
     }
-    const orgUsers = [...filteredOwners, ...filteredViewers]
+    for (const f1 in filteredAdmins) {
+      filteredAdmins[f1].admin = true
+    }
+    const orgUsers = [...filteredOwners, ...filteredAdmins, ...filteredViewers]
 
     const users = await transformKeycloakUsers(orgUsers);
 
@@ -513,6 +537,7 @@ export const User = (clients: {
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // comments used to be removed when updating a user, now they aren't
     let organizations = null;
+    let organizationsAdmin = null;
     let organizationsView = null;
     let comment = null;
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
@@ -528,14 +553,23 @@ export const User = (clients: {
         // owner is an option, default is view
         if (R.prop('remove', userInput)) {
           organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+          organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
           organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
         } else {
           if (R.prop('owner', userInput)) {
             organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+            organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
             organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
           } else {
-            organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-            organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+            if (R.prop('admin', userInput)) {
+              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+              organizationsAdmin = {'lagoon-organizations-admin': [addOrgToAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
+              organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+            } else {
+              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
+              organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
+              organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+            }
           }
         }
       }
@@ -552,6 +586,7 @@ export const User = (clients: {
           attributes: {
             ...user.attributes,
             ...organizations,
+            ...organizationsAdmin,
             ...organizationsView,
             ...comment
           }
@@ -609,10 +644,17 @@ export const User = (clients: {
 
     const user = await loadUserById(userInput.id);
     const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
     const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
 
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        organizations = [...organizations, userOrg]
+      }
+    }
+    if (usersOrgsAdmin != "" ) {
+      const usersOrgsArr = usersOrgsAdmin.split(',');
       for (const userOrg of usersOrgsArr) {
         organizations = [...organizations, userOrg]
       }
