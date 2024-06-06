@@ -15,7 +15,8 @@
     "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
     "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
     "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
-    "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
+    "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js",
+    "migrations:lagoon": "node dist/migrations/lagoon/migrations.js"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -23,7 +24,6 @@
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "@supercharge/request-ip": "^1.1.2",
-    "@types/redis": "^2.8.22",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
     "body-parser": "^1.18.2",
@@ -49,7 +49,7 @@
     "jsonwebtoken": "^8.0.1",
     "keycloak-admin": "https://github.com/amazeeio/keycloak-admin.git#bd015d2e34634f262c0827f00620657427e3c252",
     "keycloak-connect": "^5.0.0",
-    "knex": "^0.95.15",
+    "knex": "^3.0.1",
     "mariadb": "^2.5.2",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",
@@ -57,7 +57,7 @@
     "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
     "rabbit-chatter": "^2.0.0",
-    "ramda": "^0.25.0",
+    "ramda": "0.25.0",
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
@@ -66,17 +66,17 @@
     "winston-transport": "^4.4.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@types/express": "^4.17.6",
-    "@types/faker": "^4.1.5",
-    "@types/jest": "^24.0.18",
+    "@types/jest": "^29.5.12",
     "@types/ramda": "types/npm-ramda#dist",
-    "axios": "^0.19.0",
-    "faker": "^4.1.0",
-    "jest": "^24.9.0",
-    "prettier": "^1.14.2",
-    "prettier-eslint-cli": "^4.7.1",
-    "ts-jest": "^24.0.2",
-    "tsc-watch": "^4.4.0",
-    "typescript": "^3.4.4"
+    "@types/redis": "^2.8.32",
+    "axios": "^0.21.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "prettier-eslint-cli": "^8.0.1",
+    "ts-jest": "^29.1.2",
+    "tsc-watch": "^6.0.4",
+    "typescript": "^5.3.3"
   }
 }

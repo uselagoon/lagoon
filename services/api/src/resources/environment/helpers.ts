@@ -3,6 +3,8 @@ import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+import { Sql as problemSql } from '../problem/sql';
+import { Sql as factSql } from '../fact/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 // import { logger } from '../../loggers/logger';
 
@@ -35,7 +37,7 @@ export const Helpers = (sqlClientPool: Pool) => {
         sqlClientPool,
         Sql.deleteEnvironmentVariables(eid)
       );
-      // clean up servies
+      // clean up services
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
       await query(
         sqlClientPool,
@@ -48,6 +50,19 @@ export const Helpers = (sqlClientPool: Pool) => {
         sqlClientPool,
         Sql.deleteEnvironment(name, pid)
       );
+
+      // Here we clean up insights attached to the environment
+
+      await query(
+        sqlClientPool,
+        factSql.deleteFactsForEnvironment(eid)
+      );
+
+      await query(
+        sqlClientPool,
+        problemSql.deleteProblemsForEnvironment(eid)
+      );
+
     },
     getEnvironmentsDeploytarget: async (eid) => {
       const rows = await query(
@@ -133,6 +148,27 @@ export const Helpers = (sqlClientPool: Pool) => {
         ]
       // @ts-ignore
       ])(environmentInput);
-    }
+    },
+    getEnvironmentServices: async (eid: number) => {
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectServicesByEnvironmentId(
+          eid
+        )
+      );
+      return rows;
+    },
+    resetServiceContainers: async (serviceId: number, containers: any) => {
+      await query(
+        sqlClientPool,
+        Sql.deleteServiceContainers(serviceId)
+      );
+      for (const container of containers){
+        await query(
+          sqlClientPool,
+          Sql.insertServiceContainer(serviceId, container.name)
+        );
+      }
+    },
   };
 };

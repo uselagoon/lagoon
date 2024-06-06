@@ -36,7 +36,7 @@ const makeGracefulShutdown = (server: Server) => {
       const server = await createServer();
       const gracefulShutdown = makeGracefulShutdown(server);
 
-      // Shutdown on tsc-watch restart, docker-compose restart/kill, and k8s pod kills
+      // Shutdown on tsc-watch restart, docker compose restart/kill, and k8s pod kills
       process.once('SIGTERM', gracefulShutdown);
       // Shutdown on ctrl-c
       process.once('SIGINT', gracefulShutdown);

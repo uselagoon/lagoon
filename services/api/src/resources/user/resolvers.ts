@@ -1,8 +1,6 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
-import { logger } from '../../loggers/logger';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 
@@ -112,11 +110,21 @@ export const getAllUsers: ResolverFn = async (
 export const getUserByEmail: ResolverFn = async (
   _root,
   { email },
-  { sqlClientPool, models, hasPermission },
+  { sqlClientPool, models, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('user', 'viewAll');
 
   const user = await models.UserModel.loadUserByUsername(email);
+  if (keycloakGrant) {
+    if (keycloakGrant.access_token.content.sub == user.id) {
+      await hasPermission('ssh_key', 'view:user', {
+        users: [user.id]
+      });
+    } else {
+      await hasPermission('user', 'viewAll');
+    }
+  } else {
+    await hasPermission('user', 'viewAll');
+  }
 
   return user;
 };
@@ -151,7 +159,7 @@ export const updateUser: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'update', {
@@ -178,7 +186,7 @@ export const resetUserPassword: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   // someone can reset their own password if they want to, but admins will be able to do this
@@ -198,7 +206,7 @@ export const deleteUser: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'delete', {
@@ -224,7 +232,7 @@ export const addUserToOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   let updateUser = {
@@ -275,7 +283,7 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('organization', 'addOwner', {

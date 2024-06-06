@@ -1,0 +1,16 @@
+name: example.com
+webhookhandler: webhook.example.com
+sshport: 22
+sshhostname: ssh.example.com
+apiaddress: api.example.com
+helpstring: your Lagoon administrator
+helpstring_ja: Lagoon 管理者
+
+## Comment out any of the above, and uncomment the corresponding below to see the variables in action
+# name: amazee.io
+# webhookhandler: webhook.amazeeio.cloud
+# sshport: 32222
+# sshhostname: ssh.amazeeio.cloud
+# apiaddress: api.amazeeio.cloud
+# helpstring: "[amazee.io support](https://support.amazee.io)"
+# helpstring: "[amazee.io support](mailto:support@amazee.io)"

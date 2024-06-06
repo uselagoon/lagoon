@@ -124,6 +124,10 @@ const {
   userCanSshToEnvironment,
   getEnvironmentUrl,
   getEnvironmentsByKubernetes,
+  addOrUpdateEnvironmentService,
+  getEnvironmentByServiceId,
+  getServiceContainersByServiceId,
+  deleteEnvironmentService,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -248,6 +252,7 @@ const {
   updateOrganization,
   deleteOrganization,
   getOrganizationById,
+  getOrganizationByName,
   addDeployTargetToOrganization,
   removeDeployTargetFromOrganization,
   getDeployTargetsByOrganizationId,
@@ -258,9 +263,9 @@ const {
   getGroupsByNameAndOrganizationId,
   getOwnersByOrganizationId,
   getProjectsByOrganizationId,
-  addProjectToOrganization,
+  addExistingProjectToOrganization,
   removeProjectFromOrganization,
-  addGroupToOrganization,
+  addExistingGroupToOrganization,
   getGroupsByOrganizationsProject,
   getGroupCountByOrganizationProject,
   getProjectGroupOrganizationAssociation, // WIP resolver
@@ -268,6 +273,8 @@ const {
   getNotificationsForOrganizationProjectId,
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
+  checkBulkImportProjectsAndGroupsToOrganization,
+  bulkImportProjectsAndGroupsToOrganization
 } = require('./resources/organization/resolvers');
 
 const {
@@ -309,6 +316,13 @@ const resolvers = {
     DEVELOPER: 'developer',
     MAINTAINER: 'maintainer',
     OWNER: 'owner'
+  },
+  DeploymentSourceType: {
+    API: 'api',
+    WEBHOOK: 'webhook'
+  },
+  TaskSourceType: {
+    API: 'api',
   },
   ProjectOrderType: {
     NAME: 'name',
@@ -463,6 +477,9 @@ const resolvers = {
   Fact: {
     references: getFactReferencesByFactId,
   },
+  EnvironmentService: {
+    containers: getServiceContainersByServiceId,
+  },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
@@ -522,9 +539,6 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
   },
-  Restore: {
-    restoreLocation: getRestoreLocation,
-  },
   Workflow: {
     advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },
@@ -577,9 +591,11 @@ const resolvers = {
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
     allOrganizations: getAllOrganizations,
     organizationById: getOrganizationById,
+    organizationByName: getOrganizationByName,
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
+    checkBulkImportProjectsAndGroupsToOrganization
   },
   Mutation: {
     addProblem,
@@ -600,6 +616,7 @@ const resolvers = {
     deleteEnvironment,
     deleteAllEnvironments,
     addOrUpdateEnvironmentStorage,
+    addOrUpdateStorageOnEnvironment: addOrUpdateEnvironmentStorage,
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
@@ -704,13 +721,17 @@ const resolvers = {
     addOrganization,
     updateOrganization,
     deleteOrganization,
-    addGroupToOrganization,
-    addProjectToOrganization,
+    addGroupToOrganization: addGroup,
+    addExistingGroupToOrganization,
+    addExistingProjectToOrganization,
     removeProjectFromOrganization,
     addDeployTargetToOrganization,
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
+    bulkImportProjectsAndGroupsToOrganization,
+    addOrUpdateEnvironmentService,
+    deleteEnvironmentService
   },
   Subscription: {
     backupChanged: backupSubscriber,

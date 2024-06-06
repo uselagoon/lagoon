@@ -23,7 +23,7 @@ var (
 	startupConnectionAttempts    int
 	startupConnectionInterval    int
 	lagoonAPIHost                string
-	lagoonAppID                  string
+	lagoonAPIVersion             string
 	jwtTokenSigningKey           string
 	jwtAudience                  string
 	actionsQueueName             string
@@ -53,6 +53,8 @@ func main() {
 		"The duration between startup attempts.")
 	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000/graphql",
 		"The host for the lagoon api.")
+	flag.StringVar(&lagoonAPIVersion, "lagoon-api-version", "2.18.0",
+		"The version for the lagoon api.")
 	flag.StringVar(&jwtTokenSigningKey, "jwt-token-signing-key", "super-secret-string",
 		"The jwt signing token key or secret.")
 	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
@@ -95,6 +97,7 @@ func main() {
 		JWTAudience:     jwtAudience,
 		JWTSubject:      jwtSubject,
 		JWTIssuer:       jwtIssuer,
+		Version:         lagoonAPIVersion,
 	}
 
 	log.Println("actions-handler running")

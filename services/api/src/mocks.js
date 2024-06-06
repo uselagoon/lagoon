@@ -239,10 +239,6 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
 -----END RSA PRIVATE KEY-----`,
     subfolder: '',
     notifications: [mocks.Notification()],
-    activeSystemsDeploy: 'lagoon_controllerBuildDeploy',
-    activeSystemsPromote: 'lagoon_controllerBuildDeploy',
-    activeSystemsRemove: 'lagoon_controllerRemove',
-    activeSystemsTask: 'lagoon_controllerJob',
     branches: faker.random.arrayElement(['true', 'false', '^(master|staging)$']),
     pullrequests: faker.random.arrayElement(['true', 'false', '[BUILD]']),
     productionEnvironment: 'master',
@@ -353,7 +349,7 @@ mocks.EnvironmentStorage = (parent, args = {}, context, info) => ({
   id: faker.random.number(),
   environment: args.hasOwnProperty('environment') ? { id: args.environment.id } : { id: mocks.Environment().id },
   persistentStorageClaim: '',
-  bytesUsed: faker.random.number({ precision: 0.001 }), // Float
+  kibUsed: faker.random.number({ precision: 0.001 }), // Float
   updated: mocks.Date(),
 });
 
@@ -361,7 +357,7 @@ mocks.EnvironmentStorageMonth = () => {
   const date = new Date(mocks.Date());
   return {
     month: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    bytesUsed: faker.random.number({ precision: 0.001 }),
+    kibUsed: faker.random.number({ precision: 0.001 }),
   };
 };
 
@@ -587,8 +583,8 @@ mocks.Query = () => ({
     deployments: [ mocks.Deployment() ]
   }),
   environmentWithDeployments: () => mocks.Environment(null, { deployments: [
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }}),
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }})
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }}),
+    mocks.Deployment(null, { environment: { openshiftProjectName: "lagoon-demo-main" }})
   ]}),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),

@@ -1,0 +1,54 @@
+- name: "{{ testname }} - Verify that source user and type are correct"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check latest deployment {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-latest-deployment-source.gql") }}'
+      register: apiresponse
+      until:
+        - apiresponse.json.data.environmentByKubernetesNamespaceName.deployments[0].status is defined
+      retries: 30
+      delay: 10
+
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check latest deployment {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-latest-deployment-source.gql") }}'
+      register: apiresponse
+
+    - name: "{{ testname }} - POST api check response {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check latest deployment source user and type are correct {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-latest-deployment-source.gql") }}'
+      register: apiresponse
+      until:
+        - apiresponse.json.data.environmentByKubernetesNamespaceName.deployments[0].sourceUser == sourceUser
+        - apiresponse.json.data.environmentByKubernetesNamespaceName.deployments[0].sourceType == sourceType
+      retries: 60
+      delay: 10
+
+    - name: "{{ testname }} - POST api check response {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

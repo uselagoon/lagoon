@@ -41,7 +41,7 @@ For further information and custom configuration, please refer to [official Rabb
 ## Environment Variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 | Environment Variable        | Default | Description                                      |
 | :-------------------------- | :------ | :----------------------------------------------- |

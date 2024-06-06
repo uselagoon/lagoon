@@ -9,9 +9,10 @@ We ship 2 versions of Node.js images: the normal `node:version` image and the `n
 The builder variant of those images comes with additional tooling that is needed when you build Node.js apps (such as the build libraries, npm and Yarn). For a full list check out their [Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder).
 
 * 12 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-12`
-* 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/14.Dockerfile) (Security Support until April 2023) - `uselagoon/node-14`
-* 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/16.Dockerfile) (Security Support until September 2023) - `uselagoon/node-16`
+* 14 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-14`
+* 16 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-16`
 * 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (Security Support until April 2025) - `uselagoon/node-18`
+* 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (Security Support until April 2026) - `uselagoon/node-20`
 
 !!! Tip
     We stop updating EOL Node.js images usually with the Lagoon release that comes after the officially communicated EOL date: [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
@@ -20,7 +21,7 @@ The builder variant of those images comes with additional tooling that is needed
 
 The default exposed port of Node.js containers is port `3000`.
 
-Persistent storage is configurable in Lagoon, using the `lagoon.type: node-persistent`. See [the docs](../using-lagoon-the-basics/docker-compose-yml.md#persistent-storage) for more info
+Persistent storage is configurable in Lagoon, using the `lagoon.type: node-persistent`. See [the docs](../concepts-basics/docker-compose-yml.md#persistent-storage) for more info
 
 Use the following labels in your `docker-compose.yml` file to configure it:
 
@@ -45,7 +46,7 @@ Use the following labels in your `docker-compose.yml` file to configure it:
         ports:
         # local development only
             # this exposes the port 3000 with a random local port
-            # find it with `docker-compose port node 3000`
+            # find it with `docker compose port node 3000`
             - "3000"
         volumes:
         # local development only

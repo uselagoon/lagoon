@@ -12,7 +12,7 @@ description: >-
 | Active/Standby | Active/Standby deployments, also known as blue/green deployments, are a way to seamlessly switch over your production content. |
 | Ansible| An open-source suite of software tools that enables infrastructure as code.|
 | AWS | Amazon Web Services |
-| AWS Glacier | A secure and inexpensive S3 storage for long-term backup. |
+| Amazon S3 Glacier | A secure and inexpensive S3 storage for long-term backup. |
 | BitBucket | Git hosting owned by Atlassian, which integrates with their tools.|
 | Brew | Homebrew is a package manager for OSX. |
 | CA | A Certificate Authority is a trusted entity that issues Secure Sockets Layer (SSL) certificates.|
@@ -24,6 +24,7 @@ description: >-
 | CMS | Content Management System |
 | Cron job | The cron command-line utility is a job scheduler on Unix-like operating systems. Users who set up and maintain software environments use cron to schedule jobs, also known as cron jobs, to run periodically at fixed times, dates, or intervals.|
 | Composer | A package manager |
+| DDEV | A Docker-based PHP development environment popular in the Drupal community. |
 | DDoS | Distributed Denial of Service |
 | DNS | Domain Name System |
 | Docker | A container engine using Linux features and automating application deployment. |
@@ -37,6 +38,7 @@ description: >-
 | Git Hash/SHA | A generated string that identifies each commit. Uses the SHA-1 algorithm |
 | GitHub | A proprietary version control hosting company using Git. A subsidiary of Microsoft, it offers all of the distributed version control and source code management functionality of Git as well as additional features. |
 | GitLab | A web-based Git repository manager with CI capabilities. |
+| Grafana | An open-source analytics and monitoring solution. |
 | GraphQL | An open-source data query and manipulation language for APIs, and a runtime for fulfilling queries with existing data. |
 | Harbor | An open source container image registry that secures images with role-based access control, scans images for vulnerabilities, and signs images as trusted. |
 | Helm | A package manager for Kubernetes, it helps you manage Kubernetes applications. |
@@ -47,10 +49,12 @@ description: >-
 | Ingress controller | An Ingress controller is a specialized load balancer for Kubernetes (and other containerized) environments. |
 | IPTables | A command line utility for configuring Linux kernel firewall. |
 | Jenkins | An open-source automation server. |
+| JWT | JSON Web Token. |
 | k3s | A highly available, certified Kubernetes distribution. |
 | k3d | k3d is a lightweight wrapper to run k3s in Docker. |
 | k8s | Numeronym for Kubernetes \(K + 8 letters + s\) |
 | k8up | K8up is a backup operator that will handle storage and app backups on a k8s/OpenShift cluster. |
+| Keycloak | An open-source identity and access management system. |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |
 | KinD | Kubernetes in Docker - a tool for running local Kubernetes clusters using Docker container “nodes”. Kind was primarily designed for testing Kubernetes itself, but may be used for local development or CI.|
 | kubectl | The Kubernetes command-line tool which allows you to run commands against Kubernetes clusters.|
@@ -66,9 +70,11 @@ description: >-
 | MongoDB | MongoDB is a cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with schema. |
 | Multi-Tenant | A single instance of software runs on a server and serves multiple tenants - a tenant is a group of users who share common access with privileges to access the software instance. The software is designed to provide each tenant a share of the resources. |
 | MVC | Model-view-controller - an architectural pattern that separates an application into three main logical components: the model, the view, and the controller. Each of these components are built to handle specific development aspects of an application. |
+| MySQL | MySQL is an open-source relational database management system. |
 | NGINX | NGINX is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |
 | Node | Single EC2 instance \(AWS virtual machine\) |
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |
+| Open source | A type of computer software in which source code is released under a license in which the copyright holder grants users the rights to study, change, and distribute the software to anyone and for any purpose. Open-source software may be developed in a collaborative public manner. |
 | OpenSearch | A community-driven, Apache 2.0-licensed open source search and analytics suite that makes it easy to ingest, search, visualize, and analyze data.|
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |
 | PHP | PHP \(Personal Home Page\) is a general-purpose programming language originally designed for web development. |
@@ -79,6 +85,7 @@ description: >-
 | Puppet | An open-source software configuration management and deployment tool. |
 | PV | PersistentVolume -  a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using Storage Classes.|
 | PVC | Persistent Volume Claim - a request for storage by a user. |
+| Pygmy | A Lagoon flavored local development system. |
 | Python | Python is an open-source, interpreted, high-level, general-purpose programming language. |
 | RabbitMQ | An open-source message-broker software. |
 | RBAC | Role-Based Access Control |
@@ -90,6 +97,8 @@ description: >-
 | RWO | Kubernetes access mode ReadWriteOnce - the volume can be mounted as read-write by a single node. ReadWriteOnce access mode still can allow multiple pods to access the volume when the pods are running on the same node.|
 | RWOP | Kubernetes access mode ReadWriteOncePod - the volume can be mounted as read-write by a single Pod. Use ReadWriteOncePod access mode if you want to ensure that only one pod across whole cluster can read that PVC or write to it. This is only supported for CSI volumes and Kubernetes version 1.22+.|
 | RWX | Kubernetes access mode ReadWriteMany - the volume can be mounted as read-write by many nodes. |
+| S3 | Amazon Simple Storage Service. |
+| SBOM | Software Bill of Materials. |
 | SHA-1 | Secure Hash Algorithm 1, a hash function which takes an input and produces a 160-bit hash value known as a message digest – typically rendered as 40 hexadecimal digits. It was designed by the United States National Security Agency, and is a U.S. Federal Information Processing Standard. |
 | Solr | An open-source enterprise-search platform, written in Java. |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |
@@ -104,4 +113,4 @@ description: >-
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |
 | VM | Virtual Machine |
 | Webhook | A webhook is a way for an app like GitHub, GitLab, Bitbucket, etc, to provide other applications with immediate data and act upon something, like a pull request. |
-| YAML | Yet Another Markup Language - YAML is a human-readable data-serialization language. It is commonly used for configuration files and in applications where data is being stored or transmitted.|
+| YAML | YAML Ain't Markup Language - YAML is a human-readable data-serialization language. It is commonly used for configuration files and in applications where data is being stored or transmitted.|

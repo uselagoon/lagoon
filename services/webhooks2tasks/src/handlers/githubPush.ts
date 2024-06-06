@@ -42,12 +42,20 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.sender.login) {
+      sourceUser = body.sender.login
+    }
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
     }
 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
@@ -72,8 +80,6 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
         case "NoNeedToDeployBranch":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,

@@ -9,6 +9,7 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission) => {
   const getTaskById = async (TaskID: number) => {
@@ -47,7 +48,9 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
       deployTokenInjection,
       projectKeyInjection,
       adminOnlyView,
-      execute
+      execute,
+      sourceUser,
+      sourceType
     }: {
       id?: number;
       name: string;
@@ -64,6 +67,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
       projectKeyInjection: boolean;
       adminOnlyView: boolean;
       execute: boolean;
+      sourceUser: string;
+      sourceType: string;
     }) => {
       const { insertId } = await query(
         sqlClientPool,
@@ -82,6 +87,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
           projectKeyInjection,
           adminOnlyView,
           remoteId,
+          sourceUser,
+          sourceType,
         }),
       );
 

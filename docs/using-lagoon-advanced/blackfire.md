@@ -36,10 +36,10 @@ After restarting the containers, you should be able to profile via the [Blackfir
 
 ## Remote Usage of Blackfire
 
-In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](environment-variables.md). Important: Environment variables set in the `docker-compose.yml` for local development are not used by Lagoon in remote environments!
+In order to use Blackfire in deployed Lagoon environments the same enviornment variables need to be set, this time via one of the possibilities of adding [environment variables to Lagoon](../concepts-advanced/environment-variables.md). Important: Environment variables set in the `docker-compose.yml` for local development are not used by Lagoon in remote environments!
 
 ## Debugging
 
-The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via `docker-compose logs` or via the Lagoon Logging Infrastructure for remote environments.
+The Blackfire Agent running in the PHP containers outputs logs as normal container logs, which can be seen via `docker compose logs` or via the Lagoon Logging Infrastructure for remote environments.
 
 By default the Logs are set to Level `3` (info), via the environment variable `BLACKFIRE_LOG_LEVEL` the level can be increased to `4` (debug) to generate more debugging ouput.

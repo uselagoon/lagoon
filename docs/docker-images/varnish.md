@@ -5,7 +5,7 @@ The [Lagoon `Varnish` Docker images](https://github.com/uselagoon/lagoon-images/
 ## Supported versions
 
 * 5 \(available for compatibility only, no longer officially supported\) - `uselagoon/varnish-5`
-* 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile) - `uselagoon/varnish-6`
+* 6.0 LTS [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile) - `uselagoon/varnish-6`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/7.Dockerfile) - `uselagoon/varnish-7`
 
 ## Included varnish modules
@@ -21,12 +21,12 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ## Included `default.vcl` configuration file
 
-The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](./#environment-variables)\).
+The image ships a _default_ `vcl` configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](#environment-variables)\).
 
 ## Environment Variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 | Environment Variable       | Default               | Description                                                                             |
 | :------------------------- | :-------------------- | :-------------------------------------------------------------------------------------- |

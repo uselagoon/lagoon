@@ -8,13 +8,13 @@ description: Configuring Applications for use on Lagoon
 
 Project- and environment-level configuration for Lagoon is provided in the `.lagoon.yml` file in your repository.
 
-See [`lagoon-yml.md`](../using-lagoon-the-basics/lagoon-yml.md).
+See [`lagoon-yml.md`](../concepts-basics/lagoon-yml.md).
 
 ## `docker-compose.yml`
 
 Service-level configuration for Lagoon in provided in the `docker-compose.yml` file in your repository. In particular, the `lagoon.type` and associated service labels are documented in the individual services.
 
-See [`docker-compose-yml.md`](../using-lagoon-the-basics/docker-compose-yml.md)
+See [`docker-compose-yml.md`](../concepts-basics/docker-compose-yml.md)
 
 ## Storage
 
@@ -37,7 +37,7 @@ Lagoon supports Redis as a cache backend. In production, some users provision a 
 
 ## Search
 
-Lagoon supports Elasticsearch, Solr and (soon) OpenSearch as search providers. External search providers can also be configured if required.
+Lagoon supports Elasticsearch, Solr and OpenSearch as search providers. External search providers can also be configured if required.
 
 ## Ingress/Routes
 
@@ -47,4 +47,4 @@ Lagoon auto-generates routes for services that have ingress requirements. Custom
 
 Lagoon makes heavy use of environment variables, at build and runtime. Where these are used to provide critical configuration for your application (e.g. database config/credentials) - it is important that the local and Lagoon versions are named similarly.
 
-See [environment-variables.md](../using-lagoon-advanced/environment-variables.md).
+See [environment-variables.md](../concepts-advanced/environment-variables.md).

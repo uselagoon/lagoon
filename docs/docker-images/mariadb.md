@@ -2,13 +2,14 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile). Based on the official packages [`mariadb`](https://pkgs.alpinelinux.org/packages?name=mariadb&branch=edge) and [`mariadb-client`](https://pkgs.alpinelinux.org/packages?name=mariadb-client&branch=edge) provided by the the upstream Alpine image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile). Based on the official packages [`mariadb`](https://pkgs.alpinelinux.org/packages?name=mariadb&branch=edge) and [`mariadb-client`](https://pkgs.alpinelinux.org/packages?name=mariadb-client&branch=edge) provided by the the upstream Alpine image.
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
 * 10.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.4.Dockerfile) (Alpine 3.12 Support until May 2022) - `uselagoon/mariadb-10.4`
 * 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 Support until May 2023) - `uselagoon/mariadb-10.5`
 * 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 Support until May 2024) - `uselagoon/mariadb-10.6`
+* 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 Support until May 2025) - `uselagoon/mariadb-10.11`
 
 !!! Info
     As these images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/) for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
@@ -33,7 +34,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 		# tells Lagoon this is a MariaDB database
 			lagoon.type: mariadb
 		ports:
-			# exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
+			# exposes the port 3306 with a random local port, find it with `docker compose port mariadb 3306`
 			- "3306"
 		volumes:
 			# mounts a named volume at the default path for MariaDB
@@ -50,7 +51,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 The image ships a _default_ MariaDB configuration file, optimized to work on
 Lagoon. Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 ## Environment Variables
 

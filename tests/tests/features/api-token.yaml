@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
+  - ansible.builtin.include_tasks: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
 
 - name: "SSH AUTH - Check if token is allowed for API request"
   hosts: localhost
@@ -10,6 +10,6 @@
   vars:
     url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/"
     bearer_token: "{{ token }}"
-    expected_content: '{"status":"success","data":{}}'
+    expected_content: 'success'
   tasks:
-  - include: ../../checks/check-api-request.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-api-request.yaml
