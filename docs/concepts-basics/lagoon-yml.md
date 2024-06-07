@@ -521,33 +521,88 @@ With the key `ssh` you can define another SSH endpoint that should be used by th
 
 ### `container-registries`
 
-The `container-registries` block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your YAML, it will default to using Docker Hub.
+The `container-registries` block allows you to define your own private container registries to pull custom or private images.
 
-There are 2 ways to define the password used for your registry user.
+To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your YAML, it will default to using Docker Hub. We also recommend adding a `description` to your container-registry entries to provide a bit of information about them, some examples are provided.
 
-Create an environment variable in the Lagoon API with the type `container_registry`:
+There are 2 ways to define the username and password used for your registry user.
 
-* `lagoon add variable -p <project_name> -N <registry_password_variable_name> -V <password_goes_here> -S container_registry`
-* \(see more on [Environment Variables](../concepts-advanced/environment-variables.md)\)
+* Define them as environment variables in the API
+* Hardcode them in the `.lagoon.yml` file (we don't recommend this though)
 
-The name of the variable you create can then be set as the password:
+#### Environment variables method
 
-```yaml title=".lagoon.yml"
-container-registries:
-  my-custom-registry:
-    username: myownregistryuser
-    password: <registry_password_variable_name>
-    url: my.own.registry.com
-```
-
-You can also define the password directly in the `.lagoon.yml` file in plain text:
+Firstly, define the `container-registries` in your `.lagoon.yml`, you don't need to define the username or password here. If you do use a custom registry, you will still need to provide the `url`, for example:
 
 ```yaml title=".lagoon.yml"
 container-registries:
   docker-hub:
+    description: "username and password consumed from environment variables for the default docker.io registry"
+  my-custom-registry:
+    description: "username and password consumed from environment variables for my custom registry"
+    url: my.own.registry.com
+  another-custom-registry:
+    description: "password consumed from environment variables for my other registry"
+    username: myotheruser
+    url: my.other.registry.com
+```
+
+If you do define a username in the `.lagoon.yml` you don't need to add the associated variable, but if you do add the variable, the value of the variable will be prefered.
+
+Next, create environment variables in the Lagoon API with the type `container_registry`:
+
+* `lagoon add variable -p <project_name> -N <registry_username_variable_name> -V <username_goes_here> -S container_registry`
+* `lagoon add variable -p <project_name> -N <registry_password_variable_name> -V <password_goes_here> -S container_registry`
+* \(see more on [Environment Variables](../concepts-advanced/environment-variables.md)\)
+
+The name of the variables should be the name of the registry defined in the `.lagoon.yml` file, it should be:
+
+* uppercase
+* replace `-` with `_`
+* have the prefix `REGISTRY_`
+* have the suffix of `_USERNAME` or `_PASSWORD`.
+
+Some examples of this are:
+
+* `dockerhub` would become `REGISTRY_DOCKERHUB_USERNAME` and `REGISTRY_DOCKERHUB_PASSWORD`
+* `docker-hub` would become `REGISTRY_DOCKER_HUB_USERNAME` and `REGISTRY_DOCKER_HUB_PASSWORD`
+* `my-custom-registry` would become `REGISTRY_MY_CUSTOM_REGISTRY_USERNAME` and `REGISTRY_MY_CUSTOM_REGISTRY_PASSWORD`
+* lowercased versions may still work if there are no `-` in them, for example `REGISTRY_dockerhub_USERNAME`, but the uppercased version will always be chosen above others.
+
+???+ "Legacy method of defining registry password"
+    A previous method that allowed for the password to be defined using an environment variable, with the name of the variable to be defined in the `.lagoon.yml` file like so:
+    ```yaml title=".lagoon.yml"
+    container-registries:
+      docker-hub:
+        username: dockerhubuser
+        password: MY_DOCKER_HUB_PASSWORD
+    ```
+    > the username needs to be provided in this file too, unless the supported variable for defining the username is provided.
+
+    The variable can then ba added to the API like so
+
+    * `lagoon add variable -p <project_name> -N MY_DOCKER_HUB_PASSWORD -V <password_goes_here> -S container_registry`
+
+    While we will continue to support this method, it may be deprecated in the future, we will ensure that warnings are presented within builds to give time for users to change to the supported method.
+
+    If a supported variable password is provided, it will be used instead of the custom named variable.
+
+#### Hardcoded values method
+You can also define the password directly in the `.lagoon.yml` file in plain text, however we do not recommend this.
+
+```yaml title=".lagoon.yml"
+container-registries:
+  docker-hub:
+    description: "the default docker.io registry credentials"
     username: dockerhubuser
     password: MySecretPassword
+  my-custom-registry:
+    description: "the credentials for my own registry"
+    url: my.own.registry.com
+    username: mycustomuser
+    password: MyCustomSecretPassword
 ```
+
 
 ### Consuming a custom or private container registry image
 
