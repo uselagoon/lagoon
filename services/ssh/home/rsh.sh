@@ -122,14 +122,10 @@ if [[ $CLUSTER_TOKEN == "null" ]]; then
   CLUSTER_TOKEN=$(KUBECONFIG="/tmp/kube" oc --insecure-skip-tls-verify whoami -t)
 fi
 
-OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${CLUSTER_TOKEN} --server=${CLUSTER_CONSOLE} "
 KUBECTL="/usr/bin/kubectl --insecure-skip-tls-verify -n ${PROJECT} --token=${CLUSTER_TOKEN} --server=${CLUSTER_CONSOLE} "
-
-IS_KUBERNETES=false
 
 # If there is a deployment for the given service searching for lagoon.sh labels
 if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
-  IS_KUBERNETES=true
   # get any other deployments that may have been idled and unidle them if required
   # this only needs to be done for kubernetes
   # we do this first to give the services a bit of time to unidle before starting the one that was requested
@@ -147,7 +143,7 @@ if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) 
           REPLICAS=1
         fi
         echo "${UUID}: Attempting to scale deployment='${DEP}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-        $OC scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
+        $KUBECTL scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
       fi
     done
     # then if we have to wait for them to start, do that here
@@ -182,7 +178,7 @@ if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) 
   # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
   if [[ $($KUBECTL get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
     echo "${UUID}: Attempting to scale deployment='${DEPLOYMENT}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-    $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
+    $KUBECTL scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
   fi
   # Wait until the scaling is done
   SSH_CHECK_COUNTER=0
@@ -199,32 +195,10 @@ if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) 
   echo "${UUID}: Deployment is running deployment='${DEPLOYMENT}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
 fi
 
-# If there is a deploymentconfig for the given service, then it isn't kubernetes, it is openshift.
-if [[ "${IS_KUBERNETES}" == "false" ]]; then
-  if [[ $($OC get deploymentconfigs -l service=${SERVICE} 2> /dev/null) ]]; then
-    DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
-    # If the deploymentconfig is scaled to 0, scale to 1
-    if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
-      echo "${UUID}: Attempting to scale deploymentconfig='${DEPLOYMENTCONFIG}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-      $OC scale --replicas=1 ${DEPLOYMENTCONFIG} >/dev/null 2>&1
-
-      # Wait until the scaling is done
-      while [[ ! $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
-      do
-        sleep 1
-      done
-    fi
-    echo "${UUID}: Deployment is running deploymentconfig='${DEPLOYMENTCONFIG}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-  fi
-fi
 
 # Check for newer Helm chart "lagoon.sh" labels
 echo "${UUID}: Getting pod name for exec for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-if [[ "${IS_KUBERNETES}" == "true" ]]; then
-  POD=$($KUBECTL get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
-else
-  POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
-fi
+POD=$($KUBECTL get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
 if [[ ! $POD ]]; then
   echo "${UUID}: No running pod found for service ${SERVICE}"
@@ -233,11 +207,7 @@ fi
 
 # If no container defined, load the name of the first container
 if [[ -z ${CONTAINER} ]]; then
-  if [[ "${IS_KUBERNETES}" == "true" ]]; then
-    CONTAINER=$($KUBECTL get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
-  else
-    CONTAINER=$($OC get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
-  fi
+  CONTAINER=$($KUBECTL get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
 fi
 
 if [ -t 1 ]; then
@@ -248,17 +218,8 @@ fi
 
 echo "${UUID}: Exec to pod='${POD}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
 
-if [[ "${IS_KUBERNETES}" == "true" ]]; then
-  if [[ -z "$*" ]]; then
-    exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
-  else
-    exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
-  fi
+if [[ -z "$*" ]]; then
+  exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
 else
-  if [[ -z "$*" ]]; then
-    exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
-  else
-    exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
-  fi
-
+  exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
 fi
