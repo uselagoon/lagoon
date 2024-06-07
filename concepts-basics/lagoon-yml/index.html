@@ -760,6 +760,26 @@
     container-registries
   </a>
   
+    <nav class="md-nav" aria-label="container-registries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-method" class="md-nav__link">
+    Environment variables method
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardcoded-values-method" class="md-nav__link">
+    Hardcoded values method
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -5104,6 +5124,26 @@
     container-registries
   </a>
   
+    <nav class="md-nav" aria-label="container-registries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-method" class="md-nav__link">
+    Environment variables method
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardcoded-values-method" class="md-nav__link">
+    Hardcoded values method
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -5624,164 +5664,216 @@ in-pod cron job via the crontab of the defined service.</p>
 </details>
 <p>With the key <code>ssh</code> you can define another SSH endpoint that should be used by the Lagoon CLI and <code>drush</code> to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: <code>localhost:2020</code> This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.</p>
 <h3 id="container-registries"><code>container-registries</code><a class="headerlink" href="#container-registries" title="Permanent link">#</a></h3>
-<p>The <code>container-registries</code> block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a <code>username</code>, <code>password</code>, and optionally the <code>url</code> for your registry. If you don't specify a <code>url</code> in your YAML, it will default to using Docker Hub.</p>
-<p>There are 2 ways to define the password used for your registry user.</p>
-<p>Create an environment variable in the Lagoon API with the type <code>container_registry</code>:</p>
+<p>The <code>container-registries</code> block allows you to define your own private container registries to pull custom or private images.</p>
+<p>To use a private container registry, you will need a <code>username</code>, <code>password</code>, and optionally the <code>url</code> for your registry. If you don't specify a <code>url</code> in your YAML, it will default to using Docker Hub. We also recommend adding a <code>description</code> to your container-registry entries to provide a bit of information about them, some examples are provided.</p>
+<p>There are 2 ways to define the username and password used for your registry user.</p>
 <ul>
+<li>Define them as environment variables in the API</li>
+<li>Hardcode them in the <code>.lagoon.yml</code> file (we don't recommend this though)</li>
+</ul>
+<h4 id="environment-variables-method">Environment variables method<a class="headerlink" href="#environment-variables-method" title="Permanent link">#</a></h4>
+<p>Firstly, define the <code>container-registries</code> in your <code>.lagoon.yml</code>, you don't need to define the username or password here. If you do use a custom registry, you will still need to provide the <code>url</code>, for example:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">container-registries</span><span class="p">:</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">docker-hub</span><span class="p">:</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;username</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">password</span><span class="nv"> </span><span class="s">consumed</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">environment</span><span class="nv"> </span><span class="s">variables</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">default</span><span class="nv"> </span><span class="s">docker.io</span><span class="nv"> </span><span class="s">registry&quot;</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">my-custom-registry</span><span class="p">:</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;username</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">password</span><span class="nv"> </span><span class="s">consumed</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">environment</span><span class="nv"> </span><span class="s">variables</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">my</span><span class="nv"> </span><span class="s">custom</span><span class="nv"> </span><span class="s">registry&quot;</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.own.registry.com</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">  </span><span class="nt">another-custom-registry</span><span class="p">:</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;password</span><span class="nv"> </span><span class="s">consumed</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">environment</span><span class="nv"> </span><span class="s">variables</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">my</span><span class="nv"> </span><span class="s">other</span><span class="nv"> </span><span class="s">registry&quot;</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myotheruser</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.other.registry.com</span>
+</span></code></pre></div>
+<p>If you do define a username in the <code>.lagoon.yml</code> you don't need to add the associated variable, but if you do add the variable, the value of the variable will be prefered.</p>
+<p>Next, create environment variables in the Lagoon API with the type <code>container_registry</code>:</p>
+<ul>
+<li><code>lagoon add variable -p &lt;project_name&gt; -N &lt;registry_username_variable_name&gt; -V &lt;username_goes_here&gt; -S container_registry</code></li>
 <li><code>lagoon add variable -p &lt;project_name&gt; -N &lt;registry_password_variable_name&gt; -V &lt;password_goes_here&gt; -S container_registry</code></li>
 <li>(see more on <a href="../../concepts-advanced/environment-variables/">Environment Variables</a>)</li>
 </ul>
-<p>The name of the variable you create can then be set as the password:</p>
-<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">container-registries</span><span class="p">:</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">my-custom-registry</span><span class="p">:</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myownregistryuser</span>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;registry_password_variable_name&gt;</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.own.registry.com</span>
-</span></code></pre></div>
-<p>You can also define the password directly in the <code>.lagoon.yml</code> file in plain text:</p>
+<p>The name of the variables should be the name of the registry defined in the <code>.lagoon.yml</code> file, it should be:</p>
+<ul>
+<li>uppercase</li>
+<li>replace <code>-</code> with <code>_</code></li>
+<li>have the prefix <code>REGISTRY_</code></li>
+<li>have the suffix of <code>_USERNAME</code> or <code>_PASSWORD</code>.</li>
+</ul>
+<p>Some examples of this are:</p>
+<ul>
+<li><code>dockerhub</code> would become <code>REGISTRY_DOCKERHUB_USERNAME</code> and <code>REGISTRY_DOCKERHUB_PASSWORD</code></li>
+<li><code>docker-hub</code> would become <code>REGISTRY_DOCKER_HUB_USERNAME</code> and <code>REGISTRY_DOCKER_HUB_PASSWORD</code></li>
+<li><code>my-custom-registry</code> would become <code>REGISTRY_MY_CUSTOM_REGISTRY_USERNAME</code> and <code>REGISTRY_MY_CUSTOM_REGISTRY_PASSWORD</code></li>
+<li>lowercased versions may still work if there are no <code>-</code> in them, for example <code>REGISTRY_dockerhub_USERNAME</code>, but the uppercased version will always be chosen above others.</li>
+</ul>
+<details open="open">
+<summary>Legacy method of defining registry password</summary>
+<p>A previous method that allowed for the password to be defined using an environment variable, with the name of the variable to be defined in the <code>.lagoon.yml</code> file like so:
 <div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">container-registries</span><span class="p">:</span>
 </span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">docker-hub</span><span class="p">:</span>
 </span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dockerhubuser</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MySecretPassword</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MY_DOCKER_HUB_PASSWORD</span>
+</span></code></pre></div></p>
+<blockquote>
+<p>the username needs to be provided in this file too, unless the supported variable for defining the username is provided.</p>
+</blockquote>
+<p>The variable can then ba added to the API like so</p>
+<ul>
+<li><code>lagoon add variable -p &lt;project_name&gt; -N MY_DOCKER_HUB_PASSWORD -V &lt;password_goes_here&gt; -S container_registry</code></li>
+</ul>
+<p>While we will continue to support this method, it may be deprecated in the future, we will ensure that warnings are presented within builds to give time for users to change to the supported method.</p>
+<p>If a supported variable password is provided, it will be used instead of the custom named variable.</p>
+</details>
+<h4 id="hardcoded-values-method">Hardcoded values method<a class="headerlink" href="#hardcoded-values-method" title="Permanent link">#</a></h4>
+<p>You can also define the password directly in the <code>.lagoon.yml</code> file in plain text, however we do not recommend this.</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nt">container-registries</span><span class="p">:</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">docker-hub</span><span class="p">:</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;the</span><span class="nv"> </span><span class="s">default</span><span class="nv"> </span><span class="s">docker.io</span><span class="nv"> </span><span class="s">registry</span><span class="nv"> </span><span class="s">credentials&quot;</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dockerhubuser</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MySecretPassword</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="nt">my-custom-registry</span><span class="p">:</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;the</span><span class="nv"> </span><span class="s">credentials</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">my</span><span class="nv"> </span><span class="s">own</span><span class="nv"> </span><span class="s">registry&quot;</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.own.registry.com</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mycustomuser</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MyCustomSecretPassword</span>
 </span></code></pre></div>
 <h3 id="consuming-a-custom-or-private-container-registry-image">Consuming a custom or private container registry image<a class="headerlink" href="#consuming-a-custom-or-private-container-registry-image" title="Permanent link">#</a></h3>
 <p>To consume a custom or private container registry image, you need to update the service inside your <code>docker-compose.yml</code> file to use a build context instead of defining an image:</p>
-<div class="language-yaml highlight"><span class="filename">.docker-compose.yml</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nt">services</span><span class="p">:</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dockerfile.mariadb</span>
+<div class="language-yaml highlight"><span class="filename">.docker-compose.yml</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dockerfile.mariadb</span>
 </span></code></pre></div>
 <p>Once the <code>docker-compose.yml</code> file has been updated to use a build, you need to create the <code>Dockerfile.&lt;service&gt;</code> and then set your private image as the <code>FROM &lt;repo&gt;/&lt;name&gt;:&lt;tag&gt;</code></p>
-<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="l l-Scalar l-Scalar-Plain">FROM dockerhubuser/my-private-database:tag</span>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="l l-Scalar l-Scalar-Plain">FROM dockerhubuser/my-private-database:tag</span>
 </span></code></pre></div>
 <h2 id="example-lagoonyml">Example <code>.lagoon.yml</code><a class="headerlink" href="#example-lagoonyml" title="Permanent link">#</a></h2>
 <p>This is an example <code>.lagoon.yml</code> which showcases all possible settings. You will need to adapt it to your project.</p>
-<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">.lagoon.yml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1"> 1</a></span>
-<span class="normal"><a href="#__codelineno-22-2"> 2</a></span>
-<span class="normal"><a href="#__codelineno-22-3"> 3</a></span>
-<span class="normal"><a href="#__codelineno-22-4"> 4</a></span>
-<span class="normal"><a href="#__codelineno-22-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-22-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-22-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-22-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-22-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-22-10">10</a></span>
-<span class="normal"><a href="#__codelineno-22-11">11</a></span>
-<span class="normal"><a href="#__codelineno-22-12">12</a></span>
-<span class="normal"><a href="#__codelineno-22-13">13</a></span>
-<span class="normal"><a href="#__codelineno-22-14">14</a></span>
-<span class="normal"><a href="#__codelineno-22-15">15</a></span>
-<span class="normal"><a href="#__codelineno-22-16">16</a></span>
-<span class="normal"><a href="#__codelineno-22-17">17</a></span>
-<span class="normal"><a href="#__codelineno-22-18">18</a></span>
-<span class="normal"><a href="#__codelineno-22-19">19</a></span>
-<span class="normal"><a href="#__codelineno-22-20">20</a></span>
-<span class="normal"><a href="#__codelineno-22-21">21</a></span>
-<span class="normal"><a href="#__codelineno-22-22">22</a></span>
-<span class="normal"><a href="#__codelineno-22-23">23</a></span>
-<span class="normal"><a href="#__codelineno-22-24">24</a></span>
-<span class="normal"><a href="#__codelineno-22-25">25</a></span>
-<span class="normal"><a href="#__codelineno-22-26">26</a></span>
-<span class="normal"><a href="#__codelineno-22-27">27</a></span>
-<span class="normal"><a href="#__codelineno-22-28">28</a></span>
-<span class="normal"><a href="#__codelineno-22-29">29</a></span>
-<span class="normal"><a href="#__codelineno-22-30">30</a></span>
-<span class="normal"><a href="#__codelineno-22-31">31</a></span>
-<span class="normal"><a href="#__codelineno-22-32">32</a></span>
-<span class="normal"><a href="#__codelineno-22-33">33</a></span>
-<span class="normal"><a href="#__codelineno-22-34">34</a></span>
-<span class="normal"><a href="#__codelineno-22-35">35</a></span>
-<span class="normal"><a href="#__codelineno-22-36">36</a></span>
-<span class="normal"><a href="#__codelineno-22-37">37</a></span>
-<span class="normal"><a href="#__codelineno-22-38">38</a></span>
-<span class="normal"><a href="#__codelineno-22-39">39</a></span>
-<span class="normal"><a href="#__codelineno-22-40">40</a></span>
-<span class="normal"><a href="#__codelineno-22-41">41</a></span>
-<span class="normal"><a href="#__codelineno-22-42">42</a></span>
-<span class="normal"><a href="#__codelineno-22-43">43</a></span>
-<span class="normal"><a href="#__codelineno-22-44">44</a></span>
-<span class="normal"><a href="#__codelineno-22-45">45</a></span>
-<span class="normal"><a href="#__codelineno-22-46">46</a></span>
-<span class="normal"><a href="#__codelineno-22-47">47</a></span>
-<span class="normal"><a href="#__codelineno-22-48">48</a></span>
-<span class="normal"><a href="#__codelineno-22-49">49</a></span>
-<span class="normal"><a href="#__codelineno-22-50">50</a></span>
-<span class="normal"><a href="#__codelineno-22-51">51</a></span>
-<span class="normal"><a href="#__codelineno-22-52">52</a></span>
-<span class="normal"><a href="#__codelineno-22-53">53</a></span>
-<span class="normal"><a href="#__codelineno-22-54">54</a></span>
-<span class="normal"><a href="#__codelineno-22-55">55</a></span>
-<span class="normal"><a href="#__codelineno-22-56">56</a></span>
-<span class="normal"><a href="#__codelineno-22-57">57</a></span>
-<span class="normal"><a href="#__codelineno-22-58">58</a></span>
-<span class="normal"><a href="#__codelineno-22-59">59</a></span>
-<span class="normal"><a href="#__codelineno-22-60">60</a></span>
-<span class="normal"><a href="#__codelineno-22-61">61</a></span>
-<span class="normal"><a href="#__codelineno-22-62">62</a></span>
-<span class="normal"><a href="#__codelineno-22-63">63</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="nt">docker-compose-yaml</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.yml</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2"></a>
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3"></a><span class="nt">environment_variables</span><span class="p">:</span>
-</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4"></a><span class="w">  </span><span class="nt">git_sha</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
-</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5"></a>
-</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6"></a><span class="nt">tasks</span><span class="p">:</span>
-</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7"></a><span class="w">  </span><span class="nt">pre-rollout</span><span class="p">:</span>
-</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
-</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush sql-dump</span>
-</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mkdir -p /app/web/sites/default/files/private/ &amp;&amp; drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz</span>
-</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
-</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12"></a><span class="w">  </span><span class="nt">post-rollout</span><span class="p">:</span>
-</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
-</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cim</span>
-</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cim</span>
-</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
-</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17"></a><span class="w">        </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
-</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
-</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cr</span>
-</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cr</span>
-</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
-</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22"></a>
-</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23"></a><span class="nt">routes</span><span class="p">:</span>
-</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24"></a><span class="w">  </span><span class="nt">autogenerate</span><span class="p">:</span>
-</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25"></a><span class="w">    </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
-</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26"></a>
-</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27"></a><span class="nt">environments</span><span class="p">:</span>
-</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
-</span><span id="__span-22-29"><a id="__codelineno-22-29" name="__codelineno-22-29"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
-</span><span id="__span-22-30"><a id="__codelineno-22-30" name="__codelineno-22-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
-</span><span id="__span-22-31"><a id="__codelineno-22-31" name="__codelineno-22-31"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
-</span><span id="__span-22-32"><a id="__codelineno-22-32" name="__codelineno-22-32"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.net</span>
-</span><span id="__span-22-33"><a id="__codelineno-22-33" name="__codelineno-22-33"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
-</span><span id="__span-22-34"><a id="__codelineno-22-34" name="__codelineno-22-34"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-22-35"><a id="__codelineno-22-35" name="__codelineno-22-35"></a><span class="w">            </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
-</span><span id="__span-22-36"><a id="__codelineno-22-36" name="__codelineno-22-36"></a><span class="w">            </span><span class="nt">hstsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-22-37"><a id="__codelineno-22-37" name="__codelineno-22-37"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
-</span><span id="__span-22-38"><a id="__codelineno-22-38" name="__codelineno-22-38"></a><span class="w">            </span><span class="nt">annotations</span><span class="p">:</span>
-</span><span id="__span-22-39"><a id="__codelineno-22-39" name="__codelineno-22-39"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
-</span><span id="__span-22-40"><a id="__codelineno-22-40" name="__codelineno-22-40"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
-</span><span id="__span-22-41"><a id="__codelineno-22-41" name="__codelineno-22-41"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
-</span><span id="__span-22-42"><a id="__codelineno-22-42" name="__codelineno-22-42"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
-</span><span id="__span-22-43"><a id="__codelineno-22-43" name="__codelineno-22-43"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
-</span><span id="__span-22-44"><a id="__codelineno-22-44" name="__codelineno-22-44"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
-</span><span id="__span-22-45"><a id="__codelineno-22-45" name="__codelineno-22-45"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
-</span><span id="__span-22-46"><a id="__codelineno-22-46" name="__codelineno-22-46"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
-</span><span id="__span-22-47"><a id="__codelineno-22-47" name="__codelineno-22-47"></a><span class="w">    </span><span class="nt">cronjobs</span><span class="p">:</span>
-</span><span id="__span-22-48"><a id="__codelineno-22-48" name="__codelineno-22-48"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-49"><a id="__codelineno-22-49" name="__codelineno-22-49"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
-</span><span id="__span-22-50"><a id="__codelineno-22-50" name="__codelineno-22-50"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-51"><a id="__codelineno-22-51" name="__codelineno-22-51"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
-</span><span id="__span-22-52"><a id="__codelineno-22-52" name="__codelineno-22-52"></a><span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
-</span><span id="__span-22-53"><a id="__codelineno-22-53" name="__codelineno-22-53"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
-</span><span id="__span-22-54"><a id="__codelineno-22-54" name="__codelineno-22-54"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-55"><a id="__codelineno-22-55" name="__codelineno-22-55"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
-</span><span id="__span-22-56"><a id="__codelineno-22-56" name="__codelineno-22-56"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-57"><a id="__codelineno-22-57" name="__codelineno-22-57"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
-</span><span id="__span-22-58"><a id="__codelineno-22-58" name="__codelineno-22-58"></a><span class="w">  </span><span class="nt">feature/feature-branch</span><span class="p">:</span>
-</span><span id="__span-22-59"><a id="__codelineno-22-59" name="__codelineno-22-59"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
-</span><span id="__span-22-60"><a id="__codelineno-22-60" name="__codelineno-22-60"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-61"><a id="__codelineno-22-61" name="__codelineno-22-61"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;H</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
-</span><span id="__span-22-62"><a id="__codelineno-22-62" name="__codelineno-22-62"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
-</span><span id="__span-22-63"><a id="__codelineno-22-63" name="__codelineno-22-63"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">.lagoon.yml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-23-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-23-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-23-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-23-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-23-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-23-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-23-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-23-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-23-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-23-10">10</a></span>
+<span class="normal"><a href="#__codelineno-23-11">11</a></span>
+<span class="normal"><a href="#__codelineno-23-12">12</a></span>
+<span class="normal"><a href="#__codelineno-23-13">13</a></span>
+<span class="normal"><a href="#__codelineno-23-14">14</a></span>
+<span class="normal"><a href="#__codelineno-23-15">15</a></span>
+<span class="normal"><a href="#__codelineno-23-16">16</a></span>
+<span class="normal"><a href="#__codelineno-23-17">17</a></span>
+<span class="normal"><a href="#__codelineno-23-18">18</a></span>
+<span class="normal"><a href="#__codelineno-23-19">19</a></span>
+<span class="normal"><a href="#__codelineno-23-20">20</a></span>
+<span class="normal"><a href="#__codelineno-23-21">21</a></span>
+<span class="normal"><a href="#__codelineno-23-22">22</a></span>
+<span class="normal"><a href="#__codelineno-23-23">23</a></span>
+<span class="normal"><a href="#__codelineno-23-24">24</a></span>
+<span class="normal"><a href="#__codelineno-23-25">25</a></span>
+<span class="normal"><a href="#__codelineno-23-26">26</a></span>
+<span class="normal"><a href="#__codelineno-23-27">27</a></span>
+<span class="normal"><a href="#__codelineno-23-28">28</a></span>
+<span class="normal"><a href="#__codelineno-23-29">29</a></span>
+<span class="normal"><a href="#__codelineno-23-30">30</a></span>
+<span class="normal"><a href="#__codelineno-23-31">31</a></span>
+<span class="normal"><a href="#__codelineno-23-32">32</a></span>
+<span class="normal"><a href="#__codelineno-23-33">33</a></span>
+<span class="normal"><a href="#__codelineno-23-34">34</a></span>
+<span class="normal"><a href="#__codelineno-23-35">35</a></span>
+<span class="normal"><a href="#__codelineno-23-36">36</a></span>
+<span class="normal"><a href="#__codelineno-23-37">37</a></span>
+<span class="normal"><a href="#__codelineno-23-38">38</a></span>
+<span class="normal"><a href="#__codelineno-23-39">39</a></span>
+<span class="normal"><a href="#__codelineno-23-40">40</a></span>
+<span class="normal"><a href="#__codelineno-23-41">41</a></span>
+<span class="normal"><a href="#__codelineno-23-42">42</a></span>
+<span class="normal"><a href="#__codelineno-23-43">43</a></span>
+<span class="normal"><a href="#__codelineno-23-44">44</a></span>
+<span class="normal"><a href="#__codelineno-23-45">45</a></span>
+<span class="normal"><a href="#__codelineno-23-46">46</a></span>
+<span class="normal"><a href="#__codelineno-23-47">47</a></span>
+<span class="normal"><a href="#__codelineno-23-48">48</a></span>
+<span class="normal"><a href="#__codelineno-23-49">49</a></span>
+<span class="normal"><a href="#__codelineno-23-50">50</a></span>
+<span class="normal"><a href="#__codelineno-23-51">51</a></span>
+<span class="normal"><a href="#__codelineno-23-52">52</a></span>
+<span class="normal"><a href="#__codelineno-23-53">53</a></span>
+<span class="normal"><a href="#__codelineno-23-54">54</a></span>
+<span class="normal"><a href="#__codelineno-23-55">55</a></span>
+<span class="normal"><a href="#__codelineno-23-56">56</a></span>
+<span class="normal"><a href="#__codelineno-23-57">57</a></span>
+<span class="normal"><a href="#__codelineno-23-58">58</a></span>
+<span class="normal"><a href="#__codelineno-23-59">59</a></span>
+<span class="normal"><a href="#__codelineno-23-60">60</a></span>
+<span class="normal"><a href="#__codelineno-23-61">61</a></span>
+<span class="normal"><a href="#__codelineno-23-62">62</a></span>
+<span class="normal"><a href="#__codelineno-23-63">63</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1"></a><span class="nt">docker-compose-yaml</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.yml</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3"></a><span class="nt">environment_variables</span><span class="p">:</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4"></a><span class="w">  </span><span class="nt">git_sha</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7"></a><span class="w">  </span><span class="nt">pre-rollout</span><span class="p">:</span>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush sql-dump</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mkdir -p /app/web/sites/default/files/private/ &amp;&amp; drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz</span>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12"></a><span class="w">  </span><span class="nt">post-rollout</span><span class="p">:</span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cim</span>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cim</span>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17"></a><span class="w">        </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cr</span>
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cr</span>
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22"></a>
+</span><span id="__span-23-23"><a id="__codelineno-23-23" name="__codelineno-23-23"></a><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-23-24"><a id="__codelineno-23-24" name="__codelineno-23-24"></a><span class="w">  </span><span class="nt">autogenerate</span><span class="p">:</span>
+</span><span id="__span-23-25"><a id="__codelineno-23-25" name="__codelineno-23-25"></a><span class="w">    </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-23-26"><a id="__codelineno-23-26" name="__codelineno-23-26"></a>
+</span><span id="__span-23-27"><a id="__codelineno-23-27" name="__codelineno-23-27"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-23-28"><a id="__codelineno-23-28" name="__codelineno-23-28"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-23-29"><a id="__codelineno-23-29" name="__codelineno-23-29"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-23-30"><a id="__codelineno-23-30" name="__codelineno-23-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-23-31"><a id="__codelineno-23-31" name="__codelineno-23-31"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
+</span><span id="__span-23-32"><a id="__codelineno-23-32" name="__codelineno-23-32"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.net</span>
+</span><span id="__span-23-33"><a id="__codelineno-23-33" name="__codelineno-23-33"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-23-34"><a id="__codelineno-23-34" name="__codelineno-23-34"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-23-35"><a id="__codelineno-23-35" name="__codelineno-23-35"></a><span class="w">            </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-23-36"><a id="__codelineno-23-36" name="__codelineno-23-36"></a><span class="w">            </span><span class="nt">hstsEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-23-37"><a id="__codelineno-23-37" name="__codelineno-23-37"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-23-38"><a id="__codelineno-23-38" name="__codelineno-23-38"></a><span class="w">            </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-23-39"><a id="__codelineno-23-39" name="__codelineno-23-39"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
+</span><span id="__span-23-40"><a id="__codelineno-23-40" name="__codelineno-23-40"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
+</span><span id="__span-23-41"><a id="__codelineno-23-41" name="__codelineno-23-41"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
+</span><span id="__span-23-42"><a id="__codelineno-23-42" name="__codelineno-23-42"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
+</span><span id="__span-23-43"><a id="__codelineno-23-43" name="__codelineno-23-43"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
+</span><span id="__span-23-44"><a id="__codelineno-23-44" name="__codelineno-23-44"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
+</span><span id="__span-23-45"><a id="__codelineno-23-45" name="__codelineno-23-45"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
+</span><span id="__span-23-46"><a id="__codelineno-23-46" name="__codelineno-23-46"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
+</span><span id="__span-23-47"><a id="__codelineno-23-47" name="__codelineno-23-47"></a><span class="w">    </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-23-48"><a id="__codelineno-23-48" name="__codelineno-23-48"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-49"><a id="__codelineno-23-49" name="__codelineno-23-49"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-23-50"><a id="__codelineno-23-50" name="__codelineno-23-50"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-51"><a id="__codelineno-23-51" name="__codelineno-23-51"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-23-52"><a id="__codelineno-23-52" name="__codelineno-23-52"></a><span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
+</span><span id="__span-23-53"><a id="__codelineno-23-53" name="__codelineno-23-53"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-23-54"><a id="__codelineno-23-54" name="__codelineno-23-54"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-55"><a id="__codelineno-23-55" name="__codelineno-23-55"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;M</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-23-56"><a id="__codelineno-23-56" name="__codelineno-23-56"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-57"><a id="__codelineno-23-57" name="__codelineno-23-57"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-23-58"><a id="__codelineno-23-58" name="__codelineno-23-58"></a><span class="w">  </span><span class="nt">feature/feature-branch</span><span class="p">:</span>
+</span><span id="__span-23-59"><a id="__codelineno-23-59" name="__codelineno-23-59"></a><span class="w">      </span><span class="nt">cronjobs</span><span class="p">:</span>
+</span><span id="__span-23-60"><a id="__codelineno-23-60" name="__codelineno-23-60"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-61"><a id="__codelineno-23-61" name="__codelineno-23-61"></a><span class="w">        </span><span class="nt">schedule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;H</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># This will run the cron once per hour.</span>
+</span><span id="__span-23-62"><a id="__codelineno-23-62" name="__codelineno-23-62"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-23-63"><a id="__codelineno-23-63" name="__codelineno-23-63"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
 </span></code></pre></div></td></tr></table></div>
 <h2 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h2>
 <p>These settings have been deprecated and should be removed from use in your <code>.lagoon.yml</code>.</p>
