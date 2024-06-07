@@ -4509,8 +4509,7 @@
 <p>Aergia will automatically un-idle an environment as soon as it is visited, therefore just visiting any URL of the environment will start the environment. Likewise, initiating an SSH session to the environment will also restart the services.</p>
 <p>The un-idling will take a couple of seconds, as the Kubernetes cluster needs to start all containers again. During this time there will be waiting screen shown to the visitor that their environment is currently started.</p>
 <h3 id="can-i-disable-prevent-the-idler-from-idling-my-environment">Can I disable / prevent the Idler from idling my environment?<a class="headerlink" href="#can-i-disable-prevent-the-idler-from-idling-my-environment" title="Permanent link">#</a></h3>
-<p>Yes, there is a field <code>autoIdle</code> on the project (impacts all environments) and environment (if you need to target just one environment), as to whether idling is allowed to take place. A value of <code>1</code> indicates the project/environment is eligible for idling. If the project is set to <code>0</code> the environments will never be idled, even if the environment is set to <code>0</code>
-The default is always <code>1</code>(idling is enabled).</p>
+<p>The field <code>autoIdle</code> can be set at the project level (impacts all environments) or for a single environment (target just one environment), as to whether idling is allowed to take place. A value of <code>1</code> indicates the project/environment is eligible for idling. If the project is set to <code>0</code>, then all environments will never be idled. The default value is <code>1</code> (idling is enabled).</p>
 <p>Contact your Lagoon administrator if you are unsure how to set these project/environment fields.</p>
 
 
