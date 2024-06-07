@@ -349,7 +349,8 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       userActivityLogger.user_info(
         `User does not have permission to '${scope}' on '${resource}'`,
         {
-          user: currentUser.id
+          user: currentUser.id,
+          attributes: attributes
         }
       );
     }
@@ -357,13 +358,12 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
     userActivityLogger.user_info(
       `User does not have permission to '${scope}' on '${resource}'`,
       {
-        user: grant.access_token.content
+        user: grant.access_token.content,
+        attributes: attributes
       }
     );
     throw new KeycloakUnauthorizedError(
-      `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-        attributes
-      )}`
+      `Unauthorized: You don't have permission to "${scope}" on "${resource}"`
     );
   };
 };
