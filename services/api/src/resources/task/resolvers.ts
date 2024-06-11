@@ -80,7 +80,7 @@ export const getTaskLog: ResolverFn = async (
     if (!data) {
       return null;
     }
-    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
     return logMsg;
   } catch (e) {
     // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
@@ -91,7 +91,7 @@ export const getTaskLog: ResolverFn = async (
       if (!data) {
         return null;
       }
-      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
       return logMsg;
     } catch (e) {
       // otherwise there is no log to show the user
