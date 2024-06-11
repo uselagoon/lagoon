@@ -57,36 +57,29 @@ To make it as smooth as possible for you to get your site pointing to our server
 
 Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live \(TTL\) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time_to_live#DNS_records).
 
-### Recommended settings for Fastly (CNAME record):
+!!! Info
+    This information only relates to amazee.io hosted projects, and will shortly be removed from these docs and added to amazee.io specific ones 
 
-The recommended method of pointing your domain's DNS records at Lagoon is via a CNAME record as shown below:
+### Recommended settings for Fastly:
+
+#### Subdomains (CNAME)
+The recommended method of pointing your subdomain's \(e.g. www.example.com.\) DNS records at Lagoon is via a CNAME record as shown below:
 <!-- markdown-link-check-disable-next-line -->
 `CNAME`: `cdn.amazee.io`
 
-### Alternate Settings for Fastly (A records):
+#### Root domains (A/AAAA)
 
-If your DNS provider does not support the use of CNAME records, you can use these A records instead. Please ensure you set up individual records for each IP listed below:
+Configuring the root domain \(e.g. example.com.\) can be tricky because the DNS specification does not allow root domains to point to a CNAME. Therefore, the following A and AAAA records should be used. Please ensure you set up individual records for each IP listed below:
 
 * `A`: `151.101.2.191`
 * `A`: `151.101.66.191`
 * `A`: `151.101.130.191`
 * `A`: `151.101.194.191`
 
-!!! Note
-    We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.
-
-### Root Domains
-
-Configuring the root domain \(e.g. example.com\) can be a bit tricky because the DNS specification does not allow the root domain to point to a CNAME entry. Depending on your DNS provider, the record name is different:
-
-* ALIAS at [DNSimple](https://dnsimple.com/)
-* ANAME at [DNS Made Easy](http://www.dnsmadeeasy.com/)
-* ANAME at [easyDNS](https://www.easydns.com/)
-* ALIAS at [PointDNS](https://pointhq.com/)
-* CNAME at [CloudFlare](https://www.cloudflare.com/)
-* CNAME at [NS1](http://ns1.com)
-
-If your DNS provider needs an IP address for the root domain, get in touch with {{ defaults.helpstring }} to give you the load balancer IP addresses.
+* `AAAA`: `2a04:4e42::703`
+* `AAAA`: `2a04:4e42:200::703`
+* `AAAA`: `2a04:4e42:400::703`
+* `AAAA`: `2a04:4e42:600::703`
 
 ## Production environment
 
