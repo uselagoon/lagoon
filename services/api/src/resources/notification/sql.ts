@@ -41,6 +41,15 @@ export const Sql = {
     knex(`notification_${type}`)
       .select('*', knex.raw(`'${type}' as type`))
       .toString(),
+  selectAllNotificationsByName: (name: string, type: string) =>
+    knex(`notification_${type}`)
+      .select('*', knex.raw(`'${type}' as type`))
+      .where('name', '=', name)
+      .toString(),
+  selectNotificationByNameAndType: (name: string, type: string) =>
+    knex(`notification_${type}`)
+      .where('name', '=', name)
+      .toString(),
   deleteProjectNotification: input => {
     const deleteQuery = knex.raw(
       `DELETE pn

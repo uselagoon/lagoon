@@ -701,9 +701,43 @@ export const getAllNotifications: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
+  let rows;
+
+  if (args.name && args.type) {
+    rows = await query(sqlClientPool, Sql.selectNotificationByNameAndType(args.name, args.type));
+
+    if (rows.length > 0) {
+      rows[0].type = args.type;
+    }
+
+    await hasPermission('notification', 'view', {
+      notification: rows[0].id,
+    });
+
+    return rows;
+  }
+
+  if (args.name) {
+    await hasPermission('notification', 'viewAll');
+
+    const rows = await Helpers(sqlClientPool).selectAllNotifications(args.name);
+
+    if (rows.length === 0) {
+      throw new Error(`No notification found for ${args.name}`);
+    }
+
+    return rows;
+  }
+
+  if (args.type) {
+    await hasPermission('notification', 'viewAll');
+
+    const rows = await query(sqlClientPool, Sql.selectAllNotifications(args.type));
+
+    return rows;
+  }
+
   await hasPermission('notification', 'viewAll');
-
-  const rows = await Helpers(sqlClientPool).selectAllNotifications();
-
+  rows = await Helpers(sqlClientPool).selectAllNotifications();
   return rows;
 };

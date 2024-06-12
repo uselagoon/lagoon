@@ -56,32 +56,37 @@ export const Helpers = (sqlClientPool: Pool) => ({
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "email"));
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "webhook"));
   },
-  selectAllNotifications: async () => {
+  selectAllNotifications: async (name: string = null) => {
     let type = "slack"
     // get all notifications
     const slacks = await query(
       sqlClientPool,
-      Sql.selectAllNotifications(type)
+      name ?
+      Sql.selectAllNotificationsByName(name, type) : Sql.selectAllNotifications(type)
     );
     type = "rocketchat"
     const rcs = await query(
       sqlClientPool,
-      Sql.selectAllNotifications(type)
+      name ?
+      Sql.selectAllNotificationsByName(name, type) : Sql.selectAllNotifications(type)
     );
     type = "microsoftteams"
     const teams = await query(
       sqlClientPool,
-      Sql.selectAllNotifications(type)
+      name ?
+      Sql.selectAllNotificationsByName(name, type) : Sql.selectAllNotifications(type)
     );
     type = "email"
     const email = await query(
       sqlClientPool,
-      Sql.selectAllNotifications(type)
+      name ?
+      Sql.selectAllNotificationsByName(name, type) : Sql.selectAllNotifications(type)
     );
     type = "webhook"
     const webhook = await query(
       sqlClientPool,
-      Sql.selectAllNotifications(type)
+      name ?
+      Sql.selectAllNotificationsByName(name, type) : Sql.selectAllNotifications(type)
     );
     let result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
 

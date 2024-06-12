@@ -1424,9 +1424,9 @@ const typeDefs = gql`
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
-    List all notifications
+    List all notifications matching the given filters (name & type) | returns all if no filter defined
     """
-    allNotifications: [Notification]
+    allNotifications(name: String, type: NotificationType): [Notification]
     """
     List all organizations
     """
