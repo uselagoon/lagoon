@@ -56,7 +56,7 @@ export const Sql = {
   deleteBackup: (backupId: string) =>
     knex('environment_backup')
       .where('backup_id', backupId)
-      .update({ deleted: knex.fn.now() })
+      .del() // actually delete the backup, there is no real reason to retain this information, the snapshot is gone
       .toString(),
   truncateBackup: () =>
     knex('environment_backup')
