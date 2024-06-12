@@ -91,7 +91,7 @@ export const getBuildLog: ResolverFn = async (
     if (!data) {
       return null;
     }
-    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
     return logMsg;
   } catch (e) {
     // there is no fallback location for build logs, so there is no log to show the user
