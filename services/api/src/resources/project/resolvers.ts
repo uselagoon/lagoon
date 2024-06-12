@@ -242,12 +242,18 @@ export const addProject = async (
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
+    // check the project quota before adding the project
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (!organization) {
+      // org doesn't exist, unauth
+      throw new Error(
+        `Unauthorized: You don't have permission to "addProject" on "organization"`
+      );
+    }
     // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
     if (!input.addOrgOwner) {
       userAlreadyHasAccess = true
     }
-    // check the project quota before adding the project
-    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
     if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
       throw new Error(
