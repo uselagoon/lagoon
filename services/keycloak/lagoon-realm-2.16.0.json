@@ -1044,6 +1044,9 @@
               },
               {
                 "name": "delete"
+              },
+              {
+                "name": "viewAll"
               }
             ]
           },
@@ -2288,6 +2291,17 @@
               "resources": "[\"fact\"]",
               "scopes": "[\"delete\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "View All Notifications",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"notification\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {

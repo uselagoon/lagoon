@@ -204,6 +204,34 @@ function migrate_to_custom_group_mapper {
 
 }
 
+function add_notification_view_all {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local view_all_notifications=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=View+All+Notifications --config $CONFIG_PATH)
+
+
+  if [ "$view_all_notifications" != "[ ]" ]; then
+      echo "notification:viewAll already configured"
+      return 0
+  fi
+
+  echo creating \"View All Notifications\" permissions
+
+  NOTIFICATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/resource?name=notification --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$NOTIFICATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"viewAll"}]'
+
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "View All Notifications",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["notification"],
+    "scopes": ["viewAll"],
+    "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+  }
+EOF
+}
+
 function service-api_add_query-groups_permission {
 	if /opt/keycloak/bin/kcadm.sh get-roles -r lagoon --uusername service-account-service-api --cclientid realm-management --config /tmp/kcadm.config | jq -e '.[].name|contains("query-groups")' >/dev/null; then
 		echo "service-api already has query-groups realm-management role"
@@ -241,6 +269,7 @@ function configure_keycloak {
     migrate_to_custom_group_mapper
     #post 2.18.0+ migrations after this point
     service-api_add_query-groups_permission
+    add_notification_view_all
 
     # always run last
     sync_client_secrets
