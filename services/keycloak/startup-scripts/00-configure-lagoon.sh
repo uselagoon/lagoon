@@ -267,9 +267,9 @@ function configure_keycloak {
 
     check_migrations_version
     migrate_to_custom_group_mapper
-    add_notification_view_all
     #post 2.18.0+ migrations after this point
     service-api_add_query-groups_permission
+    add_notification_view_all
 
     # always run last
     sync_client_secrets
