@@ -296,7 +296,7 @@ clean:
 
 .PHONY: docker_buildx_clean
 docker_buildx_clean:
-	docker buildx rm $(CI_BUILD_TAG) || echo  -e 'no builder $(CI_BUILD_TAG) found'
+	docker buildx rm --keep-state $(CI_BUILD_TAG) || echo  -e 'no builder $(CI_BUILD_TAG) found'
 
 # Conduct post-release scans on images
 .PHONY: scan-images
