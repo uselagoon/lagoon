@@ -241,6 +241,7 @@ plugins:
   - search:
       lang:
       - en
+      - ja
   - awesome-pages
   - markdownextradata: {}
   - i18n:
@@ -250,6 +251,145 @@ plugins:
           default: true
           name: English
           build: true
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Home: ホーム
+            Basic Lagoon Concepts: Lagoonの基本概念
+            Overview: 概要
+            Build and Deploy Process: ビルドとデプロイプロセス
+            Building Blocks of Lagoon: Lagoonの構成要素
+            Users: ユーザー
+            Groups: グループ
+            Projects: プロジェクト
+            Notifications: 通知
+            Deploy Targets: デプロイターゲット
+            Organizations: 組織
+            Roles: ロール
+            Advanced Lagoon Concepts: 高度なLagoonの概念
+            Service Types: サービスタイプ
+            Environment Types: 環境タイプ
+            Environment Variables: 環境変数
+            Environment Idling: 環境のアイドリング
+            Backups: バックアップ
+            Base Images: ベースイメージ
+            Workflows: ワークフロー
+            Feature Flags: フィーチャーフラグ
+            Lagoonizing: Lagoon化
+            Lagoonizing Your Existing Site: 既存サイトのLagoon化
+            Docker Images: Dockerイメージ
+            Commons: コモンズ
+            MariaDB: MariaDB
+            MongoDB: MongoDB
+            Node.js: Node.js
+            NGINX: NGINX
+            OpenSearch: OpenSearch
+            PHP-CLI: PHP-CLI
+            PHP-FPM: PHP-FPM
+            Python: Python
+            PostgreSQL: PostgreSQL
+            RabbitMQ: RabbitMQ
+            Ruby: Ruby
+            Solr: Solr
+            Redis: Redis
+            Varnish: Varnish
+            Configuring Applications: アプリケーションの設定
+            Options: オプション
+            Drupal: Drupal
+            Services: サービス
+            PHP-cli: PHP-cli
+            Step by Step - Getting Drupal ready to run on Lagoon: ステップバイステップ - DrupalをLagoonで実行する準備
+            First Deployment of Drupal: Drupalの初回デプロイ
+            Drush 9: Drush 9
+            Subfolders: サブフォルダ
+            Integrate Drupal & Fastly: DrupalとFastlyの統合
+            PHPUnit and PhpStorm: PHPUnitとPhpStorm
+            Automatic Updates: 自動更新
+            WordPress: WordPress
+            Node.js-based: Node.jsベース
+            PHP-based: PHPベース
+            Python-based: Pythonベース
+            Ruby-based: Rubyベース
+            Other: その他
+            Using Lagoon - The Basics: Lagoonの基本的な使い方
+            Local Development Environments: ローカル開発環境
+            Set Up a New Project: 新しいプロジェクトのセットアップ
+            Configure Webhooks: Webhooksの設定
+            First Deployment: 初回デプロイ
+            Lagoon Build Errors and Warnings: Lagoonビルドエラーと警告
+            Going Live: 本番環境への移行
+            Using Lagoon - Advanced: Lagoonの高度な使い方
+            Active/Standby: アクティブ/スタンバイ
+            Triggering Deployments: デプロイのトリガー
+            Private Repositories: プライベートリポジトリ
+            SimpleSAML: SimpleSAML
+            Project Default Users and SSH Keys: プロジェクトのデフォルトユーザーとSSHキー
+            Node.js Graceful Shutdown: Node.jsのグレースフルシャットダウン
+            Setting up Xdebug with Lagoon: LagoonでのXdebugの設定
+            Custom Tasks: カスタムタスク
+            DeployTarget Configs: DeployTargetの設定
+            Blackfire: Blackfire
+            Harbor: Harbor
+            Using Harbor: Harborの使用
+            Security Scanning: セキュリティスキャン
+            Harbor Settings: Harborの設定
+            Harbor-Core: Harbor-Core
+            Harbor-Database: Harbor-Database
+            Harbor-Jobservice: Harbor-Jobservice
+            Harbor-Trivy: Harbor-Trivy
+            HarborRegistry: HarborRegistry
+            HarborRegistryCtl: HarborRegistryCtl
+            Interacting with Lagoon: Lagoonとの連携
+            Using the UI: UIの使用
+            Working with Orgs: 組織との連携
+            GraphQL: GraphQL
+            SSH: SSH
+            GraphQL API: GraphQL API
+            Role-Based Access Control (RBAC): ロールベースのアクセス制御 (RBAC)
+            Understanding Logs: ログの理解
+            Logging: ロギング
+            Kibana Examples: Kibanaの例
+            Installing Lagoon: Lagoonのインストール
+            Requirements: 要件
+            EFS Provisioner: EFSプロビジョナー
+            Install Harbor: Harborのインストール
+            Install Lagoon Core: Lagoon Coreのインストール
+            Install Lagoon Remote: Lagoon Remoteのインストール
+            Install the Lagoon CLI: Lagoon CLIのインストール
+            Querying with GraphQL: GraphQLによるクエリ
+            Create Lagoon User: Lagoonユーザーの作成
+            Add a Project: プロジェクトの追加
+            Deploy Your Project: プロジェクトのデプロイ
+            Add Group: グループの追加
+            Lagoon Logging: Lagoonのロギング
+            OpenDistro: OpenDistro
+            Logs Concentrator: ログコンセントレーター
+            Lagoon Backups: Lagoonのバックアップ
+            Lagoon Files: Lagoonのファイル
+            GitLab: GitLab
+            Updating: 更新
+            Contributing to Lagoon: Lagoonへの貢献
+            Documentation: ドキュメント
+            Code of Conduct: 行動規範
+            Contributing: 貢献
+            Developing Lagoon: Lagoonの開発
+            Tests: テスト
+            API Debugging: APIデバッグ
+            Releasing: リリース
+            Community: コミュニティ
+            Discord: Discord
+            Participation Guidelines: 参加ガイドライン
+            Moderation Guidelines: モデレーションガイドライン
+            Resources: リソース
+            FAQ: FAQ
+            Glossary: 用語集
+            Tutorials, Webinars, and Videos: チュートリアル、ウェビナー、ビデオ
+            Lagoon Examples: Lagoonの例
+            Other Tools: その他のツール
+            Lagoon CLI: Lagoon CLI
+            Lagoon Sync: Lagoon Sync
+            Client Libraries: クライアントライブラリ
   - redirects:
       redirect_maps:
         # Shortcut URLs for build and compose errors
