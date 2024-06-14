@@ -18,7 +18,7 @@ Drupalプロジェクトを手がけている場合は、[私たちの例のリ�
 
 設定ファイルをコミットできるように、`.gitignore`を確認するのを忘れないでください。
 
-Drupalは`sites/*/settings*.php`と`sites/*/services*.yml`を`.gitignore`で提供しています。それらを削除してください。 ラグーンでは、Gitリポジトリに機密情報を一切持っていません。
+Drupalは`sites/*/settings*.php`と`sites/*/services*.yml`を`.gitignore`で提供しています。それらを削除してください。 Lagoonでは、Gitリポジトリに機密情報を一切持っていません。
 
 ### Drupal 8の`WEBROOT`についての注意
 
@@ -77,7 +77,7 @@ composer install
 
 500や類似のエラーが表示された場合は、Composerで正しくすべてがロードされていることを確認してください。
 
-## 6. ステータスの確認とDrupalのインストール 
+## 6. ステータスの確認とDrupalのインストール
 
 いよいよDrupalをインストールする時間がきましたが、その前にすべてが機能していることを確認したいと思います。それにはDrushを使用することをお勧めします:
 

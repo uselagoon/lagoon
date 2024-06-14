@@ -128,5 +128,5 @@ Varnishがキャッシュしていない？ それとも何か他の問題があ
 * `drush p-debug-en`を実行して、purgeモジュールのデバッグログを有効にします。これにより、Drupalのログの`admin/reports/dblog`でデバッグを表示できます。
 * Drupalが適切なキャッシュヘッダーを送信していることを確認してください。これを最もよくテストするためには、LagoonがVarnishキャッシュをバイパスするために生成したURLを使用します（私たちのDrupalの例では、これは[http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)です）。`Cache-Control: max-age=900, public`ヘッダーをチェックし、`900`が`$config['system.performance']['cache']['page']['max_age']`で設定したものであることを確認します。
 * 環境変数`VARNISH_BYPASS`が`true`に設定されて**いない**ことを確認してください（`docker-compose.yml`を参照し、`docker-compose up -d varnish`を実行して環境変数が正しく設定されていることを確認します）。
-* もし全部 失敗すると、テーブルをひっくり返す前に \(╯°□°）╯︵ ┻━┻、ラグーンチームに話してみてください、私たちは喜んでお手伝いします。
+* もし全部 失敗すると、テーブルをひっくり返す前に \(╯°□°）╯︵ ┻━┻、Lagoonチームに話してみてください、私たちは喜んでお手伝いします。
 <!-- markdown-link-check-enable -->

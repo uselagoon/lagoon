@@ -9,7 +9,7 @@
 !!! インフォ
     このDockerfileは、Lagoon内で`cli`が必要な場合に基本として使用することを意図しています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 7.3（互換性のために利用可能、公式サポートは終了） - `uselagoon/php-7.3-cli`
 * 7.4（互換性のために利用可能、公式サポートは終了） - `uselagoon/php-7.4-cli`
@@ -20,7 +20,7 @@
 
 すべてのPHPバージョンは、それぞれのDockerfilesを使用します。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの事項が完了しています：
 
@@ -49,7 +49,7 @@ RUN apk del nodejs-current \
     && apk add --no-cache nodejs=~16
 ```
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 いくつかのオプションは[環境変数](../concepts-advanced/environment-variables.md)を介して設定可能です。[php-fpm環境変数](php-fpm.md#environment-variables)も適用されます。
 

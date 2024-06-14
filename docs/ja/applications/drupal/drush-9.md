@@ -1,6 +1,6 @@
 ---
 description: >-
-  ラグーンはデフォルトでDrush 8を使用します。Composerを使ってDrush 9をDrupalサイトにインストールすると、Drush 9が使用されます。
+  LagoonはデフォルトでDrush 8を使用します。Composerを使ってDrush 9をDrupalサイトにインストールすると、Drush 9が使用されます。
 ---
 
 # Drush 9

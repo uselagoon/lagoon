@@ -1,6 +1,6 @@
 # GraphQL API
 
-## GraphQLクエリの実行
+## GraphQLクエリの実行 { #running-graphql-queries }
 
 Lagoonでの直接的なAPIの相互作用は、[GraphQL](graphql-queries.md)を経由して行われます。
 
@@ -41,7 +41,7 @@ query allProjects{
 
 すべてがうまくいけば、最初のGraphQLレスポンスがすぐに右のペインに表示されるはずです。
 
-## 最初のプロジェクトの作成
+## 最初のプロジェクトの作成 { #creating-the-first-project }
 
 Lagoonにデプロイするための最初のプロジェクトを作成しましょう！これには、[`create-project.gql`](../interacting/create-project.gql)のGraphQLクエリテンプレートからクエリを使用します。
 
@@ -50,7 +50,7 @@ Lagoonにデプロイするための最初のプロジェクトを作成しま�
 1. `kubernetes` : LagoonがデプロイするべきKubernetes(またはOpenshift)クラスタ。Lagoonは自身のKubernetesクラスタにだけでなく、任意のKubernetesにもデプロイすることが可能です。 世界中のどこでもクラスタリングします。
 2. `project` : デプロイされるLagoonプロジェクトで、ルートにコミットされた `.lagoon.yml` 設定ファイルを持つGitリポジトリです。
 
-## プロジェクトへのアクセス許可
+## プロジェクトへのアクセス許可 { #allowing-access-to-the-project }
 
 Lagoonでは、各開発者は自分のSSHキーで認証します。これにより、以下へのアクセスが決まります：
 
@@ -135,7 +135,7 @@ mutation {
         name: ""
       }
       #TODO: ユーザーの役割を入力してください。 .
-      役割：オーナー
+      role: OWNER
 
     }
   ) {
@@ -147,7 +147,7 @@ mutation {
 
 これらのクエリの一部または全部を実行した後、ユーザーはSSH経由でトークンを作成したり、コンテナにアクセスしたりする権限が付与されます。
 
-## プロジェクトに通知を追加する
+## プロジェクトに通知を追加する { #adding-notifications-to-the-project }
 
 デプロイメント中に何が起こっているのかを知りたい場合、プロジェクトに通知を設定することをお勧めします。以下の情報を提供します：
 
@@ -208,9 +208,9 @@ mutation {
 
 これで、デプロイメントごとに、定義したチャンネルでメッセージを受け取ることができます。
 
-## GraphQLクエリの例
+## GraphQLクエリの例 { #example-graphql-queries }
 
-### 新しいKubernetesターゲットの追加
+### 新しいKubernetesターゲットの追加 { #adding-a-new-kubernetes-target }
 
 !!! 注意
     Lagoonでは、`addKubernetes`と`addOpenshift`のどちらもKubernetesとOpenShiftのターゲットの両方に使用することができ、どちらも互換性があります。
@@ -220,39 +220,39 @@ Lagoonがデプロイするべきクラスタ。
 ```graphql title="Kubernetesターゲットの追加"
 mutation {
   addKubernetes(
-    入力：
-{
-  # TODO: 名前フィールドを記入してください。
-  # これはクラスタの一意の識別子です。
-  名前： ""
-  # TODO: consoleUrlフィールドを記入してください。
-  # これはKubernetesクラスタのURLです
-  consoleUrl: ""
-  # TODO: トークンフィールドを記入してください。
-  # これは、このクラスタで作成された`lagoon`サービスアカウントのトークンです（これは、Lagoonのインストール時にも使用したのと同じトークンです）。
-  トークン： ""
-}
-){
-  名前
-  id
+    input: {
+      # TODO: 名前フィールドを記入してください。
+      # これはクラスタの一意の識別子です。
+      name: ""
+      # TODO: consoleUrlフィールドを記入してください。
+      # これはKubernetesクラスタのURLです
+      consoleUrl: ""
+      # TODO: トークンフィールドを記入してください。
+      # これは、このクラスタで作成された`lagoon`サービスアカウントのトークンです（これは、Lagoonのインストール時にも使用したのと同じトークンです）。
+      token: ""
+    }
+  ){
+    name
+    id
+  }
 }
 ```
 
-### プロジェクトにグループを追加する
+### プロジェクトにグループを追加する { #adding-a-group-to-a-project }
 
 このクエリはプロジェクトにグループを追加します。そのグループのユーザーはプロジェクトにアクセスできます。彼らはそのグループでの役割に基づいて変更を加えることができます。
 
-```graphql タイトル="プロジェクトにグループを追加する"
+```graphql title="プロジェクトにグループを追加する"
 mutation {
   addGroupsToProject (
-    入力： {
-      プロジェクト： {
+    input: {
+      project: {
         #TODO: プロジェクトの名前を入力してください。
-        名前： ""
+        name: ""
       }
-      グループ： {
+      groups: {
         #TODO: プロジェクトに追加されるグループの名前を入力してください。
-        名前： ""
+        name: ""
       }
     }
   ) {
@@ -261,7 +261,7 @@ mutation {
 }
 ```
 
-### 新しいプロジェクトを追加する
+### 新しいプロジェクトを追加する { #adding-a-new-project }
 
 このクエリは、新しいLagoonプロジェクトをデプロイするために追加します。これは、ルートにコミットされた`.lagoon.yml`設定ファイルを持つGitリポジトリです。
 
@@ -303,7 +303,7 @@ mutation {
 }
 ```
 
-### プロジェクトとグループのリスト
+### プロジェクトとグループのリスト { #list-projects-and-groups }
 
 これは、私たちのLagoon内に存在するすべてのプロジェクト、クラスター、グループの概要を見るための良いクエリです。
 
@@ -335,8 +335,9 @@ query {
     }
   }
 }
+```
 
-### 単一のプロジェクト
+### 単一のプロジェクト { #single-project }
 
 単一のプロジェクトを詳しく見る場合、このクエリが非常に有用であることが証明されています。
 
@@ -369,8 +370,9 @@ query {
     }
   }
 }
+```
 
-### Git URLによるプロジェクトのクエリ
+### Git URLによるプロジェクトのクエリ { #querying-a-project-by-its-git-url }
 
 プロジェクトの名前を覚えていないが、Git URLは知っている場合？もう探す必要はありません、そのためのGraphQLクエリがあります：
 
@@ -383,7 +385,7 @@ query {
 }
 ```
 
-### オブジェクトの更新
+### オブジェクトの更新 { #updating-objects }
 
 Lagoon GraphQL APIは、オブジェクトを表示し、オブジェクトを作成するだけでなく、[パッチオブジェクト](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97)を使用して既存のオブジェクトを更新する能力もあります。
 
@@ -432,7 +434,7 @@ mutation {
 }
 ```
 
-### 環境の削除
+### 環境の削除 { #deleting-environments }
 
 Lagoon GraphQL APIを使用して、環境を削除することもできます。 環境。コマンドを実行するためには、プロジェクト名と環境名を知っている必要があります。
 
@@ -442,17 +444,17 @@ mutation {
     input: {
       # TODO: nameフィールドを記入してください。
       # これは環境名です。
-      name:""
+      name: ""
       # TODO: projectフィールドを記入してください。
       # これはプロジェクト名です。
-      project:""
+      project: ""
       execute:true
     }
   )
 }
 ```
 
-### プロジェクトに割り当てられたグループとユーザーを確認する
+### プロジェクトに割り当てられたグループとユーザーを確認する { #querying-a-project-to-see-what-groups-and-users-are-assigned }
 
 プロジェクトにどのグループとユーザーがアクセスできるか見たいですか？彼らの役割は何か知りたいですか？そのためのクエリがあります！下記のクエリを使用して、プロジェクトを検索し、そのプロジェクトに割り当てられたグループ、ユーザー、役割を表示できます。
 
@@ -489,11 +491,11 @@ query search{
 }
 ```
 
-## 維持 プロジェクトメタデータ
+## 維持 プロジェクトメタデータ { #maintaining-project-metadata }
 
 プロジェクトメタデータは、任意のキー/値の組み合わせで割り当てることができます。プロジェクトは関連付けられたメタデータによって問い合わせることができます。例えば、ソフトウェアの種類、バージョン番号、または後で問い合わせるための任意のカテゴリーによってプロジェクトを分類することができます。
 
-### プロジェクトのメタデータを追加/更新する
+### プロジェクトのメタデータを追加/更新する { #addupdate-metadata-on-a-project }
 
 メタデータの更新はキー/値の組み合わせを期待しています。これは`UPSERT`として動作します。つまり、既にキーが存在する場合は値が更新され、存在しない場合は挿入されます。
 
@@ -510,7 +512,7 @@ mutation {
 }
 ```
 
-### メタデータによるプロジェクトのクエリ
+### メタデータによるプロジェクトのクエリ { #query-for-projects-by-metadata }
 
 クエリは`key`のみ（例：特定のキーが存在するすべてのプロジェクトを返す）または`key`と`value`の両方（キーと値の両方が一致する必要があります）によって行うことができます。
 
@@ -528,16 +530,15 @@ query projectsByMetadata {
 特にバージョン`8`の`version`タグを持つすべてのプロジェクト：
 
 ```graphql title="メタデータによるクエリ"
- metadataでプロジェクトを検索する
-{
-  metadataを使用してプロジェクトを検索する（metadata: [{key: "version", value: "8"]} ) {
+query projectsByMetadata {
+  projectsByMetadata(metadata: [{key: "version", value: "8"] ) {
     id
     name
   }
 }
 ```
 
-### プロジェクトのメタデータを削除する
+### プロジェクトのメタデータを削除する { #removing-metadata-on-a-project }
 
 メタデータはキーごとに削除できます。他のメタデータキー/値のペアは残ります。
 

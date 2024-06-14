@@ -1,20 +1,20 @@
 # チュートリアル、ウェビナー、ビデオ
 
-## ラグーンウェビナー入門
+## Lagoonウェビナー入門
 
 \[[スライド](https://docs.google.com/presentation/d/1o90YQtXUofe2g9yU6R3awSK3F0iMpKLQm1ZZcrDUni0/edit#slide=id.g41f995a6b3_0_32)\]
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/GS4b5mbjbzM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## ラグーンと共に進化するLando
+## Lagoonと共に進化するLando
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/au4F2KKwyOM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## ウェビナー - ラグーンインサイト
+## ウェビナー - Lagoonインサイト
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/eiIaKPWxbpM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## ラグーンデプロイメントデモ
+## Lagoonデプロイメントデモ
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/XiaH7gqUXWc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャーインピクチャー" allowfullscreen></iframe>
 
@@ -40,7 +40,7 @@
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/eZJz4VbM1E4" title="YouTubeビデオプレーヤー" frameborder="0" allow="加速度計; 自動再生; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャ・イン・ピクチャ" allowfullscreen></iframe>
 
-## ラグーン：フルDrupalサポート付きのオープンソースDockerビルド＆デプロイメントシステム
+## Lagoon：フルDrupalサポート付きのオープンソースDockerビルド＆デプロイメントシステム
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/3RnZPrjvoqo" title="YouTubeビデオプレーヤー" frameborder="0" allow="加速度計; 自動再生; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャ・イン・ピクチャ" allowfullscreen></iframe>
 

@@ -50,7 +50,7 @@ SSHキーをUIを通じてアップロードできます。通常通りにログ
 
 ### コマンドライン経由
 
-Lagoon APIをGraphQL経由で使用してユーザーにSSHキーを追加する一般的な例は[ここ](../interacting/graphql-queries.md#allowing-access-to-the)にあります。 -プロジェクト）
+Lagoon APIをGraphQL経由で使用してユーザーにSSHキーを追加する一般的な例は[ここ](../interacting/graphql-queries.md#allowing-access-to-the-project)にあります。 -プロジェクト）
 
 ## ポッドへのSSH接続
 

@@ -4,13 +4,13 @@
 >
 > * [mongodb.com](https://www.mongodb.com/)から
 
-## 対応バージョン
+## サポートされているバージョン { #supported-versions }
 
 4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/4.Dockerfile) - `uselagoon/mongo-4`
 
 このDockerfileは、スタンドアロンのMongoDBデータベースサーバーをセットアップするためのものです。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
 

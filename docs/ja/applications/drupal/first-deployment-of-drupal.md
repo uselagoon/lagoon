@@ -2,11 +2,11 @@
 
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
-## 1. すべてが準備できていることを確認してください
+## 1. すべてが準備できていることを確認してください { #1-make-sure-you-are-all-set }
 
 初回のデプロイメントを成功させるためには、あなたの[DrupalプロジェクトがLagoon化されている](../../using-lagoon-the-basics/setup-project.md)ことと、Lagoonでプロジェクトが設定されていることを確認してください。そうでない場合でも心配はいりません！[ステップバイステップガイド](./step-by-step-getting-drupal-ready-to-run-on-lagoon.md)を参照して作業方法を確認してください。
 
-## 2. プッシュ
+## 2. プッシュ { #2-push }
 
 Lagoonでは、デプロイするために設定されたブランチにプッシュすることで新しいデプロイメントを作成します。
 
@@ -27,11 +27,11 @@ git push
 
 また、Lagoon UIをチェックして、任意のデプロイメントの進行状況を確認することもできます（Lagoonの管理者が情報を持っています）。
 
-## 3. 失敗
+## 3. 失敗 { #3-a-fail }
 
 `.lagoon.yml`で定義されたポストロールアウトタスクにより、`drush updb`や`drush cr`のようなタスクを実行したかもしれません。これらのDrushタスクは、環境内に存在しているデータベースに依存していますが、明らかにまだ存在していません。それを修正しましょう！読み進めてください。
 
-## 4. ローカルデータベースをリモートのLagoon環境に同期する
+## 4. ローカルデータベースをリモートのLagoon環境に同期する { #4-synchronize-local-database-to-the-remote-lagoon-environment }
 
 LagoonではフルのDrushサイトエイリアスをサポートしているため、ローカルデータベースをリモートのLagoon環境と同期することができます。
 
@@ -65,16 +65,15 @@ drush sql-sync @self @develop
 
 ```bash title="Drush sql-syncの結果"
 [drupal-example]cli-drupal:/app$ drush sql-sync @self @develop
-ssh.lagoon.amazeeio.cloud/drupalのデータが破壊され、drupalからのデータで置き換えられます。
-本当に続行しますか？ (y/n): y
-ソースのデータベースダンプを開始します。                                                                              [ok]
-データベースダンプは/home/drush-backups/drupal/20180227075813/drupal_20180227_075815.sql.gzに保存されました。               [success]
-デスティネーションで一時ファイルディレクトリを検出します。                                                    [ok]
-drupal-example-develop@ssh.lagoon.amazeeio.cloud:/tmp/drupal_20180227_075815.sql.gzのファイルを削除し、/home/drush-backups/drupal/201802270からのデータで置き換えます。 75813/drupal_20180227_075815.sql.gz
-本当に続行しますか？ (y/n): y
-ソースからデスティネーションへのダンプファイルのコピー。                                                                     [ok]
-デスティネーションデータベースにダンプファイルのインポートを開始します。
-
+You will destroy data in ssh.example.com/drupal and replace with data from drupal.
+Do you really want to continue? (y/n): y
+Starting to dump database on Source.                                                                              [ok]
+Database dump saved to /home/drush-backups/drupal/20180227075813/drupal_20180227_075815.sql.gz               [success]
+Starting to discover temporary files directory on Destination.                                                    [ok]
+You will delete files in drupal-example-develop@ssh.example.com:/tmp/drupal_20180227_075815.sql.gz and replace with data from /home/drush-backups/drupal/20180227075813/drupal_20180227_075815.sql.gz
+Do you really want to continue? (y/n): y
+Copying dump file from Source to Destination.                                                                     [ok]
+Starting to import dump file onto Destination database.
 ```
 
 さて、再度デプロイを試してみましょう。今度は空のプッシュです：
@@ -92,7 +91,7 @@ git push
 
 それでも失敗する場合は、ログリンクを確認して詳細情報を得てください。
 
-## 5. ローカルファイルをリモートのLagoon環境に同期する
+## 5. ローカルファイルをリモートのLagoon環境に同期する { #5-synchronize-local-files-to-the-remote-lagoon-environment }
 
 おそらく推測できたでしょう：Drushでそれを行うことができます：
 
@@ -104,20 +103,13 @@ drush rsync @self:%files @develop:%files
 
 ```bash title="Drush rsync results"
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
-ファイルを削除します drupal-example-develop@ssh.lagoon.amazeeio.cloud:/app/web/sites/default/files内のデータを/app/web/sites/default/files/からデータで置き換えます。
-本当に続行しますか？ (y/n): y
-
-しかし、場合によっては、ここでのように正しく見えないことがあります：
-
-```bash title="Drush rsync results"
-[drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
-あなたはdrupal-example-develop@ssh.lagoon.amazeeio.cloud:'/app/web/%files'内のファイルを削除し、'/app/web/%files'からのデータで置き換えます。
-本当に続行しますか？ (y/n):
+You will delete files in drupal-example-develop@ssh.example.com:/app/web/sites/default/files and replace with data from /app/web/sites/default/files/
+Do you really want to continue? (y/n): y
 ```
 
 その理由は、Drupalがファイルディレクトリのパスを解決できないからです。これはおそらく、Drupalが完全に設定されていないか、データベースが欠けているためです。回避策としては`drush rsync @self:sites/default/files @develop:sites/default/files`を使用できますが、ローカルとリモートのDrupalを実際に確認することをお勧めします（`drush status`でファイルディレクトリが正しく設定されているかどうかをテストできます）。
 
-## 6. 完了しました
+## 6. 完了しました { #6-its-done }
 
 Lagoonがビルドとデプロイを完了すると、チャットシステムに2回目の通知を送信します。以下のような感じです：
 
@@ -132,11 +124,11 @@ Lagoonがビルドとデプロイを完了すると、チャットシステム�
 
 以上です！それが難しすぎなければよいのですが、私たちはDevOpsを使いやすくすることを目指しています。
 
-## しかし、他のブランチや本番環境はどうですか？
+## しかし、他のブランチや本番環境はどうですか？ { #but-wait-how-about-other-branches-or-the-production-environment }
 
 それがLagoonの美点です：まったく同じです。本番ブランチとして定義したブランチ名をプッシュすると、そのブランチがデプロイされます。
 
-## 失敗？心配しないで
+## 失敗？心配しないで { #failure-dont-worry }
 
 デプロイメントが失敗しましたか？ああ、それは大変です！でも、私たちは助けるためにここにいます：
 

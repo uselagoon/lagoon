@@ -70,7 +70,7 @@ production_routes:
 
 環境を切り替えるイベントをトリガーするには、次のGraphQL変異を実行します。これにより、Lagoonがプロセスを開始します。
 
-```graphql title="Active Standby Switch"
+```graphql title="アクティブスタンバイスイッチ"
 mutation ActiveStandby {
   switchActiveStandby(
     input:{

@@ -10,7 +10,7 @@
 
 * 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile) (2023年7月までセキュリティサポートあり) - `uselagoon/rabbitmq`
 
-## Lagoon適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかの事項が完了しています：
 
@@ -34,7 +34,7 @@
 
 詳細な情報やカスタム設定については、[公式の RabbitMQ ドキュメンテーション](https://www.rabbitmq.com/ha.html)を参照してください。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 いくつかのオプションは[環境変数](../concepts-advanced/environment-variables.md)を通じて設定可能です。
 

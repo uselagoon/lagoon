@@ -4,11 +4,11 @@
 >
 > * 出典: [https://opensearch.org/](https://opensearch.org/)
 
-## サポートバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch/2.Dockerfile) - `uselagoon/opensearch-2`
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 いくつかのオプションは[環境変数](../concepts-advanced/environment-variables.md)経由で設定可能です。
 

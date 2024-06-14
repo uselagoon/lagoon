@@ -6,7 +6,7 @@
 * `drupal console`
 * `drush launcher` \(サイトにインストールされたDrushが見つからない場合はDrush 8にフォールバックします\)
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 7.3 \(互換性のために利用可能ですが、公式にはサポートされていません\)
 * 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile) - `uselagoon/php-7.4-cli-drupal`
@@ -15,7 +15,7 @@
 
 全てのPHPバージョンはそれぞれのDockerfilesを使用します。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの事項が完了しています:
 

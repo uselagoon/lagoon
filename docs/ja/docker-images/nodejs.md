@@ -2,7 +2,7 @@
 
 [Lagoonの `Node.js` Dockerイメージ](https://github.com/uselagoon/lagoon-images/tree/main/images/node)です。[公式のNode Alpineイメージ](https://hub.docker.com/_/node/)を基に作成しています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 Node.jsのイメージは2つのバージョンを提供しています：通常の `node:version` イメージと `node:version-builder`。
 
@@ -16,7 +16,7 @@ Node.jsのイメージは2つのバージョンを提供しています：通常
 
 !!! ヒント EOL Node.jsイメージの更新は通常、公式に発表されたEOL日付の後にリリースされるLagoonリリースと共に停止します：[https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 Node.jsコンテナのデフォルトの公開ポートはポート`3000`です。
 
@@ -29,7 +29,7 @@ Node.jsコンテナのデフォルトの公開ポートはポート`3000`です�
 * 同じストレージを共有する複数のサービスがある場合は、これを使用します
 `lagoon.persistent.name` = （オプション）これを使用して、Lagoonに他の名前付きサービスで定義されたストレージを使用するように指示します。
 
-## `docker-compose.yml`スニペット
+## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
 ```yaml title="docker-compose.yml"
     node:

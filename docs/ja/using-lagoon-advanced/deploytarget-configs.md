@@ -108,7 +108,7 @@ mutation addDeployTargetConfig{
 
 これらがプロジェクトに追加されると、以下のクエリを使用してプロジェクトのすべてのDeployTarget設定を返すことができます。
 
-```GraphQL title="Get DeployTargets"
+```GraphQL title="デプロイターゲットを取得する"
 query deployTargetConfigsByProjectId{
     deployTargetConfigsByProjectId(project:1){
         id

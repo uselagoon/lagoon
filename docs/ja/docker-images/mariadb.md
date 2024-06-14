@@ -12,7 +12,7 @@ MariaDBは、オープンソースのMySQL後継者です。
 * 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 は2025年5月までサポート) - `uselagoon/mariadb-10.11` !!!情報
     これらのイメージは、上流のMariaDBイメージから構築されていないため、サポートは別のサイクルに従います - そして、基礎となるAlpineイメージがサポートを受けている限りのみアップデートを受けます - [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/)を参照してください。実際には、ほとんどのMariaDBユーザーはこれらのコンテナをローカルで実行しています - 本番環境ではDBaaSオペレーターが提供するManaged Cloud Databasesを使用します。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 MariaDBコンテナのデフォルトの公開ポートはポート`3306`です。
 
@@ -23,7 +23,7 @@ LagoonがMariaDBコンテナを最良の方法で実行することを可能に�
 * フォルダのパーミッションは自動的に[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で調整されるため、このイメージは  ランダムなユーザー。
 * MariaDBコンテナが準備完了したことを確認するための `readiness-probe.sh` スクリプト。
 
-## `docker-compose.yml` スニペット
+## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
 ```yaml title="docker-compose.yml"
 	mariadb:
@@ -49,7 +49,7 @@ LagoonがMariaDBコンテナを最良の方法で実行することを可能に�
 
 このイメージには、_デフォルト_ のMariaDB設定ファイルが含まれており、Lagoonで動作するように最適化されています。一部のオプションは[環境変数](../concepts-advanced/environment-variables.md)を介して設定可能です。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 | 環境 | 変数名                               | デフォルト             | 説明 |
 | :----------------------------------- | :-------------------- | :--------------------------------------------------------------------------- |

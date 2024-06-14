@@ -1,6 +1,6 @@
-# 共有リソース
+# Commons
 
-[Lagoon `共有リソース` Dockerイメージ](https://github.com/uselagoon/lagoon-images/tree/main/images/commons)。[公式のAlpineイメージ](https://hub.docker.com/_/alpine/)を基にしています。
+[Lagoon `commons` Dockerイメージ](https://github.com/uselagoon/lagoon-images/tree/main/images/commons)。[公式のAlpineイメージ](https://hub.docker.com/_/alpine/)を基にしています。
 
 このイメージ自体には機能はありませんが、代わりに基本イメージであり、他のイメージを構築するために拡張して利用されることを目的としています。Lagoonのすべてのalpineベースのイメージは、共有リソースからコンポーネントを継承しています。
 

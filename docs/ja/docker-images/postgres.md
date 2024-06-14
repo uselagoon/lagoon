@@ -2,7 +2,7 @@
 
 [Lagoon PostgreSQL Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres)。[公式PostgreSQL Alpineイメージ](https://hub.docker.com/_/postgres)を基にしています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) (2023年11月までのセキュリティサポート) - `uselagoon/postgres-11`
 * 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/postgres-12`
@@ -14,13 +14,13 @@
 !!! ヒント
     Lagoonリリースが公式に通知されたEOL日付の後に、通常、EOL PostgreSQLイメージの更新を停止します：[https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 Postgresコンテナのデフォルトの公開ポートはポート`5432`です。
 
 LagoonがPostgresコンテナを最適な方法で実行できるようにするためには、`lagoon.type: postgres`を使用してください。これにより、クラスタ内で利用可能な場合にDBaaSオペレータがクラウドデータベースをプロビジョニングできます。コンテナ内のPostgresを特にリクエストするには、`lagoon.type: postgres-single`を使用してください。永続的なストレージは常に、/var/lib/postgresql/dataでpostgresコンテナにプロビジョニングされます。
 
-## `docker-compose.yml` スニペット
+## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
 ```yaml title="docker-compose.yml"
 postgres:

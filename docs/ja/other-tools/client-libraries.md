@@ -1,11 +1,11 @@
-# ラグーンクライアントライブラリ
+# Lagoonクライアントライブラリ
 
-ラグーンエコシステムのツール開発に興味がある場合、いくつかのライブラリが役立つかもしれません。
+Lagoonエコシステムのツール開発に興味がある場合、いくつかのライブラリが役立つかもしれません。
 
 ## Golang
 ### Machinery
 
-Machineryライブラリは、ラグーンのツールライブラリの中で最も積極的にサポートされ、開発されています。
+Machineryライブラリは、Lagoonのツールライブラリの中で最も積極的にサポートされ、開発されています。
 これは、主に（しかし排他的ではなく）APIとのやり取りのための、私たちのすべてのgolang基盤のツールタイプにわたるすべての基本操作の中央ストアです。
 
 [https://github.com/uselagoon/machinery/](https://github.com/uselagoon/machinery/)
@@ -21,6 +21,6 @@ PHPの統合を探しているなら、php-sdkがあなたの仕事の出発点�
 
 ## Ansible
 
-ラグーンとのやり取りのための頻繁に更新され、拡張されているAnsibleライブラリ。
+Lagoonとのやり取りのための頻繁に更新され、拡張されているAnsibleライブラリ。
 
 [https://github.com/salsadigitalauorg/lagoon_ansible_collection](https://github.com/salsadigitalauorg/lagoon_ansible_collection)

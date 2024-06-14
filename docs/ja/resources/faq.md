@@ -1,6 +1,6 @@
 # よくある質問
 
-## ラグーンの管理者にどのように連絡すればよいですか？
+## Lagoonの管理者にどのように連絡すればよいですか？
 
 専用のSlackチャネルが設定されているはずなので、それを利用してコミュニケーションを取ることができます - もしない場合や、どのように連絡すればよいか忘れてしまった場合は、[support@amazee.io](mailto:support@amazee.io)に連絡して下さい。
 
@@ -8,7 +8,7 @@
 
 バグやセキュリティ問題を見つけた場合は、その内容を[support@amazee.io](mailto:support@amazee.io)に送ってください。GitHubの問題として報告しないでください。
 
-## amazee.ioのラグーンを利用したホスティングサービスに興味があります
+## amazee.ioのLagoonを利用したホスティングサービスに興味があります
 
 それは素晴らしいニュースです！[sales@amazee.io](mailto:sales@amazee.io)までメールでお問い合わせいただけます。
 
@@ -95,7 +95,7 @@ SSHキーをpygmyにロードする必要があります。方法はこちら：
 
 ## 「drushはより機能的な環境が必要です」というメッセージが表示され、デプロイが失敗する
 
-これは通常、プロジェクトにアップロードされたデータベースがないことを意味します。[プロジェクトにデータベースを追加するためのステップバイステップガイド](../applications/drupal/first-deployment-of-drupal.md#5-synchronize-local-database-to-the-remote-lagoon-environment)を参照してください。
+これは通常、プロジェクトにアップロードされたデータベースがないことを意味します。[プロジェクトにデータベースを追加するためのステップバイステップガイド](../applications/drupal/first-deployment-of-drupal.md#4-synchronize-local-database-to-the-remote-lagoon-environment)を参照してください。
 
 ## Pygmyを起動すると「アドレスはすでに使用中」エラーが表示されますか？
 

@@ -4,7 +4,7 @@
 
 このDockerfileは、初期コア`mycore`を持つスタンドアロンのSolrサーバーをセットアップするために使用することを意図しています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 5.5 \(互換性のために利用可能、公式サポートは終了\)
 * 6.6 \(互換性のために利用可能、公式サポートは終了\)
@@ -12,7 +12,7 @@
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile) - `uselagoon/solr-7`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile) - `uselagoon/solr-8`
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
 
@@ -20,7 +20,7 @@
 * `Solr`ポートを修正し確認する`10-solr-port.sh`スクリプト。
 * `20-solr-datadir.sh` `Solr`の設定がLagoonに適合しているかを確認するスクリプトです。これによりディレクトリのパスが設定され、正しいロックタイプが設定されます。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 一部のオプションは[環境変数](../concepts-advanced/environment-variables.md)を通じて設定可能です。
 

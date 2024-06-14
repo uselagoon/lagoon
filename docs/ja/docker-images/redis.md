@@ -4,7 +4,7 @@
 
 このDockerfileは、デフォルトでスタンドアロンのRedis _エフェメラル_ サーバーをセットアップするために使用することを意図しています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 5（互換性のためのみ利用可能、公式にはもはやサポートされていません） - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6`または`uselagoon/redis-6-persistent`
@@ -26,7 +26,7 @@ Redisイメージには2つの異なるバリエーションがあります：**
 
 通常、メモリ内キャッシュのシナリオで永続的なRedisを使用することはお勧めしません。これは、Redisコンテナが再起動し、ディスクからデータをロードしているときに、アプリケーションに予期しない副作用をもたらす可能性があるからです。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
 
@@ -37,7 +37,7 @@ Redisイメージには2つの異なるバリエーションがあります：**
 
 このイメージには、Lagoonで動作するように最適化された _default_ Redis設定ファイルが含まれています。
 
-### 環境変数
+### 環境変数 { #environment-variables }
 
 一部のオプションは[環境変数](../concepts-advanced/environment-variables.md)を介して設定可能です。
 

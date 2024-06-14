@@ -1,6 +1,6 @@
-# ラグーンロギング
+# Lagoonロギング
 
-ラグーンは、アプリケーション、コンテナ、ルーターのログを保存するためにOpenSearchと統合します。ラグーンロギングは、ラグーンプロジェクトからアプリケーション、ルーター、コンテナのログを収集し、それらをログ集約器に送信します。それは各`lagoon-remote` インスタンスにインストールする必要があります。
+Lagoonは、アプリケーション、コンテナ、ルーターのログを保存するためにOpenSearchと統合します。Lagoonロギングは、Lagoonプロジェクトからアプリケーション、ルーター、コンテナのログを収集し、それらをログ集約器に送信します。それは各`lagoon-remote` インスタンスにインストールする必要があります。
 
 さらに、それは`lagoon-core`サービスからログを収集するために`lagoon-core`クラスターにインストールするべきです。これは`LagoonLogs`セクションで設定されています。
 
@@ -8,7 +8,7 @@
 
 参照：[Logging](../logging/logging.md)。
 
-ラグーンロギングについて詳しくはこちらをご覧ください：[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
+Lagoonロギングについて詳しくはこちらをご覧ください：[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
 
 1. `lagoon-logging-values.yaml`を作成します：
 

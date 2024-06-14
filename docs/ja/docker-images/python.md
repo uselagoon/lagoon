@@ -2,7 +2,7 @@
 
 [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/python)。これは[公式のPython Alpineイメージ](https://hub.docker.com/_/python/)に基づいています。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 2.7 \(互換性のためのみで、公式にはもうサポートされていません\) - `uselagoon/python-2.7`
 * 3.7 \(互換性のためのみで、公式にはもうサポートされていません\) - `uselagoon/python-3.7`
@@ -15,7 +15,7 @@
 !!! ヒント
     私たちは通常、公式に通知されたEOL日付の後に来るLagoonリリースとともにEOL Pythonイメージの更新と公開を停止します：[https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions)。以前に公開されたバージョンは引き続き利用可能です。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 Pythonコンテナのデフォルトの公開ポートはポート`8800`です。
 
@@ -28,7 +28,7 @@ Pythonコンテナのデフォルトの公開ポートはポート`8800`です�
 同じストレージを共有する複数のサービスがある場合は、これを使用します
 `lagoon.persistent.name` =（オプション）これを使用してLagoonに別の名前付きサービスで定義されたストレージを使用するように伝えます。
 
-## `docker-compose.yml`のスニペット
+## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
 ```yaml title="docker-compose.yml"
 python:

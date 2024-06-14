@@ -11,7 +11,7 @@
 !!! 情報
     このDockerfileは、Lagoon内での任意の`PHP`ニーズの基盤として使用することを目的としています。このイメージ自体はウェブサーバーを作成せず、`php-fpm` fastcgiリスナーを作成します。`php-fpm`プール設定を適応させる必要があるかもしれません。
 
-## サポートされているバージョン
+## サポートされているバージョン { #supported-versions }
 
 * 7.3 (互換性を保つためのみに利用可能、公式サポートは終了) - `uselagoon/php-7.3-fpm`
 * 7.4 (互換性を保つためのみに利用可能、公式サポートは終了) - `uselagoon/php-7.4-fpm`
@@ -25,7 +25,7 @@
 !!! ヒント
     End of Life \(EOL\) PHP画像の更新は通常、公式に発表されたEOL日付の後のLagoonリリースで停止します：[https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php)。以前に公開されたバージョンは利用可能なままとなります。
 
-## Lagoonの適応
+## Lagoonの適応 { #lagoon-adaptions }
 
 このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかのことが行われています：
 
@@ -62,7 +62,7 @@
 * PHPのエラーを見るために`catch_workers_output = yes`。
 * `clear_env = `を使用して、通常のDocker環境変数経由でPHP環境変数を注入できます。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 一部のオプションは[環境変数](../concepts-advanced/environment-variables.md)経由で設定可能です。
 

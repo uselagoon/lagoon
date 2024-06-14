@@ -34,7 +34,13 @@ Lagoonは現在、単一の `ingress-nginx` コントローラーのみに対応
 
 ### Harbor
 
-現在、Harborのバージョン2.1と2.2以降がサポートされています。2.2でロボットアカウントの取得方法が変更され、Lagoonのリモートコントローラーは Translation request timed out. Kubernetesプラットフォームで十分です。これは、可能な限り動的なプロビジョニングと拡張性があるように設定する必要があります。
+現在、Harborのバージョン2.1と2.2以降がサポートされています。2.2でロボットアカウントの取得方法が変更され、Lagoonのリモートコントローラーは
+
+Translation request timed out.
+
+### ストレージプロビジョナー { #storage-provisioners }
+
+Lagoon は、ほとんどのワークロードに対してデフォルトの `standard` `StorageClass` を利用し、ほとんどの Kubernetes プラットフォームの内部プロビジョナーで十分です。これは、可能な場合は動的プロビジョニングと拡張が可能になるように構成する必要があります。
 
 また、Lagoonでは、永続的なポッドレプリカ（ノード間）をサポートするために、'bulk'と呼ばれる`StorageClass`が利用可能であることが必要です。この`StorageClass`は`ReadWriteMany`（RWX）アクセスモードをサポートしており、可能な限り動的なプロビジョニングと拡張性があるように設定する必要があります。詳細はhttps://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes を参照し、互換性のあるドライバの完全なリストについては[production drivers list](https://kubernetes-csi.github.io/docs/drivers.html)を参照してください。
 

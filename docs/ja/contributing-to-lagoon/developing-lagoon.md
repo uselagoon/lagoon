@@ -1,13 +1,13 @@
-# ラグーンの開発
+# Lagoonの開発
 
-ラグーンのローカル開発は、現在、ローカルのKubernetesクラスターまたはDocker Compose（フォールバックとして）を経由して行うことができます。
+Lagoonのローカル開発は、現在、ローカルのKubernetesクラスターまたはDocker Compose（フォールバックとして）を経由して行うことができます。
 
 !!! 注意
-    フルのラグーンスタックは、現在ARMベースのアーキテクチャ（M1/M2 Apple Siliconベースのマシンなど）と互換性のない上流プロジェクトに依存しています。このため、これらのアーキテクチャ上で`lagoon-core`または`lagoon-remote`をローカルで実行または開発することは現在サポートされていません。詳細はhttps://github.com/uselagoon/lagoon/issues/3189 をご覧ください。
+    フルのLagoonスタックは、現在ARMベースのアーキテクチャ（M1/M2 Apple Siliconベースのマシンなど）と互換性のない上流プロジェクトに依存しています。このため、これらのアーキテクチャ上で`lagoon-core`または`lagoon-remote`をローカルで実行または開発することは現在サポートされていません。詳細はhttps://github.com/uselagoon/lagoon/issues/3189 をご覧ください。
 
 ## Docker
 
-Dockerは、ローカルでラグーンをビルドおよび実行するためにインストールする必要があります。
+Dockerは、ローカルでLagoonをビルドおよび実行するためにインストールする必要があります。
 
 ### DockerとDocker Composeのインストール
 
@@ -114,9 +114,9 @@ make kind/local-dev-patch
 
 これにより、ローカルにインストールされたNode.jsを使用してtypescriptのサービスがビルドされます（これは &gt;16.0\）。その後、次の操作を行います：
 
-* Lagoonサービスからの「dist」フォルダをKubernetesの正しいlagoon-coreポッドにマウントします
+* Lagoonサービスからの`dist`フォルダをKubernetesの正しいlagoon-coreポッドにマウントします
 * コードの変更を監視する`nodemon`が動作しているサービスと共にlagoon-coreチャートを再デプロイします
-* これによりLagoonでの「ライブ」開発が可能になります。
+* これにより、Lagoon でのライブ開発が容易になります。
 * Kubernetesのポッドに変更が反映されるためには、時折再デプロイが必要なことに注意してください。異なるブランチを`git clean -dfx`で再ビルドする場合は、そのサービスからのビルド成果物をクリーンにしてください。なお、distフォルダはGitによって無視されます。
 
 ```bash title="ロギングを開始"

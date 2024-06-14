@@ -42,11 +42,11 @@
 
 追加のアップグレードについては、[https://github.com/uselagoon/lagoon/releases](https://github.com/uselagoon/lagoon/releases)をご覧ください。
 
-## データベースのバックアップ
+## データベースのバックアップ { #database-backups }
 
 Lagoon Coreをアップグレードする前にデータベースをバックアップしたい場合があります。以下の手順でバックアップを作成し、必要に応じてそれらを使用して復元することができます。後でそれらを削除することもできます。
 
-### API DB
+### API DB { #api-db }
 
 ```bash title="API DBのバックアップ"
 kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
@@ -55,7 +55,8 @@ kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
     --single-transaction infrastructure | gzip -9 > \
     /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).infrastructure.sql.gz'
 ```
- ### Keycloak DB
+
+### Keycloak DB { #keycloak-db }
 
 ```bash title="Keycloak DBのバックアップ"
 kubectl --namespace lagoon-core exec -it lagoon-core-keycloak-db-0 -- \

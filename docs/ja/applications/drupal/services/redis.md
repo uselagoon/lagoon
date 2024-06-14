@@ -89,7 +89,7 @@ redis:
     << : *default-environment
 ```
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 環境変数は、Redisに関する一般的な情報を保存するためのものです。
 

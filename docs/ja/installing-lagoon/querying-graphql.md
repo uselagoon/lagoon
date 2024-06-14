@@ -34,7 +34,7 @@
 
   1. 次のクエリを実行します：
 
-    ```graphql title="Add mutation"
+    ```graphql title="突然変異を追加"
     mutation addKubernetes {
  ```bash
       addKubernetes(input:

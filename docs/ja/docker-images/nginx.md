@@ -54,7 +54,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 !!! 警告
     自動基本認証設定は便宜上提供されています。ウェブサイトやプライベートデータを保護する安全な方法とは考えられません。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 いくつかのオプションは[環境
 変数](../concepts-advanced/environment-variables.md)を介して設定可能です。

@@ -2,7 +2,7 @@
 
 [Lagoonの`nginx-drupal` Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx-drupal/Dockerfile)。Drupalと連携するように最適化されています。[Lagoonの`nginx`イメージ](../../../docker-images/nginx.md)に基づいています。
 
-## ラグーンの適応
+## Lagoonの適応
 
 このイメージは、Lagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
 

@@ -2,7 +2,7 @@
 
 Harbor-Trivyは特定の環境変数を介して設定され、設定ファイルは使用しません。
 
-## 環境変数
+## 環境変数 { #environment-variables }
 
 * `SCANNER_LOG_LEVEL`
   * このサービスが使用するログレベル。

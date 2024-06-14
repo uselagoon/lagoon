@@ -1,6 +1,6 @@
-# ラグーンファイル
+# Lagoonファイル
 
-ラグーンファイルは、バックアップなどのタスクのファイル出力を保存するために使用され、S3互換ストレージにホストできます。
+Lagoonファイルは、バックアップなどのタスクのファイル出力を保存するために使用され、S3互換ストレージにホストできます。
 
 1. ポリシーを持つ新しいAWSユーザーを作成します：
 
@@ -36,7 +36,7 @@
 
     ```yaml title="lagoon-core-values.yml"
     s3FilesAccessKeyID: <<アクセスキーID>>
-    s3FilesBucket: <<ラグーンファイル用のバケット名>>
+    s3FilesBucket: <<Lagoonファイル用のバケット名>>
     s3FilesHost: <<S3エンドポイント（例："https://s3.eu-west-1.amazonaws.com"）>>
     s3FilesSecretAccessKey: <<アクセスキーシークレット>>
     s3FilesRegion: <<S3リージョン>>

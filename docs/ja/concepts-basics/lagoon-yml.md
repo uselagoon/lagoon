@@ -10,23 +10,23 @@
 
 `.lagoon.yml` ファイルは、Gitリポジトリのルートに配置する必要があります。
 
-## 一般設定
+## 一般設定 { #general-settings }
 
-### `docker-compose-yaml`
+### `docker-compose-yaml` { #docker-compose-yaml }
 
 この設定は、ビルドスクリプトにどのDocker Compose YAMLファイルを使用するべきかを指示します。これにより、どのサービスとコンテナがデプロイされるべきかを理解します。これはデフォルトで `docker-compose.yml` を指しますが、必要に応じて特定のLagoon Docker Compose YAMLファイルに使用することもできます。
 
-### `environment_variables.git_sha`
+### `environment_variables.git_sha` { #environment_variablesgit_sha }
 
 この設定は、デプロイされたGit SHAを環境変数としてプロジェクトに注入することを有効にすることができます。デフォルトではこれは無効です。値を `true` に設定すると、SHAが環境変数 `LAGOON_GIT_SHA` として設定されます。
 
-## ルート
+## ルート { #routes }
 
 ルートはトラフィックを指向するために使用されます サービスに。環境内の各サービスにはルートがあり、ドメイン名は手動または自動で定義されます。トップレベルの `routes` セクションは、すべての環境のすべてのルートに適用されます。
 
-### `routes.autogenerate`
+### `routes.autogenerate` { #routesautogenerate }
 
-これにより、自動的に作成されるルートを設定できます。[手動ルート](＃environmentsnameroutes)は環境ごとに定義されます。
+これにより、自動的に作成されるルートを設定できます。[手動ルート](#environmentsnameroutes)は環境ごとに定義されます。
 
 * `enabled`: 自動生成されたルートを無効にするには、`false`に設定します。デフォルトは`true`です。
 * `allowPullrequests`: プルリクエストのために `enabled: false`を上書きするには、`true`に設定します。
@@ -54,11 +54,11 @@
         - it
   ```
 
-## タスク
+## タスク { #tasks }
 
 以下のようなものがあります ビルドフローで正確にどのタイミングで実行されるかによって異なるタスクの種類を定義することができます：
 
-### プリロールアウトタスク - `pre_rollout.[i].run`
+### プリロールアウトタスク - `pre_rollout.[i].run` { #pre-rollout-tasks-pre_rolloutirun }
 
 ここでは、すべてのイメージが正常にビルドされた後、_しかし_以下の前に、プロジェクトに対して実行するタスクを指定することができます：
 
@@ -73,7 +73,7 @@
     * 最後のデプロイ以降にDockerfileに加えられた変更は、プリロールアウトタスクが実行されるときには表示されません。
     * 既存のコンテナがない場合（例えば、新しい環境の初期デプロイメント時など）、プリロールアウトタスクはスキップされます。
 
-### ポストロールアウトタスク - `post_rollout.[i].run`
+### ポストロールアウトタスク - `post_rollout.[i].run` #post-rollout-tasks-post_rolloutirun
 
 ここでは、以下の後に、プロジェクトに対して実行する必要があるタスクを指定することができます：
 
@@ -101,7 +101,7 @@
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
 
-#### post-rolloutタスクの例
+#### post-rolloutタスクの例 { #example-post-rollout-tasks }
 
 以下は、あなたのプロジェクトに使用したり適応したりしたい、いくつかの有用なpost-rolloutタスクの例です。
 
@@ -166,7 +166,7 @@ Drupal & Drush 9: マスター環境からデータベースとファイルを�
 
 1. ここではプロジェクトに適したエイリアスを使用してください。
 
-## バックアップの保持期間
+## バックアップの保持期間 { #backup-retention }
 
 ### `backup-retention.production.monthly`
 
@@ -192,7 +192,7 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
 
 この値が指定されていない場合、グローバルデフォルトは `0` です。
 
-## バックアップスケジュール
+## バックアップスケジュール { #backup-schedule }
 
 ### `backup-schedule.production`
 
@@ -200,7 +200,7 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
 
 この値が指定されていない場合、グローバルデフォルトは `M H(22-2) * * *` です。注意してください これらのバックアップは、クラスタのローカルタイムゾーンを使用します。
 
-## 環境
+## 環境 { #environments }
 
 環境名は、デプロイされたブランチやプルリクエストと一致します。これにより、各環境で異なる設定を持つことが可能になります。私たちの例では、`main`と`staging`環境に適用されます。
 
@@ -226,7 +226,7 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
     hstsEnabled: true
 ```
 
-### SSL設定 `tls-acme`
+### SSL設定 `tls-acme` { #ssl-configuration-tls-acme }
 
 !!! 警告
     `tls-acme: true`から`tls-acme: false`に切り替えると、このルートに対して以前に生成された証明書がすべて削除されます。これは、外部のCDNを使用していて証明書のピン留めを行っている場合、予期しない挙動を引き起こす可能性があります。
@@ -246,7 +246,7 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
 !!! 情報
     証明書認証機関（CA）によって署名されたSSL証明書からLet's Encrypt証明書に切り替える予定の場合、移行を監視するためにLagoon管理者に連絡することをお勧めします。
 
-### 特定のパスの監視
+### 特定のパスの監視 { #monitoring-a-specific-path }
 
 [UptimeRobot](https://uptimerobot.com/)があなたのクラスター（KubernetesまたはOpenShift）に設定されている場合、Lagoonは各ルート/イングレスに注釈を注入して`stakater/IngressControllerMonitor`が使用します。デフォルトのアクションはルートのホームページを監視することです。特定のルートを監視したい場合、ルート仕様に`monitoring-path`を追加することでこれをオーバーライドできます。一般的な使用法は、キャッシングをバイパスする監視用のパスを設定し、サイトのリアルタイムの監視を可能にすることです。
 
@@ -255,14 +255,14 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
       monitoring-path: "/bypass-cache"
 ```
 
-### Ingressの注釈
+### Ingressの注釈 { #ingress-annotations }
 
 !!! 警告
     ルート/Ingressの注釈は、nginx-ingressコントローラーを実行するクラスターにデプロイされるプロジェクトのみがサポートしています！これがサポートされているかどうかは、あなたのLagoon管理者に確認してください。
 
 * `annotations`は、[nginx-ingressコントローラーがサポートする注釈](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)のYAMLマップです。これは特に、簡単なリダイレクトや他の設定に便利です。
 
-#### 制限事項
+#### 制限事項 { #restrictions }
 
 Lagoonでは、一部の注釈が禁止されているか、部分的に制限されています。
 以下の表は、これらのルールを説明しています。
@@ -278,7 +278,7 @@ Lagoonでは、一部の注釈が禁止されているか、部分的に制限�
 | `nginx.ingress.kubernetes.io/stream-snippet`        | 不許可                                                                                     |
 | `nginx.ingress.kubernetes.io/use-regex`             | 不許可                                                                                     |
 
-#### Ingressのアノテーションリダイレクト
+#### Ingressのアノテーションリダイレクト { #ingress-annotations-redirects }
 
 この例では、`example.ch`への任意のリクエストが、フォルダーやクエリパラメータを保持したまま `https://www.example.ch`にリダイレクトされます（`example.com/folder?query` -&gt; `https://www.example.ch/folder?query`）。
 
@@ -297,7 +297,7 @@ Lagoonでは、一部の注釈が禁止されているか、部分的に制限�
       nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
 ```
 
-#### 信頼されるリバースプロキシ
+#### 信頼されるリバースプロキシ { #trusted-reverse-proxies }
 
 !!! 警告
     Kubernetesは単一の`nginx.ingress.kubernetes.io/server-snippet`アノテーションのみを処理します。非本番環境のルートでこのアノテーションを使用する場合は、`add_header X-Robots-Tag "noindex, nofollow";`アノテーションもサーバースニペットの一部として含めてください。これは、開発環境でクローラーがクロールするのを防ぐために、デフォルトのサーバースニペットがingressテンプレートで設定されているものを上書きするために必要です。`.lagoon.yml`で設定された`server-snippets`。
@@ -317,7 +317,7 @@ Lagoonでは、一部の注釈が禁止されているか、部分的に制限�
 
 ### `Environments.[name].types`
 
-Lagoonのビルドプロセスは、`docker-compose.yml`ファイルから`lagoon.type`ラベルをチェックして、どの種類のサービスがデプロイされるべきかを学習します（[`docker-compose.yml`](docker-compose-yml.md#custom-templates)のドキュメンテーションで詳しく読むことができます）。
+Lagoonのビルドプロセスは、`docker-compose.yml`ファイルから`lagoon.type`ラベルをチェックして、どの種類のサービスがデプロイされるべきかを学習します（[`docker-compose.yml`](docker-compose-yml.md#types)のドキュメンテーションで詳しく読むことができます）。
 
 場合によっては、すべてではなく、単一の環境だけで**type**をオーバーライドしたいことがあります。例えば、非本番環境である` 開発：
 
@@ -346,7 +346,7 @@ Lagoonのビルドプロセスは、`docker-compose.yml`ファイルから`lagoo
 * `service-name`は、`docker-compose.yml`から上書きしたいサービスの名前です。
 * `template-file`は、この環境でこのサービスに使用するテンプレートのパスと名前です。
 
-#### テンプレート上書きの例
+#### テンプレート上書きの例 { #example-template-override }
 
 ```yaml title=".lagoon.yml"
 environments:
@@ -366,7 +366,7 @@ Lagoonのビルドプロセス `lagoon.rollout`ラベルを`docker-compose.yml`�
 * `service-name`は、上書きしたい`docker-compose.yml`のサービスの名前です。
 * `rollout-type`は、ロールアウトのタイプです。可能な値については、`docker-compose.yml`の[ドキュメンテーション](docker-compose-yml.md#custom-rollout-monitor-types)を参照してください。
 
-#### カスタムロールアウトタイプの例
+#### カスタムロールアウトタイプの例 { #custom-rollout-type-example }
 
 ```yaml title=".lagoon.yml"
 environments:
@@ -394,7 +394,7 @@ environments:
 
 Cronジョブは、通常、すべての環境で同じものを実行することは望ましくないため、各環境で明示的に定義する必要があります。定義したスケジュールにより、CronジョブはKubernetesネイティブの`CronJob`として、または定義したサービスのcrontabを介したin-pod cronジョブとして実行される場合があります。
 
-#### Cronジョブの例
+#### Cronジョブの例 { #cron-job-example}
 
 ```yaml title=".lagoon.yml"
 cronjobs:
@@ -431,7 +431,7 @@ cronjobs:
 
 * `サービス`：コマンドをどのプロジェクトのサービスで実行するか。ほとんどのプロジェクトでは、これは`cli`サービスであるべきです。
 
-## ポリサイト
+## ポリサイト { polysite }
 
 Lagoonでは、同じGitリポジトリが複数のプロジェクトに追加することができ、これをポリサイトと呼びます。これにより、同じコードベースを実行しながら、異なる独立したデータベースと永続的なファイルを許可することができます。 `.lagoon.yml`では、現在、ポリサイトプロジェクトのためのカスタムルートを指定することのみをサポートしています。標準プロジェクトとの主な違いは、`environments`が二次元要素となり、プロジェクト名が最上位要素となることです。
 
@@ -441,7 +441,7 @@ Lagoonでは、同じGitリポジトリが複数のプロジェクトに追加�
 2. 各プロジェクトのデプロイキーをGitリポジトリに追加します。
 3. リポジトリのウェブフックを設定します（もし 必要) - その後、プッシュ/デプロイが可能になります。リポジトリへのプッシュは、そのGit URLに対するすべてのプロジェクト/ブランチを同時にデプロイします。
 
-### Polysiteの例
+### Polysiteの例 { polysite-example }
 
 ```yaml title=".lagoon.yml"
 poly-project1:
@@ -458,7 +458,7 @@ poly-project2:
           - project2.com
 ```
 
-## 特別な項目
+## 特別な項目 { #specials }
 
 ### `api`
 
@@ -504,7 +504,7 @@ container-registries:
     password: MySecretPassword
 ```
 
-### カスタムまたはプライベートなコンテナレジストリイメージの使用
+### カスタムまたはプライベートなコンテナレジストリイメージの使用 { #consuming-a-custom-or-private-container-registry-image }
 
 カスタムまたはプライベートなコンテナレジストリイメージを使用するには、`docker-compose.yml` ファイル内のサービスを更新して、イメージを定義する代わりにビルドコンテキストを使用するようにする必要があります：
 
@@ -522,7 +522,7 @@ services:
 FROM dockerhubuser/my-private-database:tag
 ```
 
-## `.lagoon.yml` の例
+## `.lagoon.yml` の例 { #example-lagoonyml }
 
 これは全ての可能な設定を示す `.lagoon.yml` の例です。プロジェクトに合わせて調整する必要があります。
 
