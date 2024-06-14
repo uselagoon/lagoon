@@ -69,6 +69,8 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {

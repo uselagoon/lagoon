@@ -57,6 +57,8 @@ export async function gitlabPush(webhook: WebhookRequestData, project: Project) 
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``

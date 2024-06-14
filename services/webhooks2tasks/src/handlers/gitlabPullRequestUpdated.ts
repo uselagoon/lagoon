@@ -70,6 +70,8 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {

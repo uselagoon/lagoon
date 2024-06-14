@@ -56,6 +56,8 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       buildName: buildName,
       sourceUser: sourceUser,
       sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``
