@@ -14,7 +14,7 @@ Lagoonの例のリポジトリにある[Ruby on Rails](https://github.com/lagoon
 
 [`docker-compose.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/docker-compose.yml)では、`ruby`という名前のサービスを設定しています。これは、任意の動的リクエストを処理する主要なサービスです。
 
-`ruby`サービス用に指定された[dockerfile](https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/ruby.dockerfile)を見てみると、ポート3000を公開していることがわかります。`nginx`サービスは、非静的アセットのリクエストをこのポートの`ruby`サービスにリダイレクトします（詳細は[nginx設定ファイル](https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/nginx/nginx.conf)を参照してください）。
+`ruby`サービス用に指定された[dockerfile](https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/ruby.dockerfile)を見てみると、ポート3000を公開していることがわかります。`nginx`サービスは、非静的アセットのリクエストをこのポートの`ruby`サービスにリダイレクトします(詳細は[nginx設定ファイル](https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/nginx/nginx.conf)を参照してください)。
 
 ### ロギング
 
@@ -39,7 +39,7 @@ Railsの例では、`logstash-logger`というgemをインポートし、その�
 
 ## データベース設定
 
-この例では、私たちのPostgreSQLイメージを使用しています（`docker-compose.yml`ファイルを参照してください）。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoonはデータベースのホスト、名前、資格情報を環境変数として注入するため、[`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database これらのenv varsを認識し、存在する場合はそれらを利用するように.yml)を設定します。
+この例では、私たちのPostgreSQLイメージを使用しています(`docker-compose.yml`ファイルを参照してください)。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoonはデータベースのホスト、名前、資格情報を環境変数として注入するため、[`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database これらのenv varsを認識し、存在する場合はそれらを利用するように.yml)を設定します。
 
 ```yaml title="config/database.yml"
 default: &default

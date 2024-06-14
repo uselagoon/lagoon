@@ -4,22 +4,22 @@ Lagoonには多くの動的な部分があるため、リリースはかなり�
 
 ## Lagoon-core - タグとテスト
 
-1. 次の全ての特定されたプルリクエストがメインブランチにマージされていることを確認します：
+1. 次の全ての特定されたプルリクエストがメインブランチにマージされていることを確認します:
   - [uselagoon/lagoon](https://github.com/uselagoon/lagoon)
   - [uselagoon/build-deploy-tool](https://github.com/uselagoon/build-deploy-tool)
   - [uselagoon/lagoon-ui](https://github.com/uselagoon/lagoon-ui)
-2. 確認が終わったら、次のタグ（マイナーまたはパッチ）をメインブランチにプッシュします。フォーマットはv2.MINOR.PATCHとし、[semver](https://semver.org/)に従います。これにより、Jenkinsビルドがトリガーされ、https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/branches で見ることができます。
+2. 確認が終わったら、次のタグ(マイナーまたはパッチ)をメインブランチにプッシュします。フォーマットはv2.MINOR.PATCHとし、[semver](https://semver.org/)に従います。これにより、Jenkinsビルドがトリガーされ、https://ci.lagoon.sh/blue/organizations/jenkins/lagoon/branches で見ることができます。
 3. これがビルド中の間、`lagoon-ui` と `build-deploy-tool` の適切なコミットに軽量タグをプッシュします。フォーマットは core-v2.MINOR.PATCH とします。build-deploy-toolには他のタグやリリースはありませんが、lagoon-uiには独自のsemverリリースがあり、これはその機能に基づいています。
 4. Jenkinsでのビルドが成功したら、https://github.com/uselagoon/lagoon-charts に移動して、チャートリリースの準備をします。
-5. `lagoon-core` と `lagoon-test` チャートのchart.yamlで、更新します。 以下のフィールド：
-  - **バージョン：** これはチャートの次の「マイナー」リリースで、通常は対応するlagoon-coreリリースのためのマイナーを使用します
-  - **appVersion：** これはリリースされたlagoon-coreの実際のタグです
-  - **artifacthub.io/changes：** 必要なのは以下のスニペットの2行で、リリースされる実際のappVersionに合わせて変更されます。
+5. `lagoon-core` と `lagoon-test` チャートのchart.yamlで、更新します。 以下のフィールド:
+  - **バージョン:** これはチャートの次の「マイナー」リリースで、通常は対応するlagoon-coreリリースのためのマイナーを使用します
+  - **appVersion:** これはリリースされたlagoon-coreの実際のタグです
+  - **artifacthub.io/changes:** 必要なのは以下のスニペットの2行で、リリースされる実際のappVersionに合わせて変更されます。
 
   ```yaml title="sample chart.yml snippets"
   # これはチャートのバージョンです。このバージョン番号は、アプリ
   # バージョンを含む、チャートとそのテンプレートに変更を加えるたびに増やすべきです。
-  # バージョンはセマンティックバージョニング（https://semver.org/）に従うことが期待されます。
+  # バージョンはセマンティックバージョニング(https://semver.org/)に従うことが期待されます。
   version: 1.28.0
 
   # これはデプロイされるアプリケーションのバージョン番号です。このバージョン
@@ -43,7 +43,7 @@ Lagoonには多くの動的な部分があるため、リリースはかなり�
   - **Lintとテストチャート - current:** 以前/将来のKubernetesバージョンに対してlintとチャートのインストールを行います
   - **Lagoon tests:** リリースに対してansibleテストの全シリーズを実行します。
 
-  通常、lintとテストチャートの失敗はよく説明されています（チャート設定の欠落/誤設定）。単一のLagoonテストが失敗する場合は、再実行するだけでかもしれません。複数の失敗が発生した場合は、調査が必要です。
+  通常、lintとテストチャートの失敗はよく説明されています(チャート設定の欠落/誤設定)。単一のLagoonテストが失敗する場合は、再実行するだけでかもしれません。複数の失敗が発生した場合は、調査が必要です。
 
 これらのテストがすべて成功した後、リリースの作成を進めることができます:
 

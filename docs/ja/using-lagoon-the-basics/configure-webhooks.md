@@ -4,10 +4,10 @@
 
 <!-- markdown-link-check-disable -->
 ???+ Info "amazee.ioのお客様への情報"
-    あなたがamazee.ioのお客様である場合、webhook-handlerへのルートは次のとおりです：[`https://hooks.lagoon.amazeeio.cloud`](https://hooks.lagoon.amazeeio.cloud)。
+    あなたがamazee.ioのお客様である場合、webhook-handlerへのルートは次のとおりです:[`https://hooks.lagoon.amazeeio.cloud`](https://hooks.lagoon.amazeeio.cloud)。
     <!-- markdown-link-check-enable -->
 
-!!! danger
+!!! Danger "危険"
       以下の設定を管理するには、これらのリポジトリへの高いレベルのアクセスが必要となります。これはあなたの組織によって管理されます。これらの設定にアクセスできない場合は、システム管理者またはあなたの組織内の適切な人物に連絡してください。
 
 ## GitHub
@@ -36,7 +36,7 @@
 1. リポジトリで設定 -> ウェブフック -> 新しいウェブフックを追加に移動します。
 2. `Title`はあなたの参照のためのものです。
 3. `URL`はあなたのLagoonインスタンスの`webhook-handler`へのルートで、Lagoonの管理者によって提供されます。
-4. `全てのトリガーから選択`をクリックし、以下を選択します：
+4. `全てのトリガーから選択`をクリックし、以下を選択します:
 
    * リポジトリ
      * プッシュ

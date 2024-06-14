@@ -4,17 +4,18 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-Node.jsのイメージは2つのバージョンを提供しています：通常の `node:version` イメージと `node:version-builder`。
+Node.jsのイメージは2つのバージョンを提供しています:通常の `node:version` イメージと `node:version-builder`。
 
-これらのイメージのビルダーバリアントには、Node.jsのアプリをビルドする際に必要な追加のツール（ビルドライブラリ、npm、Yarnなど）が含まれています。完全なリストについては、[Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder)をご覧ください。
+これらのイメージのビルダーバリアントには、Node.jsのアプリをビルドする際に必要な追加のツール(ビルドライブラリ、npm、Yarnなど)が含まれています。完全なリストについては、[Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder)をご覧ください。
 
-* 12（互換性のためだけに利用可能、公式にはサポートされていません）- `uselagoon/node-12`
-* 14（互換性のためだけに利用可能、公式にはサポートされていません）- `uselagoon/node-14`
-* 16（互換性のためだけに利用可能、公式にはサポートされていません）- `uselagoon/node-16`
+* 12(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-12`
+* 14(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-14`
+* 16(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-16`
 * 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (2025年4月までのセキュリティサポート) - `uselagoon/node-18`
 * 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (2026年4月までのセキュリティサポート) - `uselagoon/node-20`
 
-!!! ヒント EOL Node.jsイメージの更新は通常、公式に発表されたEOL日付の後にリリースされるLagoonリリースと共に停止します：[https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
+!!! Tip "ヒント"
+    EOL Node.jsイメージの更新は通常、公式に発表されたEOL日付の後にリリースされるLagoonリリースと共に停止します:[https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
@@ -22,12 +23,12 @@ Node.jsコンテナのデフォルトの公開ポートはポート`3000`です�
 
 永続的なストレージは、`lagoon.type: node-persistent`を使用してLagoonで設定可能です。詳しくは[ドキュメンテーション](../concepts-basics/docker-compose-yml.md#persistent-storage)をご覧ください。
 
-次のラベルを`docker-compose.yml`ファイルで設定します：
+次のラベルを`docker-compose.yml`ファイルで設定します:
 
 * `lagoon.persistent` = これを使用して、コンテナ内で永続的なストレージとして使用するパスを定義します - 例えば、/app/files。
 * `lagoon.persistent.size` = これを使用して、Lagoonにこのパスに割り当てるストレージの量を通知します。
 * 同じストレージを共有する複数のサービスがある場合は、これを使用します
-`lagoon.persistent.name` = （オプション）これを使用して、Lagoonに他の名前付きサービスで定義されたストレージを使用するように指示します。
+`lagoon.persistent.name` = (オプション)これを使用して、Lagoonに他の名前付きサービスで定義されたストレージを使用するように指示します。
 
 ## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
@@ -49,6 +50,6 @@ Node.jsコンテナのデフォルトの公開ポートはポート`3000`です�
             - "3000"
         ボリューム:
         # ローカル開発専用
-            # 定義されたパスに名前付きボリューム（ファイル）をマウントして、このサービスの本番環境をレプリケートします
+            # 定義されたパスに名前付きボリューム(ファイル)をマウントして、このサービスの本番環境をレプリケートします
             - files:/app/files
 ```

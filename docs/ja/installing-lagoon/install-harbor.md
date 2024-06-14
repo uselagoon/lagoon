@@ -28,18 +28,18 @@
         certSource: secret
         secret:
           secretName: harbor-harbor-ingress
-    external URL：https://harbor.lagoon.example.com
-    harborAdminPassword：<あなたのHarbor管理者パスワード>
-    chartmuseum：
-      enabled：false
-    clair：
-      enabled：false
-    notary：
-      enabled：false
-    trivy：
-      enabled：false
-    jobservice：
-      jobLogger：stdout
+    external URL:https://harbor.lagoon.example.com
+    harborAdminPassword:<あなたのHarbor管理者パスワード>
+    chartmuseum:
+      enabled:false
+    clair:
+      enabled:false
+    notary:
+      enabled:false
+    trivy:
+      enabled:false
+    jobservice:
+      jobLogger:stdout
     ```
 
 4. 現在サポートされているHarborバージョンの[要件](./requirements.md#harbor)を確認しながら、Harborをインストールします。
@@ -53,8 +53,8 @@
 
 5. `harbor.yml`で設定したURLでHarborを訪れます。
 
-  1. ユーザー名：admin
-  2. パスワード：
+  1. ユーザー名:admin
+  2. パスワード:
 
   ```bash title="Harborのシークレットを取得"
   kubectl -n harbor get secret harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode

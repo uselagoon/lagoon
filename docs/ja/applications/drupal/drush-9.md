@@ -15,13 +15,13 @@ Drush 9は新しいコマンド、`drush site:alias-convert`を提供します�
 
 ### 準備
 
-`drush site:alias-convert`を使用するために、以下のことを行う必要があります：
+`drush site:alias-convert`を使用するために、以下のことを行う必要があります:
 
 * `drush`フォルダ内の`aliases.drushrc.php`を`lagoon.aliases.drushrc.php`にリネームします。
 
 ### サイトエイリアスの生成
 
-あなたは今、あなたのプロジェクトで以下のコマンドを実行することにより、あなたのDrushエイリアスを変換することができます。これは`cli`コンテナを使って行います：
+あなたは今、あなたのプロジェクトで以下のコマンドを実行することにより、あなたのDrushエイリアスを変換することができます。これは`cli`コンテナを使って行います:
 
 ```bash title="サイトエイリアスの生成"
 docker-compose exec cli drush site:alias-convert /app/drush/sites --yes
@@ -30,13 +30,13 @@ docker-compose exec cli drush site:alias-convert /app/drush/sites --yes
 
 ### サイトエイリアスの使用
 
-Drush 9では、すべてのサイトエイリアスにはグループがプレフィックスとして付けられています。私たちの場合、これは `lagoon` です。以下のようにして、そのプレフィックス付きのすべてのサイトエイリアスを表示できます：
+Drush 9では、すべてのサイトエイリアスにはグループがプレフィックスとして付けられています。私たちの場合、これは `lagoon` です。以下のようにして、そのプレフィックス付きのすべてのサイトエイリアスを表示できます:
 
 ```bash title="すべてのサイトエイリアスを表示"
 drush sa --format=list
 ```
 
-そしてそれらを使用するには：
+そしてそれらを使用するには:
 
 ```bash title="Drush サイトエイリアスの使用"
 drush @lagoon.main ssh
@@ -48,7 +48,7 @@ Lagoonで新しい環境が作成された場合、サイトエイリアスフ�
 
 ### ローカルからリモート環境へのDrush `rsync`
 
-ローカル環境からリモート環境にファイルを同期したい場合は、追加のパラメータを渡す必要があります：
+ローカル環境からリモート環境にファイルを同期したい場合は、追加のパラメータを渡す必要があります:
 
 ```bash title="Drush rsync"
 drush rsync @self:%files @lagoon.main:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX

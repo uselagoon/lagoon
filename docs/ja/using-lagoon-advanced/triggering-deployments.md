@@ -2,7 +2,7 @@
 
 ## Azure Pipelinesを使用して新しいデプロイメントをトリガーする
 
-[Azure Pipelines](https://azure.microsoft.com/ja-jp/services/devops/pipelines/)を使用して新しいデプロイメントを自動的にトリガーするには、以下の手順に従ってください：
+[Azure Pipelines](https://azure.microsoft.com/ja-jp/services/devops/pipelines/)を使用して新しいデプロイメントを自動的にトリガーするには、以下の手順に従ってください:
 
 1. デプロイメントのSSHプライベートキーを`id_rsa_lagoon`としてAzureのセキュアファイルに追加します。セキュアファイルについての詳細は[Azureのドキュメンテーションサイト](https://docs.microsoft.com/ja-jp/azure/devops/pipelines/library/secure-files?view=azure-devops)をご覧ください。
 2. 以下の設定を`azure-pipelines.yml`に追加します。

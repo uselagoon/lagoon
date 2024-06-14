@@ -26,25 +26,25 @@ Dockerコンテナ内のMySQLデータベースに[Sequel Pro](http://www.sequel
 
 デフォルトでは、Dockerは各コンテナ開始時にMySQLの公開ポートをランダムに割り当てます。これはポートの衝突を防ぐために行われます。
 
-`docker`を使って公開ポートを取得するには：
+`docker`を使って公開ポートを取得するには:
 
-実行：`docker port [container_name]`。
+実行:`docker port [container_name]`。
 
 ```text title="ポートを取得する"
 $ docker port drupal_example_mariadb_1
 3306/tcp -> 0.0.0.0:32797
 ```
 
-または、Drupalリポジトリ内で`docker-compose`を使って：
+または、Drupalリポジトリ内で`docker-compose`を使って:
 
-実行：`docker-compose port [service_name] [internal_port]`。
+実行:`docker-compose port [service_name] [internal_port]`。
 
 ```bash title="ポートを設定する"
 docker-compose port mariadb 3306
 0.0.0.0:32797
 ```
 
-## 静的ポートの設定（非推奨）
+## 静的ポートの設定(非推奨)
 
 開発中に外部のデータベースツールを使用している場合、MySQL接続ポートを常に確認し設定するのは面倒になるかもしれません。
 
@@ -57,7 +57,7 @@ docker-compose port mariadb 3306
       - "33772:3306" # ポート3306をホストポートの33772で公開します。これを行うことで、ポートの衝突を管理する責任があなたにあります。
 ```
 
-!!! 警告
+!!! Warning "警告"
     静的ポートを設定すると、ポートの衝突を管理する責任があなたにあります。
 
 ### MySQLへの接続

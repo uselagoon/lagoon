@@ -36,7 +36,7 @@ Lagoonと[ローカル開発環境](local-development-environments.md)につい�
 
 ### Dockerfiles
 
-一部のDockerイメージとコンテナは、提供されたイメージから追加のカスタマイズが必要です。これには通常、2つの理由があります：
+一部のDockerイメージとコンテナは、提供されたイメージから追加のカスタマイズが必要です。これには通常、2つの理由があります:
 
 1. **アプリケーションコード**: NGINX、PHP、Node.jsなどのコンテナは、そのイメージ内に実際のプログラミングコードが必要です。これはDockerビルドステップ中に行われ、Dockerfileで設定されます。LagoonはDockerを完全にサポートしており、そのためDockerfileのカスタマイズを通じて結果として得られるイメージに対する完全なコントロールを許可します。
 2. **イメージのカスタマイズ **: Lagoonでは、ベースイメージをあなたのニーズに合わせてカスタマイズすることも可能です。これには、追加の環境変数を挿入したり、サービスの設定を変更したり、さらに追加のツールをインストールすることも含まれます。Dockerイメージに追加のツールをインストールする際には注意が必要です。なぜなら、将来的に任意の適応を維持する必要があるからです！
@@ -60,6 +60,6 @@ Lagoonと[ローカル開発環境](local-development-environments.md)につい�
 | [RabbitMQ](../docker-images/rabbitmq.md) | 3.10 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
 | [Ruby](../docker-images/ruby.md) | 3.0, 3. 1、3.2 | [ruby/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby) |
 
-すべてのイメージは[https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon)にプッシュされます。特性とセキュリティの観点から常に最新のタグ（例：`uselagoon/nginx:latest`）を使用することをおすすめします。
+すべてのイメージは[https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon)にプッシュされます。特性とセキュリティの観点から常に最新のタグ(例:`uselagoon/nginx:latest`)を使用することをおすすめします。
 
 特定のLagoonバージョンのイメージ、例えば`uselagoon/nginx:20.10.0`や`uselagoon/node-10:20.10.0`を使用する場合、新しいLagoonバージョンがリリースされたらすぐにイメージのバージョンをアップグレードするのはあなた自身の責任です！

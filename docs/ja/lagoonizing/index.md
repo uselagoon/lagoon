@@ -1,6 +1,6 @@
 # 既存のサイトをLagoon化する
 
-_Lagoon化_、つまり既存のサイトをLagoonプラットフォームに対応させることは、一般的には難しくありません（サイトやセットアップによりますが）、しかしいくつかの手順が必要です。このプロセスを簡単にするためのステップバイステップのガイドをまとめました。
+_Lagoon化_、つまり既存のサイトをLagoonプラットフォームに対応させることは、一般的には難しくありません(サイトやセットアップによりますが)、しかしいくつかの手順が必要です。このプロセスを簡単にするためのステップバイステップのガイドをまとめました。
 
 ## 要件
 
@@ -16,7 +16,7 @@ _Lagoon化_、つまり既存のサイトをLagoonプラットフォームに対
 
 ### コマンドライン
 
-いくつかのタスクにはコマンドラインターミナルを使用する必要があります。何を使用しても構いません、オペレーティングシステムのデフォルトツールも含めてです。以下にいくつかのオプションを示します：
+いくつかのタスクにはコマンドラインターミナルを使用する必要があります。何を使用しても構いません、オペレーティングシステムのデフォルトツールも含めてです。以下にいくつかのオプションを示します:
 
 - [iTerm2](https://iterm2.com/) (Mac)
 - [PowerShell](https://docs.microsoft.com/en-us/powershell/) (Windows)
@@ -25,7 +25,7 @@ _Lagoon化_、つまり既存のサイトをLagoonプラットフォームに対
 
 ### Gitのインストール
 
-まだ持っていない場合は、 何らかの形でGitクライアントが必要です。コマンドライン、GUI、何でも構いません（私たちの例では、コマンドラインを使用します）。以下にいくつかのオプションを示します：
+まだ持っていない場合は、 何らかの形でGitクライアントが必要です。コマンドライン、GUI、何でも構いません(私たちの例では、コマンドラインを使用します)。以下にいくつかのオプションを示します:
 
 - [Gitのインストール](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (Mac、Windows、Linux)
 - [SourceTree](https://www.sourcetreeapp.com/) (Mac、Windows)
@@ -42,7 +42,7 @@ Lagoonを設定しているLagoon管理者は、いくつかの情報を必要�
 
 ## `docker-compose.yml`
 
-`docker-compose.yml`ファイルは、Lagoonによって以下のように使用されます：
+`docker-compose.yml`ファイルは、Lagoonによって以下のように使用されます:
 
 - どのサービス/コンテナをデプロイするべきかを学ぶ。
 - コンテナのイメージがどのようにビルドされるかを定義する。
@@ -52,21 +52,21 @@ Lagoonを設定しているLagoon管理者は、いくつかの情報を必要�
 
 これは、あなたのサイトをLagoonに対応させるために作成・設定する2つのファイルのうちの1つです。
 
-`Docker-compose`（ツール）は、YAMLファイルの内容を厳格に検証するので、サービス定義の**ラベル**内でのみ設定を行うことができます。
+`Docker-compose`(ツール)は、YAMLファイルの内容を厳格に検証するので、サービス定義の**ラベル**内でのみ設定を行うことができます。
 
-!!! warning "警告"
+!!! Warning "警告"
 
     Lagoonは`docker-compose.yml`ファイルからラベル、サービス名、イメージ名、ビルド定義のみを読み込みます。ポート、環境変数、ボリューム、ネットワーク、リンク、ユーザーなどの定義は無視されます。これは意図的なもので、`docker-compose`ファイルはあなたのローカル環境設定を定義するためのものです。Lagoonは`lagoon.type`からあなたがデプロイしているサービスのタイプを学び、その結果、このサービスが必要とする可能性のあるポート、ネットワーク、その他の追加設定について知ることができます。
 
 基本的なサービスの設定方法をいくつか見てみましょう。この例では、Drupal、Laravel、その他のコンテンツマネジメントシステムなど、多くのシステムに必要なNGINX、PHP、MariaDBを設定します。
 
-以下は、Drupal用の`docker-compose.yml`ファイルの直接的な例です：
+以下は、Drupal用の`docker-compose.yml`ファイルの直接的な例です:
 
 ```yaml title="docker-compose.yml"
 version: '2.3'
 
 x-lagoon-project:
-  # Lagoonプロジェクト名（ この)を編集するときに `&lagoon-project`を残してください
+  # Lagoonプロジェクト名( この)を編集するときに `&lagoon-project`を残してください
   &lagoon-project drupal-example
 
 x-volumes:
@@ -104,8 +104,8 @@ services:
       context: .
       dockerfile: php.dockerfile
     labels:
-      lagoon.type: nginx-php-persistent lagoon.name：nginx
-      lagoon.persistent：/app/web/sites/default/files/
+      lagoon.type: nginx-php-persistent lagoon.name:nginx
+      lagoon.persistent:/app/web/sites/default/files/
 
   mariadb:
     image: amazeeio/mariadb-drupal
@@ -118,28 +118,44 @@ services:
 
 ### 基本設定
 
-`x-lagoon-project`：
+`x-lagoon-project`:
 これはプロジェクトのマシン名です、ここで定義します。"drupal-example"という例を使用します。
 
-`x-volumes`：
+`x-volumes`:
 これはLagoonにコンテナにマウントするものを指示します。ウェブアプリケーションは`/app`に存在しますが、必要に応じてこれを追加または変更できます。
 
-`x-environment`：
+`x-environment`:
 
 - ここでローカル開発URLを設定できます。Pygmyを使用している場合、`.docker.amazee.io.`で終わらなければなりません。
 - 本番環境を完全に模倣したい場合は、`LAGOON_ENVIRONMENT_TYPE: production`のコメントを解除します。
 - x-debugを有効にしたい場合は、`DEBUG_ENABLE: "true"`のコメントを解除します。
 
-`x-user`：
+`x-user`:
 これを変更する必要はほとんどありませんが、Linuxを使用していて1000以外のユーザーとして実行したい場合は変更できます。
 
-### `services`
+### `services` { #services }
 
 これはデプロイしたいすべてのサービスを定義します。残念ながら、`docker-compose`はそれらをサービスと呼びますが、実際にはコンテナを定義しています。今後、これらをサービスと呼び、このドキュメンテーション全体で呼びます。
 
-サービスの**名前**は Translation request timed out. -images/commons.md).
+サービスの **名前** (上記の例では `nginx`、`php`、`mariadb`) は、生成される Kubernetes ポッド (これも別の用語ですが、ここではサービスと呼びます) の名前として Lagoon によって使用され、さらに定義された `lagoon.type` に基づいて作成される追加の Kubernetes オブジェクトの名前としても使用されます。これには、サービス、ルート、永続ストレージなどが含まれます。
 
-### タイプ
+### Docker イメージ { #docker-images }
+
+Lagoon ですべてのデプロイメント中にサービスの Dockerfile をビルドする場合は、ここで定義できます:
+
+`build`
+- `context` : Docker の `build` コマンドに渡すビルド コンテキスト パス。
+- `dockerfile`: ビルドする Dockerfile の場所と名前。
+
+!!! Warning
+    Lagoon は `build: <Dockerfile>` の短縮バージョンをサポートしていないため、そのような定義が見つかった場合は失敗します。
+
+`image`
+- Dockerfile をビルドする必要がなく、既存の Dockerfile を使用する場合は、`image` で定義します。
+
+この例では、現在のディレクトリのパスを指定しています。NGINX は `nginx.dockerfile` をビルドするように設定され、PHP は `php.dockerfile` をビルドするように設定されています。MariaDB は `amazeeio/mariadb-drupal` の既存のイメージを使用しています。[Docker イメージの詳細については、こちら](../docker-images/commons.md) をご覧ください。
+
+### タイプ { #types }
 
 Lagoonは、正しいKubernetesのオブジェクトを設定するために、デプロイするサービスのタイプを知る必要があります。
 
@@ -151,18 +167,18 @@ Lagoonは、正しいKubernetesのオブジェクトを設定するために、�
 
 Kubernetesはプレーンなコンテナをデプロイしません。代わりに、それは1つ以上のコンテナを持つポッドをデプロイします。通常、Lagoonは定義された `docker-compose` サービスごとにコンテナを内部に持つ単一のポッドを作成します。しかし、いくつかのケースでは、これらのコンテナが互いに非常に依存しているため、単一のポッド内に2つのコンテナを置く必要があります。そのような状況の例は、DrupalのようなウェブアプリケーションのPHPコードを含むPHPとNGINXのコンテナです。
 
-これらのケースでは、どのサービスが一緒に留まるべきかをLagoonに伝えることが可能です。 一緒に。これは以下の方法で行われます（私たちはコンテナをサービスと呼んでいることを覚えておいてください）：
+これらのケースでは、どのサービスが一緒に留まるべきかをLagoonに伝えることが可能です。 一緒に。これは以下の方法で行われます(私たちはコンテナをサービスと呼んでいることを覚えておいてください):
 
-1. 両方のサービスを `lagoon.type` で定義し、それが2つのサービスを期待している（この例では、NGINXとPHPのサービスで定義されている `nginx-php-persistent` ）。
-2. 2番目のサービスを1番目のサービスにリンクし、2番目のサービスのラベル `lagoon.name` を1番目のものと一致させます（この例では `lagoon.name: nginx` の設定によりこれが行われます）。
+1. 両方のサービスを `lagoon.type` で定義し、それが2つのサービスを期待している(この例では、NGINXとPHPのサービスで定義されている `nginx-php-persistent` )。
+2. 2番目のサービスを1番目のサービスにリンクし、2番目のサービスのラベル `lagoon.name` を1番目のものと一致させます(この例では `lagoon.name: nginx` の設定によりこれが行われます)。
 
 これにより、Lagoonは `nginx` と `php` のサービスが `nginx` と呼ばれるポッドに結合されていることを認識します。
 
-Lagoonはまだ、2つのサービスのうちどちらが _実際の_ 個々のサービスタイプであるか（この場合は `nginx` と `php` ）を理解する必要があります。これは、一致するサービスタイプのサービス名を検索することでこれを行います。 `nginx-php-persistent` は、 `docker-compose.yml` の中で `nginx` という名前のサービスと `php` という名前のサービスを期待しています。
+Lagoonはまだ、2つのサービスのうちどちらが _実際の_ 個々のサービスタイプであるか(この場合は `nginx` と `php` )を理解する必要があります。これは、一致するサービスタイプのサービス名を検索することでこれを行います。 `nginx-php-persistent` は、 `docker-compose.yml` の中で `nginx` という名前のサービスと `php` という名前のサービスを期待しています。
 
 何らかの理由でサービスの名前を変更したい場合や、 `nginx-php-persistent` のタイプを持つ複数のポッドが必要な場合は、実際のサービスタイプを定義するために使用できる追加のラベル `lagoon.deployment.servicetype` があります。
 
-以下に、マルチコンテナポッドがどのようになるかを示す例を示します。 詳細に設定する：
+以下に、マルチコンテナポッドがどのようになるかを示す例を示します。 詳細に設定する:
 
 ```yaml title="docker-compose.yml"
 nginx:
@@ -189,7 +205,7 @@ docker-compose.ymlでできることはもっとありますが、サービス�
 
 ## `.lagoon.yml`
 
-[`.lagoon.yml`](../concepts-basics/lagoon-yml.md) ファイルは、プロジェクトを設定するための中心的なファイルです。以下を行うための設定が含まれています：
+[`.lagoon.yml`](../concepts-basics/lagoon-yml.md) ファイルは、プロジェクトを設定するための中心的なファイルです。以下を行うための設定が含まれています:
 
 - サイトへのアクセスルートを定義します。
 - プレロールアウトタスクを定義します。 - ポストロールアウトタスクを定義する。
@@ -198,7 +214,7 @@ docker-compose.ymlでできることはもっとありますが、サービス�
 
 `.lagoon.yml`ファイルを作成し、Gitリポジトリのルートに配置する必要があります。
 
-以下に、私たちが説明するDrupalサイトの様々な設定オプションを示す例の`.lagoon.yml`ファイルを示します：
+以下に、私たちが説明するDrupalサイトの様々な設定オプションを示す例の`.lagoon.yml`ファイルを示します:
 
 ```yaml title=".lagoon.yml"
 
@@ -273,7 +289,33 @@ environments:
 
 #### `environment_variables.git_sha`
 
-この設定は、デプロイされたGit SHAを環境変数としてプロジェクトに注入することを可能にします。デフォルトではこれは無効化されています。値を`true`に設定すると Translation request timed out. これらは各コンテナの `WORKDIR`で実行されます。Lagoon画像の場合、これは `/app` なので、タスクを実行するために特定の場所に`cd`する必要がある場合はこれを念頭に置いてください。
+この設定により、デプロイされた Git SHA を環境変数としてプロジェクトに挿入できるようになります。デフォルトでは無効になっています。値を `true` に設定すると、SHA が環境変数 `LAGOON_GIT_SHA` として設定されます。
+
+### タスク { #tasks }
+
+定義できるタスクにはさまざまな種類があり、ビルド フローで実行されるタイミングも異なります。
+
+#### ロールアウト前のタスク - `pre_rollout.[i].run` { #pre-rollout-tasks-pre_rolloutirun }
+
+`pre_rollout` タスクとして定義されたタスクは、新しいイメージが正常にビルドされた _後_、プロジェクトが何らかの形で変更される _前_ にプロジェクトに対して実行されます。この機能により、たとえば、上記の例のように、ロールアウトの実行前にデータベース ダンプを作成できます。これにより、ロールアウトで問題が発生した場合にロールバックしやすくなります。
+
+#### ロールアウト後のタスク - `post_rollout.[i].run` { #post-rollout-tasks-post_rolloutirun }
+
+ここでは、次の後にプロジェクトに対して実行する必要があるタスクを指定できます。
+
+- すべてのイメージが正常にビルドされました。
+- すべてのコンテナが新しいイメージで更新されました。
+- 実行中のすべてのコンテナが準備チェックに合格しました。
+
+`post_rollout` タスクの一般的な用途には、`drush updb`、`drush cim` の実行、またはさまざまなキャッシュのクリアが含まれます。上記の例では、`drush cim` と `drush cr` を実行します。
+
+`name`
+
+- name は、ログで各タスクを識別しやすくするための任意のラベルです。
+
+`command`
+
+- ここでは、実行するコマンドを指定します。これらは、各コンテナの `WORKDIR` で実行されます。Lagoon イメージの場合、これは `/app` です。タスクを実行するために特定の場所に `cd` する必要がある場合は、この点に注意してください。
 
 `service`
 
@@ -281,9 +323,9 @@ environments:
 
 `shell`
 
-タスクを実行するためにどのシェルを使用するべきか。デフォルトでは `sh` が使用されますが、コンテナに他のシェル（bashなど）がある場合、ここでそれを定義することができます。これは、post-rollouts内でいくつかの小さなif/else bashスクリプトを実行したい場合に便利です。(上記の例で複数行のスクリプトを書く方法を参照してください)。
+タスクを実行するためにどのシェルを使用するべきか。デフォルトでは `sh` が使用されますが、コンテナに他のシェル(bashなど)がある場合、ここでそれを定義することができます。これは、post-rollouts内でいくつかの小さなif/else bashスクリプトを実行したい場合に便利です。(上記の例で複数行のスクリプトを書く方法を参照してください)。
 
-### ルート
+### ルート { #routes }
 
 #### `routes.autogenerate.enabled`
 
@@ -293,11 +335,11 @@ environments:
 
 これにより、自動的に作成されたルートの挙動を定義することができます。これは環境ごとのカスタムルートを設定するものではありません。それについては下記を参照してください。これは、上記の例で使用しているオプションで、`insecure: リダイレクト。
 
-以下のオプションが許可されています：
+以下のオプションが許可されています:
 
 `許可`
 
-- HTTPとHTTPSの両方のルートを設定します（これがデフォルトです）。
+- HTTPとHTTPSの両方のルートを設定します(これがデフォルトです)。
 
 `リダイレクト`
 
@@ -322,7 +364,7 @@ UptimeRobotがクラスターに設定されている場合、Lagoonは各ルー
 
 #### `environments.[name].routes`
 
-ルートセクションでは、環境が対応するドメイン名を特定します。それは 通常、ルートが指定された環境は本番環境だけです。すべての環境は生成されたルートを受け取りますが、非本番環境が独自のドメイン名を持つ必要がある場合もあります。ここでそれを指定し、そのドメインを生成されたルート名のCNAMEとしてDNSプロバイダに追加できます（これらのルートはデプロイメッセージで公開されます）。
+ルートセクションでは、環境が対応するドメイン名を特定します。それは 通常、ルートが指定された環境は本番環境だけです。すべての環境は生成されたルートを受け取りますが、非本番環境が独自のドメイン名を持つ必要がある場合もあります。ここでそれを指定し、そのドメインを生成されたルート名のCNAMEとしてDNSプロバイダに追加できます(これらのルートはデプロイメッセージで公開されます)。
 
 環境の次の要素は、ターゲットサービスで、例ではNGINXです。これにより、どのサービスに入力リクエストを送るかを特定します。
 
@@ -330,10 +372,10 @@ UptimeRobotがクラスターに設定されている場合、Lagoonは各ルー
 
 #### 注釈
 
-!!! info
+!!! Info "情報"
     ルート/Ingress注釈は、nginx-ingressコントローラを実行するクラスタにデプロイされるプロジェクトでのみサポートされています！これがサポートされているかどうかはLagoonの管理者に確認してください。
 
-注釈は、`nginx-ingress`コントローラがサポートする注釈のYAMLマップであることが特に便利で、簡単にリダイレクトできます：
+注釈は、`nginx-ingress`コントローラがサポートする注釈のYAMLマップであることが特に便利で、簡単にリダイレクトできます:
 
 この例では、`example.ch`への任意のリクエストがリダイレクトされます。 `https://www.example.ch` への移動、フォルダやクエリパラメータを維持します:
 
@@ -364,7 +406,7 @@ UptimeRobotがクラスターに設定されている場合、Lagoonは各ルー
 `insecure`
 
 - `None`、`Allow`、または `Redirect` に設定できます。
-- Allowは単にHTTPとHTTPSの両方のルートを設定します（これがデフォルトです）。
+- Allowは単にHTTPとHTTPSの両方のルートを設定します(これがデフォルトです)。
 - `Redirect` は、HTTPのリクエストをHTTPSにリダイレクトします。
 
 `None`
@@ -377,12 +419,12 @@ UptimeRobotがクラスターに設定されている場合、Lagoonは各ルー
 - スペースや他のパラメータが含まれていないことを確認します。
 - 必要なのは`max-age`パラメータのみです。この必要な max-age パラメータは、HSTS ポリシーが有効な時間を秒単位で指定します。
 
-!!! info
-    証明書認証局（CA）によって署名された SSL 証明書から Let's Encrypt 証明書に切り替える予定がある場合は、Lagoon の管理者に連絡して移行を監督してもらうのが最善です。
+!!! Info "情報"
+    証明書認証局(CA)によって署名された SSL 証明書から Let's Encrypt 証明書に切り替える予定がある場合は、Lagoon の管理者に連絡して移行を監督してもらうのが最善です。
 
 #### `environments.[name].types`
 
-Lagoon のビルドプロセスは `docker-compose.yml` ファイルの `lagoon.type` ラベルをチェックして、どのタイプのサービスをデプロイすべきかを学びます（[docker-compose.yml のドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳細を読むことができます）。
+Lagoon のビルドプロセスは `docker-compose.yml` ファイルの `lagoon.type` ラベルをチェックして、どのタイプのサービスをデプロイすべきかを学びます([docker-compose.yml のドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳細を読むことができます)。
 
 時々、全てではなく一つの環境だけでタイプを上書きしたいかもしれません。
 
@@ -447,8 +489,8 @@ environments:
 `schedule`
 
 - cronジョブを実行するスケジュール。これはcronの標準的な規則に従います。構文に自信がない場合は、[Crontab Generator](https://crontab-generator.org/)が役立ちます。
-- `M`を指定することができます。 - 分毎に `M` を指定すると、あなたの cron ジョブは毎時間ランダムな分に一度実行されます（毎時間同じ分）。または、`M/15` を指定すると、毎時間15分ごとに実行されますが、時間からのランダムなオフセット（6、21、36、51など）で実行されます。
-- 時間に `H` を指定すると、あなたの cron ジョブは毎日ランダムな時間に一度実行されます（毎日同じ時間）。または、`H(2-4)` を指定すると、2時から4時の間に一度だけ実行されます。
+- `M`を指定することができます。 - 分毎に `M` を指定すると、あなたの cron ジョブは毎時間ランダムな分に一度実行されます(毎時間同じ分)。または、`M/15` を指定すると、毎時間15分ごとに実行されますが、時間からのランダムなオフセット(6、21、36、51など)で実行されます。
+- 時間に `H` を指定すると、あなたの cron ジョブは毎日ランダムな時間に一度実行されます(毎日同じ時間)。または、`H(2-4)` を指定すると、2時から4時の間に一度だけ実行されます。
 
 `command`
 
@@ -468,7 +510,7 @@ DrupalサイトをLagoonに移行する場合、全てをセットアップす�
 
 次のステップは、設定ファイルを更新することです。Lagoonは、環境変数を使用する環境特有の設定ファイルのセットを使用するため、これらのファイルには機密情報は保存されず、全てがコミット可能で安全です。我々はさまざまな [私たちの例のリポジトリ](https://github.com/uselagoon/lagoon-examples)にあるさまざまな例のプロジェクト - もし初めての場合は、それらの一つを使用することをお勧めします。そうでない場合は、似たようなものを選んで関連する設定ファイルをコピーしてください。[環境変数に関するドキュメンテーションを確認してください](../concepts-advanced/environment-variables.md)。それらをどのように使用するかの詳細情報を得るために。
 
-例のリポジトリから設定ファイルをコピーし、その後、あなたのサイトが使用していないサービスの設定を削除するためにそれを確認します（例えば、すべてのサイトがSolrやRedisを使用しているわけではありません）。特定の環境タイプの設定をオーバーライドする必要がある場合（開発環境でのキャッシュを無効にするなど）、追加の設定ファイルを設定することができます（例のリポジトリにすでにいくつかあります）、そして次の順序でロードされます：
+例のリポジトリから設定ファイルをコピーし、その後、あなたのサイトが使用していないサービスの設定を削除するためにそれを確認します(例えば、すべてのサイトがSolrやRedisを使用しているわけではありません)。特定の環境タイプの設定をオーバーライドする必要がある場合(開発環境でのキャッシュを無効にするなど)、追加の設定ファイルを設定することができます(例のリポジトリにすでにいくつかあります)、そして次の順序でロードされます:
 
 ```php title="settings.php"
 
@@ -492,7 +534,7 @@ DrupalサイトをLagoonに移行する場合、全てをセットアップす�
 
 ### 画像をビルドする
 
-まず、定義された画像をビルドする必要があります：
+まず、定義された画像をビルドする必要があります:
 
 ```bash title="build your images"
 docker-compose build
@@ -500,19 +542,19 @@ docker-compose build
 
 これには数分かかる場合があり、長いレスポンスが返ってきます。[これは次のようなものになるはずです](https://gist.github.com/AlannaBurke/1bdad6aab977b0994c245834e61b6b50)。
 
-これにより、`docker-compose.yml`で`build:`定義を持つすべてのコンテナのDockerイメージを`docker-compose`にビルドさせます。通常、Drupalでは`cli`、`nginx`、`php`が含まれます。これは、特定のビルドコマンド（`composer install`など）を実行したり、特定の環境変数（`WEBROOT`など）を画像に注入したりするためです。
+これにより、`docker-compose.yml`で`build:`定義を持つすべてのコンテナのDockerイメージを`docker-compose`にビルドさせます。通常、Drupalでは`cli`、`nginx`、`php`が含まれます。これは、特定のビルドコマンド(`composer install`など)を実行したり、特定の環境変数(`WEBROOT`など)を画像に注入したりするためです。
 
-通常、 Drupalのコードを編集するたびにビルドする必要はありません（コードはホストからコンテナにマウントされます）、しかし再ビルドは問題ありません。さらに、Lagoonはデプロイメント時に全く同じDockerイメージをビルドするので、`docker-compose build` を再度実行するだけで、ビルドがデプロイメント時にも正常に動作するか確認できます。
+通常、 Drupalのコードを編集するたびにビルドする必要はありません(コードはホストからコンテナにマウントされます)、しかし再ビルドは問題ありません。さらに、Lagoonはデプロイメント時に全く同じDockerイメージをビルドするので、`docker-compose build` を再度実行するだけで、ビルドがデプロイメント時にも正常に動作するか確認できます。
 
 ### コンテナの起動
 
-イメージがビルドされたので、コンテナを起動できます：
+イメージがビルドされたので、コンテナを起動できます:
 
 ```bash title="start the containers"
 docker-compose up -d
 ```
 
-次のような応答が表示されます：
+次のような応答が表示されます:
 
 ```bash title="containers started"
 ➜  lagoon-test git:(main) docker-compose up -d
@@ -525,7 +567,7 @@ Recreating lagoon-test_nginx_1 ... done
 Recreating lagoon-test_varnish_1 ... done
 ```
 
-これによりすべてのコンテナが起動します。コマンドが完了した後、`docker-compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです：
+これによりすべてのコンテナが起動します。コマンドが完了した後、`docker-compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:
 
 ```bash title="view running containers"
 ➜  lagoon-test git:(main) docker-compose ps
@@ -542,34 +584,34 @@ lagoon-test_varnish_1   /sbin/tini -- /lagoon/entr ...   上      8080/tcp
 
 問題がある場合は、 `docker-compose logs -f [servicename]`を使用してログを確認します。
 
-### 再度 `composer install`を実行する（Composerプロジェクトのみ）
+### 再度 `composer install`を実行する(Composerプロジェクトのみ)
 
-Drupal 8+プロジェクトを実行している場合は、Composerを使用しているはずであり、すべての依存関係をダウンロードしてインストールする必要があります。cliコンテナに接続し、composer installを実行します：
+Drupal 8+プロジェクトを実行している場合は、Composerを使用しているはずであり、すべての依存関係をダウンロードしてインストールする必要があります。cliコンテナに接続し、composer installを実行します:
 
 ```bash title="re-run composer install"
 docker-compose exec cli bash
 [drupal-example]cli-drupal:/app$ composer install
 ```
 
-これは奇妙に聞こえるかもしれませんが、 ビルドステップ中にすでに`composer install`が実行されていたので、再度これを行う理由を説明します：
+これは奇妙に聞こえるかもしれませんが、 ビルドステップ中にすでに`composer install`が実行されていたので、再度これを行う理由を説明します:
 
-- ホスト上のファイルを編集してコンテナ内で直ちに利用できるようにするため、デフォルトの`docker-composer.yml`は全フォルダをコンテナにマウントします（これは`volumes`セクションの`.:/app:delegated`で起こります）。これはまた、Dockerビルド中にインストールされた全ての依存関係がホスト上のファイルで上書きされることも意味します。
+- ホスト上のファイルを編集してコンテナ内で直ちに利用できるようにするため、デフォルトの`docker-composer.yml`は全フォルダをコンテナにマウントします(これは`volumes`セクションの`.:/app:delegated`で起こります)。これはまた、Dockerビルド中にインストールされた全ての依存関係がホスト上のファイルで上書きされることも意味します。
 - ローカルでは、`composer.json`で`require-dev`として定義された依存関係にアクセスしたいと思うでしょう、一方で本番環境ではそれらは不必要なスペースを占めるだけです。そのため、Dockerfileで`composer install --no-dev`を実行し、手動で`composer install`を行います。
 
-すべてがうまくいった場合、`docker-compose.yml`で定義された`LAGOON_ROUTE`を開きます（例えば`http://drupal.docker.amazee.io`）と、素敵なDrupalエラーに迎えられるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なことはDrupalサイトをロードしようと試みることです。
+すべてがうまくいった場合、`docker-compose.yml`で定義された`LAGOON_ROUTE`を開きます(例えば`http://drupal.docker.amazee.io`)と、素敵なDrupalエラーに迎えられるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なことはDrupalサイトをロードしようと試みることです。
 
 500やそれに類似するエラーが出る場合は、Composerですべてが適切にロードされていることを確認してください。
 
 ### ステータスの確認とDrupalのインストール
 
-最後にDrupalをインストールする時間ですが、その前に すべてが正常に動作することを確認したいです。そのためには、`drush status`を使ったDrushの使用をお勧めします：
+最後にDrupalをインストールする時間ですが、その前に すべてが正常に動作することを確認したいです。そのためには、`drush status`を使ったDrushの使用をお勧めします:
 
 ```bash title="run drush status"
 docker-compose exec cli bash
 [drupal-example]cli-drupal:/app$ drush status
 ```
 
-上記のコマンドは、以下のような結果を返すはずです：
+上記のコマンドは、以下のような結果を返すはずです:
 
 ```bash title="drush status results"
 [drupal-example]cli-drupal:/app$ drush status
@@ -594,15 +636,15 @@ Site path            :  sites/default
 
 ```
 
-!!! info ""
-    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、確認してください。 こちらでドキュメンテーションを確認してください：[pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)。
+!!! Info "情報"
+    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、確認してください。 こちらでドキュメンテーションを確認してください:[pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)。
 
-次にDrupalをインストールします（代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。しかし、初めにすべてが正常に動作していることを確認するために、クリーンなDrupalをインストールすることをお勧めします）。
+次にDrupalをインストールします(代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。しかし、初めにすべてが正常に動作していることを確認するために、クリーンなDrupalをインストールすることをお勧めします)。
 
 ```bash title="drush siの実行"
 [drupal-example]cli-drupal:/app$ drush site-install
 ```
-これにより、次のような出力が表示されるはずです：
+これにより、次のような出力が表示されるはずです:
 
 ```bash title="drush siの結果"
 [drupal-example]cli-drupal:/app$ drush site-install
@@ -631,7 +673,7 @@ Drupalのインストールを開始します。これには時間がかかり�
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```
-現在のデータベースをドロップした後、ダンプをインポートできます（まだCLIに接続したままです）：
+現在のデータベースをドロップした後、ダンプをインポートできます(まだCLIに接続したままです):
 
 ```bash title="dump existing db and import dump file"
 [drupal-example]cli-drupal:/app$ drush sql-drop
@@ -641,7 +683,7 @@ Drupalのインストールを開始します。これには時間がかかり�
 
 ### Drupalファイルディレクトリ
 
-Drupalサイトには、ファイルディレクトリも含まれます。既存のサイトからファイルを移行するには、ファイルを適切なフォルダに追加するだけです（おそらく`web/sites/default/files`、`sites/default/files`など）。あなたが何を設定したかを覚えておいてください。 webroot - すべてのプロジェクトで同じではないかもしれません。
+Drupalサイトには、ファイルディレクトリも含まれます。既存のサイトからファイルを移行するには、ファイルを適切なフォルダに追加するだけです(おそらく`web/sites/default/files`、`sites/default/files`など)。あなたが何を設定したかを覚えておいてください。 webroot - すべてのプロジェクトで同じではないかもしれません。
 
 ## デプロイ
 

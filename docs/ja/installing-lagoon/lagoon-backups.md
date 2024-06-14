@@ -1,8 +1,8 @@
 # Lagoonバックアップ
 
-Lagoonは、K8upバックアップオペレーターを使用しています：[https://k8up.io](https://k8up.io)。LagoonはK8upと密接に統合されているわけではありません。むしろ、LagoonはそのリソースをK8upが自動的に発見してバックアップできるように作成できます。
+Lagoonは、K8upバックアップオペレーターを使用しています:[https://k8up.io](https://k8up.io)。LagoonはK8upと密接に統合されているわけではありません。むしろ、LagoonはそのリソースをK8upが自動的に発見してバックアップできるように作成できます。
 
-LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互換性がありません。1.1.0チャートバージョン（アプリバージョンv1.2.0）の使用を推奨します。
+LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互換性がありません。1.1.0チャートバージョン(アプリバージョンv1.2.0)の使用を推奨します。
 
 1. ポリシーを持つ新しいAWSユーザーを作成します。
 
@@ -43,7 +43,7 @@ LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互
     }
     ```
 
-2. あなたのプロバイダーに合わせて`k8up-values.yml`を作成します：
+2. あなたのプロバイダーに合わせて`k8up-values.yml`を作成します:
 
     ```yaml title="k8up-values.yml"
     k8up:
@@ -73,7 +73,7 @@ LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互
       timezone: Europe/Zurich
     ```
 
-3. K8upをインストール：
+3. K8upをインストール:
 
     ```bash title="K8upをインストールするステップ1"
     helm repo add appuio https://charts.appuio.ch
@@ -91,7 +91,7 @@ LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互
       k8up appuio/k8up
     ```
 
-4. `lagoon-core-values.yml`を更新します：
+4. `lagoon-core-values.yml`を更新します:
 
    ```yaml title="lagoon-core-values.yml"
    s3BAASAccessKeyID: <<リストアバケット用のAccess Key ID>>

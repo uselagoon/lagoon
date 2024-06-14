@@ -6,7 +6,7 @@ Lagoonエコシステムのツール開発に興味がある場合、いくつ�
 ### Machinery
 
 Machineryライブラリは、Lagoonのツールライブラリの中で最も積極的にサポートされ、開発されています。
-これは、主に（しかし排他的ではなく）APIとのやり取りのための、私たちのすべてのgolang基盤のツールタイプにわたるすべての基本操作の中央ストアです。
+これは、主に(しかし排他的ではなく)APIとのやり取りのための、私たちのすべてのgolang基盤のツールタイプにわたるすべての基本操作の中央ストアです。
 
 [https://github.com/uselagoon/machinery/](https://github.com/uselagoon/machinery/)
 

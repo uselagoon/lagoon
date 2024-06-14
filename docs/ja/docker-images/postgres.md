@@ -11,8 +11,8 @@
 * 15 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/15.Dockerfile) (2027年11月までのセキュリティサポート) - `uselagoon/postgres-15`
 * 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/16.Dockerfile) (11月までのセキュリティサポート) 2028) - `uselagoon/postgres-16`
 
-!!! ヒント
-    Lagoonリリースが公式に通知されたEOL日付の後に、通常、EOL PostgreSQLイメージの更新を停止します：[https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
+!!! Tip "ヒント"
+    Lagoonリリースが公式に通知されたEOL日付の後に、通常、EOL PostgreSQLイメージの更新を停止します:[https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
@@ -41,5 +41,5 @@ postgres:
 
 SQLがある場合 コンテナの起動直後にデータベースを初期化するために実行する必要があるステートメントは、その `.sql` ファイルをコンテナの `docker-entrypoint-initdb.d` ディレクトリに配置できます。そのディレクトリに含まれる任意の `.sql` ファイルは、PostgreSQLコンテナを起動する一部として自動的に起動時に実行されます。
 
-!!! 警告
+!!! Warning "警告"
     これらのスクリプトは、コンテナが空のデータベースで開始された場合にのみ実行されます。

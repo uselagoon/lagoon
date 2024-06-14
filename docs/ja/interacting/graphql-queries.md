@@ -4,7 +4,7 @@
 
 Lagoonでの直接的なAPIの相互作用は、[GraphQL](graphql-queries.md)を経由して行われます。
 
-APIとの認証を行うためには、私たちが管理者としてGraphQL APIを使用できるようにするJWT（JSON Web Token）が必要です。このトークンを生成するには、Kubernetes UI経由、またはkubectlを使用して`storage-calculator`ポッドのターミナルを開き、次のコマンドを実行します：
+APIとの認証を行うためには、私たちが管理者としてGraphQL APIを使用できるようにするJWT(JSON Web Token)が必要です。このトークンを生成するには、Kubernetes UI経由、またはkubectlを使用して`storage-calculator`ポッドのターミナルを開き、次のコマンドを実行します:
 
 ```bash title="JWTトークンの生成"
 ./create_jwt.py
@@ -16,10 +16,10 @@ APIとの認証を行うためには、私たちが管理者としてGraphQL API
 
 GraphQLクエリを作成し送信するには、自動補完機能などを備えたデスクトップGraphQLクライアントである[GraphiQL.app](https://github.com/skevy/graphiql-app)をお勧めします。次の手順に進むには、このアプリをインストールし起動します。
 
-"GraphQL Endpoint"の下に`/graphql`を末尾に付けたAPIエンドポイントURLを入力します。次に"Edit HTTP Headers"をクリックし、新しいヘッダーを追加します：
+"GraphQL Endpoint"の下に`/graphql`を末尾に付けたAPIエンドポイントURLを入力します。次に"Edit HTTP Headers"をクリックし、新しいヘッダーを追加します:
 
-* "ヘッダー名"：`Authorization`
-* "ヘッダー値"：`Bearer [JWTトークン]` (確認してください JWTトークンにスペースがないこと(スペースが含まれていると動作しません)
+* "ヘッダー名":`Authorization`
+* "ヘッダー値":`Bearer [JWTトークン]` (確認してください JWTトークンにスペースがないこと(スペースが含まれていると動作しません)
 
 ESCキーを押してHTTPヘッダーオーバーレイを閉じ、最初のGraphQLリクエストを送信する準備ができました！
 
@@ -45,20 +45,20 @@ query allProjects{
 
 Lagoonにデプロイするための最初のプロジェクトを作成しましょう！これには、[`create-project.gql`](../interacting/create-project.gql)のGraphQLクエリテンプレートからクエリを使用します。
 
-各クエリ(`mutation {`で始まるブロック)について、TODOコメントでマークされた空のフィールドをすべて埋めて、GraphiQL.appでクエリを実行します。これにより、以下の2つのオブジェクトがそれぞれ1つずつ作成されます：
+各クエリ(`mutation {`で始まるブロック)について、TODOコメントでマークされた空のフィールドをすべて埋めて、GraphiQL.appでクエリを実行します。これにより、以下の2つのオブジェクトがそれぞれ1つずつ作成されます:
 
 1. `kubernetes` : LagoonがデプロイするべきKubernetes(またはOpenshift)クラスタ。Lagoonは自身のKubernetesクラスタにだけでなく、任意のKubernetesにもデプロイすることが可能です。 世界中のどこでもクラスタリングします。
 2. `project` : デプロイされるLagoonプロジェクトで、ルートにコミットされた `.lagoon.yml` 設定ファイルを持つGitリポジトリです。
 
 ## プロジェクトへのアクセス許可 { #allowing-access-to-the-project }
 
-Lagoonでは、各開発者は自分のSSHキーで認証します。これにより、以下へのアクセスが決まります：
+Lagoonでは、各開発者は自分のSSHキーで認証します。これにより、以下へのアクセスが決まります:
 
 1. 自分がアクセス権を持つプロジェクトを見て編集できるLagoon API。
 2. 自分がアクセス権を持つプロジェクトで実行中のコンテナへのリモートシェルアクセス。
 3. リクエストログ、コンテナログ、Lagoonログなどを見つけることができるLagoonのログシステム。
 
-プロジェクトへのアクセスを許可するためには、まずAPIに新しいグループを追加する必要があります：
+プロジェクトへのアクセスを許可するためには、まずAPIに新しいグループを追加する必要があります:
 
 ```graphql title="APIにグループを追加"
 mutation {
@@ -74,7 +74,7 @@ mutation {
 }
 ```
 
-次に、APIに新しいユーザーを追加する必要があります：
+次に、APIに新しいユーザーを追加する必要があります:
 
 ```graphql title="APIに新規ユーザーを追加"
 mutation {
@@ -102,7 +102,7 @@ mutation {
       # これはSSHキーの非一意な識別子です。
       name: ""
       # TODO: keyValueフィールドを記入して下さい。
-      # これは実際のSSH公開鍵です（最初のタイプと最後のコメントを除いて、例 `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`）。
+      # これは実際のSSH公開鍵です(最初のタイプと最後のコメントを除いて、例 `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`)。
       keyValue: ""
       # TODO: keyTypeフィールドを記入して下さい。
       # 有効な値は、SSH_RSA、SSH_ED25519、ECDSA_SHA2_NISTP256/384/521のいずれかです。
@@ -149,7 +149,7 @@ mutation {
 
 ## プロジェクトに通知を追加する { #adding-notifications-to-the-project }
 
-デプロイメント中に何が起こっているのかを知りたい場合、プロジェクトに通知を設定することをお勧めします。以下の情報を提供します：
+デプロイメント中に何が起こっているのかを知りたい場合、プロジェクトに通知を設定することをお勧めします。以下の情報を提供します:
 
 * プッシュ通知
 * ビルド開始情報
@@ -158,7 +158,7 @@ mutation {
 
 通知は、必要な情報の点でかなり異なる可能性があるため、各通知タイプには独自の変異があります。
 
-ユーザーと同様に、まず通知を追加します：
+ユーザーと同様に、まず通知を追加します:
 
 ```graphql title="通知を追加する"
 mutation {
@@ -180,7 +180,7 @@ mutation {
 }
 ```
 
-通知が作成された後、 これで、私たちのプロジェクトに割り当てることができます：
+通知が作成された後、 これで、私たちのプロジェクトに割り当てることができます:
 
 ```graphql title="プロジェクトに通知を割り当てる"
 mutation {
@@ -212,7 +212,7 @@ mutation {
 
 ### 新しいKubernetesターゲットの追加 { #adding-a-new-kubernetes-target }
 
-!!! 注意
+!!! Note "注意:"
     Lagoonでは、`addKubernetes`と`addOpenshift`のどちらもKubernetesとOpenShiftのターゲットの両方に使用することができ、どちらも互換性があります。
 
 Lagoonがデプロイするべきクラスタ。
@@ -228,7 +228,7 @@ mutation {
       # これはKubernetesクラスタのURLです
       consoleUrl: ""
       # TODO: トークンフィールドを記入してください。
-      # これは、このクラスタで作成された`lagoon`サービスアカウントのトークンです（これは、Lagoonのインストール時にも使用したのと同じトークンです）。
+      # これは、このクラスタで作成された`lagoon`サービスアカウントのトークンです(これは、Lagoonのインストール時にも使用したのと同じトークンです)。
       token: ""
     }
   ){
@@ -276,7 +276,7 @@ mutation {
       # TODO: 名前フィールドを入力してください。
       # これはプロジェクト名です。
       name: ""
-      # TODO: プライベートキーフィールドを入力してください（改行は '\n' で置き換えてください）。
+      # TODO: プライベートキーフィールドを入力してください(改行は '\n' で置き換えてください)。
       # これはプロジェクトのプライベートキーで、Gitのコードにアクセスするために使用されます。
       privateKey: ""
       # TODO: Kubernetesフィールドを入力してください。
@@ -374,7 +374,7 @@ query {
 
 ### Git URLによるプロジェクトのクエリ { #querying-a-project-by-its-git-url }
 
-プロジェクトの名前を覚えていないが、Git URLは知っている場合？もう探す必要はありません、そのためのGraphQLクエリがあります：
+プロジェクトの名前を覚えていないが、Git URLは知っている場合？もう探す必要はありません、そのためのGraphQLクエリがあります:
 
 ```graphql title="Git URLによるプロジェクトのクエリ"
 query {
@@ -403,7 +403,7 @@ mutation {
 
 プロジェクト内の本番環境を更新します。
 
-!!! 警告
+!!! Warning "警告"
     この変更をコンテナに反映させるには、再デプロイが必要です。
 
 ```graphql title="本番環境の更新"
@@ -514,9 +514,9 @@ mutation {
 
 ### メタデータによるプロジェクトのクエリ { #query-for-projects-by-metadata }
 
-クエリは`key`のみ（例：特定のキーが存在するすべてのプロジェクトを返す）または`key`と`value`の両方（キーと値の両方が一致する必要があります）によって行うことができます。
+クエリは`key`のみ(例:特定のキーが存在するすべてのプロジェクトを返す)または`key`と`value`の両方(キーと値の両方が一致する必要があります)によって行うことができます。
 
-`version`タグを持つすべてのプロジェクト：
+`version`タグを持つすべてのプロジェクト:
 
 ```graphql title="メタデータによるクエリ"
 query projectsByMetadata {
@@ -527,7 +527,7 @@ query projectsByMetadata {
 }
 ```
 
-特にバージョン`8`の`version`タグを持つすべてのプロジェクト：
+特にバージョン`8`の`version`タグを持つすべてのプロジェクト:
 
 ```graphql title="メタデータによるクエリ"
 query projectsByMetadata {

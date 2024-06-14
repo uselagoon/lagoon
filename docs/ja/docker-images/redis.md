@@ -6,19 +6,19 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 5（互換性のためのみ利用可能、公式にはもはやサポートされていません） - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
+* 5(互換性のためのみ利用可能、公式にはもはやサポートされていません) - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6`または`uselagoon/redis-6-persistent`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7`または`uselagoon/redis-7-persistent`
 
 ## 使用方法
 
-Redisイメージには2つの異なるバリエーションがあります：**エフェメラル** と **パーシステント**。
+Redisイメージには2つの異なるバリエーションがあります:**エフェメラル** と **パーシステント**。
 
 ### エフェメラル
 
 エフェメラルイメージは、アプリケーションのインメモリキャッシュとして使用することを意図しており、コンテナの再起動を越えてデータを保持しません。
 
-インメモリ（RAM）キャッシュとして使用する場合、大きなキャッシュを持っている場合に最初に調整したいかもしれないことは、`MAXMEMORY`変数を適応させることです。この変数は、どの程度の最大メモリ（RAM）を制御します。 Redisはキャッシュアイテムの保存に使用します。
+インメモリ(RAM)キャッシュとして使用する場合、大きなキャッシュを持っている場合に最初に調整したいかもしれないことは、`MAXMEMORY`変数を適応させることです。この変数は、どの程度の最大メモリ(RAM)を制御します。 Redisはキャッシュアイテムの保存に使用します。
 
 ### 永続的
 
@@ -28,7 +28,7 @@ Redisイメージには2つの異なるバリエーションがあります：**
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
-このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
+このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:
 
 * フォルダの権限は、[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)を使用して自動的に適応されるため、このイメージはランダムなユーザーで動作します。
 * `/etc/redis/*`内のファイルは、コンテナエントリーポイント経由で[`envplate`](https://github.com/kreuzwerker/envplate)を使用してテンプレート化されます。
@@ -56,7 +56,7 @@ Redis設定ファイルの完全なドキュメンテーションについては
 
 ## Redis-persistent
 
-以下に基づいています [Lagoonの `redis`イメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile)、[Lagoonの `redis-persistent` Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/5.Dockerfile)は、Redisサービスを`persistent`モード（つまり、キーがディスクに保存される永続化ボリュームで）で利用する場合に使われます。
+以下に基づいています [Lagoonの `redis`イメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile)、[Lagoonの `redis-persistent` Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/5.Dockerfile)は、Redisサービスを`persistent`モード(つまり、キーがディスクに保存される永続化ボリュームで)で利用する場合に使われます。
 
 これは`redis`との違いは、`FLAVOR`環境変数だけで、それは使用中のredisのバージョンにより、[それぞれのRedis設定](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf)を使用します。
 
@@ -72,14 +72,14 @@ LagoonのRedisイメージにはすべて`redis-cli`コマンドが事前にロ�
 
 Redisのmaxmemoryポリシーについての詳細情報は、Redisの[公式ドキュメンテーション](https://redis.io/docs/manual/eviction/#eviction-policies)で確認できます。
 
-!!! danger "注意して進めてください"
+!!! Danger "注意して進めてください"
     この設定を変更すると、Redisが完全にいっぱいになり、結果として停電を引き起こす可能性があります。
 
 ### Redisの`maxmemory`値の調整
 
 Redisに与えるメモリの最適量を見つけるのはかなり難しい作業です。Redisキャッシュのメモリサイズを調整しようとする前に、実際にはできるだけ長い時間、通常通りに稼働させることが賢明です。理想的な最小期間は、少なくとも1日間の典型的な使用です。
 
-これらのメモリ値を調整する際に考慮すべきいくつかの高レベルの事項があります：
+これらのメモリ値を調整する際に考慮すべきいくつかの高レベルの事項があります:
 
 * 最初に確認するべきことは 現在Redisが使用しているメモリの割合。
   * この割合が`50％`未満の場合は、`maxmemory`の値を25％下げることを検討してみてください。
@@ -91,14 +91,14 @@ Redisに与えるメモリの最適量を見つけるのはかなり難しい作
 
 ### 例のコマンド
 
-以下のコマンドは、Redisサービスに関する情報を表示するために使用できます：
+以下のコマンドは、Redisサービスに関する情報を表示するために使用できます:
 
-* Redisサービスに関するすべての情報を表示：`redis-cli info`
-* サービスのメモリ情報を表示：`redis-cli info memory`
-* サービスのキースペース情報を表示：`redis-cli info keyspace`
-* サービスの統計情報を表示：`redis-cli info stats`
+* Redisサービスに関するすべての情報を表示:`redis-cli info`
+* サービスのメモリ情報を表示:`redis-cli info memory`
+* サービスのキースペース情報を表示:`redis-cli info keyspace`
+* サービスの統計情報を表示:`redis-cli info stats`
 
-また、値を設定することも可能です Redisサービスを再起動せずに動的に設定することができます。動的に設定したこれらの値は、ポッドが再起動されると（デプロイメント、メンテナンス、あるいは単に一つのノードから別のノードへの移動の結果として起こり得る）永続化されません。
+また、値を設定することも可能です Redisサービスを再起動せずに動的に設定することができます。動的に設定したこれらの値は、ポッドが再起動されると(デプロイメント、メンテナンス、あるいは単に一つのノードから別のノードへの移動の結果として起こり得る)永続化されません。
 
 * `maxmemory`の設定値を動的に`500mb`に設定する: `config set maxmemory 500mb`
 * `maxmemory-policy`の設定値を動的に`volatile-lru`に設定する: `config set maxmemory-policy volatile-lru`

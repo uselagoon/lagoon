@@ -4,7 +4,7 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 5（互換性のためだけに利用可能、公式にはもうサポートされていません）- `uselagoon/varnish-5`
+* 5(互換性のためだけに利用可能、公式にはもうサポートされていません)- `uselagoon/varnish-5`
 * 6.0 LTS [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile) - `uselagoon/varnish-6`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/7.Dockerfile) - `uselagoon/varnish-7`
 
@@ -15,13 +15,13 @@
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
-このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの作業が行われています：
+このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの作業が行われています:
 
 * フォルダの権限は、[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で自動的に調整されるため、このイメージはランダムなユーザーで動作します。
 
 ## 含まれている `default.vcl` 設定ファイル { #included-defaultvcl-configuration-file }
 
-このイメージには、Lagoonで動作するように最適化されたデフォルトの`vcl`設定ファイルが付属しています。いくつかのオプションは環境変数を介して設定可能です（[環境変数](#environment-variables)を参照）。
+このイメージには、Lagoonで動作するように最適化されたデフォルトの`vcl`設定ファイルが付属しています。いくつかのオプションは環境変数を介して設定可能です([環境変数](#environment-variables)を参照)。
 
 ## 環境変数 { #environment-variables }
 

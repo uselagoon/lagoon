@@ -4,7 +4,7 @@
 
 [DrupalとMariaDBについて学ぶ](mariadb.md)
 
-[プレーンなMariaDBイメージに関するドキュメンテーション](../../../docker-images/mariadb.md)（このMariaDB-Drupalイメージはこれをベースに作成されています）。
+[プレーンなMariaDBイメージに関するドキュメンテーション](../../../docker-images/mariadb.md)(このMariaDB-Drupalイメージはこれをベースに作成されています)。
 
 ## Redisは高速なオープンソースのインメモリキーバリューデータストアで、データベース、キャッシュ、メッセージブローカー、キューとして利用できます
 

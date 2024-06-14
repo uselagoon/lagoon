@@ -10,9 +10,9 @@
 
 1. [Fastly Drupalモジュール](https://www.drupal.org/project/fastly)をダウンロードしてインストールします。
 2. FastlyサービスIDとAPIトークンを設定します。
-3. 必要に応じてWebhooksを設定します（例えば、キャッシュパージが送信されたときにSlackにピングを送るなど）。
-4. Drupal 7ではURLベースのパージングのみが可能です（シンプルパージング）。
-5. `settings.php`でDrupalのクライアントIPを変更します：
+3. 必要に応じてWebhooksを設定します(例えば、キャッシュパージが送信されたときにSlackにピングを送るなど)。
+4. Drupal 7ではURLベースのパージングのみが可能です(シンプルパージング)。
+5. `settings.php`でDrupalのクライアントIPを変更します:
 
 ```php title="Drupal 7のためのsettings.phpの変更"
 $conf['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
@@ -20,13 +20,13 @@ $conf['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 
 ## キャッシュタグパージングを持つDrupal 10+
 
-Composerを使用してモジュールの最新バージョンを取得します：
+Composerを使用してモジュールの最新バージョンを取得します:
 
 ```bash title="Fastly Drupalモジュールと依存関係のダウンロード"
 composer require drupal/fastly drupal/http_cache_control drupal/purge
 ```
 
-次のモジュールを有効化する必要があります：
+次のモジュールを有効化する必要があります:
 
 * `fastly`
 * `fastlypurger`
@@ -40,33 +40,33 @@ composer require drupal/fastly drupal/http_cache_control drupal/purge
 
 ### DrupalのFastlyモジュールを設定する
 
-FastlyのサービスIDとAPIトークンを設定します。サイトIDは自動的に生成されます。ランタイム環境変数を使用するか、`/admin/config/services/fastly`で見つけることができる設定フォームを編集することができます：
+FastlyのサービスIDとAPIトークンを設定します。サイトIDは自動的に生成されます。ランタイム環境変数を使用するか、`/admin/config/services/fastly`で見つけることができる設定フォームを編集することができます:
 
 * `FASTLY_API_TOKEN`
 * `FASTLY_API_SERVICE`
 
 #### パージオプションを設定する
 
-* キャッシュタグのハッシュ長：4
-* パージ方法：ソフトパージを使用する
+* キャッシュタグのハッシュ長:4
+* パージ方法:ソフトパージを使用する
 
-ほとんどのサイトでは`4`文字のキャッシュタグが十分で、_数百万_のエンティティを持つサイトでは`5`文字のキャッシュタグが適している可能性があります（キャッシュタグの衝突を減らすため）。
+ほとんどのサイトでは`4`文字のキャッシュタグが十分で、_数百万_のエンティティを持つサイトでは`5`文字のキャッシュタグが適している可能性があります(キャッシュタグの衝突を減らすため)。
 
-!!! 注意
-    ソフトパージングを使用するべきです。これは、Fastlyのオブジェクトが完全に追い出されるのではなく、古いものとしてマークされ、元の場所がダウンしている場合に使用できるようになることを意味します（[古くなったものを提供する](https://developer.fastly.com/solutions/tutorials/stale/)機能と共に）。
+!!! Note "注意:"
+    ソフトパージングを使用するべきです。これは、Fastlyのオブジェクトが完全に追い出されるのではなく、古いものとしてマークされ、元の場所がダウンしている場合に使用できるようになることを意味します([古くなったものを提供する](https://developer.fastly.com/solutions/tutorials/stale/)機能と共に)。
 
 ![パージング用のFastly管理UI。キャッシュタグの長さとソフトパージの使用に関する設定オプションを示しています](../images/fastly-cachetag.png)
 
 #### 古いコンテンツのオプションを設定する
 
-サイトに適したオプションを設定します。最小1時間（` 3600`）、最大1週間（`604800`）。一般的には以下のような設定が適しています：
+サイトに適したオプションを設定します。最小1時間(` 3600`)、最大1週間(`604800`)。一般的には以下のような設定が適しています:
 
 1. 再検証時にステール - オン、`14440`秒
 2. エラー時にステール - オン、`604800`秒
 
 ![Fastly管理者UIのステール設定](../images/fastly-swr.png)
 
-必要に応じてウェブフックを設定します（キャッシュパージが送信されたときに例えばSlackにピングを送ることができます）。
+必要に応じてウェブフックを設定します(キャッシュパージが送信されたときに例えばSlackにピングを送ることができます)。
 
 ![Fastly管理者UIのウェブフック設定](../images/fastly-webhook.png)
 
@@ -74,7 +74,7 @@ FastlyのサービスIDとAPIトークンを設定します。サイトIDは自�
 
 パージページ`/admin/config/development/performance/purge`を訪れます。
 
-以下のオプションを設定します：
+以下のオプションを設定します:
 
 #### キャッシュ無効化
 
@@ -85,13 +85,13 @@ FastlyのサービスIDとAPIトークンを設定します。サイトIDは自�
 
 #### キュー
 
-* キューワー：コアタグキューワー、パージブロック（複数）
-* キュー：データベース
-* プロセッサ：コアプロセッサ、レイトランタイムプロセッサ、パージブロック（複数）
+* キューワー:コアタグキューワー、パージブロック(複数)
+* キュー:データベース
+* プロセッサ:コアプロセッサ、レイトランタイムプロセッサ、パージブロック(複数)
 
 ![パージ管理者UIのキュー設定](../images/fastly-queue.png)
 
-これは、Drupalの組み込みコアタグキューワー（キューにタグを追加）を使用し、キューはデータベース（デフォルト）に保存され、キューは次のものによって処理されることを意味します。
+これは、Drupalの組み込みコアタグキューワー(キューにタグを追加)を使用し、キューはデータベース(デフォルト)に保存され、キューは次のものによって処理されることを意味します。
 
 * Cronプロセッサ
 * レイトランタイムプロセッサ
@@ -114,19 +114,19 @@ Cronプロセッサが動作するためには、Cronが動作することを確
 
 ほとんどのサイトでは、適切なデフォルト設定は次のとおりです。
 
-* 共有キャッシュの最大寿命：1ヶ月
-* ブラウザキャッシュの最大寿命：10分
-* 404キャッシュの最大寿命：15分 分
-* 302キャッシュの最大寿命：1時間
-* 301キャッシュの最大寿命：1時間
-* 5xxキャッシュの最大寿命：キャッシュなし
+* 共有キャッシュの最大寿命:1ヶ月
+* ブラウザキャッシュの最大寿命:10分
+* 404キャッシュの最大寿命:15分 分
+* 302キャッシュの最大寿命:1時間
+* 301キャッシュの最大寿命:1時間
+* 5xxキャッシュの最大寿命:キャッシュなし
 
-!!! 注意
+!!! Note "注意:"
     これは、あなたのサイトがページ上に存在するすべてのコンテンツを表現する正確なキャッシュタグを持っていることに依存しています。
 
 ### 真のクライアントIP
 
-私たちはFastlyを設定して、実際のクライアントIPをHTTPヘッダー`True-Client-IP`で返すようにしています。`settings.php`で以下の変更を行うことで、Drupalがこのヘッダーを尊重するように設定することができます：
+私たちはFastlyを設定して、実際のクライアントIPをHTTPヘッダー`True-Client-IP`で返すようにしています。`settings.php`で以下の変更を行うことで、Drupalがこのヘッダーを尊重するように設定することができます:
 
 ```php title="Drupal < 8.7.0用のsettings.phpの変更"
 $settings['reverse_proxy'] = TRUE;
@@ -154,7 +154,7 @@ if (isset($_SERVER['HTTP_TRUE_CLIENT_IP'])) {
 
 ## cURLを使用してFastlyキャッシュヘッダーを表示する
 
-この関数を使用してください：（LinuxとMac OSXで動作します）
+この関数を使用してください:(LinuxとMac OSXで動作します)
 
 ```bash title="cURL function"
 function curlf() { curl -sLIXGET -H 'Fastly-Debug:1' "$@" | grep -iE 'X-Cache|Cache-Control|Set-Cookie|X-Varnish|X-Hits|Vary|Fastly-Debug|X-Served|surrogate-control|surrogate-key' }
@@ -173,12 +173,12 @@ x-cache-hits: 0, 1
 vary: Cookie, Accept-Encoding
 ```
 
-上記のヘッダーから次のことが分かります：
+上記のヘッダーから次のことが分かります:
 
 * HTML ページはキャッシュ可能です
 * ブラウザはページを601秒間キャッシュします
-* Fastlyはページを32日間（`2764800`秒）キャッシュします
-* 階層型キャッシュが適用されています（エッジPoPはウェリントン、シールドPoPはフランスに位置しています）
+* Fastlyはページを32日間(`2764800`秒)キャッシュします
+* 階層型キャッシュが適用されています(エッジPoPはウェリントン、シールドPoPはフランスに位置しています)
 * HTMLページはエッジPoPでキャッシュヒットしました
 
 ### Fastlyに手動でパージリクエストを送信する
@@ -189,7 +189,7 @@ vary: Cookie, Accept-Encoding
 curl -Ssi -XPURGE -H 'Fastly-Soft-Purge:1' -H "Fastly-Key:$FASTLY_API_TOKEN" https://www.example.com/subpage
 ```
 
-キャッシュタグでパージすることもできます：
+キャッシュタグでパージすることもできます:
 
 ```bash title="キャッシュタグでFastlyをパージ"
 curl -XPOST -H 'Fastly-Soft-Purge:1' -H "Fastly-Key:$FASTLY_API_TOKEN" https://api.fastly.com/service/$FASTLY_API_SERVICE/purge/<surrogatekey>

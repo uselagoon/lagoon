@@ -1,25 +1,25 @@
 # docker-compose.yml
 
-`docker-compose.yml`ファイルは、Lagoonに以下のようなことを指示します：
+`docker-compose.yml`ファイルは、Lagoonに以下のようなことを指示します:
 
 * デプロイするべきサービス/コンテナを知る。
 * コンテナのイメージがどのようにビルドされるかを定義する。
 * 永続ボリュームのような追加の設定を定義する。
 
-Docker Compose（ツール）はYAMLファイルの内容の検証に非常に厳格であるため、サービス定義の`labels`内でのみ設定を行うことが可能です。
+Docker Compose(ツール)はYAMLファイルの内容の検証に非常に厳格であるため、サービス定義の`labels`内でのみ設定を行うことが可能です。
 
-!!! 警告
+!!! Warning "警告"
     Lagoonは`docker-compose.yml`ファイルからラベル、サービス名、イメージ名、ビルド定義のみを読み取ります。ポート、環境変数、ボリューム、ネットワーク、リンク、ユーザーなどの定義は無視されます。
 
 これは意図的なもので、`docker-compose`ファイルはあなたのローカル環境の設定を定義するためのものです。Lagoonは`lagoon.type`からあなたがデプロイしているサービスのタイプを学び、そのサービスが必要とするポート、ネットワーク、その他の追加設定について知ることができます。
 
-以下に、Drupal用の`docker-compose.yml`ファイルの簡単な例を示します：
+以下に、Drupal用の`docker-compose.yml`ファイルの簡単な例を示します:
 
 ```yaml title="docker-compose.yml"
 version: '2.3'
 
 x-lagoon-project:
-  # Lagoonプロジェクト名（これを編集する際は`&lagoon-project`を残してください）
+  # Lagoonプロジェクト名(これを編集する際は`&lagoon-project`を残してください)
   &lagoon-project drupal-example
 
 x-volumes:
@@ -95,23 +95,23 @@ Linuxを使用していて、`1000`以外のユーザーで実行したい場合
 
 これはデプロイしたいすべてのサービスを定義します。 _残念ながら、_ Docker Composeはそれらをサービスと呼びますが、実際にはコンテナです。これからはサービスと呼ぶことにします、そしてこのドキュメンテーション全体で。
 
-その サービスの名前（上記の例では `nginx`、`php`、`mariadb`）は、Lagoonによって生成されるKubernetesのポッドの名前（また別の用語 - これからはサービスと呼びます）として使用され、さらに定義された `lagoon.type`に基づいて作成されるKubernetesのオブジェクトの名前としても使用されます。これには、サービス、ルート、永続的なストレージなどが含まれる可能性があります。
+その サービスの名前(上記の例では `nginx`、`php`、`mariadb`)は、Lagoonによって生成されるKubernetesのポッドの名前(また別の用語 - これからはサービスと呼びます)として使用され、さらに定義された `lagoon.type`に基づいて作成されるKubernetesのオブジェクトの名前としても使用されます。これには、サービス、ルート、永続的なストレージなどが含まれる可能性があります。
 
-サービス名は[RFC 1035](https://tools.ietf.org/html/rfc1035)のDNSラベル標準に準拠していることに注意してください。サービス名は以下の要件を満たす必要があります：
+サービス名は[RFC 1035](https://tools.ietf.org/html/rfc1035)のDNSラベル標準に準拠していることに注意してください。サービス名は以下の要件を満たす必要があります:
 
 * 最大63文字を含む
 * 小文字の英数字または'-'のみを含む
 * 英字で始まる
 * 英数字で終わる
 
-!!! 警告
+!!! Warning "警告"
     サービスの名前を設定したら、それを改名しないでください。これにより、コンテナ内で様々な問題が発生し、物事が壊れる可能性があります。
 
 ### Dockerイメージ { #docker-images }
 
 #### `build` { #build }
 
-デプロイメントごとにLagoonがあなたのサービスのDockerfileをビルドしてほしい場合、ここで定義できます：
+デプロイメントごとにLagoonがあなたのサービスのDockerfileをビルドしてほしい場合、ここで定義できます:
 
 `build`
 
@@ -120,7 +120,7 @@ Linuxを使用していて、`1000`以外のユーザーで実行したい場合
 * `dockerfile:`
   * ビルドするべきDockerfileの場所と名前。
 
-!!! 警告
+!!! Warning "警告"
     Lagoonは短縮バージョンをサポートしていません `build: <Dockerfile>`の定義が見つかった場合、処理は失敗します。
 
 #### `image` { #image }
@@ -139,14 +139,14 @@ Lagoonは、KubernetesやOpenShiftのオブジェクトを正しく設定する�
 
 ### 永続的なストレージ { #persistent-storage }
 
-一部のコンテナには永続的なストレージが必要です。Lagoonでは、各コンテナが最大1つの永続的なストレージボリュームをコンテナに接続できるようにしています。コンテナに自身の永続的なストレージボリュームを要求させることができます（それは他のコンテナにマウント可能）、または、コンテナに他のコンテナが作成した永続的なストレージをマウントするよう指示することもできます。
+一部のコンテナには永続的なストレージが必要です。Lagoonでは、各コンテナが最大1つの永続的なストレージボリュームをコンテナに接続できるようにしています。コンテナに自身の永続的なストレージボリュームを要求させることができます(それは他のコンテナにマウント可能)、または、コンテナに他のコンテナが作成した永続的なストレージをマウントするよう指示することもできます。
 
 多くの場合、Lagoonはその永続的なストレージがどこに行くべきかを知っています。たとえば、 例えば、MariaDBコンテナの場合、Lagoonは永続的なストレージを`/var/lib/mysql`に配置すべきと知っており、それを定義するための追加の設定なしに自動的にそこに配置します。ただし、一部の状況では、Lagoonは永続的なストレージをどこに配置すべきかを知るためにあなたの助けが必要です。
 
-* `lagoon.persistent` - 永続的なストレージをマウントすべき**絶対**パス（上記の例では`/app/web/sites/default/files/`を使用しており、これはDrupalが永続的なストレージを期待する場所です）。
+* `lagoon.persistent` - 永続的なストレージをマウントすべき**絶対**パス(上記の例では`/app/web/sites/default/files/`を使用しており、これはDrupalが永続的なストレージを期待する場所です)。
 * `lagoon.persistent.name` - Lagoonにそのサービスの新しい永続的なストレージを作成しないように指示し、代わりに他の定義済みのサービスの永続的なストレージをこのサービスにマウントします。
-* `lagoon.persistent.size` - 必要な永続的なストレージのサイズ（Lagoonは通常、最小5Gの永続的なストレージを提供します。もしもっと必要なら、ここで定義してください）。
-* `lagoon.persistent.class` - デフォルトではLagoonは自動的に適切なストレージクラス（MySQLのSSD、Nginxの大量ストレージなど）をサービスに割り当てます。これを上書きする必要がある場合は、ここで行うことができます。これは、Lagoonが動作するKubernetes/OpenShiftの基礎となるものに大きく依存します。これについてはLagoonの管理者に問い合わせてください。
+* `lagoon.persistent.size` - 必要な永続的なストレージのサイズ(Lagoonは通常、最小5Gの永続的なストレージを提供します。もしもっと必要なら、ここで定義してください)。
+* `lagoon.persistent.class` - デフォルトではLagoonは自動的に適切なストレージクラス(MySQLのSSD、Nginxの大量ストレージなど)をサービスに割り当てます。これを上書きする必要がある場合は、ここで行うことができます。これは、Lagoonが動作するKubernetes/OpenShiftの基礎となるものに大きく依存します。これについてはLagoonの管理者に問い合わせてください。
 
 ### 自動生成されるルート { #auto-generated-routes }
 
@@ -158,19 +158,19 @@ docker-compose.ymlファイルは、サービスごとに[自動生成される�
 
 KubernetesとOpenShiftは単純なコンテナーをデプロイしません。代わりに、それぞれが1つ以上のコンテナーを持つポッドをデプロイします。通常、Lagoonは定義された`docker-compose`サービスごとにコンテナーが内部にある単一のポッドを作成します。しかし、あるケースでは、これらのコンテナーが互いに非常に依存していて、常に一緒にいるべきであるため、単一のポッド内に2つのコンテナーを配置する必要があります。そのような状況の一例は、PHPです。 およびDrupalのようなWebアプリケーションのPHPコードを含むNGINXコンテナ。
 
-これらのケースでは、どのサービスが一緒に残るべきかをLagoonに伝えることが可能で、次のように行います（私たちがコンテナを`docker-compose`のために`services`と呼んでいることを覚えておいてください）：
+これらのケースでは、どのサービスが一緒に残るべきかをLagoonに伝えることが可能で、次のように行います(私たちがコンテナを`docker-compose`のために`services`と呼んでいることを覚えておいてください):
 
-1. 両方のサービスを、二つのサービスを期待する`lagoon.type`で定義します（この例では、`nginx`と`php`サービスで定義されている`nginx-php-persistent`です）。
-2. 第二のサービスを第一のサービスにリンクし、第二のサービスのラベル`lagoon.name`を第一のサービスで定義します（この例では、`lagoon.name: nginx`を定義することで行います）。
+1. 両方のサービスを、二つのサービスを期待する`lagoon.type`で定義します(この例では、`nginx`と`php`サービスで定義されている`nginx-php-persistent`です)。
+2. 第二のサービスを第一のサービスにリンクし、第二のサービスのラベル`lagoon.name`を第一のサービスで定義します(この例では、`lagoon.name: nginx`を定義することで行います)。
 
 これにより、Lagoonは`nginx`と`php`コンテナが`nginx`と呼ばれるポッドに組み合わせられていることを認識します。
 
-!!! 警告
+!!! Warning "警告"
     サービスの`lagooon.name`を設定したら、それをリネームしないでください。これはあなたのコンテナで混乱を引き起こし、物事を壊す原因となります。
 
-Lagoonはまだ、二つのサービスのうちどちらが実際の個別のサービスタイプであるか（この場合は`nginx`と`php`）を理解する必要があります。これは、タイプが与える同じ名前のサービス名を検索することで行います、したがって`nginx-php-persistent`は`ng`という名前のサービスを一つ期待します。 `inx`と`php`を含む`docker-compose.yml`があります。何らかの理由でサービスの名前を変更したい場合や、`nginx-php-persistent`タイプのポッドを複数必要とする場合は、追加のラベル`lagoon.deployment.servicetype`を使用して実際のサービスタイプを定義することができます。
+Lagoonはまだ、二つのサービスのうちどちらが実際の個別のサービスタイプであるか(この場合は`nginx`と`php`)を理解する必要があります。これは、タイプが与える同じ名前のサービス名を検索することで行います、したがって`nginx-php-persistent`は`ng`という名前のサービスを一つ期待します。 `inx`と`php`を含む`docker-compose.yml`があります。何らかの理由でサービスの名前を変更したい場合や、`nginx-php-persistent`タイプのポッドを複数必要とする場合は、追加のラベル`lagoon.deployment.servicetype`を使用して実際のサービスタイプを定義することができます。
 
-例：
+例:
 
 ```yaml title="docker-compose.yml"
 nginx:
@@ -193,7 +193,7 @@ php:
       lagoon.deployment.servicetype: php
 ```
 
-上記の例では、サービス名は`nginx`と`php`です（しかし、好きな名前をつけることができます）。`lagoon.name`はLagoonにどのサービスが一緒に行くかを伝えます - 同じ名前のすべてのサービスは一緒に行きます。 一緒に。
+上記の例では、サービス名は`nginx`と`php`です(しかし、好きな名前をつけることができます)。`lagoon.name`はLagoonにどのサービスが一緒に行くかを伝えます - 同じ名前のすべてのサービスは一緒に行きます。 一緒に。
 
 Lagoonがどれが `nginx` で、どれが `php` サービスであるかを認識するために、これを `lagoon.deployment.servicetype: nginx` および `lagoon.deployment.servicetype: php` で定義します。
 
@@ -203,7 +203,7 @@ LagoonはKubernetesでのテンプレート作成に[Helm](https://helm.sh/)を�
 
 ## カスタムロールアウトモニタータイプ { #custom-rollout-monitor-types }
 
-デフォルトでは、LagoonはカスタムテンプレートからのサービスがKubernetesまたはOpenshift内の [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) オブジェクトを介してロールアウトされることを期待しています。それに基づいてロールアウトを監視します。場合によっては、カスタムデプロイメントで定義されたサービスが異なる監視方法を必要とすることがあります。これは `lagoon.rollout` を通じて定義することができます：
+デフォルトでは、LagoonはカスタムテンプレートからのサービスがKubernetesまたはOpenshift内の [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) オブジェクトを介してロールアウトされることを期待しています。それに基づいてロールアウトを監視します。場合によっては、カスタムデプロイメントで定義されたサービスが異なる監視方法を必要とすることがあります。これは `lagoon.rollout` を通じて定義することができます:
 
 * `deploymentconfig` - これがデフォルトです。 [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deployment を期待します。 サービスのテンプレート内の[`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)オブジェクトを期待します。
 * `daemonset` - サービスのテンプレート内の[`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)オブジェクトを期待します。
@@ -213,10 +213,10 @@ LagoonはKubernetesでのテンプレート作成に[Helm](https://helm.sh/)を�
 
 ## Docker Compose v2互換性 { #docker-compose-v2-compatibility }
 
-!!! バグ
+!!! Bug "バグ"
     ローカルでDocker Compose V2の古いバージョンを使用していると、一部の既知の問題が発生することがあります - これらの問題は後のリリース(v2.17.3以降)で解決されています。
 
-これらのエラーの解決策は通常、使用しているDocker Composeのバージョンを更新するか（または[新しいバージョンをインストールする](https://docs.docker.com/compose/install/)）、あるいは使用しているDocker Desktopのバージョンをアップグレードすることです。 Docker Desktopの[リリースノート](https://docs.docker.com/desktop/release-notes/)を参照してください。 詳しくは
+これらのエラーの解決策は通常、使用しているDocker Composeのバージョンを更新するか(または[新しいバージョンをインストールする](https://docs.docker.com/compose/install/))、あるいは使用しているDocker Desktopのバージョンをアップグレードすることです。 Docker Desktopの[リリースノート](https://docs.docker.com/desktop/release-notes/)を参照してください。 詳しくは
 
 ``` shell title="依存関係のエラーを示すDocker Compose出力"
 Failed to solve with frontend dockerfile.v0: failed to create LLB definition: pull access denied, repository does not exist or may require authorization
@@ -227,7 +227,7 @@ Failed to solve: drupal9-base-cli: pull access denied, repository does not exist
 ```
 
 * これらはDocker Compose v2.13.0で解決されます。
-* このメッセージは、ビルドがまだビルドされていないDockerイメージにアクセスしようとしたことを意味します。BuildKitは並列にビルドするため、もしもう一つのDockerイメージを継承するものがある場合（DrupalのCLIのように）はこの事象が発生します。
+* このメッセージは、ビルドがまだビルドされていないDockerイメージにアクセスしようとしたことを意味します。BuildKitは並列にビルドするため、もしもう一つのDockerイメージを継承するものがある場合(DrupalのCLIのように)はこの事象が発生します。
 * マルチステージビルドとして再設定するために、ビルド内の[target](https://docs.docker.com/compose/compose-file/build/#target)フィールドを使用することもできます。
 * すでに新しいDocker Composeバージョンを実行している場合、このエラーは、docker-containerビルドコンテキストをbuildxでデフォルトにしている可能性があります。`docker buildx ls`がdocker-containerベースのものではなく、docker builderをデフォルトとして表示することを確認する必要があります。Docker buildxのドキュメントは[こちら](https://docs.docker.com/engine/referenceです。 /commandline/buildx_use/).
 
@@ -263,7 +263,7 @@ Lagoonの初期リリースでは、ボリュームとユーザーコードを�
 
 このエラーは、Docker Composeが配列に何を挿入しているのか分からないため、重複していると仮定して発生します。
 
-あなたの`docker-compose.yml`がこの（または類似の）コードブロックを一つ以上含んでいる場合、あなたは影響を受けます。
+あなたの`docker-compose.yml`がこの(または類似の)コードブロックを一つ以上含んでいる場合、あなたは影響を受けます。
 
 ``` yaml title="二重マッピングキーを含むDocker Composeのエラー"
 ...

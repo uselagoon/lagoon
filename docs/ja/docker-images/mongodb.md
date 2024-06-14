@@ -12,6 +12,6 @@
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
-このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
+このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:
 
 * フォルダーの権限は自動的に[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で適応されるため、このイメージはランダムなユーザーで動作し、したがってKubernetesまたはOpenShiftでも動作します。

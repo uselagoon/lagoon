@@ -72,7 +72,7 @@
 
 1. [ssh-core service account](https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-remote/values.yaml#L116-L を有効にします。 125)
 
-1. Lagoon Remoteをインストールする：
+1. Lagoon Remoteをインストールする:
 
     ```bash title="Lagoon remoteをインストール"
     helm upgrade --install --create-namespace \

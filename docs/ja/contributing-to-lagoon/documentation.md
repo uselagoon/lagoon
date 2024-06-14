@@ -8,7 +8,7 @@
 
 ## ローカルでのドキュメンテーションの閲覧と更新
 
-Lagoonリポジトリのルートから（Dockerが必要です）、以下を実行します：
+Lagoonリポジトリのルートから(Dockerが必要です)、以下を実行します:
 
 ```bash title="Get local docs up and running."
 docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material

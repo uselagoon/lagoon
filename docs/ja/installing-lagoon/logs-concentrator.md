@@ -2,8 +2,8 @@
 
 ログ集約器は、Lagoonクラスタから送信されるログを収集し、それらに追加のメタデータを付加してからElasticsearchに挿入します。
 
-1. ReadMeに従って証明書を作成します：[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator)
-2. `logs-concentrator-values.yml`を作成します：
+1. ReadMeに従って証明書を作成します:[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator)
+2. `logs-concentrator-values.yml`を作成します:
 
     ```yaml title="logs-concentrator-values.yml"
     tls:
@@ -25,7 +25,7 @@
       enabled: false
     ```
 
-3.  ログ集約器をインストールします：
+3.  ログ集約器をインストールします:
 
     ```bash title="Install logs-concentrator"
     helm upgrade --install --create-namespace ```

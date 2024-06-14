@@ -16,7 +16,7 @@ Lagoonの仕組みを理解するためには、[Lagoonの概念 - 基本](conce
 
 そして、より深い理解のために、[Lagoonの概念 - 高度](concepts-advanced/index.md)をご覧ください。
 
-あなたがLagoonを開発したい（機能を追加、バグを修正）場合は、[Lagoonの開発](contributing-to-lagoon/developing-lagoon.md)をご覧ください。
+あなたがLagoonを開発したい(機能を追加、バグを修正)場合は、[Lagoonの開発](contributing-to-lagoon/developing-lagoon.md)をご覧ください。
 
 ## TL;DR: Lagoonの仕組み { #tldr-how-lagoon-works }
 
@@ -39,7 +39,7 @@ Lagoonの仕組みを理解するためには、[Lagoonの概念 - 基本](conce
 7. **Lagoonは完全に統合テストされています**。これは私たちが 全プロセスをテストできます。Gitウェブフックの受信からDockerコンテナへのデプロイまで、同じGitハッシュがクラスタにデプロイされます。
 8. **最も重要な点: これは進行中の作業です**。まだ完了していません。amazee.ioでは、ホスティングコミュニティとして、可能な限りコードを共有し、協力して作業を進める必要があると考えています。
 
-私たちはあなたがLagoonのインフラストラクチャとサービスがどのように連携して動作するかを理解することを望んでいます。ここにスキーマがあります（少し古く、最近追加したサービスやKubernetesをカバーしていないので、更新作業中です！）：[Lucid Chart](https://lucid.app/documents/view/cb441054-e04a-4389-b98b-c75bcda8ea0d) ‌
+私たちはあなたがLagoonのインフラストラクチャとサービスがどのように連携して動作するかを理解することを望んでいます。ここにスキーマがあります(少し古く、最近追加したサービスやKubernetesをカバーしていないので、更新作業中です！):[Lucid Chart](https://lucid.app/documents/view/cb441054-e04a-4389-b98b-c75bcda8ea0d) ‌
 
 ## Lagoonの歴史 { #history-of-lagoon }
 

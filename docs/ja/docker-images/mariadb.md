@@ -18,7 +18,7 @@ MariaDBコンテナのデフォルトの公開ポートはポート`3306`です�
 
 LagoonがMariaDBコンテナを最良の方法で実行することを可能にするために、`lagoon.type: mariadb`を使用します - これにより、DBaaSオペレーターがクラスターで利用可能な場合にクラウドデータベースをプロビジョニングできます。コンテナ内のMariaDBを特にリクエストするには、`lagoon.type: mariadb-single`を使用します。永続的なストレージは、常に`/var/lib/mysql`でMariaDBコンテナに対してプロビジョニングされます。
 
-このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
+このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:
 
 * フォルダのパーミッションは自動的に[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で調整されるため、このイメージは  ランダムなユーザー。
 * MariaDBコンテナが準備完了したことを確認するための `readiness-probe.sh` スクリプト。

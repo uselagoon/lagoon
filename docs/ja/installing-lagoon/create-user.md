@@ -1,6 +1,6 @@
 # Lagoonユーザーの作成
 
-1. Lagoon CLIを使ってユーザーを追加します：
+1. Lagoon CLIを使ってユーザーを追加します:
 
     ```bash title="ユーザーの追加"
     lagoon add user --email user@example.com --firstName MyFirstName --lastName MyLastName

@@ -1,10 +1,10 @@
 ---
-説明： Lagoonで実行できるアプリケーション
+説明: Lagoonで実行できるアプリケーション
 ---
 
 # Lagoonがサポートするアプリケーション、フレームワーク、言語の幅広い範囲
 
-Lagoonは、アプリケーションスタックの3つのレベルを大まかに分類しています：
+Lagoonは、アプリケーションスタックの3つのレベルを大まかに分類しています:
 
 ## 言語
 
@@ -20,7 +20,7 @@ Lagoonは、アプリケーションスタックの3つのレベルを大まか�
 
 -----------------------
 
-Lagoonで使用するためのリポジトリを参照するとき、通常は3つの方法でそれらを参照します：
+Lagoonで使用するためのリポジトリを参照するとき、通常は3つの方法でそれらを参照します:
 
 ## テンプレート
 
@@ -34,4 +34,4 @@ Lagoonで使用するためのリポジトリを参照するとき、通常は3�
 
 これらはデモンストレーションとして構築されたリポジトリであり、その中のいくつかの概念に対して使用可能です。 しかし、定期的にメンテナンスや更新は行われていません。
 
-より完全なリストについては、私たちのGitHubリポジトリ：[https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) と私たちのウェブサイト [https://lagoon.sh/application/](https://lagoon.sh/applications/) をご覧ください。
+より完全なリストについては、私たちのGitHubリポジトリ:[https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) と私たちのウェブサイト [https://lagoon.sh/application/](https://lagoon.sh/applications/) をご覧ください。

@@ -6,7 +6,7 @@
 
 ### 必要条件
 
-SimpleSAMLphpをプロジェクトに追加します：
+SimpleSAMLphpをプロジェクトに追加します:
 
 ```bash title="Composerを使用してプロジェクトにSimpleSAMLphpを追加する"
 composer req simplesamlphp/simplesamlphp
@@ -16,15 +16,15 @@ composer req simplesamlphp/simplesamlphp
 
 `vendor/simplesamlphp/simplesamlphp/config-templates`から`authsources.php`と`config.php`をベンダーディレクトリ外の`conf/simplesamlphp`のような場所にコピーします。また、`vendor/simplesamlphp/simplesamlphp/metadata-templates`から`saml20-idp-remote.php`も必要です。
 
-`config.php`で次のLagoonの値を設定します：
+`config.php`で次のLagoonの値を設定します:
 
-SimpleSAMLphpにアクセスするための基本URLパス：
+SimpleSAMLphpにアクセスするための基本URLパス:
 
 ```php title="config.php"
   'baseurlpath' => 'https://YOUR_DOMAIN.TLD/simplesaml/',
 ```
 
-セッションをデータベースに保存する：
+セッションをデータベースに保存する:
 
 ```php title="config.php"
   'store.type'                    => 'sql',
@@ -36,14 +36,14 @@ SimpleSAMLphpにアクセスするための基本URLパス：
   ]),
 ```
 
-他の設定を好みに合わせて変更します：
+他の設定を好みに合わせて変更します:
 
 * ログと証明書のパスを確認します。
 * SimpleSAMLphpを保護します。 ダッシュボード。
 * ロギングのレベルを設定します。
 * `technicalcontact`と`timezone`を設定します。
 
-`authsources.php`にauthsources（IdPs）を追加します。例を参照してください：
+`authsources.php`にauthsources(IdPs)を追加します。例を参照してください:
 
 ```php title="authsources.php"
   'default-sp' => [
@@ -89,7 +89,7 @@ SimpleSAMLphpにアクセスするための基本URLパス：
 
 ```
 
-`saml20-idp-remote.php`にIdPメタデータを追加します。例を参照してください：
+`saml20-idp-remote.php`にIdPメタデータを追加します。例を参照してください:
 
 ```php title="saml20-idp-remote.php"
 <?php
@@ -98,7 +98,7 @@ SimpleSAMLphpにアクセスするための基本URLパス：
  *
  * このファイルから使用しないIdPsを削除することを忘れないでください。
  *
- * 参照：https://simplesamlphp.org/docs/stable/simplesamlphp-reference-idp-remote
+ * 参照:https://simplesamlphp.org/docs/stable/simplesamlphp-reference-idp-remote
  */
 
 /**
@@ -116,7 +116,7 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
 ];
 ```
 
-ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします：
+ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします:
 
 * `vendor/simplesamlphp/simplesamlphp/config/authsources.php`
 * `vendor/simplesamlphp/simplesamlphp/config/config.php`
@@ -124,7 +124,7 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
 
 ### SimpleSAMLphpのためのNGINX confを作成します
 
-`lagoon/nginx/location_prepend_simplesamlphp.conf`というファイルを作成します：
+`lagoon/nginx/location_prepend_simplesamlphp.conf`というファイルを作成します:
 
 ```bash title="location_prepend_simplesamlphp.conf"
 location ^~ /simplesaml {
@@ -144,7 +144,7 @@ location ^~ /simplesaml {
 
 ### NGINXイメージに追加のNGINX設定を追加する
 
-`nginx.dockerfile`を修正し、`location_prepend_simplesamlphp.conf`をイメージに追加します：
+`nginx.dockerfile`を修正し、`location_prepend_simplesamlphp.conf`をイメージに追加します:
 
 ```bash title="nginx.dockerfile"
 ARG CLI_IMAGE

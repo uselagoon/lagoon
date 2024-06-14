@@ -2,7 +2,7 @@
 
 ## コンテナでXdebug拡張機能を有効にする
 
-Lagoonの基本イメージはXdebugが設定済みですが、パフォーマンス上の理由から、デフォルトでは拡張機能はロードされません。拡張機能を有効にするには、`XDEBUG_ENABLE`環境変数を`true`に設定する必要があります：
+Lagoonの基本イメージはXdebugが設定済みですが、パフォーマンス上の理由から、デフォルトでは拡張機能はロードされません。拡張機能を有効にするには、`XDEBUG_ENABLE`環境変数を`true`に設定する必要があります:
 
 - **ローカル** (PygmyとLando)
 
@@ -34,7 +34,7 @@ Lagoonの基本イメージはXdebugが設定済みですが、パフォーマ�
 1. PHPStormはデフォルトで正しく設定されています。
 2. ツールバーの“**Start Listening for PHP Debug Connections**”アイコンをクリックします。
 3. ウェブページを読み込むか、Drushコマンドを実行します。
-4. 初回実行時には、PHPStormがウィンドウを表示し、次の操作を求めます：
+4. 初回実行時には、PHPStormがウィンドウを表示し、次の操作を求めます:
    1. パスマッピングを確認します。
    2. サーバー上でトリガーされた正しいローカルファイルを選択します。
 
@@ -42,7 +42,7 @@ Lagoonの基本イメージはXdebugが設定済みですが、パフォーマ�
 
 1. Felix Beckerによる[PHP Debug拡張機能をインストールします](https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug)。
 2. 基本的な `launch.json` を作成するための[手順を参照します](https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug#vs-code-configuration)。 PHP.
-3. 正しいパスマッピングを追加します。典型的なDrupalサイトの例は以下の通りです：
+3. 正しいパスマッピングを追加します。典型的なDrupalサイトの例は以下の通りです:
 
    ```json title="launch.json"
    "pathMappings": {
@@ -90,7 +90,7 @@ Lagoonの基本イメージはXdebugが設定済みですが、パフォーマ�
 
 ## Linux 特有のトラブルシューティング
 
-- ホスト `host.docker.internal`に接続できることを確認します。`docker`が手動で（Docker Desktopを経由せずに）インストールされている場合、このホストは解決されません。これを強制的に解決するためには、`docker-compose.yml`ファイルに追加のスニペットを挿入することができます（インストラクションは[このブログ投稿](https://medium.com/the-sensiolabs-tech-blog/how-to-use-xdebug-in-docker-phpstorm-76d998ef2534)から引用）。
+- ホスト `host.docker.internal`に接続できることを確認します。`docker`が手動で(Docker Desktopを経由せずに)インストールされている場合、このホストは解決されません。これを強制的に解決するためには、`docker-compose.yml`ファイルに追加のスニペットを挿入することができます(インストラクションは[このブログ投稿](https://medium.com/the-sensiolabs-tech-blog/how-to-use-xdebug-in-docker-phpstorm-76d998ef2534)から引用)。
 
   ```yaml title="Linux向けのdocker-compose.ymlの修正"
     services:
@@ -104,7 +104,7 @@ Lagoonの基本イメージはXdebugが設定済みですが、パフォーマ�
 
 ## Xdebug 2
 
-古いイメージを使用している場合は、まだXdebugバージョン2を使用しているかもしれません。このページのすべての情報は依然として適用されますが、一部の設定名と値は変更されています：
+古いイメージを使用している場合は、まだXdebugバージョン2を使用しているかもしれません。このページのすべての情報は依然として適用されますが、一部の設定名と値は変更されています:
 
 | v3                 | v2                    | |
 |:-------------------|:----------------------|:----------------------------------------------|

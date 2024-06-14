@@ -1,6 +1,6 @@
 # ローカル開発環境
 
-LagoonにはDockerと[Docker Compose](https://docs.docker.com/compose/)（ほとんどがDockerと一緒に出荷されています）に対する硬い依存性しかありませんが、Dockerに含まれていないローカル開発に役立つものがいくつかあります：
+LagoonにはDockerと[Docker Compose](https://docs.docker.com/compose/)(ほとんどがDockerと一緒に出荷されています)に対する硬い依存性しかありませんが、Dockerに含まれていないローカル開発に役立つものがいくつかあります:
 
 * ナイスなURLとHTTPSオフローディングのためのHTTPリバースプロキシ。
 * IPアドレスを覚えておく必要がないDNSシステム。
@@ -16,7 +16,7 @@ LagoonにはDockerと[Docker Compose](https://docs.docker.com/compose/)（ほと
 
 Lagoonは伝統的に`pygmy`と最も良好に動作してきました。これは上記のツールのamazee.ioフレーバーシステムであり、Lagoonとそのまま動作します。これは[https://github.com/pygmystack/pygmy](https://github.com/pygmystack/pygmy)にあります。
 
-`pygmy`はGolangで書かれているので、インストールするには次のコマンドを実行します：
+`pygmy`はGolangで書かれているので、インストールするには次のコマンドを実行します:
 
 ```bash title="HomeBrewでのインストール"
 brew tap pygmystack/pygmy && brew pygmyのインストール
@@ -32,6 +32,6 @@ LandoのLagoon向けのワークフローは、Landoのユーザーにとって�
 
 ### DDEV
 
-LagoonはDDEVでもサポートされています！始めるためのドキュメンテーションをチェックしてみてください：[https://ddev.readthedocs.io/en/stable/users/providers/lagoon/](https://ddev.readthedocs.io/en/stable/users/providers/lagoon/)。
+LagoonはDDEVでもサポートされています！始めるためのドキュメンテーションをチェックしてみてください:[https://ddev.readthedocs.io/en/stable/users/providers/lagoon/](https://ddev.readthedocs.io/en/stable/users/providers/lagoon/)。
 
 以前には、[Docksal](https://docksal.io/)や[Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/)などの他のシステムへのサポートを追加することを評価していました。これらに将来的にサポートを追加する可能性はありますが、現在のところは、既存のツールへのサポートに焦点を当てています。

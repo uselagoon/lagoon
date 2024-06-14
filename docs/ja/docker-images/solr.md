@@ -14,7 +14,7 @@
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
-このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています：
+このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:
 
 * フォルダの権限は自動的に[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で調整されるため、このイメージはランダムなユーザーで動作します。
 * `Solr`ポートを修正し確認する`10-solr-port.sh`スクリプト。
@@ -26,6 +26,6 @@
 
 | 環境変数                   | デフォルト  | 説明                                                                        |
 | :------------------------ | :-------- | :------------------------------------------------------------------------ |
-| SOLR_JAVA_MEM             | 512M      | デフォルトのJava HEAPサイズ（例. `SOLR_JAVA_MEM="-Xms10g -Xmx10g"`）。           |
+| SOLR_JAVA_MEM             | 512M      | デフォルトのJava HEAPサイズ(例. `SOLR_JAVA_MEM="-Xms10g -Xmx10g"`)。           |
 | SOLR_DATA_DIR             | /var/solr | Solrのデータディレクトリのパス。注意してください、これを変更するとデータが失われる可能性があります！ |
 | SOLR_COPY_DATA_DIR_SOURCE | (未設定) | Solrのエントリーポイントスクリプトが定義した`SOLR_DATA_DIR`にコピーするためのパス。これはSolrにコアを事前に準備するために使用できます。スクリプトは実際のSolrデータファイルを必要とします！また、目的地が既にSolrコアを持っていない場合にのみデータをコピーします。 |

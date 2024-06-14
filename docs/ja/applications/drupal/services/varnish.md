@@ -1,11 +1,11 @@
-# バニッシュ
+# Varnish
 
 Drupalをバニッシュリバースプロキシと一緒に使用することをお勧めします。Lagoonは既にバニッシュが設定されている`varnish-drupal` Dockerイメージを提供しています。[Drupal Varnish config](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl)付きです。
 
-このバニッシュ設定は以下のことを行います：
+このバニッシュ設定は以下のことを行います:
 
 * Drupalのセッションクッキーを理解し、認証されたリクエストのバニッシュキャッシュを自動的に無効にします。
-* アセット（画像、CSS、JSなど）を1ヶ月間自動的にキャッシュし、このヘッダーもブラウザに送信します。これにより、ブラウザもアセットをキャッシュします。これは認証されたリクエストと認証されていないリクエストの両方で発生します。
+* アセット(画像、CSS、JSなど)を1ヶ月間自動的にキャッシュし、このヘッダーもブラウザに送信します。これにより、ブラウザもアセットをキャッシュします。これは認証されたリクエストと認証されていないリクエストの両方で発生します。
 * Drupal 8のパージモジュールで使用される`BAN`および`URIBAN`をサポートしています。
 * URLパラメータから`utm_`と`gclid`を削除し、Google Analyticsのリンクが複数のキャッシュオブジェクトを生成するのを防ぎます。
 * その他の多くの良い点 - [drupal.vcl](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl)をチェックしてみてください。
@@ -14,11 +14,11 @@ Drupalをバニッシュリバースプロキシと一緒に使用すること�
 
 **要約**: [我々の例のレポジトリでdrupal8-advancedの例をチェックしてみてください](https://github.com/uselagoon/lagoon-examples)、それは必要なモジュールと必要なものを含んでいます。 Drupalの設定。
 
-**注意**：これらの例の多くは、同じ`drupal-example-simple`リポジトリ内の異なるブランチ/ハッシュに存在します。例のリストから正確なブランチを取得してください！
+**注意**:これらの例の多くは、同じ`drupal-example-simple`リポジトリ内の異なるブランチ/ハッシュに存在します。例のリストから正確なブランチを取得してください！
 
 ### PurgeとVarnish Purgeモジュールのインストール
 
-Drupal 8のキャッシュタグとVarnishを完全に使用するためには、[Purge](https://www.drupal.org/project/purge)と[Varnish Purge](https://www.drupal.org/project/varnish_purge)モジュールをインストールする必要があります。これらは多くのサブモジュールと共に提供されています。最低限以下のものをインストールすることをお勧めします：
+Drupal 8のキャッシュタグとVarnishを完全に使用するためには、[Purge](https://www.drupal.org/project/purge)と[Varnish Purge](https://www.drupal.org/project/varnish_purge)モジュールをインストールする必要があります。これらは多くのサブモジュールと共に提供されています。最低限以下のものをインストールすることをお勧めします:
 
 * `purge`
 * `purge_drush`
@@ -30,7 +30,7 @@ Drupal 8のキャッシュタグとVarnishを完全に使用するためには�
 * `varnish_purger`
 * `varnish_purge_tags`
 
-一度にすべてを取得します：
+一度にすべてを取得します:
 
 ```bash title="PurgeとVarnish Purgeのインストール"
 composer require drupal/purge drupal/varnish_purge
@@ -42,10 +42,10 @@ drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_proc
 
 1. `Configuration > Development > Performance > Purge`にアクセスします。
 2. `Add purger`でパージャーを追加します。
-3. `Varnish Bundled Purger`を選択します（`Varnish Purger`ではなく、\#Behind the Scenesを参照してください）。 セクション、詳細情報については。\).
+3. `Varnish Bundled Purger`を選択します(`Varnish Purger`ではなく、\#Behind the Scenesを参照してください)。 セクション、詳細情報については。\).
 4. 追加したばかりのパージャーの隣にあるドロップダウンをクリックし、`Configure`をクリックします。
 5. 良い名前をつけてください、`Lagoon Varnish` が良いでしょう。
-6. 以下のように設定します：
+6. 以下のように設定します:
 
    ```text title="Varnish Purgeの設定"
     TYPE: タグ
@@ -69,19 +69,19 @@ drush en purge purge_drush purge_tokens purge_ui purge_processor_cron purge_proc
 
 ### Varnish用のDrupalの設定
 
-その他にもいくつかの設定が可能です：
+その他にもいくつかの設定が可能です:
 
 1. `drush pmu page_cache`を使用して`Internal Page Cache` Drupalモジュールをアンインストールします。これによりVarnishキャッシュのみがクリアされ、内部キャッシュはクリアされず、変更がユーザーに非常に遅く表示されるなど、奇妙な二重キャッシュ状況が発生することがあります。また、大きなサイトではキャッシュストレージを大量に使用します。
 2. `production.settings.php`内の`$config['system.performance']['cache']['page']['max_age']`を`2628000`に変更します。これにより、Varnishはサイトを最大1ヶ月間キャッシュするように指示されますが、これは多くのように聞こえますが、Drupal 8 キャッシュタグシステムは基本的に何かが変更されるたびにVarnishキャッシュがパージされるようにするので、とても素晴らしいです。
 
 ### Varnishをローカルでテストする
 
-LagoonのローカルでのDrupalセットアップでは、開発が困難になる可能性があるため、VarnishとDrupalのキャッシュは無効になっています。これは次のように行われます：
+LagoonのローカルでのDrupalセットアップでは、開発が困難になる可能性があるため、VarnishとDrupalのキャッシュは無効になっています。これは次のように行われます:
 
 * `docker-compose.yml`の環境変数`VARNISH_BYPASS=true`は、Varnishに基本的に自己無効化を指示します。
 * Drupalは、`development.settings.php`のDrupal設定`$config['system.performance']['cache']['page']['max_age'] = 0`を設定することで、キャッシュヘッダーを送信しないように設定されています。
 
-ローカルでVarnishをテストするには、`docker-compose.yml`で以下の変更を行います：
+ローカルでVarnishをテストするには、`docker-compose.yml`で以下の変更を行います:
 
 * Varnishサービスセクションで`VARNISH_BYPASS`を`false`に設定します。
 * `x-environment`セクションで`LAGOON_ENVIRONMENT_TYPE`を`production`に設定します。
@@ -109,13 +109,13 @@ LagoonのローカルでのDrupalセットアップでは、開発が困難に�
 
 #### `Varnish Purger`の代わりに`Varnish Bundled Purger`の使用
 
-`Varnish Purger`は、無効化する必要がある各キャッシュタグに対して`BAN`リクエストを送信します。Drupalには多数のキャッシュタグが存在し、これによりVarnishに送信されるリクエスト数がかなり多くなる可能性があります。それに対して、`Varnish Bundled Purger`は、複数の無効化に対して一つの`BAN`リクエストを送信します。これはパイプ（`|`）できれいに分離されており、Varnishのバンの正規表現システムに完璧にマッチします。これにより、Varnishへのリクエスト数が減少し、Varnish内のバンリストテーブルも小さくなります。
+`Varnish Purger`は、無効化する必要がある各キャッシュタグに対して`BAN`リクエストを送信します。Drupalには多数のキャッシュタグが存在し、これによりVarnishに送信されるリクエスト数がかなり多くなる可能性があります。それに対して、`Varnish Bundled Purger`は、複数の無効化に対して一つの`BAN`リクエストを送信します。これはパイプ(`|`)できれいに分離されており、Varnishのバンの正規表現システムに完璧にマッチします。これにより、Varnishへのリクエスト数が減少し、Varnish内のバンリストテーブルも小さくなります。
 
 #### `Purge Late runtime processor`の使用
 
 Drupal 7のVarnishモジュールとは異なり、Drupal 8のPurgeモジュールはキャッシュのパージに若干異なるアプローチを持っています: パージするキャッシュをキューに追加し、それを異なるプロセッサで処理します。Purgeは`Cron processor`の使用を提案していますが、これはVarnishキャッシュがcron実行時にのみパージされることを意味します。これは、cronがおそらく毎分実行するように設定されていないため、Varnishが古いデータをキャッシュする可能性があり、編集者やクライアントが混乱する結果となる可能性があります。
 
-その代わりに、`Purge `Late runtime processor`は、各Drupalリクエストの最後にキューを処理します。これにより、キャッシュタグがパージキューに追加されると（例えば、エディタがDrupalノードを編集した場合など）、そのノードのキャッシュタグが直接パージされるという利点があります。`Varnish Bundled Purger`と一緒に使用することで、Drupalリクエストの最後にVarnishへの追加のリクエストは1つだけで、リクエストの処理時間にはほとんど影響しません。
+その代わりに、`Purge `Late runtime processor`は、各Drupalリクエストの最後にキューを処理します。これにより、キャッシュタグがパージキューに追加されると(例えば、エディタがDrupalノードを編集した場合など)、そのノードのキャッシュタグが直接パージされるという利点があります。`Varnish Bundled Purger`と一緒に使用することで、Drupalリクエストの最後にVarnishへの追加のリクエストは1つだけで、リクエストの処理時間にはほとんど影響しません。
 
 #### Varnish Ban Lurkerの完全なサポート
 
@@ -123,10 +123,10 @@ Drupal 7のVarnishモジュールとは異なり、Drupal 8のPurgeモジュー�
 
 ### トラブルシューティング
 
-Varnishがキャッシュしていない？ それとも何か他の問題がありますか？ 以下にデバッグの方法をいくつか紹介します：
+Varnishがキャッシュしていない？ それとも何か他の問題がありますか？ 以下にデバッグの方法をいくつか紹介します:
 <!-- markdown-link-check-disable -->
 * `drush p-debug-en`を実行して、purgeモジュールのデバッグログを有効にします。これにより、Drupalのログの`admin/reports/dblog`でデバッグを表示できます。
-* Drupalが適切なキャッシュヘッダーを送信していることを確認してください。これを最もよくテストするためには、LagoonがVarnishキャッシュをバイパスするために生成したURLを使用します（私たちのDrupalの例では、これは[http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)です）。`Cache-Control: max-age=900, public`ヘッダーをチェックし、`900`が`$config['system.performance']['cache']['page']['max_age']`で設定したものであることを確認します。
-* 環境変数`VARNISH_BYPASS`が`true`に設定されて**いない**ことを確認してください（`docker-compose.yml`を参照し、`docker-compose up -d varnish`を実行して環境変数が正しく設定されていることを確認します）。
-* もし全部 失敗すると、テーブルをひっくり返す前に \(╯°□°）╯︵ ┻━┻、Lagoonチームに話してみてください、私たちは喜んでお手伝いします。
+* Drupalが適切なキャッシュヘッダーを送信していることを確認してください。これを最もよくテストするためには、LagoonがVarnishキャッシュをバイパスするために生成したURLを使用します(私たちのDrupalの例では、これは[http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)です)。`Cache-Control: max-age=900, public`ヘッダーをチェックし、`900`が`$config['system.performance']['cache']['page']['max_age']`で設定したものであることを確認します。
+* 環境変数`VARNISH_BYPASS`が`true`に設定されて**いない**ことを確認してください(`docker-compose.yml`を参照し、`docker-compose up -d varnish`を実行して環境変数が正しく設定されていることを確認します)。
+* もし全部 失敗すると、テーブルをひっくり返す前に \(╯°□°)╯︵ ┻━┻、Lagoonチームに話してみてください、私たちは喜んでお手伝いします。
 <!-- markdown-link-check-enable -->

@@ -36,11 +36,11 @@
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/SxJmMkNR9xs" title="YouTubeビデオプレイヤー" frameborder="0" allow=" 加速度計; 自動再生; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャ・イン・ピクチャ" allowfullscreen></iframe>
 
-## サーバーサイドレンダリングのベストプラクティス：私たちが月に1億1000万回ヒットする分離型ウェブサイトを運営する方法
+## サーバーサイドレンダリングのベストプラクティス:私たちが月に1億1000万回ヒットする分離型ウェブサイトを運営する方法
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/eZJz4VbM1E4" title="YouTubeビデオプレーヤー" frameborder="0" allow="加速度計; 自動再生; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャ・イン・ピクチャ" allowfullscreen></iframe>
 
-## Lagoon：フルDrupalサポート付きのオープンソースDockerビルド＆デプロイメントシステム
+## Lagoon:フルDrupalサポート付きのオープンソースDockerビルド＆デプロイメントシステム
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/3RnZPrjvoqo" title="YouTubeビデオプレーヤー" frameborder="0" allow="加速度計; 自動再生; クリップボード-ライト; 暗号化メディア; ジャイロスコープ; ピクチャ・イン・ピクチャ" allowfullscreen></iframe>
 

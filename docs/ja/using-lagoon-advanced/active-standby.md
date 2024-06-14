@@ -29,12 +29,12 @@ mutation updateProject {
 
 `.lagoon.yml`ファイルでプロジェクトをアクティブ/スタンバイに設定するためには、`active`環境にアタッチしたいルートと`standby`にアタッチしたいルートを`production_routes`セクションに設定する必要があります。 環境。アクティブ/スタンバイの切り替え時には、これらのルートは2つの環境間で移動します。
 
-もし2つのプロダクション環境、`production-brancha`と`production-branchb`があり、現在アクティブなプロダクション環境が`production-brancha`であるなら：
+もし2つのプロダクション環境、`production-brancha`と`production-branchb`があり、現在アクティブなプロダクション環境が`production-brancha`であるなら:
 
 * `production_routes.active`の下のルートはあなたを`production-brancha`に向かわせます。
 * `production_routes.standby`の下のルートはあなたを`production-branchb`に向かわせます。
 
-アクティブ/スタンバイの切り替え時には、ルートが交換されます：
+アクティブ/スタンバイの切り替え時には、ルートが交換されます:
 
 * `production_routes.active`の下のルートはあなたを`production-branchb`に向かわせます。
 * `production_routes.standby`の下のルートはあなたを`production-brancha`に向かわせます。
@@ -55,7 +55,7 @@ production_routes:
             tls-acme: 'false'
 ```
 
-!!! 情報
+!!! Info "情報"
     セクション`environments..routes`の下にあるルートは、アクティブ/スタンバイの一部として移動されません。これらのルートは常に定義された環境に付属しています。特定のルートを必要とする場合は、そのルートが アクティブ/スタンバイ切り替え中に移行した場合、それらを環境セクションから削除し、それがアクティブルートかスタンバイルートであるべきか特定の `production_routes` セクションに配置してください。[ `.lagoon.yml` のルートについて詳しくはこちらを参照してください。](../concepts-basics/lagoon-yml.md#routes)
 
 ## 切り替えイベントのトリガー
@@ -132,12 +132,12 @@ mutation updateProject {
 
 ## Active/Standbyの無効化
 
-これら2つのブランチのうち、どちらを主な環境として進めていくかを決定する必要があります。その後、 それがアクティブなブランチとして設定されていることを確認してください（例：`production-branchb`）。
+これら2つのブランチのうち、どちらを主な環境として進めていくかを決定する必要があります。その後、 それがアクティブなブランチとして設定されていることを確認してください(例:`production-branchb`)。
 
-1. この（現在アクティブな）ブランチの`.lagoon.yml`ファイルで、`production_routes.active.routes`セクションからルートを`environments.production-branchb`セクションに移動します。これは、そのルートが`production-branchb environment`にのみ関連付けられることを意味します。
+1. この(現在アクティブな)ブランチの`.lagoon.yml`ファイルで、`production_routes.active.routes`セクションからルートを`environments.production-branchb`セクションに移動します。これは、そのルートが`production-branchb environment`にのみ関連付けられることを意味します。
 2. これが完了したら、`.lagoon.yml`ファイルから完全にproduction_routesセクションを削除し、production-branchb環境を再デプロイできます。
 3. もう他のブランチ`production-brancha`が必要ない場合、それを削除できます。
-4. Gitでブランチを保持する場合、混乱を避けるためにそのブランチの`.lagoon.yml`からも`production_routes`を削除するべきです。ブランチは`production`タイプのままになりますが、それを削除して再デプロイしない限り（すべてのストレージとデータベースなどを消去）。
+4. Gitでブランチを保持する場合、混乱を避けるためにそのブランチの`.lagoon.yml`からも`production_routes`を削除するべきです。ブランチは`production`タイプのままになりますが、それを削除して再デプロイしない限り(すべてのストレージとデータベースなどを消去)。
 5. プロジェクトが`production-branchb`プロダクション環境だけが存在し、他のすべての環境が`development`である状態になったら、プロジェクトから`standbyProductionEnvironment`を削除して、環境のアクティブ/スタンバイラベルを消去します。
 
 ```graphql title="アクティブ/スタンバイをオフにする"
@@ -169,7 +169,7 @@ query projectByName {
 }
 ```
 
-環境を切り替える前：
+環境を切り替える前:
 
 ```graphql title="環境クエリの結果"
 {
@@ -182,7 +182,7 @@ query projectByName {
 }
 ```
 
-環境を切り替えた後：
+環境を切り替えた後:
 
 ```graphql title="結果 の環境クエリ"
 {

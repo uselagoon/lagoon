@@ -10,7 +10,7 @@ DeployTarget設定の基本的な考え方は、プロジェクトが複数の�
 
 DeployTarget設定を利用してプロジェクトを設定する方法について説明する前に、知っておくべきことがいくつかあります。
 
-1. 環境には、それらがどのDeployTarget（KubernetesまたはOpenShift）で作成されたかを識別するための新たな2つのフィールドが利用可能になりました。
+1. 環境には、それらがどのDeployTarget(KubernetesまたはOpenShift)で作成されたかを識別するための新たな2つのフィールドが利用可能になりました。
 
   1. `kubernetesNamespacePattern`
   2. `kubernetes`
@@ -43,7 +43,7 @@ DeployTarget設定を利用してプロジェクトを設定する方法につ�
 以下のGraphQLの突然変異を使用できます。この特定の例では、プロジェクトID 1のプロジェクトにDeployTarget設定を追加します。
 これにより、名前が`main`と一致するブランチのみがデプロイされ、`pullrequests`は`false`に設定されます。
 これは、他のブランチがこの特定のターゲットにデプロイすることができず、プルリクエストもこの特定のターゲットにデプロイされないことを意味します。
-`deployTarget`はID 1で、これはKubernetesになる可能性があります。 特定の地域や特定の種類のワークロード（製品版または開発版）向けにクラスターを指定します。
+`deployTarget`はID 1で、これはKubernetesになる可能性があります。 特定の地域や特定の種類のワークロード(製品版または開発版)向けにクラスターを指定します。
 
 ```GraphQL title="DeployTargetの設定"
 mutation addDeployTargetConfig{
@@ -70,7 +70,7 @@ mutation addDeployTargetConfig{
 }
 ```
 
-!!! 情報
+!!! Info "情報"
     `deployTarget`はLagoon API内のKubernetesまたはOpenShift IDのエイリアスです
 
 また、複数のDeployTarget設定を構成することも可能です。

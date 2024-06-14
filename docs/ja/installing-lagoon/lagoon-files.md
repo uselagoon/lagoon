@@ -2,9 +2,9 @@
 
 Lagoonファイルは、バックアップなどのタスクのファイル出力を保存するために使用され、S3互換ストレージにホストできます。
 
-1. ポリシーを持つ新しいAWSユーザーを作成します：
+1. ポリシーを持つ新しいAWSユーザーを作成します:
 
-    ```json title="例：ファイルIAMユーザー"
+    ```json title="例:ファイルIAMユーザー"
     {
       "バージョン":"2012-10-17",
       "ステートメント":[
@@ -32,17 +32,17 @@ Lagoonファイルは、バックアップなどのタスクのファイル出�
     }
     ```
 
-2. `lagoon-core-values.yml`を更新します：
+2. `lagoon-core-values.yml`を更新します:
 
     ```yaml title="lagoon-core-values.yml"
     s3FilesAccessKeyID: <<アクセスキーID>>
     s3FilesBucket: <<Lagoonファイル用のバケット名>>
-    s3FilesHost: <<S3エンドポイント（例："https://s3.eu-west-1.amazonaws.com"）>>
+    s3FilesHost: <<S3エンドポイント(例:"https://s3.eu-west-1.amazonaws.com")>>
     s3FilesSecretAccessKey: <<アクセスキーシークレット>>
     s3FilesRegion: <<S3リージョン>>
     ```
 
-3. もしもあなたが `lagoon-core`の前に`ingress-nginx`を使用することを提案します。これにより、より大きなファイルのアップロードが可能になります：
+3. もしもあなたが `lagoon-core`の前に`ingress-nginx`を使用することを提案します。これにより、より大きなファイルのアップロードが可能になります:
 
     ```yaml title="lagoon-core-values.yml"
     controller:

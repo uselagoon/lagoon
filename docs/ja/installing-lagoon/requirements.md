@@ -1,17 +1,17 @@
 # 既存のKubernetesクラスターへのLagoonのインストール
 
-## 必要条件
+## 必要条件 { #requirements }
 
-* Kubernetes 1.23+（Kubernetes 1.21もサポートされていますが、1.23を推奨します）
+* Kubernetes 1.23+(Kubernetes 1.21もサポートされていますが、1.23を推奨します)
 * [Helm](https://helm.sh)、[Helm Charts](https://helm.sh/docs/topics/charts/#helm)、[kubectl](https://kubernetes.io/docs/tasks/tools/)に精通していること。
 * Ingressコントローラー、我々は[ingress-nginx](https://github.com/kubernetes/ingress-nginx)を推奨し、ingress-nginx名前空間にインストールされていること
-* Cert manager（TLS用） - letsencryptの使用を強く推奨します
-* StorageClasses（デフォルトとしてRWO、永続タイプ用にRWM）
+* Cert manager(TLS用) - letsencryptの使用を強く推奨します
+* StorageClasses(デフォルトとしてRWO、永続タイプ用にRWM)
 
-!!! 注意
+!!! Note "注意:"
     これは多くのステップが必要であることを認識しており、今後すぐに行う予定のロードマップには、このプロセスのステップ数を減らすことが含まれています。
 
-## 特定の要件（2023年1月現在）
+## 特定の要件 (2023年1月現在) { #specific-requirements-as-of-january-2023 }
 
 ### Kubernetes
 
@@ -23,7 +23,7 @@ LagoonはKubernetesバージョン1.21以降をサポートしています。私
 
 Lagoonは現在、単一の `ingress-nginx` コントローラーのみに対応して設定されているため、過去には `IngressClass` の定義は必要ありませんでした。
 
-最近の `ingress-nginx` コントローラー（バージョン4以降、Kubernetes 1.22が必要）を使用するには、以下の設定を使用する必要があります。[`ingress-nginx` のドキュメント](https://kubernetes.github.io/ingress-nginx/#what-is-an-ingressclass-and-why-is-it-important-for-users-of-ingress-nginx-controller-now)に従ってください。
+最近の `ingress-nginx` コントローラー(バージョン4以降、Kubernetes 1.22が必要)を使用するには、以下の設定を使用する必要があります。[`ingress-nginx` のドキュメント](https://kubernetes.github.io/ingress-nginx/#what-is-an-ingressclass-and-why-is-it-important-for-users-of-ingress-nginx-controller-now)に従ってください。
 
 * `nginx-ingress` はデフォルトのコントローラーとして設定する必要があります - Helmの値で `.controller.ingressClassResource.default: true` を設定します
 * `nginx-ingress` は `IngressClass` が設定されていないIngressを監視するように設定する必要があります - Helmの値で `.controller.watchIngressWithoutClass: true` を設定します
@@ -32,19 +32,32 @@ Lagoonは現在、単一の `ingress-nginx` コントローラーのみに対応
 
 他の設定も可能かもしれませんが、テストは行われていません。
 
-### Harbor
+### Harbor { #harbor }
 
-現在、Harborのバージョン2.1と2.2以降がサポートされています。2.2でロボットアカウントの取得方法が変更され、Lagoonのリモートコントローラーは
+現在、Harbor のバージョン 2.1 および 2.2+ がサポートされています。ロボット アカウントを取得する方法は 2.2 で変更され、Lagoon リモート コントローラーはこれらのトークンを処理できます。つまり、Harbor は `lagoon-core` ではなく `lagoon-build-deploy` の資格情報を使用して構成する必要があります。
 
-Translation request timed out.
+[2.6.0](https://github.com/goharbor/harbor/releases/tag/v2.6.0) 以降の Harbor バージョンを、Helm チャート [1.10.0](https://github.com/goharbor/harbor-helm/releases/tag/v1.10.0) 以上とともにインストールすることをお勧めします。
+
+### バックアップ用の k8up { #k8up-for-backups }
+
+Lagoon には、[K8up](https://k8up.io/k8up/1.2/index.html) バックアップ オペレーターの構成が組み込まれています。 Lagoon では、事前バックアップ ポッド、スケジュール、保持期間を設定し、K8up のバックアップと復元を管理できます。現在、Lagoon は、v2 以降の名前空間の変更により、K8up の 1.x バージョンのみをサポートしていますが、修正に取り組んでいます。
+
+!!! Bug "バグ k8up v2"
+    Lagoon は、名前空間の変更により、現在 K8up v2 以降をサポートしていません ([こちら](https://github.com/uselagoon/build-deploy-tool/issues/121))。
+
+K8up バージョン [1.2.0](https://github.com/k8up-io/k8up/releases/tag/v1.2.0) を Helm Chart [1.1.0](https://github.com/appuio/charts/releases/tag/k8up-1.1.0) とともにインストールすることをお勧めします。
+
+
+
+
 
 ### ストレージプロビジョナー { #storage-provisioners }
 
 Lagoon は、ほとんどのワークロードに対してデフォルトの `standard` `StorageClass` を利用し、ほとんどの Kubernetes プラットフォームの内部プロビジョナーで十分です。これは、可能な場合は動的プロビジョニングと拡張が可能になるように構成する必要があります。
 
-また、Lagoonでは、永続的なポッドレプリカ（ノード間）をサポートするために、'bulk'と呼ばれる`StorageClass`が利用可能であることが必要です。この`StorageClass`は`ReadWriteMany`（RWX）アクセスモードをサポートしており、可能な限り動的なプロビジョニングと拡張性があるように設定する必要があります。詳細はhttps://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes を参照し、互換性のあるドライバの完全なリストについては[production drivers list](https://kubernetes-csi.github.io/docs/drivers.html)を参照してください。
+また、Lagoonでは、永続的なポッドレプリカ(ノード間)をサポートするために、'bulk'と呼ばれる`StorageClass`が利用可能であることが必要です。この`StorageClass`は`ReadWriteMany`(RWX)アクセスモードをサポートしており、可能な限り動的なプロビジョニングと拡張性があるように設定する必要があります。詳細はhttps://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes を参照し、互換性のあるドライバの完全なリストについては[production drivers list](https://kubernetes-csi.github.io/docs/drivers.html)を参照してください。
 
-現在、私たちは（現在は廃止されている）[EFS Provisioner](./efs-provisioner.md)の指示だけを含めています。本番の[EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)は、120以上のPVCをプロビジョニングする際に問題があります。私たちはアップストリームでの可能な修正を[ここ](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/761)と[ここ](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732)で待っています - しかし、他のほとんどのプロバイダのCSIドライバも動作するはずで、NFS互換のサーバとプロビジョナーを備えた設定も同様です。
+現在、私たちは(現在は廃止されている)[EFS Provisioner](./efs-provisioner.md)の指示だけを含めています。本番の[EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)は、120以上のPVCをプロビジョニングする際に問題があります。私たちはアップストリームでの可能な修正を[ここ](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/761)と[ここ](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732)で待っています - しかし、他のほとんどのプロバイダのCSIドライバも動作するはずで、NFS互換のサーバとプロビジョナーを備えた設定も同様です。
 
 ## どれくらい Kubernetesの経験/知識は必要ですか？
 

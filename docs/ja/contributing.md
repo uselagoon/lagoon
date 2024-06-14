@@ -20,7 +20,7 @@ Lagoonをあなたのローカルマシン上で動かす方法について、Ki
 
 もし、あなたが現在我々がDocker Composeスタックとして持っていないオープンソースCMSまたはフレームワークを立ち上げることができれば、PRを送ってください。既存の例を[https://github.com/uselagoon/lagoon-ex](https://github.com/uselagoon/lagoon-ex)でご覧ください。 ヒント、アドバイス、スターターの問題については、[examples](https://github.com/uselagoon/lagoon-examples)をご覧ください。
 
-ただし、可能な限り、基本のDocker Hubイメージ[https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon)を使用して作成していただきたいと考えています。適切なイメージがない場合や、当社のイメージを変更する必要がある場合は、PR（可能な場合）を投げていただくか、問題を作成してください（他の誰かが対応できるように）[https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images)にて。
+ただし、可能な限り、基本のDocker Hubイメージ[https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon)を使用して作成していただきたいと考えています。適切なイメージがない場合や、当社のイメージを変更する必要がある場合は、PR(可能な場合)を投げていただくか、問題を作成してください(他の誰かが対応できるように)[https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images)にて。
 
 既存の例を改善するために私たちを手伝ってください、もしご可能であれば - 私たちは最良の方法を追求しているのでしょうか、何か意味のないことをしているのでしょうか？
 
@@ -34,7 +34,7 @@ Lagoonをあなたのローカルマシン上で動かす方法について、Ki
 
 私たちはセキュリティを非常に重視しています。 セキュリティの問題を発見したり、発見したと思ったら、是非メンテナに注意を促してください。
 
-!!! 危険
+!!! Danger "危険"
     結果を[security@amazee.io](mailto:security@amazee.io)に送ってください。 GitHubの問題としてそれらをファイルしては**絶対に**しないでください。
 
 セキュリティレポートは非常に評価され、公共のカルマとスワッグがもらえます！ 私たちはまた、バグバウンティシステムの作業も進めています。

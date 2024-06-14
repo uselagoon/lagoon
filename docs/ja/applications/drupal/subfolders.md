@@ -6,17 +6,17 @@
 
 ## ルートアプリケーションの修正
 
-ルートアプリケーション（この例では`www.example.com`のDrupalサイト）は、NGINXをサブフォルダアプリケーションへのリバースプロキシとして構成するいくつかのNGINX設定が必要です：
+ルートアプリケーション(この例では`www.example.com`のDrupalサイト)は、NGINXをサブフォルダアプリケーションへのリバースプロキシとして構成するいくつかのNGINX設定が必要です:
 
 ### `location_prepend.conf`
 
-Drupalインストールのルートに`location_prepend.conf`というファイルを作成します：
+Drupalインストールのルートに`location_prepend.conf`というファイルを作成します:
 
 ```text title="location_prepend.conf"
 resolver 8.8.8.8 valid=30s;
 
 location ~ ^/subfolder {
-  # $http_x_forwarded_protoが空（上流のリバースプロキシから設定されていない場合）であれば、
+  # $http_x_forwarded_protoが空(上流のリバースプロキシから設定されていない場合)であれば、
   # 現在のスキームに設定します。
   set_if_empty $http_x_forwarded_proto $scheme;
 
@@ -37,12 +37,12 @@ location ~ ^/subfolder {
   # LAGOON_GIT_SAFE_BRANCH変数はdockerエントリーポイント時に置換されます。
   proxy_pass            $subfolder_drupal_host;
   proxy_set_header      Host $proxy_host;
-  # $proxy_hostはproxy_passに基づいてNGINXによって自動生成されます（スキームとポートは不要です）。
+  # $proxy_hostはproxy_passに基づいてNGINXによって自動生成されます(スキームとポートは不要です)。
 
   expires off; # プロキシからのキャッシュヘッダーを尊重し、上書きしないようにします
 ```
 
-以下の文字列を置換してください：
+以下の文字列を置換してください:
 
 * `/subfolder` を使用したいサブフォルダの名前に置換します。例えば、`/blog`。
 * `nginx` をサブフォルダプロジェクト内で指すサービスに置換します。
@@ -50,7 +50,7 @@ location ~ ^/subfolder {
 
 ### N GINX Dockerfile
 
-以下をあなたのNGINX Dockerfile（`nginx.dockerfile`または`Dockerfile.nginx`）に追加してください：
+以下をあなたのNGINX Dockerfile(`nginx.dockerfile`または`Dockerfile.nginx`)に追加してください:
 
 ```text title="nginx.dockerfile"
 COPY location_prepend.conf /etc/nginx/conf.d/drupal/location_prepend.conf
@@ -59,11 +59,11 @@ RUN fix-permissions /etc/nginx/conf.d/drupal/*
 
 ## サブフォルダアプリケーションの変更
 
-ルートアプリケーションと同様に、サブフォルダアプリケーション（この例では、`www.example.com/blog`のDrupalインストール）にも、サブフォルダ下で動作していることを教える必要があります。これを行うために、以下の2つのファイルを作成します：
+ルートアプリケーションと同様に、サブフォルダアプリケーション(この例では、`www.example.com/blog`のDrupalインストール)にも、サブフォルダ下で動作していることを教える必要があります。これを行うために、以下の2つのファイルを作成します:
 
 ### `location_drupal_append_subfolder.conf`
 
-サブフォルダのDrupalインストールのルートに`location_drupal_append_subfolder.conf`という名前のファイルを作成します：
+サブフォルダのDrupalインストールのルートに`location_drupal_append_subfolder.conf`という名前のファイルを作成します:
 
 ```text title="location_drupal_append_subfolder.conf"
 # `subfolder`という接頭辞がついたスクリプト名を注入すると、Drupalは
@@ -85,13 +85,13 @@ fastcgi_param  HTTP_HOST          $http_x_lagoon_forwarded_host if_not_empty;
 
 ### `server_prepend_subfolder.conf`
 
-サブフォルダのDrupalインストールのルートに`server_prepend_subfolder.conf`という名前のファイルを作成します：
+サブフォルダのDrupalインストールのルートに`server_prepend_subfolder.conf`という名前のファイルを作成します:
 
 ```text title="server_prepend_subfolder.conf"
 # 内部のNGINXリライトを行う前に、リダイレクトを確認します。
 # これは、内部のNGINXリライトが `last`を使用するためで、
-# これはNGINXにリライトをこれ以上確認しないよう指示します（そして
-# `if`はリダイレクトモジュールの一部です）。
+# これはNGINXにリライトをこれ以上確認しないよう指示します(そして
+# `if`はリダイレクトモジュールの一部です)。
 include /etc/nginx/helpers/010_redirects.conf;
 
 # これは内部のNGINXリライトで、リクエストから`/subfolder/`を
@@ -120,7 +120,7 @@ rewrite ^\/(.*)                   /subfolder/$1   permanent;
 
 また、NGINX Dockerfileも修正する必要があります。
 
-以下をNGINX Dockerfile (`nginx.dockerfile` または `Dockerfile.nginx`)に追加してください：
+以下をNGINX Dockerfile (`nginx.dockerfile` または `Dockerfile.nginx`)に追加してください:
 
 ```text title="nginx.dockerfile"
 COPY location_drupal_append_subfolder.conf /etc/nginx/conf.d/drupal/location_drupal_append_subfolder.conf

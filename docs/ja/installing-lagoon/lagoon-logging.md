@@ -4,13 +4,13 @@ Lagoonは、アプリケーション、コンテナ、ルーターのログを�
 
 さらに、それは`lagoon-core`サービスからログを収集するために`lagoon-core`クラスターにインストールするべきです。これは`LagoonLogs`セクションで設定されています。
 
-ロギング概要：[Lucid Chart](https://lucid.app/lucidchart/70f9610e-cfd7-42e8-8b5b-3d03293a439c/view?page=Uq-x~LhSIxrp&invitationId=inv_4e891071-f795-4ada-bbd3-2ff63b8eb1f7#)
+ロギング概要:[Lucid Chart](https://lucid.app/lucidchart/70f9610e-cfd7-42e8-8b5b-3d03293a439c/view?page=Uq-x~LhSIxrp&invitationId=inv_4e891071-f795-4ada-bbd3-2ff63b8eb1f7#)
 
-参照：[Logging](../logging/logging.md)。
+参照:[Logging](../logging/logging.md)。
 
-Lagoonロギングについて詳しくはこちらをご覧ください：[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
+Lagoonロギングについて詳しくはこちらをご覧ください:[https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
 
-1. `lagoon-logging-values.yaml`を作成します：
+1. `lagoon-logging-values.yaml`を作成します:
 
     ```yaml title="lagoon-logging-values.yaml"
     tls:
@@ -59,10 +59,10 @@ Lagoonロギングについて詳しくはこちらをご覧ください：[http
 
 ## Logging NGINX In gressコントローラ
 
-`lagoon-logging`内の`ingress-nginx`からログが必要な場合：
+`lagoon-logging`内の`ingress-nginx`からログが必要な場合:
 
 1. ingressコントローラは`ingress-nginx`という名前空間にインストールされていなければなりません
-2. このファイルの内容を`ingress-nginx`に追加します：
+2. このファイルの内容を`ingress-nginx`に追加します:
 
     ```yaml title="ingress-nginx log-format-upstream"
     controller:

@@ -6,7 +6,7 @@
     helm repo update
     ```
 
-2. `helm diff`を使って変更点を確認します（[https://github.com/databus23/helm-diff](https://github.com/databus23/helm-diff)）。
+2. `helm diff`を使って変更点を確認します([https://github.com/databus23/helm-diff](https://github.com/databus23/helm-diff))。
 
     ```bash title="変更点を確認"
     helm diff upgrade --install --create-namespace --namespace lagoon-core \
@@ -23,7 +23,7 @@
         -f values.yaml lagoon-core lagoon/lagoon-core
     ```
 
-5. （Lagoon v2.11.0以降、このステップは不要になりました）
+5. (Lagoon v2.11.0以降、このステップは不要になりました)
     Lagoon Coreをアップグレードする場合、アップグレード後の移行を行うために`rerun_initdb.sh`スクリプトを実行することを確認してください。
 
     ```bash title="スクリプトを実行"

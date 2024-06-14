@@ -8,7 +8,7 @@ Harborは複数のコンテナで構成されており、それぞれが成功�
 
 ## 環境変数 { #environment-variables }
 
-Harborが正しく開始するためには、以下の環境変数が設定されている必要があります：
+Harborが正しく開始するためには、以下の環境変数が設定されている必要があります:
 
 * `HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET`
   * これは、Harborがイメージを保存するAWSバケットの名前に設定する必要があります。
@@ -23,7 +23,7 @@ Harborが正しく開始するためには、以下の環境変数が設定さ�
   * これは、HarborがAWSバケットにアクセスするために使用するAWSシークレットキーに設定する必要があります。 AWSバケットへの読み書き。
   * Lagoonがローカルで実行されるかCIテスト中の場合、MinIOは認証を必要としないためデフォルトで空文字列になります。
 
-必要に応じて次の環境変数を設定できます：
+必要に応じて次の環境変数を設定できます:
 
 * `HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT`
   * この変数が設定されている場合、Harborレジストリはその値をs3エントリポイントのアドレスとして使用します。
@@ -31,7 +31,7 @@ Harborが正しく開始するためには、以下の環境変数が設定さ�
 
 ## コンテナ固有の設定
 
-次のコンテナは設定ファイルを使用します：
+次のコンテナは設定ファイルを使用します:
 
 * [HarborRegistry](harborregistry.md)
 * [HarborRegistryCtl](harborregistryctl.md)
@@ -40,7 +40,7 @@ Harborが正しく開始するためには、以下の環境変数が設定さ�
 * [Harbor-Jobservice](harbor-jobservice.md)
 * [Harbor-Trivy](harbor-trivy.md)
 
-次のコンテナは設定ファイルを必要とせずに実行できます：
+次のコンテナは設定ファイルを必要とせずに実行できます:
 
 * Harbor-Nginx
 * Harbor-Portal
