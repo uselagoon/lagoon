@@ -706,6 +706,10 @@ export const getAllNotifications: ResolverFn = async (
   if (args.name && args.type) {
     rows = await query(sqlClientPool, Sql.selectNotificationByNameAndType(args.name, args.type));
 
+    if (rows.length === 0) {
+      throw new Error(`No notification found for ${args.name} & ${args.type}`);
+    }
+
     if (rows.length > 0) {
       rows[0].type = args.type;
     }
@@ -720,10 +724,10 @@ export const getAllNotifications: ResolverFn = async (
   if (args.name) {
     await hasPermission('notification', 'viewAll');
 
-    const rows = await Helpers(sqlClientPool).selectAllNotifications(args.name);
+    rows = await Helpers(sqlClientPool).selectAllNotifications(args.name);
 
     if (rows.length === 0) {
-      throw new Error(`No notification found for ${args.name}`);
+      throw new Error(`No notifications found for ${args.name}`);
     }
 
     return rows;
@@ -732,12 +736,20 @@ export const getAllNotifications: ResolverFn = async (
   if (args.type) {
     await hasPermission('notification', 'viewAll');
 
-    const rows = await query(sqlClientPool, Sql.selectAllNotifications(args.type));
+    rows = await query(sqlClientPool, Sql.selectAllNotifications(args.type));
+
+    if (rows.length === 0) {
+      throw new Error(`No notifications found for type ${args.type}`);
+    }
 
     return rows;
   }
 
   await hasPermission('notification', 'viewAll');
   rows = await Helpers(sqlClientPool).selectAllNotifications();
+  if (rows.length === 0) {
+    throw new Error(`No notifications found`);
+  }
+
   return rows;
 };
