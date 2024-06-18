@@ -20,7 +20,7 @@ SHELL := /bin/bash
 # make tests/<testname>
 # Runs individual tests. In a nutshell it does:
 # 1. Builds all needed images for the test
-# 2. Starts needed Lagoon services for the test via docker-compose up
+# 2. Starts needed Lagoon services for the test via docker compose up
 # 3. Executes the test
 #
 # Run `make tests-list` to see a list of all tests.
@@ -32,7 +32,7 @@ SHELL := /bin/bash
 # Starts all Lagoon Services at once, usefull for local development or just to start all of them.
 
 # make logs
-# Shows logs of Lagoon Services (aka docker-compose logs -f)
+# Shows logs of Lagoon Services (aka docker compose logs -f)
 
 #######
 ####### Default Variables
@@ -125,7 +125,7 @@ docker_pull:
 ####### Service Images
 #######
 ####### Services Images are the Docker Images used to run the Lagoon Microservices, these images
-####### will be expected by docker-compose to exist.
+####### will be expected by docker compose to exist.
 
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
@@ -258,9 +258,9 @@ build-ui-logs-development:
 .PHONY: wait-for-keycloak
 wait-for-keycloak:
 	@$(info Waiting for Keycloak to be ready....)
-	@grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
-	@docker-compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-users.sh keycloak:/tmp/seed-users.sh \
-	&& docker-compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' \
+	@grep -m 1 "Config of Keycloak done." <(docker compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-users.sh keycloak:/tmp/seed-users.sh \
+	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' \
 	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
 	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
 	&& echo ""
@@ -274,16 +274,16 @@ webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(main-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(main-test-services)
 	$(MAKE) wait-for-keycloak
 
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
 
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
 
 #######
 ####### Publishing Images
@@ -325,23 +325,23 @@ scan-images:
 
 # Show Lagoon Service Logs
 logs:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
 ifeq ($(ARCH), darwin)
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d
 else
 	# once this docker issue is fixed we may be able to do away with this
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
-		docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
+		docker compose -p $(CI_BUILD_TAG) --compatibility up -d
 endif
 	$(MAKE) wait-for-keycloak
 
 down:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
 
 # kill all containers containing the name "lagoon"
 kill:
@@ -364,35 +364,35 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) wait-for-keycloak
 
 ## CI targets
 
-KUBECTL_VERSION := v1.28.6
-HELM_VERSION := v3.14.2
-K3D_VERSION = v5.6.0
-GOJQ_VERSION = v0.12.13
+KUBECTL_VERSION := v1.30.1
+HELM_VERSION := v3.15.2
+K3D_VERSION = v5.6.3
+GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
-CHART_TESTING_VERSION = v3.10.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.28.6-k3s2
+CHART_TESTING_VERSION = v3.11.0
+K3D_IMAGE = docker.io/rancher/k3s:v1.30.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = dev-restructure
+CHARTS_TREEISH = lagoon-220
 TASK_IMAGES = task-activestandby
 
 # the name of the docker network to create
@@ -589,7 +589,7 @@ k3d/local-dev-patch:
 .PHONY: k3d/local-dev-logging
 k3d/local-dev-logging:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
+		&& docker compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
 		&& $(HELM) upgrade --install --create-namespace \
 			--namespace lagoon-logs-concentrator \
 			--wait --timeout 15m \
