@@ -2395,7 +2395,7 @@ const typeDefs = gql`
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
     addUserSSHPublicKey(input: AddUserSSHPublicKeyInput!): SshKey
-    updateUserSSHPublicKey(input: UpdateUserSSHPublicKeyPatchInput!): SshKey
+    updateUserSSHPublicKey(input: UpdateUserSSHPublicKeyInput!): SshKey
     deleteUserSSHPublicKey(input: DeleteUserSSHPublicKeyByIdInput!): String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
