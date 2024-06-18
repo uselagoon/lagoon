@@ -1,0 +1,5883 @@
+
+<!doctype html>
+<html lang="ja" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="The Lagoon Authors">
+      
+      
+        <link rel="canonical" href="https://docs.lagoon.sh/ja/lagoonizing/">
+      
+      
+        <link rel="prev" href="../concepts-advanced/feature-flags/">
+      
+      
+        <link rel="next" href="../docker-images/commons/">
+      
+      
+      <link rel="icon" href="../../images/lagoon-icon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.0">
+    
+    
+      
+        <title>Lagoonizing Your Exisiting Site - Lagoon Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.9f615399.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.649f08f9.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M64 32C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h224V368c0-26.5 21.5-48 48-48h112V96c0-35.3-28.7-64-64-64H64zm384 320H336c-8.8 0-16 7.2-16 16v112l32-32 64-64 32-32z"/></svg>');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M96 0C43 0 0 43 0 96v320c0 53 43 96 96 96h320c17.7 0 32-14.3 32-32s-14.3-32-32-32v-64c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H96zm0 384h256v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48h192c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm-40-176h24v-64h-24c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-80c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M480 32c0-12.9-7.8-24.6-19.8-29.6S434.5.2 425.3 9.3L381.7 53c-48 48-113.1 75-181 75H64c-35.3 0-64 28.7-64 64v96c0 35.3 28.7 64 64 64v128c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V352h8.7c67.9 0 133 27 181 75l43.6 43.6c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6V300.4c18.6-8.8 32-32.5 32-60.4s-13.4-51.6-32-60.4V32zm-64 76.7v262.6C357.2 317.8 280.5 288 200.7 288H192v-96h8.7c79.8 0 156.5-29.8 215.3-83.3z"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7l233.4-233.3c12.5-12.5 32.8-12.5 45.3 0z"/></svg>');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm-86.2-346.7c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1 0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6-13.3 0-24-10.7-24-24v-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1 0-8.4-6.8-15.1-15.1-15.1h-58.3c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1-64 0z"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7.2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8.2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24v112c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0-64 0 32 32 0 1 0 64 0z"/></svg>');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M459.1 52.4 442.6 6.5c-1.9-3.9-6.1-6.5-10.5-6.5s-8.5 2.6-10.4 6.5l-16.5 45.9-46 16.8c-4.3 1.6-7.3 5.9-7.2 10.4 0 4.5 3 8.7 7.2 10.2l45.7 16.8 16.8 45.8c1.5 4.4 5.8 7.5 10.4 7.5s8.9-3.1 10.4-7.5l16.5-45.8 45.7-16.8c4.2-1.5 7.2-5.7 7.2-10.2 0-4.6-3-8.9-7.2-10.4l-45.6-16.8zm-132.4 53c-12.5-12.5-32.8-12.5-45.3 0l-2.9 2.9c-22-8-45.8-12.3-70.5-12.3C93.1 96 0 189.1 0 304s93.1 208 208 208 208-93.1 208-208c0-24.7-4.3-48.5-12.2-70.5l2.9-2.9c12.5-12.5 12.5-32.8 0-45.3l-80-80zM200 192c-57.4 0-104 46.6-104 104v8c0 8.8-7.2 16-16 16s-16-7.2-16-16v-8c0-75.1 60.9-136 136-136h8c8.8 0 16 7.2 16 16s-7.2 16-16 16h-8z"/></svg>');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M416 398.9c58.5-41.1 96-104.1 96-174.9C512 100.3 397.4 0 256 0S0 100.3 0 224c0 70.7 37.5 133.8 96 174.9V464c0 26.5 21.5 48 48 48h48v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h64v-48c0-8.8 7.2-16 16-16s16 7.2 16 16v48h48c26.5 0 48-21.5 48-48v-65.1zM96 256a64 64 0 1 1 128 0 64 64 0 1 1-128 0zm256-64a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32v64h120c39.8 0 72 32.2 72 72v272c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72h120V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16h-32zM264 256a40 40 0 1 0-80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224h16v192H48c-26.5 0-48-21.5-48-48v-96c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48h-16V224h16z"/></svg>');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M288 0H128c-17.7 0-32 14.3-32 32s14.3 32 32 32v132.8c0 11.8-3.3 23.5-9.5 33.5L10.3 406.2C3.6 417.2 0 429.7 0 442.6 0 480.9 31.1 512 69.4 512h309.2c38.3 0 69.4-31.1 69.4-69.4 0-12.8-3.6-25.4-10.3-36.4L329.5 230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7 0 32-14.3 32-32S337.7 0 320 0h-32zm-96 196.8V64h64v132.8c0 23.7 6.6 46.9 19 67.1l34.5 56.1h-171l34.5-56.1c12.4-20.2 19-43.4 19-67.1z"/></svg>');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M0 216C0 149.7 53.7 96 120 96h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V216zm256 0c0-66.3 53.7-120 120-120h8c17.7 0 32 14.3 32 32s-14.3 32-32 32h-8c-30.9 0-56 25.1-56 56v8h64c35.3 0 64 28.7 64 64v64c0 35.3-28.7 64-64 64h-64c-35.3 0-64-28.7-64-64V216z"/></svg>');}</style>
+
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-W1SJFEVFDB"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-W1SJFEVFDB",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-W1SJFEVFDB",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lagoon" class="md-skip">
+          コンテンツにスキップ
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="ヘッダー">
+    <a href="../" title="Lagoon Documentation" class="md-header__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Lagoon Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lagoonizing Your Exisiting Site
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m3.55 19.09 1.41 1.41 1.8-1.79-1.42-1.42M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6c0-3.32-2.69-6-6-6m8 7h3v-2h-3m-2.76 7.71 1.8 1.79 1.41-1.41-1.79-1.8M20.45 5l-1.41-1.4-1.8 1.79 1.42 1.42M13 1h-2v3h2M6.76 5.39 4.96 3.6 3.55 5l1.79 1.81 1.42-1.42M1 13h3v-2H1m12 9h-2v3h2"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="言語切り替え">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24Z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../lagoonizing/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ja" class="md-select__link">
+              日本語
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="検索" placeholder="検索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="検索">
+        
+        <button type="reset" class="md-search__icon md-icon" title="クリア" aria-label="クリア" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            検索を初期化
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/uselagoon/lagoon/" title="リポジトリへ" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="ナビゲーション" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Lagoon Documentation" class="md-nav__button md-logo" aria-label="Lagoon Documentation" data-md-component="logo">
+      
+  <img src="../../images/lagoon-icon-bw.png" alt="logo">
+
+    </a>
+    Lagoon Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/uselagoon/lagoon/" title="リポジトリへ" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    uselagoon/lagoon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ホーム
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonの基本概念
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonの基本概念
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/lagoon-yml/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    .lagoon.yml
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/docker-compose-yml/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    docker-compose.yml
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/build-and-deploy-process/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ビルドとデプロイプロセス
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonの構成要素
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonの構成要素
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/users/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ユーザー
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/groups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    グループ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/projects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    プロジェクト
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    通知
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/deploy-targets/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    デプロイターゲット
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/organizations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    組織
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-basics/building-blocks/roles/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ロール
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    高度なLagoonの概念
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            高度なLagoonの概念
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/service-types/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    サービスタイプ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/environment-types/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    環境タイプ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/environment-variables/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    環境変数
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/environment-idling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    環境のアイドリング
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/backups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    バックアップ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/base-images/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ベースイメージ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/workflows/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ワークフロー
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts-advanced/feature-flags/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    フィーチャーフラグ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoon化
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoon化
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Lagoonizing Your Exisiting Site
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonizing Your Exisiting Site
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目次">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    要件
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    ローカル開発環境
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    コマンドラインとGit
+  </a>
+  
+    <nav class="md-nav" aria-label="コマンドラインとGit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    コマンドライン
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git_1" class="md-nav__link">
+    Gitのインストール
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lagoon_1" class="md-nav__link">
+    Lagoon管理者が必要とするもの
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webhooks" class="md-nav__link">
+    Webhooksの設定
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    docker-compose.yml
+  </a>
+  
+    <nav class="md-nav" aria-label="docker-compose.yml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    基本設定
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    services
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-images" class="md-nav__link">
+    Docker イメージ
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    タイプ
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    マルチコンテナポッド
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lagoonyml" class="md-nav__link">
+    .lagoon.yml
+  </a>
+  
+    <nav class="md-nav" aria-label=".lagoon.yml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    一般設定
+  </a>
+  
+    <nav class="md-nav" aria-label="一般設定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose-yaml" class="md-nav__link">
+    docker-compose-yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment_variablesgit_sha" class="md-nav__link">
+    environment_variables.git_sha
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    タスク
+  </a>
+  
+    <nav class="md-nav" aria-label="タスク">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-rollout-tasks-pre_rolloutirun" class="md-nav__link">
+    ロールアウト前のタスク - pre_rollout.[i].run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-rollout-tasks-post_rolloutirun" class="md-nav__link">
+    ロールアウト後のタスク - post_rollout.[i].run
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    ルート
+  </a>
+  
+    <nav class="md-nav" aria-label="ルート">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerateenabled" class="md-nav__link">
+    routes.autogenerate.enabled
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerateinsecure" class="md-nav__link">
+    routes.autogenerate.insecure
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    環境
+  </a>
+  
+    <nav class="md-nav" aria-label="環境">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    特定のパスの監視
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameroutes" class="md-nav__link">
+    environments.[name].routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    注釈
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-tls-acme" class="md-nav__link">
+    SSL設定 - tls-acme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametypes" class="md-nav__link">
+    environments.[name].types
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-service-type" class="md-nav__link">
+    `service-name: service-type
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametemplates" class="md-nav__link">
+    environments.[name].templates
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-template-file" class="md-nav__link">
+    service-name: template-file
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamerollouts" class="md-nav__link">
+    environments.[name].rollouts
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].rollouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-rollout-type" class="md-nav__link">
+    service-name: rollout-type
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cron-environmentsnamecronjobs" class="md-nav__link">
+    Cronジョブ - environments.[name].cronjobs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drupal" class="md-nav__link">
+    Drupal特有のセットアップ
+  </a>
+  
+    <nav class="md-nav" aria-label="Drupal特有のセットアップ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    設定ファイル
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitignore" class="md-nav__link">
+    .gitignoreの設定を更新する
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupalwebroot" class="md-nav__link">
+    DrupalのWebrootについての注意点
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    画像をビルドする
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    コンテナの起動
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#composer-installcomposer" class="md-nav__link">
+    再度 composer installを実行する(Composerプロジェクトのみ)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal_1" class="md-nav__link">
+    ステータスの確認とDrupalのインストール
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    既存のデータベースダンプのインポート
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal_2" class="md-nav__link">
+    Drupalファイルディレクトリ
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    デプロイ
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Dockerイメージ
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Dockerイメージ
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/commons/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Commons
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/mariadb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MariaDB
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/mongodb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MongoDB
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/nodejs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Node.js
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/nginx/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NGINX
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/opensearch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OpenSearch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/php-cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PHP-CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/php-fpm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PHP-FPM
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Python
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/postgres/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PostgreSQL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/rabbitmq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RabbitMQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/ruby/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ruby
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/solr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Solr
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/redis/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Redis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-images/varnish/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Varnish
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    アプリケーションの設定
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            アプリケーションの設定
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/options/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    オプション
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_3" >
+        
+          <label class="md-nav__link" for="__nav_4_3_3" id="__nav_4_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Drupal
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Drupal
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_3_2" >
+        
+          <label class="md-nav__link" for="__nav_4_3_3_2" id="__nav_4_3_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    サービス
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_3_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            サービス
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/mariadb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MariaDB
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/nginx/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NGINX
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/php-cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PHP-cli
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/redis/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Redis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/solr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Solr
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/services/varnish/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Varnish
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ステップバイステップ - DrupalをLagoonで実行する準備
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/first-deployment-of-drupal/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drupalの初回デプロイ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/drush-9/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drush 9
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/subfolders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    サブフォルダ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/integrate-drupal-and-fastly/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DrupalとFastlyの統合
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/phpunit-and-phpstorm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PHPUnitとPhpStorm
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/drupal/automatic-updates/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    自動更新
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_4" >
+        
+          <label class="md-nav__link" for="__nav_4_3_4" id="__nav_4_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Laravel
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Laravel
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/laravel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_5" >
+        
+          <label class="md-nav__link" for="__nav_4_3_5" id="__nav_4_3_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    WordPress
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            WordPress
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/wordpress/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_6" >
+        
+          <label class="md-nav__link" for="__nav_4_3_6" id="__nav_4_3_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Node.jsベース
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            Node.jsベース
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/node/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_7" >
+        
+          <label class="md-nav__link" for="__nav_4_3_7" id="__nav_4_3_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    PHPベース
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            PHPベース
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/php/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_8" >
+        
+          <label class="md-nav__link" for="__nav_4_3_8" id="__nav_4_3_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Pythonベース
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            Pythonベース
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_9" >
+        
+          <label class="md-nav__link" for="__nav_4_3_9" id="__nav_4_3_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Rubyベース
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            Rubyベース
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/ruby/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_10" >
+        
+          <label class="md-nav__link" for="__nav_4_3_10" id="__nav_4_3_10_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    その他
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3_10">
+            <span class="md-nav__icon md-icon"></span>
+            その他
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../applications/other/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonの基本的な使い方
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonの基本的な使い方
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/local-development-environments/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ローカル開発環境
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/setup-project/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    新しいプロジェクトのセットアップ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/configure-webhooks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Webhooksの設定
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/first-deployment/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    初回デプロイ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/lagoon-build-errors-and-warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonビルドエラーと警告
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-the-basics/going-live/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    本番環境への移行
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonの高度な使い方
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonの高度な使い方
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    概要
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/active-standby/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    アクティブ/スタンバイ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/triggering-deployments/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    デプロイのトリガー
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/private-repositories/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    プライベートリポジトリ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/simplesaml/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SimpleSAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/project-default-users-keys/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    プロジェクトのデフォルトユーザーとSSHキー
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/nodejs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Node.jsのグレースフルシャットダウン
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/setting-up-xdebug-with-lagoon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LagoonでのXdebugの設定
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/custom-tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    カスタムタスク
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/deploytarget-configs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DeployTargetの設定
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/blackfire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blackfire
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_12" >
+        
+          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Harbor
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_12">
+            <span class="md-nav__icon md-icon"></span>
+            Harbor
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harborの使用
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/security-scanning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    セキュリティスキャン
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harborの設定
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harbor-Core
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harbor-Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harbor-Jobservice
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harbor-Trivy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HarborRegistry
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HarborRegistryCtl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonとの連携
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonとの連携
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/lagoon-ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UIの使用
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/organizations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    組織との連携
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/graphql/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GraphQL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/ssh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SSH
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/graphql-queries/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GraphQL API
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interacting/rbac/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ロールベースのアクセス制御 (RBAC)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_7" >
+        
+          <label class="md-nav__link" for="__nav_7_7" id="__nav_7_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    ログの理解
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_7">
+            <span class="md-nav__icon md-icon"></span>
+            ログの理解
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ロギング
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/kibana-examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Kibanaの例
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonのインストール
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonのインストール
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    要件
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/efs-provisioner/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    EFSプロビジョナー
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/install-harbor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Harborのインストール
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/lagoon-core/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoon Coreのインストール
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/install-lagoon-remote/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoon Remoteのインストール
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/lagoon-cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoon CLIのインストール
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/querying-graphql/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GraphQLによるクエリ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/create-user/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonユーザーの作成
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/add-project/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    プロジェクトの追加
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/deploy-project/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    プロジェクトのデプロイ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/add-group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    グループの追加
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/lagoon-logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonのロギング
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/opendistro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OpenDistro
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/logs-concentrator/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ログコンセントレーター
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/lagoon-backups/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonのバックアップ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/lagoon-files/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonのファイル
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/gitlab/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installing-lagoon/update-lagoon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    更新
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Lagoonへの貢献
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Lagoonへの貢献
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-to-lagoon/documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ドキュメント
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-of-conduct/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    行動規範
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    貢献
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-to-lagoon/developing-lagoon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonの開発
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-to-lagoon/tests/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    テスト
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-to-lagoon/api-debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    APIデバッグ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-to-lagoon/releasing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    リリース
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    コミュニティ
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            コミュニティ
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-of-conduct/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    行動規範
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/discord/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Discord
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/participation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    参加ガイドライン
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/moderation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    モデレーションガイドライン
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    リソース
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            リソース
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/glossary/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    用語集
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/tutorials-and-webinars/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    チュートリアル、ウェビナー、ビデオ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/lagoon-examples" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoonの例
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    その他のツール
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            その他のツール
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../other-tools/sail/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sail on Lagoon
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://uselagoon.github.io/lagoon-cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoon CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/uselagoon/lagoon-sync" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lagoon Sync
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../other-tools/client-libraries/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    クライアントライブラリ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    リリース（英語）
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            リリース（英語）
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/policy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Policy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.19.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.19.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.18.2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.18.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.18.1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.18.1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.18.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.18.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.17.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.17.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.16.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.16.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.15.4/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.15.4
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.15.3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.15.3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.15.2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.15.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.15.1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.15.1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.15.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.15.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.14.2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.14.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.14.1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.14.1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.14.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.14.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.13.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.13.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.12.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.12.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.11.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.11.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/2.10.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.10.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目次">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目次
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    要件
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    ローカル開発環境
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    コマンドラインとGit
+  </a>
+  
+    <nav class="md-nav" aria-label="コマンドラインとGit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    コマンドライン
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git_1" class="md-nav__link">
+    Gitのインストール
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lagoon_1" class="md-nav__link">
+    Lagoon管理者が必要とするもの
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#webhooks" class="md-nav__link">
+    Webhooksの設定
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-composeyml" class="md-nav__link">
+    docker-compose.yml
+  </a>
+  
+    <nav class="md-nav" aria-label="docker-compose.yml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    基本設定
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    services
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-images" class="md-nav__link">
+    Docker イメージ
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    タイプ
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    マルチコンテナポッド
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lagoonyml" class="md-nav__link">
+    .lagoon.yml
+  </a>
+  
+    <nav class="md-nav" aria-label=".lagoon.yml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    一般設定
+  </a>
+  
+    <nav class="md-nav" aria-label="一般設定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose-yaml" class="md-nav__link">
+    docker-compose-yaml
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment_variablesgit_sha" class="md-nav__link">
+    environment_variables.git_sha
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    タスク
+  </a>
+  
+    <nav class="md-nav" aria-label="タスク">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-rollout-tasks-pre_rolloutirun" class="md-nav__link">
+    ロールアウト前のタスク - pre_rollout.[i].run
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-rollout-tasks-post_rolloutirun" class="md-nav__link">
+    ロールアウト後のタスク - post_rollout.[i].run
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    ルート
+  </a>
+  
+    <nav class="md-nav" aria-label="ルート">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerateenabled" class="md-nav__link">
+    routes.autogenerate.enabled
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routesautogenerateinsecure" class="md-nav__link">
+    routes.autogenerate.insecure
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    環境
+  </a>
+  
+    <nav class="md-nav" aria-label="環境">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    特定のパスの監視
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnameroutes" class="md-nav__link">
+    environments.[name].routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    注釈
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssl-tls-acme" class="md-nav__link">
+    SSL設定 - tls-acme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametypes" class="md-nav__link">
+    environments.[name].types
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-service-type" class="md-nav__link">
+    `service-name: service-type
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnametemplates" class="md-nav__link">
+    environments.[name].templates
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-template-file" class="md-nav__link">
+    service-name: template-file
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environmentsnamerollouts" class="md-nav__link">
+    environments.[name].rollouts
+  </a>
+  
+    <nav class="md-nav" aria-label="environments.[name].rollouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-rollout-type" class="md-nav__link">
+    service-name: rollout-type
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cron-environmentsnamecronjobs" class="md-nav__link">
+    Cronジョブ - environments.[name].cronjobs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#drupal" class="md-nav__link">
+    Drupal特有のセットアップ
+  </a>
+  
+    <nav class="md-nav" aria-label="Drupal特有のセットアップ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    設定ファイル
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gitignore" class="md-nav__link">
+    .gitignoreの設定を更新する
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupalwebroot" class="md-nav__link">
+    DrupalのWebrootについての注意点
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    画像をビルドする
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    コンテナの起動
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#composer-installcomposer" class="md-nav__link">
+    再度 composer installを実行する(Composerプロジェクトのみ)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal_1" class="md-nav__link">
+    ステータスの確認とDrupalのインストール
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    既存のデータベースダンプのインポート
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drupal_2" class="md-nav__link">
+    Drupalファイルディレクトリ
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    デプロイ
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/uselagoon/lagoon/edit/main/docs/ja/lagoonizing/index.md" title="編集" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="lagoon">既存のサイトをLagoon化する<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h1>
+<p><em>Lagoon化</em>、つまり既存のサイトをLagoonプラットフォームに対応させることは、一般的には難しくありません(サイトやセットアップによりますが)、しかしいくつかの手順が必要です。このプロセスを簡単にするためのステップバイステップのガイドをまとめました。</p>
+<h2 id="_1">要件<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p>あなたのシステムがローカルでLagoonを使用するための<a href="../using-lagoon-the-basics/">要件を満たしている</a>ことを確認してください。</p>
+<h2 id="_2">ローカル開発環境<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
+<p><a href="../using-lagoon-the-basics/local-development-environments/">ローカル開発環境を設定する</a>。PygmyとLandoのどちらかを選ぶことができます。</p>
+<h2 id="git">コマンドラインとGit<a class="headerlink" href="#git" title="Permanent link">#</a></h2>
+<p>コマンドラインを通じてLagoonとやりとりする必要があり、またGitも必要ですので、準備が整っていることを確認してください。</p>
+<h3 id="_3">コマンドライン<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
+<p>いくつかのタスクにはコマンドラインターミナルを使用する必要があります。何を使用しても構いません、オペレーティングシステムのデフォルトツールも含めてです。以下にいくつかのオプションを示します:</p>
+<ul>
+<li><a href="https://iterm2.com/">iTerm2</a> (Mac)</li>
+<li><a href="https://docs.microsoft.com/en-us/powershell/">PowerShell</a> (Windows)</li>
+<li><a href="https://fishshell.com/">Fish</a> (Mac, Windows, Linux)</li>
+<li><a href="https://tabby.sh/">Tabby</a> (Mac, Windows, Linux)</li>
+</ul>
+<h3 id="git_1">Gitのインストール<a class="headerlink" href="#git_1" title="Permanent link">#</a></h3>
+<p>まだ持っていない場合は、 何らかの形でGitクライアントが必要です。コマンドライン、GUI、何でも構いません(私たちの例では、コマンドラインを使用します)。以下にいくつかのオプションを示します:</p>
+<ul>
+<li><a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Gitのインストール</a> (Mac、Windows、Linux)</li>
+<li><a href="https://www.sourcetreeapp.com/">SourceTree</a> (Mac、Windows)</li>
+<li><a href="https://desktop.github.com/">GitHub Desktop</a> (Mac、Windows)</li>
+<li><a href="https://www.gitkraken.com/git-client">GitKraken</a> (Mac、Windows、Linux - 公開リポジトリは無料)</li>
+</ul>
+<h2 id="lagoon_1">Lagoon管理者が必要とするもの<a class="headerlink" href="#lagoon_1" title="Permanent link">#</a></h2>
+<p>Lagoonを設定しているLagoon管理者は、いくつかの情報を必要とします。<a href="../using-lagoon-the-basics/setup-project/">詳細はこちら</a>。</p>
+<h2 id="webhooks">Webhooksの設定<a class="headerlink" href="#webhooks" title="Permanent link">#</a></h2>
+<p>次に、Gitリポジトリのためのwebhooksを設定する必要があります。<a href="../using-lagoon-the-basics/configure-webhooks/">その手順はこちらで見つけることができます</a>。</p>
+<h2 id="docker-composeyml"><code>docker-compose.yml</code><a class="headerlink" href="#docker-composeyml" title="Permanent link">#</a></h2>
+<p><code>docker-compose.yml</code>ファイルは、Lagoonによって以下のように使用されます:</p>
+<ul>
+<li>どのサービス/コンテナをデプロイするべきかを学ぶ。</li>
+<li>コンテナのイメージがどのようにビルドされるかを定義する。</li>
+<li>永続ボリュームなどの追加設定を定義する。</li>
+</ul>
+<p>さらに詳しくは<a href="../concepts-basics/docker-compose-yml/">私たちの<code>docker-compose.yml</code>ドキュメンテーション</a>.</p>
+<p>これは、あなたのサイトをLagoonに対応させるために作成・設定する2つのファイルのうちの1つです。</p>
+<p><code>Docker-compose</code>(ツール)は、YAMLファイルの内容を厳格に検証するので、サービス定義の<strong>ラベル</strong>内でのみ設定を行うことができます。</p>
+<div class="admonition warning">
+<p class="admonition-title">警告</p>
+<p>Lagoonは<code>docker-compose.yml</code>ファイルからラベル、サービス名、イメージ名、ビルド定義のみを読み込みます。ポート、環境変数、ボリューム、ネットワーク、リンク、ユーザーなどの定義は無視されます。これは意図的なもので、<code>docker-compose</code>ファイルはあなたのローカル環境設定を定義するためのものです。Lagoonは<code>lagoon.type</code>からあなたがデプロイしているサービスのタイプを学び、その結果、このサービスが必要とする可能性のあるポート、ネットワーク、その他の追加設定について知ることができます。</p>
+</div>
+<p>基本的なサービスの設定方法をいくつか見てみましょう。この例では、Drupal、Laravel、その他のコンテンツマネジメントシステムなど、多くのシステムに必要なNGINX、PHP、MariaDBを設定します。</p>
+<p>以下は、Drupal用の<code>docker-compose.yml</code>ファイルの直接的な例です:</p>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;2.3&#39;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">x-lagoon-project</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c1"># Lagoonプロジェクト名( この)を編集するときに `&amp;lagoon-project`を残してください</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nl">&amp;lagoon-project</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal-example</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">x-volumes</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nl">&amp;default-volumes</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="c1"># Dockerコンテナにリアルタイムでマウントしたいすべてのボリュームを定義します</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app:delegated</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nt">x-environment</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nl">&amp;default-environment</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">LAGOON_PROJECT</span><span class="p">:</span><span class="w"> </span><span class="nv">*lagoon-project</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="c1"># ローカルで使用するルート。pygmyを使用している場合、このルートは *必ず* .docker.amazee.ioで終わらなければなりません</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nt">LAGOON_ROUTE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://drupal-example.docker.amazee.io</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="c1"># システムを本番環境のように動作させたい場合はコメントアウトを解除してください</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="c1">#LAGOON_ENVIRONMENT_TYPE: production</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="c1"># xdebugを有効にし、`docker-compose up -d`で再起動したい場合はコメントアウトを解除してください</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="c1">#XDEBUG_ENABLE: &quot;true&quot;</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="nt">x-user</span><span class="p">:</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nl">&amp;default-user</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="c1"># コンテナが実行するデフォルトのユーザー。Linux上でid `1000`以外のユーザーとして実行する場合にはこれを変更します。</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;1000&#39;</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">  </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">  </span><span class="nt">php</span><span class="p">:</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent lagoon.name:nginx</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">lagoon.persistent:/app/web/sites/default/files/</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">amazeeio/mariadb-drupal</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
+</span></code></pre></div>
+<p>それぞれのオプションが何を意味するかを見てみましょう。</p>
+<h3 id="_4">基本設定<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
+<p><code>x-lagoon-project</code>:
+これはプロジェクトのマシン名です、ここで定義します。"drupal-example"という例を使用します。</p>
+<p><code>x-volumes</code>:
+これはLagoonにコンテナにマウントするものを指示します。ウェブアプリケーションは<code>/app</code>に存在しますが、必要に応じてこれを追加または変更できます。</p>
+<p><code>x-environment</code>:</p>
+<ul>
+<li>ここでローカル開発URLを設定できます。Pygmyを使用している場合、<code>.docker.amazee.io.</code>で終わらなければなりません。</li>
+<li>本番環境を完全に模倣したい場合は、<code>LAGOON_ENVIRONMENT_TYPE: production</code>のコメントを解除します。</li>
+<li>x-debugを有効にしたい場合は、<code>DEBUG_ENABLE: "true"</code>のコメントを解除します。</li>
+</ul>
+<p><code>x-user</code>:
+これを変更する必要はほとんどありませんが、Linuxを使用していて1000以外のユーザーとして実行したい場合は変更できます。</p>
+<h3 id="services"><code>services</code><a class="headerlink" href="#services" title="Permanent link">#</a></h3>
+<p>これはデプロイしたいすべてのサービスを定義します。残念ながら、<code>docker-compose</code>はそれらをサービスと呼びますが、実際にはコンテナを定義しています。今後、これらをサービスと呼び、このドキュメンテーション全体で呼びます。</p>
+<p>サービスの <strong>名前</strong> (上記の例では <code>nginx</code>、<code>php</code>、<code>mariadb</code>) は、生成される Kubernetes ポッド (これも別の用語ですが、ここではサービスと呼びます) の名前として Lagoon によって使用され、さらに定義された <code>lagoon.type</code> に基づいて作成される追加の Kubernetes オブジェクトの名前としても使用されます。これには、サービス、ルート、永続ストレージなどが含まれます。</p>
+<h3 id="docker-images">Docker イメージ<a class="headerlink" href="#docker-images" title="Permanent link">#</a></h3>
+<p>Lagoon ですべてのデプロイメント中にサービスの Dockerfile をビルドする場合は、ここで定義できます:</p>
+<p><code>build</code>
+- <code>context</code> : Docker の <code>build</code> コマンドに渡すビルド コンテキスト パス。
+- <code>dockerfile</code>: ビルドする Dockerfile の場所と名前。</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Lagoon は <code>build: &lt;Dockerfile&gt;</code> の短縮バージョンをサポートしていないため、そのような定義が見つかった場合は失敗します。</p>
+</div>
+<p><code>image</code>
+- Dockerfile をビルドする必要がなく、既存の Dockerfile を使用する場合は、<code>image</code> で定義します。</p>
+<p>この例では、現在のディレクトリのパスを指定しています。NGINX は <code>nginx.dockerfile</code> をビルドするように設定され、PHP は <code>php.dockerfile</code> をビルドするように設定されています。MariaDB は <code>amazeeio/mariadb-drupal</code> の既存のイメージを使用しています。<a href="../docker-images/commons/">Docker イメージの詳細については、こちら</a> をご覧ください。</p>
+<h3 id="types">タイプ<a class="headerlink" href="#types" title="Permanent link">#</a></h3>
+<p>Lagoonは、正しいKubernetesのオブジェクトを設定するために、デプロイするサービスのタイプを知る必要があります。</p>
+<p>これは <code>lagoon.type</code> ラベルを介して行われます。選択できるタイプは多岐にわたります。すべてのタイプと追加的な設定可能性を見るために、私たちの公開ドキュメンテーション <a href="../concepts-advanced/service-types/">Service Types</a> を読んでください。</p>
+<p>例で気づいたかもしれませんが、PHPとNGINXのサービスは両方ともタイプを <code>nginx-php-persistent</code> と定義しています。それは彼らがいわゆるマルチコンテナポッドだからです。</p>
+<h3 id="_5">マルチコンテナポッド<a class="headerlink" href="#_5" title="Permanent link">#</a></h3>
+<p>Kubernetesはプレーンなコンテナをデプロイしません。代わりに、それは1つ以上のコンテナを持つポッドをデプロイします。通常、Lagoonは定義された <code>docker-compose</code> サービスごとにコンテナを内部に持つ単一のポッドを作成します。しかし、いくつかのケースでは、これらのコンテナが互いに非常に依存しているため、単一のポッド内に2つのコンテナを置く必要があります。そのような状況の例は、DrupalのようなウェブアプリケーションのPHPコードを含むPHPとNGINXのコンテナです。</p>
+<p>これらのケースでは、どのサービスが一緒に留まるべきかをLagoonに伝えることが可能です。 一緒に。これは以下の方法で行われます(私たちはコンテナをサービスと呼んでいることを覚えておいてください):</p>
+<ol>
+<li>両方のサービスを <code>lagoon.type</code> で定義し、それが2つのサービスを期待している(この例では、NGINXとPHPのサービスで定義されている <code>nginx-php-persistent</code> )。</li>
+<li>2番目のサービスを1番目のサービスにリンクし、2番目のサービスのラベル <code>lagoon.name</code> を1番目のものと一致させます(この例では <code>lagoon.name: nginx</code> の設定によりこれが行われます)。</li>
+</ol>
+<p>これにより、Lagoonは <code>nginx</code> と <code>php</code> のサービスが <code>nginx</code> と呼ばれるポッドに結合されていることを認識します。</p>
+<p>Lagoonはまだ、2つのサービスのうちどちらが <em>実際の</em> 個々のサービスタイプであるか(この場合は <code>nginx</code> と <code>php</code> )を理解する必要があります。これは、一致するサービスタイプのサービス名を検索することでこれを行います。 <code>nginx-php-persistent</code> は、 <code>docker-compose.yml</code> の中で <code>nginx</code> という名前のサービスと <code>php</code> という名前のサービスを期待しています。</p>
+<p>何らかの理由でサービスの名前を変更したい場合や、 <code>nginx-php-persistent</code> のタイプを持つ複数のポッドが必要な場合は、実際のサービスタイプを定義するために使用できる追加のラベル <code>lagoon.deployment.servicetype</code> があります。</p>
+<p>以下に、マルチコンテナポッドがどのようになるかを示す例を示します。 詳細に設定する:</p>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># これが存在しない場合、Lagoonはコンテナの名前、この場合はnginxを使用します。</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nt">php</span><span class="p">:</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># このサービスをLagoonのnginxポッドの一部にしたいです。</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php</span>
+</span></code></pre></div>
+<p>docker-compose.ymlでできることはもっとありますが、サービスを設定することが最も重要な部分です。<a href="../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code>に関する我々のドキュメンテーション</a>をチェックして、他に何ができるかを学んでください。</p>
+<h2 id="lagoonyml"><code>.lagoon.yml</code><a class="headerlink" href="#lagoonyml" title="Permanent link">#</a></h2>
+<p><a href="../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code></a> ファイルは、プロジェクトを設定するための中心的なファイルです。以下を行うための設定が含まれています:</p>
+<ul>
+<li>サイトへのアクセスルートを定義します。</li>
+<li>プレロールアウトタスクを定義します。 - ポストロールアウトタスクを定義する。</li>
+<li>SSL証明書を設定する。</li>
+<li>環境のためのcronジョブを追加する。</li>
+</ul>
+<p><code>.lagoon.yml</code>ファイルを作成し、Gitリポジトリのルートに配置する必要があります。</p>
+<p>以下に、私たちが説明するDrupalサイトの様々な設定オプションを示す例の<code>.lagoon.yml</code>ファイルを示します:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">docker-compose-yaml</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.yml</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">environment_variables</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">git_sha</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">pre-rollout</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush sql-dump</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mkdir -p /app/web/sites/default/files/private/ &amp;&amp; drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nt">post-rollout</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cim</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cim</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">        </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bash</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cr</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush -y cr</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span><span class="nt">monitoring_urls</span><span class="p">:</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com/special_page&quot;</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.net</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;true&#39;</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">            </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">            </span><span class="nt">hsts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">max</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="err">```</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-年齢=31536000</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">- &quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">            </span><span class="nt">アノテーション</span><span class="p">:</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w w-Error">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w w-Error">    </span><span class="nt">タイプ</span><span class="p">:</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">      </span><span class="nt">マリアDB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb-galera</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">    </span><span class="nt">テンプレート</span><span class="p">:</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">      </span><span class="nt">マリアDB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">    </span><span class="nt">ロールアウト</span><span class="p">:</span>
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">      </span><span class="nt">マリアDB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="w">    </span><span class="nt">クロンジョブ</span><span class="p">:</span>
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">名前</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="w">       </span><span class="nt">スケジュール</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;H</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># これはクロンを1時間ごとに実行します。</span>
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="w">       </span><span class="nt">コマンド</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="w">       </span><span class="nt">サービス</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a><span class="w w-Error">  </span><span class="nt">ステージング</span><span class="p">:</span>
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a><span class="w">    </span><span class="nt">クロンジョブ</span><span class="p">:</span>
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a><span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">名前</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="w">       </span><span class="nt">スケジュール</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;H</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*&quot;</span><span class="w"> </span><span class="c1"># これはクロンを1時間ごとに実行します。</span>
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="w">       </span><span class="nt">コマンド</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drush cron</span>
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="w">       </span><span class="nt">サービス</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cli</span>
+</span></code></pre></div>
+<h3 id="_6">一般設定<a class="headerlink" href="#_6" title="Permanent link">#</a></h3>
+<h4 id="docker-compose-yaml"><code>docker-compose-yaml</code><a class="headerlink" href="#docker-compose-yaml" title="Permanent link">#</a></h4>
+<p>このファイルは、どのサービスとコンテナがデプロイされるべきかを知るために、どの<code>docker-compose</code>YAMLファイルをビルドスクリプトが使用すべきかを指示します。これはデフォルトで<code>docker-compose.yml</code>になりますが、特定のLagoon <code>docker-compose</code> YAMLファイルが必要な場合にはこれを使用することができます。</p>
+<h4 id="environment_variablesgit_sha"><code>environment_variables.git_sha</code><a class="headerlink" href="#environment_variablesgit_sha" title="Permanent link">#</a></h4>
+<p>この設定により、デプロイされた Git SHA を環境変数としてプロジェクトに挿入できるようになります。デフォルトでは無効になっています。値を <code>true</code> に設定すると、SHA が環境変数 <code>LAGOON_GIT_SHA</code> として設定されます。</p>
+<h3 id="tasks">タスク<a class="headerlink" href="#tasks" title="Permanent link">#</a></h3>
+<p>定義できるタスクにはさまざまな種類があり、ビルド フローで実行されるタイミングも異なります。</p>
+<h4 id="pre-rollout-tasks-pre_rolloutirun">ロールアウト前のタスク - <code>pre_rollout.[i].run</code><a class="headerlink" href="#pre-rollout-tasks-pre_rolloutirun" title="Permanent link">#</a></h4>
+<p><code>pre_rollout</code> タスクとして定義されたタスクは、新しいイメージが正常にビルドされた <em>後</em>、プロジェクトが何らかの形で変更される <em>前</em> にプロジェクトに対して実行されます。この機能により、たとえば、上記の例のように、ロールアウトの実行前にデータベース ダンプを作成できます。これにより、ロールアウトで問題が発生した場合にロールバックしやすくなります。</p>
+<h4 id="post-rollout-tasks-post_rolloutirun">ロールアウト後のタスク - <code>post_rollout.[i].run</code><a class="headerlink" href="#post-rollout-tasks-post_rolloutirun" title="Permanent link">#</a></h4>
+<p>ここでは、次の後にプロジェクトに対して実行する必要があるタスクを指定できます。</p>
+<ul>
+<li>すべてのイメージが正常にビルドされました。</li>
+<li>すべてのコンテナが新しいイメージで更新されました。</li>
+<li>実行中のすべてのコンテナが準備チェックに合格しました。</li>
+</ul>
+<p><code>post_rollout</code> タスクの一般的な用途には、<code>drush updb</code>、<code>drush cim</code> の実行、またはさまざまなキャッシュのクリアが含まれます。上記の例では、<code>drush cim</code> と <code>drush cr</code> を実行します。</p>
+<p><code>name</code></p>
+<ul>
+<li>name は、ログで各タスクを識別しやすくするための任意のラベルです。</li>
+</ul>
+<p><code>command</code></p>
+<ul>
+<li>ここでは、実行するコマンドを指定します。これらは、各コンテナの <code>WORKDIR</code> で実行されます。Lagoon イメージの場合、これは <code>/app</code> です。タスクを実行するために特定の場所に <code>cd</code> する必要がある場合は、この点に注意してください。</li>
+</ul>
+<p><code>service</code></p>
+<ul>
+<li>タスクを実行するサービス。私たちのdrupal-exampleに従っている場合、これはCLIコンテナになります。なぜなら、それはあなたのサイトのコード、ファイル、そしてデータベースへの接続を全て持っているからです。通常、これを変更する必要はありません。</li>
+</ul>
+<p><code>shell</code></p>
+<p>タスクを実行するためにどのシェルを使用するべきか。デフォルトでは <code>sh</code> が使用されますが、コンテナに他のシェル(bashなど)がある場合、ここでそれを定義することができます。これは、post-rollouts内でいくつかの小さなif/else bashスクリプトを実行したい場合に便利です。(上記の例で複数行のスクリプトを書く方法を参照してください)。</p>
+<h3 id="routes">ルート<a class="headerlink" href="#routes" title="Permanent link">#</a></h3>
+<h4 id="routesautogenerateenabled"><code>routes.autogenerate.enabled</code><a class="headerlink" href="#routesautogenerateenabled" title="Permanent link">#</a></h4>
+<p>これにより、自動的に作成されたルートをまったく無効にすることができます。これは環境ごとのカスタムルートを無効にするものではありません。それについては下記を参照してください。</p>
+<h4 id="routesautogenerateinsecure"><code>routes.autogenerate.insecure</code><a class="headerlink" href="#routesautogenerateinsecure" title="Permanent link">#</a></h4>
+<p>これにより、自動的に作成されたルートの挙動を定義することができます。これは環境ごとのカスタムルートを設定するものではありません。それについては下記を参照してください。これは、上記の例で使用しているオプションで、`insecure: リダイレクト。</p>
+<p>以下のオプションが許可されています:</p>
+<p><code>許可</code></p>
+<ul>
+<li>HTTPとHTTPSの両方のルートを設定します(これがデフォルトです)。</li>
+</ul>
+<p><code>リダイレクト</code></p>
+<ul>
+<li>すべてのHTTPリクエストをHTTPSにリダイレクトします。</li>
+</ul>
+<p><code>なし</code></p>
+<ul>
+<li>HTTPのルートは作成されず、リダイレクトもありません。</li>
+</ul>
+<h3 id="_7">環境<a class="headerlink" href="#_7" title="Permanent link">#</a></h3>
+<p>環境名は、デプロイされたブランチまたはプルリクエストに一致します。これにより、各環境は異なる設定を持つことができます。この例では、メインとステージングの環境を持っています。</p>
+<h4 id="_8">特定のパスの監視<a class="headerlink" href="#_8" title="Permanent link">#</a></h4>
+<p>UptimeRobotがクラスターに設定されている場合、Lagoonは各ルート/イングレスにアノテーションを注入し、<code>stakater/IngressControllerMonitor</code>が使用します。デフォルトのアクションはルートのホームページを監視することです。特定のルートを監視する必要がある場合、ルートの仕様に<code>monitoring-path</code>を追加することでこれを上書きできます。一般的な使用法は、キャッシュをバイパスする監視用のパスを設定することで、サイトのリアルタイム監視をより実現します。</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.ymlの例</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="w">     </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">            </span><span class="nt">monitoring-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/bypass-cache&quot;</span>
+</span></code></pre></div>
+<h4 id="environmentsnameroutes"><code>environments.[name].routes</code><a class="headerlink" href="#environmentsnameroutes" title="Permanent link">#</a></h4>
+<p>ルートセクションでは、環境が対応するドメイン名を特定します。それは 通常、ルートが指定された環境は本番環境だけです。すべての環境は生成されたルートを受け取りますが、非本番環境が独自のドメイン名を持つ必要がある場合もあります。ここでそれを指定し、そのドメインを生成されたルート名のCNAMEとしてDNSプロバイダに追加できます(これらのルートはデプロイメッセージで公開されます)。</p>
+<p>環境の次の要素は、ターゲットサービスで、例ではNGINXです。これにより、どのサービスに入力リクエストを送るかを特定します。</p>
+<p>最も単純なルートは、上記のサンプル<code>.lagoon.yml</code>の<code>example.com</code>の例で、追加の設定がないことがわかります。これは、ルートのLet's Encrypt証明書を希望し、HTTPSからHTTPへのリダイレクトがないと仮定します。</p>
+<h4 id="_9">注釈<a class="headerlink" href="#_9" title="Permanent link">#</a></h4>
+<div class="admonition info">
+<p class="admonition-title">情報</p>
+<p>ルート/Ingress注釈は、nginx-ingressコントローラを実行するクラスタにデプロイされるプロジェクトでのみサポートされています！これがサポートされているかどうかはLagoonの管理者に確認してください。</p>
+</div>
+<p>注釈は、<code>nginx-ingress</code>コントローラがサポートする注釈のYAMLマップであることが特に便利で、簡単にリダイレクトできます:</p>
+<p>この例では、<code>example.ch</code>への任意のリクエストがリダイレクトされます。 <code>https://www.example.ch</code> への移動、フォルダやクエリパラメータを維持します:</p>
+<p><code>(example.com/folder?query -&gt; https://www.example.ch/folder?query)</code></p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml の例</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.ch&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">            </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.example.ch$request_uri</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.ch</span>
+</span></code></pre></div>
+<p>もちろん、Lagoonでホストされていない他のURLにもリダイレクトできます。これは <code>example.de</code> のリクエストを <code>https://www.google.com</code> にリダイレクトします:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml の例</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;example.de&quot;</span><span class="p p-Indicator">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">            </span><span class="nt">annotations</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">              </span><span class="nt">nginx.ingress.kubernetes.io/permanent-redirect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://www.google.com</span>
+</span></code></pre></div>
+<h4 id="ssl-tls-acme">SSL設定 - <code>tls-acme</code><a class="headerlink" href="#ssl-tls-acme" title="Permanent link">#</a></h4>
+<p><code>tls-acme : ‘true’</code></p>
+<ul>
+<li>このルートに対してLagoonがLet's Encrypt証明書を発行することを示します。これがデフォルトです。</li>
+<li>Let's Encryptが不要な場合、これを <code>tls-acme: ‘false’</code> に設定します。</li>
+</ul>
+<p><code>insecure</code></p>
+<ul>
+<li><code>None</code>、<code>Allow</code>、または <code>Redirect</code> に設定できます。</li>
+<li>Allowは単にHTTPとHTTPSの両方のルートを設定します(これがデフォルトです)。</li>
+<li><code>Redirect</code> は、HTTPのリクエストをHTTPSにリダイレクトします。</li>
+</ul>
+<p><code>None</code></p>
+<ul>
+<li>HTTPのルートは作成されず、リダイレクトも行われません。</li>
+</ul>
+<p><code>Hsts</code></p>
+<ul>
+<li>設定することができます <code>max-age=31536000;includeSubDomains;preload</code>の値に。</li>
+<li>スペースや他のパラメータが含まれていないことを確認します。</li>
+<li>必要なのは<code>max-age</code>パラメータのみです。この必要な max-age パラメータは、HSTS ポリシーが有効な時間を秒単位で指定します。</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">情報</p>
+<p>証明書認証局(CA)によって署名された SSL 証明書から Let's Encrypt 証明書に切り替える予定がある場合は、Lagoon の管理者に連絡して移行を監督してもらうのが最善です。</p>
+</div>
+<h4 id="environmentsnametypes"><code>environments.[name].types</code><a class="headerlink" href="#environmentsnametypes" title="Permanent link">#</a></h4>
+<p>Lagoon のビルドプロセスは <code>docker-compose.yml</code> ファイルの <code>lagoon.type</code> ラベルをチェックして、どのタイプのサービスをデプロイすべきかを学びます(<a href="../concepts-basics/docker-compose-yml/">docker-compose.yml のドキュメンテーション</a>で詳細を読むことができます)。</p>
+<p>時々、全てではなく一つの環境だけでタイプを上書きしたいかもしれません。</p>
+<h5 id="service-name-service-type">`service-name: service-type<a class="headerlink" href="#service-name-service-type" title="Permanent link">#</a></h5>
+<ul>
+<li><code>service-name</code> は上書きしたい <code>docker-compose.yml</code> のサービスの名前です。</li>
+<li><code>service-type</code> はあなたが上書きで使用したいサービスのタイプです。</li>
+</ul>
+<p>例えば、あなたがプロダクション用の MariaDB-Galera 高可用性データベースを求めている場合、 メインと呼ばれる環境 - これが私たちの例のファイルで行っていることです:</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml example</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb-galera</span>
+</span></code></pre></div>
+<h4 id="environmentsnametemplates"><code>environments.[name].templates</code><a class="headerlink" href="#environmentsnametemplates" title="Permanent link">#</a></h4>
+<p>Lagoonのビルドプロセスは、<code>docker-compose.yml</code>ファイルから<code>lagoon.template</code>ラベルを確認し、サービスがカスタムテンプレートファイルが必要かどうかを確認します(<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>で詳しく読むことができます)。</p>
+<p>場合によっては、すべての環境ではなく、単一の環境だけでテンプレートを上書きすることが必要かもしれません:</p>
+<h5 id="service-name-template-file"><code>service-name: template-file</code><a class="headerlink" href="#service-name-template-file" title="Permanent link">#</a></h5>
+<ul>
+<li><code>service-name</code>は、<code>docker-compose.yml</code>から上書きしたいサービスの名前です。</li>
+<li><code>template-file</code>は、この環境でこのサービスに使用するテンプレートのパスと名前です。</li>
+</ul>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml example</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
+</span></code></pre></div>
+<h4 id="environmentsnamerollouts"><code>environments.[name].rollouts</code><a class="headerlink" href="#environmentsnamerollouts" title="Permanent link">#</a></h4>
+<p>Lagoonのビルドプロセスは、<code>docker-compose.yml</code>ファイルから<code>lagoon.rollout</code>ラベルを確認し、サービスが特別なロールアウトタイプが必要かどうかを確認します(<a href="../concepts-basics/docker-compose-yml/">dockerのドキュメンテーションで詳しく読むことができます。 -compose.yml</a>)。</p>
+<p>時折、特に環境のテンプレートタイプを上書きした場合には、単一の環境だけでロールアウトタイプを上書きしたいことがあります。</p>
+<h5 id="service-name-rollout-type"><code>service-name: rollout-type</code><a class="headerlink" href="#service-name-rollout-type" title="Permanent link">#</a></h5>
+<ul>
+<li><code>service-name</code>は上書きしたい<code>docker-compose.yml</code>のサービス名です。</li>
+<li><code>rollout-type</code>はロールアウトのタイプです。可能な値については<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>を参照してください。</li>
+</ul>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml example</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
+</span></code></pre></div>
+<h4 id="cron-environmentsnamecronjobs">Cronジョブ - <code>environments.[name].cronjobs</code><a class="headerlink" href="#cron-environmentsnamecronjobs" title="Permanent link">#</a></h4>
+<p>ほとんどの場合、すべての環境で同じcronジョブを実行することは望ましくないため、各環境で実行したいジョブを明示的に定義する必要があります。私たちの例では、1時間ごとに実行されるdrushのcronジョブを作成しています。</p>
+<p><code>name</code></p>
+<ul>
+<li>cronジョブの動作を識別するための親切な名前。</li>
+</ul>
+<p><code>schedule</code></p>
+<ul>
+<li>cronジョブを実行するスケジュール。これはcronの標準的な規則に従います。構文に自信がない場合は、<a href="https://crontab-generator.org/">Crontab Generator</a>が役立ちます。</li>
+<li><code>M</code>を指定することができます。 - 分毎に <code>M</code> を指定すると、あなたの cron ジョブは毎時間ランダムな分に一度実行されます(毎時間同じ分)。または、<code>M/15</code> を指定すると、毎時間15分ごとに実行されますが、時間からのランダムなオフセット(6、21、36、51など)で実行されます。</li>
+<li>時間に <code>H</code> を指定すると、あなたの cron ジョブは毎日ランダムな時間に一度実行されます(毎日同じ時間)。または、<code>H(2-4)</code> を指定すると、2時から4時の間に一度だけ実行されます。</li>
+</ul>
+<p><code>command</code></p>
+<ul>
+<li>実行するコマンド。タスクと同様に、このコマンドはサービスの <code>WORKDIR</code> で実行されます。Lagoonのイメージでは、これは <code>/app</code> です。</li>
+</ul>
+<p><code>service</code></p>
+<ul>
+<li>コマンドを実行するプロジェクトのサービス。ほとんどのプロジェクトでは、これはCLIサービスです。</li>
+</ul>
+<p><code>.lagoon.yml</code> でできることはまだたくさんあります。詳細は <a href="../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code> についてのドキュメンテーション</a> をご覧ください。</p>
+<h2 id="drupal">Drupal特有のセットアップ<a class="headerlink" href="#drupal" title="Permanent link">#</a></h2>
+<p>DrupalサイトをLagoonに移行する場合、全てをセットアップするためにいくつかDrupal特有のタスクを完了する必要があります。</p>
+<h3 id="_10">設定ファイル<a class="headerlink" href="#_10" title="Permanent link">#</a></h3>
+<p>次のステップは、設定ファイルを更新することです。Lagoonは、環境変数を使用する環境特有の設定ファイルのセットを使用するため、これらのファイルには機密情報は保存されず、全てがコミット可能で安全です。我々はさまざまな <a href="https://github.com/uselagoon/lagoon-examples">私たちの例のリポジトリ</a>にあるさまざまな例のプロジェクト - もし初めての場合は、それらの一つを使用することをお勧めします。そうでない場合は、似たようなものを選んで関連する設定ファイルをコピーしてください。<a href="../concepts-advanced/environment-variables/">環境変数に関するドキュメンテーションを確認してください</a>。それらをどのように使用するかの詳細情報を得るために。</p>
+<p>例のリポジトリから設定ファイルをコピーし、その後、あなたのサイトが使用していないサービスの設定を削除するためにそれを確認します(例えば、すべてのサイトがSolrやRedisを使用しているわけではありません)。特定の環境タイプの設定をオーバーライドする必要がある場合(開発環境でのキャッシュを無効にするなど)、追加の設定ファイルを設定することができます(例のリポジトリにすでにいくつかあります)、そして次の順序でロードされます:</p>
+<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="x"> all.settings.php</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="x"> all.services.yml</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="x"> production.settings.php</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="x"> production.services.yml</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="x"> development.settings.php</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="x"> development.services.yml</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="x"> settings.local.php</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="x"> services.local.yml</span>
+</span></code></pre></div>
+<h3 id="gitignore"><code>.gitignore</code>の設定を更新する<a class="headerlink" href="#gitignore" title="Permanent link">#</a></h3>
+<p><code>.gitignore</code>が設定ファイルのコミットを許可するようにすることを確認してください。Drupalは <code>sites/*</code>で出荷されます <code>/settings*.php</code>および<code>sites/*/services*.yml</code>を<code>.gitignore</code>から削除します。Lagoonを使用する場合、Gitリポジトリに機密情報を保持することはありません。</p>
+<h3 id="drupalwebroot">DrupalのWebrootについての注意点<a class="headerlink" href="#drupalwebroot" title="Permanent link">#</a></h3>
+<p>残念ながら、Drupalコミュニティでは標準化されたwebrootフォルダ名についてまだ決定していません。一部のプロジェクトではDrupalを<code>/web</code>内に、他のプロジェクトでは<code>/docroot</code>または他の場所に配置します。LagoonのDrupal設定ファイルは、Drupalが<code>/web</code>内にあると想定しています。Drupalのインストールがこれと異なる場合は、ファイルを適切に調整してください。</p>
+<h3 id="_11">画像をビルドする<a class="headerlink" href="#_11" title="Permanent link">#</a></h3>
+<p>まず、定義された画像をビルドする必要があります:</p>
+<div class="language-bash highlight"><span class="filename">build your images</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker-compose<span class="w"> </span>build
+</span></code></pre></div>
+<p>これには数分かかる場合があり、長いレスポンスが返ってきます。<a href="https://gist.github.com/AlannaBurke/1bdad6aab977b0994c245834e61b6b50">これは次のようなものになるはずです</a>。</p>
+<p>これにより、<code>docker-compose.yml</code>で<code>build:</code>定義を持つすべてのコンテナのDockerイメージを<code>docker-compose</code>にビルドさせます。通常、Drupalでは<code>cli</code>、<code>nginx</code>、<code>php</code>が含まれます。これは、特定のビルドコマンド(<code>composer install</code>など)を実行したり、特定の環境変数(<code>WEBROOT</code>など)を画像に注入したりするためです。</p>
+<p>通常、 Drupalのコードを編集するたびにビルドする必要はありません(コードはホストからコンテナにマウントされます)、しかし再ビルドは問題ありません。さらに、Lagoonはデプロイメント時に全く同じDockerイメージをビルドするので、<code>docker-compose build</code> を再度実行するだけで、ビルドがデプロイメント時にも正常に動作するか確認できます。</p>
+<h3 id="_12">コンテナの起動<a class="headerlink" href="#_12" title="Permanent link">#</a></h3>
+<p>イメージがビルドされたので、コンテナを起動できます:</p>
+<div class="language-bash highlight"><span class="filename">start the containers</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<p>次のような応答が表示されます:</p>
+<div class="language-bash highlight"><span class="filename">containers started</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Recreating<span class="w"> </span>lagoon-test_cli_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Starting<span class="w"> </span>lagoon-test_redis_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>Starting<span class="w"> </span>lagoon-test_solr_1<span class="w">    </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>Starting<span class="w"> </span>lagoon-test_mariadb_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>Recreating<span class="w"> </span>lagoon-test_php_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>Recreating<span class="w"> </span>lagoon-test_nginx_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>Recreating<span class="w"> </span>lagoon-test_varnish_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+</span></code></pre></div>
+<p>これによりすべてのコンテナが起動します。コマンドが完了した後、<code>docker-compose ps</code>で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:</p>
+<div class="language-bash highlight"><span class="filename">view running containers</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker-compose<span class="w"> </span>ps
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Name<span class="w">                        </span>コマンド<span class="w">               </span>状態<span class="w">            </span>ポート
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>----------------------------------------------------------------------------------------
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>lagoon-test_cli_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">9000</span>/tcp
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>lagoon-test_mariadb_1<span class="w">   </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">0</span>.0.0.0:32768-&gt;3306/tcp
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>lagoon-test_nginx_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">8080</span>/tcp
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>lagoon-test_php_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">9000</span>/tcp
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>lagoon-test_redis_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">6379</span>/tcp
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>lagoon-test_solr_1<span class="w">      </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">0</span>.0.0.0:32769-&gt;8983/tcp
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>lagoon-test_varnish_1<span class="w">   </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>上<span class="w">      </span><span class="m">8080</span>/tcp
+</span></code></pre></div>
+<p>問題がある場合は、 <code>docker-compose logs -f [servicename]</code>を使用してログを確認します。</p>
+<h3 id="composer-installcomposer">再度 <code>composer install</code>を実行する(Composerプロジェクトのみ)<a class="headerlink" href="#composer-installcomposer" title="Permanent link">#</a></h3>
+<p>Drupal 8+プロジェクトを実行している場合は、Composerを使用しているはずであり、すべての依存関係をダウンロードしてインストールする必要があります。cliコンテナに接続し、composer installを実行します:</p>
+<div class="language-bash highlight"><span class="filename">re-run composer install</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>composer<span class="w"> </span>install
+</span></code></pre></div>
+<p>これは奇妙に聞こえるかもしれませんが、 ビルドステップ中にすでに<code>composer install</code>が実行されていたので、再度これを行う理由を説明します:</p>
+<ul>
+<li>ホスト上のファイルを編集してコンテナ内で直ちに利用できるようにするため、デフォルトの<code>docker-composer.yml</code>は全フォルダをコンテナにマウントします(これは<code>volumes</code>セクションの<code>.:/app:delegated</code>で起こります)。これはまた、Dockerビルド中にインストールされた全ての依存関係がホスト上のファイルで上書きされることも意味します。</li>
+<li>ローカルでは、<code>composer.json</code>で<code>require-dev</code>として定義された依存関係にアクセスしたいと思うでしょう、一方で本番環境ではそれらは不必要なスペースを占めるだけです。そのため、Dockerfileで<code>composer install --no-dev</code>を実行し、手動で<code>composer install</code>を行います。</li>
+</ul>
+<p>すべてがうまくいった場合、<code>docker-compose.yml</code>で定義された<code>LAGOON_ROUTE</code>を開きます(例えば<code>http://drupal.docker.amazee.io</code>)と、素敵なDrupalエラーに迎えられるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なことはDrupalサイトをロードしようと試みることです。</p>
+<p>500やそれに類似するエラーが出る場合は、Composerですべてが適切にロードされていることを確認してください。</p>
+<h3 id="drupal_1">ステータスの確認とDrupalのインストール<a class="headerlink" href="#drupal_1" title="Permanent link">#</a></h3>
+<p>最後にDrupalをインストールする時間ですが、その前に すべてが正常に動作することを確認したいです。そのためには、<code>drush status</code>を使ったDrushの使用をお勧めします:</p>
+<div class="language-bash highlight"><span class="filename">run drush status</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
+</span></code></pre></div>
+<p>上記のコマンドは、以下のような結果を返すはずです:</p>
+<div class="language-bash highlight"><span class="filename">drush status results</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="o">[</span>notice<span class="o">]</span><span class="w"> </span>Missing<span class="w"> </span>database<span class="w"> </span>table:<span class="w"> </span>key_value
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Drupal<span class="w"> </span>version<span class="w">       </span>:<span class="w">  </span><span class="m">8</span>.6.1
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>Site<span class="w"> </span>URI<span class="w">             </span>:<span class="w">  </span>http://drupal.docker.amazee.io
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Database<span class="w"> </span>driver<span class="w">      </span>:<span class="w">  </span>mysql
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>Database<span class="w"> </span>hostname<span class="w">    </span>:<span class="w">  </span>mariadb
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>Database<span class="w"> </span>port<span class="w">        </span>:<span class="w">  </span><span class="m">3306</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>Database<span class="w"> </span>username<span class="w">    </span>:<span class="w">  </span>drupal
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>Database<span class="w"> </span>name<span class="w">        </span>:<span class="w">  </span>drupal
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>PHP<span class="w"> </span>binary<span class="w">           </span>:<span class="w">  </span>/usr/local/bin/php
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>PHP<span class="w"> </span>config<span class="w">           </span>:<span class="w">  </span>/usr/local/etc/php/php.ini
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>PHP<span class="w"> </span>OS<span class="w">               </span>:<span class="w">  </span>Linux
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>Drush<span class="w"> </span>script<span class="w">         </span>:<span class="w">  </span>/app/vendor/drush/drush/drush
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>Drush<span class="w"> </span>version<span class="w">        </span>:<span class="w">  </span><span class="m">9</span>.4.0
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>Drush<span class="w"> </span>temp<span class="w">           </span>:<span class="w">  </span>/tmp
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>Drush<span class="w"> </span>configs<span class="w">        </span>:<span class="w">  </span>/home/.drush/drush.yml
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">                        </span>/app/vendor/drush/drush/drush.yml
+</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>Drupal<span class="w"> </span>root<span class="w">          </span>:<span class="w">  </span>/app/web
+</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>Site<span class="w"> </span>path<span class="w">            </span>:<span class="w">  </span>sites/default
+</span></code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">情報</p>
+<p>次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。<code>Permission denied (publickey)</code>というエラーが表示された場合は、確認してください。 こちらでドキュメンテーションを確認してください:<a href="https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys">pygmy - sshキーの追加</a>。</p>
+</div>
+<p>次にDrupalをインストールします(代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。しかし、初めにすべてが正常に動作していることを確認するために、クリーンなDrupalをインストールすることをお勧めします)。</p>
+<p><div class="language-bash highlight"><span class="filename">drush siの実行</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
+</span></code></pre></div>
+これにより、次のような出力が表示されるはずです:</p>
+<div class="language-bash highlight"><span class="filename">drush siの結果</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>あなたは<span class="w"> </span><span class="s1">&#39;drupal&#39;</span><span class="w"> </span>データベースのすべてのテーブルをDROPしようとしています。続行しますか？<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>Drupalのインストールを開始します。これには時間がかかります。--notifyグローバルオプションの使用を検討してください。
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>インストール完了。ユーザー名:<span class="w"> </span>admin<span class="w"> </span>ユーザーパスワード:<span class="w"> </span>arbZJekcqh
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>おめでとうございます、Drupalをインストールしました！
+</span></code></pre></div>
+<p>これで、<code>LAGOON_ROUTE</code>で定義されたURLにアクセスして、新鮮できれいにインストールされたDrupalを見ることができます - おめでとうございます！</p>
+<h3 id="_13">既存のデータベースダンプのインポート<a class="headerlink" href="#_13" title="Permanent link">#</a></h3>
+<p>既に存在するDrupalサイトがある場合、そのデータベースをローカルサイトにインポートしたくなるでしょう。データベースダンプを作成する方法は多数存在し、現在のホスティングプロバイダーによります。 Drushがインストールされている場合、以下のように使用できます。</p>
+<div class="language-bash highlight"><span class="filename">drush sql-dump</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="o">[</span>your-existing-site<span class="o">]</span>$<span class="w"> </span>drush<span class="w"> </span>sql-dump<span class="w"> </span>--result-file<span class="o">=</span>dump.sql
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>データベースのダンプがdump.sqlに保存されました。<span class="o">[</span>成功<span class="o">]</span>
+</span></code></pre></div>
+<p>これで、あなたの全データベースを含む<code>dump.sql</code>ファイルが作成されました。
+このファイルをローカルのGitリポジトリにコピーし、CLIに接続すると、その中にファイルが表示されます。</p>
+<p><div class="language-bash highlight"><span class="filename">here's our dump file</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="o">[</span>drupal-example<span class="o">]</span><span class="w"> </span>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>dump.sql
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>-rw-r--r--<span class="w">    </span><span class="m">1</span><span class="w"> </span>root<span class="w">     </span>root<span class="w">          </span><span class="m">5281</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">19</span><span class="w"> </span><span class="m">12</span>:46<span class="w"> </span>dump.sql
+</span></code></pre></div>
+現在のデータベースをドロップした後、ダンプをインポートできます(まだCLIに接続したままです):</p>
+<div class="language-bash highlight"><span class="filename">dump existing db and import dump file</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-drop
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>本当にデータベースdrupalのすべてのテーブルをドロップしますか？<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-cli<span class="w"> </span>&lt;<span class="w"> </span>dump.sql
+</span></code></pre></div>
+<h3 id="drupal_2">Drupalファイルディレクトリ<a class="headerlink" href="#drupal_2" title="Permanent link">#</a></h3>
+<p>Drupalサイトには、ファイルディレクトリも含まれます。既存のサイトからファイルを移行するには、ファイルを適切なフォルダに追加するだけです(おそらく<code>web/sites/default/files</code>、<code>sites/default/files</code>など)。あなたが何を設定したかを覚えておいてください。 webroot - すべてのプロジェクトで同じではないかもしれません。</p>
+<h2 id="_14">デプロイ<a class="headerlink" href="#_14" title="Permanent link">#</a></h2>
+<p>このガイドのすべてを行い、あなたのamazee.io管理者がすべてを設定した場合、あなたのサイトをデプロイする準備が整いました！</p>
+<p>Drupalサイトをデプロイする場合は、<a href="../applications/drupal/first-deployment-of-drupal/">このデプロイガイドを参照してください</a>。</p>
+<p>それ以外の全てのデプロイについては、<a href="../using-lagoon-the-basics/first-deployment/">このデプロイガイドを参照してください</a>。</p>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", "clipboard.copy": "\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u3078\u30b3\u30d4\u30fc", "search.result.more.one": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3082\u30461\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.more.other": "\u3053\u306e\u30da\u30fc\u30b8\u5185\u306b\u3042\u3068#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.none": "\u4f55\u3082\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f", "search.result.one": "1\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.other": "#\u4ef6\u898b\u3064\u304b\u308a\u307e\u3057\u305f", "search.result.placeholder": "\u691c\u7d22\u30ad\u30fc\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044", "search.result.term.missing": "\u691c\u7d22\u306b\u542b\u307e\u308c\u306a\u3044", "select.version": "\u30d0\u30fc\u30b8\u30e7\u30f3\u5207\u308a\u66ff\u3048"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
+      
+        <script src="https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../javascript/tablesort.js"></script>
+      
+    
+  </body>
+</html>
