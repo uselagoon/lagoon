@@ -1,21 +1,33 @@
 import * as R from 'ramda';
-import sshpk from 'sshpk';
 import bodyParser from 'body-parser';
 import { Request, Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
 import { logger } from '../loggers/logger';
 import { knex, query } from '../util/db';
 import { sqlClientPool } from '../clients/sqlClient';
+import { validateKey } from '../util/func';
 
-const toFingerprint = sshKey => {
+const toFingerprint2 = async (sshKey) => {
   try {
-    return sshpk
-      .parseKey(sshKey, 'ssh')
-      .fingerprint()
-      .toString();
+    const pkey = new Buffer(sshKey).toString('base64')
+    const pubkey = await validateKey(pkey, "public")
+    if (pubkey['sha256fingerprint']) {
+      return pubkey['sha256fingerprint']
+    } else {
+      throw new Error('not valid key')
+    }
   } catch (e) {
     logger.error(`Invalid ssh key: ${sshKey}`);
   }
+};
+
+const mapFingerprints = async (keys) => {
+  const fingerprintKeyMap = await Promise.all(
+    keys.map(async sshKey => {
+    const fp = await toFingerprint2(sshKey)
+    return {fingerprint: fp, key: sshKey}
+  }))
+  return fingerprintKeyMap
 };
 
 const keysRoute = async (
@@ -40,23 +52,10 @@ const keysRoute = async (
   );
   const keys = R.map(R.prop('sshKey'), rows);
 
-  // Object of fingerprints mapping to SSH keys
-  // Ex. { <fingerprint>: <key> }
-  const fingerprintKeyMap = R.compose(
-    // Transform back to object from pairs
-    R.fromPairs,
-    // Remove undefined fingerprints
-    // @ts-ignore
-    R.reject(([sshKeyFingerprint]) => sshKeyFingerprint === undefined),
-    // Transform from single-level array to array of pairs, with the SSH key fingerprint as the first value
-    // @ts-ignore
-    R.map(sshKey => [toFingerprint(sshKey), sshKey]),
-  // @ts-ignore error TS2554: Expected 0 arguments, but got 1.
-  )(keys);
+  const fingerprintKeyMap = await mapFingerprints(keys)
+  const found = fingerprintKeyMap.filter(el => {if (el.fingerprint === fingerprint) { return el.key }});
 
-  const result = R.propOr('', fingerprint, fingerprintKeyMap);
-
-  if (!result) {
+  if (found) {
     logger.debug(`Unknown fingerprint: ${fingerprint}`);
   }
 
@@ -82,7 +81,7 @@ const keysRoute = async (
     );
   }
 
-  res.send(result);
+  res.send(found[0].key);
 };
 
 export default [bodyParser.json(), keysRoute];

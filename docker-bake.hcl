@@ -51,6 +51,7 @@ group "default" {
     "auth-server",
     "backup-handler",
     "broker",
+    "api-sidecar-handler",
     "keycloak-db",
     "keycloak",
     "local-api-data-watcher-pusher",
@@ -72,6 +73,7 @@ group "ui-logs-development" {
     "api-redis",
     "api",
     "broker",
+    "api-sidecar-handler",
     "keycloak-db",
     "keycloak",
     "local-api-data-watcher-pusher",
@@ -95,6 +97,7 @@ group "prod-images" {
     "auth-server",
     "backup-handler",
     "broker",
+    "api-sidecar-handler",
     "keycloak-db",
     "keycloak",
     "logs2notifications",
@@ -180,6 +183,15 @@ target "broker" {
     "org.opencontainers.image.title": "lagoon-core/broker - the RabbitMQ broker service for Lagoon"
   }
   tags = ["${IMAGE_REPO}/broker:${TAG}"]
+}
+
+target "api-sidecar-handler" {
+  inherits = ["default"]
+  context = "services/api-sidecar-handler"
+  labels = {
+    "org.opencontainers.image.title": "lagoon-core/api-sidecar-handler - the api-sidecar-handler service for Lagoon"
+  }
+  tags = ["${IMAGE_REPO}/api-sidecar-handler:${TAG}"]
 }
 
 target "keycloak" {
