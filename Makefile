@@ -384,13 +384,13 @@ api-logs-development: build-ui-logs-development
 
 ## CI targets
 
-KUBECTL_VERSION := v1.28.6
-HELM_VERSION := v3.14.2
-K3D_VERSION = v5.6.0
-GOJQ_VERSION = v0.12.13
+KUBECTL_VERSION := v1.30.1
+HELM_VERSION := v3.15.2
+K3D_VERSION = v5.6.3
+GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
-CHART_TESTING_VERSION = v3.10.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.28.6-k3s2
+CHART_TESTING_VERSION = v3.11.0
+K3D_IMAGE = docker.io/rancher/k3s:v1.30.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = lagoon-220
 TASK_IMAGES = task-activestandby
