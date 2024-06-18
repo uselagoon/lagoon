@@ -1,8 +1,8 @@
-# Sail on Lagoon
+# Sail:onLagoon
 
-Sail on Lagoon is a Laravel extension that simplifies the process of Lagoonizing Laravel sites that are already using Laravel Sail to generate their docker-compose setup. This extension provides additional features and configurations tailored for Lagoon environments.
+Sail:onLagoon is a Laravel extension that simplifies the process of Lagoonizing Laravel sites that are already using Laravel Sail to generate their docker-compose setup. This extension provides additional features and configurations tailored for Lagoon environments.
 
-Check out Sail on Lagoon on GitHub: [https://github.com/uselagoon/sailonlagoon](https://github.com/uselagoon/sailonlagoon)
+Check out Sail:onLagoon on GitHub: [https://github.com/uselagoon/sailonlagoon](https://github.com/uselagoon/sailonlagoon)
 
 Here's a quickstart step by step to get you started:
 
