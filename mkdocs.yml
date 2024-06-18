@@ -68,6 +68,8 @@ nav:
         - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
         - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
         - Automatic Updates: applications/drupal/automatic-updates.md
+      - Laravel:
+        - Overview: applications/laravel.md
       - WordPress:
         - Overview: applications/wordpress.md
       - Node.js-based:
@@ -158,6 +160,7 @@ nav:
   - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
   - Lagoon Examples: https://github.com/lagoon-examples
 - Other Tools:
+  - Sail on Lagoon: other-tools/sail.md
   - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
   - Lagoon Sync: https://github.com/uselagoon/lagoon-sync
   - Client Libraries: other-tools/client-libraries.md
