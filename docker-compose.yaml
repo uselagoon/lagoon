@@ -64,7 +64,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
-      - SIDECAR_HANDLER_HOST=sshkeyhandler
+      - SIDECAR_HANDLER_HOST=apisidecarhandler
   api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api
     command: >
@@ -113,13 +113,13 @@ services:
       - S3_BAAS_ACCESS_KEY_ID=minio
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
       - CONSOLE_LOGGING_LEVEL=debug
-      - SIDECAR_HANDLER_HOST=sshkeyhandler
+      - SIDECAR_HANDLER_HOST=apisidecarhandler
     depends_on:
       api-lagoon-migrations:
         condition: service_started
       keycloak:
         condition: service_started
-      keycloak:
+      api-sidecar-handler:
         condition: service_started
     ports:
       - '3000:3000'
