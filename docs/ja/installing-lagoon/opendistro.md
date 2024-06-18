@@ -8,27 +8,27 @@ OpenDistro Helmをインストールします。詳細は[https://opendistro.git
 
 1. 証明書の生成
 
-   !!! Note "注意:"
-       _CFSSLはCloudFlareのPKI/TLSスイスアーミーナイフです。これはコマンドラインツールであり、TLS証明書の署名、検証、バンドル化を行うHTTP APIサーバです。ビルドにはGo 1.12+が必要です。_
+!!! Note "注意:"
+    _CFSSLはCloudFlareのPKI/TLSスイスアーミーナイフです。これはコマンドラインツールであり、TLS証明書の署名、検証、バンドル化を行うHTTP APIサーバです。ビルドにはGo 1.12+が必要です。_
 
    1. CFSSLをインストールします: [https://github.com/cloudflare/cfssl](https://github.com/cloudflare/cfssl)
    2. CAを生成します。次のファイルが必要です:
 
-   ```json title="ca-csr.json"
-   {
-     "CN": "ca.elasticsearch.svc.cluster.local",
-     "hosts": [
-       "ca.elasticsearch.svc.cluster.local"
-     ],
-     "key": {
-       "algo": "ecdsa",
-       "size": 256
-     },
-     "ca": {
-     "expiry": "87600h"
-     }
-   }
-   ```
+  ```json title="ca-csr.json"
+  {
+    "CN": "ca.elasticsearch.svc.cluster.local",
+    "hosts": [
+      "ca.elasticsearch.svc.cluster.local"
+    ],
+    "key": {
+      "algo": "ecdsa",
+      "size": 256
+    },
+    "ca": {
+    "expiry": "87600h"
+    }
+  }
+  ```
 
 1. 次の2つのコマンドを実行します :
 
@@ -86,7 +86,7 @@ OpenDistro Helmをインストールします。詳細は[https://opendistro.git
 4. 次の2つのコマンドを実行します:
 
   ```bash title="証明書キーの生成"
-  cfssl gencert -ca=ca.pem -ca -キー=ca-key.pem -config=ca-config.json -profile=peer node.json | cfssljson -bare node
+  cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer node.json | cfssljson -bare node
   rm node.csr
   ```
 
@@ -122,7 +122,7 @@ OpenDistro Helmをインストールします。詳細は[https://opendistro.git
 8. 次に、以下のコマンドでキーをJavaがサポートする形式に変換します:
 
   ```bash title="キー形式の変換"
-  openssl pkey -in admin-key.pem -out admin -key.pkcs8
+  openssl pkey -in admin-key.pem -out admin-key.pkcs8
   ```
 
 ## OpenDistroのインストール
@@ -165,7 +165,7 @@ OpenDistro Helmをインストールします。詳細は[https://opendistro.git
 6. `lagoon-core-values.yaml`を次のように更新:
 
   ```yaml title="lagoon-core-values.yaml"
-  elasticsearchURL: http://elasticsearch-opendistro-es -client-service.elasticsearch.svc.cluster.local:9200
+  elasticsearchURL: http://elasticsearch-opendistro-es-client-service.elasticsearch.svc.cluster.local:9200
   kibanaURL: https://<<Kibana Public URL>>
   logsDBAdminPassword: "<<PlainText Elasticsearch Admin Password>>"
   ```

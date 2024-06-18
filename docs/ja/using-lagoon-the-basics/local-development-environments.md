@@ -19,7 +19,7 @@ Lagoonは伝統的に`pygmy`と最も良好に動作してきました。これ�
 `pygmy`はGolangで書かれているので、インストールするには次のコマンドを実行します:
 
 ```bash title="HomeBrewでのインストール"
-brew tap pygmystack/pygmy && brew pygmyのインストール
+brew tap pygmystack/pygmy && brew install pygmy
 ```
 
 pygmyの詳細な使用方法やインストール情報については、その[ドキュメンテーション](https://pygmy.readthedocs.io/en/master/)を参照してください。

@@ -35,7 +35,6 @@ LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互
             "s3:AbortMultipartUpload",
             "s3:DeleteObject",
             "s3:ListMultipartUploadParts"
- ```
           ],
           "Resource":"arn:aws:s3:::baas-*/*"
         }
@@ -94,8 +93,8 @@ LagoonはK8up 1.xと広範にテストされていますが、まだ2.xとは互
 4. `lagoon-core-values.yml`を更新します:
 
    ```yaml title="lagoon-core-values.yml"
-   s3BAASAccessKeyID: <<リストアバケット用のAccess Key ID>>
-   s3BAASSecretAccessKey: <<リストアバケット用のAccess Key Secret>>
+   s3BAASAccessKeyID: <<Access Key ID for restore bucket>>
+   s3BAASSecretAccessKey: <<Access Key Secret for restore bucket>>
    ```
 
 5. `lagoon-core`を再デプロイします。

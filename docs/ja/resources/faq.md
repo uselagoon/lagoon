@@ -22,7 +22,7 @@
 
 ## データベースダンプをどのようにダウンロードすることができますか？
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in -ピクチャー" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## 私は無効なSSL証明書エラーが出ています
 
@@ -47,14 +47,14 @@
 [default] =>
 )
 , code: 0)
-エラー:ソース@mainのデータベースレコードが見つかりませんでした [error]
+Error: no database record could be found for source @main [error]
 ```
 
 Drushをアップグレードすると、この問題は解消されるはずです。我々は強く、バージョン8.3またはそれ以降を使用することをお勧めします。Drushをアップグレードすれば、コマンドは動作するはずです！
 
 ## Kibanaログにアクセスしようとすると、Internal Server Errorが表示されています
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; パニックになる必要はありません！これは通常、テナントが選択されていないときに発生します。これを修正するには、次の手順を実行してください:
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 1. Kibanaの左側のメニューで「テナント」に移動します。
 2. 自分のテナント名をクリックします。

@@ -49,15 +49,15 @@ SimpleSAMLphpにアクセスするための基本URLパス:
   'default-sp' => [
     'saml:SP',
 
-    // このSPのエンティティID。
+    // The entity ID of this SP.
     'entityID' => 'https://YOUR_DOMAIN.TLD',
 
-    // このSPが連絡すべきIdPのエンティティID。
-    // NULL/未設定にすることも可能で、その場合、ユーザーには利用可能なIdPのリストが表示されます。
+    // The entity ID of the IdP this should SP should contact.
+    // Can be NULL/unset, in which case the user will be shown a list of available IdPs.
     'idp' => 'https://YOUR_IDP_DOMAIN.TLD',
 
-    // ディスカバリーサービスへのURL。
-    // NULL/未設定にすることも可能で、その場合、組み込みのディスカバリーサービスが使用されます。
+    // The URL to the discovery service.
+    // Can be NULL/unset, in which case a builtin discovery service will be used.
     'discoURL' => null,
 
     'NameIDFormat' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
@@ -77,16 +77,15 @@ SimpleSAMLphpにアクセスするための基本URLパス:
         'urn:oid:2.5.4.42' => 'givenName',
       ],
       52 => [
-        'class' => 'core ':AttributeCopy'、
-        'urn:oid:2.5.4.4' => 'sn'、
-      ]、
+        'class' => 'core:AttributeCopy',
+        'urn:oid:2.5.4.4' => 'sn',
+      ],
       53 => [
-        'class' => 'core:AttributeCopy'、
-        'urn:oid:0.9.2342.19200300.100.1.3' => 'mail'、
-      ]、
-    ]、
-  ]、
-
+        'class' => 'core:AttributeCopy',
+        'urn:oid:0.9.2342.19200300.100.1.3' => 'mail',
+      ],
+    ],
+  ],
 ```
 
 `saml20-idp-remote.php`にIdPメタデータを追加します。例を参照してください:
@@ -94,22 +93,22 @@ SimpleSAMLphpにアクセスするための基本URLパス:
 ```php title="saml20-idp-remote.php"
 <?php
 /**
- * SimpleSAMLphpのためのSAML 2.0 リモートIdPメタデータ。
+ * SAML 2.0 remote IdP metadata for SimpleSAMLphp.
  *
- * このファイルから使用しないIdPsを削除することを忘れないでください。
+ * Remember to remove the IdPs you don't use from this file.
  *
- * 参照:https://simplesamlphp.org/docs/stable/simplesamlphp-reference-idp-remote
+ * See: https://simplesamlphp.org/docs/stable/simplesamlphp-reference-idp-remote
  */
 
 /**
- * いくつかのIdP。
+ * Some IdP.
  */
 $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
-  'entityid' => 'https://YOUR_IDP_DOMAIN.TLD'、
+  'entityid' => 'https://YOUR_IDP_DOMAIN.TLD',
   'name' => [
-    'en' => 'Some IdP'、
-  ]、
-  'description' => 'Some IdP'、
+    'en' => 'Some IdP',
+  ],
+  'description' => 'Some IdP',
 
   ...
 
@@ -134,11 +133,12 @@ location ^~ /simplesaml {
         include          fastcgi_params;
         fastcgi_pass     ${NGINX_FASTCGI_PASS:-php}:9000;
         fastcgi_param    SCRIPT_FILENAME $document_root$phpfile;
-        # 基本URLパスを前に付ける必要があります
+        # Must be prepended with the baseurlpath
         fastcgi_param    SCRIPT_NAME /simplesaml$phpfile;
         fastcgi_param    PATH_INFO $pathinfo if_not_empty;
     }
 }
+```
 
 これにより、`/simplesaml` URLがベンダーのSimpleSAMLphpにルーティングされます。
 
@@ -157,6 +157,6 @@ COPY --from=cli /app /app
 COPY lagoon/nginx/location_prepend_simplesamlphp.conf /etc/nginx/conf.d/drupal/location_prepend_simplesamlphp.conf
 RUN fix-permissions /etc/nginx/conf.d/drupal/location_prepend_simplesamlphp.conf
 
-# Drupal Rootの位置を定義する
+# Define where the Drupal Root is located
 ENV WEBROOT=public
 ```

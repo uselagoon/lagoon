@@ -126,9 +126,10 @@ Drupalがインストールされていない場合にのみ実行:
 - run:
     name: Different tasks based on branch name
     command: |
-        ### Runs if 現在のブランチは 'production' ではありません
-    サービス: cli
-    条件: LAGOON_GIT_BRANCH != "production"
+        ### Runs if current branch is not 'production'
+    service: cli
+    when: LAGOON_GIT_BRANCH != "production"
+```
 
 シェルスクリプトを実行:
 
@@ -251,7 +252,7 @@ Lagoonがあなたのプロジェクトのプロダクション環境で保持�
 [UptimeRobot](https://uptimerobot.com/)があなたのクラスター(KubernetesまたはOpenShift)に設定されている場合、Lagoonは各ルート/イングレスに注釈を注入して`stakater/IngressControllerMonitor`が使用します。デフォルトのアクションはルートのホームページを監視することです。特定のルートを監視したい場合、ルート仕様に`monitoring-path`を追加することでこれをオーバーライドできます。一般的な使用法は、キャッシングをバイパスする監視用のパスを設定し、サイトのリアルタイムの監視を可能にすることです。
 
 ```yaml title=".lagoon.yml"
-- "www .example.com":
+- "www.example.com":
       monitoring-path: "/bypass-cache"
 ```
 
@@ -271,12 +272,12 @@ Lagoonでは、一部の注釈が禁止されているか、部分的に制限�
 
 | 注釈                                             | ノート                                                                                    |
 | ---                                               | ---                                                                                        |
-| `nginx.ingress.kubernetes.io/auth-snippet`        | 禁止されています                                                                             |
-| `nginx `.ingress.kubernetes.io/configuration-snippet` | `rewrite`、`add_header`、`set_real_ip`、および `more_set_headers` ディレクティブに制限されています。 |
-| `nginx.ingress.kubernetes.io/modsecurity-snippet`   | 不許可                                                                                     |
+| `nginx.ingress.kubernetes.io/auth-snippet`          | 不許可                                                                               |
+| `nginx.ingress.kubernetes.io/configuration-snippet` | `rewrite`、`add_header`、`set_real_ip`、および `more_set_headers` ディレクティブに制限されています。 |
+| `nginx.ingress.kubernetes.io/modsecurity-snippet`   | 不許可                                                                               |
 | `nginx.ingress.kubernetes.io/server-snippet`        | `rewrite`、`add_header`、`set_real_ip`、および `more_set_headers` ディレクティブに制限されています。 |
-| `nginx.ingress.kubernetes.io/stream-snippet`        | 不許可                                                                                     |
-| `nginx.ingress.kubernetes.io/use-regex`             | 不許可                                                                                     |
+| `nginx.ingress.kubernetes.io/stream-snippet`        | 不許可                                                                               |
+| `nginx.ingress.kubernetes.io/use-regex`             | 不許可                                                                               |
 
 #### Ingressのアノテーションリダイレクト { #ingress-annotations-redirects }
 
@@ -399,11 +400,11 @@ Cronジョブは、通常、すべての環境で同じものを実行するこ�
 ```yaml title=".lagoon.yml"
 cronjobs:
   - name: Hourly Drupal Cron
-    schedule: "M * * * *" # 時間ごとに、ランダムな分に一度
+    schedule: "M * * * *" # Once per hour, at a random minute.
     command: drush cron
     service: cli
   - name: Nightly Drupal Cron
-    schedule: "M 0 * * *" # 日ごとに、00:00から00:59のランダムな分に一度
+    schedule: "M 0 * * *" # Once per day, at a random minute from 00:00 to 00:59.
     command: drush cron
     service: cli
 ```
@@ -489,19 +490,30 @@ Lagoon APIで `container_registry` タイプの環境変数を作成します:
 
 ```yaml title=".lagoon.yml"
 container-registries:
+  docker-hub:
+    description: "username and password consumed from environment variables for the default docker.io registry"
   my-custom-registry:
-    username: myownregistryuser
-    password: <registry_password_variable_name>
+    description: "username and password consumed from environment variables for my custom registry"
     url: my.own.registry.com
+  another-custom-registry:
+    description: "password consumed from environment variables for my other registry"
+    username: myotheruser
+    url: my.other.registry.com
 ```
 
 また、`.lagoon.yml` ファイルに直接プレーンテキストでパスワードを定義することもできます:
 
-```yaml title=".lagoon .yml"
+```yaml title=".lagoon.yml"
 container-registries:
   docker-hub:
+    description: "the default docker.io registry credentials"
     username: dockerhubuser
     password: MySecretPassword
+  my-custom-registry:
+    description: "the credentials for my own registry"
+    url: my.own.registry.com
+    username: mycustomuser
+    password: MyCustomSecretPassword
 ```
 
 ### カスタムまたはプライベートなコンテナレジストリイメージの使用 { #consuming-a-custom-or-private-container-registry-image }
@@ -536,22 +548,22 @@ tasks:
   pre-rollout:
     - run:
         name: drush sql-dump
-        command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default /files/private/pre-deploy-dump.sql.gz
-        サービス: cli
+        command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz
+        service: cli
   post-rollout:
-    - 実行:
-        名前: drush cim
-        コマンド: drush -y cim
-        サービス: cli
-        シェル: bash
-    - 実行:
-        名前: drush cr
-        コマンド: drush -y cr
-        サービス: cli
+    - run:
+        name: drush cim
+        command: drush -y cim
+        service: cli
+        shell: bash
+    - run:
+        name: drush cr
+        command: drush -y cr
+        service: cli
 
 routes:
   autogenerate:
-    insecure: リダイレクト
+    insecure: Redirect
 
 environments:
   main:
@@ -561,7 +573,7 @@ environments:
         - example.net
         - "www.example.com":
             tls-acme: true
-            insecure: リダイレクト
+            insecure: Redirect
             hstsEnabled: true
         - "example.ch":
             annotations:
@@ -574,21 +586,22 @@ environments:
     rollouts:
       mariadb: statefulset
     cronjobs:
-      - 名前: drush cron
-        スケジュール: "M * * * *" # これは1時間ごとにcronを実行します。
-        コマンド: drush cron
-        サービス: cli
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
   staging:
       cronjobs:
-      - 名前: drush cron
-        スケジュール: "M * * * *" # これは1時間ごとにcronを実行します。
-        コマンド: drush cron
-        サービス: cli
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
   feature/feature-branch:
-      cronjobs: - 名前: drush cron
-        スケジュール: "H * * * *" # これは毎時一度cronを実行します。
-        コマンド: drush cron
-        サービス: cli
+      cronjobs:
+      - name: drush cron
+        schedule: "H * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
 ```
 
 ## 非推奨

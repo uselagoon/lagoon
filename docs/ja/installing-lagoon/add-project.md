@@ -32,7 +32,7 @@ Lagoonは各プロジェクトにデプロイキーを作成します。これ�
 
 2. キーをコピーし、Gitリポジトリのデプロイキーとして保存します。
 
-[GitHub](https://docs.github.com/en/de 開発者/概要/デプロイキーの管理#deploy-keys) {.md-button}
+[GitHub](https://docs.github.com/en/developers/overview/managing-deploy-keys#deploy-keys){ .md-button }
 [GitLab](https://docs.gitlab.com/ee/user/project/deploy\_keys/){ .md-button }
 [Bitbucket](https://support.atlassian.com/bitbucket-cloud/docs/add-access-keys/){ .md-button }
 

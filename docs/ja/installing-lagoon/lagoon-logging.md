@@ -15,22 +15,21 @@ Lagoonロギングについて詳しくはこちらをご覧ください:[https:
     ```yaml title="lagoon-logging-values.yaml"
     tls:
       caCert: |
-        << Logs-Concentratorからのca.pemの内容 >>
+        << content of ca.pem from Logs-Concentrator>>
       clientCert: |
-        << Logs-Concentratorからのclient.pemの内容 >>
+        << content of client.pem from Logs-Concentrator>>
       clientKey: |
-        << Logs-Concentratorからのclient-key.pemの内容 >>
-    ```
- 転送:
-      username: <<Lagoon Remote 1のユーザー名>>
-      password: <<Lagoon Remote 1のパスワード>>
-      host: <<Logs-Concentrator Service LoadBalancerのExternalIP>>
-      hostName: <<Logs-Concentratorのサーバ証明書のホスト名>>
+        << content of client-key.pem from Logs-Concentrator>>
+    forward:
+      username: <<Username for Lagoon Remote 1>>
+      password: <<Password for Lagoon Remote 1>>
+      host: <<ExternalIP of Logs-Concentrator Service LoadBalancer>>
+      hostName: <<Hostname in Server Cert of Logs-Concentrator>>
       hostPort: '24224'
-      selfHostname: <<Logs-Concentratorのクライアント証明書のホスト名>>
-      sharedKey: <<Logs-Concentratorの生成されたForwardSharedKey>>
+      selfHostname: <<Hostname in Client Cert of Logs-Concentrator>>
+      sharedKey: <<Generated ForwardSharedKey of Logs-Concentrator>>
       tlsVerifyHostname: false
-    clusterName: <<短いクラスタ識別子>>
+    clusterName: <<Short Cluster Identifier>>
     logsDispatcher:
       serviceMonitor:
         enabled: false
@@ -42,7 +41,7 @@ Lagoonロギングについて詳しくはこちらをご覧ください:[https:
       enabled: true
       rabbitMQHost: lagoon-core-broker.lagoon-core.svc.cluster.local
       rabbitMQUser: lagoon
-      rabbitMQPassword: <<RabbitMQ Lagoon パスワード>>
+      rabbitMQPassword: <<RabbitMQ Lagoon Password>>
     excludeNamespaces: {}
     ```
 
@@ -89,7 +88,8 @@ Lagoonロギングについて詳しくはこちらをご覧ください:[https:
           "http_user_agent": "$http_user_agent",
           "namespace": "$namespace",
           "ingress_name": "$ingress_name",
-          "service_name": "$service_name",           "service_port": "$service_port"
+          "service_name": "$service_name",
+          "service_port": "$service_port"
           }
     ```
 
