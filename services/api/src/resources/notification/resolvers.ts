@@ -21,7 +21,20 @@ const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON
 
 const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
   const createSql = knex(notificationTable).insert(input).toString();
-  let { insertId } = await query(sqlClientPool, createSql);
+
+  let insertId: number;
+  try {
+     ({insertId} = await query(sqlClientPool, createSql));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding notification ${input.name}. Notification already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
 
@@ -508,7 +521,18 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
@@ -538,7 +562,18 @@ export const updateNotificationWebhook: ResolverFn = async (
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  await query(sqlClientPool, Sql.updateNotificationWebhook(input));
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationWebhookByName(name),
@@ -565,7 +600,18 @@ export const updateNotificationEmail: ResolverFn = async (
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  await query(sqlClientPool, Sql.updateNotificationEmail(input));
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
@@ -592,7 +638,18 @@ export const updateNotificationRocketChat: ResolverFn = async (
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
@@ -619,7 +676,18 @@ export const updateNotificationSlack: ResolverFn = async (
 
   await checkNotificationUpdatePermissions(check, hasPermission)
 
-  await query(sqlClientPool, Sql.updateNotificationSlack(input));
+  try {
+    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)

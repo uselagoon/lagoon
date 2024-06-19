@@ -161,24 +161,35 @@ export const addProblem: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertProblem({
-      severity,
-      severity_score: severityScore,
-      lagoon_service: service || '',
-      identifier,
-      environment: environmentId,
-      source,
-      associated_package: associatedPackage,
-      description,
-      version: version || '',
-      fixed_version: fixedVersion,
-      links: links,
-      data,
-      created
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertProblem({
+        severity,
+        severity_score: severityScore,
+        lagoon_service: service || '',
+        identifier,
+        environment: environmentId,
+        source,
+        associated_package: associatedPackage,
+        description,
+        version: version || '',
+        fixed_version: fixedVersion,
+        links: links,
+        data,
+        created
+      })
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding problem. Problem already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,

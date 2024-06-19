@@ -194,22 +194,32 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission, admin
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
     const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
-    const {
-      insertId
-    } = await query(
-      sqlClientPool,
-      Sql.insertFact({
-        environment,
-        name,
-        value,
-        source,
-        description,
-        type,
-        keyFact,
-        category,
-        service
-      })
-    );
+
+    let insertId: number;
+    try {
+       ({insertId} = await query(
+        sqlClientPool,
+        Sql.insertFact({
+          environment,
+          name,
+          value,
+          source,
+          description,
+          type,
+          keyFact,
+          category,
+          service
+        })
+      ));
+    } catch(error) {
+      if(error.text.includes("Duplicate entry")){
+        throw new Error(
+          `Error adding fact. Fact already exists.`
+        );
+      } else {
+        throw new Error(error.message);
+      }
+    };
 
     const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
     returnFacts.push(R.prop(0, rows));
@@ -235,20 +245,31 @@ export const addFact: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertFact({
-      environment: environmentId,
-      name,
-      value,
-      source,
-      description,
-      type,
-      keyFact,
-      category,
-      service
-    }),
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertFact({
+        environment: environmentId,
+        name,
+        value,
+        source,
+        description,
+        type,
+        keyFact,
+        category,
+        service
+      }),
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact. Fact already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,
@@ -423,13 +444,24 @@ export const addFactReference: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertFactReference({
-      fid,
-      name
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertFactReference({
+        fid,
+        name
+      })
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact reference. Fact reference already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,
