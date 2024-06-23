@@ -5,12 +5,11 @@ volumes:
 
 services:
   api-db:
-    image: ${IMAGE_REPO:-lagoon}/api-db
+    image: ${IMAGE_REPO:-lagoon}/api-db:${IMAGE_REPO_API_DB_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
       - '3366:3306'
   webhook-handler:
-    image: ${IMAGE_REPO:-lagoon}/webhook-handler
-    command: yarn run dev
+    image: ${IMAGE_REPO:-lagoon}/webhook-handler:${IMAGE_REPO_WEBHOOK_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
       - '7777:3000'
     volumes:
@@ -19,14 +18,14 @@ services:
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
   backup-handler:
-    image: ${IMAGE_REPO:-lagoon}/backup-handler
+    image: ${IMAGE_REPO:-lagoon}/backup-handler:${IMAGE_REPO_BACKUP_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
     ports:
       - '7778:3000'
     depends_on:
       - broker
   broker:
-    image: ${IMAGE_REPO:-lagoon}/broker
+    image: ${IMAGE_REPO:-lagoon}/broker:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
       - '15672:15672'
       - '5672:5672'
@@ -34,7 +33,7 @@ services:
     volumes:
       - broker:/var/lib/rabbitmq
   broker-ff-enable:
-    image: ${IMAGE_REPO:-lagoon}/broker
+    image: ${IMAGE_REPO:-lagoon}/broker:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
     entrypoint: /enable-feature-flags.sh
     environment:
       - SERVICE_NAME=broker
@@ -48,7 +47,7 @@ services:
     ports:
       - '3333:3333'
   logs2notifications:
-    image: ${IMAGE_REPO:-lagoon}/logs2notifications
+    image: ${IMAGE_REPO:-lagoon}/logs2notifications:${IMAGE_REPO_LOGS2NOTIFICATIONS_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - S3_FILES_HOST=http://172.17.0.1:9000
   mailhog:
@@ -57,33 +56,23 @@ services:
     ports:
       - '32025:8025'
   webhooks2tasks:
-    image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
-    command: yarn run dev
-    volumes:
-      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
-      - ./node-packages:/app/node-packages:delegated
+    image: ${IMAGE_REPO:-lagoon}/webhooks2tasks:${IMAGE_REPO_WEBHOOKS2TASKS_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
       - SIDECAR_HANDLER_HOST=apisidecarhandler
   api-db-init:
-    image: ${IMAGE_REPO:-lagoon}/api
+    image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     command: >
       sh -c "./node_modules/.bin/knex migrate:list --cwd /app/services/api/database
       && ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database"
-    volumes:
-      - ./services/api/database:/app/services/api/database
-      - ./node-packages:/app/node-packages:delegated
-      - /app/node-packages/commons/dist
     depends_on:
       api-db:
         condition: service_started
       keycloak:
         condition: service_started
   api-lagoon-migrations:
-    image: ${IMAGE_REPO:-lagoon}/api
+    image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     command: sh -c "./node_modules/.bin/tsc && node -r dotenv-extended/config dist/migrations/lagoon/migration.js"
-    volumes:
-      - ./services/api/src:/app/services/api/src
     environment:
       - NODE_ENV=development
       - CONSOLE_LOGGING_LEVEL=trace
@@ -95,12 +84,7 @@ services:
       api-sidecar-handler:
         condition: service_started
   api:
-    image: ${IMAGE_REPO:-lagoon}/api
-    command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
-    volumes:
-      - ./services/api/src:/app/services/api/src
-      - ./node-packages:/app/node-packages:delegated
-      - /app/node-packages/commons/dist
+    image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - KEYCLOAK_FRONTEND_URL=http://localhost:8088/
       - NODE_ENV=development
@@ -138,12 +122,12 @@ services:
     ports:
       - '8888:3000'
   actions-handler:
-    image: ${IMAGE_REPO:-lagoon}/actions-handler
+    image: ${IMAGE_REPO:-lagoon}/actions-handler:${IMAGE_REPO_ACTIONS_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
     depends_on:
       - broker
   ssh:
-    image: ${IMAGE_REPO:-lagoon}/ssh
+    image: ${IMAGE_REPO:-lagoon}/ssh:${IMAGE_REPO_SSH_TAG:-${IMAGE_REPO_TAG:-latest}}
     depends_on:
       - api
       - auth-server
@@ -154,18 +138,15 @@ services:
       - ./services/ssh/home/command.sh:/home/command.sh
       - ./services/ssh/home/rsh.sh:/home/rsh.sh
   auth-server:
-    image: ${IMAGE_REPO:-lagoon}/auth-server
-    command: yarn run dev
+    image: ${IMAGE_REPO:-lagoon}/auth-server:${IMAGE_REPO_AUTH_SERVER_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - JWTISSUER=auth-server.dev
       - JWTAUDIENCE=api.dev
       - CONSOLE_LOGGING_LEVEL=trace
-    volumes:
-      - ./services/auth-server/src:/app/services/auth-server/src
     ports:
       - '3001:3000'
   keycloak:
-    image: ${IMAGE_REPO:-lagoon}/keycloak
+    image: ${IMAGE_REPO:-lagoon}/keycloak:${IMAGE_REPO_KEYCLOAK_TAG:-${IMAGE_REPO_TAG:-latest}}
     user: '111111111'
     depends_on:
       - keycloak-db
@@ -178,16 +159,12 @@ services:
       # Uncomment for local new relic tracking
       # - NEW_RELIC_LICENSE_KEY=
       # - NEW_RELIC_APP_NAME=keycloak-local
-    volumes:
-      - "./services/keycloak/startup-scripts:/opt/keycloak/startup-scripts"
-      - "./services/keycloak/themes/lagoon:/opt/keycloak/themes/lagoon"
-      - "./local-dev/keycloak:/lagoon/keycloak"
   keycloak-db:
-    image: ${IMAGE_REPO:-lagoon}/keycloak-db
+    image: ${IMAGE_REPO:-lagoon}/keycloak-db:${IMAGE_REPO_KEYCLOAK_DB_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
       - '3336:3306'
   tests-kubernetes:
-    image: ${IMAGE_REPO:-lagoon}/tests
+    image: ${IMAGE_REPO:-lagoon}/tests:${IMAGE_REPO_TESTS_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - CLUSTER_TYPE=control-k8s
       - WEBHOOK_HOST=webhook-handler
@@ -212,11 +189,9 @@ services:
   local-api-data-watcher-pusher:
     depends_on:
       - api
-    image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher
+    image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher:${IMAGE_REPO_API_DATA_WATCHER_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
       - CLEAR_API_DATA=false
-    volumes:
-      - ./local-dev/api-data-watcher-pusher:/home
   local-minio:
     image: minio/minio
     entrypoint: sh
@@ -234,4 +209,4 @@ services:
     labels:
       version: '2'
   api-redis:
-    image: ${IMAGE_REPO:-lagoon}/api-redis
+    image: ${IMAGE_REPO:-lagoon}/api-redis:${IMAGE_REPO_API_REDIS_TAG:-${IMAGE_REPO_TAG:-latest}}

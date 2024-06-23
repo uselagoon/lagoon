@@ -1,0 +1,46 @@
+version: '3.2'
+
+volumes:
+  broker: {}
+
+services:
+  webhook-handler:
+    command: yarn run dev
+    volumes:
+      - ./services/webhook-handler/src:/app/services/webhook-handler/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
+  webhooks2tasks:
+    command: yarn run dev
+    volumes:
+      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
+  api-db-init:
+    volumes:
+      - ./services/api/database:/app/services/api/database
+      - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
+  api-lagoon-migrations:
+    volumes:
+      - ./services/api/src:/app/services/api/src
+  api:
+    command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
+    volumes:
+      - ./services/api/src:/app/services/api/src
+      - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
+  auth-server:
+    command: yarn run dev
+    volumes:
+      - ./services/auth-server/src:/app/services/auth-server/src
+  keycloak:
+    volumes:
+      - "./services/keycloak/startup-scripts:/opt/keycloak/startup-scripts"
+      - "./services/keycloak/themes/lagoon:/opt/keycloak/themes/lagoon"
+      - "./local-dev/keycloak:/lagoon/keycloak"
+  local-api-data-watcher-pusher:
+    volumes:
+      - ./local-dev/api-data-watcher-pusher:/home
