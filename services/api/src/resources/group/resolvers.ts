@@ -654,6 +654,9 @@ export const addGroupsToProject: ResolverFn = async (
 
   for (const groupInput of groupsInput) {
     const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+    if (R.prop('lagoon-organization', group.attributes) === undefined && project.organization != null) {
+      throw new Error('Group must be in same organization as the project');
+    }
     if (R.prop('lagoon-organization', group.attributes) && project.organization != null) {
       if (project.organization == R.prop('lagoon-organization', group.attributes)) {
         // if this is a group in an organization, check that the user removing members from the group in this org is in the org
@@ -661,7 +664,7 @@ export const addGroupsToProject: ResolverFn = async (
           organization: R.prop('lagoon-organization', group.attributes)
         });
       } else {
-        throw new Error('Project must be in same organization as groups');
+        throw new Error('Group must be in same organization as the project');
       }
     }
     await models.GroupModel.addProjectToGroup(project.id, group);

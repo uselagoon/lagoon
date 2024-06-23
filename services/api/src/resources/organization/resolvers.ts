@@ -509,56 +509,13 @@ export const getGroupCountByOrganizationProject: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  { sqlClientPool, models }
 ) => {
+  // rather than make this more complicated than it needs to be, just return all the groups attached to a project, even those that aren't in the organization
+  // this way the organization owner can make the decision to remove the group from the project
+  // this isn't an impossibile situation, but is unlikely, due to the historical nature of lagoons group attachment process
   const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  if (adminScopes.projectViewAll) {
-    // if platform owner, this will show ALL groups on a project (those that aren't in the organization too, yes its possible with outside intervention :| )
-    return orgProjectGroups;
-  }
-
-  const user = await models.UserModel.loadUserById(
-    keycloakGrant.access_token.content.sub
-  );
-  // if this user is an owner of an organization, then also display org based groups to this user
-  // when listing project groups
-  const userGroups = keycloakUsersGroups;
-  const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
-  const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
-
-  if (usersOrgs != "" ) {
-    const usersOrgsArr = usersOrgs.split(',');
-    for (const userOrg of usersOrgsArr) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pid);
-      if (project.organization == userOrg) {
-        const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, project.organization)
-        for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
-        }
-      }
-    }
-  }
-  if (usersOrgsViewer != "" ) {
-    const usersOrgsArr = usersOrgsViewer.split(',');
-    for (const userOrg of usersOrgsArr) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pid);
-      if (project.organization == userOrg) {
-        const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, project.organization)
-        for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
-        }
-      }
-    }
-  }
-  let userProjectGroups = []
-  for (const ug of userGroups) {
-    const pg = orgProjectGroups.find(i => i.id === ug.id)
-    if (pg) {
-      userProjectGroups.push(pg)
-    }
-  }
-
-  return userProjectGroups;
+  return orgProjectGroups;
 };
 
 // check an existing project and the associated groups can be added to an organization
