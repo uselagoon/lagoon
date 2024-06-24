@@ -563,7 +563,7 @@ export const updateNotificationWebhook: ResolverFn = async (
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   try {
-    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+    await query(sqlClientPool, Sql.updateNotificationWebhook(input));
   } catch(error) {
     if(error.text.includes("Duplicate entry")){
       throw new Error(
@@ -601,7 +601,7 @@ export const updateNotificationEmail: ResolverFn = async (
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   try {
-    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+    await query(sqlClientPool, Sql.updateNotificationEmail(input));
   } catch(error) {
     if(error.text.includes("Duplicate entry")){
       throw new Error(
@@ -639,7 +639,7 @@ export const updateNotificationRocketChat: ResolverFn = async (
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   try {
-    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+    await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
   } catch(error) {
     if(error.text.includes("Duplicate entry")){
       throw new Error(
@@ -677,7 +677,7 @@ export const updateNotificationSlack: ResolverFn = async (
   await checkNotificationUpdatePermissions(check, hasPermission)
 
   try {
-    await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+    await query(sqlClientPool, Sql.updateNotificationSlack(input));
   } catch(error) {
     if(error.text.includes("Duplicate entry")){
       throw new Error(
