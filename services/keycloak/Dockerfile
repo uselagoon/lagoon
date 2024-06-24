@@ -87,7 +87,7 @@ COPY themes/lagoon /opt/keycloak/themes/lagoon
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
 COPY --from=builder /target/custom-protocol-mapper-1.0.0.jar /opt/keycloak/providers/custom-protocol-mapper-1.0.0.jar
 
-COPY lagoon-realm-2.16.0.json /lagoon/seed/lagoon-realm-2.16.0.json
+COPY lagoon-realm-base-import.json /lagoon/seed/lagoon-realm-base-import.json
 
 RUN /opt/keycloak/bin/kc.sh build
 

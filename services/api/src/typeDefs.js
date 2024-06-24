@@ -1088,6 +1088,7 @@ const typeDefs = gql`
     email: String
     firstName: String
     lastName: String
+    admin: Boolean
     owner: Boolean
     comment: String
     groupRoles: [GroupRoleInterface]
@@ -1937,6 +1938,7 @@ const typeDefs = gql`
   input addUserToOrganizationInput {
     user: UserInput!
     organization: Int!
+    admin: Boolean
     owner: Boolean
   }
 

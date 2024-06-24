@@ -37,13 +37,13 @@ function sync_client_secrets {
 
 
 function import_lagoon_realm {
-  # handle importing a realm from a snapshot of a raw install of 2.16.0
+  # handle importing a realm from a snapshot of a raw install
     if /opt/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
         echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
         return 0
     fi
     echo Importing realm
-    /opt/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/seed/lagoon-realm-2.16.0.json
+    /opt/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/seed/lagoon-realm-base-import.json
     echo realm import complete
 }
 
@@ -241,6 +241,97 @@ function service-api_add_query-groups_permission {
 	fi
 }
 
+
+function migrate_admin_organization_permissions {
+  # The changes here match the changes that are made in the realm import script
+  # fresh installs will not need to perform this migration as the changes will already be in the import
+  # this will only run on existing installations to get it into a state that matches the realm import
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  organization_admin_permission=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization+Notifications --config $CONFIG_PATH)
+
+  if [ "$organization_admin_permission" != "[ ]" ]; then
+      echo "organization_admin_permission already configured"
+      return 0
+  fi
+
+  echo Configuring Organization admin permissions
+
+  echo Delete existing organization management
+  manage_organization=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization --config $CONFIG_PATH
+
+  echo Creating organization admin js mapper policy
+  local p_name1="User is admin of organization"
+  local script_name1="[Lagoon] $p_name1"
+  local script_type1="script-policies/$(echo $p_name1 | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+  echo '{"name":"'$script_name1'","type":"'$script_type1'"}' | /opt/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type1 | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+  echo Delete existing view organization permission
+  view_organization=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Organization --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_organization --config $CONFIG_PATH
+
+  echo Create new view organization permission
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["viewProject","viewGroup","viewNotification","view","viewUsers","viewUser"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization","[Lagoon] User is admin of organization","[Lagoon] User is viewer of organization"]}
+EOF
+
+  echo Creating permission for organization owner management
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Owners",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addOwner","addViewer"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization"]
+}
+EOF
+  echo Creating permission for organization project management
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Projects",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addProject","updateProject","deleteProject"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization","[Lagoon] User is admin of organization"]
+}
+EOF
+  echo Creating permission for organization group management
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Groups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addGroup","removeGroup"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization","[Lagoon] User is admin of organization"]
+}
+EOF
+  echo Creating permission for organization notification management
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Notifications",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addNotification","updateNotification","removeNotification"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization","[Lagoon] User is admin of organization"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -270,6 +361,7 @@ function configure_keycloak {
     #post 2.18.0+ migrations after this point
     service-api_add_query-groups_permission
     add_notification_view_all
+    migrate_admin_organization_permissions
 
     # always run last
     sync_client_secrets

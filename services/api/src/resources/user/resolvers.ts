@@ -221,7 +221,7 @@ export const deleteUser: ResolverFn = async (
 // addUserToOrganization adds a user as an organization owner
 export const addUserToOrganization: ResolverFn = async (
   _root,
-  { input: { user: userInput, organization: organization, owner: owner } },
+  { input: { user: userInput, organization: organization, admin: admin, owner: owner } },
   { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
 
@@ -238,6 +238,7 @@ export const addUserToOrganization: ResolverFn = async (
   let updateUser = {
     id: user.id,
     organization: organization,
+    admin: false,
     owner: false,
   }
   if (owner) {
@@ -246,9 +247,16 @@ export const addUserToOrganization: ResolverFn = async (
     });
     updateUser.owner = true
   } else {
-    await hasPermission('organization', 'addViewer', {
-      organization: organization
-    });
+    if (admin) {
+      await hasPermission('organization', 'addOwner', {
+        organization: organization
+      });
+      updateUser.admin = true
+    } else {
+      await hasPermission('organization', 'addViewer', {
+        organization: organization
+      });
+    }
   }
   await models.UserModel.updateUser(updateUser);
 
@@ -260,6 +268,7 @@ export const addUserToOrganization: ResolverFn = async (
         id: user.id,
         email: user.email,
         organization: organization,
+        admin: admin,
         owner: owner,
       },
     }

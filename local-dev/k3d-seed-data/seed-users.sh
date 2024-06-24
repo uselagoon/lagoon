@@ -10,7 +10,7 @@ function is_keycloak_running {
 function configure_user_passwords {
 
   LAGOON_DEMO_USERS=("guest@example.com" "reporter@example.com" "developer@example.com" "maintainer@example.com" "owner@example.com")
-  LAGOON_DEMO_ORG_USERS=("orguser@example.com" "orgviewer@example.com" "orgowner@example.com" "platformowner@example.com")
+  LAGOON_DEMO_ORG_USERS=("orguser@example.com" "orgviewer@example.com" "orgadmin@example.com" "orgowner@example.com" "platformowner@example.com")
 
   for i in ${LAGOON_DEMO_USERS[@]}
   do
