@@ -37,6 +37,9 @@ The organization view has access to view the projects, group and user access, an
 
 The owner role can do everything within a group and its associated projects. They can add and manage users of a group. Be careful with this role, as it can delete projects and production environments!
 
+!!! Danger "IMPORTANT"
+    If a user has this role in a group that is within the scope of an organization, this role's ability to manage that group's users is removed. Only organization owners or admins can manage groups and their users.
+
 #### Maintainer
 
 The maintainer role can do everything within a group and its associated projects except deleting the project itself or the production environment. They can add and manage users of a group.
