@@ -704,27 +704,60 @@ export const removeProjectFromOrganization: ResolverFn = async (
 }
 
 // add existing project to an organization
+// this removes all notifications and groups from the project and resets all the access to the project to only
+// the default project group and the default-user of the project
 export const addExistingProjectToOrganization: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
 
-  let pid = input.project;
-  let oid = input.organization;
-
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
-  const groupProjectIds = []
-  const projectInOtherOrgs = []
-  const projectGroupNames = []
-  const otherOrgs = []
+  let pid = input.project;
+  let oid = input.organization;
+  const project = await projectHelpers(sqlClientPool).getProjectById(pid)
 
   // get all the groups the requested project is in
-  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
+  try {
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
 
+    let removeGroups = []
+    for (const g in projectGroups) {
+      if (projectGroups[g].attributes["type"] == "project-default-group") {
+        // remove all users from the project default group except the `default-user@project`
+        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name)
+        // update group
+        await models.GroupModel.updateGroup({
+          id: projectGroups[g].id,
+          name: projectGroups[g].name,
+          attributes: {
+            ...projectGroups[g].attributes,
+            "lagoon-organization": [""]
+          }
+        });
+      } else {
+        removeGroups.push(projectGroups[g])
+      }
+    }
+    // remove groups from project
+    await models.GroupModel.removeProjectFromGroups(pid, removeGroups);
+  } catch (err) {
+    throw new Error(
+      `Unable to remove all groups from the project`
+    )
+  }
+  try {
+    // remove all notifications from project
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
+  } catch (err) {
+    throw new Error(
+      `Unable to remove all notifications from the project`
+    )
+  }
+
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
   // check if project.organization is already set?
   // get all groups the project is in
   for (const group of projectGroups) {
@@ -737,6 +770,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
         "lagoon-organization": [input.organization]
       }
     });
+    await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
 
     // log this activity
     userActivityLogger(`User added a group to organization`, {
@@ -765,7 +799,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
   );
 
   // log this activity
-  userActivityLogger(`User added a project to organization`, {
+  userActivityLogger(`User added an existing project to organization`, {
     project: '',
     organization: input.organization,
     event: 'api:addExistingProjectToOrganization',
