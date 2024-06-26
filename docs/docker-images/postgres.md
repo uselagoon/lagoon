@@ -4,7 +4,7 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 
 ## Supported versions
 
-* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) (Security Support until November 2023) - `uselagoon/postgres-11`
+* 11 \(available for compatibility only, no longer officially supported\) - `uselagoon/postgres-11`
 * 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) (Security Support until November 2024) - `uselagoon/postgres-12`
 * 13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/13.Dockerfile) (Security Support until November 2025) - `uselagoon/postgres-13`
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (Security Support until November 2026) - `uselagoon/postgres-14`

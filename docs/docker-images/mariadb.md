@@ -6,7 +6,7 @@ The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-imag
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
-* 10.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.4.Dockerfile) (Alpine 3.12 Support until May 2022) - `uselagoon/mariadb-10.4`
+* 10.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/mariadb-10.4`
 * 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 Support until May 2023) - `uselagoon/mariadb-10.5`
 * 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 Support until May 2024) - `uselagoon/mariadb-10.6`
 * 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 Support until May 2025) - `uselagoon/mariadb-10.11`
