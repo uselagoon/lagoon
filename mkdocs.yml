@@ -36,6 +36,7 @@ nav:
       - Commons: docker-images/commons.md
       - MariaDB: docker-images/mariadb.md
       - MongoDB: docker-images/mongodb.md
+      - MySQL: docker-images/mysql.md
       - Node.js: docker-images/nodejs.md
       - NGINX: docker-images/nginx.md
       - OpenSearch: docker-images/opensearch.md
