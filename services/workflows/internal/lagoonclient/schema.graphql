@@ -974,7 +974,6 @@ type Mutation {
   addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
   updateEnvironment(input: UpdateEnvironmentInput!): Environment
   deleteEnvironment(input: DeleteEnvironmentInput!): String
-  deleteAllEnvironments: String
 
   """
   Add or update Storage Information for Environment
@@ -987,7 +986,6 @@ type Mutation {
     input: UpdateNotificationSlackInput!
   ): NotificationSlack
   deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
-  deleteAllNotificationSlacks: String
   addNotificationRocketChat(
     input: AddNotificationRocketChatInput!
   ): NotificationRocketChat
@@ -997,7 +995,6 @@ type Mutation {
   deleteNotificationRocketChat(
     input: DeleteNotificationRocketChatInput!
   ): String
-  deleteAllNotificationRocketChats: String
   addNotificationMicrosoftTeams(
     input: AddNotificationMicrosoftTeamsInput!
   ): NotificationMicrosoftTeams
@@ -1007,7 +1004,6 @@ type Mutation {
   deleteNotificationMicrosoftTeams(
     input: DeleteNotificationMicrosoftTeamsInput!
   ): String
-  deleteAllNotificationMicrosoftTeams: String
   addNotificationWebhook(
     input: AddNotificationWebhookInput!
   ): NotificationWebhook
@@ -1015,13 +1011,11 @@ type Mutation {
     input: UpdateNotificationWebhookInput!
   ): NotificationWebhook
   deleteNotificationWebhook(input: DeleteNotificationWebhookInput!): String
-  deleteAllNotificationWebhook: String
   addNotificationEmail(input: AddNotificationEmailInput!): NotificationEmail
   updateNotificationEmail(
     input: UpdateNotificationEmailInput!
   ): NotificationEmail
   deleteNotificationEmail(input: DeleteNotificationEmailInput!): String
-  deleteAllNotificationEmails: String
 
   """
   Connect previous created Notification to a Project
@@ -1030,29 +1024,22 @@ type Mutation {
   removeNotificationFromProject(
     input: RemoveNotificationFromProjectInput!
   ): Project
-  removeAllNotificationsFromAllProjects: String
   addOpenshift(input: AddOpenshiftInput!): Openshift
   updateOpenshift(input: UpdateOpenshiftInput!): Openshift
   deleteOpenshift(input: DeleteOpenshiftInput!): String
-  deleteAllOpenshifts: String
   addKubernetes(input: AddKubernetesInput!): Kubernetes
   updateKubernetes(input: UpdateKubernetesInput!): Kubernetes
   deleteKubernetes(input: DeleteKubernetesInput!): String
-  deleteAllKubernetes: String
   addProject(input: AddProjectInput!): Project
   updateProject(input: UpdateProjectInput!): Project
   deleteProject(input: DeleteProjectInput!): String
-  deleteAllProjects: String
   addSshKey(input: AddSshKeyInput!): SshKey
   updateSshKey(input: UpdateSshKeyInput!): SshKey
   deleteSshKey(input: DeleteSshKeyInput!): String
   deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
-  deleteAllSshKeys: String
-  removeAllSshKeysFromAllUsers: String
   addUser(input: AddUserInput!): User
   updateUser(input: UpdateUserInput!): User
   deleteUser(input: DeleteUserInput!): String
-  deleteAllUsers: String
   addDeployment(input: AddDeploymentInput!): Deployment
   deleteDeployment(input: DeleteDeploymentInput!): String
   updateDeployment(input: UpdateDeploymentInput): Deployment
@@ -1071,7 +1058,6 @@ type Mutation {
     input: DeleteFactReferencesByFactIdInput!
   ): String
   deleteBackup(input: DeleteBackupInput!): String
-  deleteAllBackups: String
   addRestore(input: AddRestoreInput!): Restore
   updateRestore(input: UpdateRestoreInput!): Restore
   addEnvVariable(input: EnvVariableInput!): EnvKeyValue
@@ -1110,7 +1096,6 @@ type Mutation {
   addGroup(input: AddGroupInput!): GroupInterface
   updateGroup(input: UpdateGroupInput!): GroupInterface
   deleteGroup(input: DeleteGroupInput!): String
-  deleteAllGroups: String
   addUserToGroup(input: UserGroupRoleInput!): GroupInterface
   removeUserFromGroup(input: UserGroupInput!): GroupInterface
   addGroupsToProject(input: ProjectGroupsInput): Project
@@ -1123,10 +1108,6 @@ type Mutation {
   removeGroupsFromProject(input: ProjectGroupsInput!): Project
   updateProjectMetadata(input: UpdateMetadataInput!): Project
   removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-  addBillingModifier(input: AddBillingModifierInput!): BillingModifier
-  updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
-  deleteBillingModifier(input: DeleteBillingModifierInput!): String
-  deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
   addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig
     @deprecated(
       reason: "Unstable API, subject to breaking changes in any release. Use at your own risk"
@@ -1138,10 +1119,6 @@ type Mutation {
       reason: "Unstable API, subject to breaking changes in any release. Use at your own risk"
     )
   deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String
-    @deprecated(
-      reason: "Unstable API, subject to breaking changes in any release. Use at your own risk"
-    )
-  deleteAllDeployTargetConfigs: String
     @deprecated(
       reason: "Unstable API, subject to breaking changes in any release. Use at your own risk"
     )

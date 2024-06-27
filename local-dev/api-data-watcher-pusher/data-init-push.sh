@@ -3,7 +3,6 @@
 # inject variables from environment into the GQL template
 envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /home/api-data/03-populate-api-data-ci-local-control-k8s.gql | sponge /home/api-data/03-populate-api-data-ci-local-control-k8s.gql
 
-clear_gql_file_path="/home/api-data/00-clear-api-data.gql"
 populate_demo_lagoon_gql_file_path="/home/api-data/01-populate-api-data-lagoon-demo.gql"
 populate_demo_lagoon_org_gql_file_path="/home/api-data/02-populate-api-data-lagoon-demo-org.gql"
 populate_ci_local_control_k8s_gql_file_path="/home/api-data/03-populate-api-data-ci-local-control-k8s.gql"
@@ -54,12 +53,6 @@ send_task_data() {
 
 # Waiting for the API to be ready
 wait_for_services
-
-# Optionally clear *some* API data prior to reloading - not really necessary any more
-if expr "$CLEAR_API_DATA" : '[Tt][Rr][Uu][Ee]' > /dev/null; then
-  echo "Clearing Lagoon data first"
-  send_graphql_query $clear_gql_file_path
-fi
 
 # Create the lagoon-demo project and associated users, groups, deployments, tasks etc
 send_graphql_query $populate_demo_lagoon_gql_file_path
