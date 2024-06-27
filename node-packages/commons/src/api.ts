@@ -1386,17 +1386,3 @@ export const getProblemsforProjectEnvironment = async (
   });
   return response.environmentByName.problems;
 };
-
-export const getProblemHarborScanMatches = () => graphqlapi.query(
-    `query getProblemHarborScanMatches {
-      allProblemHarborScanMatchers {
-        id
-        name
-        description
-        defaultLagoonProject
-        defaultLagoonEnvironment
-        defaultLagoonService
-        regex
-      }
-    }`
-);

@@ -33,9 +33,7 @@ ENV NODE_ENV=production \
     KEYCLOAK_ADMIN_PASSWORD=admin \
     ELASTICSEARCH_URL=http://logs-db-service:9200 \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
-    HARBOR_ADMIN_PASSWORD=Harbor12345 \
-    REDIS_PASSWORD=admin \
-    HARBOR_API_VERSION=v2.0
+    REDIS_PASSWORD=admin
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
