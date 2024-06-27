@@ -407,6 +407,13 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mongodb/"/>
     </url>
     <url>
+        <loc>https://docs.lagoon.sh/docker-images/mysql/</loc>
+        <lastmod>2024-06-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mysql/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mysql/"/>
+    </url>
+    <url>
         <loc>https://docs.lagoon.sh/docker-images/nginx/</loc>
         <lastmod>2024-06-27</lastmod>
         <changefreq>daily</changefreq>
@@ -1448,6 +1455,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mongodb/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mongodb/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/ja/docker-images/mysql/</loc>
+        <lastmod>2024-06-27</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mysql/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mysql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/nginx/</loc>

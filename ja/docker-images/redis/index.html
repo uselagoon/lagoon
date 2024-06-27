@@ -1024,6 +1024,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../mysql/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    MySQL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../nodejs/" class="md-nav__link">
         
   
@@ -4838,9 +4858,9 @@
 </table>
 <h2 id="_4">カスタム設定<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
 <p>ベースイメージに基づいて、カスタム設定を含めることができます。
-Redis設定ファイルの完全なドキュメンテーションについては、<a href="https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf">こちら</a>をご覧ください。</p>
+Redis設定ファイルの完全なドキュメンテーションについては、<a href="https://github.com/redis/redis/blob/7.2.5/redis.conf">こちら</a>をご覧ください。</p>
 <h2 id="redis-persistent">Redis-persistent<a class="headerlink" href="#redis-persistent" title="Permanent link">#</a></h2>
-<p>以下に基づいています <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile">Lagoonの <code>redis</code>イメージ</a>、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/5.Dockerfile">Lagoonの <code>redis-persistent</code> Dockerイメージ</a>は、Redisサービスを<code>persistent</code>モード(つまり、キーがディスクに保存される永続化ボリュームで)で利用する場合に使われます。</p>
+<p>以下に基づいています <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Lagoonの <code>redis</code>イメージ</a>、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile">Lagoonの <code>redis-persistent</code> Dockerイメージ</a>は、Redisサービスを<code>persistent</code>モード(つまり、キーがディスクに保存される永続化ボリュームで)で利用する場合に使われます。</p>
 <p>これは<code>redis</code>との違いは、<code>FLAVOR</code>環境変数だけで、それは使用中のredisのバージョンにより、<a href="https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf">それぞれのRedis設定</a>を使用します。</p>
 <h2 id="_5">トラブルシューティング<a class="headerlink" href="#_5" title="Permanent link">#</a></h2>
 <p>LagoonのRedisイメージにはすべて<code>redis-cli</code>コマンドが事前にロードされており、これによりRedisサービスに情報を問い合わせたり、設定値を動的に設定したりできます。このユーティリティを使用するには、<a href="../../interacting/ssh/">ここ</a>の指示に従って<code>pod</code>の値として<code>redis</code>を使用してRedisポッドにSSH接続し、接続したらターミナルから実行します。</p>
