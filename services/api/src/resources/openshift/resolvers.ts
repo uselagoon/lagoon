@@ -213,22 +213,3 @@ export const updateOpenshift: ResolverFn = async (
 
   return R.prop(0, rows);
 };
-
-export const deleteAllOpenshifts: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('openshift', 'deleteAll');
-
-  await query(sqlClientPool, Sql.truncateOpenshift());
-
-  userActivityLogger(`User deleted all openshifts`, {
-    project: '',
-    event: 'api:updateOpenshift',
-    payload: { }
-  });
-
-  // TODO: Check rows for success
-  return 'success';
-};

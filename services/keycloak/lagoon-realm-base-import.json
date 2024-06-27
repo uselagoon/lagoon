@@ -848,9 +848,6 @@
                 "name": "viewAll"
               },
               {
-                "name": "deleteAll"
-              },
-              {
                 "name": "delete"
               },
               {
@@ -882,9 +879,6 @@
               },
               {
                 "name": "viewAll"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "delete"
@@ -1013,16 +1007,10 @@
                 "name": "add"
               },
               {
-                "name": "removeAll"
-              },
-              {
                 "name": "view"
               },
               {
                 "name": "update"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "delete"
@@ -1044,9 +1032,6 @@
               },
               {
                 "name": "view"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "delete"
@@ -1103,13 +1088,7 @@
                 "name": "add"
               },
               {
-                "name": "removeAll"
-              },
-              {
                 "name": "update"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "view:user"
@@ -1140,9 +1119,6 @@
               },
               {
                 "name": "viewAll"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "delete"
@@ -1185,9 +1161,6 @@
               },
               {
                 "name": "storage"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "addOrUpdate:development"
@@ -1271,9 +1244,6 @@
                 "name": "updateProject"
               },
               {
-                "name": "deleteAll"
-              },
-              {
                 "name": "delete"
               },
               {
@@ -1329,9 +1299,6 @@
               },
               {
                 "name": "viewAll"
-              },
-              {
-                "name": "deleteAll"
               },
               {
                 "name": "delete"
@@ -1597,7 +1564,7 @@
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"openshift\"]",
-              "scopes": "[\"delete\",\"view:token\",\"update\",\"add\",\"deleteAll\"]",
+              "scopes": "[\"delete\",\"view:token\",\"update\",\"add\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
@@ -1811,17 +1778,6 @@
             }
           },
           {
-            "name": "Delete All SSH Keys",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"ssh_key\"]",
-              "scopes": "[\"removeAll\",\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "Update Project",
             "type": "scope",
             "logic": "POSITIVE",
@@ -1855,17 +1811,6 @@
             }
           },
           {
-            "name": "Delete All Notifications",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"notification\"]",
-              "scopes": "[\"removeAll\",\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "View Facts",
             "type": "scope",
             "logic": "POSITIVE",
@@ -1888,17 +1833,6 @@
             }
           },
           {
-            "name": "Delete All Projects",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"project\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "Delete Deployment",
             "type": "scope",
             "logic": "POSITIVE",
@@ -1916,7 +1850,7 @@
             "decisionStrategy": "UNANIMOUS",
             "config": {
               "resources": "[\"organization\"]",
-              "scopes": "[\"delete\",\"update\",\"add\",\"deleteAll\"]",
+              "scopes": "[\"delete\",\"update\",\"add\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
@@ -2053,17 +1987,6 @@
             }
           },
           {
-            "name": "Delete All Groups",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"group\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "User can SSH to Development Environment",
             "type": "scope",
             "logic": "POSITIVE",
@@ -2105,17 +2028,6 @@
               "resources": "[\"env_var\"]",
               "scopes": "[\"environment:view:production\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
-            }
-          },
-          {
-            "name": "Delete All Users",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"user\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
             }
           },
           {
@@ -2248,17 +2160,6 @@
               "resources": "[\"task\"]",
               "scopes": "[\"drushRsync:destination:development\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
-            }
-          },
-          {
-            "name": "Delete All Environments",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"environment\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
             }
           },
           {
@@ -2647,17 +2548,6 @@
             }
           },
           {
-            "name": "Delete All Backups",
-            "type": "scope",
-            "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
-            "config": {
-              "resources": "[\"backup\"]",
-              "scopes": "[\"deleteAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Admin\"]"
-            }
-          },
-          {
             "name": "View All Projects",
             "type": "scope",
             "logic": "POSITIVE",
@@ -2920,9 +2810,6 @@
             "name": "view"
           },
           {
-            "name": "deleteAll"
-          },
-          {
             "name": "storage"
           },
           {
@@ -2978,9 +2865,6 @@
           },
           {
             "name": "add"
-          },
-          {
-            "name": "removeAll"
           },
           {
             "name": "removeNotification"

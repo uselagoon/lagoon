@@ -357,6 +357,72 @@ function migrate_remove_harbor_scan_permissions {
   /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_harbor_scan_match_id --config $CONFIG_PATH
 }
 
+function remove_deleteall_permissions_scopes {
+  # The changes here match the changes that are made in the realm import script
+  # fresh installs will not need to perform this migration as the changes will already be in the import
+  # this will only run on existing installations to get it into a state that matches the realm import
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_all_projects=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Projects --config $CONFIG_PATH)
+
+  if [ "$delete_all_projects" == "[ ]" ]; then
+      echo "deleteall permissions already removed"
+      return 0
+  fi
+
+  NOTIFICATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=notification --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$NOTIFICATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"delete"},{"name":"view"},{"name":"update"},{"name":"viewAll"}]'
+
+  GROUP_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=group --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$GROUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"addUser"},{"name":"add"},{"name":"removeUser"},{"name":"update"},{"name":"viewAll"},{"name":"delete"}]'
+
+  BACKUP_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=backup --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$BACKUP_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"view"},{"name":"delete"}]'
+
+  SSHKEY_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=ssh_key --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$SSHKEY_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"update"},{"name":"view:user"},{"name":"delete"},{"name":"view:project"}]'
+
+  USER_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=user --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$USER_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"getBySshKey"},{"name":"update"},{"name":"viewAll"},{"name":"delete"}]'
+
+  ENVIRONMENT_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=environment --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVIRONMENT_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"deploy:production"},{"name":"addOrUpdate:production"},{"name":"viewAll"},{"name":"storage"},{"name":"addOrUpdate:development"},{"name":"update:development"},{"name":"ssh:development"},{"name":"delete:development"},{"name":"view"},{"name":"deploy:development"},{"name":"deleteNoExec"},{"name":"ssh:production"},{"name":"delete:production"},{"name":"update:production"}]'
+
+  ORGANIZATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"updateNotification"},{"name":"addUser"},{"name":"add"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"addOwner"},{"name":"updateOrganization"},{"name":"update"},{"name":"viewUser"},{"name":"viewAll"},{"name":"updateProject"},{"name":"delete"},{"name":"viewProject"},{"name":"addNotification"},{"name":"viewUsers"},{"name":"view"},{"name":"viewGroup"},{"name":"deleteProject"},{"name":"removeGroup"},{"name":"addViewer"},{"name":"addProject"},{"name":"addGroup"}]'
+
+  OPENSHIFT_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=openshift --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$OPENSHIFT_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"add"},{"name":"view"},{"name":"view:token"},{"name":"update"},{"name":"viewAll"},{"name":"delete"}]'
+
+  echo Delete deleteall sshkeys permission
+  delete_all_sshkeys=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+SSH+Keys --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_sshkeys --config $CONFIG_PATH
+
+  echo Delete deleteall notifications permission
+  delete_all_notifications=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Notifications --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_notifications --config $CONFIG_PATH
+
+  echo Delete deleteall groups permission
+  delete_all_groups=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Groups --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_groups --config $CONFIG_PATH
+
+  echo Delete deleteall users permission
+  delete_all_users=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Users --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_users --config $CONFIG_PATH
+
+  echo Delete deleteall environments permission
+  delete_all_environments=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Environments --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_environments --config $CONFIG_PATH
+
+  echo Delete deleteall backups permission
+  delete_all_backups=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Backups --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_backups --config $CONFIG_PATH
+
+  echo Delete deleteall projects permission
+  delete_all_projects=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Projects --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$delete_all_projects --config $CONFIG_PATH
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -388,6 +454,7 @@ function configure_keycloak {
     add_notification_view_all
     migrate_admin_organization_permissions
     migrate_remove_harbor_scan_permissions
+    remove_deleteall_permissions_scopes
 
     # always run last
     sync_client_secrets

@@ -392,7 +392,6 @@ Here is a table that lists the roles and the access they have:
     | addKubernetes | kubernetes | add |  |
     | updateKubernetes | kubernetes | update |  |
     | deleteKubernetes | kubernetes | delete |  |
-    | deleteAllKubernetes| kubernetes | deleteAll |  |
     | getAllOpenshifts | openshift | viewAll |  |
     | getAllProjects | project | viewAll |  |
     | addSshKey | ssh\_key | add | userID |
@@ -522,19 +521,10 @@ Here is a table that lists the roles and the access they have:
 
     | **Name** | **Resource** | **Scope** | **Attributes** |
     | :--- | :--- | :--- | :--- |
-    | deleteAllBackups | backup | deleteAll |  |
-    | deleteAllEnvironments | environment | deleteAll |  |
     | getEnvironmentStorageMonthBy<br />EnvironmentId | environment | storage |  |
     | getEnvironmentHoursMonthBy<br />EnvironmentId | environment | storage |  |
     | getEnvironmentHitsMonthBy<br />EnvironmentId | environment | storage |  |
-    | deleteAllGroups | group | deleteAll |  |
-    | deleteAllNotificationSlacks | notification | deleteAll |  |
-    | removeAllNotificationsFrom<br />AllProjects | notification | removeAll |  |
     | getAllOpenshifts | openshift | viewAll |  |
-    | deleteAllProjects | project | deleteAll |  |
-    | deleteAllSshKeys | ssh\_key | deleteAll |  |
-    | removeAllSshKeysFromAllUsers | ssh\_key | removeAll |  |
-    | deleteAllUsers | user | deleteAll |  |
     | addOrUpdateEnvironment<br />Storage | environment | storage |  |
     | addNotificationSlack | notification | add |  |
     | updateNotificationSlack | notification | update |  |
@@ -542,7 +532,6 @@ Here is a table that lists the roles and the access they have:
     | addKubernetes | kubernetes | add |  |
     | updateKubernetes | kubernetes | update |  |
     | deleteKubernetes | kubernetes | delete |  |
-    | deleteAllKubernetes| kubernetes | deleteAll |  |
     | getAllProjects | project | viewAll |  |
     | addSshKey | ssh\_key | add | userID |
     | updateSshKey | ssh\_key | update | userID |
