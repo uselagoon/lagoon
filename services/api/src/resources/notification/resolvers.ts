@@ -56,7 +56,7 @@ const checkOrgNotificationPermission = async (hasPermission, input, adminScopes)
       );
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false" || adminScopes.projectViewAll) {
+    if (DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT == "false" || adminScopes.platformOwner) {
       await hasPermission('notification', 'add');
     } else {
       throw new Error(

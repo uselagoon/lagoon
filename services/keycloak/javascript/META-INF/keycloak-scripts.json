@@ -18,6 +18,11 @@
       "fileName": "policies/users-role-for-realm-is-platform-owner.js"
     },
     {
+      "name": "[Lagoon] Users role for realm is Platform Viewer",
+      "description": "Checks the users role for the realm is Platform Viewer or higher",
+      "fileName": "policies/users-role-for-realm-is-platform-viewer.js"
+    },
+    {
       "name": "[Lagoon] Users role for realm is Admin",
       "description": "Checks the users role for the realm is Admin",
       "fileName": "policies/users-role-for-realm-is-admin.js"

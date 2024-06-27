@@ -134,7 +134,8 @@ export const getOpenshiftByProjectId: ResolverFn = async (
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
 
-  if (!adminScopes.openshiftViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('openshift', 'view', {
       project: pid
     });
@@ -174,8 +175,8 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getProjectByEnvironmentId(eid);
 
-  // check permissions on the project
-  if (!adminScopes.openshiftViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('openshift', 'view', {
       project: project.project
     });
