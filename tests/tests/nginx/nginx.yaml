@@ -5,8 +5,8 @@
   vars:
     git_files: "nginx/first/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 # delete the LAGOON_ROUTES_JSON envvar if it exists already
 - name: "{{ testname }} - api delete envVariable on {{ project }}"
@@ -17,7 +17,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment-variable.yaml
 
 - name: "{{ testname }} - delete test1.example.com ingress if exists"
   hosts: localhost
@@ -25,7 +25,7 @@
   vars:
     ingress: "test1.example.com"
   tasks:
-  - include: ../../tasks/delete-ingress.yaml
+  - ansible.builtin.include_tasks: ../../tasks/delete-ingress.yaml
 
 - name: "{{ testname }} - api update {{ project }} router pattern to empty"
   hosts: localhost
@@ -34,7 +34,7 @@
     project: "{{ project }}"
     routerpattern: ""
   tasks:
-  - include: ../../tasks/api/update-project-routerpattern.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/update-project-routerpattern.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
@@ -44,9 +44,19 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-first.yaml
+- name: "{{ testname }} - api check deployment source user and type for deploy environment"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    sourceUser: "ci-customer-user-rsa@example.com"
+    sourceType: "API"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-source.yaml
+
+- ansible.builtin.import_playbook: check-first.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -58,7 +68,7 @@
   vars:
     git_files: "nginx/second/"
   tasks:
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit"
   hosts: localhost
@@ -68,9 +78,9 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-second.yaml
+- ansible.builtin.import_playbook: check-second.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -86,7 +96,7 @@
     envValue: "eyJyb3V0ZXMiOlt7ImRvbWFpbiI6InRlc3QxLmV4YW1wbGUuY29tIiwic2VydmljZSI6Im5naW54IiwidGxzLWFjbWUiOmZhbHNlLCJtb25pdG9yaW5nLXBhdGgiOiIvYnlwYXNzLWNhY2hlIn1dfQo="
     envScope: "BUILD"
   tasks:
-  - include: ../../tasks/api/add-environment-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment-variable.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit again but with the LAGOON_ROUTES_JSON override"
   hosts: localhost
@@ -96,9 +106,9 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-third.yaml
+- ansible.builtin.import_playbook: check-third.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -113,7 +123,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment-variable.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment-variable.yaml
 
 - name: "{{ testname }} - api update {{ project }} router pattern"
   hosts: localhost
@@ -122,7 +132,7 @@
     project: "{{ project }}"
     routerpattern: "${service}-${project}-${environment}.{{ route_suffix_wo_port }}"
   tasks:
-  - include: ../../tasks/api/update-project-routerpattern.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/update-project-routerpattern.yaml
 
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit again but with the LAGOON_ROUTES_JSON override"
   hosts: localhost
@@ -132,13 +142,42 @@
     project: "{{ project }}"
     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
-  - include: ../../tasks/api/deploy-no-sha.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-no-sha.yaml
 
-- include: check-fourth.yaml
+- ansible.builtin.import_playbook: check-fourth.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
+
+- name: "{{ testname }} - api deployEnvironmentLatest on {{ project }}, which should deploy the same as the last one"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/deploy-environment-latest.yaml
+
+- name: "{{ testname }} - api check deployment source user and type for deploy environment"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    sourceUser: "ci-customer-user-rsa@example.com"
+    sourceType: "API"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-source.yaml
+
+- name: "{{ testname }} - api check deployment status"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    buildStatus: "complete"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-status.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -147,7 +186,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/delete-environment.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api update {{ project }} router pattern to empty"
   hosts: localhost
@@ -156,7 +195,7 @@
     project: "{{ project }}"
     routerpattern: ""
   tasks:
-  - include: ../../tasks/api/update-project-routerpattern.yaml
+  - ansible.builtin.include_tasks: ../../tasks/api/update-project-routerpattern.yaml
 
 - name: "{{ testname }} - check if site for ${service}. {{ project }} does not exist anymore"
   hosts: localhost
@@ -165,7 +204,7 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
 
 - name: "{{ testname }} - check if site with ${service}- for {{ project }} does not exist anymore"
   hosts: localhost
@@ -174,4 +213,4 @@
     url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

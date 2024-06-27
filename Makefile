@@ -20,7 +20,7 @@ SHELL := /bin/bash
 # make tests/<testname>
 # Runs individual tests. In a nutshell it does:
 # 1. Builds all needed images for the test
-# 2. Starts needed Lagoon services for the test via docker-compose up
+# 2. Starts needed Lagoon services for the test via docker compose up
 # 3. Executes the test
 #
 # Run `make tests-list` to see a list of all tests.
@@ -32,7 +32,7 @@ SHELL := /bin/bash
 # Starts all Lagoon Services at once, usefull for local development or just to start all of them.
 
 # make logs
-# Shows logs of Lagoon Services (aka docker-compose logs -f)
+# Shows logs of Lagoon Services (aka docker compose logs -f)
 
 #######
 ####### Default Variables
@@ -51,6 +51,11 @@ UPSTREAM_TAG ?= latest
 # latest is the most current release
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= edge
+
+# OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
+# set this to a particular build image if required, defaults to nothing to consume what the chart provides
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -71,6 +76,9 @@ PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
+# Clear all data from the API on a retest run, usually to clear up after a failure. Set false to preserve
+CLEAR_API_DATA ?= true
+
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
 $(shell >scan.txt)
@@ -81,13 +89,21 @@ else
 	PLATFORM_ARCH ?= linux/amd64
 endif
 
+# this enables the ssh portal and other related services to be exposed on a LoadBalancer for local development usage
+LAGOON_SSH_PORTAL_LOADBALANCER ?= true
+
+HELM = $(realpath ./local-dev/helm)
+KUBECTL = $(realpath ./local-dev/kubectl)
+JQ = $(realpath ./local-dev/jq)
+K3D = $(realpath ./local-dev/k3d)
+
 #######
 ####### Functions
 #######
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl $(1) --builder $(CI_BUILD_TAG) --load
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -109,7 +125,7 @@ docker_pull:
 ####### Service Images
 #######
 ####### Services Images are the Docker Images used to run the Lagoon Microservices, these images
-####### will be expected by docker-compose to exist.
+####### will be expected by docker compose to exist.
 
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
@@ -152,7 +168,6 @@ services :=	api \
 			actions-handler \
 			backup-handler \
 			broker \
-			broker-single \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
@@ -177,8 +192,7 @@ build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/backup-handler: services/backup-handler/Dockerfile
-build/broker-single: services/broker/Dockerfile
-build/broker: build/broker-single
+build/broker: services/broker/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
@@ -193,17 +207,11 @@ service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
-build/local-registry: local-dev/registry/Dockerfile
-build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
-build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
 build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
-									local-api-data-watcher-pusher \
-									local-registry \
-									local-dbaas-provider \
-									local-mongodb-dbaas-provider
+									local-api-data-watcher-pusher
 
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -234,26 +242,31 @@ s3-images += $(service-images)
 .PHONY: build
 build:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl default --builder $(CI_BUILD_TAG) --load
+	$(call docker_build,default)
 
 .PHONY: build-list
 build-list:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake --builder $(CI_BUILD_TAG) --print | jq '.target[].tags[]'
+	$(call docker_build,--print) | jq -r '.target | keys[] | "build/"+.'
 
 .PHONY: build-ui-logs-development
 build-ui-logs-development:
 	$(call docker_buildx_create)
-	PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl ui-logs-development --builder $(CI_BUILD_TAG) --load
+	$(call docker_build,ui-logs-development)
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
 wait-for-keycloak:
-	$(info Waiting for Keycloak to be ready....)
-	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
+	@$(info Waiting for Keycloak to be ready....)
+	@grep -m 1 "Config of Keycloak done." <(docker compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-users.sh keycloak:/tmp/seed-users.sh \
+	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' \
+	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
+	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
+	&& echo ""
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio local-minio-upload
+main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -261,26 +274,16 @@ webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(main-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(main-test-services)
 	$(MAKE) wait-for-keycloak
 
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
 
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
-
-.PHONY: local-registry-up
-local-registry-up: build/local-registry
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
-
-# broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
-# when running kubernetes tests
-.PHONY: broker-up
-broker-up: build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
 
 #######
 ####### Publishing Images
@@ -322,52 +325,78 @@ scan-images:
 
 # Show Lagoon Service Logs
 logs:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
 ifeq ($(ARCH), darwin)
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d
 else
 	# once this docker issue is fixed we may be able to do away with this
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
-		docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
+		docker compose -p $(CI_BUILD_TAG) --compatibility up -d
 endif
 	$(MAKE) wait-for-keycloak
 
 down:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
 
 # kill all containers containing the name "lagoon"
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+.PHONY: local-dev-yarn
+local-dev-yarn:
+	$(MAKE) local-dev-yarn-stop
+	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-20-builder
+	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
+	docker exec local-dev-yarn bash -c "cd /app/node-packages/commons && yarn build"
+	echo -e "use 'yarn workspace api add package@version' to update a package in workspace api"
+	docker exec -it local-dev-yarn bash
+	$(MAKE) local-dev-yarn-stop
+
+.PHONY: local-dev-yarn-stop
+local-dev-yarn-stop:
+	docker stop local-dev-yarn || true
+	docker rm local-dev-yarn || true
+
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload mailhog
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	$(MAKE) wait-for-keycloak
+
+.PHONY: api-logs-development
+api-logs-development: build-ui-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	$(MAKE) wait-for-keycloak
 
 ## CI targets
 
-KUBECTL_VERSION := v1.26.6
-HELM_VERSION := v3.12.2
-K3D_VERSION = v5.5.1
-GOJQ_VERSION = v0.12.13
+KUBECTL_VERSION := v1.30.1
+HELM_VERSION := v3.15.2
+K3D_VERSION = v5.6.3
+GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
-CHART_TESTING_VERSION = v3.9.0
-K3D_IMAGE = docker.io/rancher/k3s:v1.26.6-k3s1
+CHART_TESTING_VERSION = v3.11.0
+K3D_IMAGE = docker.io/rancher/k3s:v1.30.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = lagoon-220
 TASK_IMAGES = task-activestandby
+
+# the name of the docker network to create
+DOCKER_NETWORK = k3d
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
@@ -433,45 +462,46 @@ endif
 .PHONY: helm/repos
 helm/repos: local-dev/helm
 	# install repo dependencies required by the charts
-	./local-dev/helm repo add harbor https://helm.goharbor.io
-	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-	./local-dev/helm repo add stable https://charts.helm.sh/stable
-	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
-	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
-	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
-	./local-dev/helm repo add minio https://helm.min.io/
-	./local-dev/helm repo add nats https://nats-io.github.io/k8s/helm/charts/
-	./local-dev/helm repo update
+	$(HELM) repo add harbor https://helm.goharbor.io
+	$(HELM) repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	$(HELM) repo add stable https://charts.helm.sh/stable
+	$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
+	$(HELM) repo add amazeeio https://amazeeio.github.io/charts/
+	$(HELM) repo add lagoon https://uselagoon.github.io/lagoon-charts/
+	$(HELM) repo add minio https://charts.min.io/
+	$(HELM) repo add nats https://nats-io.github.io/k8s/helm/charts/
+	$(HELM) repo add metallb https://metallb.github.io/metallb
+	$(HELM) repo add jetstack https://charts.jetstack.io
+	$(HELM) repo add jouve https://jouve.github.io/charts/
+	$(HELM) repo update
 
 # stand up a k3d cluster configured appropriately for lagoon testing
 .PHONY: k3d/cluster
-k3d/cluster: local-dev/k3d
-	./local-dev/k3d cluster list | grep -q "$(CI_BUILD_TAG)" && exit; \
-		docker network create k3d || true \
+k3d/cluster: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl
+	$(K3D) cluster list | grep -q "$(CI_BUILD_TAG)" && exit; \
+		docker network create $(DOCKER_NETWORK) || true \
 		&& export KUBECONFIG=$$(mktemp) \
 		K3DCONFIG=$$(mktemp ./k3dconfig.XXX) \
-		K3D_NODE_IP=$$(docker run --rm --network k3d alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') && \
-		if [[ $(ARCH) == darwin ]]; then \
-			K3D_NODE_IP=$$(echo $$K3D_NODE_IP | awk -F '.' '{$$4++;printf "%d.%d.%d.%d",$$1,$$2,$$3,$$4}'); \
-		fi \
+		&& LAGOON_K3D_CIDR_BLOCK=$$(docker network inspect $(DOCKER_NETWORK) | $(JQ) '. [0].IPAM.Config[0].Subnet' | tr -d '"') \
+		&& export LAGOON_K3D_NETWORK=$$(echo $${LAGOON_K3D_CIDR_BLOCK%???} | awk -F'.' '{print $$1,$$2,$$3,240}' OFS='.') \
 		&& chmod 644 $$KUBECONFIG \
 		$$([ $(USE_CALICO_CNI) != true ] && envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG) \
 		$$([ $(USE_CALICO_CNI) = true ] && envsubst < ./k3d-calico.config.yaml.tpl > $$K3DCONFIG) \
 		$$([ $(USE_CALICO_CNI) = true ] && wget -N https://k3d.io/$(K3D_VERSION)/usage/advanced/calico.yaml) \
-		&& ./local-dev/k3d cluster create $(CI_BUILD_TAG) --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
+		&& $(K3D) cluster create $(CI_BUILD_TAG) --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
 		&& cp $$KUBECONFIG "kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && K3D_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$K3D_PORT:127.0.0.1:\$$K3D_PORT $$NODE_NAME" \
 		&& echo -e '\nOr running locally:\n' \
-		&& echo -e 'export KUBECONFIG=$$(./local-dev/k3d kubeconfig write $(CI_BUILD_TAG))\n' \
+		&& echo -e 'export KUBECONFIG=$$($(K3D) kubeconfig write $(CI_BUILD_TAG))\n' \
 		&& echo -e 'kubectl ...\n'
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
-	if ! ifconfig lo0 | grep $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
+	if ! ifconfig lo0 | grep $$($(KUBECTL) get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$($(KUBECTL) get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
 	docker rm --force $(CI_BUILD_TAG)-k3d-proxy-32080 || true
 	docker run -d --name $(CI_BUILD_TAG)-k3d-proxy-32080 \
       --publish 32080:32080 \
-      --link k3d-$(CI_BUILD_TAG)-server-0:target --network k3d \
+      --link k3d-$(CI_BUILD_TAG)-server-0:target --network $(DOCKER_NETWORK) \
       alpine/socat -dd \
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
@@ -482,33 +512,28 @@ K3D_TOOLS = k3d helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a k3d cluster
 .PHONY: k3d/test
-k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
-	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
-		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
-		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
-		&& cd "$$CHARTSDIR" \
-		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
-		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) USE_CALICO_CNI=false \
-		&& cd .. && $(MAKE) k3d/push-images && cd "$$CHARTSDIR" \
-		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
+k3d/test: k3d/setup
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
+		&& cd lagoon-charts.k3d.lagoon \
+		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+			HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-			SKIP_INSTALL_REGISTRY=true \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+			SKIP_ALL_DEPS=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 			USE_CALICO_CNI=false \
+			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
+			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
 
@@ -521,15 +546,26 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
 		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
-		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) -j6 k3d/push-images && cd "$$CHARTSDIR" \
-		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
+		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		&& $(MAKE) install-registry DOCKER_NETWORK=$(DOCKER_NETWORK) JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) USE_CALICO_CNI=false \
+		&& cd .. && $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) && cd "$$CHARTSDIR" \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+			HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+			SKIP_INSTALL_REGISTRY=true \
+			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
+			USE_CALICO_CNI=false \
+			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
+			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled
+
+# k3d/local-stack will deploy and seed a lagoon-core with a lagoon-remote and all basic services to get you going
+# and will provide some initial seed data for a user to jump right in and start using lagoon
+.PHONY: k3d/local-stack
+k3d/local-stack: k3d/setup k3d/seed-data k3d/get-lagoon-details
 
 # k3d/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
 # the deployments should be restarted to trigger any updated code changes
@@ -538,14 +574,14 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
 .PHONY: k3d/local-dev-patch
 k3d/local-dev-patch:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
-		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "building $$image" \
 			&& cd services/$$image && yarn install && yarn build && cd ../..; \
 		done \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "patching lagoon-core-$$image" \
-			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
+			&& $(KUBECTL) --namespace lagoon-core patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
 		done
 
 ## Use local-dev-logging to deploy an Elasticsearch/Kibana cluster into docker compose and forward
@@ -553,15 +589,15 @@ k3d/local-dev-patch:
 .PHONY: k3d/local-dev-logging
 k3d/local-dev-logging:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
-		&& ./local-dev/helm upgrade --install --create-namespace \
+		&& docker compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
+		&& $(HELM) upgrade --install --create-namespace \
 			--namespace lagoon-logs-concentrator \
 			--wait --timeout 15m \
 			--values ./local-dev/lagoon-logs-concentrator.values.yaml \
 			lagoon-logs-concentrator \
 			./lagoon-charts.k3d.lagoon/charts/lagoon-logs-concentrator \
-		&& ./local-dev/helm dependency update ./lagoon-charts.k3d.lagoon/charts/lagoon-logging \
-		&& ./local-dev/helm upgrade --install --create-namespace --namespace lagoon-logging \
+		&& $(HELM) dependency update ./lagoon-charts.k3d.lagoon/charts/lagoon-logging \
+		&& $(HELM) upgrade --install --create-namespace --namespace lagoon-logging \
 			--wait --timeout 15m \
 			--values ./local-dev/lagoon-logging.values.yaml \
 			lagoon-logging \
@@ -574,35 +610,98 @@ k3d/local-dev-logging:
 # into the image registry and reinstalls the lagoon-core helm chart.
 .PHONY: k3d/dev
 k3d/dev: build
-	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
-		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
+		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& $(MAKE) k3d/push-images && cd lagoon-charts.k3d.lagoon \
-		&& $(MAKE) install-lagoon-core IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
+		&& $(MAKE) install-lagoon-core DOCKER_NETWORK=$(DOCKER_NETWORK) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+			HELM=$(HELM) KUBECTL=$(KUBECTL) \
+			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY
+			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
+			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"
+	@$(MAKE) k3d/get-lagoon-details
 
 # k3d/push-images pushes locally build images into the k3d cluster registry.
 IMAGES = $(K3D_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
 .PHONY: k3d/push-images
 k3d/push-images:
-	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
-		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(IMAGES); do \
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
-# Use k3d/get-admin-creds to retrieve the admin JWT, Lagoon admin password, and the password for the lagoonadmin user.
-# These credentials are re-created on every re-install of Lagoon Core.
-.PHONY: k3d/get-admin-creds
-k3d/get-admin-creds:
-	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
-		&& cd lagoon-charts.k3d.lagoon \
-		&& $(MAKE) get-admin-creds
+# Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
+.PHONY: k3d/get-lagoon-details
+k3d/get-lagoon-details:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	echo "===============================" && \
+	echo "Lagoon UI URL: http://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
+	&& echo "Lagoon API URL: http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
+	&& echo "Lagoon API admin legacy token: $$(docker run \
+		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
+		-e JWTAUDIENCE=api.dev \
+		-e JWTUSER=localadmin \
+		uselagoon/tests \
+		python3 /ansible/tasks/api/admin_token.py)" \
+	&& echo "Lagoon webhook URL: http://lagoon-webhook.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
+	&& echo "SSH Core Service: $$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.spec.ports[0].port}')" \
+	&& echo "SSH Portal Service: $$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" \
+	&& echo "SSH Token Service: $$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
+	&& echo "Keycloak admin URL: http://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
+	&& echo "Keycloak admin password: $$($(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)" \
+	&& echo "MailPit (email catching service): http://mailpit.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
+	&& echo "" \
+	&& echo "You can run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli" \
+	&& echo "" \
+
+# Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
+.PHONY: k3d/get-lagoon-cli-details
+k3d/get-lagoon-cli-details:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	echo "===============================" && \
+	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql \\" \
+	&& echo "--token $$(docker run \
+		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
+		-e JWTAUDIENCE=api.dev \
+		-e JWTUSER=localadmin \
+		uselagoon/tests \
+		python3 /ansible/tasks/api/admin_token.py) \\" \
+	&& echo "--hostname $$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}') \\" \
+	&& echo "--port $$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
+	&& echo "" \
+	&& echo "When interacting with this Lagoon via the lagoon-cli, you will need to add the flag '--lagoon local-k3d' to commands" \
+	&& echo "or set it as the default using 'lagoon config default --lagoon local-k3d'"
+
+# k3d/seed-data is a way to seed a lagoon-core deployed via k3d/setup.
+# it is also called as part of k3d/local-stack though so should not need to be called directly.
+.PHONY: k3d/seed-data
+k3d/seed-data:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	export LAGOON_LEGACY_ADMIN=$$(docker run \
+		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
+		-e JWTAUDIENCE=api.dev \
+		-e JWTUSER=localadmin \
+		uselagoon/tests \
+		python3 /ansible/tasks/api/admin_token.py) && \
+	echo "Loading API seed data" && \
+	export SSH_PORTAL_HOST="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
+	export SSH_PORTAL_PORT="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" && \
+	export ROUTER_PATTERN="\$${project}.\$${environment}.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
+	export SEED_DATA=$$(envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}') && \
+    export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
+    wget --quiet --header "Content-Type: application/json" --header "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" --post-data "$$SEED_DATA_JSON" --content-on-error -O - && \
+	echo "Loading API seed users" && \
+	cat ./local-dev/k3d-seed-data/seed-users.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh" \
+	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-users.sh' \
+	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
+	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
+	&& echo ""
 
 # Use k3d/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
 # log in the foreground, so perform this command in a separate window/terminal.
@@ -617,29 +716,31 @@ k3d/port-forwards:
 .PHONY: k3d/retest
 k3d/retest:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& cd lagoon-charts.k3d.lagoon \
-		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
+		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+			HELM=$(HELM) KUBECTL=$(KUBECTL) \
+			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 			SKIP_ALL_DEPS=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 			USE_CALICO_CNI=false \
+			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
+			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install
+			ct install --helm-extra-args "--timeout 60m"
 
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d
-	./local-dev/k3d cluster delete $(CI_BUILD_TAG)
+	$(K3D) cluster delete $(CI_BUILD_TAG)
 ifeq ($(ARCH), darwin)
 	docker rm --force $(CI_BUILD_TAG)-k3d-proxy-32080 || true
 endif

@@ -37,6 +37,10 @@ export const Sql = {
       .select('nt.*', 'pn.*', knex.raw('? as orig_type', [type]))
       .toString();
   },
+  selectAllNotifications: (type: string) =>
+    knex(`notification_${type}`)
+      .select('*', knex.raw(`'${type}' as type`))
+      .toString(),
   deleteProjectNotification: input => {
     const deleteQuery = knex.raw(
       `DELETE pn

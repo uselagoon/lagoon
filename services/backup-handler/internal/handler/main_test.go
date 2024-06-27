@@ -3,12 +3,12 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/uselagoon/lagoon-cli/pkg/api"
+	"github.com/uselagoon/machinery/api/schema"
 )
 
 func checkEqual(t *testing.T, got, want interface{}, msgs ...interface{}) {
@@ -80,11 +80,11 @@ func TestProcessBackups(t *testing.T) {
 	// }
 
 	var backupData Backups
-	jsonBackupTestData, err := ioutil.ReadFile("testdata/example-com.json")
+	jsonBackupTestData, err := os.ReadFile("testdata/example-com.json")
 	if err != nil {
 		t.Errorf("unable to read file, error is %s:", err.Error())
 	}
-	resultTestData, err := ioutil.ReadFile("testdata/example-com.result")
+	resultTestData, err := os.ReadFile("testdata/example-com.result")
 	if err != nil {
 		t.Errorf("unable to read file, error is %s:", err.Error())
 	}
@@ -93,8 +93,8 @@ func TestProcessBackups(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to decode json, error is %s:", err.Error())
 	}
-	var backupsEnv api.Environment
-	addBackups := ProcessBackups(backupData, backupsEnv)
+	var backupsEnv schema.Environment
+	addBackups := ProcessBackups(backupData, backupsEnv.Backups)
 	var backupResult []string
 	for _, backup := range addBackups {
 		backupResult = append(backupResult, backup.Body.Snapshots[0].Hostname)

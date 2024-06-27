@@ -42,12 +42,22 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.actor.username) {
+      sourceUser = body.actor.username
+    }
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``
@@ -72,8 +82,6 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
         case "NoNeedToDeployBranch":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,

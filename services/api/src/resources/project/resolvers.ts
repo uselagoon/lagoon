@@ -1,8 +1,5 @@
-// @ts-ignore
 import * as R from 'ramda';
-// @ts-ignore
 import validator from 'validator';
-// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -15,13 +12,11 @@ import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
-import { createHarborOperations } from './harborSetup';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import GitUrlParse from 'git-url-parse';
-
-const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -67,7 +62,7 @@ export const getProjectDeployKey: ResolverFn = async (
 
 export const getAllProjects: ResolverFn = async (
   root,
-  { order, createdAfter, gitUrl },
+  { order, createdAfter, gitUrl, buildImage },
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
@@ -82,10 +77,7 @@ export const getAllProjects: ResolverFn = async (
       return [];
     }
     // get the project ids from the users groups
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub,
-
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -97,6 +89,10 @@ export const getAllProjects: ResolverFn = async (
 
   if (gitUrl) {
     queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
+  }
+
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
 
   if (userProjectIds) {
@@ -197,9 +193,7 @@ export const getProjectsByMetadata: ResolverFn = async (
       return [];
     }
 
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -245,12 +239,18 @@ export const addProject = async (
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
+    // check the project quota before adding the project
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    if (!organization) {
+      // org doesn't exist, unauth
+      throw new Error(
+        `Unauthorized: You don't have permission to "addProject" on "organization"`
+      );
+    }
     // if the project is created without the addOrgOwner boolean set to true, then do not add the user to the project as its owner
     if (!input.addOrgOwner) {
       userAlreadyHasAccess = true
     }
-    // check the project quota before adding the project
-    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
     if (projects.length >= organization.quotaProject && organization.quotaProject != -1) {
       throw new Error(
@@ -271,7 +271,7 @@ export const addProject = async (
       }
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false") {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.projectViewAll) {
       await hasPermission('project', 'add');
     } else {
       throw new Error(
@@ -280,6 +280,11 @@ export const addProject = async (
     }
   }
 
+  if (input.name.trim().length == 0) {
+    throw new Error(
+      'A project name must be provided!'
+    );
+  }
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
       'Only lowercase characters, numbers and dashes allowed for name!'
@@ -391,7 +396,7 @@ export const addProject = async (
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
       attributes: attributes
-    });
+    }, project.id, input.organization);
   } catch (err) {
     logger.error(
       `Could not create default project group for ${project.name}: ${err.message}`
@@ -473,11 +478,6 @@ export const addProject = async (
     }
   }
 
-  if (DISABLE_CORE_HARBOR == "false") {
-    const harborOperations = createHarborOperations(sqlClientPool);
-    await harborOperations.addProject(project.name, project.id);
-  }
-
   userActivityLogger(`User added a project '${project.name}'`, {
     project: '',
     event: 'api:addProject',
@@ -493,7 +493,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   _root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, userActivityLogger, models, keycloakGroups }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -536,7 +536,7 @@ export const deleteProject: ResolverFn = async (
 
   // Remove the project from all groups it is associated to
   try {
-    const projectGroups = await models.GroupModel.loadGroupsByProjectIdFromGroups(pid, keycloakGroups);
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
     // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
     // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
     for (const groupInput of projectGroups) {
@@ -586,12 +586,6 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
-  // @TODO discuss if we want to delete projects in harbor or not
-  // if (DISABLE_CORE_HARBOR == "false") {
-  //   const harborOperations = createHarborOperations(sqlClientPool);
-  //   const harborResults = await harborOperations.deleteProject(project.name)
-  // }
-
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: '',
     event: 'api:deleteProject',
@@ -618,11 +612,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -676,6 +665,11 @@ export const updateProject: ResolverFn = async (
   }
 
   if (typeof name === 'string') {
+    if (name.trim().length == 0) {
+      throw new Error(
+        'A project name must be provided!'
+      );
+    }
     if (validator.matches(name, /[^0-9a-z-]/)) {
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'
@@ -799,11 +793,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -905,11 +894,6 @@ export const updateProject: ResolverFn = async (
         privateKey,
         subfolder,
         routerPattern,
-        activeSystemsDeploy,
-        activeSystemsRemove,
-        activeSystemsTask,
-        activeSystemsMisc,
-        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,

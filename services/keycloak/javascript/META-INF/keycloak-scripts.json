@@ -8,6 +8,11 @@
   ],
   "policies": [
     {
+      "name": "Default Policy",
+      "description": "A policy that grants access only for users within this realm",
+      "fileName": "policies/default-policy.js"
+    },
+    {
       "name": "[Lagoon] Users role for realm is Platform Owner",
       "description": "Checks the users role for the realm is Platform Owner or higher",
       "fileName": "policies/users-role-for-realm-is-platform-owner.js"
@@ -81,6 +86,11 @@
       "name": "[Lagoon] User is owner of organization",
       "description": "Checks that the user is owner of an organization via attribute",
       "fileName": "policies/user-is-owner-of-organization.js"
+    },
+    {
+      "name": "[Lagoon] User is admin of organization",
+      "description": "Checks that the user is admin of an organization via attribute",
+      "fileName": "policies/user-is-admin-of-organization.js"
     },
     {
       "name": "[Lagoon] User is viewer of organization",

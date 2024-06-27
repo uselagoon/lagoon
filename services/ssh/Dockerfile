@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -26,40 +26,32 @@ ENV TMPDIR=/tmp \
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && apt-get install -y curl build-essential ssh curl vim jq python3-jwt
+
 ENV LAGOON=ssh \
-    OC_VERSION=v3.11.0 \
-    OC_HASH=0cbc58b \
-    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
-    KUBECTL_VERSION=v1.20.0 \
+    KUBECTL_VERSION=v1.25.0 \
     TZ=UTC
 
-COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
+RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -Lo kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${architecture}/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/bin/kubectl
 
-RUN apt-get update \
-    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl vim jq python3-jwt \
-    && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
-    && mkdir /tmp/libnss-mysql \
-    && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
-    && cd /tmp/libnss-mysql \
-    && ./configure \
+RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -sL https://github.com/krallin/tini/releases/download/v0.19.0/tini-${architecture} -o /sbin/tini && chmod a+x /sbin/tini
+
+COPY services/ssh/libnss-ato-master.tar.gz /tmp/libnss-ato-master.tar.gz
+
+RUN mkdir /tmp/libnss-ato \
+    && tar -xzf /tmp/libnss-ato-master.tar.gz -C /tmp/libnss-ato --strip-components=1 \
+    && cd /tmp/libnss-ato/ \
     && make \
     && make install \
-    && apt-get remove --purge -y build-essential \
+    && rm -rf /tmp/libnss-ato-master.tar.gz /tmp/libnss-ato
+
+RUN apt-get remove --purge -y build-essential \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql
-
-RUN mkdir -p /openshift-origin-client-tools && \
-    curl -Lo /tmp/openshift-origin-client-tools.tar https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_HASH}-linux-64bit.tar.gz && \
-    echo "$OC_SHA256  /tmp/openshift-origin-client-tools.tar" | sha256sum -c -  && \
-    mkdir /tmp/openshift-origin-client-tools && \
-    tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
-    install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
-
-RUN curl -Lo kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && \
-    mv kubectl /usr/bin/kubectl
-
-RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
+    && rm -rf /var/lib/apt/lists/*
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -72,9 +64,7 @@ RUN fix-permissions /home/token.sh
 RUN fix-permissions /home/grant.sh
 
 RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/ && \
-    fix-permissions /etc/libnss-mysql.cfg && \
-    fix-permissions /etc/libnss-mysql-root.cfg
+    fix-permissions /run/
 
 RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
 

@@ -1,6 +1,6 @@
 - name: "Add project {{ project }} to openshift {{ openshift }}"
   block:
-    - include: admin-token.yaml
+    - ansible.builtin.include_tasks: admin-token.yaml
     - name: "Add project {{ project }} to openshift {{ openshift }}"
       uri:
         url: "{{ graphql_url }}"

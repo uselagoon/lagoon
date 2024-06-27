@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
@@ -160,7 +159,7 @@ export const updateUser: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'update', {
@@ -187,7 +186,7 @@ export const resetUserPassword: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   // someone can reset their own password if they want to, but admins will be able to do this
@@ -207,7 +206,7 @@ export const deleteUser: ResolverFn = async (
 ) => {
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('user', 'delete', {
@@ -222,7 +221,7 @@ export const deleteUser: ResolverFn = async (
 // addUserToOrganization adds a user as an organization owner
 export const addUserToOrganization: ResolverFn = async (
   _root,
-  { input: { user: userInput, organization: organization, owner: owner } },
+  { input: { user: userInput, organization: organization, admin: admin, owner: owner } },
   { sqlClientPool, models, hasPermission, userActivityLogger },
 ) => {
 
@@ -233,12 +232,13 @@ export const addUserToOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   let updateUser = {
     id: user.id,
     organization: organization,
+    admin: false,
     owner: false,
   }
   if (owner) {
@@ -247,9 +247,16 @@ export const addUserToOrganization: ResolverFn = async (
     });
     updateUser.owner = true
   } else {
-    await hasPermission('organization', 'addViewer', {
-      organization: organization
-    });
+    if (admin) {
+      await hasPermission('organization', 'addOwner', {
+        organization: organization
+      });
+      updateUser.admin = true
+    } else {
+      await hasPermission('organization', 'addViewer', {
+        organization: organization
+      });
+    }
   }
   await models.UserModel.updateUser(updateUser);
 
@@ -261,6 +268,7 @@ export const addUserToOrganization: ResolverFn = async (
         id: user.id,
         email: user.email,
         organization: organization,
+        admin: admin,
         owner: owner,
       },
     }
@@ -284,7 +292,7 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('organization', 'addOwner', {

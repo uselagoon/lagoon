@@ -5,11 +5,12 @@ The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tr
 ## Supported Versions
 
 * 2.7 \(available for compatibility only, no longer officially supported\) - `uselagoon/python-2.7`
-* 3.7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.7.Dockerfile) (Security Support until July 2023) - `uselagoon/python-3.7`
+* 3.7 \(available for compatibility only, no longer officially supported\) - `uselagoon/python-3.7`
 * 3.8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.8.Dockerfile) (Security Support until October 2024) - `uselagoon/python-3.8`
 * 3.9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.9.Dockerfile) (Security Support until October 2025) - `uselagoon/python-3.9`
 * 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.10.Dockerfile) (Security Support until October 2026) - `uselagoon/python-3.10`
 * 3.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.11.Dockerfile) (Security Support until October 2027) - `uselagoon/python-3.11`
+* 3.12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.12.Dockerfile) (Security Support until October 2028) - `uselagoon/python-3.12`
 
 !!! Tip
     We stop updating and publishing EOL Python images usually with the Lagoon release that comes after the officially communicated EOL date: [https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions). Previous published versions will remain available.
@@ -18,7 +19,7 @@ The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tr
 
 The default exposed port of Python containers is port `8800`.
 
-Persistent storage is configurable in Lagoon, using the `lagoon.type: python-persistent`. See [the docs](../using-lagoon-the-basics/docker-compose-yml.md#persistent-storage) for more info
+Persistent storage is configurable in Lagoon, using the `lagoon.type: python-persistent`. See [the docs](../concepts-basics/docker-compose-yml.md#persistent-storage) for more info
 
 Use the following labels in your `docker-compose.yml` file to configure it:
 `lagoon.persistent` = use this to define the path in the container to use as persistent storage - e.g. /app/files
@@ -43,7 +44,7 @@ python:
     ports:
     # local development only
           # this exposes the port 8800 with a random local port
-          # find it with `docker-compose port python 8800`
+          # find it with `docker compose port python 8800`
         - "8800"
     volumes:
     # local development only

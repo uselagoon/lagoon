@@ -9,8 +9,9 @@ This Dockerfile is intended to be used to set up a standalone Solr server with a
 * 5.5 \(available for compatibility only, no longer officially supported\)
 * 6.6 \(available for compatibility only, no longer officially supported\)
 * 7.7 \(available for compatibility only, no longer officially supported\)
-* 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile) - `uselagoon/solr-7`
+* 7 \(available for compatibility only, no longer officially supported\) - `uselagoon/solr-7`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile) - `uselagoon/solr-8`
+* 9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/9.Dockerfile) - `uselagoon/solr-9`
 
 ## Lagoon adaptions
 
@@ -23,7 +24,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 ## Environment Variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 | Environment Variable      | Default   | Description                                                               |
 | :------------------------ | :-------- | :------------------------------------------------------------------------ |

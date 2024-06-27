@@ -7,9 +7,6 @@ import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
-import { Service } from 'aws-sdk';
-import * as api from '@lagoon/commons/dist/api';
-import { getEnvironmentsByProjectId } from '../environment/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
@@ -131,9 +128,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
   let userProjectIds: number[];
 
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -151,9 +146,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
   let userProjectIds: number[];
   if (!adminScopes.projectViewAll) {
-    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    }, keycloakUsersGroups);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
@@ -201,22 +194,32 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission, admin
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
     const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
-    const {
-      insertId
-    } = await query(
-      sqlClientPool,
-      Sql.insertFact({
-        environment,
-        name,
-        value,
-        source,
-        description,
-        type,
-        keyFact,
-        category,
-        service
-      })
-    );
+
+    let insertId: number;
+    try {
+       ({insertId} = await query(
+        sqlClientPool,
+        Sql.insertFact({
+          environment,
+          name,
+          value,
+          source,
+          description,
+          type,
+          keyFact,
+          category,
+          service
+        })
+      ));
+    } catch(error) {
+      if(error.text.includes("Duplicate entry")){
+        throw new Error(
+          `Error adding fact. Fact already exists.`
+        );
+      } else {
+        throw new Error(error.message);
+      }
+    };
 
     const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
     returnFacts.push(R.prop(0, rows));
@@ -242,20 +245,31 @@ export const addFact: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertFact({
-      environment: environmentId,
-      name,
-      value,
-      source,
-      description,
-      type,
-      keyFact,
-      category,
-      service
-    }),
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertFact({
+        environment: environmentId,
+        name,
+        value,
+        source,
+        description,
+        type,
+        keyFact,
+        category,
+        service
+      }),
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact. Fact already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,
@@ -331,7 +345,7 @@ export const addFactsByName: ResolverFn = async (
   }
 
   const returnFacts = await processAddFacts(
-    R.map((fact) => {return {environment: envId, ...fact};}, facts),
+    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
     sqlClientPool,
     hasPermission,
     adminScopes,
@@ -382,18 +396,22 @@ export const deleteFact: ResolverFn = async (
 
 export const deleteFactsFromSource: ResolverFn = async (
   root,
-  { input: { environment: environmentId, source } },
+  { input: { environment: environmentId, source, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
+  if(environment == null) {
+    throw new Error(`Unable to find environment with id: ${environmentId}`);
+  }
+
   await hasPermission('fact', 'delete', {
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
+  await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
   userActivityLogger(`User deleted facts`, {
     project: '',
@@ -401,7 +419,8 @@ export const deleteFactsFromSource: ResolverFn = async (
     payload: {
       data: {
         environment: environmentId,
-        source
+        source,
+        service
       }
     }
   });
@@ -425,13 +444,24 @@ export const addFactReference: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertFactReference({
-      fid,
-      name
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertFactReference({
+        fid,
+        name
+      })
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding fact reference. Fact reference already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,

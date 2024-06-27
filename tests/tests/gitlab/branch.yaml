@@ -5,8 +5,8 @@
   vars:
     git_files: "node{{ node_version }}/"
   tasks:
-  - include: ../../tasks/git-init.yaml
-  - include: ../../tasks/git-add-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
 
 - name: "{{ testname }} - webhook gitlab push first commit hash to repo"
   hosts: localhost
@@ -15,10 +15,10 @@
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-gitlab/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push.yaml
 
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -29,7 +29,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
 
 - name: "{{ testname }} - webhook gitlab push second commit hash to repo"
   hosts: localhost
@@ -38,9 +38,9 @@
     git_hash_push: "{{ current_head }}"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-gitlab/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
@@ -51,7 +51,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
   - set_fact:
       third_commit_hash: "{{ current_head }}"
 
@@ -60,7 +60,7 @@
   hosts: localhost
   serial: 1
   tasks:
-  - include: ../../tasks/git-empty-commit-push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/git-empty-commit-push.yaml
 
 - name: "{{ testname }} - webhook gitlab push for third commit (fourth commit exists but will not yet be deployed)"
   hosts: localhost
@@ -69,14 +69,23 @@
     git_hash_push: "{{ third_commit_hash }}"
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-gitlab/push.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push.yaml
 
-- include: ../../checks/check-branch-sha.yaml
+- ansible.builtin.import_playbook: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ third_commit_hash }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+
+- name: "{{ testname }} - api check deployment status"
+  hosts: localhost
+  serial: 1
+  vars:
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+    buildStatus: "complete"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-latest-deployment-status.yaml
 
 - name: "{{ testname }} - webhook gitlab delete push"
   hosts: localhost
@@ -84,7 +93,7 @@
   vars:
     git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
-  - include: ../../tasks/webhook-gitlab/push-delete.yaml
+  - ansible.builtin.include_tasks: ../../tasks/webhook-gitlab/push-delete.yaml
 
 - name: "{{ testname }} - check if site for project does not exist anymore"
   hosts: localhost
@@ -93,4 +102,4 @@
     url: "{{ check_url }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
-  - include: ../../checks/check-url-returncode.yaml
+  - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

@@ -28,7 +28,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue *m
 		}
 		return nil
 	}
-	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
+	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 	deployment, err := lagoon.DeployLatest(ctx, deploy, l)
 	if err != nil {
 		// send the log to the lagoon-logs exchange to be processed

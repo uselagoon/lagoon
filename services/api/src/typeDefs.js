@@ -132,6 +132,15 @@ const typeDefs = gql`
     GUEST
   }
 
+  enum DeploymentSourceType {
+    API
+    WEBHOOK
+  }
+
+  enum TaskSourceType {
+    API
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -156,6 +165,7 @@ const typeDefs = gql`
     groupName: String
     environment: Int
     project: Int
+    systemWide: Boolean
     permission: TaskPermission
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
@@ -178,6 +188,7 @@ const typeDefs = gql`
     groupName: String
     environment: Int
     project: Int
+    systemWide: Boolean
     permission: TaskPermission
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
@@ -257,29 +268,6 @@ const typeDefs = gql`
     deleted: String
   }
 
-  type ProblemHarborScanMatch {
-    id: Int
-    name: String
-    description: String
-    defaultLagoonProject: String
-    defaultLagoonEnvironment: String
-    defaultLagoonService: String
-    regex: String
-  }
-
-  input AddProblemHarborScanMatchInput {
-    name: String!
-    description: String!
-    defaultLagoonProject: String
-    defaultLagoonEnvironment: String
-    defaultLagoonService: String
-    regex: String!
-  }
-
-  input DeleteProblemHarborScanMatchInput {
-    id: Int!
-  }
-
   input AddProblemInput {
     id: Int
     environment: Int!
@@ -307,6 +295,7 @@ const typeDefs = gql`
   input DeleteProblemInput {
     environment: Int!
     identifier: String!
+    service: String
   }
 
   input DeleteProblemsFromSourceInput {
@@ -377,6 +366,7 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+    service: String
   }
 
   type FactReference {
@@ -565,6 +555,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationRocketChat {
@@ -574,6 +565,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationSlack {
@@ -583,6 +575,7 @@ const typeDefs = gql`
     channel: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationEmail {
@@ -591,6 +584,7 @@ const typeDefs = gql`
     emailAddress: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type NotificationWebhook {
@@ -599,6 +593,7 @@ const typeDefs = gql`
     webhook: String
     contentType: String
     notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
   }
 
   type UnassignedNotification {
@@ -663,31 +658,11 @@ const typeDefs = gql`
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
-    """
-    Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsDeploy: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerBuildDeploy' exists
-    """
-    activeSystemsPromote: String
-    """
-    Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_controllerRemove' exists
-    """
-    activeSystemsRemove: String
-    """
-    Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_controllerJob' exists
-    """
-    activeSystemsTask: String
-    """
-    Which internal Lagoon System is responsible for miscellaneous tasks
-    Currently only 'lagoon_controllerMisc' exists
-    """
-    activeSystemsMisc: String
+    activeSystemsDeploy: String @deprecated(reason: "No longer in use")
+    activeSystemsPromote: String @deprecated(reason: "No longer in use")
+    activeSystemsRemove: String @deprecated(reason: "No longer in use")
+    activeSystemsTask: String @deprecated(reason: "No longer in use")
+    activeSystemsMisc: String @deprecated(reason: "No longer in use")
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -932,13 +907,15 @@ const typeDefs = gql`
     id: Int
     environment: Environment
     persistentStorageClaim: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
     updated: String
   }
 
   type EnvironmentStorageMonth {
     month: String
-    bytesUsed: Float
+    bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed instead. This will be removed in a future release.")
+    kibUsed: Float
   }
 
   type EnvironmentHoursMonth {
@@ -949,6 +926,14 @@ const typeDefs = gql`
   type EnvironmentService {
     id: Int
     name: String
+    type: String
+    containers: [ServiceContainer]
+    created: String
+    updated: String
+  }
+
+  type ServiceContainer {
+    name: String
   }
 
   type Backup {
@@ -957,7 +942,7 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
-    deleted: String
+    deleted: String @deprecated(reason: "This will be removed in a future release.")
     restore: Restore
   }
 
@@ -966,6 +951,10 @@ const typeDefs = gql`
     backupId: String
     status: String
     restoreLocation: String
+    """
+    The size of the restored file in bytes
+    """
+    restoreSize: Float
     created: String
   }
 
@@ -987,6 +976,15 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    """
+    The username or email address that triggered this deployment.
+    For webhook requests, the username or email address will attempt to be extracted from the webhook payload depending on the source of the webhook
+    """
+    sourceUser: String
+    """
+    The source of this task from the available deplyoment trigger types
+    """
+    sourceType: DeploymentSourceType
   }
 
   type Insight {
@@ -1026,6 +1024,14 @@ const typeDefs = gql`
     remoteId: String
     logs: String
     files: [File]
+    """
+    The username or email address that triggered the task.
+    """
+    sourceUser: String
+    """
+    The source of this task from the available task trigger types
+    """
+    sourceType: TaskSourceType
   }
 
   type AdvancedTask {
@@ -1059,6 +1065,7 @@ const typeDefs = gql`
     email: String
     firstName: String
     lastName: String
+    admin: Boolean
     owner: Boolean
     comment: String
     groupRoles: [GroupRoleInterface]
@@ -1080,6 +1087,7 @@ const typeDefs = gql`
     groups: [OrgGroupInterface]
     owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
+    created: String
   }
 
   input AddOrganizationInput {
@@ -1331,7 +1339,7 @@ const typeDefs = gql`
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
-    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
+    allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType, buildImage: Boolean): [Project]
     """
     Returns all Project Objects matching metadata filters
     """
@@ -1339,11 +1347,11 @@ const typeDefs = gql`
     """
     Returns all OpenShift Objects
     """
-    allOpenshifts(disabled: Boolean): [Openshift]
+    allOpenshifts(disabled: Boolean, buildImage: Boolean): [Openshift]
     """
     Returns all Kubernetes Objects
     """
-    allKubernetes(disabled: Boolean): [Kubernetes]
+    allKubernetes(disabled: Boolean, buildImage: Boolean): [Kubernetes]
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
@@ -1369,10 +1377,6 @@ const typeDefs = gql`
     Returns LAGOON_VERSION
     """
     lagoonVersion: JSON
-    """
-    Returns all ProblemHarborScanMatchers
-    """
-    allProblemHarborScanMatchers: [ProblemHarborScanMatch]
     """
     Returns all AdvancedTaskDefinitions
     """
@@ -1409,6 +1413,10 @@ const typeDefs = gql`
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
+    List all notifications
+    """
+    allNotifications: [Notification]
+    """
     List all organizations
     """
     allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
@@ -1417,9 +1425,17 @@ const typeDefs = gql`
     """
     organizationById(id: Int!): Organization
     organizationByName(name: String!): Organization
-    getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String
-    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
+    getGroupProjectOrganizationAssociation(input: AddGroupToOrganizationInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
+    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
+    checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
+  }
+
+  type ProjectGroupsToOrganization {
+    projects: [Project]
+    groups: [GroupInterface]
+    otherOrgProjects: [Project]
+    otherOrgGroups: [GroupInterface]
   }
 
   # Must provide id OR name
@@ -1514,10 +1530,40 @@ const typeDefs = gql`
     kubernetesNamespacePattern: String
   }
 
+  input AddEnvironmentServiceInput {
+    id: Int
+    environment: Int!
+    name: String!
+    type: String!
+    containers: [ServiceContainerInput]
+  }
+
+  input ServiceContainerInput {
+    name: String!
+  }
+
+  input DeleteEnvironmentServiceInput {
+    name: String!
+    environment: Int!
+  }
+
   input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
+  }
+
+  input AddOrUpdateStorageOnEnvironmentInput {
+    environment: Int!
+    persistentStorageClaim: String!
+    """
+    kibUsed is a float to allow for greater than 32-bit integer inputs
+    """
+    kibUsed: Float!
     """
     Date in format 'YYYY-MM-DD'
     """
@@ -1570,6 +1616,8 @@ const typeDefs = gql`
     bulkId: String
     bulkName: String
     buildStep: String
+    sourceUser: String
+    sourceType: DeploymentSourceType
   }
 
   input DeleteDeploymentInput {
@@ -1611,6 +1659,8 @@ const typeDefs = gql`
     command: String
     remoteId: String
     execute: Boolean
+    sourceUser: String
+    sourceType: TaskSourceType
   }
 
 
@@ -1660,6 +1710,7 @@ const typeDefs = gql`
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
     adminOnlyView: Boolean
+    systemWide: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1860,6 +1911,7 @@ const typeDefs = gql`
   input addUserToOrganizationInput {
     user: UserInput!
     organization: Int!
+    admin: Boolean
     owner: Boolean
   }
 
@@ -2243,6 +2295,9 @@ const typeDefs = gql`
     """
     addOrUpdateEnvironmentStorage(
       input: AddOrUpdateEnvironmentStorageInput!
+    ): EnvironmentStorage  @deprecated(reason: "Use addOrUpdateStorageOnEnvironment instead")
+    addOrUpdateStorageOnEnvironment(
+      input: AddOrUpdateStorageOnEnvironmentInput!
     ): EnvironmentStorage
     addNotificationSlack(input: AddNotificationSlackInput!): NotificationSlack
     updateNotificationSlack(
@@ -2338,10 +2393,8 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
-    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
     addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
     addFactsByName(input: AddFactsByNameInput!): [Fact]
@@ -2366,23 +2419,23 @@ const typeDefs = gql`
     addWorkflow(input: AddWorkflowInput!): Workflow
     updateWorkflow(input: UpdateWorkflowInput): Workflow
     deleteWorkflow(input: DeleteWorkflowInput!): String
-    taskDrushArchiveDump(environment: Int!): Task
-    taskDrushSqlDump(environment: Int!): Task
-    taskDrushCacheClear(environment: Int!): Task
-    taskDrushCron(environment: Int!): Task
+    taskDrushArchiveDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushSqlDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushCacheClear(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushCron(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushSqlSync(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
-    ): Task
+    ): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushRsyncFiles(
       sourceEnvironment: Int!
       destinationEnvironment: Int!
-    ): Task
-    taskDrushUserLogin(environment: Int!): Task
+    ): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
+    taskDrushUserLogin(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
-    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
+    setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
@@ -2425,15 +2478,15 @@ const typeDefs = gql`
     """
     Add a group to an organization
     """
-    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
+    addGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Add an existing group to an organization
     """
-    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface
+    addExistingGroupToOrganization(input: AddGroupToOrganizationInput!): OrgGroupInterface  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Add an existing project to an organization
     """
-    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    addExistingProjectToOrganization(input: AddProjectToOrganizationInput): Project  @deprecated(reason: "Use bulkImportProjectsAndGroupsToOrganization instead")
     """
     Remove a project from an organization, this will return the project to a state where it has no groups or notifications associated to it
     """
@@ -2446,6 +2499,15 @@ const typeDefs = gql`
     Remove a deploytarget from an organization
     """
     removeDeployTargetFromOrganization(input: RemoveDeployTargetFromOrganizationInput): Organization
+    """
+    Run the query checkBulkImportProjectsAndGroupsToOrganization first to see the changes that would be made before executing this, as it may contain undesirable changes
+    Add an existing project to an organization, this will include all the groups and all the projects that those groups contain
+    Optionally detach any notifications attached to the projects, they will be need to be recreated within the organization afterwards
+    This mutation performs a lot of actions, on big project and group imports, if it times out, subsequent runs will perform only the changes necessary
+    """
+    bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
+    addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
+    deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
   }
 
   type Subscription {

@@ -48,6 +48,12 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.user.username) {
+      sourceUser = body.user.username
+    }
     const data: deployData = {
       repoUrl: body.object_attributes.target.web_url,
       repoName: body.object_attributes.target.name,
@@ -61,7 +67,11 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.object_attributes.iid}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {
@@ -73,8 +83,6 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.object_attributes.iid} opened. No deploy task created, reason: ${error}`

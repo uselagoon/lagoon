@@ -91,7 +91,7 @@ export const deleteOpenshift: ResolverFn = async (
   .join('openshift', 'project.openshift', '=', 'openshift.id')
   .where('openshift.name', input.name).count('project.id', {as: 'numactive'}).toString());
 
-  const numberActiveOs = R.path(['0', 'numactive'], res);
+  const numberActiveOs: number = R.path(['0', 'numactive'], res);
   if(numberActiveOs > 0) {
     throw new Error(`Openshift "${input.name} still in use, can not delete`);
   }
@@ -111,15 +111,21 @@ export const deleteOpenshift: ResolverFn = async (
 
 export const getAllOpenshifts: ResolverFn = async (
   root,
-  { disabled },
+  { disabled, buildImage },
   { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('openshift', 'viewAll');
 
-  if (disabled != null) {
-    return query(sqlClientPool, knex('openshift').where('disabled', disabled).toString());
+  let queryBuilder = knex('openshift');
+  if (buildImage) {
+    queryBuilder = queryBuilder.and.whereNot('build_image', '');
   }
-  return query(sqlClientPool, knex('openshift').toString());
+
+  if (disabled != null) {
+    queryBuilder = queryBuilder.where('disabled', disabled);
+  }
+
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getOpenshiftByProjectId: ResolverFn = async (

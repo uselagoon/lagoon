@@ -1,0 +1,27 @@
+{
+	"type": "build",
+	"namespace": "lagoon-demo-staging",
+	"meta": {
+		"buildName": "lagoon-build-wxcu6",
+		"buildPhase": "complete",
+		"buildStatus": "complete",
+		"buildStep": "complete",
+		"environment": "staging",
+		"environmentId": 5,
+		"logLink": "https://lagoon-ui.example.com/projects/example-com/example-com-main/deployments/lagoon-build-unmdse",
+		"project": "lagoon-demo",
+		"projectId": 18,
+		"remoteId": "cf1af8da-4988-4a00-b579-5ce299cb6ae7",
+		"route": "https://example.com",
+		"routes": ["https://active.example.com", "https://example.com", "https://main.example.com", "https://nginx-example-com-main.example.com", "https://varnish-example-com-main.example.com"],
+		"startTime": "2022-10-28 10:26:47",
+        "environmentServices": [
+            {"name":"nginx", "type":"nginx-php-persistent", "containers":[{"name":"nginx"},{"name": "php"}]},
+            {"name":"redis", "type":"redis", "containers":[{"name":"redis"}]},
+            {"name":"varnish", "type":"varnish", "containers":[{"name":"varnish"}]},
+            {"name":"solr", "type":"solr-php-persistent", "containers":[{"name":"solr"}]},
+            {"name":"cli", "type":"cli-persistent", "containers":[{"name":"cli"}]}
+        ],
+		"clusterName": "cluster-01"
+	}
+}

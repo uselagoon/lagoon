@@ -26,6 +26,9 @@ ENV LAGOON=backup-handler
 # set defaults
 ENV JWT_SECRET=super-secret-string \
     JWT_AUDIENCE=api.dev \
+    JWT_SUBJECT=backup-handler \
+    JWT_ISSUER=backup-handler \
+    LAGOON_API_VERSION=v2.18.0 \
     GRAPHQL_ENDPOINT="http://api:3000/graphql" \
     RABBITMQ_ADDRESS=broker \
     RABBITMQ_PORT=5672 \

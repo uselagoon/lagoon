@@ -11,6 +11,7 @@ import { Helpers } from './helpers';
 import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
@@ -79,7 +80,7 @@ export const getTaskLog: ResolverFn = async (
     if (!data) {
       return null;
     }
-    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
     return logMsg;
   } catch (e) {
     // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
@@ -90,7 +91,7 @@ export const getTaskLog: ResolverFn = async (
       if (!data) {
         return null;
       }
-      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
       return logMsg;
     } catch (e) {
       // otherwise there is no log to show the user
@@ -238,10 +239,12 @@ export const addTask: ResolverFn = async (
       deployTokenInjection,
       projectKeyInjection,
       adminOnlyView,
-      execute: executeRequest
+      execute: executeRequest,
+      sourceType,
+      sourceUser,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -263,6 +266,13 @@ export const addTask: ResolverFn = async (
 
   let taskName = generateTaskName()
 
+  if (!sourceUser) {
+    sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  }
+  if (!sourceType) {
+    sourceType = "API"
+  }
+
   userActivityLogger(`User added task '${name}'`, {
     project: '',
     event: 'api:addTask',
@@ -279,7 +289,9 @@ export const addTask: ResolverFn = async (
         service,
         command,
         remoteId,
-        execute: executeRequest
+        execute: executeRequest,
+        sourceUser,
+        sourceType,
       }
     }
   });
@@ -299,7 +311,9 @@ export const addTask: ResolverFn = async (
     deployTokenInjection,
     projectKeyInjection,
     adminOnlyView,
-    execute
+    execute,
+    sourceUser,
+    sourceType
   });
 
   return taskData;
@@ -483,19 +497,19 @@ export const updateTask: ResolverFn = async (
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
 TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
@@ -513,6 +527,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     }
   });
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: 'Drush archive-dump',
     taskName: generateTaskName(),
@@ -522,7 +537,9 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -531,19 +548,19 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
 if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
@@ -562,6 +579,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     }
   });
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: 'Drush sql-dump',
     taskName: generateTaskName(),
@@ -571,7 +589,9 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -580,26 +600,26 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   const command =
-    'drupal_version=$(drush status drupal-version --format=list) && \
+    'drupal_version=$(drush status | grep -i "drupal version" | awk \'{print $NF}\') && \
   if [ ${drupal_version%.*} == "7" ]; then \
     if drush cc all; then echo "drush cc all complete"; else exit $?; fi; \
   elif [ ${drupal_version%.*.*} -ge "8" ] ; then \
-    if drush cr; then echo "drush cr complete"; else exit $?; fi; \
+    if drush cr -y; then echo "drush cache:rebuild complete"; else exit $?; fi; \
   else \
     echo "could not clear cache for found Drupal Version ${drupal_version}"; \
     exit 1; \
@@ -613,6 +633,7 @@ export const taskDrushCacheClear: ResolverFn = async (
     }
   });
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: 'Drush cache-clear',
     taskName: generateTaskName(),
@@ -622,7 +643,9 @@ export const taskDrushCacheClear: ResolverFn = async (
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -631,19 +654,19 @@ export const taskDrushCacheClear: ResolverFn = async (
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
     project: '',
@@ -653,6 +676,7 @@ export const taskDrushCron: ResolverFn = async (
     }
   });
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: 'Drush cron',
     taskName: generateTaskName(),
@@ -662,7 +686,9 @@ export const taskDrushCron: ResolverFn = async (
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -674,19 +700,11 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
     destinationEnvironmentId
-  );
-  await envValidators(sqlClientPool).environmentsHaveSameProject([
-    sourceEnvironmentId,
-    destinationEnvironmentId
-  ]);
-  await envValidators(sqlClientPool).environmentHasService(
-    sourceEnvironmentId,
-    'cli'
   );
 
   const sourceEnvironment = await environmentHelpers(
@@ -710,6 +728,14 @@ export const taskDrushSqlSync: ResolverFn = async (
       project: destinationEnvironment.project
     }
   );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId
+  ]);
+  await envValidators(sqlClientPool).environmentHasService(
+    sourceEnvironmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     project: '',
@@ -725,6 +751,7 @@ export const taskDrushSqlSync: ResolverFn = async (
   if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
   drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     taskName: generateTaskName(),
@@ -734,7 +761,9 @@ export const taskDrushSqlSync: ResolverFn = async (
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -746,19 +775,11 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
     destinationEnvironmentId
-  );
-  await envValidators(sqlClientPool).environmentsHaveSameProject([
-    sourceEnvironmentId,
-    destinationEnvironmentId
-  ]);
-  await envValidators(sqlClientPool).environmentHasService(
-    sourceEnvironmentId,
-    'cli'
   );
 
   const sourceEnvironment = await environmentHelpers(
@@ -782,6 +803,14 @@ export const taskDrushRsyncFiles: ResolverFn = async (
       project: destinationEnvironment.project
     }
   );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
+    sourceEnvironmentId,
+    destinationEnvironmentId
+  ]);
+  await envValidators(sqlClientPool).environmentHasService(
+    sourceEnvironmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     project: '',
@@ -797,6 +826,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
   if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
   drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`;
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     taskName: generateTaskName(),
@@ -806,7 +836,9 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;
@@ -815,19 +847,19 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
-  await envValidators(sqlClientPool).environmentHasService(
-    environmentId,
-    'cli'
-  );
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environmentId
   );
   await hasPermission('task', `drushUserLogin:${envPerm.environmentType}`, {
     project: envPerm.project
   });
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
 
   userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
     project: '',
@@ -837,6 +869,7 @@ export const taskDrushUserLogin: ResolverFn = async (
     }
   });
 
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
     name: 'Drush uli',
     taskName: generateTaskName(),
@@ -846,7 +879,9 @@ export const taskDrushUserLogin: ResolverFn = async (
     deployTokenInjection: false,
     projectKeyInjection: false,
     adminOnlyView: false,
-    execute: true
+    execute: true,
+    sourceType: "API",
+    sourceUser: sourceUser,
   });
 
   return taskData;

@@ -12,6 +12,7 @@ export interface ResolverFn {
       sqlClientPool: Pool,
       hasPermission: hasPermission,
       keycloakGrant: any | null,
+      legacyGrant: any | null,
       userActivityLogger: any | null,
       models: {
         UserModel,
@@ -19,7 +20,6 @@ export interface ResolverFn {
         ProjectModel,
         EnvironmentModel,
       },
-      keycloakGroups?: any | null,
       keycloakUsersGroups?: any | null,
       adminScopes?: any | null,
     },

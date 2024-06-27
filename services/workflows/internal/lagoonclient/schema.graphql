@@ -194,21 +194,18 @@ input AddOpenshiftInput {
 input AddOrUpdateEnvironmentStorageInput {
   environment: Int!
   persistentStorageClaim: String!
+  """
+  @deprecated(reason: "When bytesUsed is removed, kibUsed will become a required field")
+  """
   bytesUsed: Int!
-
+  """
+  kibUsed is a float to allow for greater than 32-bit integer inputs
+  """
+  kibUsed: Float
   """
   Date in format 'YYYY-MM-DD'
   """
   updated: String
-}
-
-input AddProblemHarborScanMatchInput {
-  name: String!
-  description: String!
-  defaultLagoonProject: String
-  defaultLagoonEnvironment: String
-  defaultLagoonService: String
-  regex: String!
 }
 
 input AddProblemInput {
@@ -550,10 +547,6 @@ input DeleteOpenshiftInput {
   name: String!
 }
 
-input DeleteProblemHarborScanMatchInput {
-  id: Int!
-}
-
 input DeleteProblemInput {
   environment: Int!
   identifier: String!
@@ -811,13 +804,15 @@ type EnvironmentStorage {
   id: Int
   environment: Environment
   persistentStorageClaim: String
-  bytesUsed: Float
+  bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed field instead")
+  kibUsed: Float
   updated: String
 }
 
 type EnvironmentStorageMonth {
   month: String
-  bytesUsed: Float
+  bytesUsed: Float @deprecated(reason: "The value of this is kibibytes, use kibUsed field instead")
+  kibUsed: Float
 }
 
 type EnvKeyValue {
@@ -1064,14 +1059,8 @@ type Mutation {
   cancelDeployment(input: CancelDeploymentInput!): String
   addBackup(input: AddBackupInput!): Backup
   addProblem(input: AddProblemInput!): Problem
-  addProblemHarborScanMatch(
-    input: AddProblemHarborScanMatchInput!
-  ): ProblemHarborScanMatch
   deleteProblem(input: DeleteProblemInput!): String
   deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
-  deleteProblemHarborScanMatch(
-    input: DeleteProblemHarborScanMatchInput!
-  ): String
   addFact(input: AddFactInput!): Fact
   addFacts(input: AddFactsInput!): [Fact]
   deleteFact(input: DeleteFactInput!): String
@@ -1249,16 +1238,6 @@ type Problem {
   data: String
   created: String
   deleted: String
-}
-
-type ProblemHarborScanMatch {
-  id: Int
-  name: String
-  description: String
-  defaultLagoonProject: String
-  defaultLagoonEnvironment: String
-  defaultLagoonService: String
-  regex: String
 }
 
 enum ProblemSeverityRating {
@@ -1687,11 +1666,6 @@ type Query {
   Returns LAGOON_VERSION
   """
   lagoonVersion: JSON
-
-  """
-  Returns all ProblemHarborScanMatchers
-  """
-  allProblemHarborScanMatchers: [ProblemHarborScanMatch]
 
   """
   Returns all AdvancedTaskDefinitions

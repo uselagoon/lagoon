@@ -49,7 +49,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 Basic authentication is enabled automatically when the `BASIC_AUTH_USERNAME`
 and `BASIC_AUTH_PASSWORD` [environment
-variables](../using-lagoon-advanced/environment-variables.md) are set.
+variables](../concepts-advanced/environment-variables.md) are set.
 
 !!! warning
     Automatic basic auth configuration is provided for convenience. It should not be considered a secure method of protecting your website or private data.
@@ -57,7 +57,7 @@ variables](../using-lagoon-advanced/environment-variables.md) are set.
 ## Environment Variables
 
 Some options are configurable via [environment
-variables](../using-lagoon-advanced/environment-variables.md).
+variables](../concepts-advanced/environment-variables.md).
 
 | Environment Variable | Default    | Description |
 | :------------------- | :--------- | :--- |

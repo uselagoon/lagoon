@@ -1,3 +1,5 @@
+def skipRemainingStages = false
+
 pipeline {
   agent { label 'lagoon' }
   environment {
@@ -20,6 +22,20 @@ pipeline {
         sh 'env'
       }
     }
+    stage ('skip on docs commit') {
+      when {
+        anyOf {
+          changeRequest branch: 'docs\\/.*', comparator: 'REGEXP'
+          branch pattern: "docs\\/.*", comparator: "REGEXP"
+        }
+      }
+      steps {
+        script {
+          skipRemainingStages = true
+          echo "Docs only update, no build needed."
+        }
+      }
+    }
     // in order to have the newest images from upstream (with all the security
     // updates) we clean our local docker cache on tag deployments
     // we don't do this all the time to still profit from image layer caching
@@ -28,12 +44,20 @@ pipeline {
     stage ('clean docker image cache') {
       when {
         buildingTag()
+        expression {
+            !skipRemainingStages
+        }
       }
       steps {
         sh script: "docker image prune -af", label: "Pruning images"
       }
     }
     stage ('build and push images') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       environment {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
       }
@@ -46,11 +70,21 @@ pipeline {
       }
     }
     stage ('show trivy scan results') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       steps {
         sh script: "cat scan.txt", label: "Display scan results"
       }
     }
     stage ('setup test cluster') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       parallel {
         stage ('0: setup test cluster') {
           steps {
@@ -72,10 +106,15 @@ pipeline {
       }
     }
     stage ('run first test suite') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
+            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
@@ -106,11 +145,16 @@ pipeline {
       }
     }
     stage ('run second test suite') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       parallel {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,image-cache,workflows,ssh-legacy] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -126,11 +170,16 @@ pipeline {
       }
     }
     stage ('run third test suite') {
+      when {
+        expression {
+            !skipRemainingStages
+        }
+      }
       parallel {
         stage ('3: run third test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[services,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }
@@ -146,10 +195,13 @@ pipeline {
       }
     }
     stage ('push images to testlagoon/* with :latest tag') {
-      when {
+       when {
         branch 'main'
         not {
           environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+        }
+        expression {
+            !skipRemainingStages
         }
       }
       environment {
@@ -166,12 +218,15 @@ pipeline {
         not {
           environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
         }
+        expression {
+            !skipRemainingStages
+        }
       }
       environment {
         TOKEN = credentials('git-amazeeio-helmfile-ci-trigger')
       }
       steps {
-        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
+        sh script: "curl -X POST -F token=$TOKEN -F ref=main https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
       }
     }
     stage ('push images to uselagoon/*') {
@@ -179,6 +234,9 @@ pipeline {
         buildingTag()
         not {
           environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+        }
+        expression {
+            !skipRemainingStages
         }
       }
       environment {
@@ -194,6 +252,9 @@ pipeline {
         anyOf {
           branch 'testing/scans'
           buildingTag()
+        }
+        expression {
+            !skipRemainingStages
         }
       }
       steps {

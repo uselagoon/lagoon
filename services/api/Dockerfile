@@ -6,7 +6,7 @@ ARG UPSTREAM_TAG
 FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${UPSTREAM_REPO:-uselagoon}/node-16:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/node-20:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -33,9 +33,7 @@ ENV NODE_ENV=production \
     KEYCLOAK_ADMIN_PASSWORD=admin \
     ELASTICSEARCH_URL=http://logs-db-service:9200 \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
-    HARBOR_ADMIN_PASSWORD=Harbor12345 \
-    REDIS_PASSWORD=admin \
-    HARBOR_API_VERSION=v2.0
+    REDIS_PASSWORD=admin
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.

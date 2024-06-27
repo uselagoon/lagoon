@@ -10,9 +10,6 @@ const {
   deleteProblemsFromSource,
   addProblemsFromSource,
   getProblemSources,
-  getProblemHarborScanMatches,
-  addProblemHarborScanMatch,
-  deleteProblemHarborScanMatch
 } = require('./resources/problem/resolvers');
 
 const {
@@ -124,6 +121,10 @@ const {
   userCanSshToEnvironment,
   getEnvironmentUrl,
   getEnvironmentsByKubernetes,
+  addOrUpdateEnvironmentService,
+  getEnvironmentByServiceId,
+  getServiceContainersByServiceId,
+  deleteEnvironmentService,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -146,6 +147,7 @@ const {
   deleteNotificationRocketChat,
   deleteNotificationSlack,
   deleteNotificationWebhook,
+  getAllNotifications,
   getNotificationsByProjectId,
   getNotificationsByOrganizationId,
   removeNotificationFromProject,
@@ -269,6 +271,8 @@ const {
   getNotificationsForOrganizationProjectId,
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
+  checkBulkImportProjectsAndGroupsToOrganization,
+  bulkImportProjectsAndGroupsToOrganization
 } = require('./resources/organization/resolvers');
 
 const {
@@ -310,6 +314,13 @@ const resolvers = {
     DEVELOPER: 'developer',
     MAINTAINER: 'maintainer',
     OWNER: 'owner'
+  },
+  DeploymentSourceType: {
+    API: 'api',
+    WEBHOOK: 'webhook'
+  },
+  TaskSourceType: {
+    API: 'api',
   },
   ProjectOrderType: {
     NAME: 'name',
@@ -464,6 +475,9 @@ const resolvers = {
   Fact: {
     references: getFactReferencesByFactId,
   },
+  EnvironmentService: {
+    containers: getServiceContainersByServiceId,
+  },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
@@ -523,9 +537,6 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId
   },
-  Restore: {
-    restoreLocation: getRestoreLocation,
-  },
   Workflow: {
     advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },
@@ -567,8 +578,8 @@ const resolvers = {
     allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    allProblemHarborScanMatchers: getProblemHarborScanMatches,
     allUsers: getAllUsers,
+    allNotifications: getAllNotifications,
     userByEmail: getUserByEmail,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
@@ -582,13 +593,12 @@ const resolvers = {
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
+    checkBulkImportProjectsAndGroupsToOrganization
   },
   Mutation: {
     addProblem,
-    addProblemHarborScanMatch,
     deleteProblem,
     deleteProblemsFromSource,
-    deleteProblemHarborScanMatch,
     addFact,
     addFacts,
     addFactsByName,
@@ -602,6 +612,7 @@ const resolvers = {
     deleteEnvironment,
     deleteAllEnvironments,
     addOrUpdateEnvironmentStorage,
+    addOrUpdateStorageOnEnvironment: addOrUpdateEnvironmentStorage,
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
@@ -714,6 +725,9 @@ const resolvers = {
     removeDeployTargetFromOrganization,
     updateEnvironmentDeployTarget,
     removeUserFromOrganizationGroups,
+    bulkImportProjectsAndGroupsToOrganization,
+    addOrUpdateEnvironmentService,
+    deleteEnvironmentService
   },
   Subscription: {
     backupChanged: backupSubscriber,

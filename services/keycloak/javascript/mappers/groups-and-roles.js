@@ -8,7 +8,7 @@ var projectGroupProjectIds = new HashMap();
 
 var forEach = Array.prototype.forEach;
 // add all groups the user is part of
-forEach.call(user.getGroups().toArray(), function(group) {
+forEach.call(user.getGroupsStream().toArray(), function(group) {
   // remove the group role suffixes
   // lets check if the group has a parent if this is a child
   var groupName = group.getName().replace(/-(owner|maintainer|developer|reporter|guest)$/,"");
@@ -45,7 +45,7 @@ for each (var e in projectGroupProjectIds.keySet()) {
 }
 
 // add all roles the user is part of
-forEach.call(user.getRoleMappings().toArray(), function(role) {
+forEach.call(user.getRoleMappingsStream().toArray(), function(role) {
   var roleName = role.getName();
   groupsAndRoles.add(roleName);
 });

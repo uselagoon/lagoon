@@ -48,6 +48,12 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
 
     let buildName = generateBuildId();
 
+    // try get the user from the webhook payload
+    // otherwise just use "webhook" as the trigger user
+    let sourceUser = "webhook"
+    if (body.sender.login) {
+      sourceUser = body.sender.login
+    }
     const data: deployData = {
       repoUrl: body.repository.html_url,
       repoName: body.repository.full_name,
@@ -61,7 +67,11 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
-      buildName: buildName
+      buildName: buildName,
+      sourceUser: sourceUser,
+      sourceType: "WEBHOOK",
+      bulkId: webhook.bulkId,
+      bulkName: webhook.bulkName,
     }
 
     try {
@@ -73,8 +83,6 @@ export async function giteaPullRequestOpened(webhook: WebhookRequestData, projec
     } catch (error) {
       switch (error.name) {
         case "ProjectNotFound":
-        case "NoActiveSystemsDefined":
-        case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
             `*[${project.name}]* PR ${body.number} opened. No deploy task created, reason: ${error}`

@@ -161,24 +161,35 @@ export const addProblem: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertProblem({
-      severity,
-      severity_score: severityScore,
-      lagoon_service: service || '',
-      identifier,
-      environment: environmentId,
-      source,
-      associated_package: associatedPackage,
-      description,
-      version: version || '',
-      fixed_version: fixedVersion,
-      links: links,
-      data,
-      created
-    })
-  );
+  let insertId: number;
+  try {
+     ({insertId} = await query(
+      sqlClientPool,
+      Sql.insertProblem({
+        severity,
+        severity_score: severityScore,
+        lagoon_service: service || '',
+        identifier,
+        environment: environmentId,
+        source,
+        associated_package: associatedPackage,
+        description,
+        version: version || '',
+        fixed_version: fixedVersion,
+        links: links,
+        data,
+        created
+      })
+    ));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error adding problem. Problem already exists.`
+      );
+    } else {
+      throw new Error(error.message);
+    }
+  };
 
   const rows = await query(
     sqlClientPool,
@@ -215,8 +226,8 @@ export const addProblem: ResolverFn = async (
 
 export const deleteProblem: ResolverFn = async (
   root,
-  { input: { environment: environmentId, identifier } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { input: { environment: environmentId, identifier, service } },
+  { sqlClientPool, hasPermission, userActivityLogger  }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -226,7 +237,7 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
+  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
   userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
@@ -262,93 +273,6 @@ export const deleteProblemsFromSource: ResolverFn = async (
     event: 'api:deleteProblemsFromSource',
     payload: {
       input: { environment, source, service }
-    }
-  });
-
-  return 'success';
-};
-
-export const getProblemHarborScanMatches: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  await hasPermission('harbor_scan_match', 'view', {});
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectAllProblemHarborScanMatches()
-  );
-
-  return rows;
-};
-
-export const addProblemHarborScanMatch: ResolverFn = async (
-  root,
-  {
-    input: {
-      name,
-      description,
-      defaultLagoonProject,
-      defaultLagoonEnvironment,
-      defaultLagoonService,
-      regex
-    }
-  },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('harbor_scan_match', 'add', {});
-
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertProblemHarborScanMatch({
-      id: null,
-      name,
-      description,
-      default_lagoon_project: defaultLagoonProject,
-      default_lagoon_environment: defaultLagoonEnvironment,
-      default_lagoon_service_name: defaultLagoonService,
-      regex
-    })
-  );
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
-  );
-
-  userActivityLogger(`User added harbor scan regex matcher`, {
-    project: '',
-    event: 'api:addProblemHarborScanMatch',
-    payload: {
-      input: {
-        name,
-        description,
-        defaultLagoonProject,
-        defaultLagoonEnvironment,
-        defaultLagoonService,
-        regex
-      }
-    }
-  });
-
-  return R.prop(0, rows);
-};
-
-export const deleteProblemHarborScanMatch: ResolverFn = async (
-  root,
-  { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('harbor_scan_match', 'delete', {});
-
-  await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
-
-  userActivityLogger(`User deleted harbor scan regex matcher`, {
-    project: '',
-    event: 'api:deleteProblemHarborScanMatch',
-    payload: {
-      input: { id }
     }
   });
 

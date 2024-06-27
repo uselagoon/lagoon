@@ -28,6 +28,8 @@ export const Sql = {
     type = null,
     advanced_image = null,
     advanced_payload = null,
+    sourceUser = null,
+    sourceType = null,
   }: {
     id: number;
     name: string;
@@ -46,6 +48,8 @@ export const Sql = {
     type?: string;
     advanced_image?: string;
     advanced_payload?: string;
+    sourceUser?: string;
+    sourceType?: string;
   }) =>
     knex('task')
       .insert({
@@ -66,6 +70,8 @@ export const Sql = {
         type,
         advanced_image,
         advanced_payload,
+        sourceUser,
+        sourceType,
       })
       .toString(),
   deleteTask: (id: number) =>
@@ -101,6 +107,7 @@ export const Sql = {
     deploy_token_injection,
     project_key_injection,
     admin_only_view,
+    system_wide,
     }: {
       id: number,
       name: string,
@@ -118,6 +125,7 @@ export const Sql = {
       deploy_token_injection: boolean,
       project_key_injection: boolean,
       admin_only_view: boolean,
+      system_wide: boolean,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -137,6 +145,7 @@ export const Sql = {
         deploy_token_injection,
         project_key_injection,
         admin_only_view,
+        system_wide,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
@@ -215,7 +224,7 @@ export const Sql = {
       .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .where('advanced_task_definition.name', '=', name)
         .toString(),
-    selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
+    selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string, systemWide: boolean = false) => {
       let query = knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name);
         if(project) {
@@ -226,6 +235,9 @@ export const Sql = {
         }
         if(group) {
           query = query.where('advanced_task_definition.group_name', '=', group)
+        }
+        if(systemWide == true) {
+          query = query.where('advanced_task_definition.system_wide', '=', "1")
         }
         return query.toString()
     },
@@ -247,6 +259,14 @@ export const Sql = {
     knex('advanced_task_definition')
     .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('group_name', 'in', groups)
+    .toString(),
+  selectAdvancedTaskDefinitionsForSystem:() =>
+    knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
+    .where('environment','is', null)
+    .andWhere('project','is', null)
+    .andWhere('group_name','is', null)
+    .andWhere('system_wide','=','1')
     .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>
     knex('advanced_task_definition')

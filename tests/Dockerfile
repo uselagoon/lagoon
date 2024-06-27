@@ -1,6 +1,6 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/python-3.10:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/python-3.11:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
@@ -24,7 +24,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && pip3 install -r requirements.txt \
     && apk del .build-deps
 
-RUN ansible-galaxy collection install ansible.posix community.general kubernetes.core
+RUN ansible-galaxy collection install -vvv ansible.posix community.general kubernetes.core
 
 # download, extract and install kubectl binary
 ENV KUBECTL_VER=v1.25.5

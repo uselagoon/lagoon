@@ -23,7 +23,8 @@ type Storage struct {
 type StorageClaim struct {
 	Environment          int    `json:"environment"`
 	PersisteStorageClaim string `json:"persistentStorageClaim"`
-	BytesUsed            int    `json:"bytesUsed"`
+	BytesUsed            uint64 `json:"bytesUsed"`
+	KiBUsed              uint64 `json:"kibUsed"`
 }
 
 func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.MessageQueue, action *Action, messageID string) error {
@@ -35,32 +36,54 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.Me
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
+			log.Printf("%sERROR: unable to generate token: %v", prefix, err)
 		}
 		return nil
 	}
 	// the action data can contain multiple storage claims, so iterate over them here
 	var errs []error
 	for _, sc := range storageClaims.Claims {
-		sci := schema.UpdateEnvironmentStorageInput{}
-		scdata, _ := json.Marshal(sc)
-		json.Unmarshal(scdata, &sci)
-		l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", &token, false)
-		environment, err := lagoon.UpdateStorage(ctx, &sci, l)
-		if err != nil {
+		l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
+		var envID int
+		var hasErr error
+		// if this is a newer storage calculator with the `kibUsed` field, use the new mutation
+		if sc.KiBUsed != 0 {
+			scoei := schema.UpdateStorageOnEnvironmentInput{}
+			scdata, _ := json.Marshal(sc)
+			json.Unmarshal(scdata, &scoei)
+			environment, err := lagoon.UpdateStorageOnEnvironment(ctx, &scoei, l)
+			if err != nil {
+				hasErr = err
+			} else {
+				envID = environment.ID
+			}
+		} else {
+			// else use the old mutation
+			// @DEPRECATED to be removed in a future release
+			sci := schema.UpdateEnvironmentStorageInput{}
+			scdata, _ := json.Marshal(sc)
+			json.Unmarshal(scdata, &sci)
+			environment, err := lagoon.UpdateStorage(ctx, &sci, l)
+			if err != nil {
+				hasErr = err
+			} else {
+				envID = environment.ID
+			}
+		}
+		if hasErr != nil {
 			// send the log to the lagoon-logs exchange to be processed
 			m.toLagoonLogs(messageQueue, map[string]interface{}{
 				"severity": "error",
 				"event":    fmt.Sprintf("actions-handler:%s:error", action.EventType),
-				"meta":     sci,
-				"message":  err.Error(),
+				"meta":     sc,
+				"message":  hasErr.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to update storage for environment %v in the api: %v", prefix, sci.Environment, err))
+				log.Printf("%sERROR: unable to update storage for environment %v in the api: %v", prefix, sc.Environment, hasErr)
 			}
 			// if the error is in LagoonAPIErrorCheck, this should be retried
-			if LagoonAPIRetryErrorCheck(err) == nil {
-				errs = append(errs, err)
+			if LagoonAPIRetryErrorCheck(hasErr) == nil {
+				errs = append(errs, hasErr)
 			}
 			// try and update the next storage claim if there is one
 			continue
@@ -69,11 +92,11 @@ func (m *Messenger) handleUpdateStorage(ctx context.Context, messageQueue *mq.Me
 		m.toLagoonLogs(messageQueue, map[string]interface{}{
 			"severity": "info",
 			"event":    fmt.Sprintf("actions-handler:%s:updated", action.EventType),
-			"meta":     sci,
-			"message":  fmt.Sprintf("updated environment: %v, storage claim: %s, id: %v", sci.Environment, sci.PersisteStorageClaim, environment.ID),
+			"meta":     sc,
+			"message":  fmt.Sprintf("updated environment: %v, storage claim: %s, id: %v", sc.Environment, sc.PersisteStorageClaim, envID),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%supdated environment: %v, storage claim: %s, id: %v", prefix, sci.Environment, sci.PersisteStorageClaim, environment.ID))
+			log.Printf("%supdated environment: %v, storage claim: %s, id: %v", prefix, sc.Environment, sc.PersisteStorageClaim, envID)
 		}
 	}
 	if len(errs) > 0 {

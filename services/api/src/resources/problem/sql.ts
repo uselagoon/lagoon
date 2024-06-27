@@ -18,16 +18,6 @@ const standardEnvironmentReturn = {
   deleted: 'deleted'
 };
 
-const standardProblemHarborScanMatchReturn = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  default_lagoon_project: 'defaultLagoonProject',
-  default_lagoon_environment: 'defaultLagoonEnvironment',
-  default_lagoon_service: 'defaultLagoonServiceName',
-  regex: 'regex'
-};
-
 export const Sql = {
   selectAllProblems: ({
     source = [],
@@ -128,14 +118,24 @@ export const Sql = {
         created
       })
       .toString(),
-  deleteProblem: (environment, identifier) =>
-    knex('environment_problem')
+  deleteProblem: (environment, identifier, service) => {
+    let q = knex('environment_problem')
       .where({
         environment: environment,
         identifier: identifier
-      })
-      .del()
-      .toString(),
+      });
+    if (service != undefined) {
+      q.where('lagoon_service', service);
+    }
+    return q.del().toString();
+  },
+  deleteProblemsForEnvironment: (environment) => { // This should be used primarily to remove problems when deleting an environment
+    let q = knex('environment_problem')
+      .where({
+        environment: environment
+      });
+    return q.del().toString();
+  },
   deleteProblemsFromSource: (environment, source, service) =>
     knex('environment_problem')
       .where({
@@ -144,40 +144,5 @@ export const Sql = {
         lagoon_service: service
       })
       .del()
-      .toString(),
-  selectAllProblemHarborScanMatches: () =>
-    knex('problem_harbor_scan_matcher')
-      .select(standardProblemHarborScanMatchReturn)
-      .toString(),
-  selectAllProblemHarborScanMatchByDatabaseId: id =>
-    knex('problem_harbor_scan_matcher')
-      .select(standardProblemHarborScanMatchReturn)
-      .where({ id: id })
-      .toString(),
-  insertProblemHarborScanMatch: ({
-    id,
-    name,
-    description,
-    default_lagoon_project,
-    default_lagoon_environment,
-    default_lagoon_service_name,
-    regex
-  }) =>
-    knex('problem_harbor_scan_matcher')
-      .insert({
-        name,
-        description,
-        default_lagoon_project,
-        default_lagoon_environment,
-        default_lagoon_service_name,
-        regex
-      })
-      .toString(),
-  deleteProblemHarborScanMatch: id =>
-    knex('problem_harbor_scan_matcher')
-      .where({
-        id: id
-      })
-      .delete()
       .toString()
 };
