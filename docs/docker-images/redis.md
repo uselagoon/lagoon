@@ -1,6 +1,6 @@
 # Redis
 
-[Lagoon `Redis` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis), based on [offical `redis:alpine` image](https://hub.docker.com/_/redis/).
+[Lagoon `Redis` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis), based on [official `redis:alpine` image](https://hub.docker.com/_/redis/).
 
 This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ server by default.
 
@@ -53,7 +53,7 @@ variables](../concepts-advanced/environment-variables.md).
 ## Custom configuration
 
 By building on the base image you can include custom configuration.
-See [https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf](https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf) for full documentation of the Redis configuration file.
+See [https://github.com/redis/redis/blob/7.2.5/redis.conf](https://github.com/redis/redis/blob/7.2.5/redis.conf) for full documentation of the Redis configuration file.
 
 ## Redis-persistent
 

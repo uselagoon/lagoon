@@ -52,11 +52,11 @@ Redisイメージには2つの異なるバリエーションがあります:**�
 ## カスタム設定
 
 ベースイメージに基づいて、カスタム設定を含めることができます。
-Redis設定ファイルの完全なドキュメンテーションについては、[こちら](https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf)をご覧ください。
+Redis設定ファイルの完全なドキュメンテーションについては、[こちら](https://github.com/redis/redis/blob/7.2.5/redis.conf)をご覧ください。
 
 ## Redis-persistent
 
-以下に基づいています [Lagoonの `redis`イメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile)、[Lagoonの `redis-persistent` Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/5.Dockerfile)は、Redisサービスを`persistent`モード(つまり、キーがディスクに保存される永続化ボリュームで)で利用する場合に使われます。
+以下に基づいています [Lagoonの `redis`イメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile)、[Lagoonの `redis-persistent` Dockerイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile)は、Redisサービスを`persistent`モード(つまり、キーがディスクに保存される永続化ボリュームで)で利用する場合に使われます。
 
 これは`redis`との違いは、`FLAVOR`環境変数だけで、それは使用中のredisのバージョンにより、[それぞれのRedis設定](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf)を使用します。
 
