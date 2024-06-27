@@ -131,7 +131,8 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('backup', 'view', {
       project: environment.project
     });

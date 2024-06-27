@@ -84,6 +84,12 @@
         "attributes": {}
       },
       {
+        "name": "platform-viewer",
+        "composite": false,
+        "clientRole": false,
+        "attributes": {}
+      },
+      {
         "name": "reporter",
         "composite": true,
         "composites": {
@@ -1471,6 +1477,14 @@
             "config": {}
           },
           {
+            "name": "[Lagoon] Users role for realm is Platform Viewer",
+            "description": "Checks the users role for the realm is Platform Viewer or higher",
+            "type": "script-policies/users-role-for-realm-is-platform-viewer.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
             "name": "[Lagoon] Users role for group is Developer",
             "description": "Checks the users role for a group is Developer or higher",
             "type": "script-policies/users-role-for-group-is-developer.js",
@@ -1741,7 +1755,7 @@
             "config": {
               "resources": "[\"ssh_key\"]",
               "scopes": "[\"view:user\"]",
-              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User has access to own data\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1807,7 +1821,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
-              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
             }
           },
           {
@@ -2034,11 +2048,11 @@
             "name": "View All Organizations",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2122,11 +2136,11 @@
             "name": "Get User By SSH Key",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"user\"]",
               "scopes": "[\"getBySshKey\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2199,22 +2213,22 @@
             "name": "View All Environments",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"environment\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
             "name": "View Environment Metrics",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"environment\"]",
               "scopes": "[\"storage\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2309,22 +2323,22 @@
             "name": "View All Notifications",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"notification\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
             "name": "View All Groups",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"group\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2364,11 +2378,11 @@
             "name": "View All Users",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"user\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2441,11 +2455,11 @@
             "name": "View All Openshifts",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"openshift\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2661,11 +2675,11 @@
             "name": "View All Projects",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"project\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {

@@ -10,7 +10,7 @@ function is_keycloak_running {
 function configure_user_passwords {
 
   LAGOON_DEMO_USERS=("guest@example.com" "reporter@example.com" "developer@example.com" "maintainer@example.com" "owner@example.com")
-  LAGOON_DEMO_ORG_USERS=("orguser@example.com" "orgviewer@example.com" "orgadmin@example.com" "orgowner@example.com" "platformowner@example.com")
+  LAGOON_DEMO_ORG_USERS=("orguser@example.com" "orgviewer@example.com" "orgadmin@example.com" "orgowner@example.com" "platformviewer@example.com" "platformowner@example.com")
 
   for i in ${LAGOON_DEMO_USERS[@]}
   do
@@ -30,6 +30,11 @@ function configure_platformowner {
     /opt/keycloak/bin/kcadm.sh add-roles --uusername platformowner@example.com --rolename platform-owner --config $CONFIG_PATH --target-realm Lagoon
 }
 
+function configure_platformviewer {
+  echo Configuring platform viewer role
+    /opt/keycloak/bin/kcadm.sh add-roles --uusername platformviewer@example.com --rolename platform-viewer --config $CONFIG_PATH --target-realm Lagoon
+}
+
 function configure_keycloak {
   until is_keycloak_running; do
     echo Keycloak still not running, waiting 5 seconds
@@ -45,6 +50,7 @@ function configure_keycloak {
 
   configure_user_passwords
   configure_platformowner
+  configure_platformviewer
 
   echo "Config of Keycloak users done"
 }
