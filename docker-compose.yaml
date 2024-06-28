@@ -116,15 +116,16 @@ services:
     #   - NEW_RELIC_LICENSE_KEY=
     #   - NEW_RELIC_APP_NAME=api-local
   ui:
-    # use the organizations pr for the ui
-    image: uselagoon/ui:main
-    command: yarn run dev
+    # no reason to have this UI run in development mode, so just consume the upstream built image and runtime
+    # can now override just the image for the UI and its tag using envvars
+    image: ${UI_IMAGE_REPO:-uselagoon}/ui:${UI_IMAGE_TAG:-main}
+    # always pull the image to prevent stale images locally
+    pull_policy: always
     environment:
-      - NODE_ENV=development
       - KEYCLOAK_API=http://localhost:8088/auth
       - GRAPHQL_API=http://localhost:3000/graphql
     ports:
-      - '8888:3003'
+      - '8888:3000'
   actions-handler:
     image: ${IMAGE_REPO:-lagoon}/actions-handler
     restart: on-failure
@@ -137,12 +138,6 @@ services:
       - auth-server
     ports:
       - '2020:2020'
-    # command:
-    #   - "/usr/sbin/sshd"
-    #   - "-e"
-    #   - "-ddd"
-    #   - "-f"
-    #   - "/etc/ssh/sshd_config"
     user: '111111111'
     volumes:
       - ./services/ssh/home/command.sh:/home/command.sh
@@ -203,15 +198,6 @@ services:
       - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
-  remotedev:
-    image: jhen0409/remotedev-server
-    platform: linux/amd64
-    command: node main.js
-    environment:
-      - ADAPTER=
-      - PORT=9090
-    ports:
-      - '9090:9090'
   local-api-data-watcher-pusher:
     depends_on:
       - api
