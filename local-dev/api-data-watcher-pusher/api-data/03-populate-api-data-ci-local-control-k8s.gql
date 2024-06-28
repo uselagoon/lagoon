@@ -41,37 +41,11 @@ mutation PopulateApi {
   CiCustomerSshKeyRsa: addSshKey(
     input: {
       id: 4
-      name: "ci-customer-sshkey-rsa"
+      name: "sshkey-ci-customer-user-rsa"
       keyValue: "AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw=="
       keyType: SSH_RSA
       user: {
         email: "ci-customer-user-rsa@example.com"
-      }
-    }
-  ) {
-    id
-  }
-  CiCustomerSshKeyEd25519: addSshKey(
-    input: {
-      id: 5
-      name: "ci-customer-sshkey-ed25519"
-      keyValue: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
-      keyType: SSH_ED25519
-      user: {
-        email: "ci-customer-user-ed25519@example.com"
-      }
-    }
-  ) {
-    id
-  }
-  CiCustomerSshKeyEcdsa: addSshKey(
-    input: {
-      id: 6
-      name: "ci-customer-sshkey-ecdsa"
-      keyValue: "AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="
-      keyType: ECDSA_SHA2_NISTP521
-      user: {
-        email: "ci-customer-user-ecdsa@example.com"
       }
     }
   ) {
