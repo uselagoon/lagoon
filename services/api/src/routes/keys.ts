@@ -53,35 +53,37 @@ const keysRoute = async (
   const keys = R.map(R.prop('sshKey'), rows);
 
   const fingerprintKeyMap = await mapFingerprints(keys)
-  const found = fingerprintKeyMap.filter(el => {if (el.fingerprint === fingerprint) { return el.key }});
+  const found = await fingerprintKeyMap.filter(el => {if (el.fingerprint === fingerprint) { return el.key }})[0];
 
-  if (found) {
+  if (!found) {
     logger.debug(`Unknown fingerprint: ${fingerprint}`);
-  }
-
-  // update key used timestamp
-  const foundkey = await query(
-    sqlClientPool,
-    knex('ssh_key')
-      .select('id')
-      .where('key_fingerprint', fingerprint)
-      .toString(),
-  );
-  // check if a key is found
-  if (foundkey.length > 0) {
-    var date = new Date();
-    const convertDateFormat = R.init;
-    var lastUsed = convertDateFormat(date.toISOString());
-    await query(
+    // drop out
+    res.send();
+  } else {
+    // update key used timestamp
+    const foundkey = await query(
       sqlClientPool,
       knex('ssh_key')
-        .where('id', foundkey[0].id)
-        .update({lastUsed: lastUsed})
+        .select('id')
+        .where('key_fingerprint', fingerprint)
         .toString(),
     );
+    // check if a key is found
+    if (foundkey.length > 0) {
+      var date = new Date();
+      const convertDateFormat = R.init;
+      var lastUsed = convertDateFormat(date.toISOString());
+      await query(
+        sqlClientPool,
+        knex('ssh_key')
+          .where('id', foundkey[0].id)
+          .update({lastUsed: lastUsed})
+          .toString(),
+      );
+    }
+    // return key
+    res.send(found.key);
   }
-
-  res.send(found[0].key);
 };
 
 export default [bodyParser.json(), keysRoute];
