@@ -21,6 +21,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   comment?: string;
+  lastAccessed?: string;
   gitlabId?: string;
   attributes?: IUserAttributes;
   owner?: boolean;
@@ -55,6 +56,7 @@ interface UserModel {
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   resetUserPassword: (id: string) => Promise<void>;
+  userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
 }
 
@@ -180,8 +182,14 @@ export const User = (clients: {
     let usersWithGitlabIdFetch = [];
 
     for (const user of users) {
+      // set the lastaccessed attribute
+      let date = null;
+      if (user['attributes']['last_accessed']) {
+        date = new Date(user['attributes']['last_accessed']*1000).toISOString()
+      }
       usersWithGitlabIdFetch.push({
         ...user,
+        lastAccessed: date,
         gitlabId: await fetchGitlabId(user)
       });
     }
@@ -534,6 +542,31 @@ export const User = (clients: {
     }
   };
 
+  const userLastAccessed = async (userInput: User): Promise<Boolean> => {
+    // set the last accessed as a unix timestamp on the user attributes
+    try {
+      const lastAccessed = {last_accessed: Math.floor(Date.now() / 1000)}
+      await keycloakAdminClient.users.update(
+        {
+          id: userInput.id
+        },
+        {
+          attributes: {
+            ...userInput.attributes,
+            ...lastAccessed
+          }
+        }
+      );
+    } catch (err) {
+      if (err.response.status && err.response.status === 404) {
+        throw new UserNotFoundError(`User not found: ${userInput.id}`);
+      } else {
+        logger.warn(`Error updating Keycloak user: ${err.message}`);
+      }
+    }
+    return true
+  };
+
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // comments used to be removed when updating a user, now they aren't
     let organizations = null;
@@ -680,6 +713,7 @@ export const User = (clients: {
     getUserRolesForProject,
     addUser,
     updateUser,
+    userLastAccessed,
     deleteUser,
     resetUserPassword,
     transformKeycloakUsers

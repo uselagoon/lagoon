@@ -60,6 +60,28 @@ const keysRoute = async (
     logger.debug(`Unknown fingerprint: ${fingerprint}`);
   }
 
+  // update key used timestamp
+  const foundkey = await query(
+    sqlClientPool,
+    knex('ssh_key')
+      .select('id')
+      .where('key_fingerprint', fingerprint)
+      .toString(),
+  );
+  // check if a key is found
+  if (foundkey.length > 0) {
+    var date = new Date();
+    const convertDateFormat = R.init;
+    var lastUsed = convertDateFormat(date.toISOString());
+    await query(
+      sqlClientPool,
+      knex('ssh_key')
+        .where('id', foundkey[0].id)
+        .update({lastUsed: lastUsed})
+        .toString(),
+    );
+  }
+
   res.send(result);
 };
 
