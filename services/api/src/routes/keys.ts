@@ -7,7 +7,7 @@ import { knex, query } from '../util/db';
 import { sqlClientPool } from '../clients/sqlClient';
 import { validateKey } from '../util/func';
 
-const toFingerprint2 = async (sshKey) => {
+const toFingerprint = async (sshKey) => {
   try {
     const pkey = new Buffer(sshKey).toString('base64')
     const pubkey = await validateKey(pkey, "public")
@@ -24,7 +24,7 @@ const toFingerprint2 = async (sshKey) => {
 const mapFingerprints = async (keys) => {
   const fingerprintKeyMap = await Promise.all(
     keys.map(async sshKey => {
-    const fp = await toFingerprint2(sshKey)
+    const fp = await toFingerprint(sshKey)
     return {fingerprint: fp, key: sshKey}
   }))
   return fingerprintKeyMap
