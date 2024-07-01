@@ -228,21 +228,6 @@ export const deleteBackup: ResolverFn = async (
   return 'success';
 };
 
-export const deleteAllBackups: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('backup', 'deleteAll');
-
-  await query(sqlClientPool, Sql.truncateBackup());
-
-  userActivityLogger(`User deleted all backups`);
-
-  // TODO: Check rows for success
-  return 'success';
-};
-
 export const addRestore: ResolverFn = async (
   root,
   { input: { id, backupId, status, restoreLocation, created, execute } },

@@ -2291,7 +2291,6 @@ const typeDefs = gql`
     addOrUpdateEnvironment(input: AddEnvironmentInput!): Environment
     updateEnvironment(input: UpdateEnvironmentInput!): Environment
     deleteEnvironment(input: DeleteEnvironmentInput!): String
-    deleteAllEnvironments: String
     """
     Add or update Storage Information for Environment
     """
@@ -2306,7 +2305,6 @@ const typeDefs = gql`
       input: UpdateNotificationSlackInput!
     ): NotificationSlack
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
-    deleteAllNotificationSlacks: String
     addNotificationRocketChat(
       input: AddNotificationRocketChatInput!
     ): NotificationRocketChat
@@ -2316,7 +2314,6 @@ const typeDefs = gql`
     deleteNotificationRocketChat(
       input: DeleteNotificationRocketChatInput!
     ): String
-    deleteAllNotificationRocketChats: String
     addNotificationMicrosoftTeams(
       input: AddNotificationMicrosoftTeamsInput!
     ): NotificationMicrosoftTeams
@@ -2326,7 +2323,6 @@ const typeDefs = gql`
     deleteNotificationMicrosoftTeams(
       input: DeleteNotificationMicrosoftTeamsInput!
     ): String
-    deleteAllNotificationMicrosoftTeams: String
     addNotificationWebhook(
       input: AddNotificationWebhookInput!
     ): NotificationWebhook
@@ -2336,7 +2332,6 @@ const typeDefs = gql`
     deleteNotificationWebhook(
       input: DeleteNotificationWebhookInput!
     ): String
-    deleteAllNotificationWebhook: String
     addNotificationEmail(
       input: AddNotificationEmailInput!
     ): NotificationEmail
@@ -2346,7 +2341,6 @@ const typeDefs = gql`
     deleteNotificationEmail(
       input: DeleteNotificationEmailInput!
     ): String
-    deleteAllNotificationEmails: String
     """
     Connect previous created Notification to a Project
     """
@@ -2354,25 +2348,19 @@ const typeDefs = gql`
     removeNotificationFromProject(
       input: RemoveNotificationFromProjectInput!
     ): Project
-    removeAllNotificationsFromAllProjects: String
     addOpenshift(input: AddOpenshiftInput!): Openshift
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
-    deleteAllOpenshifts: String
     addKubernetes(input: AddKubernetesInput!): Kubernetes
     updateKubernetes(input: UpdateKubernetesInput!): Kubernetes
     deleteKubernetes(input: DeleteKubernetesInput!): String
-    deleteAllKubernetes: String
     addProject(input: AddProjectInput!): Project
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
-    deleteAllProjects: String
     addSshKey(input: AddSshKeyInput!): SshKey
     updateSshKey(input: UpdateSshKeyInput!): SshKey
     deleteSshKey(input: DeleteSshKeyInput!): String
     deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
-    deleteAllSshKeys: String
-    removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     """
@@ -2387,7 +2375,6 @@ const typeDefs = gql`
     removeUserFromOrganization(input: addUserToOrganizationInput!): Organization
     resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
-    deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
     bulkDeployEnvironmentLatest(input: BulkDeploymentLatestInput!): String
     deleteDeployment(input: DeleteDeploymentInput!): String
@@ -2406,7 +2393,6 @@ const typeDefs = gql`
     deleteFactReference(input: DeleteFactReferenceInput!): String
     deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
-    deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
@@ -2448,7 +2434,6 @@ const typeDefs = gql`
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String
-    deleteAllGroups: String
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
@@ -2463,7 +2448,6 @@ const typeDefs = gql`
     addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
-    deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
     """
     Add an organization

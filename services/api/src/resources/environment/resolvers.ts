@@ -720,27 +720,6 @@ export const getAllEnvironments: ResolverFn = async (
   return withK8s;
 };
 
-export const deleteAllEnvironments: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('environment', 'deleteAll');
-
-  await query(sqlClientPool, Sql.truncateEnvironment());
-
-  userActivityLogger(`User deleted all environments'`, {
-    project: '',
-    event: 'api:deleteAllEnvironments',
-    payload: {
-      args
-    }
-  });
-
-  // TODO: Check rows for success
-  return 'success';
-};
-
 // @deprecated in favor of addOrUpdateEnvironmentService and deleteEnvironmentService, will eventually be removed
 export const setEnvironmentServices: ResolverFn = async (
   root,
