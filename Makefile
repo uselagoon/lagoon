@@ -347,6 +347,13 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
+.PHONY: fix-key-perms
+fix-key-perms:
+	chmod 600 ./local-dev/sshkey-maintainer-ecdsa
+	chmod 600 ./local-dev/sshkey-platform-owner-ed25519
+	chmod 600 ./local-dev/sshkey-ci-customer-user-rsa
+	ls -al ./local-dev/sshkey-*
+
 .PHONY: local-dev-yarn
 local-dev-yarn:
 	$(MAKE) local-dev-yarn-stop
