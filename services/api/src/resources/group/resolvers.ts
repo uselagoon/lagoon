@@ -536,17 +536,12 @@ export const deleteAllGroups: ResolverFn = async (
 
 export const addUserToGroup: ResolverFn = async (
   _root,
-  { input: { user: userInput, group: groupInput, role } },
+  { input: { user: userInput, group: groupInput, role, inviteUser } },
   { models, hasPermission, userActivityLogger }
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
   }
-
-  const user = await models.UserModel.loadUserByIdOrUsername({
-    id: R.prop('id', userInput),
-    email: R.prop('email', userInput)
-  });
 
   if (R.isEmpty(groupInput)) {
     throw new Error('You must provide a group id or name');
@@ -554,15 +549,60 @@ export const addUserToGroup: ResolverFn = async (
 
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
+  let user;
+  let createUserErr;
+  try {
+    // check if user already exists
+    user = await models.UserModel.loadUserByIdOrUsername({
+      id: R.prop('id', userInput),
+      email: R.prop('email', userInput)
+    });
+  } catch (e) {
+    // capture the error
+    createUserErr = e
+    // if inviteuser is false, and there is an error, return the error
+    if (createUserErr && !inviteUser) {
+      return createUserErr
+    }
+  }
+
   if (R.prop('lagoon-organization', group.attributes)) {
     // if this is a group in an organization, check that the user adding members to the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
       organization: R.prop('lagoon-organization', group.attributes)
     });
+    // only organization:addGroup will be able to "invite users" this way
+    if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
+      const email = R.prop('email', userInput);
+      // check if email is provided
+      if (email) {
+        await hasPermission('user', 'add');
+        try {
+          // then create the user account
+          user = await models.UserModel.addUser({
+            email: email,
+            username: email,
+          }, true);
+          logger.debug(`UserInvite: User created and password reset requested for ${email}`);
+        } catch (e) {
+          return e
+        }
+      } else {
+        // otherwise return whatever error loadUserByIdOrUsername returned
+        return createUserErr
+      }
+    }
   } else {
     await hasPermission('group', 'addUser', {
       group: group.id
     });
+    if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
+      // otherwise return the error
+      throw new Error('Cannot invite user to group that is not in an organization');
+    } else {
+      // otherwise return whatever error loadUserByIdOrUsername returned
+      return createUserErr
+    }
   }
 
   await models.GroupModel.removeUserFromGroup(user, group);

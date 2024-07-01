@@ -74,6 +74,21 @@ mutation PopulateApi {
     name
   }
 
+  UIOrganizationUserInviteToGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"invite@example.com"
+      }
+      group: {
+        name: "lagoon-demo-organization-group"
+      }
+      role: GUEST
+      inviteUser: true
+    }
+  ) {
+    name
+  }
+
   UIOrganizationAddViewer: addUserToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: 1}) {
     id
   }

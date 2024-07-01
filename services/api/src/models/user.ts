@@ -471,7 +471,7 @@ export const User = (clients: {
           `Username ${R.prop('username', userInput)} exists`
         );
       } else {
-        throw new Error(`Error creating Keycloak user: ${err.message}`);
+        throw new Error(`Error creating Lagoon user account: ${err.message}`);
       }
     }
 
@@ -537,7 +537,7 @@ export const User = (clients: {
       if (err.response.status && err.response.status === 404) {
         throw new UserNotFoundError(`User not found: ${id}`);
       } else {
-        throw new Error(`Error updating Keycloak user: ${err.message}`);
+        throw new Error(`Error updating Lagoon user account: ${err.message}`);
       }
     }
   };
@@ -629,7 +629,7 @@ export const User = (clients: {
       if (err.response.status && err.response.status === 404) {
         throw new UserNotFoundError(`User not found: ${userInput.id}`);
       } else {
-        throw new Error(`Error updating Keycloak user: ${err.message}`);
+        throw new Error(`Error updating Lagoon user account: ${err.message}`);
       }
     }
 
