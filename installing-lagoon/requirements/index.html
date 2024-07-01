@@ -16,7 +16,7 @@
         <link rel="prev" href="../../logging/kibana-examples/">
       
       
-        <link rel="next" href="../efs-provisioner/">
+        <link rel="next" href="../bulk-storage-provisioner/">
       
       
       <link rel="icon" href="../../images/lagoon-icon.png">
@@ -3260,11 +3260,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../efs-provisioner/" class="md-nav__link">
+      <a href="../bulk-storage-provisioner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    EFS Provisioner
+    Bulk storage Provisioner
   </span>
   
 
@@ -4736,7 +4736,7 @@
 <h3 id="storage-provisioners">Storage provisioners<a class="headerlink" href="#storage-provisioners" title="Permanent link">#</a></h3>
 <p>Lagoon utilizes a default 'standard' <code>StorageClass</code> for most workloads, and the internal provisioner for most Kubernetes platforms will suffice. This should be configured to be dynamic provisioning and expandable where possible.</p>
 <p>Lagoon also requires a <code>StorageClass</code> called 'bulk' to be available to support persistant pod replicas (across nodes). This <code>StorageClass</code> should support <code>ReadWriteMany</code> (RWX) access mode and should be configured to be dynamic provisioning and expandable where possible. See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes for more information, and the <a href="https://kubernetes-csi.github.io/docs/drivers.html">production drivers list</a> for a complete list of compatible drivers.</p>
-<p>We have curently only included the instructions for (the now deprecated) <a href="../efs-provisioner/">EFS Provisioner</a>. The production <a href="https://github.com/kubernetes-sigs/aws-efs-csi-driver">EFS CSI driver</a> has issues with provisioning more than 120 PVCs. We are awaiting upstream possible fixes <a href="https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/761">here</a> and <a href="https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732">here</a> - but most other providers CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.</p>
+<p>We have curently only included the instructions a generic Bulk Storage provisioner using NFS <a href="../bulk-storage-provisioner/">Bulk Storage Provisioner</a>. In AWS the production <a href="https://github.com/kubernetes-sigs/aws-efs-csi-driver">EFS CSI driver</a> is limited to provisioning no more than 1000 PVCs. We are awaiting an upstream possible fix <a href="https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732">here</a> - but most other providers CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.</p>
 <h2 id="how-much-kubernetes-experienceknowledge-is-required">How much Kubernetes experience/knowledge is required?<a class="headerlink" href="#how-much-kubernetes-experienceknowledge-is-required" title="Permanent link">#</a></h2>
 <p>Lagoon uses some very involved Kubernetes and cloud-native concepts, and while full familiarity may not be necessary to install and configure Lagoon, diagnosing issues and contributing may prove difficult without a good level of familiarity.</p>
 <p>As an indicator, comfort with the curriculum for the <a href="https://www.cncf.io/certification/cka/">Certified Kubernetes Administrator</a> would be suggested as a minimum.</p>
