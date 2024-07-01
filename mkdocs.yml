@@ -125,7 +125,7 @@ nav:
     - Kibana Examples: logging/kibana-examples.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
-  - EFS Provisioner: installing-lagoon/efs-provisioner.md
+  - Bulk storage Provisioner: installing-lagoon/bulk-storage-provisioner.md
   - Install Harbor: installing-lagoon/install-harbor.md
   - Install Lagoon Core: installing-lagoon/lagoon-core.md
   - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
@@ -495,3 +495,4 @@ plugins:
         'drupal/services/php-cli-drupal.md': 'applications/drupal/services/php-cli.md'
         'drupal/services/solr-drupal.md': 'applications/drupal/services/solr.md'
         'drupal/services/varnish-drupal.md': 'applications/drupal/services/varnish.md'
+        'installing-lagoon/efs-provisioner.md': 'installing-lagoon/bulk-storage-provisioner.md'
