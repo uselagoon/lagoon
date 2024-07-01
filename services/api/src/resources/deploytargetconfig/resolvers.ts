@@ -14,7 +14,7 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 export const getDeployTargetConfigById = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const deployTargetConfig = await Helpers(sqlClientPool).getDeployTargetConfigById(args.id);
 
@@ -25,7 +25,7 @@ export const getDeployTargetConfigById = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:view` permissions check, since the same sorts of fields
   // are viewable by the same permissions at the project scope
-  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, deployTargetConfig.project)
+  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, deployTargetConfig.project, adminScopes)
 
   return deployTargetConfig;
 };
@@ -33,7 +33,7 @@ export const getDeployTargetConfigById = async (
 export const getDeployTargetConfigsByProjectId: ResolverFn = async (
     project,
     args,
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes }
 ) => {
 
   let pid = args.project;
@@ -44,7 +44,7 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:view` permissions check, since the same sorts of fields
   // are viewable by the same permissions at the project scope
-  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, pid)
+  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, pid, adminScopes)
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigsByProjectId(pid));
 
