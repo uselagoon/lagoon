@@ -1476,6 +1476,17 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input AddUserSSHPublicKeyInput {
+    id: Int
+    name: String!
+    publicKey: String!
+    user: UserInput!
+  }
+
+  input DeleteUserSSHPublicKeyByIdInput {
+    id: Int!
+  }
+
   input AddProjectInput {
     id: Int
     name: String!
@@ -2098,6 +2109,16 @@ const typeDefs = gql`
     patch: UpdateSshKeyPatchInput!
   }
 
+  input UpdateUserSSHPublicKeyPatchInput {
+    name: String
+    publicKey: String
+  }
+
+  input UpdateUserSSHPublicKeyInput {
+    id: Int!
+    patch: UpdateUserSSHPublicKeyPatchInput!
+  }
+
   input UpdateEnvironmentPatchInput {
     project: Int
     deployType: DeployType
@@ -2367,12 +2388,15 @@ const typeDefs = gql`
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
     deleteAllProjects: String
-    addSshKey(input: AddSshKeyInput!): SshKey
-    updateSshKey(input: UpdateSshKeyInput!): SshKey
-    deleteSshKey(input: DeleteSshKeyInput!): String
-    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String
+    addSshKey(input: AddSshKeyInput!): SshKey @deprecated(reason: "Use addUserSSHPublicKey instead")
+    updateSshKey(input: UpdateSshKeyInput!): SshKey @deprecated(reason: "Use updateUserSSHPublicKey instead")
+    deleteSshKey(input: DeleteSshKeyInput!): String @deprecated(reason: "Use deleteUserSSHPublicKey instead")
+    deleteSshKeyById(input: DeleteSshKeyByIdInput!): String @deprecated(reason: "Use deleteUserSSHPublicKey instead")
     deleteAllSshKeys: String
     removeAllSshKeysFromAllUsers: String
+    addUserSSHPublicKey(input: AddUserSSHPublicKeyInput!): SshKey
+    updateUserSSHPublicKey(input: UpdateUserSSHPublicKeyInput!): SshKey
+    deleteUserSSHPublicKey(input: DeleteUserSSHPublicKeyByIdInput!): String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
     """

@@ -1,16 +1,15 @@
 import * as R from 'ramda';
 import validator from 'validator';
-import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
 import { knex, query, isPatchEmpty } from '../../util/db';
+import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
-import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
@@ -51,10 +50,10 @@ export const getProjectDeployKey: ResolverFn = async (
   { hasPermission }
 ) => {
   try {
-    const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', project))
+    const privkey = new Buffer((R.prop('privateKey', project))).toString('base64')
+    const publickey = await validateKey(privkey, "private")
 
-    const keyParts = privateKey.toPublic().toString().split(' ');
-    return keyParts[0] + " " + keyParts[1]
+    return publickey['publickey']
   } catch (err) {
     return null;
   }
@@ -314,19 +313,29 @@ export const addProject = async (
 
   let keyPair: any = {};
   try {
-    const privateKey = R.cond([
-      [R.isNil, generatePrivateKey],
-      [R.isEmpty, generatePrivateKey],
-      [R.T, sshpk.parsePrivateKey]
-    ])(R.prop('privateKey', input));
-
-    const publicKey = privateKey.toPublic();
-
-    keyPair = {
-      ...keyPair,
-      private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-      public: publicKey.toString()
-    };
+    if (R.prop('privateKey', input)) {
+      const privkey = new Buffer((R.prop('privateKey', input))).toString('base64')
+      const publickey = await validateKey(privkey, "private")
+      if (!publickey['sha256fingerprint']) {
+        throw new Error('private key failed validation');
+      }
+      keyPair = {
+        ...keyPair,
+        private: R.replace(/\n/g, '\n', (R.prop('privateKey', input)).toString('openssh')),
+        public: publickey['publickey'],
+        fingerprint: publickey['sha256fingerprint'],
+        type: publickey['type']
+      };
+    } else {
+      const genkey = await genpk()
+      keyPair = {
+        ...keyPair,
+        private: genkey['privatekeypem'],
+        public: genkey['publickey'],
+        fingerprint: genkey['sha256fingerprint'],
+        type: genkey['type']
+      };
+    }
   } catch (err) {
     throw new Error(`There was an error with the privateKey: ${err.message}`);
   }
@@ -415,12 +424,9 @@ export const addProject = async (
   // Find or create a user that has the public key linked to them
   const userRows = await query(
     sqlClientPool,
-    sshKeySql.selectUserIdsBySshKeyFingerprint(
-      getSshKeyFingerprint(keyPair.public)
-    )
+    sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint)
   );
   const userId = R.path([0, 'usid'], userRows);
-
   let user;
   if (!userId) {
     try {
@@ -431,7 +437,6 @@ export const addProject = async (
       });
 
       const keyParts = keyPair.public.split(' ');
-
       const { insertId } = await query(
         sqlClientPool,
         sshKeySql.insertSshKey({
@@ -439,7 +444,7 @@ export const addProject = async (
           name: `default-user@${project.name}`,
           keyValue: keyParts[1],
           keyType: keyParts[0],
-          keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          keyFingerprint: keyPair.fingerprint
         })
       );
       await query(
@@ -701,15 +706,18 @@ export const updateProject: ResolverFn = async (
     let keyPair: any = {};
     try {
 
-      const privateKey = sshpk.parsePrivateKey(R.prop('privateKey', patch))
-      const publicKey = privateKey.toPublic();
-
+      const privkey = new Buffer((R.prop('privateKey', patch))).toString('base64')
+      const publickey = await validateKey(privkey, "private")
+      if (!publickey['sha256fingerprint']) {
+        throw new Error('new private key failed validation');
+      }
       keyPair = {
         ...keyPair,
-        private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-        public: publicKey.toString()
+        private: R.replace(/\n/g, '\n', (R.prop('privateKey', patch)).toString('openssh')),
+        public: publickey['publickey'],
+        fingerprint: publickey['sha256fingerprint'],
+        type: publickey['type']
       };
-
       const keyParts = keyPair.public.split(' ');
 
       try {
@@ -717,10 +725,10 @@ export const updateProject: ResolverFn = async (
           sqlClientPool,
           sshKeySql.insertSshKey({
             id: null,
-            name: 'auto-add via api',
+            name: `default-user@${oldProject.name}`,
             keyValue: keyParts[1],
             keyType: keyParts[0],
-            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+            keyFingerprint: keyPair.fingerprint
           })
         );
         const user = await models.UserModel.loadUserByUsername(
@@ -732,9 +740,14 @@ export const updateProject: ResolverFn = async (
         );
 
         // remove the old public key from the default user
+        const oldprivkey = new Buffer((R.prop('privateKey', oldProject))).toString('base64')
+        const oldKey = await validateKey(oldprivkey, "private")
+        if (!oldKey['sha256fingerprint']) {
+          throw new Error('old private key failed validation');
+        }
         const skidResult = await query(
           sqlClientPool,
-          SshKeySql.selectSshKeyByFingerprint(getSshKeyFingerprint(sshpk.parsePrivateKey(R.prop('privateKey', oldProject)).toPublic()))
+          SshKeySql.selectSshKeyByFingerprint(oldKey['sha256fingerprint'])
         );
         const skid = R.path(['0', 'id'], skidResult) as number;
         await query(

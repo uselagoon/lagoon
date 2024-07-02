@@ -757,12 +757,11 @@ mutation PopulateApi {
   ) {
     name
   }
-  PlatformOwnerSshKeyEd25519: addSshKey(
+  PlatformOwnerSshKeyEd25519: addUserSSHPublicKey(
     input: {
       id: 5
       name: "sshkey-platform-owner-ed25519"
-      keyValue: "AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
-      keyType: SSH_ED25519
+      publicKey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMdEs1h19jv2UrbtKcqPDatUxT9lPYcbGlEAbInsY8Ka"
       user: {
         email: "platformowner@example.com"
       }
@@ -770,12 +769,24 @@ mutation PopulateApi {
   ) {
     id
   }
-  MaintainerSshKeyEcdsa: addSshKey(
+  MaintainerSshKeyEcdsa: addUserSSHPublicKey(
     input: {
       id: 6
       name: "sshkey-maintainer-ecdsa"
-      keyValue: "AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="
-      keyType: ECDSA_SHA2_NISTP521
+      publicKey: "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="
+      user: {
+        email: "maintainer@example.com"
+      }
+    }
+  ) {
+    id
+  }
+
+  MaintainerSshKeyEd25519SK: addUserSSHPublicKey(
+    input: {
+      id: 7
+      name: "sshkey-maintainer-ed25519-sk"
+      publicKey: "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIPjqGSQd+w7qQxioI6qj+KWX/pEg9mNvVGZ7aUoXfsC0AAAABHNzaDo="
       user: {
         email: "maintainer@example.com"
       }

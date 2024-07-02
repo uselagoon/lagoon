@@ -1,8 +1,8 @@
 import R from 'ramda';
-import sshpk from 'sshpk';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { getProject, addDeployKeyToProject } from '@lagoon/commons/dist/gitlab/api';
 import { addProject, addGroupToProject, sanitizeGroupName } from '@lagoon/commons/dist/api';
+import { validateKey } from '@lagoon/commons/dist/util/func';
 
 import { WebhookRequestData } from '../types';
 
@@ -40,13 +40,10 @@ export async function gitlabProjectCreate(webhook: WebhookRequestData) {
     const lagoonProject = await addProject(projectName, gitUrl, openshift, productionenvironment);
 
     try {
-      const privateKey: any = R.pipe(
-        R.path(['addProject', 'privateKey']),
-        sshpk.parsePrivateKey,
-      )(lagoonProject);
-      const publicKey = privateKey.toPublic();
+      const privkey = new Buffer((R.prop('privateKey', lagoonProject))).toString('base64')
+      const publickey = await validateKey(privkey, "private")
 
-      await addDeployKeyToProject(id, publicKey.toString());
+      await addDeployKeyToProject(id, publickey['publickey']);
     } catch (err) {
       sendToLagoonLogs(
         'error',
