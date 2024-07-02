@@ -1,6 +1,8 @@
 import R from 'ramda';
 import { Request, Response } from 'express';
-import { parseJson } from './util/routing';
+import bodyParser from 'body-parser';
+
+const parseJson = bodyParser.json();
 
 declare type keycloakGrant = {
   access_token: string,

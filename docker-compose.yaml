@@ -41,6 +41,12 @@ services:
     depends_on:
       broker:
         condition: service_started
+  api-sidecar-handler:
+    # this is neded for the internal dns references
+    container_name: apisidecarhandler
+    image: ${IMAGE_REPO:-lagoon}/api-sidecar-handler
+    ports:
+      - '3333:3333'
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
     environment:
@@ -58,6 +64,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
+      - SIDECAR_HANDLER_HOST=apisidecarhandler
   api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api
     command: >
@@ -86,6 +93,8 @@ services:
         condition: service_completed_successfully # don't start the lagoon migrations until the db migrations is completed
       keycloak:
         condition: service_started
+      api-sidecar-handler:
+        condition: service_started
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -104,10 +113,13 @@ services:
       - S3_BAAS_ACCESS_KEY_ID=minio
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
       - CONSOLE_LOGGING_LEVEL=debug
+      - SIDECAR_HANDLER_HOST=apisidecarhandler
     depends_on:
       api-lagoon-migrations:
         condition: service_started
       keycloak:
+        condition: service_started
+      api-sidecar-handler:
         condition: service_started
     ports:
       - '3000:3000'
