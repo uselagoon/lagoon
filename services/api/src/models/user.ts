@@ -184,7 +184,7 @@ export const User = (clients: {
     for (const user of users) {
       // set the lastaccessed attribute
       let date = null;
-      if (user['attributes']['last_accessed']) {
+      if (user['attributes'] && user['attributes']['last_accessed']) {
         date = new Date(user['attributes']['last_accessed']*1000).toISOString()
       }
       usersWithGitlabIdFetch.push({
