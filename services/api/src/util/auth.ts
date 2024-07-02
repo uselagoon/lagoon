@@ -187,8 +187,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       currentUser: [currentUser.id]
     };
 
-    await UserModel.userLastAccessed(currentUser);
-
     const usersAttribute = R.prop('users', attributes);
     if (usersAttribute && usersAttribute.length) {
       claims = {

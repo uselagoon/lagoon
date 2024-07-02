@@ -199,6 +199,7 @@ const apolloServer = new ApolloServer({
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
         // grab the users project ids and roles in the first request
         groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
+        await User.User(modelClients).userLastAccessed(currentUser);
       }
 
       // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
