@@ -182,14 +182,15 @@ export const User = (clients: {
     let usersWithGitlabIdFetch = [];
 
     for (const user of users) {
-      // set the lastaccessed attribute
-      let date = null;
-      if (user['attributes'] && user['attributes']['last_accessed']) {
-        date = new Date(user['attributes']['last_accessed']*1000).toISOString()
+      const userdate = await query(
+        sqlClientPool,
+        Sql.selectLastAccessed(user.id)
+      );
+      if (userdate.length) {
+        user.lastAccessed = userdate[0].lastAccessed
       }
       usersWithGitlabIdFetch.push({
         ...user,
-        lastAccessed: date,
         gitlabId: await fetchGitlabId(user)
       });
     }
@@ -545,24 +546,12 @@ export const User = (clients: {
   const userLastAccessed = async (userInput: User): Promise<Boolean> => {
     // set the last accessed as a unix timestamp on the user attributes
     try {
-      const lastAccessed = {last_accessed: Math.floor(Date.now() / 1000)}
-      await keycloakAdminClient.users.update(
-        {
-          id: userInput.id
-        },
-        {
-          attributes: {
-            ...userInput.attributes,
-            ...lastAccessed
-          }
-        }
+      await query(
+        sqlClientPool,
+        Sql.updateLastAccessed(userInput.id)
       );
     } catch (err) {
-      if (err.response.status && err.response.status === 404) {
-        throw new UserNotFoundError(`User not found: ${userInput.id}`);
-      } else {
-        logger.warn(`Error updating Keycloak user: ${err.message}`);
-      }
+      logger.warn(`Error updating user: ${err.message}`);
     }
     return true
   };
@@ -658,6 +647,11 @@ export const User = (clients: {
       await query(
         sqlClientPool,
         Sql.deleteFromUserSshKeys(id)
+      );
+      // delete from the user table
+      await query(
+        sqlClientPool,
+        Sql.deleteFromUser(id)
       );
 
       await keycloakAdminClient.users.del({ id });
