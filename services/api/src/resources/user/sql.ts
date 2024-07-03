@@ -38,4 +38,23 @@ export const Sql = {
       .where('sk.key_fingerprint', keyFingerprint)
       .select('user_ssh_key.usid')
       .toString(),
+  updateLastAccessed: (id: string) =>
+    knex('user')
+      .insert({
+        usid: id,
+        lastAccessed: knex.fn.now(),
+      })
+      .onConflict('usid')
+      .merge()
+      .toString(),
+  selectLastAccessed: (id: string) =>
+    knex('user')
+      .select('last_accessed')
+      .where('usid','=',id)
+      .toString(),
+  deleteFromUser: (id: string) =>
+    knex('user')
+      .where('usid', id)
+      .delete()
+      .toString(),
 };
