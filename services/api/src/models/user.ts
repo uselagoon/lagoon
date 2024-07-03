@@ -183,13 +183,17 @@ export const User = (clients: {
 
     for (const user of users) {
       // set the lastaccessed attribute
+      // @TODO: no op last accessed for the time being due to raciness
+      // @TODO: refactor later
+      /*
       let date = null;
       if (user['attributes'] && user['attributes']['last_accessed']) {
         date = new Date(user['attributes']['last_accessed']*1000).toISOString()
+        user.lastAccessed = date
       }
+      */
       usersWithGitlabIdFetch.push({
         ...user,
-        lastAccessed: date,
         gitlabId: await fetchGitlabId(user)
       });
     }
@@ -544,6 +548,9 @@ export const User = (clients: {
 
   const userLastAccessed = async (userInput: User): Promise<Boolean> => {
     // set the last accessed as a unix timestamp on the user attributes
+    // @TODO: no op last accessed for the time being due to raciness
+    // @TODO: refactor later
+    /*
     try {
       const lastAccessed = {last_accessed: Math.floor(Date.now() / 1000)}
       await keycloakAdminClient.users.update(
@@ -564,6 +571,7 @@ export const User = (clients: {
         logger.warn(`Error updating Keycloak user: ${err.message}`);
       }
     }
+    */
     return true
   };
 
