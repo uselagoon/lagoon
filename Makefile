@@ -76,9 +76,6 @@ PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
-# Clear all data from the API on a retest run, usually to clear up after a failure. Set false to preserve
-CLEAR_API_DATA ?= true
-
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
 $(shell >scan.txt)
@@ -528,7 +525,6 @@ k3d/test: k3d/setup
 			USE_CALICO_CNI=false \
 			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
-			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
@@ -731,7 +727,6 @@ k3d/retest:
 			USE_CALICO_CNI=false \
 			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
-			CLEAR_API_DATA=$(CLEAR_API_DATA) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \

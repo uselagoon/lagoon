@@ -318,31 +318,3 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   return organizationData;
 };
-
-export const deleteAllUsers: ResolverFn = async (
-  _root,
-  _args,
-  { models, hasPermission },
-) => {
-  await hasPermission('user', 'deleteAll');
-
-  const users = await models.UserModel.loadAllUsers();
-
-  let deleteErrors: String[] = [];
-  for (const user of users) {
-    try {
-      await models.UserModel.deleteUser(user.id)
-    } catch (err) {
-      deleteErrors = [
-        ...deleteErrors,
-        `${user.email} (${user.id})`,
-      ]
-    }
-  }
-
-  return R.ifElse(
-    R.isEmpty,
-    R.always('success'),
-    deleteErrors => { throw new Error(`Could not delete users: ${deleteErrors.join(', ')}`) },
-  )(deleteErrors);
-};

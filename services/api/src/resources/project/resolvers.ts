@@ -933,33 +933,6 @@ export const updateProject: ResolverFn = async (
   return Helpers(sqlClientPool).getProjectById(id);
 };
 
-export const deleteAllProjects: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  await hasPermission('project', 'deleteAll');
-
-  const projectNames = await Helpers(sqlClientPool).getAllProjectNames();
-
-  await query(sqlClientPool, Sql.truncateProject());
-
-  for (const name of projectNames) {
-    await KeycloakOperations.deleteGroup(name);
-  }
-
-  userActivityLogger(`User deleted all projects`, {
-    project: '',
-    event: 'api:deleteAllProjects',
-    payload: {
-      ...args
-    }
-  });
-
-  // TODO: Check rows for success
-  return 'success';
-};
-
 export const removeProjectMetadataByKey: ResolverFn = async (
   root,
   { input: { id, key } },

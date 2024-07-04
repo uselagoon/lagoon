@@ -258,7 +258,7 @@ export const Group = (clients: {
     // briefRepresentation pulls all the group information from keycloak including the attributes
     // this means we don't need to iterate over all the groups one by one anymore to get the full group information
     const fullGroups = await keycloakAdminClient.groups.find({briefRepresentation: false});
-    // no need to transform, just return the full response, only the `allGroups` and `deleteAllGroups` resolvers use this
+    // no need to transform, just return the full response, only the `allGroups` resolvers use this
     // and the `sync-groups-opendistro-security` consumption of this helper sync script is going to
     // go away in the future when we move to the `lagoon-opensearch-sync` supporting service
     return fullGroups;
