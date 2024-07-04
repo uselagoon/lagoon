@@ -2289,6 +2289,7 @@ const typeDefs = gql`
     user: UserInput!
     group: GroupInput!
     role: GroupRole!
+    inviteUser: Boolean
   }
 
   input ProjectGroupsInput {
