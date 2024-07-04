@@ -51,6 +51,29 @@ export const addWorkflow: ResolverFn = async (
     Sql.selectWorkflowById(insertId)
   );
 
+  let target;
+  if (input.project && input.advancedTaskDefinition) {
+    target = {
+      id: input.project,
+      type: "project",
+      details: `task: '${input.advancedTaskDefinition}'`
+    }
+  } else {
+    if (input.project) {
+      target = {
+        id: input.project,
+        type: "project",
+      }
+    }
+    if (input.advancedTaskDefinition) {
+      target = {
+        id: input.project,
+        type: "task",
+        details: `task: '${input.advancedTaskDefinition}'`
+      }
+    }
+  }
+
   userActivityLogger(`User added a workflow '${insertId}'`, {
     project: '',
     event: 'api:addWorkflow',
@@ -59,7 +82,13 @@ export const addWorkflow: ResolverFn = async (
         name: input.name,
         event: input.event,
         project: input.project,
-        advanced_task_definition: input.advancedTaskDefinition
+        advanced_task_definition: input.advancedTaskDefinition,
+        resource: {
+          id: insertId,
+          type: "workflow",
+          details: input.name,
+        },
+        linkedResource: target
       }
     }
   });
@@ -118,7 +147,11 @@ export const updateWorkflow: ResolverFn = async (
         event,
         project,
         advanced_task_definition: advancedTaskDefinition
-      }
+      },
+      resource: {
+        id: id,
+        type: "workflow",
+      },
     }
   });
 

@@ -421,18 +421,28 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(insertId));
 
-  userActivityLogger(`User updated environment`, {
-    project: '',
-    event: 'api:addOrUpdateEnvironment',
-    payload: {
-      ...input
-    }
-  });
-
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
     R.path([0], rows)
   ]);
   const environment = withK8s[0];
+
+  userActivityLogger(`User updated environment`, {
+    project: '',
+    event: 'api:addOrUpdateEnvironment',
+    payload: {
+      ...input,
+      resource: {
+        id: projectOpenshift.id,
+        type: "project",
+        details: projectOpenshift.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+    }
+  });
 
   return environment;
 };
@@ -486,13 +496,23 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
   // const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
-
+  const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {
     project: '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
       projectName,
-      input
+      input,
+      resource: {
+        id: curEnv.project,
+        type: "project",
+        details: projectName,
+      },
+      linkedResource: {
+        id: curEnv.id,
+        type: "environment",
+        details: curEnv.name,
+      }
     }
   });
 
@@ -621,7 +641,17 @@ export const deleteEnvironment: ResolverFn = async (
       projectName,
       environment,
       deleted: deleted, // log if the actual deletion took place
-      data
+      data,
+      resource: {
+        id: environment.project,
+        type: "project",
+        details: projectName,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 
@@ -696,6 +726,11 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(curEnv.project)
+  );
+
   userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
     project: '',
     event: 'api:updateEnvironment',
@@ -715,7 +750,17 @@ export const updateEnvironment: ResolverFn = async (
         autoIdle: input.patch.autoIdle,
         created: input.patch.created
       },
-      data: withK8s
+      data: withK8s,
+      resource: {
+        id: curEnv.project,
+        type: "project",
+        details: project.name
+      },
+      linkedResource: {
+        id: curEnv.id,
+        type: "environment",
+        details: curEnv.name,
+      }
     }
   });
 
@@ -771,12 +816,27 @@ export const setEnvironmentServices: ResolverFn = async (
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
   userActivityLogger(`User set environment services for '${environment.name}'`, {
     project: '',
     event: 'api:setEnvironmentServices',
     payload: {
       environment,
-      services
+      services,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 
@@ -852,11 +912,26 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
   userActivityLogger(`User updated environment '${environment.name}' service '${input.name}`, {
     project: '',
     event: 'api:updateEnvironmentService',
     payload: {
-      environment
+      environment,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 
@@ -892,11 +967,26 @@ export const deleteEnvironmentService: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
   userActivityLogger(`User deleted environment '${environment.name}' service '${service.name}`, {
     project: '',
     event: 'api:deleteEnvironmentService',
     payload: {
       service,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 

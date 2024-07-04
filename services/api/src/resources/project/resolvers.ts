@@ -490,7 +490,12 @@ export const addProject = async (
     event: 'api:addProject',
     payload: {
       input,
-      data: project
+      data: project,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
     }
   });
 
@@ -599,7 +604,12 @@ export const deleteProject: ResolverFn = async (
     payload: {
       input: {
         project
-      }
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
     }
   });
 
@@ -935,7 +945,12 @@ export const updateProject: ResolverFn = async (
         organization,
         buildImage,
         sharedBaasBucket
-      }
+      },
+      resource: {
+        id: oldProject.id,
+        type: "project",
+        details: oldProject.name,
+      },
     }
   });
 
@@ -963,6 +978,8 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     }
   }
 
+  const project = await Helpers(sqlClientPool).getProjectById(id);
+
   await query(
     sqlClientPool,
     `UPDATE project
@@ -978,7 +995,12 @@ export const removeProjectMetadataByKey: ResolverFn = async (
       input: {
         id,
         key
-      }
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
     }
   });
 
@@ -1016,6 +1038,8 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   }
 
+  const project = await Helpers(sqlClientPool).getProjectById(id);
+
   await query(
     sqlClientPool,
     `UPDATE project
@@ -1036,7 +1060,12 @@ export const updateProjectMetadata: ResolverFn = async (
         project: id,
         key,
         value
-      }
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
     }
   });
 

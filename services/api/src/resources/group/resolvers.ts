@@ -324,6 +324,7 @@ export const addGroup: ResolverFn = async (
   let attributes = null;
   // check if this is a group being added in an organization
   // if so, check the user adding the group has permission to do so, and that the organization exists
+  let target;
   if (input.organization != null) {
     const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     if (organizationData === undefined) {
@@ -333,6 +334,10 @@ export const addGroup: ResolverFn = async (
     await hasPermission('organization', 'addGroup', {
       organization: input.organization
     });
+    target = {
+      id: organizationData.id,
+      type: "organization"
+    }
 
     const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, input.organization)
     let groupCount = 0
@@ -413,13 +418,27 @@ export const addGroup: ResolverFn = async (
     ''
   );
 
+  const groupResource = {
+    id: group.id,
+    type: "group",
+    details: group.name
+  }
+  let linkedResource;
+  if (target) {
+    linkedResource = groupResource
+  } else {
+    target = groupResource
+  }
+
   userActivityLogger(`User added a group`, {
     project: '',
     event: 'api:addGroup',
     payload: {
       data: {
         group
-      }
+      },
+      resource: target,
+      linkedResource: linkedResource,
     }
   });
 
@@ -435,11 +454,16 @@ export const updateGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  let target;
   if (org) {
     // if this is a group in an organization, check that the user updating it has permission to do so before deleting the group
     await hasPermission('organization', 'addGroup', {
       organization: org
     });
+    target = {
+      id: R.prop('lagoon-organization', group.attributes),
+      type: "organization"
+    }
   } else {
     await hasPermission('group', 'update', {
       group: group.id
@@ -463,6 +487,18 @@ export const updateGroup: ResolverFn = async (
     name: patch.name
   });
 
+  const groupResource = {
+    id: group.id,
+    type: "group",
+    details: group.name
+  }
+  let linkedResource;
+  if (target) {
+    linkedResource = groupResource
+  } else {
+    target = groupResource
+  }
+
   userActivityLogger(`User updated a group`, {
     project: '',
     event: 'api:updateGroup',
@@ -470,7 +506,9 @@ export const updateGroup: ResolverFn = async (
       data: {
         patch,
         updatedGroup
-      }
+      },
+      resource: target,
+      linkedResource: linkedResource,
     }
   });
 
@@ -484,11 +522,16 @@ export const deleteGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  let target;
   if (org) {
     // if this is a group in an organization, check that the user deleting it has permission to do so before deleting the group
     await hasPermission('organization', 'removeGroup', {
       organization: org
     });
+    target = {
+      id: R.prop('lagoon-organization', group.attributes),
+      type: "organization"
+    }
   } else {
     await hasPermission('group', 'delete', {
       group: group.id
@@ -500,13 +543,28 @@ export const deleteGroup: ResolverFn = async (
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
     group.name
   );
+
+  const groupResource = {
+    id: group.id,
+    type: "group",
+    details: group.name
+  }
+  let linkedResource;
+  if (target) {
+    linkedResource = groupResource
+  } else {
+    target = groupResource
+  }
+
   userActivityLogger(`User deleted a group`, {
     project: '',
     event: 'api:deleteGroup',
     payload: {
       data: {
         group
-      }
+      },
+      resource: target,
+      linkedResource: linkedResource,
     }
   });
 
@@ -599,7 +657,17 @@ export const addUserToGroup: ResolverFn = async (
       input: {
         user: userInput, group: groupInput, role
       },
-      data: updatedGroup
+      data: updatedGroup,
+      resource: {
+        id: group.id,
+        type: "group",
+        details: group.name,
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: `${user.email}, role: ${role}`,
+      }
     }
   });
 
@@ -646,7 +714,17 @@ export const removeUserFromGroup: ResolverFn = async (
       input: {
         user: userInput, group: groupInput
       },
-      data: updatedGroup
+      data: updatedGroup,
+      resource: {
+        id: group.id,
+        type: "group",
+        details: group.name,
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: user.email,
+      }
     }
   });
 
@@ -729,6 +807,15 @@ export const addGroupsToProject: ResolverFn = async (
     payload: {
       input: {
         project: projectInput, groups: groupsInput
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        type: "group",
+        details: `multiple groups`,
       }
     }
   });
@@ -826,7 +913,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -887,6 +974,25 @@ export const removeGroupsFromProject: ResolverFn = async (
       `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
+
+  userActivityLogger(`User synced groups to a project`, {
+    project: '',
+    event: 'api:removeGroupsFromProject',
+    payload: {
+      input: {
+        project: projectInput, groups: groupsInput
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        type: "group",
+        details: `multiple groups`,
+      }
+    }
+  });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

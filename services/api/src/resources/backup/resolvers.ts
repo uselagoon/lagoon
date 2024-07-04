@@ -198,7 +198,17 @@ export const addBackup: ResolverFn = async (
       project: environment.project,
       source,
       backupId,
-      created
+      created,
+      resource: {
+        id: environmentId,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: backup.id,
+        type: "backup",
+        details: `${source} - ${backupId}`,
+      }
     }
   });
 
@@ -216,13 +226,26 @@ export const deleteBackup: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  const environment = await environmentSql.selectEnvironmentByBackupId(backupId)
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  const backup = R.prop(0, rows);
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
     event: 'api:deleteBackup',
     payload: {
-      backupId
+      backupId,
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: backup.id,
+        type: "backup",
+        details: `${backup.source}`,
+      }
     }
   });
 
@@ -308,7 +331,17 @@ export const addRestore: ResolverFn = async (
       restoreId: restoreData.id,
       project: projectData.name,
       backupId,
-      data
+      data,
+      resource: {
+        id: environmentData.id,
+        type: "environment",
+        details: environmentData.name,
+      },
+      linkedResource: {
+        id: backupData.id,
+        type: "backup",
+        details: `${backupData.source}`,
+      }
     }
   });
 
@@ -379,6 +412,8 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
+  const environmentData = await environmentSql.selectEnvironmentByBackupId(backupId)
+
   pubSub.publish(EVENTS.BACKUP, backupData);
 
   userActivityLogger(`User updated restore '${backupId}'`, {
@@ -387,7 +422,17 @@ export const updateRestore: ResolverFn = async (
     payload: {
       backupId,
       patch,
-      backupData
+      backupData,
+      resource: {
+        id: environmentData.id,
+        type: "environment",
+        details: environmentData.name,
+      },
+      linkedResource: {
+        id: backupData.id,
+        type: "backup",
+        details: `${backupData.source}`,
+      }
     }
   });
 
