@@ -138,10 +138,10 @@ const apolloServer = new ApolloServer({
         const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
         for (const role of userRoleMapping) {
           if (role.name == "platform-owner") {
-            currentUser.platformOwner = true
+            platformOwner = true
           }
           if (role.name == "platform-viewer") {
-            currentUser.platformViewer = true
+            platformViewer = true
           }
         }
         // grab the users project ids and roles in the first request

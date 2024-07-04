@@ -148,7 +148,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -1133,7 +1133,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput

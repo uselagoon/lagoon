@@ -45,7 +45,7 @@ const PermissionsToRBAC = (permission: string) => {
   return `invoke:${permission.toLowerCase()}`;
 };
 
-export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission, models}) => {
+export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission, models, adminScopes}) => {
   //is the user a system admin?
   try {
     await hasPermission('advanced_task','create:advanced');
@@ -58,7 +58,7 @@ export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, has
     Sql.selectAdvancedTaskDefinitions()
   );
 
-  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission, adminScopes);
 
   for(let i = 0; i < adTaskDefs.length; i++) {
     adTaskDefs[i].advancedTaskDefinitionArguments = await atf.advancedTaskDefinitionArguments(adTaskDefs[i].id);
@@ -70,10 +70,10 @@ export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, has
 export const advancedTaskDefinitionById = async (
   root,
   { id },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, adminScopes }
 ) => {
 
-  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission, adminScopes);
   await hasPermission('task', 'view', {});
   const advancedTaskDef = await atf.advancedTaskDefinitionById(
     id
@@ -90,7 +90,7 @@ export const advancedTaskDefinitionById = async (
 export const getRegisteredTasksByEnvironmentId = async (
   { id },
   {},
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, adminScopes }
 ) => {
   let rows;
 
@@ -98,7 +98,7 @@ export const getRegisteredTasksByEnvironmentId = async (
     rows = await resolveTasksForEnvironment(
       {},
       { environment: id },
-      { sqlClientPool, hasPermission, models }
+      { sqlClientPool, hasPermission, models, adminScopes }
     );
 
     rows = await Filters.filterAdminTasks(hasPermission, rows);
@@ -110,14 +110,17 @@ export const getRegisteredTasksByEnvironmentId = async (
 export const resolveTasksForEnvironment = async (
   root,
   { environment },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, adminScopes }
 ) => {
   const environmentDetails = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environment);
-  await hasPermission('task', 'view', {
-    project: environmentDetails.project
-  });
+
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('task', 'view', {
+      project: environmentDetails.project
+    });
+  }
 
   let environmentRows = await query(
     sqlClientPool,
@@ -162,7 +165,7 @@ export const resolveTasksForEnvironment = async (
   //@ts-ignore
   rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
 
-  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission, adminScopes);
 
   let typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, null, environment);
   // TODO: this needs to be somehow refactored into all lookups.
@@ -212,15 +215,18 @@ const currentUsersAdvancedTaskRBACRolesForProject = async (
 export const advancedTaskDefinitionArgumentById = async (
   root,
   id,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectAdvancedTaskDefinitionArgumentById(id)
   );
-  await hasPermission('environment', 'view', {
-    project: id
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: id
+    });
+  }
 
   return R.prop(0, rows);
 };
@@ -230,7 +236,7 @@ export const addAdvancedTaskDefinition = async (
   {
     input
   },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger, adminScopes }
 ) => {
 
   const {
@@ -254,7 +260,7 @@ export const addAdvancedTaskDefinition = async (
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
-    sqlClientPool, models, hasPermission
+    sqlClientPool, models, hasPermission, adminScopes
   );
 
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
@@ -422,14 +428,14 @@ export const updateAdvancedTaskDefinition = async (
       }
     }
   },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger, adminScopes }
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
-    sqlClientPool, models, hasPermission
+    sqlClientPool, models, hasPermission, adminScopes
   );
 
   let task = await atb.advancedTaskDefinitionById(id);
@@ -502,7 +508,7 @@ export const updateAdvancedTaskDefinition = async (
       }
     });
 
-    const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
+    const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission, adminScopes);
     return await atf.advancedTaskDefinitionById(id);
   } catch (error) {
     throw error
@@ -530,7 +536,7 @@ const getProjectByEnvironmentIdOrProjectId = async (
 export const invokeRegisteredTask = async (
   root,
   { advancedTaskDefinition, environment, argumentValues, sourceType },
-  { sqlClientPool, hasPermission, models, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
 
@@ -539,11 +545,12 @@ export const invokeRegisteredTask = async (
     hasPermission,
     advancedTaskDefinition,
     environment,
-    models
+    models,
+    adminScopes
   );
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
-    sqlClientPool, models, hasPermission
+    sqlClientPool, models, hasPermission, adminScopes
   );
 
   //here we want to validate the incoming arguments
@@ -664,14 +671,15 @@ const getNamedAdvancedTaskForEnvironment = async (
   hasPermission,
   advancedTaskDefinition,
   environment,
-  models
+  models,
+  adminScopes
 ):Promise<AdvancedTaskDefinitionInterface> => {
   let rows;
 
   rows = await resolveTasksForEnvironment(
     {},
     { environment },
-    { sqlClientPool, hasPermission, models }
+    { sqlClientPool, hasPermission, models, adminScopes }
   );
 
   rows = await Filters.filterAdminTasks(hasPermission, rows);
@@ -691,11 +699,11 @@ const getNamedAdvancedTaskForEnvironment = async (
 export const deleteAdvancedTaskDefinition = async (
   root,
   { advancedTaskDefinition },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, adminScopes }
 ) => {
   //load up advanced task definition ...
   const atb = advancedTaskToolbox.advancedTaskFunctions(
-    sqlClientPool, models, hasPermission
+    sqlClientPool, models, hasPermission, adminScopes
   );
   const adTaskDef = await atb.advancedTaskDefinitionById(advancedTaskDefinition);
 

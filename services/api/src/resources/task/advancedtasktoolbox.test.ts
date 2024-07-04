@@ -53,7 +53,7 @@ describe('advancedtasktoolbox', () => {
 
         //This user has permission to view tasks on
         let hasPermissions = mockHasPermission([{resource: 'task', scope: 'view', attributes: {project: 1}}])
-        let ath = advancedTaskFunctionFactory({}, hasPermissions, {}, {}, environmentHelpers, {});
+        let ath = advancedTaskFunctionFactory({}, hasPermissions, {}, {}, environmentHelpers, {}, {});
 
         test('test user is granted permission when invoking a project she has access to', () => {
             return expect(ath.permissions.canUserSeeTaskDefinition({environment: 1})).resolves.toBe(true);

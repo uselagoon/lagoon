@@ -12,7 +12,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission) => {
-  const getTaskById = async (TaskID: number) => {
+  const getTaskById = async (TaskID: number, adminScopes) => {
     const queryString = knex('task')
       .where('id', '=', TaskID)
       .toString();
@@ -25,9 +25,12 @@ export const Helpers = (sqlClientPool: Pool, hasPermission) => {
     }
 
     const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-    await hasPermission('task', 'view', {
-      project: R.path(['0', 'pid'], rowsPerms)
-    });
+    // if the user is not a platform owner or viewer, then perform normal permission check
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+      await hasPermission('task', 'view', {
+        project: R.path(['0', 'pid'], rowsPerms)
+      });
+    }
 
     return task;
   };

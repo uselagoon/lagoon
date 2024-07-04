@@ -15,17 +15,17 @@ import { sqlClientPool } from '../../clients/sqlClient';
 
 
 
-export const advancedTaskFunctions = (sqlClientPool, models, hasPermission = null) => {
+export const advancedTaskFunctions = (sqlClientPool, models, hasPermission = null, adminScopes) => {
     //Here we use partial application to generate a query runner
     //This allows us to replace whatever is doing the running with some mocked object if we need.
 
     const queryRunner = R.partial(query, [sqlClientPool]);
 
     //Note, following the injection functionality above, we also pass through environment and project helpers that can be mocked.
-    return advancedTaskFunctionFactory(queryRunner, hasPermission, models, Sql, environmentHelpers(sqlClientPool), projectHelpers(sqlClientPool));
+    return advancedTaskFunctionFactory(queryRunner, hasPermission, models, Sql, environmentHelpers(sqlClientPool), projectHelpers(sqlClientPool), adminScopes);
 }
 
-export const advancedTaskFunctionFactory = (queryRunner, hasPermission = null, models, Sql, environmentHelpers, projectHelpers) => {
+export const advancedTaskFunctionFactory = (queryRunner, hasPermission = null, models, Sql, environmentHelpers, projectHelpers, adminScopes) => {
 
     //This provides a reasonable alternative to simply throwing errors if permission checks fail.
     const tryCatchHaspermission = async (resource, scope, attributes: IKeycloakAuthAttributes) => {
@@ -60,13 +60,19 @@ export const advancedTaskFunctionFactory = (queryRunner, hasPermission = null, m
           //either project, environment, or group will be - we have to run different checks for each possibility
           if(advancedTaskDefinition.environment !== null) {
             let env = await environmentHelpers.getEnvironmentById(advancedTaskDefinition.environment);
+              if (adminScopes.platformViewer) {
+                return true;
+              }
               return await tryCatchHaspermission('task', 'view', {
                 project: env.project
               });
           } else if (advancedTaskDefinition.project !== null) {
-              return await tryCatchHaspermission('task', 'view', {
-                project: advancedTaskDefinition.project
-              });
+            if (adminScopes.platformViewer) {
+              return true;
+            }
+            return await tryCatchHaspermission('task', 'view', {
+              project: advancedTaskDefinition.project
+            });
           } else if (advancedTaskDefinition.groupName !== null) {
 
             const group = await models.GroupModel.loadGroupByIdOrName({
