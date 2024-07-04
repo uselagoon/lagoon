@@ -13,7 +13,8 @@ import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { RemoveData, DeployType } from '@lagoon/commons/dist/types';
+import { RemoveData, DeployType, AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -422,18 +423,31 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(insertId));
 
-  userActivityLogger(`User updated environment`, {
-    project: '',
-    event: 'api:addOrUpdateEnvironment',
-    payload: {
-      ...input
-    }
-  });
-
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
     R.path([0], rows)
   ]);
   const environment = withK8s[0];
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectOpenshift.id,
+      type: AuditType.PROJECT,
+      details: projectOpenshift.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
+  userActivityLogger(`User updated environment`, {
+    project: '',
+    event: 'api:addOrUpdateEnvironment',
+    payload: {
+      ...input,
+      ...auditLog,
+    }
+  });
 
   return environment;
 };
@@ -487,13 +501,26 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
   // const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
-
+  const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
+  const auditLog: AuditLog = {
+    resource: {
+      id: curEnv.project,
+      type: AuditType.PROJECT,
+      details: projectName,
+    },
+    linkedResource: {
+      id: curEnv.id,
+      type: AuditType.ENVIRONMENT,
+      details: curEnv.name,
+    },
+  };
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {
     project: '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
       projectName,
-      input
+      input,
+      ...auditLog,
     }
   });
 
@@ -613,6 +640,18 @@ export const deleteEnvironment: ResolverFn = async (
     deleted = true;
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.project,
+      type: AuditType.PROJECT,
+      details: projectName,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     project: '',
     event: 'api:deleteEnvironment',
@@ -620,7 +659,8 @@ export const deleteEnvironment: ResolverFn = async (
       projectName,
       environment,
       deleted: deleted, // log if the actual deletion took place
-      data
+      data,
+      ...auditLog,
     }
   });
 
@@ -695,6 +735,23 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(curEnv.project)
+  );
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: curEnv.project,
+      type: AuditType.PROJECT,
+      details: project.name
+    },
+    linkedResource: {
+      id: curEnv.id,
+      type: AuditType.ENVIRONMENT,
+      details: curEnv.name,
+    },
+  };
   userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
     project: '',
     event: 'api:updateEnvironment',
@@ -714,7 +771,8 @@ export const updateEnvironment: ResolverFn = async (
         autoIdle: input.patch.autoIdle,
         created: input.patch.created
       },
-      data: withK8s
+      data: withK8s,
+      ...auditLog,
     }
   });
 
@@ -770,12 +828,30 @@ export const setEnvironmentServices: ResolverFn = async (
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User set environment services for '${environment.name}'`, {
     project: '',
     event: 'api:setEnvironmentServices',
     payload: {
       environment,
-      services
+      services,
+      ...auditLog,
     }
   });
 
@@ -851,11 +927,29 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User updated environment '${environment.name}' service '${input.name}`, {
     project: '',
     event: 'api:updateEnvironmentService',
     payload: {
-      environment
+      environment,
+      ...auditLog,
     }
   });
 
@@ -891,11 +985,29 @@ export const deleteEnvironmentService: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
 
+  const project = await query(
+    sqlClientPool,
+    projectSql.selectProjectById(environment.project)
+  );
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted environment '${environment.name}' service '${service.name}`, {
     project: '',
     event: 'api:deleteEnvironmentService',
     payload: {
       service,
+      ...auditLog,
     }
   });
 

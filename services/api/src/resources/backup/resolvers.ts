@@ -15,8 +15,8 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { getEnvVarsByProjectId } from '../env-variables/resolvers';
-import { logger } from '../../loggers/logger';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
   let restoreSize = 0;
@@ -189,6 +189,18 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP, backup);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: backup.id,
+      type: AuditType.BACKUP,
+      details: `${source} - ${backupId}`,
+    },
+  };
   userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
     project: '',
     event: 'api:addBackup',
@@ -198,7 +210,8 @@ export const addBackup: ResolverFn = async (
       project: environment.project,
       source,
       backupId,
-      created
+      created,
+      ...auditLog,
     }
   });
 
@@ -216,13 +229,29 @@ export const deleteBackup: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  const environment = await environmentSql.selectEnvironmentByBackupId(backupId)
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  const backup = R.prop(0, rows);
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: backup.id,
+      type: AuditType.BACKUP,
+      details: `${backup.source} - ${backupId}`,
+    },
+  };
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
     event: 'api:deleteBackup',
     payload: {
-      backupId
+      backupId,
+      ...auditLog,
     }
   });
 
@@ -301,6 +330,18 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environmentData.id,
+      type: AuditType.ENVIRONMENT,
+      details: environmentData.name,
+    },
+    linkedResource: {
+      id: backupData.id,
+      type: AuditType.BACKUP,
+      details: `${backupData.source} - ${backupId}`,
+    },
+  };
   userActivityLogger(`User restored a backup '${backupId}' for project ${projectData.name}`, {
     project: '',
     event: 'api:addRestore',
@@ -308,7 +349,8 @@ export const addRestore: ResolverFn = async (
       restoreId: restoreData.id,
       project: projectData.name,
       backupId,
-      data
+      data,
+      ...auditLog,
     }
   });
 
@@ -379,15 +421,30 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
+  const environmentData = await environmentSql.selectEnvironmentByBackupId(backupId)
+
   pubSub.publish(EVENTS.BACKUP, backupData);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environmentData.id,
+      type: AuditType.ENVIRONMENT,
+      details: environmentData.name,
+    },
+    linkedResource: {
+      id: backupData.id,
+      type: AuditType.BACKUP,
+      details: `${backupData.source} - ${backupId}`,
+    },
+  };
   userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
     event: 'api:updateRestore',
     payload: {
       backupId,
       patch,
-      backupData
+      backupData,
+      ...auditLog,
     }
   });
 

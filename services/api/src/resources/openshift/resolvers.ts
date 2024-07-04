@@ -3,6 +3,8 @@ import { ResolverFn } from '../';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getToken: ResolverFn = async (
   kubernetes,
@@ -12,12 +14,20 @@ export const getToken: ResolverFn = async (
   try {
     await hasPermission('openshift', 'view:token');
 
+    const auditLog: AuditLog = {
+      resource: {
+        id: kubernetes.id,
+        type: AuditType.DEPLOYTARGET,
+        details: kubernetes.name,
+      },
+    };
     userActivityLogger(`User viewed openshift token`, {
       project: '',
       event: 'api:viewOpenshiftToken',
       payload: {
         name: kubernetes.name,
-        id: kubernetes.id
+        id: kubernetes.id,
+        ...auditLog,
       }
     });
 
@@ -68,12 +78,20 @@ export const addOpenshift: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshift(insertId));
 
-  userActivityLogger(`User added an openshift '${input.name}'`, {
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, rows).id,
+      type: AuditType.DEPLOYTARGET,
+      details: R.prop(0, rows).name,
+    },
+  };
+  userActivityLogger(`User added a deploytarget '${input.name}'`, {
     project: '',
     event: 'api:addOpenshift',
     payload: {
       name: input.name,
-      id: R.prop(0, rows).id
+      id: R.prop(0, rows).id,
+      ...auditLog,
     }
   });
 
@@ -96,13 +114,23 @@ export const deleteOpenshift: ResolverFn = async (
     throw new Error(`Openshift "${input.name} still in use, can not delete`);
   }
 
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftByName(input.name));
+
   res = await query(sqlClientPool, knex('openshift').where('name', input.name).delete().toString());
 
-  userActivityLogger(`User deleted an openshift '${input.name}'`, {
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, rows).id,
+      type: AuditType.DEPLOYTARGET,
+      details: R.prop(0, rows).name,
+    },
+  };
+  userActivityLogger(`User deleted a deploytarget '${input.name}'`, {
     project: '',
     event: 'api:deleteOpenshift',
     payload: {
       name: input.name,
+      ...auditLog,
     }
   });
   // TODO: maybe check rows for changed result
@@ -203,12 +231,20 @@ export const updateOpenshift: ResolverFn = async (
   await query(sqlClientPool, Sql.updateOpenshift(input));
   const rows = await query(sqlClientPool, Sql.selectOpenshift(oid));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, rows).id,
+      type: AuditType.DEPLOYTARGET,
+      details: R.prop(0, rows).name,
+    },
+  };
   userActivityLogger(`User updated an openshift '${R.prop(0, rows).name}'`, {
     project: '',
     event: 'api:updateOpenshift',
     payload: {
       name: R.prop(0, rows).name,
-      id: R.prop(0, rows).id
+      id: R.prop(0, rows).id,
+      ...auditLog,
     }
   });
 

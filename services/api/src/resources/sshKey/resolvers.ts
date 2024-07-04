@@ -3,6 +3,8 @@ import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { validateKey, generatePrivateKey as genpk } from '../../util/func';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
@@ -25,6 +27,15 @@ export const addSshKey: ResolverFn = async (
   },
   { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
+  const user = await models.UserModel.loadUserByIdOrEmail({
+    id: R.prop('id', userInput),
+    email: R.prop('email', userInput)
+  });
+
+  await hasPermission('ssh_key', 'add', {
+    users: [user.id]
+  });
+
   let keyFormatted = ""
   if (!publicKey) {
     keyType = keyType.replaceAll('_', '-').toLowerCase();
@@ -42,15 +53,6 @@ export const addSshKey: ResolverFn = async (
   if (!vkey['sha256fingerprint']) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
-
-  const user = await models.UserModel.loadUserByIdOrEmail({
-    id: R.prop('id', userInput),
-    email: R.prop('email', userInput)
-  });
-
-  await hasPermission('ssh_key', 'add', {
-    users: [user.id]
-  });
 
   let insertId: number;
   try {
@@ -80,6 +82,18 @@ export const addSshKey: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(insertId));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.SSHKEY,
+      details: vkey['sha256fingerprint']
+    },
+  };
   userActivityLogger(`User added ssh key '${name}'`, {
     project: '',
     event: 'api:addSshKey',
@@ -94,7 +108,8 @@ export const addSshKey: ResolverFn = async (
       data: {
         sshKeyId: insertId,
         user
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -110,13 +125,17 @@ export const updateSshKey: ResolverFn = async (
       patch: { name, publicKey, keyType, keyValue }
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'update', {
     users: userIds
+  });
+
+  const user = await models.UserModel.loadUserByIdOrEmail({
+    id: userIds[0],
   });
 
   if (isPatchEmpty({ patch })) {
@@ -168,11 +187,24 @@ export const updateSshKey: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.SSHKEY,
+      details: vkey['sha256fingerprint']
+    },
+  };
   userActivityLogger(`User updated ssh key '${id}'`, {
     project: '',
     event: 'api:updateSshKey',
     payload: {
-      patch
+      patch,
+      ...auditLog,
     }
   });
 
@@ -182,7 +214,7 @@ export const updateSshKey: ResolverFn = async (
 export const deleteSshKey: ResolverFn = async (
   root,
   { input: { name } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   // Map from sshKey name to id and throw on several error cases
   const skidResult = await query(
@@ -213,6 +245,10 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
+  const user = await models.UserModel.loadUserByIdOrEmail({
+    id: userIds[0],
+  });
+
   let res = await query(
     sqlClientPool,
     Sql.deleteUserSshKeyByKeyId(skid)
@@ -222,6 +258,17 @@ export const deleteSshKey: ResolverFn = async (
     Sql.deleteSshKeyByKeyId(skid)
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email,
+    },
+    linkedResource: {
+      id: skid.toString(),
+      type: AuditType.SSHKEY,
+    },
+  };
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
     event: 'api:deleteSshKey',
@@ -233,7 +280,8 @@ export const deleteSshKey: ResolverFn = async (
         ssh_key_name: name,
         ssh_key_id: skid,
         user: userIds
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -243,13 +291,17 @@ export const deleteSshKey: ResolverFn = async (
 export const deleteSshKeyById: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
     users: userIds
+  });
+
+  const user = await models.UserModel.loadUserByIdOrEmail({
+    id: userIds[0],
   });
 
   let res = await query(
@@ -263,6 +315,17 @@ export const deleteSshKeyById: ResolverFn = async (
 
   // TODO: Check rows for success
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email,
+    },
+    linkedResource: {
+      id: id.toString(),
+      type: AuditType.SSHKEY,
+    },
+  };
   userActivityLogger(`User deleted ssh key with id '${id}'`, {
     project: '',
     event: 'api:deleteSshKeyById',
@@ -273,7 +336,8 @@ export const deleteSshKeyById: ResolverFn = async (
       data: {
         ssh_key_id: id,
         user: userIds
-      }
+      },
+      ...auditLog,
     }
   });
 

@@ -3226,6 +3226,34 @@
             "claim.name": "lagoon.user_id",
             "jsonType.label": "int"
           }
+        },
+        {
+            "name": "Impersonator User ID",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-usersessionmodel-note-mapper",
+            "consentRequired": false,
+            "config": {
+                "user.session.note": "IMPERSONATOR_ID",
+                "introspection.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "impersonator.id",
+                "jsonType.label": "String"
+            }
+        },
+        {
+            "name": "Impersonator Username",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-usersessionmodel-note-mapper",
+            "consentRequired": false,
+            "config": {
+                "user.session.note": "IMPERSONATOR_USERNAME",
+                "introspection.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "impersonator.username",
+                "jsonType.label": "String"
+            }
         }
       ],
       "defaultClientScopes": [
@@ -3281,6 +3309,34 @@
             "claim.name": "lagoon.user_id",
             "jsonType.label": "int"
           }
+        },
+        {
+            "name": "Impersonator User ID",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-usersessionmodel-note-mapper",
+            "consentRequired": false,
+            "config": {
+                "user.session.note": "IMPERSONATOR_ID",
+                "introspection.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "impersonator.id",
+                "jsonType.label": "String"
+            }
+        },
+        {
+            "name": "Impersonator Username",
+            "protocol": "openid-connect",
+            "protocolMapper": "oidc-usersessionmodel-note-mapper",
+            "consentRequired": false,
+            "config": {
+                "user.session.note": "IMPERSONATOR_USERNAME",
+                "introspection.token.claim": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "impersonator.username",
+                "jsonType.label": "String"
+            }
         }
       ],
       "defaultClientScopes": [

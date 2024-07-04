@@ -9,7 +9,9 @@ import { arrayDiff, toNumber } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
+import { AuditType } from '@lagoon/commons/dist/types';
 import validator from 'validator';
+import { AuditLog } from '../audit/types';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -39,6 +41,13 @@ export const addOrganization: ResolverFn = async (
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
 
+      const auditLog: AuditLog = {
+        resource: {
+          id: insertId,
+          type: AuditType.ORGANIZATION,
+          details: R.prop(0, rows).name,
+        },
+      };
       userActivityLogger(`User added an organization ${R.prop(0, rows).name}`, {
         project: '',
         organization: input.organization,
@@ -46,7 +55,8 @@ export const addOrganization: ResolverFn = async (
         payload: {
           data: {
             input
-          }
+          },
+          ...auditLog,
         }
       });
 
@@ -89,6 +99,18 @@ export const addDeployTargetToOrganization: ResolverFn = async (
   }  catch (err) {
       throw new Error(`There was an error adding the deployTarget: ${err}`);
   }
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, org).id,
+      type: AuditType.ORGANIZATION,
+      details: R.prop(0, org).name,
+    },
+    linkedResource: {
+      id: input.deployTarget,
+      type: AuditType.DEPLOYTARGET,
+    },
+  };
   userActivityLogger(`User added a deploytarget to organization ${R.prop(0, org).name}`, {
     project: '',
     organization: input.organization,
@@ -96,7 +118,8 @@ export const addDeployTargetToOrganization: ResolverFn = async (
     payload: {
       data: {
         input
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -123,6 +146,17 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     throw new Error(`There was an error removing the deployTarget: ${err}`);
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, org).id,
+      type: AuditType.ORGANIZATION,
+      details: R.prop(0, org).name,
+    },
+    linkedResource: {
+      id: input.deployTarget,
+      type: AuditType.DEPLOYTARGET,
+    },
+  };
   userActivityLogger(`User removed a deploytarget from organization ${R.prop(0, org).name}`, {
     project: '',
     organization: input.organization,
@@ -130,7 +164,8 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     payload: {
       data: {
         input
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -209,6 +244,13 @@ export const updateOrganization: ResolverFn = async (
     await query(sqlClientPool, Sql.updateOrganization(input));
     const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
 
+    const auditLog: AuditLog = {
+      resource: {
+        id: R.prop(0, rows).id,
+        type: AuditType.ORGANIZATION,
+        details: R.prop(0, rows).name,
+      },
+    };
     userActivityLogger(`User updated organization ${R.prop(0, rows).name}`, {
       project: '',
       organization: input.organization,
@@ -216,7 +258,8 @@ export const updateOrganization: ResolverFn = async (
       payload: {
         data: {
           input
-        }
+        },
+        ...auditLog,
       }
     });
 
@@ -693,6 +736,19 @@ export const removeProjectFromOrganization: ResolverFn = async (
   }
 
   const org = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, org).id,
+      type: AuditType.ORGANIZATION,
+      details: R.prop(0, org).name,
+    },
+    linkedResource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User removed project ${project.name} from an organization ${R.prop(0, org).name}`, {
     project: '',
     organization: input.organization,
@@ -700,7 +756,8 @@ export const removeProjectFromOrganization: ResolverFn = async (
     payload: {
       data: {
         input
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -718,6 +775,9 @@ export const addExistingProjectToOrganization: ResolverFn = async (
 
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
+
+  const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+  const orgResult = rows[0];
 
   let pid = input.project;
   let oid = input.organization;
@@ -782,6 +842,19 @@ export const addExistingProjectToOrganization: ResolverFn = async (
     await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
 
     // log this activity
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: orgResult.id,
+        type: AuditType.ORGANIZATION,
+        details: orgResult.name,
+      },
+      linkedResource: {
+        id: group.id,
+        type: AuditType.GROUP,
+        details: group.name,
+      },
+    };
     userActivityLogger(`User added a group to organization`, {
       project: '',
       organization: input.organization,
@@ -789,7 +862,8 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       payload: {
         data: {
           updatedGroup
-        }
+        },
+        ...auditLog,
       }
     });
   }
@@ -808,6 +882,19 @@ export const addExistingProjectToOrganization: ResolverFn = async (
   );
 
   // log this activity
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: orgResult.id,
+      type: AuditType.ORGANIZATION,
+      details: orgResult.name,
+    },
+    linkedResource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User added an existing project to organization`, {
     project: '',
     organization: input.organization,
@@ -818,7 +905,8 @@ export const addExistingProjectToOrganization: ResolverFn = async (
         patch:{
           organization: oid,
         }
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -920,6 +1008,19 @@ export const addExistingGroupToOrganization: ResolverFn = async (
   await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
 
   // log this activity
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name,
+    },
+    linkedResource: {
+      id: group.id,
+      type: AuditType.GROUP,
+      details: group.name,
+    },
+  };
   userActivityLogger(`User added a group to organization`, {
     project: '',
     organization: input.organization,
@@ -927,7 +1028,8 @@ export const addExistingGroupToOrganization: ResolverFn = async (
     payload: {
       data: {
         updatedGroup
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -978,6 +1080,17 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
     throw new Error(`Unable to remove user from groups: ${error}`)
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name,
+    },
+    linkedResource: {
+      type: AuditType.GROUP,
+      details: "multiple groups",
+    },
+  };
   userActivityLogger(`User removed from these groups in organization: ${organizationData.name}`, {
     project: '',
     organization: organizationData.name,
@@ -986,7 +1099,8 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
       input: {
         user: userInput, organization: organizationInput
       },
-      data: groupsRemoved
+      data: groupsRemoved,
+      ...auditLog,
     }
   });
 
@@ -1054,13 +1168,21 @@ export const deleteOrganization: ResolverFn = async (
     )
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: orgResult.id,
+      type: AuditType.ORGANIZATION,
+      details: orgResult.name,
+    },
+  };
   userActivityLogger(`User deleted an organization '${orgResult.name}'`, {
     project: '',
     event: 'api:deleteOrganization',
     payload: {
       input: {
         orgResult
-      }
+      },
+      ...auditLog,
     }
   });
   return 'success';
@@ -1199,6 +1321,9 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
+  const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+  const orgResult = rows[0];
+
   const projectsToMove = []
   const groupsToMove = []
   const projectsInOtherOrgs = []
@@ -1237,6 +1362,19 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
         groupsDone.push(group.id)
 
         // log this activity
+
+        const auditLog: AuditLog = {
+          resource: {
+            id: orgResult.id,
+            type: AuditType.ORGANIZATION,
+            details: orgResult.name,
+          },
+          linkedResource: {
+            id: group.id,
+            type: AuditType.GROUP,
+            details: group.name,
+          },
+        };
         userActivityLogger(`User added a group to organization`, {
           project: '',
           organization: input.organization,
@@ -1245,7 +1383,8 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             data: {
               group: group.name,
               organization: oid
-            }
+            },
+            ...auditLog,
           }
         });
       }
@@ -1258,6 +1397,17 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
           // remove all notifications from projects before adding them to the organizations
           try {
             await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: project.id})
+            const auditLog: AuditLog = {
+              resource: {
+                id: orgResult.id,
+                type: AuditType.ORGANIZATION,
+                details: orgResult.name,
+              },
+              linkedResource: {
+                type: AuditType.NOTIFICATION,
+                details: "multiple notifications",
+              },
+            };
             userActivityLogger(`User removed all notifications from project`, {
               project: '',
               organization: input.organization,
@@ -1267,7 +1417,8 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
                   project: project.id,
                   patch:{
                     organization: oid,
-                  }
+                  },
+                  ...auditLog,
                 }
               }
             });
@@ -1291,6 +1442,18 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
         projectsDone.push(project.id)
 
         // log this activity
+        const auditLog: AuditLog = {
+          resource: {
+            id: orgResult.id,
+            type: AuditType.ORGANIZATION,
+            details: orgResult.name,
+          },
+          linkedResource: {
+            id: project.id,
+            type: AuditType.PROJECT,
+            details: project.name,
+          },
+        };
         userActivityLogger(`User added a project to organization`, {
           project: '',
           organization: input.organization,
@@ -1300,7 +1463,8 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
               project: project.id,
               patch:{
                 organization: oid,
-              }
+              },
+              ...auditLog,
             }
           }
         });
