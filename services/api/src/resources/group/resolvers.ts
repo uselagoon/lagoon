@@ -542,6 +542,7 @@ export const addUserToGroup: ResolverFn = async (
     }
   }
 
+
   if (R.prop('lagoon-organization', group.attributes)) {
     // if this is a group in an organization, check that the user adding members to the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
@@ -563,7 +564,7 @@ export const addUserToGroup: ResolverFn = async (
         } catch (e) {
           return e
         }
-      } else {
+      } else if (createUserErr) {
         // otherwise return whatever error loadUserByIdOrUsername returned
         return createUserErr
       }
@@ -575,7 +576,7 @@ export const addUserToGroup: ResolverFn = async (
     if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
       // otherwise return the error
       throw new Error('Cannot invite user to group that is not in an organization');
-    } else {
+    } else if (createUserErr) {
       // otherwise return whatever error loadUserByIdOrUsername returned
       return createUserErr
     }
