@@ -36,7 +36,7 @@ const createSubscribe = (events): ResolverFn => async (
   info
 ) => {
   const { environment } = args;
-  const { sqlClientPool, hasPermission } = context;
+  const { sqlClientPool, hasPermission, adminScopes } = context;
 
   const rows = await query(
     sqlClientPool,
@@ -46,9 +46,12 @@ const createSubscribe = (events): ResolverFn => async (
   const project = path([0, 'project'], rows);
 
   try {
-    await hasPermission('environment', 'view', {
-      project
-    });
+    // if the user is not a platform owner or viewer, then perform normal permission check
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+      await hasPermission('environment', 'view', {
+        project
+      });
+    }
   } catch (err) {
     throw new ForbiddenError(err.message);
   }

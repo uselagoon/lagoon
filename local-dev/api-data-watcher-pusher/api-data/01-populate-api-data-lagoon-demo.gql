@@ -665,6 +665,15 @@ mutation PopulateApi {
     id
   }
 
+  UserExamplePlatformViewer: addUser(
+    input: {
+      email: "platformviewer@example.com"
+      comment: "platform viewer user"
+    }
+  ) {
+    id
+  }
+
   LagoonDemoGroup: addGroup(
     input: {
       name: "lagoon-demo-group"

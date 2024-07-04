@@ -13,7 +13,8 @@ export const getEnvVarsByProjectId: ResolverFn = async (
   { sqlClientPool, hasPermission, adminScopes },
   info
 ) => {
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
     if (index != -1) {
       await hasPermission('env_var', 'project:viewValue', {
@@ -56,7 +57,8 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(eid)
 
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
     if (index != -1) {
       await hasPermission(
@@ -405,7 +407,8 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     );
     const environment = environmentRows[0];
 
-    if (!adminScopes.projectViewAll) {
+    // if the user is not a platform owner or viewer, then perform normal permission check
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
       if (index != -1) {
         await hasPermission(
           'env_var',
@@ -445,7 +448,8 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     }
   } else if (projectName) {
     // is project
-    if (!adminScopes.projectViewAll) {
+    // if the user is not a platform owner or viewer, then perform normal permission check
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
       if (index != -1) {
         await hasPermission('env_var', 'project:viewValue', {
           project: projectId

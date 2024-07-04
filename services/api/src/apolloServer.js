@@ -128,11 +128,22 @@ const apolloServer = new ApolloServer({
       let groupRoleProjectIds = []
       const keycloakGrant = grant
       let legacyGrant = legacyCredentials ? legacyCredentials : null
+      let platformOwner = false
+      let platformViewer = false
       if (keycloakGrant) {
         // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
+        const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
+        for (const role of userRoleMapping) {
+          if (role.name == "platform-owner") {
+            platformOwner = true
+          }
+          if (role.name == "platform-viewer") {
+            platformViewer = true
+          }
+        }
         // grab the users project ids and roles in the first request
         groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
       }
@@ -153,6 +164,10 @@ const apolloServer = new ApolloServer({
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         },
         keycloakUsersGroups,
+        adminScopes: {
+          platformOwner: platformOwner,
+          platformViewer: platformViewer,
+        },
       };
     },
     onDisconnect: (websocket, context) => {
@@ -192,11 +207,22 @@ const apolloServer = new ApolloServer({
       let groupRoleProjectIds = []
       const keycloakGrant = req.kauth ? req.kauth.grant : null
       let legacyGrant = req.legacyCredentials ? req.legacyCredentials : null
+      let platformOwner = false
+      let platformViewer = false
       if (keycloakGrant) {
         // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
         keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
         serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
         currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
+        const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
+        for (const role of userRoleMapping) {
+          if (role.name == "platform-owner") {
+            platformOwner = true
+          }
+          if (role.name == "platform-viewer") {
+            platformViewer = true
+          }
+        }
         // grab the users project ids and roles in the first request
         groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
         await User.User(modelClients).userLastAccessed(currentUser);
@@ -210,34 +236,6 @@ const apolloServer = new ApolloServer({
       const hasPermission = req.kauth
           ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
           : legacyHasPermission(req.legacyCredentials)
-      let projectViewAll = false
-      let groupViewAll = false
-      let environmentViewAll = false
-      let deploytargetViewAll = false
-      try {
-        await hasPermission("project","viewAll")
-        projectViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("group","viewAll")
-        groupViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("environment","viewAll")
-        environmentViewAll = true
-      } catch(err) {
-        // do nothing
-      }
-      try {
-        await hasPermission("openshift","viewAll")
-        deploytargetViewAll = true
-      } catch(err) {
-        // do nothing
-      }
 
       return {
         keycloakAdminClient,
@@ -268,10 +266,8 @@ const apolloServer = new ApolloServer({
         },
         keycloakUsersGroups,
         adminScopes: {
-          projectViewAll: projectViewAll,
-          groupViewAll: groupViewAll,
-          environmentViewAll: environmentViewAll,
-          deploytargetViewAll: deploytargetViewAll,
+          platformOwner: platformOwner,
+          platformViewer: platformViewer,
         },
       };
     }

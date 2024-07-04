@@ -111,7 +111,7 @@ export const getAllProjects: ResolverFn = async (
 export const getProjectByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
 
@@ -119,15 +119,14 @@ export const getProjectByEnvironmentId: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
-
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id, adminScopes)
   return project;
 };
 
 export const getProjectById: ResolverFn = async (
   { project: pid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectById(pid));
 
@@ -135,7 +134,7 @@ export const getProjectById: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id, adminScopes)
 
   return project;
 };
@@ -143,7 +142,7 @@ export const getProjectById: ResolverFn = async (
 export const getProjectByGitUrl: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByGitUrl(args.gitUrl));
 
@@ -151,7 +150,7 @@ export const getProjectByGitUrl: ResolverFn = async (
 
   const project = withK8s[0];
 
-  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id, adminScopes)
 
   return project;
 };
@@ -159,7 +158,7 @@ export const getProjectByGitUrl: ResolverFn = async (
 export const getProjectByName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectByName(args.name));
 
@@ -170,7 +169,7 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id)
+  await Helpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id, adminScopes)
 
   return project;
 };
@@ -231,7 +230,7 @@ export const addProject = async (
 
   // Add the user who submitted this request to the project
   let userAlreadyHasAccess = false;
-  if (adminScopes.projectViewAll) {
+  if (adminScopes.platformOwner) {
     userAlreadyHasAccess = true
   }
   if (input.organization != null) {
@@ -270,7 +269,7 @@ export const addProject = async (
       }
     }
   } else {
-    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.projectViewAll) {
+    if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.platformOwner) {
       await hasPermission('project', 'add');
     } else {
       throw new Error(
@@ -346,14 +345,14 @@ export const addProject = async (
   // check if a user has permission to disable deployments of a project or not
   let deploymentsDisabled = 0;
   if (input.deploymentsDisabled) {
-    if (adminScopes.projectViewAll) {
+    if (adminScopes.platformOwner) {
       deploymentsDisabled = input.deploymentsDisabled
     }
   }
 
   let buildImage = null;
   if (input.buildImage) {
-    if (adminScopes.projectViewAll) {
+    if (adminScopes.platformOwner) {
       buildImage = input.buildImage
     } else {
       throw new Error('Setting build image is only available to administrators.');
@@ -362,7 +361,7 @@ export const addProject = async (
 
   let sharedBaasBucket = null;
   if(typeof input.sharedBaasBucket == "boolean") {
-    if (adminScopes.projectViewAll) {
+    if (adminScopes.platformOwner) {
       sharedBaasBucket = input.sharedBaasBucket
     } else {
       throw new Error('Setting shared baas bucket is only available to administrators.');
@@ -647,20 +646,20 @@ export const updateProject: ResolverFn = async (
 
   // check if a user has permission to disable deployments of a project or not
   if (deploymentsDisabled) {
-    if (!adminScopes.projectViewAll) {
+    if (!adminScopes.platformOwner) {
       throw new Error('Disabling deployments is only available to administrators.');
     }
   }
 
   if(typeof sharedBaasBucket == "boolean") {
-    if (!adminScopes.projectViewAll) {
+    if (!adminScopes.platformOwner) {
       throw new Error('Setting shared baas bucket is only available to administrators.');
     }
   }
 
   // check if a user has permission to change the build image of a project or not
   if (buildImage) {
-    if (!adminScopes.projectViewAll) {
+    if (!adminScopes.platformOwner) {
       throw new Error('Setting build image is only available to administrators.');
     }
   }
@@ -686,7 +685,7 @@ export const updateProject: ResolverFn = async (
   // renaming projects is prohibited because lagoon uses the project name for quite a few things
   // which if changed can have unintended consequences for any existing environments
   if (patch.name) {
-    if (!adminScopes.projectViewAll) {
+    if (!adminScopes.platformOwner) {
       throw new Error('Project renaming is only available to administrators.');
     }
   }

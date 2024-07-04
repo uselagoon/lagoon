@@ -109,7 +109,8 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('task', 'view', {
       project: environment.project
     });

@@ -17,7 +17,7 @@ import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 export const getEnvironmentByName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
 
   if (args.includeDeleted == undefined) {
@@ -33,9 +33,12 @@ export const getEnvironmentByName: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('environment', 'view', {
-    project: args.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: args.project
+    });
+  }
 
   return environment;
 };
@@ -43,17 +46,19 @@ export const getEnvironmentByName: ResolverFn = async (
 export const getEnvironmentById = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(args.id);
 
   if (!environment) {
     return null;
   }
-
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: environment.project
+    });
+  }
 
   return environment;
 };
@@ -65,7 +70,8 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 ) => {
   const { id: pid } = project;
 
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
       project: pid
     });
@@ -89,7 +95,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 export const getEnvironmentByDeploymentId: ResolverFn = async (
   { id: deployment_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByDeploymentId(deployment_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -99,9 +105,12 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: environment.project
+    });
+  }
 
   return environment;
 };
@@ -109,7 +118,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
 export const getEnvironmentByTaskId: ResolverFn = async (
   { id: task_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByTaskId(task_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -119,9 +128,12 @@ export const getEnvironmentByTaskId: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: environment.project
+    });
+  }
 
   return environment;
 };
@@ -129,7 +141,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
 export const getEnvironmentByBackupId: ResolverFn = async (
   { id: backup_id },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByBackupId(backup_id))
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -139,9 +151,12 @@ export const getEnvironmentByBackupId: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: environment.project
+    });
+  }
 
   return environment;
 };
@@ -206,7 +221,7 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
 export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByOpenshiftProjectName(args.openshiftProjectName));
@@ -218,9 +233,12 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('environment', 'view', {
-    project: environment.project
-  });
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('environment', 'view', {
+      project: environment.project
+    });
+  }
 
   return environment;
 };

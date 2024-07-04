@@ -148,7 +148,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -205,7 +205,8 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!adminScopes.projectViewAll) {
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('deployment', 'view', {
       project: environment.project
     });
@@ -1132,7 +1133,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput

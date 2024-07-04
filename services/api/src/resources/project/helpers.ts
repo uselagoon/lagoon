@@ -6,28 +6,30 @@ import { Sql } from './sql';
 // import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
-  const checkOrgProjectViewPermission = async (hasPermission, pid) => {
-    // helper that allows fall through of permission check
-    // for viewProject:organization to view:project
-    // this allows queries to be performed by organization owners
-    // then falling through to the default project view for general users
-    const rows = await query(sqlClientPool, Sql.selectProject(pid));
-    const project = rows[0];
-    if (project.organization != null) {
-      try {
-        await hasPermission('organization', 'viewProject', {
-          organization: project.organization
-        });
-        // if the organization owner has permission to view project, return
-        return
-      } catch (err) {
-        // otherwise fall through to project view permission check
+  const checkOrgProjectViewPermission = async (hasPermission, pid, adminScopes) => {
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+      // helper that allows fall through of permission check
+      // for viewProject:organization to view:project
+      // this allows queries to be performed by organization owners
+      // then falling through to the default project view for general users
+      const rows = await query(sqlClientPool, Sql.selectProject(pid));
+      const project = rows[0];
+      if (project.organization != null) {
+        try {
+          await hasPermission('organization', 'viewProject', {
+            organization: project.organization
+          });
+          // if the organization owner has permission to view project, return
+          return
+        } catch (err) {
+          // otherwise fall through to project view permission check
+        }
       }
+      // finally check the user view:project permission
+      await hasPermission('project', 'view', {
+        project: project.id
+      });
     }
-    // finally check the user view:project permission
-    await hasPermission('project', 'view', {
-      project: project.id
-    });
   }
   const checkOrgProjectUpdatePermission = async (hasPermission, pid) => {
     // helper checks the permission to updateProject:organization
