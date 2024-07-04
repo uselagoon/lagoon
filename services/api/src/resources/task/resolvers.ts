@@ -274,6 +274,26 @@ export const addTask: ResolverFn = async (
     sourceType = "API"
   }
 
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
+    id,
+    name,
+    taskName,
+    status,
+    created,
+    started,
+    completed,
+    environment,
+    service,
+    command,
+    remoteId,
+    deployTokenInjection,
+    projectKeyInjection,
+    adminOnlyView,
+    execute,
+    sourceUser,
+    sourceType
+  });
+
   userActivityLogger(`User added task '${name}'`, {
     project: '',
     event: 'api:addTask',
@@ -293,28 +313,18 @@ export const addTask: ResolverFn = async (
         execute: executeRequest,
         sourceUser,
         sourceType,
+      },
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: taskData.name,
       }
     }
-  });
-
-  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
-    id,
-    name,
-    taskName,
-    status,
-    created,
-    started,
-    completed,
-    environment,
-    service,
-    command,
-    remoteId,
-    deployTokenInjection,
-    projectKeyInjection,
-    adminOnlyView,
-    execute,
-    sourceUser,
-    sourceType
   });
 
   return taskData;
@@ -338,6 +348,10 @@ export const deleteTask: ResolverFn = async (
     payload: {
       input: {
         id
+      },
+      resource: {
+        id: id,
+        type: "task",
       }
     }
   });
@@ -386,7 +400,17 @@ export const cancelTask: ResolverFn = async (
       event: 'api:cancelDeployment',
       payload: {
         taskInput,
-        data: data.task
+        data: data.task,
+        resource: {
+          id: environment.id,
+          type: "environment",
+          details: environment.name,
+        },
+        linkedResource: {
+          id: task.id,
+          type: "task",
+          details: task.name,
+        }
       }
     }
   );
@@ -488,6 +512,16 @@ export const updateTask: ResolverFn = async (
         command,
         deployTokenInjection,
         remoteId
+      },
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: taskData.name,
       }
     }
   });
@@ -520,14 +554,6 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 -F 0=@$file; rm -rf $file;
 `;
 
-  userActivityLogger(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
-    project: '',
-    event: 'api:taskDrushArchiveDump',
-    payload: {
-      environment: environmentId
-    }
-  });
-
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush archive-dump',
@@ -541,6 +567,24 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushArchiveDump',
+    payload: {
+      environment: environmentId,
+      resource: {
+        id: envPerm.id,
+        type: "environment",
+        details: envPerm.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: "Drush Archive Dump task",
+      }
+    }
   });
 
   return taskData;
@@ -572,14 +616,6 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  userActivityLogger(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
-    project: '',
-    event: 'api:taskDrushSqlDump',
-    payload: {
-      environment: environmentId
-    }
-  });
-
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush sql-dump',
@@ -593,6 +629,24 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushSqlDump',
+    payload: {
+      environment: environmentId,
+      resource: {
+        id: envPerm.id,
+        type: "environment",
+        details: envPerm.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: "Drush SQL Dump task",
+      }
+    }
   });
 
   return taskData;
@@ -626,14 +680,6 @@ export const taskDrushCacheClear: ResolverFn = async (
     exit 1; \
   fi';
 
-  userActivityLogger(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
-    project: '',
-    event: 'api:taskDrushCacheClear',
-    payload: {
-      environment: environmentId
-    }
-  });
-
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush cache-clear',
@@ -647,6 +693,24 @@ export const taskDrushCacheClear: ResolverFn = async (
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushCacheClear',
+    payload: {
+      environment: environmentId,
+      resource: {
+        id: envPerm.id,
+        type: "environment",
+        details: envPerm.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: "Drush cache clear task",
+      }
+    }
   });
 
   return taskData;
@@ -669,14 +733,6 @@ export const taskDrushCron: ResolverFn = async (
     'cli'
   );
 
-  userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
-    project: '',
-    event: 'api:taskDrushCron',
-    payload: {
-      environment: environmentId
-    }
-  });
-
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush cron',
@@ -690,6 +746,24 @@ export const taskDrushCron: ResolverFn = async (
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushCron',
+    payload: {
+      environment: environmentId,
+      resource: {
+        id: envPerm.id,
+        type: "environment",
+        details: envPerm.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: "Drush cron task",
+      }
+    }
   });
 
   return taskData;
@@ -738,15 +812,6 @@ export const taskDrushSqlSync: ResolverFn = async (
     'cli'
   );
 
-  userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    project: '',
-    event: 'api:taskDrushSqlSync',
-    payload: {
-      sourceEnvironment: sourceEnvironmentId,
-      destinationEnvironment: destinationEnvironmentId
-    }
-  });
-
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
   if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
@@ -765,6 +830,25 @@ export const taskDrushSqlSync: ResolverFn = async (
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    project: '',
+    event: 'api:taskDrushSqlSync',
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId,
+      resource: {
+        id: sourceEnvironment.id,
+        type: "environment",
+        details: sourceEnvironment.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: `Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+      }
+    }
   });
 
   return taskData;
@@ -813,15 +897,6 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     'cli'
   );
 
-  userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    project: '',
-    event: 'api:taskDrushRsyncFiles',
-    payload: {
-      sourceEnvironment: sourceEnvironmentId,
-      destinationEnvironment: destinationEnvironmentId
-    }
-  });
-
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
   if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
@@ -840,6 +915,25 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    project: '',
+    event: 'api:taskDrushRsyncFiles',
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId,
+      resource: {
+        id: sourceEnvironment.id,
+        type: "environment",
+        details: sourceEnvironment.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: `rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+      }
+    }
   });
 
   return taskData;
@@ -862,14 +956,6 @@ export const taskDrushUserLogin: ResolverFn = async (
     'cli'
   );
 
-  userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
-    project: '',
-    event: 'api:taskDrushUserLogin',
-    payload: {
-      environment: environmentId
-    }
-  });
-
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush uli',
@@ -883,6 +969,24 @@ export const taskDrushUserLogin: ResolverFn = async (
     execute: true,
     sourceType: "API",
     sourceUser: sourceUser,
+  });
+
+  userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushUserLogin',
+    payload: {
+      environment: environmentId,
+      resource: {
+        id: envPerm.id,
+        type: "environment",
+        details: envPerm.name,
+      },
+      linkedResource: {
+        id: taskData.id,
+        type: "task",
+        details: `Drush user login task`,
+      }
+    }
   });
 
   return taskData;

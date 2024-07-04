@@ -369,6 +369,24 @@ export const addDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = R.prop(0, rows);
 
+  userActivityLogger(`User added deployment '${id}'`, {
+    project: '',
+    event: 'api:addDeployment',
+    payload: {
+      deployment: id,
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: id,
+        type: "deployment",
+        details: deployment.name,
+      }
+    }
+  });
+
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
@@ -384,13 +402,28 @@ export const deleteDeployment: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  const rows = await query(sqlClientPool, Sql.selectDeployment(id));
+  const deployment = R.prop(0, rows);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    deployment.environment
+  );
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
   userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
     payload: {
-      deployment: id
+      deployment: id,
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: id,
+        type: "deployment",
+        details: deployment.name,
+      }
     }
   });
 
@@ -487,6 +520,16 @@ export const updateDeployment: ResolverFn = async (
         bulkId,
         bulkName,
         buildStep
+      },
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: deployment.id,
+        type: "deployment",
+        details: deployment.name,
       }
     }
   });
@@ -524,7 +567,17 @@ export const cancelDeployment: ResolverFn = async (
     event: 'api:cancelDeployment',
     payload: {
       deploymentInput,
-      data: data.build
+      data: data.build,
+      resource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      },
+      linkedResource: {
+        id: deployment.id,
+        type: "deployment",
+        details: deployment.name,
+      }
     }
   });
 
@@ -746,7 +799,17 @@ export const deployEnvironmentLatest: ResolverFn = async (
     project: '',
     event: 'api:deployEnvironmentLatest',
     payload: {
-      deployData
+      deployData,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: `${environment.name}`,
+      }
     }
   });
 
@@ -848,7 +911,16 @@ export const deployEnvironmentBranch: ResolverFn = async (
     project: '',
     event: 'api:deployEnvironmentBranch',
     payload: {
-      deployData
+      deployData,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        type: "environment",
+        details: `branch name ${deployData.branchName}`,
+      }
     }
   });
 
@@ -961,7 +1033,16 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     project: '',
     event: 'api:deployEnvironmentPullrequest',
     payload: {
-      deployData
+      deployData,
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        type: "environment",
+        details: `pull request ${deployData.pullrequestNumber}`,
+      }
     }
   });
 
@@ -1086,7 +1167,16 @@ export const deployEnvironmentPromote: ResolverFn = async (
     project: '',
     event: 'api:deployEnvironmentPromote',
     payload: {
-      deployData
+      deployData,
+      resource: {
+        id: destProject.id,
+        type: "project",
+        details: destProject.name,
+      },
+      linkedResource: {
+        type: "environment",
+        details: `promote ${deployData.promoteSourceEnvironment} to ${deployData.branchName}`,
+      }
     }
   });
 
@@ -1136,7 +1226,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1256,6 +1346,22 @@ export const switchActiveStandby: ResolverFn = async (
       sourceType,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
+
+    userActivityLogger(`User triggered active/standby on '${project.name}' switching '${environmentProd.name}' with '${environmentStandby.name}'`, {
+      project: '',
+      event: 'api:switchActiveStandby',
+      payload: {
+        resource: {
+          id: project.id,
+          type: "project",
+          details: project.name,
+        },
+        linkedResource: {
+          type: "environment",
+          details: `switch ${environmentProd.name} with ${environmentStandby.name}`,
+        }
+      }
+    });
 
     // queue the task to trigger the migration
     await createMiscTask({ key: 'task:activestandby', data });
@@ -1392,7 +1498,12 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
   userActivityLogger(`User performed a bulk deployment`, {
     payload: {
       bulkId: bulkId,
-      bulkName: bulkName
+      bulkName: bulkName,
+      resource: {
+        id: bulkId,
+        type: "bulkdeployment",
+        details: bulkName,
+      }
     }
   });
 

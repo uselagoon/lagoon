@@ -280,6 +280,8 @@ export const addFact: ResolverFn = async (
     Sql.selectFactByDatabaseId(insertId)
   );
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   userActivityLogger(`User added a fact to environment '${environment.name}'`, {
     project: '',
     event: 'api:addFact',
@@ -291,8 +293,18 @@ export const addFact: ResolverFn = async (
         source,
         description,
         service
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
       }
-      }
+    }
   });
 
   return R.prop(0, rows);
@@ -305,15 +317,28 @@ export const addFacts: ResolverFn = async (
 ) => {
   const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
-  userActivityLogger(`User added facts to environment'`, {
-    project: '',
-    event: 'api:addFacts',
-    payload: {
-      data: {
-        returnFacts
+  // log an event for each unique environment only
+  const uniqueEnvs = [...new Set(returnFacts.map(item => item.environment))];
+  for (const env of uniqueEnvs) {
+    const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(env);
+    const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(env);
+    userActivityLogger(`User added facts to environment'`, {
+      project: '',
+      event: 'api:addFacts',
+      payload: {
+        resource: {
+          id: project.id,
+          type: "project",
+          details: project.name,
+        },
+        linkedResource: {
+          id: environment.id,
+          type: "environment",
+          details: environment.name,
+        }
       }
-    }
-  });
+    });
+  }
 
   return returnFacts;
 };
@@ -363,6 +388,16 @@ export const addFactsByName: ResolverFn = async (
     payload: {
       data: {
         returnFacts
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
       }
     }
   });
@@ -383,6 +418,8 @@ export const deleteFact: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
   userActivityLogger(`User deleted a fact`, {
@@ -392,6 +429,16 @@ export const deleteFact: ResolverFn = async (
       data: {
         environment: environmentId,
         name
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
       }
     }
   });
@@ -416,6 +463,8 @@ export const deleteFactsFromSource: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
   userActivityLogger(`User deleted facts`, {
@@ -426,6 +475,16 @@ export const deleteFactsFromSource: ResolverFn = async (
         environment: environmentId,
         source,
         service
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
       }
     }
   });

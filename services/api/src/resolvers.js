@@ -27,6 +27,10 @@ const {
   getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
+const {
+  getAuditLogs,
+} = require('./resources/audit/resolvers');
+
 const { SeverityScoreType } = require('./resources/problem/types');
 
 const { getLagoonVersion } = require('./resources/lagoon/resolvers');
@@ -299,6 +303,22 @@ const {
 
 const resolvers = {
   Upload: GraphQLUpload,
+  AuditType: {
+    BACKUP: 'backup',
+    BULKDEPLOYMENT: 'bulkdeployment',
+    DEPLOYMENT: 'deployment',
+    DEPLOYTARGET: 'deploytarget',
+    DEPLOYTARGETCONFIG: 'deploytargetconfig',
+    ENVIRONMENT: 'environment',
+    GROUP: 'group',
+    NOTIFICATION: 'notification',
+    ORGANIZATION: 'organization',
+    PROJECT: 'project',
+    TASK: 'task',
+    USER: 'user',
+    VARIABLE: 'variable',
+    WORKFLOW: 'workflow',
+  },
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -591,6 +611,7 @@ const resolvers = {
     getEnvVariablesByProjectEnvironmentName,
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
+    getAuditLogs,
   },
   Mutation: {
     addProblem,

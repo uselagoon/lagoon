@@ -17,7 +17,12 @@ export const getToken: ResolverFn = async (
       event: 'api:viewOpenshiftToken',
       payload: {
         name: kubernetes.name,
-        id: kubernetes.id
+        id: kubernetes.id,
+        resource: {
+          id: kubernetes.id,
+          type: "deploytarget",
+          details: kubernetes.name,
+        },
       }
     });
 
@@ -68,12 +73,17 @@ export const addOpenshift: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectOpenshift(insertId));
 
-  userActivityLogger(`User added an openshift '${input.name}'`, {
+  userActivityLogger(`User added a deploytarget '${input.name}'`, {
     project: '',
     event: 'api:addOpenshift',
     payload: {
       name: input.name,
-      id: R.prop(0, rows).id
+      id: R.prop(0, rows).id,
+      resource: {
+        id: R.prop(0, rows).id,
+        type: "deploytarget",
+        details: R.prop(0, rows).name,
+      },
     }
   });
 
@@ -96,13 +106,20 @@ export const deleteOpenshift: ResolverFn = async (
     throw new Error(`Openshift "${input.name} still in use, can not delete`);
   }
 
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftByName(input.name));
+
   res = await query(sqlClientPool, knex('openshift').where('name', input.name).delete().toString());
 
-  userActivityLogger(`User deleted an openshift '${input.name}'`, {
+  userActivityLogger(`User deleted a deploytarget '${input.name}'`, {
     project: '',
     event: 'api:deleteOpenshift',
     payload: {
       name: input.name,
+      resource: {
+        id: R.prop(0, rows).id,
+        type: "deploytarget",
+        details: R.prop(0, rows).name,
+      },
     }
   });
   // TODO: maybe check rows for changed result
@@ -208,7 +225,12 @@ export const updateOpenshift: ResolverFn = async (
     event: 'api:updateOpenshift',
     payload: {
       name: R.prop(0, rows).name,
-      id: R.prop(0, rows).id
+      id: R.prop(0, rows).id,
+      resource: {
+        id: R.prop(0, rows).id,
+        type: "deploytarget",
+        details: R.prop(0, rows).name,
+      },
     }
   });
 

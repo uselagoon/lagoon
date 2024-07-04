@@ -133,7 +133,9 @@ const addEnvVariableToProject = async (
   );
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
-
+  const project = await projectHelpers(sqlClientPool).getProjectById(
+    typeId
+  );
   userActivityLogger(`User added environment variable '${name}' with scope '${scope}' to project '${typeId}'`, {
     project: '',
     event: 'api:addEnvVariableToProject',
@@ -141,7 +143,17 @@ const addEnvVariableToProject = async (
       id,
       name,
       scope,
-      typeId
+      typeId,
+      resource: {
+        id: project.id,
+        type: "project",
+        name: project.name,
+      },
+      linkedResource: {
+        id: insertId,
+        type: "variable",
+        details: `scope: ${scope}, name: ${name}`,
+      }
     }
   });
 
@@ -186,7 +198,17 @@ const addEnvVariableToEnvironment = async (
       name,
       scope,
       typeId,
-      environment
+      environment,
+      resource: {
+        id: environment.id,
+        type: "environment",
+        name: environment.name,
+      },
+      linkedResource: {
+        id: insertId,
+        type: "variable",
+        details: `scope: ${scope}, name: ${name}`,
+      }
     }
   });
 
@@ -204,13 +226,39 @@ export const deleteEnvVariable: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  const vrows = await query(sqlClientPool, Sql.selectEnvVarById(id));
+  const variable = R.prop(0, vrows)
+  let resource
+  if (variable.project) {
+    const project = await projectHelpers(sqlClientPool).getProjectById(variable.project)
+    resource = {
+      id: project.id,
+      type: "project",
+      details: project.name,
+    }
+  }
+  if (variable.environment) {
+    const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(variable.environment)
+    resource = {
+      id: environment.id,
+      type: "environment",
+      details: environment.name,
+    }
+  }
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
+
 
   userActivityLogger(`User deleted environment variable`, {
     project: '',
     event: 'api:deleteEnvVariable',
     payload: {
-      id
+      id,
+      resource: resource,
+      linkedResource: {
+        id: id,
+        type: "variable",
+        details: `scope: ${variable.scope}, name: ${variable.name}`,
+      }
     }
   });
 
@@ -230,6 +278,10 @@ export const deleteEnvVariableByName: ResolverFn = async (
 
   let envVarType = "project"
   let envVarTypeName = projectName
+  let envVarId
+  let envVarName
+  let envVarScope
+  let resource
   if (environmentName) {
     // is environment
     const environmentRows = await query(
@@ -249,10 +301,18 @@ export const deleteEnvVariableByName: ResolverFn = async (
           project: projectId
         }
       );
+      resource = {
+        id: environment.id,
+        type: "environment",
+        name: environment.name,
+      }
 
       if (environmentVariable[0]) {
         envVarType = "environment"
         envVarTypeName = environmentName
+        envVarScope = environmentVariable[0].scope
+        envVarId = environmentVariable[0].id
+        envVarName = environmentVariable[0].name
         await query(sqlClientPool, Sql.deleteEnvVariable(environmentVariable[0].id));
       } else {
         // variable doesn't exist, just return success
@@ -278,7 +338,18 @@ export const deleteEnvVariableByName: ResolverFn = async (
     await hasPermission('env_var', 'project:delete', {
       project: projectId
     });
+    const project = await projectHelpers(sqlClientPool).getProjectById(
+      projectId
+    );
+    resource = {
+      id: project.id,
+      type: "project",
+      details: project.name,
+    }
     if (projectVariable[0]) {
+      envVarScope = projectVariable[0].scope
+      envVarId = projectVariable[0].id
+      envVarName = projectVariable[0].name
       await query(sqlClientPool, Sql.deleteEnvVariable(projectVariable[0].id));
     } else {
       // variable doesn't exist, just return success
@@ -292,7 +363,13 @@ export const deleteEnvVariableByName: ResolverFn = async (
     payload: {
       name,
       envVarType,
-      envVarTypeName
+      envVarTypeName,
+      resource: resource,
+      linkedResource: {
+        id: envVarId,
+        type: "variable",
+        details: `scope: ${envVarScope}, name: ${envVarName}`,
+      }
     }
   });
 
@@ -321,9 +398,12 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
 
   const project = projectRows[0];
 
+  let resource;
+
   let updateData = {};
   let envVarType = "project"
   let envVarTypeName = projectName
+  let envVarName = name.trim()
   if (environmentName) {
     const environmentRows = await query(
       sqlClientPool,
@@ -338,23 +418,33 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       }
     );
     updateData = {
-      name: name.trim(),
+      name: envVarName,
       value,
       scope,
       environment: environment.id,
     }
     envVarType = "environment"
     envVarTypeName = environmentName
+    resource = {
+      id: environment.id,
+      type: "environment",
+      details: environment.name,
+    }
   } else {
     // this is a project
     await hasPermission('env_var', 'project:add', {
       project: projectId
     });
     updateData = {
-      name: name.trim(),
+      name: envVarName,
       value,
       scope,
       project: project.id,
+    }
+    resource = {
+      id: project.id,
+      type: "project",
+      details: project.name,
     }
   }
 
@@ -381,7 +471,13 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       name,
       scope,
       envVarType,
-      envVarTypeName
+      envVarTypeName,
+      resource: resource,
+      linkedResource: {
+        id: insertId,
+        type: "variable",
+        details: `scope: ${scope}, name: ${envVarName}`,
+      }
     }
   });
 

@@ -82,6 +82,7 @@ const checkProjectDeployTargetByOrg = async (projectId: number, deployTargetId: 
       throw new Error('The provided deploytarget is not valid for this organization');
     }
   }
+  return projectdata
 }
 
 export const updateEnvironmentDeployTarget: ResolverFn = async (
@@ -102,7 +103,7 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
   });
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
+  const projectData = await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
 
   const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
 
@@ -157,7 +158,16 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
     project: '',
     event: 'api:updateEnvironmentDeployTarget',
     payload: {
-      ...input
+      ...input,
+      resource: {
+        id: environmentObj.id,
+        type: "environment",
+        details: environmentObj.name,
+      },
+      linkedResource: {
+        id: deployTarget,
+        type: "deploytarget",
+      }
     }
   });
 
@@ -192,7 +202,7 @@ export const addDeployTargetConfig: ResolverFn = async (
   await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
+  const projectData = await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -218,7 +228,23 @@ export const addDeployTargetConfig: ResolverFn = async (
     project: '',
     event: 'api:addDeployTargetConfig',
     payload: {
-      ...input
+      ...input,
+      resource: {
+        id: projectData.id,
+        type: "project",
+        details: projectData.name,
+      },
+      linkedResource: {
+        id: insertId,
+        type: "deploytargetconfig",
+        details: `${JSON.stringify({
+          weight,
+          branches,
+          pullrequests,
+          deployTarget,
+          deployTargetProjectPattern,
+        })}`
+      }
     }
   });
 
@@ -238,12 +264,12 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   // are updateable by the same permissions at the project scope
   // deleting a deploytargetconfig from a project is classed as updating the project
   await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
+  const projectData = await projectHelpers(
+    sqlClientPool
+  ).getProjectById(project);
 
   try {
-    await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE id = :id', {
-      id,
-      project
-    });
+    await query(sqlClientPool,  Sql.deleteDeployTargetConfigById(id));
   } catch (err) {
      // Not allowed to stop execution.
   }
@@ -254,6 +280,15 @@ export const deleteDeployTargetConfig: ResolverFn = async (
     payload: {
       id,
       project,
+      resource: {
+        id: projectData.id,
+        type: "project",
+        details: projectData.name,
+      },
+      linkedResource: {
+        id: id,
+        type: "deploytargetconfig",
+      }
     }
   });
 
@@ -310,14 +345,8 @@ export const updateDeployTargetConfig: ResolverFn = async (
     deployTargetConfig.project,
   );
 
-  if (deployTarget) {
-    // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-    await checkProjectDeployTargetByOrg(
-      deployTargetConfig.project,
-      deployTarget,
-      sqlClientPool,
-    );
-  }
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  const projectData = await checkProjectDeployTargetByOrg(deployTargetConfig.project, deployTarget, sqlClientPool)
 
   await query(
     sqlClientPool,
@@ -340,7 +369,23 @@ export const updateDeployTargetConfig: ResolverFn = async (
     event: 'api:updateDeployTargetConfig',
     payload: {
       data: withK8s,
-    },
+      resource: {
+        id: projectData.id,
+        type: "project",
+        details: projectData.name,
+      },
+      linkedResource: {
+        id: id,
+        type: "deploytargetconfig",
+        details: `${JSON.stringify({
+          weight,
+          branches,
+          pullrequests,
+          deployTarget,
+          deployTargetProjectPattern,
+        })}`
+      }
+    }
   });
 
   return R.prop(0, withK8s);
