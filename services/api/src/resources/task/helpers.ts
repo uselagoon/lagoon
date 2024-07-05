@@ -11,8 +11,8 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { logger } from '../../loggers/logger';
 
-export const Helpers = (sqlClientPool: Pool, hasPermission) => {
-  const getTaskById = async (TaskID: number, adminScopes) => {
+export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
+  const getTaskById = async (TaskID: number) => {
     const queryString = knex('task')
       .where('id', '=', TaskID)
       .toString();
