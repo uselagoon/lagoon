@@ -245,7 +245,7 @@ export const addTask: ResolverFn = async (
       sourceUser,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -297,7 +297,7 @@ export const addTask: ResolverFn = async (
     }
   });
 
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     id,
     name,
     taskName,
@@ -352,10 +352,10 @@ export const cancelTask: ResolverFn = async (
       task: taskInput,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
 
-  const task = await Helpers(sqlClientPool, hasPermission).getTaskByTaskInput(taskInput);
+  const task = await Helpers(sqlClientPool, hasPermission, adminScopes).getTaskByTaskInput(taskInput);
   if (!task) {
     return null;
   }
@@ -498,7 +498,7 @@ export const updateTask: ResolverFn = async (
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -529,7 +529,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
   });
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush archive-dump',
     taskName: generateTaskName(),
     environment: environmentId,
@@ -549,7 +549,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -581,7 +581,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
   });
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush sql-dump',
     taskName: generateTaskName(),
     environment: environmentId,
@@ -601,7 +601,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -635,7 +635,7 @@ export const taskDrushCacheClear: ResolverFn = async (
   });
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush cache-clear',
     taskName: generateTaskName(),
     environment: environmentId,
@@ -655,7 +655,7 @@ export const taskDrushCacheClear: ResolverFn = async (
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -678,7 +678,7 @@ export const taskDrushCron: ResolverFn = async (
   });
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush cron',
     taskName: generateTaskName(),
     environment: environmentId,
@@ -701,7 +701,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
@@ -753,7 +753,7 @@ export const taskDrushSqlSync: ResolverFn = async (
   drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     taskName: generateTaskName(),
     environment: destinationEnvironmentId,
@@ -776,7 +776,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
@@ -828,7 +828,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
   drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     taskName: generateTaskName(),
     environment: destinationEnvironmentId,
@@ -848,7 +848,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -871,7 +871,7 @@ export const taskDrushUserLogin: ResolverFn = async (
   });
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+  const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
     name: 'Drush uli',
     taskName: generateTaskName(),
     environment: environmentId,

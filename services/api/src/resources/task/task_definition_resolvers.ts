@@ -613,7 +613,7 @@ export const invokeRegisteredTask = async (
           sourceType = "API"
         }
         const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-        const taskData = await Helpers(sqlClientPool, hasPermission).addTask({
+        const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
           name: task.name,
           taskName: generateTaskName(),
           environment: environment,
@@ -641,7 +641,7 @@ export const invokeRegisteredTask = async (
         }
 
 
-        const advancedTaskData = await Helpers(sqlClientPool, hasPermission).addAdvancedTask({
+        const advancedTaskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addAdvancedTask({
           name: task.name,
           taskName: generateTaskName(),
           created: undefined,
