@@ -9,7 +9,9 @@ MariaDBは、オープンソースのMySQL後継者です。
 * 10.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.4.Dockerfile) (Alpine 3.12 は2022年5月までサポート) - `uselagoon/mariadb-10.4`
 * 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 は2023年5月までサポート) - `uselagoon/mariadb-10.5`
 * 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 は2024年5月までサポート) - `uselagoon/mariadb-10.6`
-* 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 は2025年5月までサポート) - `uselagoon/mariadb-10.11` !!!情報
+* 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 は2025年5月までサポート) - `uselagoon/mariadb-10.11`
+
+!!! Info "情報"
     これらのイメージは、上流のMariaDBイメージから構築されていないため、サポートは別のサイクルに従います - そして、基礎となるAlpineイメージがサポートを受けている限りのみアップデートを受けます - [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/)を参照してください。実際には、ほとんどのMariaDBユーザーはこれらのコンテナをローカルで実行しています - 本番環境ではDBaaSオペレーターが提供するManaged Cloud Databasesを使用します。
 
 ## Lagoonの適応 { #lagoon-adaptions }

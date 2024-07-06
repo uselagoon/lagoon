@@ -104,11 +104,12 @@ services:
       context: .
       dockerfile: php.dockerfile
     labels:
-      lagoon.type: nginx-php-persistent lagoon.name:nginx
-      lagoon.persistent:/app/web/sites/default/files/
+      lagoon.type: nginx-php-persistent
+      lagoon.name: nginx
+      lagoon.persistent: /app/web/sites/default/files/
 
   mariadb:
-    image: amazeeio/mariadb-drupal
+    image: uselagoon/mariadb-10.11-drupal
     labels:
       lagoon.type: mariadb
 ```
@@ -153,7 +154,7 @@ Lagoon ですべてのデプロイメント中にサービスの Dockerfile を�
 `image`
 - Dockerfile をビルドする必要がなく、既存の Dockerfile を使用する場合は、`image` で定義します。
 
-この例では、現在のディレクトリのパスを指定しています。NGINX は `nginx.dockerfile` をビルドするように設定され、PHP は `php.dockerfile` をビルドするように設定されています。MariaDB は `amazeeio/mariadb-drupal` の既存のイメージを使用しています。[Docker イメージの詳細については、こちら](../docker-images/commons.md) をご覧ください。
+この例では、現在のディレクトリのパスを指定しています。NGINX は `nginx.dockerfile` をビルドするように設定され、PHP は `php.dockerfile` をビルドするように設定されています。MariaDB は `uselagoon/mariadb-10.11-drupal` の既存のイメージを使用しています。[Docker イメージの詳細については、こちら](../docker-images/commons.md) をご覧ください。
 
 ### タイプ { #types }
 
@@ -255,30 +256,22 @@ environments:
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
-            hsts: max
-``` -年齢=31536000
+            hsts: max-age=31536000
         - "example.ch":
-            アノテーション:
+            Annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
         - www.example.ch
-
-    タイプ:
-      マリアDB: mariadb-galera
-    テンプレート:
-      マリアDB: mariadb.main.deployment.yml
-    ロールアウト:
-      マリアDB: statefulset
-    クロンジョブ:
-     - 名前: drush cron
-       スケジュール: "H * * * *" # これはクロンを1時間ごとに実行します。
-       コマンド: drush cron
-       サービス: cli
-  ステージング:
-    クロンジョブ:
-     - 名前: drush cron
-       スケジュール: "H * * * *" # これはクロンを1時間ごとに実行します。
-       コマンド: drush cron
-       サービス: cli
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # これはクロンを1時間ごとに実行します。
+       command: drush cron
+       service: cli
+  staging:
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # これはクロンを1時間ごとに実行します。
+       command: drush cron
+       service: cli
 ```
 
 ### 一般設定
@@ -372,7 +365,7 @@ UptimeRobotがクラスターに設定されている場合、Lagoonは各ルー
 
 #### 注釈
 
-!!! Info "情報"
+!!! info "情報"
     ルート/Ingress注釈は、nginx-ingressコントローラを実行するクラスタにデプロイされるプロジェクトでのみサポートされています！これがサポートされているかどうかはLagoonの管理者に確認してください。
 
 注釈は、`nginx-ingress`コントローラがサポートする注釈のYAMLマップであることが特に便利で、簡単にリダイレクトできます:
@@ -557,7 +550,7 @@ docker-compose up -d
 次のような応答が表示されます:
 
 ```bash title="containers started"
-➜  lagoon-test git:(main) docker-compose up -d
+➜  lagoon-test git:(main) docker compose up -d
 Recreating lagoon-test_cli_1   ... done
 Starting lagoon-test_redis_1   ... done
 Starting lagoon-test_solr_1    ... done
@@ -567,19 +560,18 @@ Recreating lagoon-test_nginx_1 ... done
 Recreating lagoon-test_varnish_1 ... done
 ```
 
-これによりすべてのコンテナが起動します。コマンドが完了した後、`docker-compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:
+これによりすべてのコンテナが起動します。コマンドが完了した後、`docker compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:
 
 ```bash title="view running containers"
-➜  lagoon-test git:(main) docker-compose ps
-Name                        コマンド               状態            ポート
+➜  lagoon-test git:(main) docker compose ps
+Name                       Command               State            Ports
 ----------------------------------------------------------------------------------------
-lagoon-test_cli_1       /sbin/tini -- /lagoon/entr ...   上      9000/tcp
-lagoon-test_mariadb_1   /sbin/tini -- /lagoon/entr ...   上      0.0.0.0:32768->3306/tcp
-lagoon-test_nginx_1     /sbin/tini -- /lagoon/entr ...   上      8080/tcp
-lagoon-test_php_1       /sbin/tini -- /lagoon/entr ...   上      9000/tcp
-lagoon-test_redis_1     /sbin/tini -- /lagoon/entr ...   上      6379/tcp
-lagoon-test_solr_1      /sbin/tini -- /lagoon/entr ...   上      0.0.0.0:32769->8983/tcp
-lagoon-test_varnish_1   /sbin/tini -- /lagoon/entr ...   上      8080/tcp
+lagoon-test_cli_1       /sbin/tini -- /lagoon/entr ...   Up      9000/tcp
+lagoon-test_mariadb_1   /sbin/tini -- /lagoon/entr ...   Up      0.0.0.0:32768->3306/tcp
+lagoon-test_nginx_1     /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
+lagoon-test_php_1       /sbin/tini -- /lagoon/entr ...   Up      9000/tcp
+lagoon-test_redis_1     /sbin/tini -- /lagoon/entr ...   Up      6379/tcp
+lagoon-test_solr_1      /sbin/tini -- /lagoon/entr ...   Up      0.0.0.0:32769->8983/tcp
 ```
 
 問題がある場合は、 `docker-compose logs -f [servicename]`を使用してログを確認します。
@@ -637,7 +629,7 @@ Site path            :  sites/default
 ```
 
 !!! Info "情報"
-    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、確認してください。 こちらでドキュメンテーションを確認してください:[pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)。
+    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、確認してください。 こちらでドキュメンテーションを確認してください:[pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/usage/#adding-ssh-keys)。
 
 次にDrupalをインストールします(代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。しかし、初めにすべてが正常に動作していることを確認するために、クリーンなDrupalをインストールすることをお勧めします)。
 
@@ -648,10 +640,10 @@ Site path            :  sites/default
 
 ```bash title="drush siの結果"
 [drupal-example]cli-drupal:/app$ drush site-install
-あなたは 'drupal' データベースのすべてのテーブルをDROPしようとしています。続行しますか？ (y/n): y
-Drupalのインストールを開始します。これには時間がかかります。--notifyグローバルオプションの使用を検討してください。
-インストール完了。ユーザー名: admin ユーザーパスワード: arbZJekcqh
-おめでとうございます、Drupalをインストールしました！
+You are about to DROP all tables in your 'drupal' database. Do you want to continue? (y/n): y
+Starting Drupal installation. This takes a while. Consider using the --notify global option.
+Installation complete.  User name: admin  User password: arbZJekcqh
+Congratulations, you installed Drupal!
 ```
 
 これで、`LAGOON_ROUTE`で定義されたURLにアクセスして、新鮮できれいにインストールされたDrupalを見ることができます - おめでとうございます！
@@ -662,14 +654,14 @@ Drupalのインストールを開始します。これには時間がかかり�
 
 ```bash title="drush sql-dump"
 [your-existing-site]$ drush sql-dump --result-file=dump.sql
-データベースのダンプがdump.sqlに保存されました。[成功]
+Database dump saved to dump.sql                         [success]
 ```
 
 これで、あなたの全データベースを含む`dump.sql`ファイルが作成されました。
 このファイルをローカルのGitリポジトリにコピーし、CLIに接続すると、その中にファイルが表示されます。
 
 ```bash title="here's our dump file"
-[drupal-example] docker-compose exec cli bash
+[drupal-example] docker compose exec cli bash
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```

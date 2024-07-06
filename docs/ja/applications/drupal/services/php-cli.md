@@ -9,9 +9,11 @@
 ## サポートされているバージョン { #supported-versions }
 
 * 7.3 \(互換性のために利用可能ですが、公式にはサポートされていません\)
-* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile) - `uselagoon/php-7.4-cli-drupal`
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.0.Dockerfile) - `uselagoon/php-8.0-cli-drupal`
+* 7.4 \(互換性のために利用可能ですが、公式にはサポートされていません\) - `uselagoon/php-7.4-cli-drupal`
+* 8.0 \(互換性のために利用可能ですが、公式にはサポートされていません\) - `uselagoon/php-8.0-cli-drupal`
 * 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.1.Dockerfile) - `uselagoon/php-8.1-cli-drupal`
+* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.2.Dockerfile) - `uselagoon/php-8.2-cli-drupal`
+* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.3.Dockerfile) - `uselagoon/php-8.3-cli-drupal`
 
 全てのPHPバージョンはそれぞれのDockerfilesを使用します。
 

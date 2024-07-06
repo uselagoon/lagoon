@@ -34,9 +34,9 @@ Lagoon can be installed:
 - Locally (for evaluation, testing, debugging or development) using [Helm](https://helm.sh/) charts and [kind](https://kind.sigs.k8s.io/), [microk8s](https://microk8s.io/), [k3s](https://k3s.io/) or similar.
 - Into your managed Kubernetes cloud provider of choice - it's running in production on [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-au/services/kubernetes-service/), and [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/), but we are confident that it will also run on any other managed Kubernetes service.
 
-For more information on developing or contributing to Lagoon, head to https://docs.lagoon.sh/contributing-to-lagoon
+For more information on developing or contributing to Lagoon, head to https://docs.lagoon.sh/contributing
 
-For more information on installing and administering Lagoon, head to https://docs.lagoon.sh/administering-lagoon
+For more information on installing and administering Lagoon, head to https://docs.lagoon.sh/installing-lagoon/requirements/
 
 ### Architecture
 
@@ -76,7 +76,7 @@ All the services that are used to provision, deploy and maintain sites hosted by
 - [Storage Calculator](https://github.com/uselagoon/storage-calculator) (an optional service to collect the size of storage and databases)
 - [Remote Controller](https://github.com/uselagoon/remote-controller) (the controllers that handle building and deploying sites onto Lagoon)
 - [Build Deploy Tool](https://github.com/uselagoon/build-deploy-tool) (the service that computes which services, configuration and settings to provision for Kubernetes)
-- [Aergia](https://github.com/amazeeio/aergia-controller) (an optional controller that can idle non-production sites not currently in use to conserve resources)
+- [Aergia](https://github.com/uselagoon/aergia-controller) (an optional controller that can idle non-production sites not currently in use to conserve resources)
 - [Dioscuri](https://github.com/amazeeio/dioscuri) (an optional operator that provides Active/Standby functionality to Lagoon)
 - [DBaaS Operator](https://github.com/amazeeio/dbaas-operator) (an optional operator that provisions databases from an underlying managed database)
 
@@ -86,7 +86,7 @@ All the services that are used to provision, deploy and maintain sites hosted by
 ### Lagoon Tools
   - [lagoon-cli](https://github.com/uselagoon/lagoon-cli) (the command-line interface for managing sites on Lagoon)
   - [lagoon-sync](https://github.com/uselagoon/lagoon-sync) (a command-line interface for syncing databases or file assets between Lagoon environments)
-  - [drush-alias](https://github.com/uselagoon/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
+  - [drush-alias](https://github.com/uselagoon/lagoon-service-images/tree/main/drush-alias) (provides Drupal developers with an automated alias service for Drush)
 
 ### Additional Services
 
@@ -98,7 +98,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - [k8up](https://k8up.io/) (provides a scheduled backup and prune service to environment namespaces)
 - Lagoon Logging (optional)
   - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilizes [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to collect and augment container&router logs from all sites, and sends them to a logs-dispatcher)
-  - [logs-dispatcher](https://github.com/uselagoon/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
+  - [logs-dispatcher](https://github.com/uselagoon/lagoon-service-images/tree/main/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
   - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from remote logs-dispatchers and sends them to Elasticsearch)
 - Elasticsearch or Opensearch (optional)
   - [OpenSearch](https://opensearch.org/docs/latest/opensearch/index/) (provides centralized log storage, search and analysis)
@@ -109,8 +109,6 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - PostgreSQL (self managed or via [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/), [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/postgresql-features/), [Azure Database for PostgreSQL](https://docs.microsoft.com/en-us/azure/postgresql), [Cloud SQL for PostgreSQL](https://cloud.google.com/sql/docs/postgres) )
   - MongoDB (self managed, or via [Amazon DocumentDB](https://aws.amazon.com/documentdb/), [Azure Cosmos DB](https://azure.microsoft.com/en-au/services/cosmos-db/) )
 - Open Policy Agent (optional)
-  - [lagoon-gatekeeper](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-gatekeeper) (centralized policy library for Lagoon)
-
 
 ## Testing
 

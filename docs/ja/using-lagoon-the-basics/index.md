@@ -48,17 +48,17 @@ Lagoonと[ローカル開発環境](local-development-environments.md)につい�
 | [MariaDB](../docker-images/mariadb.md) | 10.4, 10.5, 10.6, 10.11 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
 | [PostgreSQL](../docker-images/postgres.md) | 11, 12, 13, 14, 15 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
 | [MongoDB](../docker-images/mongodb.md) | 4 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
-| [NGINX](../docker-images/nginx.md) | openresty/1.21 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
-| [Node.js](../docker-images/nodejs.md) | 16, 18, 20 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
-| [PHP FPM](../docker-images/php-fpm.md) | 8.0, 8.1, 8.2 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
-| [PHP CLI](../docker-images/php-cli.md) | 8.0, 8.1, 8.2 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
-| [Python](../docker-images/nodejs.md) | 3.7, 3.8, 3.9, 3.10, 3.11 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
-| [Redis](../docker-images/redis.md) | 5, 6, 7 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
-| [Solr](../docker-images/solr.md) | 7, 8 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
-| [Varnish](../docker-images/varnish.md) | 5, 6, 7 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
+| [NGINX](../docker-images/nginx.md) | openresty/1.25 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
+| [Node.js](../docker-images/nodejs.md) | 18, 20, 22 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
+| [PHP FPM](../docker-images/php-fpm.md) | 8.1, 8.2, 8.3 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
+| [PHP CLI](../docker-images/php-cli.md) | 8.1, 8.2, 8.3 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
+| [Python](../docker-images/nodejs.md) | 3.8, 3.9, 3.10, 3.11, 3.12 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
+| [Redis](../docker-images/redis.md) | 6, 7 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
+| [Solr](../docker-images/solr.md) | 8, 9 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
+| [Varnish](../docker-images/varnish.md) | 6, 7 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
 | [Opensearch](../docker-images/opensearch.md) | 2 | [opensearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch) |
 | [RabbitMQ](../docker-images/rabbitmq.md) | 3.10 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
-| [Ruby](../docker-images/ruby.md) | 3.0, 3. 1、3.2 | [ruby/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby) |
+| [Ruby](../docker-images/ruby.md) | 3.1, 3.2, 3.3 | [ruby/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby) |
 
 すべてのイメージは[https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon)にプッシュされます。特性とセキュリティの観点から常に最新のタグ(例:`uselagoon/nginx:latest`)を使用することをおすすめします。
 

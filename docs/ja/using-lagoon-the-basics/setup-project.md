@@ -10,7 +10,7 @@
 * プロジェクトの名前
   * この名前は小文字、数字、ダッシュのみを含めることができます
   * プロジェクト名内にダブルダッシュ(`--`)は許可されていません
-* このプロジェクトに取り組むすべての人のSSH公開鍵、メールアドレス、名前。ここには、[GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)、[GitLab](https://docs.gitlab.com/ee/ssh/)、[Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html) のSSHキーの生成とコピーについての指示があります。
+* このプロジェクトに取り組むすべての人のSSH公開鍵、メールアドレス、名前。ここには、[GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)、[GitLab](https://docs.gitlab.com/ee/user/ssh.html)、[Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html) のSSHキーの生成とコピーについての指示があります。
 * あなたのコードがホストされているGitリポジトリのURL(`git@example.com:test/test.git`)。
 * あなたが使用するGitブランチの名前 あなたの本番環境で使用したい環境について ([環境タイプ](../concepts-advanced/environment-types.md) で環境の詳細を参照してください)。
 * 追加の環境にデプロイしたいブランチとプルリクエスト。Lagoonでは、正規表現でブランチとプルリクエストの名前をフィルタリングでき、あなたのLagoon管理者がこれを設定できます。

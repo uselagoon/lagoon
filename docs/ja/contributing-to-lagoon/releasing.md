@@ -49,10 +49,10 @@ Lagoonには多くの動的な部分があるため、リリースはかなり�
 
 ## Lagoon-core - リリースとリリースノート
 
-1. [uselagoon/lagoon](https://github.com/uselagoon/lagoon)で、先ほどプッシュしたタグからリリースを作成します。"リリースの生成 "notes"ボタンを使って変更履歴を作成します。リリースに含める内容については、以前のリリースを参照してください。 また、lagoon-imagesのリンクは常に最新のリリース版となります。チャート、lagoon-ui、build-deploy-toolへのリンクはすべて今すぐ埋めることができますが、リンクは今後のステップが完了するまで動作しません。これを最新のリリースとしてマークし、リリースを公開します。
-2. [uselagoon/build-deploy-tool] (https://github.com/uselagoon/build-deploy-tool)で、先ほどプッシュしたタグからリリースを作成します。"リリースノートを生成"ボタンを使用して変更履歴を作成します。最後のcore-v2.Xタグが使用され、他のタグは使用されないことを確認します。リリースに含める内容については、以前のリリースを参照してください。これを最新のリリースとしてマークし、リリースを公開します。
-3. [uselagoon/lagoon-ui] (https://github.com/uselagoon/lagoon-ui)で、先ほどプッシュしたタグからリリースを作成します。"リリースノートを生成"ボタンを使用して変更履歴を作成します。最後のcore-v2.Xタグが使用され、他のタグは使用されないことを確認します。リリースに含める内容については、以前のリリースを参照してください。これを最新のリリースとしてマークし、リリースを公開します。
-4. [uselagoon/lagoon-charts] (https://github.com/uselagoon/lagoon-charts)で 成功したPRをマージすると、lagoon-coreとlagoon-testのリリースが作成されます。結果として得られたlagoon-coreチャートリリースを編集し、タイトルとテキストボックスに対応するlagoonリリースを記載します。以前のリリースと同様にします。
+1. [uselagoon/lagoon](https://github.com/uselagoon/lagoon) で、先ほどプッシュしたタグからリリースを作成します。"リリースの生成 "notes"ボタンを使って変更履歴を作成します。リリースに含める内容については、以前のリリースを参照してください。 また、lagoon-imagesのリンクは常に最新のリリース版となります。チャート、lagoon-ui、build-deploy-toolへのリンクはすべて今すぐ埋めることができますが、リンクは今後のステップが完了するまで動作しません。これを最新のリリースとしてマークし、リリースを公開します。
+2. [uselagoon/build-deploy-tool](https://github.com/uselagoon/build-deploy-tool) で、先ほどプッシュしたタグからリリースを作成します。"リリースノートを生成"ボタンを使用して変更履歴を作成します。最後のcore-v2.Xタグが使用され、他のタグは使用されないことを確認します。リリースに含める内容については、以前のリリースを参照してください。これを最新のリリースとしてマークし、リリースを公開します。
+3. [uselagoon/lagoon-ui](https://github.com/uselagoon/lagoon-ui) で、先ほどプッシュしたタグからリリースを作成します。"リリースノートを生成"ボタンを使用して変更履歴を作成します。最後のcore-v2.Xタグが使用され、他のタグは使用されないことを確認します。リリースに含める内容については、以前のリリースを参照してください。これを最新のリリースとしてマークし、リリースを公開します。
+4. [uselagoon/lagoon-charts](https://github.com/uselagoon/lagoon-charts) で 成功したPRをマージすると、lagoon-coreとlagoon-testのリリースが作成されます。結果として得られたlagoon-coreチャートリリースを編集し、タイトルとテキストボックスに対応するlagoonリリースを記載します。以前のリリースと同様にします。
 
 ## Lagoonリモート - リリースとリリースノート
 

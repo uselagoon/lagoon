@@ -8,11 +8,12 @@ Node.jsのイメージは2つのバージョンを提供しています:通常�
 
 これらのイメージのビルダーバリアントには、Node.jsのアプリをビルドする際に必要な追加のツール(ビルドライブラリ、npm、Yarnなど)が含まれています。完全なリストについては、[Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder)をご覧ください。
 
-* 12(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-12`
-* 14(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-14`
-* 16(互換性のためだけに利用可能、公式にはサポートされていません)- `uselagoon/node-16`
-* 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (2025年4月までのセキュリティサポート) - `uselagoon/node-18`
+* 12 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/node-12`
+* 14 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/node-14`
+* 16 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/node-16`
+* 18 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/node-18`
 * 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (2026年4月までのセキュリティサポート) - `uselagoon/node-20`
+* 22 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/22.Dockerfile) (2027年4月までのセキュリティサポート) - `uselagoon/node-22`
 
 !!! Tip "ヒント"
     EOL Node.jsイメージの更新は通常、公式に発表されたEOL日付の後にリリースされるLagoonリリースと共に停止します:[https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).

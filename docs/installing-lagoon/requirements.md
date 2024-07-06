@@ -40,7 +40,7 @@ We recommend installing a Harbor version greater than [2.6.0](https://github.com
 
 ### k8up for backups
 
-Lagoon has built in configuration for the [K8up](https://k8up.io/k8up/1.2/index.html) backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of K8up, owing to a namespace change in v2 onwards, but we are working on a fix.
+Lagoon has built in configuration for the [K8up](https://docs.k8up.io/k8up/1.2/index.html) backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of K8up, owing to a namespace change in v2 onwards, but we are working on a fix.
 
 !!! bug "K8up v2:"
     Lagoon does not currently support K8up v2 onwards due to a namespace change [here](https://github.com/uselagoon/build-deploy-tool/issues/121).

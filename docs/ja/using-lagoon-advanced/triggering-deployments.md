@@ -24,13 +24,13 @@ stages:
           inputs:
             secureFile: id_rsa_lagoon
         - script: |
-            curl -L "https://github.com/amazeeio/lagoon-cli/releases/download/0.9.2/lagoon-cli-0.9.2-linux-amd64" -o ./lagoon
-            chmod +x ./lag oon
-          displayName: 'lagoon-cliをダウンロード'
+            curl -L "https://github.com/uselagoon/lagoon-cli/releases/download/v0.21.3/lagoon-cli-v0.21.3-linux-amd64" -o ./lagoon
+            chmod +x ./lagoon
+          displayName: 'Download lagoon-cli'
         - script: ./lagoon login -i $(lagoonSshKey.secureFilePath)
-          displayName: 'Lagoonにログイン'
+          displayName: 'Log into Lagoon'
         - script: ./lagoon deploy branch -e $(Build.SourceBranchName) -p my-awesome-project -b $(Build.SourceBranchName) --force
-          displayName: 'lagoon-cliを使用してデプロイメントをトリガー'
+          displayName: 'Trigger deployment using lagoon-cli'
 ```
 
 これにより、`develop`ブランチまたは`staging`ブランチで変更が行われるたびに新しいデプロイメントがトリガーされます。これらの値を適切に調整して、デプロイメント戦略と設定に適合させてください。

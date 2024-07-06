@@ -10,7 +10,7 @@
 * 3.9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.9.Dockerfile) (2025年10月までセキュリティサポート) - `uselagoon/python-3.9`
 * 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.10.Dockerfile) (2026年10月までセキュリティサポート) - `uselagoon/python-3.10`
 * 3.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.11.Dockerfile) (2027年10月までセキュリティサポート) - `uselagoon/python-3.11`
-* 3.12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.12.Dockerfile) (セキュリティ 2028年10月までのサポート)- `uselagoon/python-3.12`
+* 3.12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.12.Dockerfile) (2028年10月までセキュリティサポート)- `uselagoon/python-3.12`
 
 !!! Tip "ヒント"
     私たちは通常、公式に通知されたEOL日付の後に来るLagoonリリースとともにEOL Pythonイメージの更新と公開を停止します:[https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions)。以前に公開されたバージョンは引き続き利用可能です。
@@ -44,7 +44,7 @@ python:
     ports:
     # ローカル開発のみ
           # 8800ポートをランダムなローカルポートで公開します
-          # `docker-compose port python 8800`で見つけることができます
+          # `docker compose port python 8800`で見つけることができます
         - "8800"
     volumes:
     # ローカル開発のみ

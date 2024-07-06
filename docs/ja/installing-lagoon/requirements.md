@@ -40,7 +40,7 @@ Lagoonは現在、単一の `ingress-nginx` コントローラーのみに対応
 
 ### バックアップ用の k8up { #k8up-for-backups }
 
-Lagoon には、[K8up](https://k8up.io/k8up/1.2/index.html) バックアップ オペレーターの構成が組み込まれています。 Lagoon では、事前バックアップ ポッド、スケジュール、保持期間を設定し、K8up のバックアップと復元を管理できます。現在、Lagoon は、v2 以降の名前空間の変更により、K8up の 1.x バージョンのみをサポートしていますが、修正に取り組んでいます。
+Lagoon には、[K8up](https://docs.k8up.io/k8up/1.2/index.html) バックアップ オペレーターの構成が組み込まれています。 Lagoon では、事前バックアップ ポッド、スケジュール、保持期間を設定し、K8up のバックアップと復元を管理できます。現在、Lagoon は、v2 以降の名前空間の変更により、K8up の 1.x バージョンのみをサポートしていますが、修正に取り組んでいます。
 
 !!! Bug "バグ k8up v2"
     Lagoon は、名前空間の変更により、現在 K8up v2 以降をサポートしていません ([こちら](https://github.com/uselagoon/build-deploy-tool/issues/121))。

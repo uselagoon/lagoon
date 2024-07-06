@@ -39,7 +39,7 @@ In our Rails example, we're importing the `logstash-logger` gem, and then in our
 
 ## Database configuration
 
-The example uses our PostgreSQL image (see the `docker-compose.yml` file). Configuring database access in Rails for Lagoon is very straightforward. Since Lagoon injects the database host, name, and credentials as environment variables, we can change our [`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database.yml) to be aware of these env vars, and consume them if they exist.
+The example uses our PostgreSQL image (see the `docker-compose.yml` file). Configuring database access in Rails for Lagoon is very straightforward. Since Lagoon injects the database host, name, and credentials as environment variables, we can change our [`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails-demo/blob/main/config/database.yml.yml) to be aware of these env vars, and consume them if they exist.
 
 ```yaml title="config/database.yml"
 default: &default

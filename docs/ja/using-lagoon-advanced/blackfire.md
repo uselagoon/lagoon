@@ -28,7 +28,7 @@ services:
     environment:
       << : *default-environment # 上部で定義された環境変数を読み込む
       BLACKFIRE_ENABLED: TRUE
-``` BLACKFIRE_SERVER_ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      BLACKFIRE_SERVER_ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
       BLACKFIRE_SERVER_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 

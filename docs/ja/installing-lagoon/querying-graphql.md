@@ -36,7 +36,6 @@
 
     ```graphql title="突然変異を追加"
     mutation addKubernetes {
- ```bash
       addKubernetes(input:
       {
         name: "<TARGET-NAME-FROM-REMOTE-VALUES.yml>",

@@ -20,7 +20,7 @@
 
 ## ユーザーの役割を変更する { #change-a-user-role }
 
-<iframe src="https://scribehow.com/embed/Change_a_User_Role__zj1UqJ3iTDCTvRKg3zLIFg?removeLogo=true" width="100%" height ="640" allowfullscreen frameborder="0"></iframe>
+<iframe src="https://scribehow.com/embed/Change_a_User_Role__zj1UqJ3iTDCTvRKg3zLIFg?removeLogo=true" width="100%" height="640" allowfullscreen frameborder="0"></iframe>
 
 ## プロジェクトにメール通知を追加する { #add-an-email-notification-to-a-project }
 

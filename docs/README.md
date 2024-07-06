@@ -21,7 +21,6 @@ and for a deeper understanding, [Lagoon Concepts - Advanced](concepts-advanced/i
 
 If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
 
-
 ## TL;DR: How Lagoon Works
 
 1. Developers define and configure needed services within YAML files.
@@ -37,9 +36,7 @@ If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](co
 
 Questions? Ideas? Meet the maintainers and contributors.
 
-Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE
-](https://discord.gg/te5hHe95JE
-)
+Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE](https://discord.gg/te5hHe95JE)
 
 ## A couple of things about Lagoon
 

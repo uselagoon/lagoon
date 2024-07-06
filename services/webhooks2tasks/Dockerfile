@@ -3,7 +3,7 @@ ARG IMAGE_REPO
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
+FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder AS yarn-workspace-builder
 
 # STAGE 2: specific service Image
 FROM ${UPSTREAM_REPO:-uselagoon}/node-20:${UPSTREAM_TAG:-latest}

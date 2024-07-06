@@ -6,7 +6,7 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 5(互換性のためのみ利用可能、公式にはもはやサポートされていません) - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
+* 5 (互換性のためのみ利用可能、公式にはもはやサポートされていません) - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6`または`uselagoon/redis-6-persistent`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7`または`uselagoon/redis-7-persistent`
 
@@ -43,11 +43,11 @@ Redisイメージには2つの異なるバリエーションがあります:**�
 
 | 環境変数 | デフォルト     |                                         説明                                         |
 | :------------------- | :---------- | :----------------------------------------------------------------------------------------- |
-| データベース            | -1          | スタートアップ時に作成されるデータベースのデフォルト数。                                            |
-| ログレベル             | 通知      | ログのレベルを定義します。                                                                  |
-| 最大メモリ使用量            | 100mb       | メモリの最大使用量。                                                                  |
-| 最大メモリポリシー            | allkeys-lru | Redisが最大メモリ使用量に達したときにキーを追い出すためのポリシー。            |
-| REDIS_PASSWORD       | 無効    | [認証機能](https://redis.io/topics/security#authentication-feature)を有効にします。 |
+| DATABASES            | -1          |スタートアップ時に作成されるデータベースのデフォルト数。                                            |
+| LOGLEVEL             | notice      |  ログのレベルを定義します。                                                                  |
+| MAXMEMORY            | 100mb       | メモリの最大使用量。                                                                  |
+| MAXMEMORYPOLICY      | allkeys-lru | Redisが最大メモリ使用量に達したときにキーを追い出すためのポリシー。            |
+| REDIS_PASSWORD       | disabled    | [認証機能](https://redis.io/topics/security#authentication-feature)を有効にします。 |
 
 ## カスタム設定
 
