@@ -19,13 +19,13 @@ import (
 
 func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.Task.Name)
-	log.Println(fmt.Sprintf("%sreceived task status update: %s", prefix, message.Meta.JobStatus))
+	log.Printf("%sreceived task status update: %s", prefix, message.Meta.JobStatus)
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
+			log.Printf("%sERROR: unable to generate token: %v", prefix, err)
 		}
 		return nil
 	}
@@ -48,7 +48,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 					"message":  err.Error(),
 				})
 				if m.EnableDebug {
-					log.Println(fmt.Sprintf("%sERROR: unable to project information: %v", prefix, err))
+					log.Printf("%sERROR: unable to project information: %v", prefix, err)
 				}
 				return err
 			}
@@ -80,11 +80,11 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 					"message":  err.Error(),
 				})
 				if m.EnableDebug {
-					log.Println(fmt.Sprintf("%sERROR: unable to update project with active/standby result: %v", prefix, err))
+					log.Printf("%sERROR: unable to update project with active/standby result: %v", prefix, err)
 				}
 				return err
 			}
-			log.Println(fmt.Sprintf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success"))
+			log.Printf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success")
 		}
 	}
 	// continue on to updating the task as normal
@@ -113,10 +113,10 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to update task: %v", prefix, err))
+			log.Printf("%sERROR: unable to update task: %v", prefix, err)
 		}
 		return err
 	}
-	log.Println(fmt.Sprintf("%supdated task: %s", prefix, message.Meta.JobStatus))
+	log.Printf("%supdated task: %s", prefix, message.Meta.JobStatus)
 	return nil
 }
