@@ -96,6 +96,9 @@ The configuration options for history are
 * taskType - can be one of `COUNT`, `DAYS`, `MONTHS`
 * taskHistory - depending on the type selected, will retain task history (logs, status, etc...) to this number accordingly
 
+> Note: There is a variable `ENABLE_SAVED_HISTORY_EXPORT` that is `false` by default, but can be set to `true`. This variable will export data for any deleted environments to the s3 files bucket before the environment is deleted. This exports the current `project`, `environment`, and the associated environments `task` and `deployment` history at the time of deletion. The path of this file will be `history/${projectname}-${projectid}/${environmentname}-${environmentid}/history-${unixtimestamp}.json`.
+> If a `history` based retention policy is run against an environment before it is deleted, the exported history snapshot will not contain data that was purged by a retention policy.
+
 ### enforcement
 
 history policies are enforced on demand. For example, when a new task or deployment is triggered, a hook is called that will check if the environment needs to enforce the policy or not based on the policy configuration.
