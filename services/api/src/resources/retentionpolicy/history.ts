@@ -196,6 +196,29 @@ export const HistoryRetentionEnforcer = () => {
             await query(sqlClientPool, taskSql.deleteTaskHistoryForEnvironment(environmentData.id));
         }
     }
+    const saveEnvironmentHistoryBeforeDeletion = async (projectData: any, environmentData: any) => {
+        // ENABLE_SAVED_HISTORY_EXPORT will save the deployment and task history if set to true
+        // this is a way to export a full copy of the environment data (id, name, created, deleted etc..), the project, and the task/deployment history
+        // this is a JSON payload that could later be consumed for historical purposes
+        // by default this feature is DISABLED. you should enable this feature if you want to save deleted environment history
+        // the deleted data ends up in the lagoon files bucket in a directory called history
+        const ENABLE_SAVED_HISTORY_EXPORT = process.env.ENABLE_SAVED_HISTORY_EXPORT || "false"
+        if (ENABLE_SAVED_HISTORY_EXPORT == "true" ) {
+            const taskHistory = await query(sqlClientPool, taskSql.selectTaskHistoryForEnvironment(environmentData.id));
+            const deploymentHistory = await query(sqlClientPool, deploymentSql.selectDeploymentHistoryForEnvironment(environmentData.id));
+            const actionData = {
+                type: "retentionHistory",
+                eventType: "saveHistory",
+                data: {
+                    environment: environmentData,
+                    project: projectData,
+                    taskHistory: taskHistory,
+                    deploymentHistory: deploymentHistory
+                }
+            }
+            sendToLagoonActions("retentionHistory", actionData)
+        }
+    }
     return {
         cleanupDeployment,
         cleanupDeployments,
@@ -203,5 +226,6 @@ export const HistoryRetentionEnforcer = () => {
         cleanupTasks,
         cleanupAllDeployments,
         cleanupAllTasks,
+        saveEnvironmentHistoryBeforeDeletion,
     };
 };
