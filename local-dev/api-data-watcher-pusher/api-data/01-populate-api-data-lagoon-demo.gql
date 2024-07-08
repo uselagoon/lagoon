@@ -845,4 +845,116 @@ mutation PopulateApi {
   ) {
     id
   }
+
+  UIProject1Environment2addServices1:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 4
+      name: "cli"
+      type: "cli-persistent"
+      containers: [{name: "cli"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment2addServices2:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 4
+      name: "nginx"
+      type: "nginx-php-persistent"
+      containers: [{name: "nginx"},{name:"php"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment2addServices3:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 4
+      name: "mariadb"
+      type: "mariadb-single"
+      containers: [{name: "mariadb"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+
+  UIProject1Environment3addServices1:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 5
+      name: "cli"
+      type: "cli-persistent"
+      containers: [{name: "cli"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment3addServices2:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 5
+      name: "nginx"
+      type: "nginx-php-persistent"
+      containers: [{name: "nginx"},{name:"php"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment3addServices3:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 5
+      name: "mariadb"
+      type: "mariadb-single"
+      containers: [{name: "mariadb"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+
+  UIProject1Environment4addServices1:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 6
+      name: "cli"
+      type: "cli-persistent"
+      containers: [{name: "cli"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment4addServices2:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 6
+      name: "nginx"
+      type: "nginx-php-persistent"
+      containers: [{name: "nginx"},{name:"php"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+  UIProject1Environment4addServices3:   addOrUpdateEnvironmentService(
+    input: {
+      environment: 6
+      name: "mariadb"
+      type: "mariadb-single"
+      containers: [{name: "mariadb"}]
+    }
+  ){
+    id
+    name
+    type
+  }
+
 }
