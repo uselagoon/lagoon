@@ -3,6 +3,7 @@ import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+import { Sql as environmentSql } from '../environment/sql';
 // import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -190,6 +191,12 @@ export const Helpers = (sqlClientPool: Pool) => {
       await query(
         sqlClientPool,
         Sql.deleteDeployTargetConfigs(id)
+      );
+      // logger.debug(`deleting project ${id} leftover environment rows`)
+      // clean up environments table so environments don't remain in limbo once the project is deleted
+      await query(
+        sqlClientPool,
+        environmentSql.deleteEnvironmentsByProjectID(id)
       );
       // logger.debug(`deleting project ${id}`)
       // delete the project
