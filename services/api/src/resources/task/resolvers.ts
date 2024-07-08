@@ -335,14 +335,14 @@ export const addTask: ResolverFn = async (
 export const deleteTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rows)
   });
 
-  const task = await Helpers(sqlClientPool, hasPermission).getTaskByTaskInput({id: id})
+  const task = await Helpers(sqlClientPool, hasPermission, adminScopes).getTaskByTaskInput({id: id})
 
   if (!task) {
     throw new Error(
