@@ -172,6 +172,15 @@ export const Sql = {
       .where('service_id', '=', id)
       .delete()
       .toString(),
+  deleteServiceContainersByEnvironmentId: (eid: number) =>
+    knex('environment_service_container')
+      .whereIn('service_id', function() {
+        this.select('id')
+            .from('environment_service')
+            .where('environment', eid);
+      })
+      .delete()
+      .toString(),
   // add a new service container
   insertServiceContainer: (
     serviceId: number,
@@ -182,5 +191,11 @@ export const Sql = {
         serviceId,
         name,
       })
+      .toString(),
+  // delete all environments from environment table that match project id
+  deleteEnvironmentsByProjectID: (projectId: number) =>
+    knex('environment')
+      .where('project', '=', projectId)
+      .delete()
       .toString(),
 };
