@@ -97,6 +97,7 @@ services:
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
       - CONSOLE_LOGGING_LEVEL=debug
       - SIDECAR_HANDLER_HOST=apisidecarhandler
+      - ENABLE_SAVED_HISTORY_EXPORT=true
     depends_on:
       api-lagoon-migrations:
         condition: service_started
