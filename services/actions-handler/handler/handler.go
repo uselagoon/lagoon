@@ -122,7 +122,11 @@ func (m *Messenger) Consumer() {
 		// check if this a `retentionCleanup` type of action
 		// and perform the steps to clean up anything related to the retention clean up event type
 		case "retentionCleanup":
-			err = m.handleRetention(ctx, messageQueue, action, messageID)
+			err = m.handleRetention(action, messageID)
+		// check if this a `retentionHistory` type of action
+		// and perform the steps to save anything related to the retention save event type
+		case "retentionHistory":
+			err = m.handleSaveHistory(action, messageID)
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
