@@ -280,8 +280,8 @@ plugins:
             Base Images: ベースイメージ
             Workflows: ワークフロー
             Feature Flags: フィーチャーフラグ
-            Lagoonizing: Lagoon化
-            Lagoonizing Your Existing Site: 既存サイトのLagoon化
+            Lagoonizing: Lagoonizing
+            Lagoonizing Your Existing Site: 既存サイトのLagoonizing
             Docker Images: Dockerイメージ
             Configuring Applications: アプリケーションの設定
             Options: オプション
