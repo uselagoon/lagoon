@@ -16,3 +16,4 @@ Drupal 自動更新モジュール:contribモジュールの[自動更新] (http
 ## Drush
 
 `drush pm-install`または`drush pm-update`コマンドは、[amazeeio/drupal-integrations](https://github.com/amazeeio/drupal-integrations)パッケージの一部としてデフォルトで無効化されています。
+

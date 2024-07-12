@@ -44,3 +44,4 @@ RUN precreate-core drupal-index1 /solr-conf && \
 
 CMD ["solr-foreground"]
 ```
+

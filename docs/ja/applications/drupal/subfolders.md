@@ -128,3 +128,4 @@ COPY location_drupal_append_subfolder.conf /etc/nginx/conf.d/drupal/location_dru
 COPY server_prepend_subfolder.conf /etc/nginx/conf.d/drupal/server_prepend_subfolder.conf
 RUN fix-permissions /etc/nginx/conf.d/drupal/*
 ```
+

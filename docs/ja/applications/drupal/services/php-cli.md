@@ -20,3 +20,4 @@
 このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:
 
 * フォルダの権限は、[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で自動的に適応されるため、このイメージはランダムなユーザーで動作します。
+

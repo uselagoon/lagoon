@@ -90,3 +90,4 @@
 PhpStormは、Dockerを使用してCLIコンテナに入り、設定に基づいてPHPUnitを実行します。
 
 ![これが実際の動作です、どうぞご覧ください!!](../../images/5-going-green-1-.gif)
+

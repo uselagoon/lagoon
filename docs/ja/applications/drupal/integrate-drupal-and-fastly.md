@@ -196,3 +196,4 @@ curl -XPOST -H 'Fastly-Soft-Purge:1' -H "Fastly-Key:$FASTLY_API_TOKEN" https://a
 ```
 
 [Fastly CLI](https://github.com/fastly/cli)を使用すると、より簡単にパージを行うことができます。
+
