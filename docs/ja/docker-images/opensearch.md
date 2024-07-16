@@ -1,6 +1,6 @@
 # OpenSearch
 
-> [_OpenSearch_](https://opensearch.org/)は、データを簡単に取り込み、検索、視覚化、分析することを可能にする、コミュニティ主導のApache 2.0ライセンスのオープンソース検索および分析スイートです。
+> [_OpenSearch_](https://opensearch.org/)は、データを簡単に取り込み、検索、可視化、分析するためのコミュニティ主導のApache2.0ライセンスを採用したオープンソースの検索および分析スイートです。
 >
 > * 出典: [https://opensearch.org/](https://opensearch.org/)
 
@@ -10,7 +10,7 @@
 
 ## 環境変数 { #environment-variables }
 
-いくつかのオプションは[環境変数](../concepts-advanced/environment-variables.md)経由で設定可能です。
+OpenSearch の一部オプションは、[環境変数](../concepts-advanced/environment-variables.md)を使用して設定できます。
 
 | 環境変数 | デフォルト値 | 説明 |
 | :------------------- | :---------------- | :-------------------------------------------------------------------------------------------------------------------------  |
@@ -18,9 +18,11 @@
 
 ## 既知の問題
 
-Linuxベースのシステムでは、`vm.max_map_count`設定が低いためにOpenSearchコンテナの起動が失敗する可能性があります。 ```bash title="エラー"
-opensearch_1  | エラー: [1] ブートストラップチェックが失敗しました
-opensearch_1  | [1]: 最大仮想メモリエリア vm.max_map_count [65530] が低すぎます、少なくとも [262144] に増やしてください
+Linuxベースのシステムでは、`vm.max_map_count`設定が低いために、OpenSearchコンテナの起動が失敗することがあります。
+
+ ```bash title="エラー"
+opensearch_1  | ERROR: [1] bootstrap checks failed
+opensearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```
 
 [この問題の解決策はここで見つけることができます](https://opensearch.org/docs/latest/opensearch/install/important-settings/).
