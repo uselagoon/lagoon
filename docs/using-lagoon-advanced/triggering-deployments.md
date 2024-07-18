@@ -24,7 +24,7 @@ stages:
           inputs:
             secureFile: id_rsa_lagoon
         - script: |
-            curl -L "https://github.com/amazeeio/lagoon-cli/releases/download/0.9.2/lagoon-cli-0.9.2-linux-amd64" -o ./lagoon
+            curl -L "https://github.com/uselagoon/lagoon-cli/releases/download/v0.21.3/lagoon-cli-v0.21.3-linux-amd64" -o ./lagoon
             chmod +x ./lagoon
           displayName: 'Download lagoon-cli'
         - script: ./lagoon login -i $(lagoonSshKey.secureFilePath)

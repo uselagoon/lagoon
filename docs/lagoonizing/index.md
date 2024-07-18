@@ -109,7 +109,7 @@ services:
       lagoon.persistent: /app/web/sites/default/files/
 
   mariadb:
-    image: amazeeio/mariadb-drupal
+    image: uselagoon/mariadb-10.11-drupal
     labels:
       lagoon.type: mariadb
 ```
@@ -159,7 +159,7 @@ If you want Lagoon to build a Dockerfile for your service during every deploymen
 
 - If you don't need to build a Dockerfile and just want to use an existing Dockerfile, define it via `image`.
 
-In our example, we’re giving the path of the current directory. NGINX is set to build `nginx.dockerfile`, and PHP, `php.dockerfile`. MariaDB is using an existing image at `amazeeio/mariadb-drupal`. You can [learn more about our Docker images here](../docker-images/commons.md).
+In our example, we’re giving the path of the current directory. NGINX is set to build `nginx.dockerfile`, and PHP, `php.dockerfile`. MariaDB is using an existing image at `uselagoon/mariadb-10.11-drupal`. You can [learn more about our Docker images here](../docker-images/commons.md).
 
 ### Types
 
@@ -267,13 +267,6 @@ environments:
             Annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
         - www.example.ch
-
-    types:
-      mariadb: mariadb-galera
-    templates:
-      mariadb: mariadb.main.deployment.yml
-    rollouts:
-      mariadb: statefulset
     cronjobs:
      - name: drush cron
        schedule: "H * * * *" # This will run the cron once per hour.
@@ -585,7 +578,6 @@ lagoon-test_nginx_1     /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
 lagoon-test_php_1       /sbin/tini -- /lagoon/entr ...   Up      9000/tcp
 lagoon-test_redis_1     /sbin/tini -- /lagoon/entr ...   Up      6379/tcp
 lagoon-test_solr_1      /sbin/tini -- /lagoon/entr ...   Up      0.0.0.0:32769->8983/tcp
-lagoon-test_varnish_1   /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
 ```
 
 If there is a problem, check the logs with `docker compose logs -f [servicename]`.
@@ -643,7 +635,7 @@ Site path            :  sites/default
 ```
 
 !!! info ""
-    You may have to tell pygmy about your public key before the next step. If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys).
+    You may have to tell pygmy about your public key before the next step. If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmystack.github.io/pygmy/usage/#adding-ssh-keys).
 
 Now it’s time to install Drupal (if instead you would like to import an existing SQL File, please skip to the next step, but we suggest you install a clean Drupal in the beginning to be sure everything works.)
 

@@ -28,18 +28,18 @@
         certSource: secret
         secret:
           secretName: harbor-harbor-ingress
-    external URL:https://harbor.lagoon.example.com
-    harborAdminPassword:<あなたのHarbor管理者パスワード>
+    externalURL: https://harbor.lagoon.example.com
+    harborAdminPassword: <あなたのHarbor管理者パスワード>
     chartmuseum:
-      enabled:false
+      enabled: false
     clair:
-      enabled:false
+      enabled: false
     notary:
-      enabled:false
+      enabled: false
     trivy:
-      enabled:false
+      enabled: false
     jobservice:
-      jobLogger:stdout
+      jobLogger: stdout
     ```
 
 4. 現在サポートされているHarborバージョンの[要件](./requirements.md#harbor)を確認しながら、Harborをインストールします。

@@ -76,7 +76,7 @@ composer install
 * ホスト上のファイルを編集し、それらをコンテナ内で即座に利用可能にするため、デフォルトの`docker-composer.yml`は全体のフォルダをコンテナ内にマウントします(これはボリュームセクションの`.:/app:delegated`で起こります)。これはまた、Dockerビルド中にインストールされたすべての依存関係がホスト上のファイルで上書きされることを意味します。
 * ローカルでは、`composer.json`で`require-dev`として定義された依存関係も存在することを期待するでしょう、一方で本番環境ではそれらは単に不必要なスペースを使用するだけです。そのため、Dockerfileで`composer install --no-dev`を実行し、`composer install`は手動で実行します。
 
-全てがうまく行った場合、`docker-compose`で定義された`LAGOON_ROUTE`を開きます。 .yml` \(例えば `http://drupal.docker.amazee.io`\) を開いて、素敵なDrupalエラーが表示されるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なのはDrupalサイトをロードしようとしていることです。
+全てがうまく行った場合、`docker-compose`で定義された`LAGOON_ROUTE`を開きます。 .yml` \(例えば http://drupal.docker.amazee.io\) を開いて、素敵なDrupalエラーが表示されるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なのはDrupalサイトをロードしようとしていることです。
 
 500や類似のエラーが表示された場合は、Composerで正しくすべてがロードされていることを確認してください。
 
@@ -116,7 +116,7 @@ Site path            :  sites/default
 !!! Warning "警告"
     次のステップ前に、pygmyに公開鍵について伝える必要があるかもしれません。
 
-`Permission denied (publickey)`のようなエラーが出た場合は、こちらのドキュメンテーションをご覧ください: [pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/ssh_agent)
+`Permission denied (publickey)`のようなエラーが出た場合は、こちらのドキュメンテーションをご覧ください: [pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/ssh_agent/)
 
 次にDrupalをインストールします(既存のSQLファイルをインポートしたい場合は、[ステップ7へスキップ](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump)してください。しかし、始めは全てが機能することを確認するために、クリーンなDrupalのインストールから始めることをお勧めします)。
 

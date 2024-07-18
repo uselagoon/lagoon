@@ -54,7 +54,7 @@ Some Docker images and containers need additional customizations from the provid
 | [PHP CLI](../docker-images/php-cli.md) | 8.1, 8.2, 8.3 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
 | [Python](../docker-images/nodejs.md) | 3.8, 3.9, 3.10, 3.11, 3.12 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
 | [Redis](../docker-images/redis.md) | 6, 7 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
-| [Solr](../docker-images/solr.md) | 8, 9, 10 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
+| [Solr](../docker-images/solr.md) | 8, 9 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
 | [Varnish](../docker-images/varnish.md) | 6, 7 | [varnish/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish) |
 | [Opensearch](../docker-images/opensearch.md) | 2 | [opensearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch) |
 | [RabbitMQ](../docker-images/rabbitmq.md) | 3.10 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |

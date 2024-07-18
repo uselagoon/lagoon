@@ -11,7 +11,7 @@ Lagoonは、Drupalコアやcontribの一部の更新方法と互換性のない�
 
 ## Drupal 自動更新
 
-[自動更新] (https ://www.drupal.org/project/automatic_updates)
+[自動更新](https ://www.drupal.org/project/automatic_updates)
 contribモジュールは無効化されており、Drupal coreに移行する際も無効化されます。
 
 ## Drush

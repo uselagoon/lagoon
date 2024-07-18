@@ -63,7 +63,7 @@ Before you switch over your domain to Lagoon, make sure you lower the Time-to-Li
 ### Recommended settings for Fastly:
 
 #### Subdomains (CNAME)
-The recommended method of pointing your subdomain's \(e.g. www.example.com.\) DNS records at Lagoon is via a CNAME record as shown below:
+The recommended method of pointing your subdomain's \(e.g. www.example.com\) DNS records at Lagoon is via a CNAME record as shown below:
 <!-- markdown-link-check-disable-next-line -->
 `CNAME`: `cdn.amazee.io`
 

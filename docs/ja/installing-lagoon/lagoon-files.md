@@ -6,27 +6,27 @@ Lagoonファイルは、バックアップなどのタスクのファイル出�
 
     ```json title="例:ファイルIAMユーザー"
     {
-      "バージョン":"2012-10-17",
-      "ステートメント":[
+      "Version":"2012-10-17",
+      "Statement":[
         {
-          "効果":"許可",
-          "アクション":[
+          "Effect":"Allow",
+          "Action":[
             "s3:ListBucket",
             "s3:GetBucketLocation",
             "s3:ListBucketMultipartUploads"
           ],
-          "リソース":"arn:aws:s3:::S3_BUCKET_NAME"
+          "Resource":"arn:aws:s3:::S3_BUCKET_NAME"
         },
         {
-          "効果":"許可",
-          "アクション":[
+          "Effect":"Allow",
+          "Action":[
             "s3:PutObject",
             "s3:GetObject",
             "s3:DeleteObject",
             "s3:ListMultipartUploadParts",
             "s3:AbortMultipartUpload"
           ],
-          "リソース":"arn:aws:s3:::S3_BUCKET_NAME/*"
+          "Resource":"arn:aws:s3:::S3_BUCKET_NAME/*"
         }
       ]
     }

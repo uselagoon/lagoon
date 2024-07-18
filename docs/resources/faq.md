@@ -69,7 +69,7 @@ You should now be able to see your logs.
 
 I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`. When I run `drush sa` no aliases are returned.
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmystack.github.io/pygmy/troubleshooting/](https://pygmystack.github.io/pygmy/troubleshooting/)
 
 ## How can I check the status of a build?
 
@@ -89,11 +89,11 @@ Lagoon will detect the removal of routes from your `.lagoon.yml` during a deploy
 
 ## When I run `pygmy status`, no keys are loaded
 
-You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/ssh_agent](https://pygmy.readthedocs.io/en/master/ssh_agent)
+You'll need to load your SSH key into pygmy. Here's how: [https://pygmystack.github.io/pygmy/ssh_agent](https://pygmystack.github.io/pygmy/ssh_agent)
 
 ## When I run `drush sa` no aliases are returned
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting](https://pygmy.readthedocs.io/en/master/troubleshooting)
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmystack.github.io/pygmy/troubleshooting](https://pygmystack.github.io/pygmy/troubleshooting)
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 

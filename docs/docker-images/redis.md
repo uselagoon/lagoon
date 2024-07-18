@@ -63,7 +63,7 @@ It differs from `redis` only with the `FLAVOR` environment variable, which will 
 
 ## Troubleshooting
 
-The Lagoon Redis images all come pre-loaded with the `redis-cli` command, which allows for querying the Redis service for information and setting config values dynamically. To use this utility, you can simply SSH into your Redis pod by using the instructions [here] (../interacting/ssh.md) with `redis` as the `pod` value then run it from the terminal once you've connected.
+The Lagoon Redis images all come pre-loaded with the `redis-cli` command, which allows for querying the Redis service for information and setting config values dynamically. To use this utility, you can simply SSH into your Redis pod by using the instructions [here](../interacting/ssh.md) with `redis` as the `pod` value then run it from the terminal once you've connected.
 
 ### Maximum Memory Policy
 

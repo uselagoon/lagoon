@@ -22,7 +22,7 @@ Lagoonは伝統的に`pygmy`と最も良好に動作してきました。これ�
 brew tap pygmystack/pygmy && brew install pygmy
 ```
 
-pygmyの詳細な使用方法やインストール情報については、その[ドキュメンテーション](https://pygmy.readthedocs.io/en/master/)を参照してください。
+pygmyの詳細な使用方法やインストール情報については、その[ドキュメンテーション](https://pygmystack.github.io/pygmy/)を参照してください。
 
 ### Lando
 

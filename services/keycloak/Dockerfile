@@ -9,7 +9,7 @@ RUN dnf install --installroot /mnt/rootfs nc jq openssl curl unzip --releasever 
 
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} AS commons
 
 RUN apk add --no-cache zip
 

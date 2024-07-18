@@ -10,7 +10,7 @@ Please have the following information ready for {{ defaults.helpstring }}:
 * A name you would like the project to be known by
   * This name can only contain lowercase characters, numbers and dashes
   * Double dashes (`--`) are not allowed within a project name
-* SSH public keys, email addresses and the names of everybody that will work on this project. Here are instructions for generating and copying SSH keys for [GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh), [GitLab](https://docs.gitlab.com/ee/ssh/), and [Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html).
+* SSH public keys, email addresses and the names of everybody that will work on this project. Here are instructions for generating and copying SSH keys for [GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh), [GitLab](https://docs.gitlab.com/ee/user/ssh.html), and [Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html).
 * The URL of the Git repository where your code is hosted \(`git@example.com:test/test.git`\).
 * The name of the Git branch you would like to use for your production environment \(see [Environment Types](../concepts-advanced/environment-types.md) for details about the environments\).
 * Which branches and pull requests you would like to deploy to your additional environments. With Lagoon, you can filter branches and pull requests by name with regular expressions, and {{ defaults.helpstring }} can get this set up for you.

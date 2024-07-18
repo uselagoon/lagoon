@@ -108,6 +108,6 @@ Lagoonの基本イメージはXdebugが設定済みですが、パフォーマ�
 
 | v3                 | v2                    | |
 |:-------------------|:----------------------|:----------------------------------------------|
-| xdebug.mode        | xdebug.remote_enabled | オン                                         |
+| xdebug.mode        | xdebug.remote_enabled | On                                        |
 | xdebug.client_host | xdebug.remote_host    | `host.docker.internal` またはあなたのIPアドレス |
-| xdebug.client_port | xdebug.remote_port    | 9000                                          |
+| xdebug.client_port | xdebug.remote_port    | 9000                                      |
