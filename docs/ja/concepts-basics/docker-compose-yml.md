@@ -63,7 +63,7 @@ services:
       lagoon.persistent: /app/web/sites/default/files/
 
   mariadb:
-    image: amazeeio/mariadb-drupal
+    image: uselagoon/mariadb-10.11-drupal
     labels:
       lagoon.type: mariadb
 ```

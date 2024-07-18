@@ -4,9 +4,10 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 3.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.0.Dockerfile) (2024年3月までのセキュリティサポート) - `uselagoon/ruby-3.0`
+* 3.0 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/ruby-3.0`
 * 3.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.1.Dockerfile) (2025年3月までのセキュリティサポート) - `uselagoon/ruby-3.1`
 * 3.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.2.Dockerfile) (2026年3月までのセキュリティサポート) - `uselagoon/ruby-3.2`
+* 3.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.3.Dockerfile) (2027年3月までのセキュリティサポート) - `uselagoon/ruby-3.3`
 
 !!! Tip "ヒント"
     Lagoonは、公式に通知されたEOL日付の後にリリースされるLagoonリリースとともに、通常EOL Rubyイメージの更新と公開を停止します:[https://www.ruby-lang.org/en/downloads/releases/](https://www.ruby-lang.org/en/downloads/releases/)。以前のバージョンは利用可能なままです。

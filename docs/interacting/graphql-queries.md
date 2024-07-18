@@ -387,7 +387,7 @@ query {
 
 ### Updating objects
 
-The Lagoon GraphQL API can not only display objects and create objects, it also has the capability to update existing objects, using [a patch object](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97).
+The Lagoon GraphQL API can not only display objects and create objects, it also has the capability to update existing objects, using [a patch object](https://www.apollographql.com/blog/designing-graphql-mutations).
 
 Update the branches to deploy within a project:
 

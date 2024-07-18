@@ -34,7 +34,7 @@
   ```yaml title="lagoon-remote-values.yml"
   lagoon-build-deploy:
     enabled: true
-    extraArgs :
+    extraArgs:
       - "--enable-harbor=true"
       - "--harbor-url=https://harbor.lagoon.example.com"
       - "--harbor-api=https://harbor.lagoon.example.com/api/"

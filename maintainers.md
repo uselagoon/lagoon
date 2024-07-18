@@ -52,8 +52,8 @@ Lagoon comprises a number of individual tools maintained by the Lagoon team in t
 The Lagoon team also co-maintains a number of other tools and projects that are not Lagoon-specific in conjunction with our partners:
 
 - [DBaaS operator](https://github.com/amazeeio/dbaas-operator)
-- [Aergia](https://github.com/amazeeio/aergia)
-- [Dioscuri](https://ggithub.com/amazeeio/dioscuri)
+- [Aergia](https://github.com/uselagoon/aergia-controller)
+- [Dioscuri](https://github.com/amazeeio/dioscuri)
 - [Fastly controller](https://github.com/amazeeio/fastly-controller)
 - [Drupal Integrations for Drush](https://github.com/amazeeio/drupal-integrations)
 - [Lagoon Logs module for Drupal](https://www.drupal.org/project/lagoon_logs)

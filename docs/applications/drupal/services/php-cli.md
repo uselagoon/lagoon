@@ -9,9 +9,11 @@ The [Lagoon `php-cli-drupal` Docker image](https://github.com/uselagoon/lagoon-i
 ## Supported versions
 
 * 7.3 \(available for compatibility only, no longer officially supported\)
-* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile) - `uselagoon/php-7.4-cli-drupal`
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.0.Dockerfile) - `uselagoon/php-8.0-cli-drupal`
+* 7.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-7.4-cli-drupal`
+* 8.0 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-8.0-cli-drupal`
 * 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.1.Dockerfile) - `uselagoon/php-8.1-cli-drupal`
+* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.2.Dockerfile) - `uselagoon/php-8.2-cli-drupal`
+* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.3.Dockerfile) - `uselagoon/php-8.3-cli-drupal`
 
 All PHP versions use their own Dockerfiles.
 

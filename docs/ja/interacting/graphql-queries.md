@@ -387,7 +387,7 @@ query {
 
 ### オブジェクトの更新 { #updating-objects }
 
-Lagoon GraphQL APIは、オブジェクトを表示し、オブジェクトを作成するだけでなく、[パッチオブジェクト](https://blog.apollographql.com/designing-graphql-mutations-e09de826ed97)を使用して既存のオブジェクトを更新する能力もあります。
+Lagoon GraphQL APIは、オブジェクトを表示し、オブジェクトを作成するだけでなく、[パッチオブジェクト](https://www.apollographql.com/blog/designing-graphql-mutations) を使用して既存のオブジェクトを更新する能力もあります。
 
 プロジェクト内でデプロイするブランチを更新します。
 

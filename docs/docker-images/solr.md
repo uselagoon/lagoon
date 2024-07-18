@@ -1,6 +1,6 @@
 # Solr
 
-The [Lagoon `Solr` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile). Based on the official [`solr:<version>-alpine` images](https://hub.docker.com/_/solr).
+The [Lagoon `Solr` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile). Based on the official [`solr:<version>-alpine` images](https://hub.docker.com/_/solr).
 
 This Dockerfile is intended to be used to set up a standalone Solr server with an initial core `mycore`.
 

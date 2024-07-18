@@ -4,12 +4,12 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) (2023年11月までのセキュリティサポート) - `uselagoon/postgres-11`
+* 11 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/postgres-11`
 * 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/postgres-12`
 * 13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/13.Dockerfile) (2025年11月までのセキュリティサポート) - `uselagoon/postgres-13`
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (2026年11月までのセキュリティサポート) - `uselagoon/postgres-14`
 * 15 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/15.Dockerfile) (2027年11月までのセキュリティサポート) - `uselagoon/postgres-15`
-* 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/16.Dockerfile) (11月までのセキュリティサポート) 2028) - `uselagoon/postgres-16`
+* 16 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/16.Dockerfile) (2028年11月までのセキュリティサポート) - `uselagoon/postgres-16`
 
 !!! Tip "ヒント"
     Lagoonリリースが公式に通知されたEOL日付の後に、通常、EOL PostgreSQLイメージの更新を停止します:[https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)

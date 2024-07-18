@@ -9,7 +9,7 @@
 この簡単な例では、Hugoのウェブサイトを構築し、それをNGINXイメージの静的ファイルとして提供する方法を示しています。共通イメージはHugoの追加、サイトのコピー、構築のために使用されます。その後、NGINXイメージを使用してサイトを提供し、カスタマイズしたNGINX設定を追加します。
 
 ```bash title="nginx.dockerfile"
-FROM uselagoon/commons as builder
+FROM uselagoon/commons AS builder
 
 RUN apk add hugo git
 WORKDIR /app

@@ -34,9 +34,9 @@ Node.jsサーバーに、実際に自身を停止する前にすべてのリク�
 
 ```javascript title="Graceful Shutdown"
 const startGracefulShutdown = () => {
-  console.log('Expressのシャットダウンを開始...');
+  console.log('Starting shutdown of express...');
   server.close(function () {
-    console.log('Expressがシャットダウンしました。');
+    console.log('Express shut down.');
   });
 }
 
@@ -79,7 +79,8 @@ process.on('SIGINT', startGracefulShutdown);
 そして、定義された`scripts`セクションを使って、以下のようにアプリケーションを起動するだけで済みます:
 
 ```bash title="Start application"
-yarn start または
+yarn start
+```
 
 ```bash title="アプリケーションの起動"
 npm start

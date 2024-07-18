@@ -43,8 +43,8 @@ mutation addAdvancedTask {
     advancedTaskDefinitionArguments: [
       {
         name: "ENVIROMENT_VARIABLE_NAME",
-        displayName: "Friendly Name For "Variable",
-        type: [文字列 | 環境ソース名 | 自己を除く環境ソース名]
+        displayName: "Friendly Name For Variable",
+        type: [STRING | ENVIRONMENT_SOURCE_NAME | ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF]
       }
     ]
   }) {
@@ -99,13 +99,13 @@ Lagoon UI経由でタスクを呼び出すユーザーにより柔軟性を提�
 advancedTaskDefinitionArguments: [
       {
         name: "ENV_VAR_NAME_SOURCE",
-        displayName: "環境源",
+        displayName: "Environment source",
         type: ENVIRONMENT_SOURCE_NAME
 
       },
       {
         name: "ENV_VAR_NAME_STRING",
-        displayName: "エコー値",
+        displayName: "Echo value",
         type: STRING
         }
     ]

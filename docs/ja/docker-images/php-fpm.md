@@ -16,7 +16,7 @@
 * 7.3 (互換性を保つためのみに利用可能、公式サポートは終了) - `uselagoon/php-7.3-fpm`
 * 7.4 (互換性を保つためのみに利用可能、公式サポートは終了) - `uselagoon/php-7.4-fpm`
 * 8.0 (互換性を保つためのみに利用可能、公式サポートは終了) - `uselagoon/php-8.0-fpm`
-* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main /images/php-fpm/8.1.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/php-8.1-fpm`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/php-8.1-fpm`
 * 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.2.Dockerfile) (2025年12月までのセキュリティサポート) - `uselagoon/php-8.2-fpm`
 * 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.3.Dockerfile) (2026年12月までのセキュリティサポート) - `uselagoon/php-8.3-fpm`
 
@@ -83,7 +83,7 @@ _重要:_
 | 環境変数                             | デフォルト  | 説明                                                                                                                                                |
 | :----------------------------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
 | NEWRELIC_ENABLED                     | false     | NewRelicのパフォーマンスモニタリングを有効にします。`NEWRELIC_LICENSE`の設定が必要です。                                                            |
-| NEWRELIC_LICENSE                     | (未設定)  | 使用するNewRelicのライセンス。重要:NewRelicを有効にするには`NEWRELIC_ENABLED`を`true`に設定する必要があります。                                      |
+| NEWRELIC_LICENSE                     | (設定なし) | 使用するNewRelicのライセンス。重要:NewRelicを有効にするには`NEWRELIC_ENABLED`を`true`に設定する必要があります。                                      |
 | NEWRELIC_BROWSER_MONITORING_ENABLED  | true      | これにより、NewRelicのブラウザモニタリングのためのJavaScriptフラグメントの自動挿入が有効になります。 . 重要:`NEWRELIC_ENABLED`はNewRelicを有効にするために`true`に設定する必要があります。 |
 | NEWRELIC_DISTRIBUTED_TRACING_ENABLED | false     | これにより分散トレーシングが有効になります。重要:`NEWRELIC_ENABLED`はNewRelicを有効にするために`true`に設定する必要があります。                            |
 | PHP_APC_ENABLED                      | 1         | [APC](https://www.php.net/manual/en/apcu.configuration.php)を無効にするために`0`に設定することができます。                                                                |
@@ -102,7 +102,7 @@ _重要:_
 | PHP_MAX_INPUT_VARS                   | 2000      | 受け入れ可能な入力変数の数。 [php.netを参照](https://www.php.net/manual/ja/info.configuration.php#ini.max-input-vars)。                       |
 | PHP_MEMORY_LIMIT                     | 400M      | スクリプトが消費できるメモリの最大量。 [php.netを参照](https://www.php.net/memory-limit)。                                                          |
 | XDEBUG_ENABLE                        | (設定なし) | `xdebug` 拡張機能を有効にするには、`true`に設定します。 |
-| BLACKFIRE_ENABLED                    | (設定されていません) | `blackfire` 拡張機能を有効にするには `true` に設定します。                                                                                                           |
-| BLACKFIRE_SERVER_ID                  | (設定されていません) | Blackfire.io から提供されている Blackfire サーバー ID に設定します。`BLACKFIRE_ENABLED` を `true` に設定する必要があります。                                                             |
-| BLACKFIRE_SERVER_TOKEN               | (設定されていません) | Blackfire.io から提供されている Blackfire サーバートークンに設定します。`BLACKFIRE_ENABLED` を `true` に設定する必要があります。                                                          |
+| BLACKFIRE_ENABLED                    | (設定なし) | `blackfire` 拡張機能を有効にするには `true` に設定します。                                                                                                           |
+| BLACKFIRE_SERVER_ID                  | (設定なし) | Blackfire.io から提供されている Blackfire サーバー ID に設定します。`BLACKFIRE_ENABLED` を `true` に設定する必要があります。                                                             |
+| BLACKFIRE_SERVER_TOKEN               | (設定なし) | Blackfire.io から提供されている Blackfire サーバートークンに設定します。`BLACKFIRE_ENABLED` を `true` に設定する必要があります。                                                          |
 | BLACKFIRE_LOG_LEVEL                  | 3         | blackfire エージェントのログレベルを変更します。利用可能な値:`ログの冗長性レベル (4: デバッグ, 3: 情報, 2: 警告, 1: エラー)` [blackfire.ioを参照](https://blackfire.io/docs/up-and-running/configuration/agent)。 |
