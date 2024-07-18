@@ -39,6 +39,6 @@ variables](../concepts-advanced/environment-variables.md).
 | HTTP_RESP_SIZE             | 32k                   | Maximum number of bytes of HTTP backend response we will deal with.                     |
 | NUKE_LIMIT                 | 150                   | Maximum number of objects we attempt to nuke in order to make space for an object body. |
 | CACHE_TYPE                 | malloc                | Type of varnish cache.                                                                  |
-| CACHE_SIZE                 | 100M                  | Cache size.                                                                             |
+| CACHE_SIZE                 | 500M                  | Cache size.                                                                             |
 | LISTEN                     | 8080                  | Default backend server port.                                                            |
 | MANAGEMENT_LISTEN          | 6082                  | Default management listening port.                                                      |
