@@ -4775,9 +4775,9 @@
 <h3 id="nginxnginx">NGINXイメージに追加のNGINX設定を追加する<a class="headerlink" href="#nginxnginx" title="Permanent link">#</a></h3>
 <p><code>nginx.dockerfile</code>を修正し、<code>location_prepend_simplesamlphp.conf</code>をイメージに追加します:</p>
 <div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ARG<span class="w"> </span>CLI_IMAGE
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>FROM<span class="w"> </span><span class="si">${</span><span class="nv">CLI_IMAGE</span><span class="si">}</span><span class="w"> </span>as<span class="w"> </span>cli
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>FROM<span class="w"> </span><span class="si">${</span><span class="nv">CLI_IMAGE</span><span class="si">}</span><span class="w"> </span>AS<span class="w"> </span>cli
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>FROM<span class="w"> </span>amazeeio/nginx-drupal
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>FROM<span class="w"> </span>uselagoon/nginx-drupal
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>COPY<span class="w"> </span>--from<span class="o">=</span>cli<span class="w"> </span>/app<span class="w"> </span>/app
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>

@@ -4727,7 +4727,7 @@
 <p>現在、Harbor のバージョン 2.1 および 2.2+ がサポートされています。ロボット アカウントを取得する方法は 2.2 で変更され、Lagoon リモート コントローラーはこれらのトークンを処理できます。つまり、Harbor は <code>lagoon-core</code> ではなく <code>lagoon-build-deploy</code> の資格情報を使用して構成する必要があります。</p>
 <p><a href="https://github.com/goharbor/harbor/releases/tag/v2.6.0">2.6.0</a> 以降の Harbor バージョンを、Helm チャート <a href="https://github.com/goharbor/harbor-helm/releases/tag/v1.10.0">1.10.0</a> 以上とともにインストールすることをお勧めします。</p>
 <h3 id="k8up-for-backups">バックアップ用の k8up<a class="headerlink" href="#k8up-for-backups" title="Permanent link">#</a></h3>
-<p>Lagoon には、<a href="https://k8up.io/k8up/1.2/index.html">K8up</a> バックアップ オペレーターの構成が組み込まれています。 Lagoon では、事前バックアップ ポッド、スケジュール、保持期間を設定し、K8up のバックアップと復元を管理できます。現在、Lagoon は、v2 以降の名前空間の変更により、K8up の 1.x バージョンのみをサポートしていますが、修正に取り組んでいます。</p>
+<p>Lagoon には、<a href="https://docs.k8up.io/k8up/1.2/index.html">K8up</a> バックアップ オペレーターの構成が組み込まれています。 Lagoon では、事前バックアップ ポッド、スケジュール、保持期間を設定し、K8up のバックアップと復元を管理できます。現在、Lagoon は、v2 以降の名前空間の変更により、K8up の 1.x バージョンのみをサポートしていますが、修正に取り組んでいます。</p>
 <div class="admonition bug">
 <p class="admonition-title">バグ k8up v2</p>
 <p>Lagoon は、名前空間の変更により、現在 K8up v2 以降をサポートしていません (<a href="https://github.com/uselagoon/build-deploy-tool/issues/121">こちら</a>)。</p>

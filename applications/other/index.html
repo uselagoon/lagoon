@@ -4596,7 +4596,7 @@
 <p>Extending on, or inheriting from the <a href="../../docker-images/commons/">commons image</a>, Lagoon can run almost any workload.</p>
 <h2 id="hugo">Hugo<a class="headerlink" href="#hugo" title="Permanent link">#</a></h2>
 <p>This brief example shows how to build a Hugo website and serve it as static files in an NGINX image. The commons image is used to add Hugo, copy the site in, and build it. The NGINX image is then used to serve the site, with the addition of a customized NGINX config.</p>
-<div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>FROM<span class="w"> </span>uselagoon/commons<span class="w"> </span>as<span class="w"> </span>builder
+<div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>FROM<span class="w"> </span>uselagoon/commons<span class="w"> </span>AS<span class="w"> </span>builder
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>RUN<span class="w"> </span>apk<span class="w"> </span>add<span class="w"> </span>hugo<span class="w"> </span>git
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>WORKDIR<span class="w"> </span>/app

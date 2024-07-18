@@ -4727,7 +4727,7 @@
 <p>Versions 2.1 and 2.2+ of Harbor are currently supported. The method of retrieving robot accounts was changed in 2.2, and the Lagoon remote-controller is able to handle these tokens. This means that Harbor has to be configured with the credentials in <code>lagoon-build-deploy</code> - not <code>lagoon-core</code>.</p>
 <p>We recommend installing a Harbor version greater than <a href="https://github.com/goharbor/harbor/releases/tag/v2.6.0">2.6.0</a> with Helm chart <a href="https://github.com/goharbor/harbor-helm/releases/tag/v1.10.0">1.10.0</a> or greater.</p>
 <h3 id="k8up-for-backups">k8up for backups<a class="headerlink" href="#k8up-for-backups" title="Permanent link">#</a></h3>
-<p>Lagoon has built in configuration for the <a href="https://k8up.io/k8up/1.2/index.html">K8up</a> backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of K8up, owing to a namespace change in v2 onwards, but we are working on a fix.</p>
+<p>Lagoon has built in configuration for the <a href="https://docs.k8up.io/k8up/1.2/index.html">K8up</a> backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of K8up, owing to a namespace change in v2 onwards, but we are working on a fix.</p>
 <div class="admonition bug">
 <p class="admonition-title">K8up v2:</p>
 <p>Lagoon does not currently support K8up v2 onwards due to a namespace change <a href="https://github.com/uselagoon/build-deploy-tool/issues/121">here</a>.</p>

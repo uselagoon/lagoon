@@ -4623,11 +4623,11 @@
 
 <h1 id="solr-drupal">Solr-Drupal<a class="headerlink" href="#solr-drupal" title="Permanent link">#</a></h1>
 <h2 id="standard-use">Standard use<a class="headerlink" href="#standard-use" title="Permanent link">#</a></h2>
-<p>For Solr 5.5, 6.6 and 7.7, we ship the default schema files provided by the <a href="https://www.drupal.org/project/search_api_solr">search_api_solr</a> Drupal module. Add the Solr version you would like to use in your <code>docker-compose.yml</code> file, following <a href="https://github.com/amazeeio/drupal-example-simple/blob/63b3fc613260d5192b7e2dd0167c6fc85d8d9162/docker-compose.yml#L110">our example</a>.</p>
+<p>For Solr 8 and 9, we ship the default schema files provided by the <a href="https://www.drupal.org/project/search_api_solr">search_api_solr</a> Drupal module. Add the Solr version you would like to use in your <code>docker-compose.yml</code> file, following <a href="https://github.com/lagoon-examples/drupal-solr">our example</a>.</p>
 <h2 id="custom-schema">Custom schema<a class="headerlink" href="#custom-schema" title="Permanent link">#</a></h2>
-<p>To implement schema customizations for Solr in your project, look to how Lagoon <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/7.7.Dockerfile">creates our standard images</a>.</p>
+<p>To implement schema customizations for Solr in your project, look to how Lagoon <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/8.Dockerfile">creates our standard images</a>.</p>
 <ul>
-<li>In the <code>solr</code> section of your <code>docker-compose.yml</code> file, replace <code>image: amazeeio/solr:7.7</code> with:</li>
+<li>In the <code>solr</code> section of your <code>docker-compose.yml</code> file, replace <code>image: uselagoon/solr:8</code> with:</li>
 </ul>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="w">  </span><span class="nt">build</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
@@ -4637,24 +4637,18 @@
 <li>Place your schema files in your code repository. We typically like to use <code>.lagoon/solr</code>.</li>
 <li>Create a <code>solr.dockerfile</code>.</li>
 </ul>
-<div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>FROM<span class="w"> </span>amazeeio/solr:7.7
+<div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>FROM<span class="w"> </span>uselagoon/solr:8
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>COPY<span class="w"> </span>.lagoon/solr<span class="w"> </span>/solr-conf/conf
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>RUN<span class="w"> </span>precreate-core<span class="w"> </span>drupal<span class="w"> </span>/solr-conf
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>CMD<span class="w"> </span><span class="o">[</span><span class="s2">&quot;solr-foreground&quot;</span><span class="o">]</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>CMD<span class="w"> </span>solr-recreate<span class="w"> </span>drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-foreground
 </span></code></pre></div>
 <p>The goal is to have your Solr configuration files exist at <code>/solr-conf/conf</code> in the image you are building.</p>
 <h2 id="multiple-cores">Multiple cores<a class="headerlink" href="#multiple-cores" title="Permanent link">#</a></h2>
 <p>To implement multiple cores, you will also need to ship your own Solr schema as above. The only change needed is to the <code>CMD</code> of the Dockerfile - repeat the pattern of <code>precreate-core corename /solr-conf/ ;</code> for each core you require.</p>
-<div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>FROM<span class="w"> </span>amazeeio/solr:7.7-drupal
+<div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>FROM<span class="w"> </span>uselagoon/solr:8-drupal
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>RUN<span class="w"> </span>precreate-core<span class="w"> </span>drupal-index1<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span>precreate-core<span class="w"> </span>drupal-index2<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>precreate-core<span class="w"> </span>drupal-index3<span class="w"> </span>/solr-conf
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>CMD<span class="w"> </span><span class="o">[</span><span class="s2">&quot;solr-foreground&quot;</span><span class="o">]</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>CMD<span class="w"> </span>solr-recreate<span class="w"> </span>drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-recreate<span class="w"> </span>more-drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-foreground
 </span></code></pre></div>
 
 

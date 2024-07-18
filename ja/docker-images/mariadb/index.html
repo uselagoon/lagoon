@@ -4653,9 +4653,12 @@
 <li>10.4 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.4.Dockerfile">Dockerfile</a> (Alpine 3.12 は2022年5月までサポート) - <code>uselagoon/mariadb-10.4</code></li>
 <li>10.5 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile">Dockerfile</a> (Alpine 3.14 は2023年5月までサポート) - <code>uselagoon/mariadb-10.5</code></li>
 <li>10.6 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile">Dockerfile</a> (Alpine 3.16 は2024年5月までサポート) - <code>uselagoon/mariadb-10.6</code></li>
-<li>10.11 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile">Dockerfile</a> (Alpine 3.18 は2025年5月までサポート) - <code>uselagoon/mariadb-10.11</code> !!!情報
-    これらのイメージは、上流のMariaDBイメージから構築されていないため、サポートは別のサイクルに従います - そして、基礎となるAlpineイメージがサポートを受けている限りのみアップデートを受けます - <a href="https://alpinelinux.org/releases/">https://alpinelinux.org/releases/</a>を参照してください。実際には、ほとんどのMariaDBユーザーはこれらのコンテナをローカルで実行しています - 本番環境ではDBaaSオペレーターが提供するManaged Cloud Databasesを使用します。</li>
+<li>10.11 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile">Dockerfile</a> (Alpine 3.18 は2025年5月までサポート) - <code>uselagoon/mariadb-10.11</code></li>
 </ul>
+<div class="admonition info">
+<p class="admonition-title">情報</p>
+<p>これらのイメージは、上流のMariaDBイメージから構築されていないため、サポートは別のサイクルに従います - そして、基礎となるAlpineイメージがサポートを受けている限りのみアップデートを受けます - <a href="https://alpinelinux.org/releases/">https://alpinelinux.org/releases/</a>を参照してください。実際には、ほとんどのMariaDBユーザーはこれらのコンテナをローカルで実行しています - 本番環境ではDBaaSオペレーターが提供するManaged Cloud Databasesを使用します。</p>
+</div>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
 <p>MariaDBコンテナのデフォルトの公開ポートはポート<code>3306</code>です。</p>
 <p>LagoonがMariaDBコンテナを最良の方法で実行することを可能にするために、<code>lagoon.type: mariadb</code>を使用します - これにより、DBaaSオペレーターがクラスターで利用可能な場合にクラウドデータベースをプロビジョニングできます。コンテナ内のMariaDBを特にリクエストするには、<code>lagoon.type: mariadb-single</code>を使用します。永続的なストレージは、常に<code>/var/lib/mysql</code>でMariaDBコンテナに対してプロビジョニングされます。</p>

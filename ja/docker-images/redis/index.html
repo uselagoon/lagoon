@@ -4798,7 +4798,7 @@
 <p>このDockerfileは、デフォルトでスタンドアロンのRedis <em>エフェメラル</em> サーバーをセットアップするために使用することを意図しています。</p>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>5(互換性のためのみ利用可能、公式にはもはやサポートされていません) - <code>uselagoon/redis-5</code>または<code>uselagoon/redis-5-persistent</code></li>
+<li>5 (互換性のためのみ利用可能、公式にはもはやサポートされていません) - <code>uselagoon/redis-5</code>または<code>uselagoon/redis-5-persistent</code></li>
 <li>6 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Dockerfile</a> - <code>uselagoon/redis-6</code>または<code>uselagoon/redis-6-persistent</code></li>
 <li>7 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile">Dockerfile</a> - <code>uselagoon/redis-7</code>または<code>uselagoon/redis-7-persistent</code></li>
 </ul>
@@ -4830,28 +4830,28 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">データベース</td>
+<td style="text-align: left;">DATABASES</td>
 <td style="text-align: left;">-1</td>
 <td style="text-align: left;">スタートアップ時に作成されるデータベースのデフォルト数。</td>
 </tr>
 <tr>
-<td style="text-align: left;">ログレベル</td>
-<td style="text-align: left;">通知</td>
+<td style="text-align: left;">LOGLEVEL</td>
+<td style="text-align: left;">notice</td>
 <td style="text-align: left;">ログのレベルを定義します。</td>
 </tr>
 <tr>
-<td style="text-align: left;">最大メモリ使用量</td>
+<td style="text-align: left;">MAXMEMORY</td>
 <td style="text-align: left;">100mb</td>
 <td style="text-align: left;">メモリの最大使用量。</td>
 </tr>
 <tr>
-<td style="text-align: left;">最大メモリポリシー</td>
+<td style="text-align: left;">MAXMEMORYPOLICY</td>
 <td style="text-align: left;">allkeys-lru</td>
 <td style="text-align: left;">Redisが最大メモリ使用量に達したときにキーを追い出すためのポリシー。</td>
 </tr>
 <tr>
 <td style="text-align: left;">REDIS_PASSWORD</td>
-<td style="text-align: left;">無効</td>
+<td style="text-align: left;">disabled</td>
 <td style="text-align: left;"><a href="https://redis.io/topics/security#authentication-feature">認証機能</a>を有効にします。</td>
 </tr>
 </tbody>

@@ -4575,24 +4575,23 @@
 <ol>
 <li>
 <p>次のクエリを実行します:</p>
-<p><code>graphql title="突然変異を追加"
-mutation addKubernetes {</code>bash
-  addKubernetes(input:
-  {
-    name: "<TARGET-NAME-FROM-REMOTE-VALUES.yml>",
-    consoleUrl: "<URL-OF-K8S-CLUSTER>",
-    token: "xxxxxx”
-    routerPattern: "${environment}.${project}.lagoon.example.com"
-  }){id}
-}
-```</p>
+<div class="language-graphql highlight"><span class="filename">突然変異を追加</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">addKubernetes</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">addKubernetes</span><span class="p">(</span><span class="n">input</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;TARGET-NAME-FROM-REMOTE-VALUES.yml&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">consoleUrl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;URL-OF-K8S-CLUSTER&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="n">token</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;xxxxxx”</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="err">routerPattern:</span><span class="w"> </span><span class="err">&quot;$</span><span class="p">{</span><span class="n">environment</span><span class="p">}</span><span class="err">.$</span><span class="p">{</span><span class="n">project</span><span class="p">}</span><span class="err">.lagoon.example.com&quot;</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="err">})</span><span class="p">{</span><span class="n">id</span><span class="p">}</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="err">}</span>
+</span></code></pre></div>
 <ol>
 <li><code>name</code>: <code>lagoon-remote-values.yml</code>から取得</li>
 <li><code>consoleUrl</code>: KubernetesクラスタのAPIエンドポイント。<code>values.yml</code>から取得</li>
 <li>
 <p><code>token</code>: <code>ssh-core</code>サービスアカウント用のトークンを取得</p>
-<p><code>bash title="トークンを取得"
-kubectl -n lagoon get secret/lagoon-remote-ssh-core-token -o json | jq -r '.data.token | @base64d'</code></p>
+<div class="language-bash highlight"><span class="filename">トークンを取得</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>lagoon<span class="w"> </span>get<span class="w"> </span>secret/lagoon-remote-ssh-core-token<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.data.token | @base64d&#39;</span>
+</span></code></pre></div>
 </li>
 </ol>
 </li>

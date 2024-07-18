@@ -4805,7 +4805,7 @@
 <li>ホスト上のファイルを編集し、それらをコンテナ内で即座に利用可能にするため、デフォルトの<code>docker-composer.yml</code>は全体のフォルダをコンテナ内にマウントします(これはボリュームセクションの<code>.:/app:delegated</code>で起こります)。これはまた、Dockerビルド中にインストールされたすべての依存関係がホスト上のファイルで上書きされることを意味します。</li>
 <li>ローカルでは、<code>composer.json</code>で<code>require-dev</code>として定義された依存関係も存在することを期待するでしょう、一方で本番環境ではそれらは単に不必要なスペースを使用するだけです。そのため、Dockerfileで<code>composer install --no-dev</code>を実行し、<code>composer install</code>は手動で実行します。</li>
 </ul>
-<p>全てがうまく行った場合、<code>docker-compose</code>で定義された<code>LAGOON_ROUTE</code>を開きます。 .yml<code>\(例えば</code>http://drupal.docker.amazee.io`) を開いて、素敵なDrupalエラーが表示されるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なのはDrupalサイトをロードしようとしていることです。</p>
+<p>全てがうまく行った場合、<code>docker-compose</code>で定義された<code>LAGOON_ROUTE</code>を開きます。 .yml` (例えば http://drupal.docker.amazee.io) を開いて、素敵なDrupalエラーが表示されるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なのはDrupalサイトをロードしようとしていることです。</p>
 <p>500や類似のエラーが表示された場合は、Composerで正しくすべてがロードされていることを確認してください。</p>
 <h2 id="6-check-status-and-install-drupal">6. ステータスの確認とDrupalのインストール<a class="headerlink" href="#6-check-status-and-install-drupal" title="Permanent link">#</a></h2>
 <p>いよいよDrupalをインストールする時間がきましたが、その前にすべてが機能していることを確認したいと思います。それにはDrushを使用することをお勧めします:</p>
@@ -4837,7 +4837,7 @@
 <p class="admonition-title">警告</p>
 <p>次のステップ前に、pygmyに公開鍵について伝える必要があるかもしれません。</p>
 </div>
-<p><code>Permission denied (publickey)</code>のようなエラーが出た場合は、こちらのドキュメンテーションをご覧ください: <a href="https://pygmy.readthedocs.io/en/master/ssh_agent">pygmy - sshキーの追加</a></p>
+<p><code>Permission denied (publickey)</code>のようなエラーが出た場合は、こちらのドキュメンテーションをご覧ください: <a href="https://pygmystack.github.io/pygmy/ssh_agent/">pygmy - sshキーの追加</a></p>
 <p>次にDrupalをインストールします(既存のSQLファイルをインポートしたい場合は、<a href="./#7-import-existing-database-dump">ステップ7へスキップ</a>してください。しかし、始めは全てが機能することを確認するために、クリーンなDrupalのインストールから始めることをお勧めします)。</p>
 <div class="language-bash highlight"><span class="filename">Drupalのインストール</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>drush<span class="w"> </span>site-install
 </span></code></pre></div>

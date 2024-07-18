@@ -4596,7 +4596,7 @@
 <p><a href="../../docker-images/commons/">共通イメージ</a>を拡張したり、継承したりすることで、Lagoonはほぼどんなワークロードでも実行することができます。</p>
 <h2 id="hugo">Hugo<a class="headerlink" href="#hugo" title="Permanent link">#</a></h2>
 <p>この簡単な例では、Hugoのウェブサイトを構築し、それをNGINXイメージの静的ファイルとして提供する方法を示しています。共通イメージはHugoの追加、サイトのコピー、構築のために使用されます。その後、NGINXイメージを使用してサイトを提供し、カスタマイズしたNGINX設定を追加します。</p>
-<div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>FROM<span class="w"> </span>uselagoon/commons<span class="w"> </span>as<span class="w"> </span>builder
+<div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>FROM<span class="w"> </span>uselagoon/commons<span class="w"> </span>AS<span class="w"> </span>builder
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>RUN<span class="w"> </span>apk<span class="w"> </span>add<span class="w"> </span>hugo<span class="w"> </span>git
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>WORKDIR<span class="w"> </span>/app
