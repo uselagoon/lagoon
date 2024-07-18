@@ -46,7 +46,7 @@ Some Docker images and containers need additional customizations from the provid
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
 | [MariaDB](../docker-images/mariadb.md) | 10.4, 10.5, 10.6, 10.11 | [mariadb/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb) |
-| [PostgreSQL](../docker-images/postgres.md) | 11, 12, 13, 14, 15 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
+| [PostgreSQL](../docker-images/postgres.md) | 11, 12, 13, 14, 15, 16 | [postgres/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres) |
 | [MongoDB](../docker-images/mongodb.md) | 4 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
 | [NGINX](../docker-images/nginx.md) | openresty/1.25 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
 | [Node.js](../docker-images/nodejs.md) | 18, 20, 22 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
