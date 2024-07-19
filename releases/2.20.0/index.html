@@ -4156,6 +4156,19 @@
     Upgrades
   </a>
   
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#harbor-21x-and-earlier" class="md-nav__link">
+    Harbor 2.1.x and earlier
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4169,6 +4182,27 @@
           <li class="md-nav__item">
   <a href="#deleted-backups" class="md-nav__link">
     Deleted Backups
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-harbor-support" class="md-nav__link">
+    API Harbor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleteallremoveall-mutations-removed" class="md-nav__link">
+    DeleteAll/RemoveAll mutations removed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-on-deployment-triggers" class="md-nav__link">
+    Error handling on deployment triggers
   </a>
   
 </li>
@@ -4590,6 +4624,19 @@
     Upgrades
   </a>
   
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#harbor-21x-and-earlier" class="md-nav__link">
+    Harbor 2.1.x and earlier
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4603,6 +4650,27 @@
           <li class="md-nav__item">
   <a href="#deleted-backups" class="md-nav__link">
     Deleted Backups
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-harbor-support" class="md-nav__link">
+    API Harbor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleteallremoveall-mutations-removed" class="md-nav__link">
+    DeleteAll/RemoveAll mutations removed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-on-deployment-triggers" class="md-nav__link">
+    Error handling on deployment triggers
   </a>
   
 </li>
@@ -4643,11 +4711,28 @@
 <p>This version has not been released yet</p>
 </div>
 <h2 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">#</a></h2>
-<p>There are no required actions or considerations with this release. As always, we suggest upgrading all minor versions.</p>
+<p>This release contains changes that you may need to be aware of. Read carefully before you upgrade.</p>
+<h3 id="harbor-21x-and-earlier">Harbor 2.1.x and earlier<a class="headerlink" href="#harbor-21x-and-earlier" title="Permanent link">#</a></h3>
+<ul>
+<li>This release removes the support for Harbor from the Lagoon API. If you're still using the Harbor support in the API, you should NOT upgrade until you have configured your <code>lagoon-remote</code> installations to use Harbor instead. See the documentation <a href="https://docs.lagoon.sh/installing-lagoon/install-lagoon-remote">here</a> and read the section about Harbor.</li>
+<li>We also recommend that if you're using Harbor version 2.1.x and earlier, that you upgrade this as soon as possible. Follow any instructions that Harbor recommend for upgrading. As of this release, <code>lagoon-remote</code> has been tested up to Harbor version 2.10.0 (helm chart version 1.14.0). <a href="https://docs.lagoon.sh/releases/2.17.0/#harbor-21-and-earlier-support">Lagoon will stop supporting Harbor 2.1.x and earlier in a future release</a>.</li>
+</ul>
 <h2 id="deprecations">Deprecations<a class="headerlink" href="#deprecations" title="Permanent link">#</a></h2>
 <h3 id="deleted-backups">Deleted Backups<a class="headerlink" href="#deleted-backups" title="Permanent link">#</a></h3>
 <ul>
 <li>When a backup is deleted via the webhook, it will now actually removed from the API rather than being flagged as deleted. The <code>Backup</code> type field <code>deleted</code> is deprecated, and will be removed in a future release. Additionally, <code>includeDeleted</code> if requested when querying backups will not change the result as there will be no deleted backups to include.</li>
+</ul>
+<h3 id="api-harbor-support">API Harbor support<a class="headerlink" href="#api-harbor-support" title="Permanent link">#</a></h3>
+<ul>
+<li>In <a href="https://docs.lagoon.sh/releases/2.17.0/#api-harbor-support">v2.17.0</a> we announced that Harbor support in the API was deprecated. This release of Lagoon removes all support for Harbor from the API. See upgrade notes above.</li>
+</ul>
+<h3 id="deleteallremoveall-mutations-removed">DeleteAll/RemoveAll mutations removed<a class="headerlink" href="#deleteallremoveall-mutations-removed" title="Permanent link">#</a></h3>
+<ul>
+<li>This release removes all <code>DeleteAllX</code> and <code>RemoveAllX</code> from the API. These were only ever meant for local development and are no longer relevant.</li>
+</ul>
+<h3 id="error-handling-on-deployment-triggers">Error handling on deployment triggers<a class="headerlink" href="#error-handling-on-deployment-triggers" title="Permanent link">#</a></h3>
+<ul>
+<li>In the past, if triggering a deployment using any of the <code>DeployEnvironmentX</code> mutations and an error was encountered, the API would not return an actual error, just a string that contained the error. This was changed in this release to actually return an error now. As this is a change in behaviour, it may impact any users that may have previously been capturing the string error text and parsing it to check for errors.</li>
 </ul>
 
 
