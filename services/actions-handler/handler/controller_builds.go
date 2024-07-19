@@ -26,13 +26,13 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 		// use BuildStatus so BuildPhase can be removed
 		buildStatus = message.Meta.BuildStatus
 	}
-	log.Println(fmt.Sprintf("%sreceived deployment status update - %s", prefix, buildStatus))
+	log.Printf("%sreceived deployment status update - %s", prefix, buildStatus)
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR:unable to generate token: %v", prefix, err))
+			log.Printf("%sERROR:unable to generate token: %v", prefix, err)
 		}
 		return nil
 	}
@@ -49,7 +49,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR:unable to get environment by namespace - %v", prefix, err))
+				log.Printf("%sERROR:unable to get environment by namespace - %v", prefix, err)
 			}
 			return err
 		}
@@ -64,7 +64,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR:unable to get deployment - %v", prefix, err))
+			log.Printf("%sERROR:unable to get deployment - %v", prefix, err)
 		}
 		return err
 	}
@@ -72,7 +72,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 	case "complete", "failed", "cancelled":
 		// the build/deployment is already in a finished state, don't process any additional messages for this deployment
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sWARNING:deployment is already %s doing nothing - %v", prefix, strings.ToLower(deployment.Status), err))
+			log.Printf("%sWARNING:deployment is already %s doing nothing - %v", prefix, strings.ToLower(deployment.Status), err)
 		}
 		return nil
 	}
@@ -108,7 +108,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to update deployment - %v", prefix, err))
+			log.Printf("%sERROR: unable to update deployment - %v", prefix, err)
 		}
 		return err
 	}
@@ -143,11 +143,11 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to update environment - %v", prefix, err))
+				log.Printf("%sERROR: unable to update environment - %v", prefix, err)
 			}
 			return err
 		}
-		log.Println(fmt.Sprintf("%supdated environment", prefix))
+		log.Printf("%supdated environment", prefix)
 		// @TODO START @DEPRECATED this should be removed when the `setEnvironmentServices` mutation gets removed from the API
 		if message.Meta.Services != nil { // @DEPRECATED
 			existingServices := []string{}
@@ -165,11 +165,11 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 						"message":  err.Error(),
 					})
 					if m.EnableDebug {
-						log.Println(fmt.Sprintf("%sERROR: unable to update environment services - %v", prefix, err))
+						log.Printf("%sERROR: unable to update environment services - %v", prefix, err)
 					}
 					return err
 				}
-				log.Println(fmt.Sprintf("%supdated environment services - %v", prefix, strings.Join(message.Meta.Services, ",")))
+				log.Printf("%supdated environment services - %v", prefix, strings.Join(message.Meta.Services, ","))
 			}
 		} // END @DEPRECATED
 		// services now provide additional information
@@ -198,7 +198,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 							"message":  err.Error(),
 						})
 						if m.EnableDebug {
-							log.Println(fmt.Sprintf("%sERROR: unable to delete environment services - %v", prefix, err))
+							log.Printf("%sERROR: unable to delete environment services - %v", prefix, err)
 						}
 						errs = append(errs, err)
 					}
@@ -219,7 +219,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 						"message":  err.Error(),
 					})
 					if m.EnableDebug {
-						log.Println(fmt.Sprintf("%sERROR: unable to update environment services - %v", prefix, err))
+						log.Printf("%sERROR: unable to update environment services - %v", prefix, err)
 					}
 					errs = append(errs, err)
 				}
@@ -236,7 +236,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			if errMsgs {
 				return fmt.Errorf(strings.Join(errMsg, ","))
 			}
-			log.Println(fmt.Sprintf("%supdated environment services", prefix))
+			log.Printf("%supdated environment services", prefix)
 		}
 	}
 	return nil
