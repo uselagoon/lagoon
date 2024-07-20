@@ -17,7 +17,7 @@
     "prettier": "^3.2.5",
     "prettier-eslint-cli": "^8.0.1",
     "ts-jest": "^29.1.2",
-    "tsc-silent": "^1.2.2",
+    "tsc-silent": "^1.2.0",
     "typescript": "^5.3.3"
   },
   "dependencies": {
@@ -25,13 +25,12 @@
     "amqp-connection-manager": "^1.4.2",
     "amqplib": "^0.7.1",
     "axios": "^0.21.1",
-    "jsonwebtoken": "^8.0.1",
-    "kubernetes-client": "^3.15.0",
+    "jsonwebtoken": "^9.0.0",
+    "kubernetes-client": "^5.4.0",
     "lokka": "^1.7.0",
     "node-fetch": "^2.6.0",
     "ramda": "0.25.0",
     "sha1": "^1.1.1",
-    "tsc-silent": "^1.2.2",
     "winston": "^3"
   }
 }

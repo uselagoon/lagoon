@@ -1,5 +1,5 @@
 import { MockList } from 'graphql-tools';
-import faker from 'faker/locale/en';
+import { faker } from '@faker-js/faker';
 import { packages } from './data/mock-data';
 
 // The mocks object is an Apollo Resolver Map where each mock function has the
