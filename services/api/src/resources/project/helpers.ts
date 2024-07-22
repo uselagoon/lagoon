@@ -14,21 +14,22 @@ export const Helpers = (sqlClientPool: Pool) => {
       // then falling through to the default project view for general users
       const rows = await query(sqlClientPool, Sql.selectProject(pid));
       const project = rows[0];
-      if (project.organization != null) {
-        try {
+      try {
+        // finally check the user view:project permission
+        await hasPermission('project', 'view', {
+          project: project.id
+        });
+        return
+      } catch (err) {
+        if (project.organization != null) {
           await hasPermission('organization', 'viewProject', {
             organization: project.organization
           });
           // if the organization owner has permission to view project, return
           return
-        } catch (err) {
-          // otherwise fall through to project view permission check
         }
+        throw err
       }
-      // finally check the user view:project permission
-      await hasPermission('project', 'view', {
-        project: project.id
-      });
     }
   }
   const checkOrgProjectUpdatePermission = async (hasPermission, pid) => {
@@ -36,16 +37,21 @@ export const Helpers = (sqlClientPool: Pool) => {
     // or the update:project permission
     const rows = await query(sqlClientPool, Sql.selectProject(pid));
     const project = rows[0];
-    if (project.organization != null) {
-      // if the project is in an organization, only the organization owner should be able to do this
-      await hasPermission('organization', 'updateProject', {
-        organization: project.organization
-      });
-    } else {
-      // if not in a project, follow the standard rbac
+    try {
+      // finally check the user update:project permission
       await hasPermission('project', 'update', {
         project: project.id
       });
+      return
+    } catch (err) {
+      if (project.organization != null) {
+        await hasPermission('organization', 'updateProject', {
+          organization: project.organization
+        });
+        // if the organization owner has permission to update project, return
+        return
+      }
+      throw err
     }
   }
 
