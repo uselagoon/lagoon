@@ -6,38 +6,38 @@ description: Lagoonを使用するためのアプリケーション設定
 
 ## `lagoon.yml`
 
-Lagoonのプロジェクトレベルおよび環境レベルの設定は、リポジトリの `.lagoon.yml` ファイルに提供されています。
+Lagoonのプロジェクトレベルおよび環境レベルの設定は、リポジトリの `.lagoon.yml` ファイルで提供されています。
 
 [`lagoon-yml.md`](../concepts-basics/lagoon-yml.md)を参照してください。
 
 ## `docker-compose.yml`
 
-Lagoonのサービスレベルの設定は、リポジトリの`docker-compose.yml`ファイルに提供されています。特に、`lagoon.type`と関連するサービスラベルは個々のサービスで文書化されています。
+Lagoonのサービスレベルの設定は、リポジトリの`docker-compose.yml`ファイルで提供されています。特に、`lagoon.type`と関連するサービスラベルは、個々のサービスのドキュメントに記載されています。
 
 [`docker-compose-yml.md`](../concepts-basics/docker-compose-yml.md)を参照してください。
 
 ## ストレージ
 
-Lagoonは、ほとんどのサービスにストレージを提供する能力があります - 組み込みのLagoonサービスタイプには、必要なPVC、ボリュームなどを追加するための`-persistent`バリアントがあります。この設定をローカルに反映するように例を更新しました。
+Lagoonはほとんどのサービスにストレージを提供する機能があります。Lagoon組み込みのサービスタイプには、必要なPVC、ボリュームなどを追加できる`-persistent`バリアントがあります。この設定をローカルで反映するように例を更新しました。
 
 ## データベース
 
-Lagoonは以下の設定を利用できます:
+Lagoonは以下のデータベース設定に対応しています:
 
-* Mariadb - すべてのサポートされているバージョン
-* PostgreSQL - すべてのサポートされているバージョン
+* Mariadb - サポートされている全バージョン
+* PostgreSQL - サポートされている全バージョン
 
 ### データベース・アズ・ア・サービス
 
-Lagoonはまた、[dbaas-operator](https://github.com/amazeeio/dbaas-operator)を利用して、これらのデータベースを自動的にプロビジョニングする能力もあります。 管理データベースサービス(例:RDS、Google Cloud Databases、Azure Database)があります。これらのサービスがクラスターにプロビジョニングされ、設定されると自動的にこれらが利用されます。これらが利用できない場合、フォールバックとしてポッドがプロビジョニングされます。
+Lagoonはまた、[dbaas-operator](https://github.com/amazeeio/dbaas-operator)を利用して、基盤となるマネージドデータベースサービス（例：RDS、Google Cloud Databases、Azure Database）を使用してこれらのデータベースを自動的にプロビジョニングする機能を持っています。これらのサービスがクラスタ用にプロビジョニングおよび設定されると、自動的に行われます。これらが利用できない場合は、フォールバックとしてポッドがプロビジョニングされます。
 
 ## キャッシュ
 
-Lagoonは、キャッシュバックエンドとしてRedisをサポートしています。本番環境では、一部のユーザーがスケールを助けるために、本番環境用の管理されたRedisサービスをプロビジョニングします。
+LagoonはキャッシュバックエンドとしてRedisをサポートしています。本番環境では、一部のユーザーがスケーリングを支援するために、マネージドRedisサービスをプロビジョニングしています。
 
 ## 検索
 
-Lagoonは、Elasticsearch、Solr、OpenSearchを検索プロバイダとしてサポートしています。必要に応じて、外部検索プロバイダも設定できます。
+Lagoonは検索プロバイダーとしてElasticsearch、Solr、OpenSearchをサポートしています。必要に応じて外部の検索プロバイダーも設定できます。
 
 ## イングレス/ルート
 
@@ -45,6 +45,6 @@ Lagoonは、イングレス要件を持つサービスのルートを自動生�
 
 ## 環境変数 { #environment-variables }
 
-Lagoonは、ビルド時とランタイム時に環境変数を多用します。これらがアプリケーションの重要な設定(例:データベース設定/資格情報)を提供するために使用される場合、ローカルバージョンとLagoonバージョンが同様に名付けられていることが重要です。
+Lagoonは、ビルド時とランタイム時に環境変数を多用します。これらがアプリケーションの重要な設定(例:データベース設定/認証情報)を提供するために使用される場合、ローカルとLagoonのバージョンで同様の名前を付けることが重要です。
 
 詳細は [environment-variables.md](../concepts-advanced/environment-variables.md)を参照してください。
