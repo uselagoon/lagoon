@@ -1,12 +1,12 @@
-# Solr-Drupal
+# Solr
 
-## 標準的な使用法
+## 標準的な使い方
 
-Solr 8、および 9のために、私たちは [search\_api\_solr](https://www.drupal.org/project/search_api_solr) Drupalモジュールによって提供されるデフォルトのスキーマファイルを提供しています。 `docker-compose.yml` ファイルに使用したいSolrバージョンを追加してください。[私たちの例](https://github.com/lagoon-examples/drupal-solr)に従ってください。
+Solr 5.5、6.6、および 7.7では、[search\_api\_solr](https://www.drupal.org/project/search_api_solr) Drupalモジュールによって提供されるデフォルトのスキーマファイルを提供しています。使用するSolrバージョンを[例](https://github.com/lagoon-examples/drupal-solr)のように`docker-compose.yml`ファイルに追加してください。
 
 ## カスタムスキーマ
 
-プロジェクトでSolrのスキーマカスタマイズを実装するには、Lagoonがどのように[標準のイメージを作成するか](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/8.Dockerfile)を参照してください。
+プロジェクトでSolrのスキーマカスタマイズを実装するには、Lagoonがどのように[標準のイメージ](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/8.Dockerfile)を作成するかを参照してください。
 
 * `docker-compose.yml` ファイルの `solr` セクションで、 `image: uselagoon/solr:8` を以下のように置き換えます:
 
@@ -16,7 +16,7 @@ Solr 8、および 9のために、私たちは [search\_api\_solr](https://www.
     dockerfile: solr.dockerfile
 ```
 
-* スキーマファイルをコードリポジトリに配置します。私たちは通常、 `.lagoon/solr` を使用します。
+* スキーマファイルをコードリポジトリに配置します。通常、`.lagoon/solr`を使用します。
 * `solr.dockerfile` を作成します。
 
 ```bash title="solr.dockerfile"
@@ -27,11 +27,11 @@ COPY .lagoon/solr /solr-conf/conf
 CMD solr-recreate drupal /solr-conf && solr-foreground
 ```
 
-目標は、Solr設定ファイルが `/solr-conf/conf` に存在することです。 あなたが作成しているイメージ。
+目標は、ビルドするイメージの`/solr-conf/conf`Solr設定ファイルが存在することです。
 
-## 複数のコア
+## マルチコア
 
-複数のコアを実装するには、上記のように自分自身のSolrスキーマを出荷する必要があります。必要な変更はDockerfileの`CMD`に対してのみで、必要なコアごとに`precreate-core corename /solr-conf/ ;`のパターンを繰り返します。
+複数のコアを実装するには、上記のように独自のSolrスキーマを用意する必要があります。必要な変更はDockerfileの`CMD`だけで、必要なコアごとに`precreate-core corename /solr-conf/ ;`のパターンを繰り返します。
 
 ```bash title="solr.dockerfile"
 FROM uselagoon/solr:8-drupal

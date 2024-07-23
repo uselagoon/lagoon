@@ -7,36 +7,38 @@ description: >-
 
 ## エイリアス
 
-残念ながら、Drush 9はDrush 8が持っていたような動的なサイトエイリアスを注入する能力を提供していません。私たちはDrushチームと協力して、これを再度実装する作業を行っています。その間、Drush 9をLagoonで使用するための回避策があります。
+残念ながら、Drush 9では Drush 8のような動的サイトエイリアスの注入機能が提供されていません。Drushチームと協力して、この機能を再び実装できるように取り組んでいます。当面の間、Drush 9をLagoonと一緒に使用する際の回避策をご紹介します。
 
-### 基本的なアイデア
+### 基本的な考え方
 
-Drush 9は新しいコマンド、`drush site:alias-convert`を提供します。これはDrush 8スタイルのサイトエイリアスをDrush 9のYAMLサイトエイリアススタイルに変換できます。これにより、現在Lagoonに存在するサイトエイリアスの一時的なエクスポートが作成され、`/app/drush/sites`に保存されます。これらは、`drush sa`のようなコマンドを実行する際に使用されます。
+Drush 9は新しいコマンド`drush site:alias-convert`を提供しており、Drush 8 形式のサイトエイリアスを Drush 9のYAML形式のサイトエイリアスに変換することができます。このコマンドは、Lagoonに現在存在するサイトエイリアスを一度だけエクスポートし、それらを`/app/drush/sites`ディレクトリに保存します。その後、これらのエイリアスは `drush sa`のようなコマンドを実行する際に使用されます。
+
+
 
 ### 準備
 
-`drush site:alias-convert`を使用するために、以下のことを行う必要があります:
+`drush site:alias-convert`を使用する前に、以下の手順を行う必要があります:
 
 * `drush`フォルダ内の`aliases.drushrc.php`を`lagoon.aliases.drushrc.php`にリネームします。
 
 ### サイトエイリアスの生成
 
-あなたは今、あなたのプロジェクトで以下のコマンドを実行することにより、あなたのDrushエイリアスを変換することができます。これは`cli`コンテナを使って行います:
+`cli`コンテナを使用してプロジェクト内で以下のコマンドを実行すると、Drushエイリアスを変換できます:
 
 ```bash title="サイトエイリアスの生成"
 docker-compose exec cli drush site:alias-convert /app/drush/sites --yes
 ```
- 結果として得られるYAMLファイルをGitリポジトリにコミットすることは良い習慣で、これにより他の開発者がそれらを利用できます。
+生成されたYAMLファイルはGitリポジトリにコミットするのが良い習慣です。そうすることで、他の開発者も利用できるようになります。
 
 ### サイトエイリアスの使用
 
-Drush 9では、すべてのサイトエイリアスにはグループがプレフィックスとして付けられています。私たちの場合、これは `lagoon` です。以下のようにして、そのプレフィックス付きのすべてのサイトエイリアスを表示できます:
+Drush 9では、すべてのサイトエイリアスはグループ名でプレフィックスが付けられています。今回であれば、そのグループ名はlagoonです。以下のコマンドで、プレフィックス付きのすべてのサイトエイリアスを確認できます。
 
 ```bash title="すべてのサイトエイリアスを表示"
 drush sa --format=list
 ```
 
-そしてそれらを使用するには:
+エイリアスを利用するには、次のようにします:
 
 ```bash title="Drush サイトエイリアスの使用"
 drush @lagoon.main ssh
@@ -44,7 +46,7 @@ drush @lagoon.main ssh
 
 ### サイトエイリアスの更新
 
-Lagoonで新しい環境が作成された場合、サイトエイリアスファイルを更新するために `drush site:alias-convert` を実行できます。このコマンドを実行しても `lagoon.site.yml` が更新されない場合は、まず `lagoon.site.yml` を削除してから `drush site:alias-convert` を再実行してみてください。
+Lagoonで新しい環境が作成された場合、`drush site:alias-convert`コマンドを実行して、サイトエイリアスファイル (.yml) を更新できます。このコマンドで`lagoon.site.yml`が更新されない場合は、最初に`lagoon.site.yml`を削除してから、もう一度`drush site:alias-convert`を実行してみてください。
 
 ### ローカルからリモート環境へのDrush `rsync`
 
@@ -54,16 +56,16 @@ Lagoonで新しい環境が作成された場合、サイトエイリアスフ�
 drush rsync @self:%files @lagoon.main:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
-これは、LagoonのタスクUIを使ってファイルをコピーするのではなく、一つのリモート環境から別のリモート環境に同期する場合にも適用されます。 環境。
+これは、LagoonのタスクUIを使用せずに、リモート環境間でファイルを同期する場合にも当てはまります。
 
-たとえば、`@lagoon.main`から`@lagoon.dev`へのファイルの同期を行いたい場合に、ローカルで`drush rsync @lagoon.main @lagoon.dev`を実行し、追加のパラメーターなしでこれを実行すると、「2つのリモートエイリアスを指定できません」というエラーが発生する可能性があります。
+たとえば、`@lagoon.main`から`@lagoon.dev`へファイルを同期したい場合、上記の追加パラメータなしでローカルで`drush rsync @lagoon.main @lagoon.dev`を実行すると、"Cannot specify two remote aliases" (2 つのリモートエイリアスは指定できません) というエラーが発生する可能性があります。
 
-これを解決するには、まず目的の環境にSSHで接続し`drush @lagoon.dev ssh`を実行し、次に上記と同様のパラメーターで`rsync`コマンドを実行します。
+これを解決するには、まず宛先の環境にSSHで接続 `drush @lagoon.dev ssh`し、上記と同様のパラメータを使用して `rsync`コマンドを実行する必要があります。
 
 ```bash title="Drush rsync"
 drush rsync @lagoon.main:%files  @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
 ```
 
-リモートからローカル環境へ`rsync`する場合、これは必要ありません。
+上記の内容は、リモート環境からローカル環境へ `rsync`を使って同期する場合には必要ありません。
 
-また、私たちは[Drushのメンテナと協力して](https://github.com/drush-ops/drush/issues/3491)、これを自動的に注入する方法を見つけ出そうとしています。
+また、私たちは[Drushのメンテナと協力して](https://github.com/drush-ops/drush/issues/3491)、これを自動的に注入する方法を模索しています。

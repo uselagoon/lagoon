@@ -2,51 +2,51 @@
 
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
-## 1. すべてが準備できていることを確認してください { #1-make-sure-you-are-all-set }
+## 1. 準備を整えましょう { #1-make-sure-you-are-all-set }
 
-初回のデプロイメントを成功させるためには、あなたの[DrupalプロジェクトがLagoon化されている](../../using-lagoon-the-basics/setup-project.md)ことと、Lagoonでプロジェクトが設定されていることを確認してください。そうでない場合でも心配はいりません！[ステップバイステップガイド](./step-by-step-getting-drupal-ready-to-run-on-lagoon.md)を参照して作業方法を確認してください。
+初回のデプロイメントを成功させるためには、[DrupalプロジェクトがLagoon化されている](../../using-lagoon-the-basics/setup-project.md)ことと、Lagoonでプロジェクトをセットアップしていることを確認してください。そうでない場合でも心配はいりません！[ステップバイステップガイド](./step-by-step-getting-drupal-ready-to-run-on-lagoon.md)を参照してください。
 
 ## 2. プッシュ { #2-push }
 
-Lagoonでは、デプロイするために設定されたブランチにプッシュすることで新しいデプロイメントを作成します。
+Lagoon を利用している場合、デプロイ用に設定されたブランチに push することで新しいデプロイを作成できます。
 
-新たにプッシュするコードがない場合でも心配はいりません、次のコマンドを実行できます。
+新しいコードをpushする必要がない場合でも心配はいりません、以下のコマンドを実行できます。
 
-```bash title="Git push"
+```bash title="Gitにpush"
 git commit --allow-empty -m "go, go! Power Rangers!"
 git push
 ```
 
-これによりプッシュがトリガーされ、設定されたWebhookを通じてGitホスティングがこのプッシュについてLagoonに通知します。
+プッシュが実行されると、Gitホスティングが設定済みのWebhookを介してLagoonに通知します。
 
-すべてが正しければ、設定されたチャットシステムに通知が表示されます(これは親切なLagoon管理者によって設定されます):
+すべて正常であれば、設定済みのチャットシステムに通知が表示されます。(設定についてはLagoon管理者に問い合わせてください):
 
 ![デプロイメント開始のSlack通知](../../images/first_deployment_slack_start.jpg)
 
-これは、Lagoonがあなたのコードのデプロイを開始したことを示しています。コードのサイズによりますが、 ベースとコンテナの量により、これには数秒かかります。リラックスしてお待ちください。今何が起こっているか知りたい場合は、[Lagoonのビルドとデプロイプロセス](../../concepts-basics/build-and-deploy-process.md)をご覧ください。
+この通知は、Lagoonがコードのデプロイを開始したことを示しています。デプロイ時間は、コードベースのサイズとコンテナの数によって数秒かかります。しばらくお待ちください。現在の状況を確認したい場合は、[Lagoonのビルドとデプロイプロセス](../../concepts-basics/build-and-deploy-process.md)を参照してください。
 
-また、Lagoon UIをチェックして、任意のデプロイメントの進行状況を確認することもできます(Lagoonの管理者が情報を持っています)。
+デプロイの進行状況は、LagoonUIでも確認できます。(URLがわからない場合は、Lagoon管理者に問い合わせてください)
 
 ## 3. 失敗 { #3-a-fail }
 
-`.lagoon.yml`で定義されたポストロールアウトタスクにより、`drush updb`や`drush cr`のようなタスクを実行したかもしれません。これらのDrushタスクは、環境内に存在しているデータベースに依存していますが、明らかにまだ存在していません。それを修正しましょう！読み進めてください。
+`.lagoon.yml`ファイルで定義されているデプロイ後処理タスクによっては、`drush updb`や`drush cr`などのタスクを実行している可能性があります。これらのDrushタスクは、環境内にデータベースが存在することを前提としていますが、デプロイ直後では当然ながらデータベースは存在しません。この問題を解決する方法を次に説明します。
 
-## 4. ローカルデータベースをリモートのLagoon環境に同期する { #4-synchronize-local-database-to-the-remote-lagoon-environment }
+## 4. ローカルデータベースをリモートのLagoon環境に同期 { #4-synchronize-local-database-to-the-remote-lagoon-environment }
 
-LagoonではフルのDrushサイトエイリアスをサポートしているため、ローカルデータベースをリモートのLagoon環境と同期することができます。
+Lagoonは完全なDrushサイトエイリアスをサポートしており、ローカルデータベースとリモートのLagoon環境を同期させることができます。
 
 !!! Warning "警告"
-    次のステップの前に、pygmyに公開キーについて教える必要があるかもしれません。
+    次のステップの前に、pygmyに公開キーを登録する必要があるかもしれません。
 
-`Permission denied (publickey)`のようなエラーが表示された場合は、ここに記載のドキュメンテーションをチェックしてみてください:[pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/ssh_agent/)
+`Permission denied (publickey)`などのエラーが発生した場合、こちらのドキュメントを参照してください:[pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/ssh_agent)
 
-まず、Drushサイトエイリアスが表示されることを確認しましょう:
+まずは、Drush サイトエイリアスを確認してみましょう:
 
 ```bash title="サイトエイリアスの取得"
 drush sa
 ```
 
-これにより、あなたの デプロイされた環境(`develop`にプッシュしたとします):
+このコマンドを実行すると、現在デプロイ済みの環境が取得されます（最新の状態は、`develop`ブランチにプッシュした時点のものと仮定します）:
 
 ```bash title="返されたサイトエイリアス"
 [drupal-example]cli-drupal:/app$ drush sa
@@ -83,17 +83,17 @@ git commit --allow-empty -m "行け、行け！ パワーレンジャー！"
 git push
 ```
 
-今回はすべてがグリーンになるはずです:
+今度はすべて正常に動作するはずです:
 
 ![デプロイ成功！](../../images/first_deployment_slack_success.jpg)
 
-通知内のリンクをクリックすると、Drupalサイトが全ての美しさでロードされるのが見えるはずです！まだ画像がない可能性がありますが、それは[ステップ5](#5-synchronize-local-files-to-the-remote-lagoon-environment)で対処します。
+通知内のリンクをクリックすると、Drupalサイトがすべての機能を備えてロードされた状態を確認できます。おそらくまだ画像は表示されていませんが、それは[ステップ5](#5-synchronize-local-files-to-the-remote-lagoon-environment)で処理します。
 
-それでも失敗する場合は、ログリンクを確認して詳細情報を得てください。
+デプロイが依然として失敗する場合は、詳細情報を確認するためにログリンクをクリックしてください。
 
-## 5. ローカルファイルをリモートのLagoon環境に同期する { #5-synchronize-local-files-to-the-remote-lagoon-environment }
+## 5. ローカルファイルをリモートのLagoon環境に同期 { #5-synchronize-local-files-to-the-remote-lagoon-environment }
 
-おそらく推測できたでしょう:Drushでそれを行うことができます:
+おそらく予想通りですが、Drushを使って同期できます:
 
 ```bash title="Drush rsync"
 drush rsync @self:%files @develop:%files
@@ -107,30 +107,38 @@ You will delete files in drupal-example-develop@ssh.example.com:/app/web/sites/d
 Do you really want to continue? (y/n): y
 ```
 
-その理由は、Drupalがファイルディレクトリのパスを解決できないからです。これはおそらく、Drupalが完全に設定されていないか、データベースが欠けているためです。回避策としては`drush rsync @self:sites/default/files @develop:sites/default/files`を使用できますが、ローカルとリモートのDrupalを実際に確認することをお勧めします(`drush status`でファイルディレクトリが正しく設定されているかどうかをテストできます)。
+しかし、場合によっては、このように正しく表示されないこともある：
 
-## 6. 完了しました { #6-its-done }
+```bash title="Drush rsync results"
+[drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
+You will delete files in drupal-example-develop@ssh.example.com:'/app/web/%files' and replace with data from '/app/web/%files'/
+Do you really want to continue? (y/n):
+```
 
-Lagoonがビルドとデプロイを完了すると、チャットシステムに2回目の通知を送信します。以下のような感じです:
+この理由は、Drupalがファイルディレクトリのパスを解決できないためです。これはおそらく、Drupalが完全設定されていないか、データベースが存在しないことが原因です。回避策としては`drush rsync @self:sites/default/files @develop:sites/default/files`を使用できます。しかし、実際にはローカルとリモートの Drupal を確認することをお勧めします (`drush status`コマンドを使用して、ファイルディレクトリが正しく設定されているかどうかを確認できます)
+
+## 6. 完了 { #6-its-done }
+
+Lagoonがビルドとデプロイを完了すると、チャットシステムに次のような2回目の通知が送信されます。:
 
 ![完全なデプロイメントのSlack通知。](../../images/first_deployment_slack_2nd_success.jpg)
 
-これには以下の情報が表示されます:
+通知は次のような内容を示しています:
 
 * デプロイされたプロジェクト
 * デプロイされたブランチとGit SHA
-* ビルドとデプロイメントの完全なログへのリンク
+* ビルドとデプロイのログへのリンク
 * 環境にアクセスできるすべてのルート(URL)へのリンク
 
-以上です！それが難しすぎなければよいのですが、私たちはDevOpsを使いやすくすることを目指しています。
+これで作業は完了です! DevOpsを簡単にできるようにすることが私たちの目標です。
 
-## しかし、他のブランチや本番環境はどうですか？ { #but-wait-how-about-other-branches-or-the-production-environment }
+## しかし、他のブランチや本番環境はどうなるのでしょうか？ { #but-wait-how-about-other-branches-or-the-production-environment }
 
-それがLagoonの美点です:まったく同じです。本番ブランチとして定義したブランチ名をプッシュすると、そのブランチがデプロイされます。
+Lagoonの優れた点は、まったく同じ方法で処理できることです。本番環境ブランチとして定義したブランチ名をプッシュすると、そのブランチがデプロイされます。
 
-## 失敗？心配しないで { #failure-dont-worry }
+## デプロイの失敗 { #failure-dont-worry }
 
-デプロイメントが失敗しましたか？ああ、それは大変です！でも、私たちは助けるためにここにいます:
+デプロイが失敗しましたか？ 心配しないでください。ヘルプを用意しています:
 
-1. エラー通知の中の `logs` リンクをクリックします。それは失敗が発生したデプロイメントプロセスのどこであったかを教えてくれます。
-2. それがわからない場合は、Lagoonの管理者に尋ねてみてください。彼らは助けるためにここにいます！
+1. エラー通知内の `logs` リンクをクリックします。デプロイプロセスでどこで失敗したかがわかります。
+2. 問題が解決できない場合は、Lagoon管理者に連絡してください。サポートいたします!

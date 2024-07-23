@@ -7,7 +7,7 @@
     image: uselagoon/redis-5
     labels:
       lagoon.type: redis
-    << : *default-user # トップから定義されたユーザーを使用します。
+    << : *default-user # 定義済みのユーザーを使用します。
     environment:
       << : *default-environment
 ```
@@ -33,9 +33,9 @@
 
 ## Drupal 8
 
-Drupal 8の設定は大部分が標準です。特筆すべきは、Drupalがインストールされている間はRedisが無効になっていることです。
+Drupal 8 の設定はほとんどデフォルト設定のままですが、インストール時に Redis は無効化されます。
 
-```php title=" "settings.php"
+```php title="settings.php"
 if (getenv('LAGOON')){
   $settings['redis.connection']['interface'] = 'PhpRedis';
   $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
@@ -75,10 +75,11 @@ if (getenv('LAGOON')){
     ];
   }
 }
+```
 
-### 持続性
+### 永続性
 
-Redisは、持続的なバックエンドとしても設定できます。
+Redisは、永続的なバックエンドとして設定することもできます。
 
 ```yaml title="docker-compose.yml"
 redis:
@@ -101,9 +102,9 @@ redis:
 
 ## Redisのフェイルオーバー
 
-以下は、Redisコンテナが利用できない場合(例えば、メンテナンス中など)にRedisのフェイルオーバーを実装するためのスニペットです。
+Redisコンテナが利用できない場合(例えば、メンテナンス中など)にRedisのフェイルオーバーを実装するためのスニペットを以下に示します。
 
-以下は、Drupalのアクティブな`settings.php`に挿入されます。 ファイル。
+以下をDrupalのアクティブな`settings.php`ファイルに追加します。
 
 ```php title="settings.php"
 if (getenv('LAGOON')) {
@@ -120,7 +121,7 @@ if (getenv('LAGOON')) {
       $client = Redis_Client::getClient();
       $response = $client->ping();
       if (!$response) {
-      throw new \Exception('Redisに到達できましたが、正しく応答していません。');
+      throw new \Exception('Redisにアクセスできましたが、正しく応答していません。');
       }
       $conf['redis_client_interface'] = 'PhpRedis';
       $conf['lock_inc'] = $contrib_path . '/redis/redis.lock.inc';
@@ -128,7 +129,7 @@ if (getenv('LAGOON')) {
       $conf['cache_backends'][] = $contrib_path . '/redis/redis.autoload.inc';
       $conf['cache_default_class'] = 'Redis_Cache';
     } catch (\Exception $e) {
-      // Redis このリクエストには利用できないため、Redisバックエンドの設定を行わず、キャッシュが使用されないように確認する必要があります。これにより次のリクエストが再試行されます。
+      // Redis このリクエストには利用できないため、Redisバックエンドの設定を行わず、キャッシュが使用されないようにします。これにより次のリクエストが再試行されます。
       // 'DrupalFakeCache'クラスが存在しない場合
       if (!class_exists('DrupalFakeCache')) {
         $conf['cache_backends'][] = 'includes/cache-install.inc';
