@@ -14,10 +14,10 @@
 
 ![Harborプロジェクトの概要](../../images/projects_overview.png)
 
-各Harborリポジトリ内には、単一のLagoonプロジェクトからのすべての環境のコンテナイメージのリストが表示されます。
+各Harborリポジトリ内には、1つのLagoonプロジェクトが持つすべての環境のコンテナイメージリストが表示されます。
 
 ![Harborリポジトリの概要](../../images/repositories_overview.png)
 
-ここから、個々のコンテナに深く掘り下げることができます。そのためには、 その詳細を見る、セキュリティスキャン結果の概要を含む。
+ここから、個々のコンテナを深く掘り下げてセキュリティスキャン結果の概要を含む詳細を見ることができます。
 
 ![Harbor Container Overview](../../images/container_overview.png)
