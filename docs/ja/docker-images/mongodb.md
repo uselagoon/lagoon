@@ -1,17 +1,17 @@
 # MongoDB
 
-> _MongoDBは、モダンなアプリケーション開発者とクラウド時代のために構築された、汎用的な、ドキュメントベースの分散データベースです。MongoDBはドキュメントデータベースであり、JSON形式のドキュメントとしてデータを格納します。_
+> _MongoDBは、汎用的なドキュメント型分散データベースであり、現代のアプリケーション開発者やクラウド時代のニーズに合わせて構築されています。データは JSONのような形式のドキュメントで保存されます_
 >
-> * [mongodb.com](https://www.mongodb.com/)から
+> * 出典: [mongodb.com](https://www.mongodb.com/)
 
 ## サポートされているバージョン { #supported-versions }
 
 4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/4.Dockerfile) - `uselagoon/mongo-4`
 
-このDockerfileは、スタンドアロンのMongoDBデータベースサーバーをセットアップするためのものです。
+このDockerfileは、スタンドアロンのMongoDBデータベースサーバーをセットアップするために使用されます。
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
-このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:
+このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:
 
-* フォルダーの権限は自動的に[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で適応されるため、このイメージはランダムなユーザーで動作し、したがってKubernetesまたはOpenShiftでも動作します。
+* フォルダの権限は、[`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)で自動的に適応されます。これにより、ランダムなユーザーでも動作するようにするため、KubernetesやOpenShiftでも使用できます。

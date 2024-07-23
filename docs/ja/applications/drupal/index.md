@@ -1,8 +1,8 @@
-# Lagoon上のDrupal
+# 概要
 
-LagoonはDrupalサイトをホストするために作られました(いや、本当に、少なくとも初めはそうでした！)
+LagoonはDrupalサイトをホストするために作られました(いや、本当に、少なくとも最初はそうでした！)
 
-このセクションでは、Drupalで使用するためにカスタマイズされたさまざまなサービスについての詳細情報を見つけることができます。
+このセクションでは、Drupalで使用するためにカスタマイズされた様々なサービスに関する詳細情報を見つけることができます。
 
 ## `drupal_integrations` Drupalスキャフォールディングパッケージ
 
@@ -10,4 +10,5 @@ LagoonはDrupalサイトをホストするために作られました(いや、�
 
 ## `lagoon-logs` Drupalモジュール
 
-[drupal.org](https://www.drupal.org/project/lagoon_logs)で利用可能な`lagoon_logs`モジュールは、Lagoon上のDrupalのためのゼロ設定ロギングを提供します。
+[drupal.org](https://www.drupal.org/project/lagoon_logs)で利用可能な`lagoon_logs`モジュールは、Lagoon上のDrupalに対して設定不要のロギングを提供します。
+
