@@ -4,7 +4,7 @@ sshport: 22
 sshhostname: ssh.example.com
 apiaddress: api.example.com
 helpstring: your Lagoon administrator
-helpstring_ja: Lagoon 管理者
+helpstring_ja: Lagoonの管理者
 
 ## Comment out any of the above, and uncomment the corresponding below to see the variables in action
 # name: amazee.io
