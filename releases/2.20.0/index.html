@@ -4180,6 +4180,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" class="md-nav__link">
+    Kubernetes minimum supported version is now 1.25, tested up to 1.30
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#deleted-backups" class="md-nav__link">
     Deleted Backups
   </a>
@@ -4648,6 +4655,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" class="md-nav__link">
+    Kubernetes minimum supported version is now 1.25, tested up to 1.30
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#deleted-backups" class="md-nav__link">
     Deleted Backups
   </a>
@@ -4722,6 +4736,10 @@
 <li>We also recommend that if you're using Harbor version 2.1.x and earlier, that you upgrade this as soon as possible. Follow any instructions that Harbor recommend for upgrading. As of this release, <code>lagoon-remote</code> has been tested up to Harbor version 2.10.0 (helm chart version 1.14.0). <a href="https://docs.lagoon.sh/releases/2.17.0/#harbor-21-and-earlier-support">Lagoon will stop supporting Harbor 2.1.x and earlier in a future release</a>.</li>
 </ul>
 <h2 id="deprecations">Deprecations<a class="headerlink" href="#deprecations" title="Permanent link">#</a></h2>
+<h3 id="kubernetes-minimum-supported-version-is-now-125-tested-up-to-130">Kubernetes minimum supported version is now 1.25, tested up to 1.30<a class="headerlink" href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" title="Permanent link">#</a></h3>
+<ul>
+<li>The minimum supported version of Kubernetes is now 1.25, owing to deprecations in some core <a href="https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-25">API functions</a>, and the availability of upstream charts. The v2.20.0 release will not install into an earlier version of Kubernetes, so any Kubernetes upgrades will need to be performed prior to the Lagoon update.</li>
+</ul>
 <h3 id="deleted-backups">Deleted Backups<a class="headerlink" href="#deleted-backups" title="Permanent link">#</a></h3>
 <ul>
 <li>When a backup is deleted via the webhook, it will now actually removed from the API rather than being flagged as deleted. The <code>Backup</code> type field <code>deleted</code> is deprecated, and will be removed in a future release. Additionally, <code>includeDeleted</code> if requested when querying backups will not change the result as there will be no deleted backups to include.</li>
