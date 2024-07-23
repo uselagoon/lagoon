@@ -1,11 +1,11 @@
 # Python
 
-[Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/python)。これは[公式のPython Alpineイメージ](https://hub.docker.com/_/python/)に基づいています。
+[Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/python)。これは[公式のPython Alpineイメージ](https://hub.docker.com/_/python/)をベースに作成されています。
 
 ## サポートされているバージョン { #supported-versions }
 
-* 2.7 \(互換性のためのみで、公式にはもうサポートされていません\) - `uselagoon/python-2.7`
-* 3.7 \(互換性のためのみで、公式にはもうサポートされていません\) - `uselagoon/python-3.7`
+* 2.7 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/python-2.7`
+* 3.7 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/python-3.7`
 * 3.8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.8.Dockerfile) (2024年10月までセキュリティサポート) - `uselagoon/python-3.8`
 * 3.9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.9.Dockerfile) (2025年10月までセキュリティサポート) - `uselagoon/python-3.9`
 * 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.10.Dockerfile) (2026年10月までセキュリティサポート) - `uselagoon/python-3.10`
@@ -13,41 +13,41 @@
 * 3.12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.12.Dockerfile) (2028年10月までセキュリティサポート)- `uselagoon/python-3.12`
 
 !!! Tip "ヒント"
-    私たちは通常、公式に通知されたEOL日付の後に来るLagoonリリースとともにEOL Pythonイメージの更新と公開を停止します:[https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions)。以前に公開されたバージョンは引き続き利用可能です。
+    Lagoonは、公式にアナウンスされた終了日(EOL)の後にリリースされるバージョンで、EOLに達したPythonイメージの更新を停止します。詳細は[https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions)を参照して下さい。
 
 ## Lagoonの適応 { #lagoon-adaptions }
 
 Pythonコンテナのデフォルトの公開ポートはポート`8800`です。
 
-永続的なストレージは、`lagoon.type: python-persistent`を使用してLagoonで設定可能です。詳細については[ドキュメント](../concepts-basics/docker-compose-yml.md#persistent-storage)をご覧ください。
+Lagoonでは、`lagoon.type: python-persistent`を使用して永続的なストレージを設定可能です。詳細については[ドキュメント](../concepts-basics/docker-compose-yml.md#persistent-storage)を参照ください。
 
-次のラベルを`docker-compose.yml`ファイルで使用して設定します:
-`lagoon.persistent` = これを使用して、永続的なストレージとして使用するコンテナ内のパスを定義します - 例えば/app/files
-`lagoon.persistent.size` = これを使用してLagoonにこのパスにどれだけのストレージを割り当てるかを伝えます。
+永続的なストレージを設定するには、`docker-compose.yml`ファイルで以下のラベルを使用します:
+`lagoon.persistent` = コンテナ内の永続ストレージとして使用するパスを定義します - 例えば/app/files
+`lagoon.persistent.size` = Lagoonに対して、このパスに割り当てるストレージ容量を指定します。
 
 同じストレージを共有する複数のサービスがある場合は、これを使用します
-`lagoon.persistent.name` =(オプション)これを使用してLagoonに別の名前付きサービスで定義されたストレージを使用するように伝えます。
+`lagoon.persistent.name` =(オプション)複数のサービスが同じストレージを共有する場合、別の名前付きサービスで定義されたストレージを使用するようにLagoonに指示します。
 
 ## `docker-compose.yml` スニペット { #docker-composeyml-snippet }
 
 ```yaml title="docker-compose.yml"
 python:
     build:
-    # これはビルドを設定します ルートフォルダにあるDockerfile
+    # ルートフォルダにあるDockerfileを使用してビルドを行うように設定します。
         context: .
         dockerfile: Dockerfile
     labels:
-    # Lagoonにこれがpythonサービスであり、/app/filesに500MBの永続的なストレージが設定されていることを伝えます
+    # Lagoonに対し、Pythonサービスであることと、/app/filesに500MBの永続ストレージを設定します。
         lagoon.type: python-persistent
         lagoon.persistent: /app/files
         lagoon.persistent.size: 500Mi
     ports:
-    # ローカル開発のみ
-          # 8800ポートをランダムなローカルポートで公開します
-          # `docker compose port python 8800`で見つけることができます
+    # ローカル開発のみ適用される設定です
+            # ポート8800をランダムなローカルポートにマッピングし、
+            # `docker compose port node 8800`でポートを確認することができます。
         - "8800"
     volumes:
-    # ローカル開発のみ
-        # このサービスの定義されたパスで名前付きボリューム(ファイル)をマウントし、本番環境を再現します
+    # ローカル開発のみ適用される設定です
+        # filesという名前のボリュームを定義されたパスにをマウントします。これは、本番環境と同じ状態を再現するためにローカル開発環境で利用されます。
         - files:/app/files
 ```
