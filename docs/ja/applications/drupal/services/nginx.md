@@ -90,3 +90,4 @@ NGINXコンテナのビルド時にこのファイルをコピーします。
 # Drupal StatisticsモジュールのNGINX設定を追加する
 COPY .lagoon/nginx/location_prepend_allow_statistics.conf /etc/nginx/conf.d/drupal/location_prepend_allow_statistics.conf
 ```
+

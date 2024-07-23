@@ -11,3 +11,4 @@ LagoonはDrupalサイトをホストするために作られました(いや、�
 ## `lagoon-logs` Drupalモジュール
 
 [drupal.org](https://www.drupal.org/project/lagoon_logs)で利用可能な`lagoon_logs`モジュールは、Lagoon上のDrupalに対して設定不要のロギングを提供します。
+

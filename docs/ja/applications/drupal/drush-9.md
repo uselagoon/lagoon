@@ -69,3 +69,4 @@ drush rsync @lagoon.main:%files  @self:%files -- --omit-dir-times --no-perms --n
 上記の内容は、リモート環境からローカル環境へ `rsync`を使って同期する場合には必要ありません。
 
 また、私たちは[Drushのメンテナと協力して](https://github.com/drush-ops/drush/issues/3491)、これを自動的に注入する方法を模索しています。
+

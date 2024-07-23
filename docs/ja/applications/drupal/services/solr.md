@@ -38,3 +38,4 @@ FROM uselagoon/solr:8-drupal
 
 CMD solr-recreate drupal /solr-conf && solr-recreate more-drupal /solr-conf && solr-foreground
 ```
+
