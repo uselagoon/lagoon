@@ -1,6 +1,6 @@
 # PHP
 
-## 紹介
+## はじめに
 
 Lagoonは、[Drupal](./drupal/index.md)、Laravel、[Wordpress](wordpress.md)、Magento、Symfonyなど、様々なPHPベースのアプリケーションをサポートしています。
 
