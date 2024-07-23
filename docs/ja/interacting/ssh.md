@@ -50,7 +50,7 @@ SSHキーをUIを通じてアップロードできます。通常通りにログ
 
 ### コマンドライン経由
 
-Lagoon APIをGraphQL経由で使用してユーザーにSSHキーを追加する一般的な例は[ここ](../interacting/graphql-queries.md#allowing-access-to-the-project)にあります。 -プロジェクト)
+ユーザーにSSHキーを追加するためのLagoon APIをGraphQL経由で使用する一般的な例は、[こちら](../interacting/graphql-queries.md#allowing-access-to-the-project)にあります。
 
 ## ポッドへのSSH接続
 
@@ -79,13 +79,14 @@ ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }}
 デフォルトでは、リモートシェルはタイプ`cli`で定義されたコンテナに接続しようとします。他のポッド/サービスに接続したい場合は、以下のように定義できます:
 
 ```bash title="SSH to another service"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
+ssh -p [PORT] -t [プロジェクト-環境名]@[ホスト] service=[サービス名]
 ```
 
 あなたのポッド/サービスに複数のコンテナが含まれている場合、Lagoonはあなたを最初に定義されたコンテナに接続します。また、接続したい特定のコンテナを定義することもできます:
 
-```bash title=" "コンテナ"を定義します。
+```bash title="コンテナを定義します。"
 ssh -p [ポート] -t [プロジェクト-環境名]@[ホスト] service=[サービス名] container=[コンテナ名]
+```
 
 例えば、`nginx`ポッド内の`php`コンテナに接続するには:
 
@@ -122,7 +123,7 @@ ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.s
 `tar`を`ssh`接続を通してパイプすることは最も単純な方法で、通常の`tar`フラグを用いてファイルやディレクトリーをコピーするために使用できます:
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [project_name]-[environment_name]@{{ defaults.sshhostname }} service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロジェクト名]-[環境名]@{{ defaults.sshhostname }} service=solr tar -zcf - [リモートパス] | tar -zxf - -C /tmp/
 ```
 
 また、LagoonのSSHサービスに必要な形で`ssh`の引数を並べ替えるラッパースクリプトを用いて`rsync`を使用することもできます:
@@ -137,7 +138,7 @@ exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defau
 それを実行可能なシェルスクリプト`rsh.sh`に入れて、`rsync`コマンドで`service=...`を指定します:
 
 ```bash title="rsync to non-CLI pod"
-rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@{{ defaults.sshhostname }}:/tmp/foo
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [プロジェクト名]-[環境名]@{{ defaults.sshhostname }}:/tmp/foo
 ```
 
 このスクリプトは、`container=...`引数も処理するように調整することもできます。
