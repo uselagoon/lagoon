@@ -104,11 +104,12 @@ services:
       context: .
       dockerfile: php.dockerfile
     labels:
-      lagoon.type: nginx-php-persistent lagoon.name:nginx
-      lagoon.persistent:/app/web/sites/default/files/
+      lagoon.type: nginx-php-persistent
+      lagoon.name: nginx
+      lagoon.persistent: /app/web/sites/default/files/
 
   mariadb:
-    image: amazeeio/mariadb-drupal
+    image: uselagoon/mariadb-10.11-drupal
     labels:
       lagoon.type: mariadb
 ```
@@ -153,7 +154,7 @@ services:
 `image`
 - Dockerfile をビルドする必要がなく、既存の Dockerfile を使用する場合は、`image` で定義します。
 
-この例では、現在のディレクトリのパスを指定しています。NGINX は `nginx.dockerfile` をビルドするように設定され、PHP は `php.dockerfile` をビルドするように設定されています。MariaDB は `amazeeio/mariadb-drupal` の既存のイメージを使用しています。Docker イメージの詳細については[こちら](../docker-images/commons.md) をご覧ください。
+この例では、現在のディレクトリのパスを指定しています。NGINX は `nginx.dockerfile` をビルドするように設定され、PHP は `php.dockerfile` をビルドするように設定されています。MariaDB は `uselagoon/mariadb-10.11-drupal` の既存のイメージを使用しています。Docker イメージの詳細については[こちら](../docker-images/commons.md) をご覧ください。
 
 ### タイプ { #types }
 
@@ -208,7 +209,7 @@ docker-compose.ymlでできることはもっとありますが、サービス�
 [`.lagoon.yml`](../concepts-basics/lagoon-yml.md) ファイルはプロジェクト設定の中心となるファイルで、以下の設定を含んでいます:
 
 - サイトへのアクセスルートを定義します。
-- プレロールアウトタスクを定義します。 
+- プレロールアウトタスクを定義します。
 - ポストロールアウトタスクを定義する。
 - SSL証明書を設定する。
 - 環境のためのcronジョブを追加する。
@@ -253,36 +254,25 @@ environments:
       - nginx:
         - example.com
         - example.net
-      - "www.example.com":
-          tls-acme: 'true'
-          insecure: Redirect
-          hsts: max-age=31536000
-      - "example.ch":
-          Annotations:
-            nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
-      - www.example.ch
-
-types:
-  mariadb: mariadb-galera
-
-templates:
-  mariadb: mariadb.main.deployment.yml
-
-rollouts:
-  mariadb: statefulset
-
-cronjobs:
-  - name: drush cron
-    schedule: "H * * * *" # 1時間に1回cronを実行します
-    command: drush cron
-    service: cli
-
-staging:
-  cronjobs:
-    - name: drush cron
-      schedule: "H * * * *" # 1時間に1回cronを実行します
-      command: drush cron
-      service: cli
+        - "www.example.com":
+            tls-acme: 'true'
+            insecure: Redirect
+            hsts: max-age=31536000
+        - "example.ch":
+            Annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # 1時間に1回cronを実行します
+       command: drush cron
+       service: cli
+  staging:
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # 1時間に1回cronを実行します。
+       command: drush cron
+       service: cli
 ```
 
 ### 一般設定
@@ -376,7 +366,7 @@ UptimeRobotがクラスタに設定されている場合、Lagoonは各ルート
 
 #### アノテーション
 
-!!! Info "Info"
+!!! Info "情報"
     ルート/イングレスアノテーションは、`nginx-ingress`コントローラーを実行しているクラスタにデプロイするプロジェクトでのみサポートされています。この機能がサポートされているかどうかは、Lagoon管理者に確認してください。
 
 アノテーションは、nginx-ingressコントローラーがサポートするYAMLマップ形式で記述できます。これは簡単なリダイレクトに便利です:
@@ -571,7 +561,7 @@ Recreating lagoon-test_nginx_1 ... done
 Recreating lagoon-test_varnish_1 ... done
 ```
 
-これによりすべてのコンテナが起動します。コマンドが完了した後、`docker-compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:
+これによりすべてのコンテナが起動します。コマンドが完了した後、`docker compose ps`で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:
 
 ```bash title="view running containers"
 ➜  lagoon-test git:(main) docker compose ps
@@ -583,8 +573,6 @@ lagoon-test_nginx_1     /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
 lagoon-test_php_1       /sbin/tini -- /lagoon/entr ...   Up      9000/tcp
 lagoon-test_redis_1     /sbin/tini -- /lagoon/entr ...   Up      6379/tcp
 lagoon-test_solr_1      /sbin/tini -- /lagoon/entr ...   Up      0.0.0.0:32769->8983/tcp
-lagoon-test_varnish_1   /sbin/tini -- /lagoon/entr ...   Up      8080/tcp
-
 ```
 
 問題がある場合は、 `docker-compose logs -f [servicename]`を使用してログを確認します。
@@ -642,7 +630,7 @@ Site path            :  sites/default
 ```
 
 !!! Info "情報"
-    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、こちらのドキュメンテーションを確認してください:[pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)。
+    次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。`Permission denied (publickey)`というエラーが表示された場合は、こちらのドキュメンテーションを確認してください:[pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/usage/#adding-ssh-keys)。
 
 これでDrupalをインストールする時が来ました（代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。ただし、最初はクリーンなDrupalをインストールして、全てが動作することを確認することをお勧めします）。
 
@@ -673,7 +661,7 @@ Database dump saved to dump.sql                         [success]
 これで、データベース全体を含むdump.sqlファイルができました。このファイルをローカルのGitリポジトリにコピーし、CLIに接続すると、そこにファイルが表示されるはずです：
 
 ```bash title="dump file"
-[drupal-example] docker-compose exec cli bash
+[drupal-example] docker compose exec cli bash
 [drupal-example]cli-drupal:/app$ ls -l dump.sql
 -rw-r--r--    1 root     root          5281 Dec 19 12:46 dump.sql
 ```

@@ -1,6 +1,6 @@
 # Solr
 
-[Lagoon `Solr`イメージのDockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile)。公式の[`solr:<version>-alpine`イメージ](https://hub.docker.com/_/solr)をベースに作成されています。
+[Lagoon `Solr`イメージのDockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile)。公式の[`solr:<version>-alpine`イメージ](https://hub.docker.com/_/solr)をベースに作成されています。
 
 このDockerfileは、初期コア`mycore`を持つスタンドアロンのSolrサーバーをセットアップするために使用されます。
 
@@ -9,8 +9,9 @@
 * 5.5 \(互換性のためのみ利用可能、公式サポートは終了しています\)
 * 6.6 \(互換性のためのみ利用可能、公式サポートは終了しています\)
 * 7.7 \(互換性のためのみ利用可能、公式サポートは終了しています\)
-* 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile) - `uselagoon/solr-7`
+* 7 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/solr-7`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile) - `uselagoon/solr-8`
+* 9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/9.Dockerfile) - `uselagoon/solr-9`
 
 ## Lagoonの適応 { #lagoon-adaptions }
 

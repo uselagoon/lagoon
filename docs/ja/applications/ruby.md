@@ -38,7 +38,7 @@ Railsの例では、`logstash-logger`というgemをインポートし、その�
 
 ## データベース設定
 
-この例では、私たちのPostgreSQLイメージを使用しています(`docker-compose.yml`ファイルを参照してください)。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoon はデータベース接続に必要な情報を環境変数として提供します。そのため、[`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails/blob/main/config/database) ファイルでこれらの環境変数を利用するように設定することで、簡単にデータベース接続を構成できます。
+この例では、私たちのPostgreSQLイメージを使用しています(`docker-compose.yml`ファイルを参照してください)。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoon はデータベース接続に必要な情報を環境変数として提供します。そのため、[`config/database.yml`](https://github.com/lagoon-examples/ruby-on-rails-demo/blob/main/config/database.yml) ファイルでこれらの環境変数を利用するように設定することで、簡単にデータベース接続を構成できます。
 
 ```yaml title="config/database.yml"
 default: &default

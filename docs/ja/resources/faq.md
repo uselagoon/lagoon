@@ -67,7 +67,7 @@ Drushをアップグレードすると、この問題は解消されるはずで
 
 任意の環境にSSHで接続できません。次のメッセージが表示されます: `Permission denied (publickey)`。`drush sa`を実行すると、エイリアスが返されません。
 
-これは通常、Pygmyの問題を示しています。Pygmyのトラブルシューティングドキュメントはこちらで見つけることができます:[https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+これは通常、Pygmyの問題を示しています。Pygmyのトラブルシューティングドキュメントはこちらで見つけることができます:[https://pygmystack.github.io/pygmy/troubleshooting/](https://pygmystack.github.io/pygmy/troubleshooting/)
 
 ## ビルドのステータスを確認するにはどうすればいいですか？
 
@@ -87,11 +87,11 @@ Lagoonは、`.lagoon.yml`からルートが削除されたことをデプロイ�
 
 ## `pygmy status`を実行すると、キーがロードされません
 
-SSHキーをpygmyにロードする必要があります。方法はこちら:[https://pygmy.readthedocs.io/en/master/ssh_agent](https://pygmy.readthedocs.io/en/master/ssh_agent)
+SSHキーをpygmyにロードする必要があります。方法はこちら:[https://pygmystack.github.io/pygmy/ssh_agent](https://pygmystack.github.io/pygmy/ssh_agent)
 
 ## `drush sa`を実行すると、エイリアスが返されません
 
-これは通常、Pygmyに問題があることを示しています。Pygmyのトラブルシューティングドキュメントはこちらで見つけることができます:[https://pygmy.readthedocs.io/en/master/troubleshooting]( https://pygmy.readthedocs.io/en/master/troubleshooting)
+これは通常、Pygmyに問題があることを示しています。Pygmyのトラブルシューティングドキュメントはこちらで見つけることができます:[https://pygmystack.github.io/pygmy/troubleshooting]( https://pygmystack.github.io/pygmy/troubleshooting)
 
 ## 「drushはより機能的な環境が必要です」というメッセージが表示され、デプロイが失敗する
 

@@ -75,10 +75,27 @@ production環境用のCron jobsが設定されているか確認してくださ�
 * `A`: `151.101.66.191`
 * `A`: `151.101.130.191`
 * `A`: `151.101.194.191`
-* `AAA`: `2a04:4e42::703`
+
+* `AAAA`: `2a04:4e42::703`
 * `AAAA`: `2a04:4e42:200::703`
 * `AAAA`: `2a04:4e42:400::703`
-* `AAA`: `2a04:4e42:600::703`
+* `AAAA`: `2a04:4e42:600::703`
+
+!!! Note "注意:"
+    静的IPの設定は推奨しません DNSゾーン内のIPアドレス。Lagoonのロードバランサインフラが時間とともに変化する可能性があり、静的IPアドレスを設定するとサイトの利用可能性に影響を及ぼす可能性があります。
+
+### ルートドメイン
+
+ルートドメイン(例:example.com)の設定は、DNSの仕様がルートドメインをCNAMEエントリにポイントすることを許可していないため、少々トリッキーになることがあります。DNSプロバイダによっては、レコード名が異なります:
+
+* ALIAS at [DNSimple](https://dnsimple.com/)
+* ANAME at [DNS Made Easy](http://www.dnsmadeeasy.com/)
+* ANAME at [easyDNS](https://www.easydns.com/)
+* ALIAS at [PointDNS](https://pointhq.com/)
+* CNAME at [CloudFlare](https://www.cloudflare.com/)
+* CNAME at [NS1](http://ns1.com)
+
+DNSプロバイダがルートドメイン用のIPアドレスを必要とする場合は、Lagoonの管理者に連絡してロードバランサのIPアドレスを提供してもらいます。
 
 ## 本番環境
 

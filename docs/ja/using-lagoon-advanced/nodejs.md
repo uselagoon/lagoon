@@ -34,9 +34,9 @@ Node.jsサーバーに、実際に自身を停止する前にすべてのリク�
 
 ```javascript title="Graceful Shutdown"
 const startGracefulShutdown = () => {
-  console.log('Expressのシャットダウンを開始...');
+  console.log('Starting shutdown of express...');
   server.close(function () {
-    console.log('Expressがシャットダウンしました。');
+    console.log('Express shut down.');
   });
 }
 

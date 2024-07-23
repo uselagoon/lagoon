@@ -6,7 +6,7 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 5(互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
+* 5 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/redis-5`または`uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6`または`uselagoon/redis-6-persistent`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7`または`uselagoon/redis-7-persistent`
 

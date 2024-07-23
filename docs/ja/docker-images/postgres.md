@@ -4,7 +4,7 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) (2023年11月までのセキュリティサポート) - `uselagoon/postgres-11`
+* 11 (互換性のためだけに利用可能、公式にはサポートされていません) - `uselagoon/postgres-11`
 * 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/postgres-12`
 * 13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/13.Dockerfile) (2025年11月までのセキュリティサポート) - `uselagoon/postgres-13`
 * 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (2026年11月までのセキュリティサポート) - `uselagoon/postgres-14`

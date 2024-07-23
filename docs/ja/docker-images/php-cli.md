@@ -11,12 +11,12 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 7.3(互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-7.3-cli`
-* 7.4(互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-7.4-cli`
-* 8.0(互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-8.0-cli`
-* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile)(2024年11月までセキュリティサポート) - `uselagoon/php-8.1-cli`
-* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.2.Dockerfile)(2025年12月までセキュリティサポート) - `uselagoon/php-8.2-cli`
-* 8.3 [ Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.3.Dockerfile) (2026年12月までのセキュリティサポート) - `uselagoon/php-8.3-cli`
+* 7.3 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-7.3-cli`
+* 7.4 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-7.4-cli`
+* 8.0 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-8.0-cli`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) (2024年11月までセキュリティサポート) - `uselagoon/php-8.1-cli`
+* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.2.Dockerfile) (2025年12月までセキュリティサポート) - `uselagoon/php-8.2-cli`
+* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.3.Dockerfile) (2026年12月までセキュリティサポート) - `uselagoon/php-8.3-cli`
 
 すべてのPHPバージョンは、それぞれのDockerfilesを使用します。
 

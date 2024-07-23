@@ -8,10 +8,10 @@ Node.jsのイメージは2つのバージョンがあります。通常の`node:
 
 `node:version-builder`には、Node.jsアプリケーションをビルドする際に必要な追加ツール(ビルドライブラリ、npm、Yarnなど)が含まれています。詳細なリストについては、[Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder)を参照してください。
 
-* 12(互換性のためのみ利用可能、公式サポートは終了しています)- `uselagoon/node-12`
-* 14(互換性のためのみ利用可能、公式サポートは終了しています)- `uselagoon/node-14`
-* 16(互換性のためのみ利用可能、公式サポートは終了しています)- `uselagoon/node-16`
-* 18(互換性のためのみ利用可能、公式サポートは終了しています)- `uselagoon/node-18`
+* 12 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-12`
+* 14 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-14`
+* 16 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-16`
+* 18 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-18`
 * 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (2025年4月までのセキュリティサポート) - `uselagoon/node-20`
 * 22 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/22.Dockerfile) (2026年4月までのセキュリティサポート) - `uselagoon/node-22`
 

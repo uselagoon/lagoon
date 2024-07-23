@@ -13,10 +13,10 @@
 
 ## サポートされているバージョン { #supported-versions }
 
-* 7.3 (互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-7.3-fpm`
-* 7.4 (互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-7.4-fpm`
-* 8.0 (互換性のためのみ利用可能、公式サポートは終了しています) - `uselagoon/php-8.0-fpm`
-* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main /images/php-fpm/8.1.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/php-8.1-fpm`
+* 7.3 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-7.3-fpm`
+* 7.4 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-7.4-fpm`
+* 8.0 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/php-8.0-fpm`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (2024年11月までのセキュリティサポート) - `uselagoon/php-8.1-fpm`
 * 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.2.Dockerfile) (2025年12月までのセキュリティサポート) - `uselagoon/php-8.2-fpm`
 * 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.3.Dockerfile) (2026年12月までのセキュリティサポート) - `uselagoon/php-8.3-fpm`
 

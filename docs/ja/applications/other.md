@@ -9,7 +9,7 @@ Lagoonが特定のアプリケーション、フレームワーク、言語用�
 この簡単な例は、Hugoウェブサイトをビルドし、NGINXイメージで静的ファイルとして提供する方法を示しています。commonsイメージを使用してHugoを追加し、サイトをコピーしてビルドします。その後、カスタマイズされたNGINX設定を追加したNGINXイメージを使用してサイトを提供します。
 
 ```bash title="nginx.dockerfile"
-FROM uselagoon/commons as builder
+FROM uselagoon/commons AS builder
 
 RUN apk add hugo git
 WORKDIR /app

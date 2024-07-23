@@ -62,14 +62,14 @@ SSHキーをUIを通じてアップロードできます。通常通りにログ
 ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST]
 ```
 
-* `PORT` - リモートシェルのSSHエンドポイントポート(amazee.ioの場合:`32222`)。
-* `HOST` - リモートシェルのSSHエンドポイントホスト(amazee.ioの場合`ssh.lagoon.amazeeio.cloud`)。
+* `PORT` - リモートシェルのSSHエンドポイントポート(amazee.ioの場合:`{{ defaults.sshport }}`)。
+* `HOST` - リモートシェルのSSHエンドポイントホスト(amazee.ioの場合`{{ defaults.sshhostname }}`)。
 * `PROJECT-ENVIRONMENT-NAME` - 接続したい環境。これは通常`PROJECTNAME-ENVIRONMENT`のパターンで使用されます。
 
 例えば:
 
 ```bash title="SSH example"
-ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud
+ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }}
 ```
 
 これにより、`main`環境のプロジェクト`drupal-example`に接続します。
@@ -91,7 +91,7 @@ ssh -p [ポート] -t [プロジェクト-環境名]@[ホスト] service=[サー
 例えば、`nginx`ポッド内の`php`コンテナに接続するには:
 
 ```bash title="SSH to php container"
-ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx container=php
+ssh -p {{ defaults.sshport }} -t drupal-example-main@s{{ defaults.sshhostname }} service=nginx container=php
 ```
 
 ## ファイルのコピー
@@ -101,19 +101,19 @@ ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx cont
 ### scp
 
 ```bash title="Copy file with scp"
-scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [ローカルパス] [プロジェクト名]-[環境名]@ssh.lagoon.amazeeio.cloud:[リモートパス]
+scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [ローカルパス] [プロジェクト名]-[環境名]@{{ defaults.sshhostname }}:[リモートパス]
 ```
 
 ### rsync
 
 ```bash title="Copy files with rsync"
-rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222' [ローカルパス] [プロジェクト名]-[環境名]@ssh.lagoon.amazeeio.cloud:[リモートパス]
+rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }}' [ローカルパス] [プロジェクト名]-[環境名]@{{ defaults.sshhostname }}:[リモートパス]
 ```
 
 ### tar
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロジェクト名]-[環境名]@ssh.lagoon.amazee.io tar -zcf - [リモートパス] | tar -zxf - -C /tmp/
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [プロジェクト名]-[環境名]@{{ defaults.sshhostname }} tar -zcf - [リモートパス] | tar -zxf - -C /tmp/
 ```
 
 ### 非CLIポッド/サービスの指定
@@ -123,7 +123,7 @@ ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロ
 `tar`を`ssh`接続を通してパイプすることは最も単純な方法で、通常の`tar`フラグを用いてファイルやディレクトリーをコピーするために使用できます:
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロジェクト名]-[環境名]@ssh.lagoon.amazee.io service=solr tar -zcf - [リモートパス] | tar -zxf - -C /tmp/
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロジェクト名]-[環境名]@{{ defaults.sshhostname }} service=solr tar -zcf - [リモートパス] | tar -zxf - -C /tmp/
 ```
 
 また、LagoonのSSHサービスに必要な形で`ssh`の引数を並べ替えるラッパースクリプトを用いて`rsync`を使用することもできます:
@@ -132,13 +132,13 @@ ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [プロ
 #!/usr/bin/env sh
 svc=$1 user=$3 host=$4
 shift 4
-exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222 -l "$user" "$host" "$svc" "$@"
+exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }} -l "$user" "$host" "$svc" "$@"
 ```
 
 それを実行可能なシェルスクリプト`rsh.sh`に入れて、`rsync`コマンドで`service=...`を指定します:
 
 ```bash title="rsync to non-CLI pod"
-rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [プロジェクト名]-[環境名]@ssh.lagoon.amazeeio.cloud:/tmp/foo
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [プロジェクト名]-[環境名]@s{{ defaults.sshhostname }}:/tmp/foo
 ```
 
 このスクリプトは、`container=...`引数も処理するように調整することもできます。

@@ -1,5 +1,5 @@
 <p align="center"><img
-src="https://raw.githubusercontent.com/amazeeio/lagoon/main/docs/images/lagoon-logo.png"
+src="https://raw.githubusercontent.com/uselagoon/lagoon/main/docs/images/lagoon-logo.png"
 alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
 width="40%"></p>
 
@@ -8,7 +8,7 @@ information on using, developing, and administering Lagoon.
 
 # API (`api`)
 
-The main GraphQL API for Lagoon. Uses the [Apollo server library](https://www.apollographql.com/docs/apollo-server/v1/).
+The main GraphQL API for Lagoon. Uses the [Apollo server library](https://www.apollographql.com/docs/apollo-server/v2).
 
 ## Technology
 

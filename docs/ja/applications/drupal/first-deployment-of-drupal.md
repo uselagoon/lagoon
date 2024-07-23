@@ -38,7 +38,7 @@ Lagoonは完全なDrushサイトエイリアスをサポートしており、ロ
 !!! Warning "警告"
     次のステップの前に、pygmyに公開キーを登録する必要があるかもしれません。
 
-`Permission denied (publickey)`などのエラーが発生した場合、こちらのドキュメントを参照してください:[pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/ssh_agent)
+`Permission denied (publickey)`などのエラーが発生した場合、こちらのドキュメントを参照してください:[pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/ssh_agent)
 
 まずは、Drush サイトエイリアスを確認してみましょう:
 

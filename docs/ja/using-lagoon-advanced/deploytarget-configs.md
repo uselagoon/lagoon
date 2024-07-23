@@ -84,7 +84,7 @@ mutation addDeployTargetConfig{
 
 ```GraphQL title="DeployTargetの設定"
 mutation addDeployTargetConfig{
-  add DeployTargetConfig(input:{
+  addDeployTargetConfig(input:{
     project: 1
     branches: "^feature/|^(dev|test|develop)$"
     pullrequests: "true"
@@ -141,7 +141,7 @@ query deployTargetConfigsByProjectId{
                 "id": 1
             },
             "project": {
-                "name":  "my-project"
+                "name": "my-project"
             }
         },
         {

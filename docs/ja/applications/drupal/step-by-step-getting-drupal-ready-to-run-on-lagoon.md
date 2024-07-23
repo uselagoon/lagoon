@@ -116,7 +116,7 @@ Site path            :  sites/default
 !!! Warning "警告"
     次のステップ前に、pygmyに公開鍵について伝える必要があるかもしれません。
 
-`Permission denied (publickey)`のようなエラーが出た場合は、こちらからSSHキーの追加方法に関するドキュメントを参照ください: [pygmy - sshキーの追加](https://pygmy.readthedocs.io/en/master/ssh_agent)
+`Permission denied (publickey)`のようなエラーが出た場合は、こちらからSSHキーの追加方法に関するドキュメントを参照ください: [pygmy - sshキーの追加](https://pygmystack.github.io/pygmy/ssh_agent)
 
 次にDrupalをインストールします(既存のSQLファイルをインポートしたい場合は、[ステップ7へスキップ](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump)してください。ただし、すべてが機能することを確認するために、最初からクリーンなDrupalインストールをお勧めします。))。
 

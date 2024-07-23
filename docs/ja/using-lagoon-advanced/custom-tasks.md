@@ -43,8 +43,8 @@ mutation addAdvancedTask {
     advancedTaskDefinitionArguments: [
       {
         name: "ENVIROMENT_VARIABLE_NAME",
-        displayName: "Friendly Name For "Variable",
-        type: [文字列 | 環境ソース名 | 自己を除く環境ソース名]
+        displayName: "Friendly Name For Variable",
+        type: [STRING | ENVIRONMENT_SOURCE_NAME | ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF]
       }
     ]
   }) {

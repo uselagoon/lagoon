@@ -22,7 +22,7 @@ Lagoon has traditionally worked best with `pygmy` , which is a preconfigured sys
 brew tap pygmystack/pygmy && brew install pygmy
 ```
 
-For detailed usage or installation info on pygmy, see its [documentation](https://pygmy.readthedocs.io/en/master/).
+For detailed usage or installation info on pygmy, see its [documentation](https://pygmystack.github.io/pygmy/).
 
 ### Lando
 

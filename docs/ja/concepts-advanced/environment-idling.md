@@ -2,7 +2,7 @@
 
 ## 環境アイドラーとは何ですか？
 
-Lagoonは、[Aergiaコントローラー](https://github.com/amazeeio/aergia-controller)(`lagoon-remote`にインストールされています)を利用して、一定期間使用されていない環境を自動的にアイドル状態にします。これは、Kubernetesクラスタの負荷を軽減し、実際に使用中の本番環境と開発環境の全体的なパフォーマンスを向上させるために行われます。
+Lagoonは、[Aergiaコントローラー](https://github.com/uselagoon/aergia-controller)(`lagoon-remote`にインストールされています)を利用して、一定期間使用されていない環境を自動的にアイドル状態にします。これは、Kubernetesクラスタの負荷を軽減し、実際に使用中の本番環境と開発環境の全体的なパフォーマンスを向上させるために行われます。
 
 ### 環境はどのようにしてアイドル状態になりますか？
 
