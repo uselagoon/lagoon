@@ -2,7 +2,7 @@
 
 LagoonはKibanaを介して以下のログにアクセスを提供します:
 
-* Kubernetes Routersからのログ。これには次の全てのHTTPおよびHTTPSリクエストが含まれます:
+* Kubernetesルーターからのログには、すべてのHTTPおよびHTTPSリクエストが含まれています。:
   * ソースIP
   * URL
   * パス
@@ -14,7 +14,7 @@ LagoonはKibanaを介して以下のログにアクセスを提供します:
   * コンテナ名
   * 応答サイズ
   * 応答時間
-* コンテナからのログ:
+* コンテナのログ:
   * `stdout`と`stderr`メッセージ
   * コンテナ名
   * プロジェクト
@@ -23,18 +23,19 @@ LagoonはKibanaを介して以下のログにアクセスを提供します:
   * ビルドログ
   * ビルドエラー
   * その他のLagoon関連ログ
-* アプリケーションログ:
+* アプリケーションのログ:
   * Drupalの場合: Drupal Watchdogからのログを受け取るために、[Lagoon Logs](https://www.drupal.org/project/lagoon_logs)モジュールをインストールします。
   * Laravelの場合: [Laravel用Lagoon Logs](https://github.com/amazeeio/laravel_lagoon_logs)パッケージをインストールします。
   * その他のワークロード:
     * ログを`udp://application-logs.lagoon.svc:5140`に送信します。
     * ログがJSONエンコードされたオブジェクトとして構造化されていることを確認します。
-    * `type`フィールドにはKubernetesの名前空間の名前(`$LAGOON_PROJECT-$LAGOON_ENVIRONMENT`)が含まれていることを確認します。
+    * `type`フィールドにKubernetesネームスペースの名前が含まれていることを確認してください(`$LAGOON_PROJECT-$LAGOON_ENVIRONMENT`)。
 
-ログにアクセスするには、KibanaルートのURLを取得するためにLagoonの管理者に確認してください(amazee.ioの場合、これは[https://logs.amazeeio.cloud/](https://logs.amazeeio.cloud/)です)。 logs.amazeeio.cloud/)。
+ログにアクセスするには、Lagoon管理者に連絡してKibanaルートのURLを取得してください（amazee.ioの場合は[https://logs.amazeeio.cloud/](https://logs.amazeeio.cloud/)です)。
 
-各Lagoonユーザーアカウントは独自のログインを持ち、アクセス権があるプロジェクトのログのみを見ることができます。
+各Lagoonユーザーアカウントには個別のログインがあり、アクセス権のあるプロジェクトのログのみが表示されます。
 
 各Lagoonユーザーアカウントはまた、独自の**Kibana Tenant**を持っており、これは保存された検索やビジュアライゼーションが他のアカウントと共有されないことを意味します。
 
-Kibanaの使用方法について詳しく知りたい場合は、こちらをご覧ください:[https://www.elastic.co/webinars/getting-started-kibana](https://www.elastic.co/webinars/getting-started-kibana)。
+Kibanaの使用方法について詳しく知りたい場合は、こちらをご覧ください:
+[https://www.elastic.co/webinars/getting-started-kibana](https://www.elastic.co/webinars/getting-started-kibana)

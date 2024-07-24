@@ -14,9 +14,9 @@ composer req simplesamlphp/simplesamlphp
 
 ### SimpleSAMLphpの設定を変更する
 
-`vendor/simplesamlphp/simplesamlphp/config-templates`から`authsources.php`と`config.php`をベンダーディレクトリ外の`conf/simplesamlphp`のような場所にコピーします。また、`vendor/simplesamlphp/simplesamlphp/metadata-templates`から`saml20-idp-remote.php`も必要です。
+`vendor/simplesamlphp/simplesamlphp/config-templates`から`authsources.php`と`config.php`を`vendor`ディレクトリ外の`conf/simplesamlphp`のような場所にコピーします。また、`vendor/simplesamlphp/simplesamlphp/metadata-templates`から`saml20-idp-remote.php`も必要です。
 
-`config.php`で次のLagoonの値を設定します:
+`config.php`でLagoonに以下の値を設定します:
 
 SimpleSAMLphpにアクセスするための基本URLパス:
 
@@ -24,7 +24,7 @@ SimpleSAMLphpにアクセスするための基本URLパス:
   'baseurlpath' => 'https://YOUR_DOMAIN.TLD/simplesaml/',
 ```
 
-セッションをデータベースに保存する:
+セッションをデータベースに保存します。
 
 ```php title="config.php"
   'store.type'                    => 'sql',
@@ -36,14 +36,14 @@ SimpleSAMLphpにアクセスするための基本URLパス:
   ]),
 ```
 
-他の設定を好みに合わせて変更します:
+他の設定はお好みで設定してください。
 
-* ログと証明書のパスを確認します。
-* SimpleSAMLphpを保護します。 ダッシュボード。
-* ロギングのレベルを設定します。
-* `technicalcontact`と`timezone`を設定します。
+* ログと証明書のパスを確認します
+* SimpleSAMLphpダッシュボードを保護します
+* ロギングのレベルを設定します
+* `technicalcontact`と`timezone`を設定します
 
-`authsources.php`にauthsources(IdPs)を追加します。例を参照してください:
+例を参考に`authsources.php`にauthsources(IdPs)を追加します。
 
 ```php title="authsources.php"
   'default-sp' => [
@@ -88,7 +88,7 @@ SimpleSAMLphpにアクセスするための基本URLパス:
   ],
 ```
 
-`saml20-idp-remote.php`にIdPメタデータを追加します。例を参照してください:
+例を参考に`saml20-idp-remote.php`にIdPメタデータを追加します。
 
 ```php title="saml20-idp-remote.php"
 <?php
@@ -115,7 +115,7 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
 ];
 ```
 
-ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします:
+ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします
 
 * `vendor/simplesamlphp/simplesamlphp/config/authsources.php`
 * `vendor/simplesamlphp/simplesamlphp/config/config.php`
@@ -140,7 +140,7 @@ location ^~ /simplesaml {
 }
 ```
 
-これにより、`/simplesaml` URLがベンダーのSimpleSAMLphpにルーティングされます。
+これにより、`/simplesaml` URLが`vendor`のSimpleSAMLphpにルーティングされます。
 
 ### NGINXイメージに追加のNGINX設定を追加する
 

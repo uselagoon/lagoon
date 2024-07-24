@@ -1,12 +1,12 @@
-# Lagoon上のWordPress
+# WordPressをLagoonで実行
 
-[WordPressテンプレート](https://www.github.com/lagoon-examples/wordpress-base)は、WordPress、その依存性、およびテーマをインストールするためにComposerを使用するように設定されています。
+[WordPressテンプレート](https://www.github.com/lagoon-examples/wordpress-base)は、Composerを使用してWordPress、その依存関係、およびテーマをインストールするように設定されています。
 
-WordPressテンプレートは、[https://github.com/roots/bedrock](https://github.com/roots/bedrock)ボイラープレートを基にしていますが、標準化されたLagoonのデプロイメントパターンに合わせて拡張されています。
+このWordPressテンプレートは、[https://github.com/roots/bedrock](https://github.com/roots/bedrock)のボイラープレートをベースにしていますが、標準化されたLagoonのデプロイメントパターンに合わせて拡張されています。
 
 ## Composerインストール
 
-テンプレートは、WordPressとそのテーマをインストールするためにComposerを使用します。
+このテンプレートは、WordPressとそのテーマをインストールするためにComposerを使用します。
 
 ## データベース
 
@@ -14,7 +14,7 @@ LagoonはMariaDBとPostgreSQLデータベースをサポートしていますが
 
 ## NGINXの設定
 
-LagoonにはWordPress用の組み込み設定がありません - 代わりに、テンプレートには[初期設定のnginx.conf](https://github.com/lagoon-examples/wordpress-base/tree/main/lagoon/nginx)が付属しています - あなたが見つけた改善点をぜひ投稿してください!
+LagoonにはWordPress用の組み込み設定がありません - 代わりに、テンプレートには[初期設定のnginx.conf](https://github.com/lagoon-examples/wordpress-base/tree/main/lagoon/nginx)が付属しています。改善点があれば、ぜひ貢献してください！
 
 ## WP-CLI
 

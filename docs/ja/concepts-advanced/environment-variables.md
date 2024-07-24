@@ -1,24 +1,24 @@
 # 環境変数
 
-APIトークンやアプリケーションの資格情報を環境変数に保存することは一般的です。
+APIトークンやアプリケーションのクレデンシャルを環境変数に保存することは一般的です。
 
-ベストプラクティスに従って、これらの資格情報は環境ごとに異なります。私たちは、各環境が環境変数または環境ファイルで定義された別の環境変数セットを使用できるようにします。
+ベストプラクティスに従うと、これらのクレデンシャルは環境ごとに異なります。私たちは、各環境が環境変数または.`env`ファイルで定義された別の環境変数セットを使用できるようにします。
 
-Dockerfileまたはランタイム時(API環境変数経由)のいずれかで定義されている環境変数があるため、環境変数の階層があります。低い数字で定義された環境変数が強いです。
+環境変数にはDockerfileまたはランタイム時(API環境変数経由)のいずれかで定義される場合があるため優先順位があり、より低い数字で定義された環境変数が優先されます。
 
 1. 環境変数(Lagoon API経由で定義) - 環境固有。
 2. 環境変数(Lagoon API経由で定義) - プロジェクト全体。
 3. Dockerfileで定義された環境変数(`ENV`コマンド)。
-4. `.lagoon.env.$LAGOON_GIT_BRANCH`または`.lagoon.env.$LAGOON_GIT_SAFE_BRANCH`で定義された環境変数(ファイルが存在し、`$LAGOON_GIT_BRANCH` `$LAGOON_GIT_SAFE_BRANCH`がこのDockerイメージがビルドされたブランチの名前と安全な名前である場合)、これを特定のブランチのみの変数の上書きに使用します。
-5. `.lagoon.env`で定義された環境変数(存在する場合)、これを全ての変数の上書きに使用します。 ブランチ。
+4. `.lagoon.env.`の`$LAGOON_GIT_BRANCH`または`.lagoon.env.`の`$LAGOON_GIT_SAFE_BRANCH`で定義された環境変数(ファイルが存在し、`$LAGOON_GIT_BRANCH`と`$LAGOON_GIT_SAFE_BRANCH`がこのDockerイメージがビルドされたブランチの名前と一致する名前である場合、これらの値をこの特定のブランチの変数に上書きします。）
+5. `.lagoon.env`で定義された環境変数(存在する場合)、これを全てのブランチの変数の上書きに使用します。
 6. `.env`で定義された環境変数。
 7. `.env.defaults`で定義された環境変数。
 
-`.lagoon.env.$LAGOON_GIT_BRANCH`、`.lagoon.env.$LAGOON_GIT_SAFE_BRANCH`、`.env`、そして `.env.defaults`は、全て、各コンテナ自体によってエントリーポイントスクリプトの一部として実行される際にソース化されます。それらはLagoonではなく、コンテナの `ENTRYPOINT` スクリプトによって読み込まれ、コンテナの作業ディレクトリでそれらを探します。環境変数が期待通りに表示されない場合は、コンテナに他の場所を指す `WORKDIR` 設定があるかどうかを確認してください。
+`.lagoon.env.`の`$LAGOON_GIT_BRANCH`、`.lagoon.env.`の`$LAGOON_GIT_SAFE_BRANCH`、`.env`、そして `.env.defaults`は、全て、各コンテナ自体によってエントリーポイントスクリプトの一部として実行される際にソース化されます。それらはLagoonではなく、コンテナの`ENTRYPOINT`スクリプトによって読み込まれ、コンテナの作業ディレクトリでそれらを探します。環境変数が期待通りに表示されない場合は、コンテナに他の場所を指す`WORKDIR`設定があるかどうかを確認してください。
 
 ## 環境変数 - Lagoon API { #environment-variables-lagoon-api }
 
-Gitリポジトリに保存したくない変数(シークレットやAPIキーなど)については、Lagoon APIの環境変数システムを使用することをお勧めします。これらの変数は、誰かがローカルの開発環境やインターネット上に持っていると、危険にさらされる可能性があります。
+Gitリポジトリに保存したくない変数(シークレットキーやAPIキーなど)については、Lagoon APIの環境変数システムを使用することをお勧めします。これらの変数は、誰かがローカルの開発環境やインターネット上に持っていると、危険にさらされる可能性があります。
 
 Lagoon APIでは、プロジェクト全体または環境固有の変数を定義することができます。さらに、スコープ限定のビルド時またはランタイムに対して定義することもできます。これらはすべてLagoon GraphQL APIを通じて作成されます。GraphQL APIの使用方法については、[GraphQL API](../interacting/graphql.md)のドキュメンテーションで詳しく説明しています。
 
@@ -70,7 +70,7 @@ mutation addRuntimeEnv {
 ARG MYVARIABLENAME
 ```
 
-通常、`ARG`はその後に行くでしょう。 FROM. [ARGとFROMについてのdockerドキュメントを読む](https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact)。
+通常、`ARG`は`FROM`の後に記述します。[ARGとFROMについてのdockerドキュメントを読む](https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact)。
 
 これは、ID `463`のプロジェクト全体のビルド時変数(すべての環境で利用可能)を定義します。
 
@@ -141,7 +141,7 @@ mutation addContainerRegistryEnv {
 
 ## Gitリポジトリに直接存在する環境ファイル { #environment-files-existing-directly-in-the-git-repo }
 
-Gitリポジトリ内に安全に保存できる環境変数がある場合、追加することをお勧めします Gitリポジトリの環境ファイルに直接入力します。これらの変数はローカル開発環境でも利用可能であり、より移植性が高いです。
+Gitリポジトリ内に安全に保存できる環境変数がある場合、それらをファイルに直接追加することをお勧めします 。これらの変数はローカル開発環境でも利用可能であり、より移植性が高くなります。
 
 環境ファイルの構文は次のとおりです:
 
@@ -157,15 +157,15 @@ DB_USER=$DB_USERNAME # DB_USERNAMEの値でDB_USERを再定義します。例え
 
 ### `.env` and `.env.defaults` { #env-and-envdefaults }
 
-`.env`と`.env.defaults`は、他に定義されていない場合の環境変数のデフォルト値として機能します。例えば、プルリクエスト環境用のデフォルト環境変数として([Workflows](workflows.md#pull-requests)参照)。
+`.env`と`.env.defaults`は、他に定義されていない場合の環境変数のデフォルト値として機能します。例えば、プルリクエスト環境用のデフォルト環境変数として利用します([Workflows](workflows.md#pull-requests)参照)。
 
 ## 特別な環境変数 { #special-environment-variables }
 
 ### `PHP_ERROR_REPORTING` { #php_error_reporting }
 
-この変数が設定されている場合、PHPが使用する[ログ](../logging/logging.md)レベルを定義します。指定されていない場合は、それが これはプロダクション環境か開発環境かによって動的に設定されます。
+この変数が設定されている場合、PHPが使用する[ログ](../logging/logging.md)レベルを定義します。指定されていない場合は、`production`環境か開発環境かによって動的に設定されます。
 
-プロダクション環境では、この値はデフォルトで`E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE`になります。
+`production`環境では、この値はデフォルトで`E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE`になります。
 
 開発環境では、この値はデフォルトで`E_ALL & ~E_DEPRECATED & ~E_STRICT`になります。
 
@@ -177,31 +177,31 @@ Lagoonは、次の4つの変数すべてが`BUILD`タイプの変数として設
 
 | 環境変数名              | 目的                                                                                                                                                               |
 |:---------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT`   | Lagoon によって開始されたバックアップを保存する S3 互換エンドポイントを指定します。S3 Sydney の例は次のようになります。 `https://s3.ap-southeast-2.amazonaws.com`. |
-| `LAGOON_BAAS_CUSTOM_BACKUP_BUCKET`     | Lagoon によって開始されたバックアップを保存するバケット名を指定します。カスタム設定の例は次のようになります。 `example-restore-bucket`.                             |
-| `LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY` | カスタム バックアップ バケットにアクセスするために Lagoon が使用するアクセス キーを指定します。カスタム設定の例は次のようになります。 `AKIAIOSFODNN7EXAMPLE`.                              |
-| `LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY` | カスタム バックアップ バケットにアクセスするために Lagoon が使用する秘密キーを指定します。カスタム設定の例は次のようになります。 `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.          |
+| `LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT`   | Lagoonによって開始されたバックアップを保存するS3互換エンドポイントを指定しますS3 Sydneyの例は次のようになります。 `https://s3.ap-southeast-2.amazonaws.com` |
+| `LAGOON_BAAS_CUSTOM_BACKUP_BUCKET`     | Lagoonによって開始されたバックアップを保存するバケット名を指定します。カスタム設定の例は次のようになります。 `example-restore-bucket`                             |
+| `LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY` | カスタム バックアップバケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 `AKIAIOSFODNN7EXAMPLE`                              |
+| `LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY` | カスタムバックアップバケットにアクセスするためにLagoonが使用する秘密キーを指定します。カスタム設定の例は次のようになります。 `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`          |
 
-S3 バケットではパブリック アクセスは不要で、完全にプライベートにすることができます。
+S3バケットではパブリックアクセスは不要で、完全にプライベートにすることができます。
 
-Lagoon はこれらの S3 バケット内のファイルを自動的に削除するため、バケット レベルでオブジェクト保持ポリシーは必要ありません。
+LagoonはこれらのS3バケット内のファイルを自動的に削除するため、バケットレベルでのオブジェクト保持ポリシーは必要ありません。
 
 ### カスタム復元場所 { #custom-restore-location }
 
-`BUILD`タイプの環境変数として以下の全4つの変数が設定されている場合、任意のプロジェクトに対してカスタムリストアロケーションと資格情報を設定できます。環境変数はプロジェクトレベルで設定する必要があり(環境ごとではなく)、それらを設定した後、Lagoonのデプロイが必要です(各環境について)。
+`BUILD`タイプの環境変数として以下の全4つの変数が設定されている場合、任意のプロジェクトに対してカスタムリストアロケーションとクレデンシャルを設定できます。環境変数はプロジェクトレベルで設定する必要があり(環境ごとではなく)、それらを設定した後、Lagoonのデプロイが必要です(各環境について)。
 
-これらの変数を使用すると、Lagoonによって復元されたすべての環境とデータベースのスナップショットがこれらの資格情報を使用して保存されることに注意してください。これは、これらの資格情報へのアクセスが中断されると、復元されたファイルの失敗またはアクセス不能につながる可能性があることを意味します。
+これらの変数を使用すると、Lagoonによって復元されたすべての環境とデータベースのスナップショットがこれらのクレデンシャルを使用して保存されることに注意してください。これらのクレデンシャルへのアクセスが中断されると、復元されたファイルの失敗またはアクセス不能につながる可能性があることを意味します。
 
 | 環境変数名               | 目的                                                                                                                                                                |
 |:----------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT`   | Lagoon によって開始された復元を保存する S3 互換エンドポイントを指定します。S3 Sydney の例は次のようになります。 `https://s3.ap-southeast-2.amazonaws.com`. |
-| `LAGOON_BAAS_CUSTOM_RESTORE_BUCKET`     | Lagoon によって開始された復元を保存するバケット名を指定します。カスタム設定の例は次のようになります。 `example-restore-bucket`.                             |
-| `LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY` | カスタム復元バケットにアクセスするために Lagoon が使用するアクセス キーを指定します。カスタム設定の例は次のようになります。 `AKIAIOSFODNN7EXAMPLE`.                              |
-| `LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY` | カスタム復元バケットにアクセスするために Lagoon が使用する秘密キーを指定します。カスタム設定の例は次のようになります。 `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.          |
+| `LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT`   | Lagoonによって開始された復元を保存する S3 互換エンドポイントを指定します。S3 Sydneyの例は次のようになります。 `https://s3.ap-southeast-2.amazonaws.com` |
+| `LAGOON_BAAS_CUSTOM_RESTORE_BUCKET`     | Lagoonによって開始された復元を保存するバケット名を指定します。カスタム設定の例は次のようになります。 `example-restore-bucket`                             |
+| `LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY` | カスタム復元バケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 `AKIAIOSFODNN7EXAMPLE`                              |
+| `LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY` | カスタム復元バケットにアクセスするためにLagoonが使用するシークレットキーを指定します。カスタム設定の例は次のようになります。 `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`          |
 
-Lagoon は必要に応じてバケット内のオブジェクトの[署名済み URL](https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html) を作成するため、S3 バケットではパブリック アクセスが有効になっている必要があります。
+Lagoonは必要に応じてバケット内のオブジェクトの[署名済みURL](https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html) を作成するため、S3バケットではパブリックアクセスが有効になっている必要があります。
 
-S3 バケット `example-restore-bucket` のみへのアクセスを許可するように作成できる AWS IAM ポリシーの例は次のとおりです。
+S3バケット `example-restore-bucket` のみへのアクセスを許可するように作成できる AWS IAM ポリシーの例は次のとおりです。
 
 ```json title="aws_iam_restore_policy.json"
 {
@@ -234,4 +234,4 @@ S3 バケット `example-restore-bucket` のみへのアクセスを許可する
 }
 ```
 
-増強されたセキュリティと削減されたストレージコストのために、[設定されたライフタイム後に復元されたバックアップを削除する](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html)(例えば、7日間)を選択することができます。Lagoonはこのシナリオをうまく処理し、必要に応じて復元されたスナップショットを再作成します。
+セキュリティの強化とストレージコスト削減のために、[設定されたライフタイム後に復元されたバックアップを削除する](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html)(例えば、7日間)を選択することができます。Lagoonはこのシナリオをうまく処理し、必要に応じて復元されたスナップショットを再作成します。

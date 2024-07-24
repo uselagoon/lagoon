@@ -1,6 +1,6 @@
 # UIで組織と共同作業する
 
-以下は、Lagoon UIでの組織関連のタスクを組織、プロジェクト、ユーザー、ロールと共に行うためのステップバイステップのガイドです。
+以下に、Lagoon UIでグループ、プロジェクト、ユーザー、および役割に関連する有用なタスクを実行するためのステップバイステップガイドを示します。
 
 ## ログインして組織を探す { #log-in-and-find-organizations }
 
@@ -18,7 +18,7 @@
 
 <iframe src="https://scribehow.com/embed/Remove_a_User_from_a_Group__mSXpvF91R-irT19f3gCI2A?removeLogo=true" width="100%" height="640" allowfullscreen frameborder="0"></iframe>
 
-## ユーザーの役割を変更する { #change-a-user-role }
+## ユーザーのロールを変更する { #change-a-user-role }
 
 <iframe src="https://scribehow.com/embed/Change_a_User_Role__zj1UqJ3iTDCTvRKg3zLIFg?removeLogo=true" width="100%" height="640" allowfullscreen frameborder="0"></iframe>
 

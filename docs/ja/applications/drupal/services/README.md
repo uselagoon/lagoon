@@ -1,25 +1,26 @@
-# サービス
+# 概要
 
 ## MariaDBは、オープンソースのMySQLの後継者です
 
 [DrupalとMariaDBについて学ぶ](mariadb.md)
 
-[プレーンなMariaDBイメージに関するドキュメンテーション](../../../docker-images/mariadb.md)(このMariaDB-Drupalイメージはこれをベースに作成されています)。
+[標準的なMariaDBイメージに関するドキュメンテーション](../../../docker-images/mariadb.md)(このMariaDB-Drupalイメージはこれをベースに作成されています)
 
-## Redisは高速なオープンソースのインメモリキーバリューデータストアで、データベース、キャッシュ、メッセージブローカー、キューとして利用できます
+## Redisは、データベース、キャッシュ、メッセージブローカー、キューとして使用するための、高速でオープンソースのインメモリ・キーバリュー・データストアです
 
-[DrupalとRedisについて学ぶ。](../services/redis.md)
+[DrupalとRedisについて学ぶ](../services/redis.md)
 
-[Redis-persistentイメージに関するドキュメンテーション。](../../../docker-images/redis.md)
+[Redis-persistentイメージに関するドキュメンテーション](../../../docker-images/redis.md)
 
 ## Solrはオープンソースの検索プラットフォームです
 
-[DrupalとSolrについて学ぶ。](../services/solr.md)
+[DrupalとSolrについて学ぶ](../services/solr.md)
 
-[プレーンなSolrイメージに関するドキュメンテーション](../../../docker-images/solr.md) \(このSolr-Drupalイメージはこれをベースに作成されています\)。
+[標準的なSolrイメージに関するドキュメンテーション](../../../docker-images/solr.md) \(このSolr-Drupalイメージはこれをベースに作成されています\)
 
-## Varnishは、ウェブサイトの速度を向上させるための強力なオープンソースのHTTPエンジンおよび逆HTTPプロキシです
+## Varnishは、ウェブサイトの速度を向上させるための強力なオープンソースのHTTPエンジンおよびリバースHTTPプロキシです
 
 [DrupalとVarnishについて学ぶ](../services/varnish.md)
 
-[プレーンなVarnishイメージに関するドキュメンテーション](../../../docker-images/varnish.md) \(このVarnish-Drupalイメージはこれをベースに作成されています\)。
+[標準的なVarnishイメージに関するドキュメンテーション](../../../docker-images/varnish.md) \(このVarnish-Drupalイメージはこれをベースに作成されています\)
+

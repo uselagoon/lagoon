@@ -22,7 +22,7 @@ ssh -p 32222 -t lagoon@ssh.lagoon.amazeeio.cloud token
 <!-- markdown-link-check-disable-next-line -->
 amazee.ioではこれは[`https://api.lagoon.amazeeio.cloud/graphql`](https://api.lagoon.amazeeio.cloud/graphql)です。
 
-さて、GraphQLクライアントが必要です！技術的にはこれは単なるHTTPですが、我々はGraphiQLを推奨します。これは素敵なUIを備えており、オートコンプリートでGraphQLのリクエストを書くことができます。ダウンロードしてインストールし、起動します。 \[[GraphiQL App](https://github.com/skevy/graphiql-app)\]
+さて、GraphQLクライアントが必要です。技術的にはこれは単なるHTTPですが、我々はGraphiQLを推奨します。これは素敵なUIを備えており、オートコンプリートでGraphQLのリクエストを書くことができます。ダウンロードしてインストールし、起動します。 \[[GraphiQL App](https://github.com/skevy/graphiql-app)\]
 
 APIエンドポイントURLを入力します。次に"Edit HTTP Headers"をクリックし、新しいヘッダーを追加します:
 

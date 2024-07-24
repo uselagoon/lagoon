@@ -271,7 +271,7 @@ plugins:
             Deploy Targets: デプロイターゲット
             Organizations: 組織
             Roles: ロール
-            Advanced Lagoon Concepts: 高度なLagoonの概念
+            Advanced Lagoon Concepts: Lagoonの高度な概念
             Service Types: サービスタイプ
             Environment Types: 環境タイプ
             Environment Variables: 環境変数
@@ -280,8 +280,8 @@ plugins:
             Base Images: ベースイメージ
             Workflows: ワークフロー
             Feature Flags: フィーチャーフラグ
-            Lagoonizing: Lagoon化
-            Lagoonizing Your Existing Site: 既存サイトのLagoon化
+            Lagoonizing: Lagoonizing
+            Lagoonizing Your Existing Site: 既存サイトのLagoonizing
             Docker Images: Dockerイメージ
             Configuring Applications: アプリケーションの設定
             Options: オプション
@@ -305,7 +305,7 @@ plugins:
             Lagoon Build Errors and Warnings: Lagoonビルドエラーと警告
             Going Live: 本番環境への移行
             Using Lagoon - Advanced: Lagoonの高度な使い方
-            Active/Standby: アクティブ/スタンバイ
+            Active/Standby: Active/Standby
             Triggering Deployments: デプロイのトリガー
             Private Repositories: プライベートリポジトリ
             Project Default Users and SSH Keys: プロジェクトのデフォルトユーザーとSSHキー
