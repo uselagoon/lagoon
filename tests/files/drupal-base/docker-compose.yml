@@ -1,4 +1,3 @@
-version: '2'
 services:
   cli:
     build:
@@ -11,9 +10,10 @@ services:
       lagoon.persistent.name: nginx
     environment:
       LAGOON_PROJECT: ci-drupal
-      LAGOON_ROUTE: drupal9-mariadb.docker.amazee.io
+      LAGOON_ROUTE: drupal-mariadb.docker.amazee.io
     volumes:
       - .:/app:delegated
+    user: root
   nginx:
     networks:
       - amazeeio-network
@@ -21,6 +21,8 @@ services:
     build:
       context: .
       dockerfile: lagoon/nginx.dockerfile
+      args:
+        CLI_IMAGE: builder
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
@@ -34,11 +36,13 @@ services:
     ports:
       - "8080"
     environment:
-      LAGOON_LOCALDEV_URL: drupal9-mariadb.docker.amazee.io
+      LAGOON_LOCALDEV_URL: drupal-mariadb.docker.amazee.io
   php:
     build:
       context: .
       dockerfile: lagoon/php.dockerfile
+      args:
+        CLI_IMAGE: builder
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/

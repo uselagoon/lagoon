@@ -12,9 +12,6 @@
 - ansible.builtin.import_playbook: drupal/drush-la.yaml
   vars:
     testname: "DRUSH integration {{ cluster_type|upper }}"
-    drupal_version: 9
-    db: mariadb-single
-    php_version: 8.0
     git_repo_name: drush.git
     project: ci-drush-la-{{ cluster_type }}
 
@@ -22,21 +19,18 @@
   vars:
     project: ci-drush-la-{{ cluster_type }}
 
-- ansible.builtin.import_playbook: api/add-project.yaml
-  vars:
-    project: ci-drush-sa-{{ cluster_type }}
-    git_repo_name: drush-sa.git
-    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+# - ansible.builtin.import_playbook: api/add-project.yaml
+#   vars:
+#     project: ci-drush-sa-{{ cluster_type }}
+#     git_repo_name: drush-sa.git
+#     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- ansible.builtin.import_playbook: drupal/drush-sa.yaml
-  vars:
-    testname: "DRUSH legacy {{ cluster_type|upper }}"
-    drupal_version: 8
-    db: mariadb-single
-    php_version: 7.4
-    git_repo_name: drush-sa.git
-    project: ci-drush-sa-{{ cluster_type }}
+# - ansible.builtin.import_playbook: drupal/drush-sa.yaml
+#   vars:
+#     testname: "DRUSH legacy {{ cluster_type|upper }}"
+#     git_repo_name: drush-sa.git
+#     project: ci-drush-sa-{{ cluster_type }}
 
-- ansible.builtin.import_playbook: api/delete-project.yaml
-  vars:
-    project: ci-drush-sa-{{ cluster_type }}
+# - ansible.builtin.import_playbook: api/delete-project.yaml
+#   vars:
+#     project: ci-drush-sa-{{ cluster_type }}

@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    git_files: "drupal-base/"
     branch: "drush-first"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
@@ -24,7 +24,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    git_files: "drupal-base/"
     branch: "drush-second"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
@@ -194,7 +194,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    git_files: "drupal-base/"
     branch: "foo/bar"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
