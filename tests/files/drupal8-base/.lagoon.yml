@@ -16,10 +16,7 @@ tasks:
         name: IF no Drupal installed, install Drupal
         command: |
             cd web
-            if tables=$(drush sqlq "show tables like \"node\";") && [ -z "$tables" ]; then
-                # no drupal installed, we install drupal from an db dump
-                zcat ../drupal.sql.gz | $(drush sql-connect)
-            fi
+            drush si -y minimal
             # set the sitename to the current SHA and BRANCH
             drush -y cset system.site name "LAGOON_GIT_SHA=$LAGOON_GIT_SHA LAGOON_GIT_BRANCH=$LAGOON_GIT_BRANCH"
         service: cli
@@ -32,21 +29,13 @@ tasks:
 environments:
   master:
     routes:
-        - nginx:
-            - "domain.com":
-                tls-acme: 'true'
-                insecure: Allow
-            - www.domain.com
-
+      - nginx:
+          - "domain.com":
+              tls-acme: 'true'
+              insecure: Allow
+          - www.domain.com
     cronjobs:
-        - name: drush cron
-          schedule: "1 * * * *"
-          command: drush cron
-          service: cli
-
-  drupal8-php74-mariadb-single:
-    cronjobs:
-        - name: drush cron
-          schedule: "1 * * * *"
-          command: drush cron
-          service: cli
+      - name: drush cron
+        schedule: "1 * * * *"
+        command: drush cron
+        service: cli

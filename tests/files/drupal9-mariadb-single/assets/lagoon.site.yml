@@ -1,8 +1,0 @@
-'*':
-  host: lagoon-remote-ssh-portal.lagoon.svc
-  paths:
-    files: /app/web/sites/default/files
-  user: ${env-name}
-  ssh:
-    options: '-o StrictHostKeyChecking=accept-new -o LogLevel=FATAL -p 2222'
-    tty: false
