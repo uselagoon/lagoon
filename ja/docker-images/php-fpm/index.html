@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1185,7 +1185,7 @@
       
         <li class="md-nav__item">
   <a href="#php" class="md-nav__link">
-    含まれるPHP設定
+    PHP設定
   </a>
   
 </li>
@@ -2513,7 +2513,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4603,7 +4603,7 @@
       
         <li class="md-nav__item">
   <a href="#php" class="md-nav__link">
-    含まれるPHP設定
+    PHP設定
   </a>
   
 </li>
@@ -4646,21 +4646,23 @@
 
 
 <h1 id="php-fpm">PHP-FPM<a class="headerlink" href="#php-fpm" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm">Lagoonの <code>php-fpm</code> Dockerイメージ</a>です。<a href="https://hub.docker.com/_/php/">公式のPHP Alpineイメージ</a>に基づいています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm">Lagoonの <code>php-fpm</code> Dockerイメージ</a>です。<a href="https://hub.docker.com/_/php/">公式のPHP Alpineイメージ</a>をベースに作成されています。</p>
 <blockquote>
-<p><em>PHP-FPM(FastCGIプロセスマネージャ)は、追加機能を備えた代替PHP FastCGIの実装で、任意のサイズのサイト、特に忙しいサイトに役立ちます。</em></p>
-<p><a href="https://php-fpm.org/">https://php-fpm.org/</a>より</p>
-<p>FastCGIは、サーバースクリプトがタイムコンシューミングなコードを一度だけ実行する方式で、スクリプトがロードされるたびに実行されるのを防ぎ、オーバーヘッドを軽減します。</p>
+<p><em>PHP-FPM(FastCGI Process Manager)は、FastCGI プロトコルを利用した PHP の実装のひとつで、様々な規模のサイト、特にトラフィックが多いサイト向けに便利な追加機能を備えています。</em></p>
+<ul>
+<li>出典: <a href="https://php-fpm.org/">https://php-fpm.org/</a></li>
+</ul>
+<p>FastCGIは、サーバースクリプトが時間のかかるコードをスクリプトがロードされる毎度ではなく、一度だけ実行できるようにする仕組みです。これにより、オーバーヘッドを削減します。</p>
 </blockquote>
 <div class="admonition info">
 <p class="admonition-title">情報</p>
-<p>このDockerfileは、Lagoon内での任意の<code>PHP</code>ニーズの基盤として使用することを目的としています。このイメージ自体はウェブサーバーを作成せず、<code>php-fpm</code> fastcgiリスナーを作成します。<code>php-fpm</code>プール設定を適応させる必要があるかもしれません。</p>
+<p>Dockerfileは、Lagoon内で<code>PHP</code>を利用するためのベースとして使用する想定です。このイメージ自体がウェブサーバーを作成するのではなく、<code>php-fpm</code>によるFastCGIリスナーを作成します。<code>php-fpm</code>プールの設定を調整する必要が生じるかもしれません。</p>
 </div>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>7.3 (互換性を保つためのみに利用可能、公式サポートは終了) - <code>uselagoon/php-7.3-fpm</code></li>
-<li>7.4 (互換性を保つためのみに利用可能、公式サポートは終了) - <code>uselagoon/php-7.4-fpm</code></li>
-<li>8.0 (互換性を保つためのみに利用可能、公式サポートは終了) - <code>uselagoon/php-8.0-fpm</code></li>
+<li>7.3 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-7.3-fpm</code></li>
+<li>7.4 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-7.4-fpm</code></li>
+<li>8.0 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-8.0-fpm</code></li>
 <li>8.1 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile">Dockerfile</a> (2024年11月までのセキュリティサポート) - <code>uselagoon/php-8.1-fpm</code></li>
 <li>8.2 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.2.Dockerfile">Dockerfile</a> (2025年12月までのセキュリティサポート) - <code>uselagoon/php-8.2-fpm</code></li>
 <li>8.3 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.3.Dockerfile">Dockerfile</a> (2026年12月までのセキュリティサポート) - <code>uselagoon/php-8.3-fpm</code></li>
@@ -4668,18 +4670,18 @@
 <p>すべてのPHPバージョンはそれぞれのDockerfilesを使用します。</p>
 <div class="admonition tip">
 <p class="admonition-title">ヒント</p>
-<p>End of Life (EOL) PHP画像の更新は通常、公式に発表されたEOL日付の後のLagoonリリースで停止します:<a href="https://www.php.net/supported-versions.php">https://www.php.net/supported-versions.php</a>。以前に公開されたバージョンは利用可能なままとなります。</p>
+<p>Lagoonは、公式にアナウンスされた終了日(EOL)の後にリリースされるバージョンで、EOLに達したPHPイメージの更新を停止します。詳細は<a href="https://www.php.net/supported-versions.php">https://www.php.net/supported-versions.php</a>を参照して下さい。</p>
 </div>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかのことが行われています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダの権限は<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されますので、この画像はランダムなユーザーで動作します。</li>
-<li><code>/usr/local/etc/php/php.ini</code> および <code>/usr/local/etc/php-fpm.conf</code>、および <code>/usr/local/etc/php-f pm.d/</code>は、コンテナエントリーポイントを経由して<a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a>で解析されます。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
+<li><code>/usr/local/etc/php/php.ini</code> および <code>/usr/local/etc/php-fpm.conf</code>ファイル、<code>/usr/local/etc/php-f pm.d/</code>ディレクトリ内の全てのファイルは、コンテナエントリーポイントを通して<a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a>で処理されます。</li>
 <li>インストールされている <code>PHP</code> 拡張機能については、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile">Dockerfile</a>を参照してください。</li>
-<li>さらなる拡張機能をインストールするには、このイメージからDockerfileを拡張します。ドキュメントに従って拡張機能をインストールしてください。見出し<a href="https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions">How to install more PHP extensions.</a>を参照。</li>
+<li>さらなる拡張機能をインストールするには、このイメージをもとにDockerfileを拡張してください。拡張機能のインストール方法は、ドキュメント<a href="https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions">How to install more PHP extensions.</a>を参照してください。</li>
 </ul>
-<h2 id="php">含まれるPHP設定<a class="headerlink" href="#php" title="Permanent link">#</a></h2>
-<p>含まれる <code>PHP</code> 設定には、<code>PHP</code> プール設定の作成を容易にする合理的な値が含まれています。以下にいくつかを挙げます。すべてについては <code>/usr/local/etc/php.ini</code>、<code>/usr/local/etc/php-fpm.conf</code> を確認してください:</p>
+<h2 id="php">PHP設定<a class="headerlink" href="#php" title="Permanent link">#</a></h2>
+<p><code>PHP</code> 設定には、<code>PHP</code>プール設定の作成を容易にするための適切な値が設定されています。以下はその一部のリストです。詳細は<code>/usr/local/etc/php.ini</code>、<code>/usr/local/etc/php-fpm.conf</code> を確認してください:</p>
 <table>
 <thead>
 <tr>
@@ -4690,64 +4692,66 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>max_execution_time = 900</code></td>
-<td style="text-align: left;"><code>PHP_MAX_EXECUTION_TIME</code> で変更可能。</td>
+<td style="text-align: left;"><code>PHP_MAX_EXECUTION_TIME</code> で変更可能</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>realpath_cache_size = 256k</code></td>
-<td style="text-align: left;">大規模なPHPプロジェクトのため。</td>
+<td style="text-align: left;">大規模なPHPプロジェクトを扱うための設定</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>memory_limit = 400M</code></td>
-<td style="text-align: left;">大規模なPHPプロジェクトのため(<code>PHP_MEMORY_LIMIT</code> で変更可能)。</td>
+<td style="text-align: left;">大規模なPHPプロジェクトを扱うための設定(<code>PHP_MEMORY_LIMIT</code> で変更可能)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>opcache.memory_consumption = 265</code></td>
-<td style="text-align: left;">大規模なPHPプロジェクトのため。</td>
+<td style="text-align: left;">大規模なPHPプロジェクトを扱うための設定</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>opcache.enable_file_override = 1</code> と <code>opcache.huge_code_pages = 1</code></td>
-<td style="text-align: left;">高速なPHPのため。</td>
+<td style="text-align: left;">より高速なPHPのための設定</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>display_errors = Off</code> と <code>display_startup_errors = Off</code></td>
-<td style="text-align: left;">実用的な生産値の場合 (<code>PHP_DISPLAY_ERRORS</code> および <code>PHP_DISPLAY_STARTUP_ERRORS</code> を介して変更可能)。</td>
+<td style="text-align: left;">実用的なproduction設定 (<code>PHP_DISPLAY_ERRORS</code> および <code>PHP_DISPLAY_STARTUP_ERRORS</code> で変更可能)。</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>upload_max_filesize = 2048M</code></td>
-<td style="text-align: left;">大きなファイルのアップロード用。</td>
+<td style="text-align: left;">大容量ファイルのアップロードのための設定</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>apc.shm_size = 32m</code> と <code>apc.enabled = 1</code></td>
-<td style="text-align: left;"><code>PHP_APC_SHM_SIZE</code> および <code>PHP_APC_ENABLED</code> を介して変更できます。</td>
+<td style="text-align: left;"><code>PHP_APC_SHM_SIZE</code> および <code>PHP_APC_ENABLED</code> で変更可能</td>
 </tr>
 </tbody>
 </table>
-<p>また、<code>php-fpm</code> のエラー ログは <code>stderr</code> に記録されます。</p>
-<p><strong>💡 これらの設定のいずれも気に入らない場合は、次の 3 つの方法があります:</strong></p>
+<p>また、<code>php-fpm</code>のエラーログは <code>stderr</code>に記録されます。</p>
+<p><strong>💡 これらの設定のいずれも気に入らない場合は、次の3つの方法があります:</strong></p>
 <ol>
-<li>環境変数で変更可能な場合は、環境変数を使用します (これが推奨される方法です。以下の <a href="./#environment-variables">環境変数の表</a> を参照してください)。</li>
-<li>独自の <code>fpm-pool</code> 設定を作成し、<code>php_admin_value</code> および <code>php_admin_flag</code> で設定します。
-    1. 詳細については、<a href="https://www.php.net/manual/en/configuration.changes.php"><code>PHP を Apache モジュールとして実行するためのこのドキュメント</code></a> を参照してください。このドキュメントは Apache について説明していますが、<code>php-fpm</code> にも当てはまります。</li>
-</ol>
-<p><em>重要:</em></p>
-<ol>
-<li>独自の <code>php-fpm</code> プールを提供する場合は、ファイル <code>/usr/local/etc/php-fpm.d/www.conf</code> を独自の設定で上書きするか、別の名前にしたい場合はこのファイルの名前を変更します。これを行わないと、提供されたプールが起動します。</li>
-<li><a href="https://www.php.net/manual/ja/configuration.changes.modes.php"><code>PHP_INI_SYSTEM</code>変更可能モード</a>を持つPHPの値は、<code>fpm-pool</code>設定を介して変更できません。すでに提供されている環境変数または以下の方法で変更する必要があります:</li>
-<li>独自の<code>php.ini</code>または<code>php-fpm.conf</code>ファイルを提供します(これは最も好ましくない方法です)。</li>
+<li>設定値が環境変数で変更できる場合は、環境変数を使ってください(これが推奨される方法です。<a href="./#environment-variables">環境変数の表</a> の詳細は以下の表にまとめてありますので、参照ください。)</li>
+<li>以下のドキュメントにある<code>php_admin_value</code>および<code>php_admin_flag</code>を使って、独自のカスタム<code>fpm-pool</code>設定を作成し、それを適用することができます。<ul>
+<li>詳細については、<a href="https://www.php.net/manual/en/configuration.changes.php"><code>PHP を Apache モジュールとして実行するためのこのドキュメント</code></a> を参照してください。このドキュメントはApacheモジュールとしてのPHP実行について説明していますが、<code>php-fpm</code> にも当てはまります。<br><br>
+<em>重要:</em><ul>
+<li>独自の <code>php-fpm</code> プールを適用したい場合は、<code>/usr/local/etc/php-fpm.d/www.conf</code>ファイルを自分の設定で上書きするか、別の名前を付けたい場合はこのファイル名を変更してください。この操作を行わないと、最初から用意されているプールが起動します。</li>
+<li><a href="https://www.php.net/manual/ja/configuration.changes.modes.php"><code>PHP_INI_SYSTEM</code>変更可能モード</a>のPHPの設定値は、<code>fpm-pool</code>設定では変更できません。こういった設定値は、用意されている環境変数を使うか、または:</li>
+<li>独自の<code>php.ini</code>または<code>php-fpm.conf</code>ファイルを用意する必要があります(この方法は推奨されません)</li>
+</ul>
+</li>
+</ul>
+</li>
 </ol>
 <h2 id="fpm-pool">デフォルトのfpm-pool<a class="headerlink" href="#fpm-pool" title="Permanent link">#</a></h2>
-<p>このイメージは、<code>fpm-pool</code>設定(<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/php-fpm.d/www.conf"><code>php-fpm.d/www.conf</code></a>)が付属しており、<code>fpm-pool</code>を作成し、ポート9000でリッスンします。これは、PHPのほとんどのニーズをすでにカバーしているイメージを提供しようとしているためです。もし好きなら、自分自身で作成することも歓迎します！</p>
-<p>このファイルが何をするかの短い説明:</p>
+<p>このイメージは、<code>fpm-pool</code>設定ファイル(<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/php-fpm.d/www.conf"><code>php-fpm.d/www.conf</code></a>)が含まれており、このファイルは<code>fpm-pool</code>を作成し、ポート9000でリッスンします。これは、ほとんどのPHPアプリケーションのニーズを最初からカバーできるようにするためです。もちろん、必要に応じて独自の設定を作成することもできます。</p>
+<p>このファイルの内容の説明:</p>
 <ul>
 <li>IPv4とIPv6でポート9000でリッスンします。</li>
-<li>pm <code>dynamic</code>を使用し、2-50の子を作成します。</li>
-<li>メモリリークを防ぐために、500のリクエスト後に<code>php-fpm</code>プールの子を再生成します。</li>
-<li><code>/ping</code>へのfastcgiリクエストに<code>pong</code>で応答します(プールが起動したかどうかを自動テストで確認するのに便利)。</li>
-<li>PHPのエラーを見るために<code>catch_workers_output = yes</code>。</li>
-<li><code>clear_env =</code>を使用して、通常のDocker環境変数経由でPHP環境変数を注入できます。</li>
+<li>pm <code>dynamic</code>を使用し、2から50までの子プロセスを作成します。</li>
+<li>メモリリークを防ぐために、500のリクエスト後に<code>php-fpm</code>プールの子プロセスを再生成します。</li>
+<li><code>/ping</code>へのfastcgiリクエストに対して<code>pong</code>で応答します(プールが起動しているかどうかの自動テストに便利)。</li>
+<li><code>catch_workers_output = yes</code>により、PHPのエラーを確認できるようにする。</li>
+<li><code>clear_env = no</code>により、通常の Docker 環境変数を使って PHP 環境変数を注入できるようにする</li>
 </ul>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>一部のオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>経由で設定可能です。</p>
+<p>一部のオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>で設定可能です。</p>
 <table>
 <thead>
 <tr>
@@ -4760,7 +4764,7 @@
 <tr>
 <td style="text-align: left;">NEWRELIC_ENABLED</td>
 <td style="text-align: left;">false</td>
-<td style="text-align: left;">NewRelicのパフォーマンスモニタリングを有効にします。<code>NEWRELIC_LICENSE</code>の設定が必要です。</td>
+<td style="text-align: left;">NewRelicのパフォーマンスモニタリングを有効にします。有効にするには<code>NEWRELIC_LICENSE</code>を設定する必要がありますす。</td>
 </tr>
 <tr>
 <td style="text-align: left;">NEWRELIC_LICENSE</td>
@@ -4770,87 +4774,87 @@
 <tr>
 <td style="text-align: left;">NEWRELIC_BROWSER_MONITORING_ENABLED</td>
 <td style="text-align: left;">true</td>
-<td style="text-align: left;">これにより、NewRelicのブラウザモニタリングのためのJavaScriptフラグメントの自動挿入が有効になります。 . 重要:<code>NEWRELIC_ENABLED</code>はNewRelicを有効にするために<code>true</code>に設定する必要があります。</td>
+<td style="text-align: left;">NewRelicブラウザ監視用のJavaScriptフラグメントの自動挿入を有効にします。重要:NewRelicを有効にするには<code>NEWRELIC_ENABLED</code>を<code>true</code>に設定する必要があります。</td>
 </tr>
 <tr>
 <td style="text-align: left;">NEWRELIC_DISTRIBUTED_TRACING_ENABLED</td>
 <td style="text-align: left;">false</td>
-<td style="text-align: left;">これにより分散トレーシングが有効になります。重要:<code>NEWRELIC_ENABLED</code>はNewRelicを有効にするために<code>true</code>に設定する必要があります。</td>
+<td style="text-align: left;">分散トレースを有効にします。重要:NewRelicを有効にするには、<code>NEWRELIC_ENABLED</code>を<code>true</code>に設定する必要があります。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_APC_ENABLED</td>
 <td style="text-align: left;">1</td>
-<td style="text-align: left;"><a href="https://www.php.net/manual/en/apcu.configuration.php">APC</a>を無効にするために<code>0</code>に設定することができます。</td>
+<td style="text-align: left;"><a href="https://www.php.net/manual/en/apcu.configuration.php">APC</a>を無効にするには<code>0</code>を設定します。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_APC_SHM_SIZE</td>
 <td style="text-align: left;">32m</td>
-<td style="text-align: left;">与えられた各共有メモリセグメントのサイズ。</td>
+<td style="text-align: left;">各共有メモリセグメントのサイズ。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_DISPLAY_ERRORS</td>
 <td style="text-align: left;">Off</td>
-<td style="text-align: left;">エラーが表示されるか非表示にされるかを設定します。<a href="https://www.php.net/display-errors">php.netを参照してください</a>。</td>
+<td style="text-align: left;">エラーを表示されるか非表示にするかを設定します。詳細は、<a href="https://www.php.net/display-errors">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_DISPLAY_STARTUP_ERRORS</td>
 <td style="text-align: left;">Off</td>
-<td style="text-align: left;">スタートアップエラーが表示されるか非表示にされるかを設定します。<a href="https://www.php.net/display-startup-errors">php.netを参照してください</a>。</td>
+<td style="text-align: left;">起動時のエラーを表示するか非表示するかを設定します。詳細は、<a href="https://www.php.net/display-startup-errors">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_ERROR_REPORTING</td>
-<td style="text-align: left;">Production <code>E_ALL &amp; ~E _DEPRECATED &amp; ~E_STRICT</code> 開発: <code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code></td>
-<td style="text-align: left;">PHPが使用するログレベルを設定します。<a href="https://www.php.net/manual/en/function.error-reporting.php">php.netを参照</a></td>
+<td style="text-align: left;">Production <code>E_ALL &amp; ~E _DEPRECATED &amp; ~E_STRICT</code> Development: <code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code></td>
+<td style="text-align: left;">PHPに使用されるdesired loggingレベルを設定します。詳細は、<a href="https://www.php.net/manual/en/function.error-reporting.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_MAX_CHILDREN</td>
 <td style="text-align: left;">50</td>
-<td style="text-align: left;">子プロセスの最大数。<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">子プロセスの最大数。詳細は、<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.net</a>を参照。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_MAX_REQUESTS</td>
 <td style="text-align: left;">500</td>
-<td style="text-align: left;">各子プロセスが再生成される前に実行するべきリクエストの数。<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">各子プロセスが再生成される前に実行するべきリクエストの数。詳細は、<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_MAX_SPARE_SERVERS</td>
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">アイドル状態のサーバープロセスの最大数を設定します。<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">アイドル状態のサーバープロセスの最大許容数を設定します。詳細は、<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_MIN_SPARE_SERVERS</td>
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">アイドル状態のサーバープロセスの最小数を設定します。<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">アイドル状態のサーバープロセスの最小許容数を設定します。詳細は、<a href="https://www.php.net/manual/en/install.fpm.configuration.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_PROCESS_IDLE_TIMEOUT</td>
 <td style="text-align: left;">60s</td>
-<td style="text-align: left;">アイドルプロセスが強制終了されるまでの秒数。<a href="https://www.php.net /manual/ja/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">アイドル状態のプロセスが終了されるまでの秒数。詳細は、<a href="https://www.php.net /manual/ja/install.fpm.configuration.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_FPM_PM_START_SERVERS</td>
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">起動時に作成される子プロセスの数。 <a href="https://www.php.net/manual/ja/install.fpm.configuration.php">php.netを参照</a>。</td>
+<td style="text-align: left;">起動時に作成される子プロセスの数。詳細は、<a href="https://www.php.net/manual/ja/install.fpm.configuration.php">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_MAX_EXECUTION_TIME</td>
 <td style="text-align: left;">900</td>
-<td style="text-align: left;">各スクリプトの最大実行時間(秒)。 <a href="https://www.php.net/max-execution-time">php.netを参照</a>。</td>
+<td style="text-align: left;">各スクリプトの最大実行時間(秒)。詳細は、<a href="https://www.php.net/max-execution-time">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_MAX_FILE_UPLOADS</td>
 <td style="text-align: left;">20</td>
-<td style="text-align: left;">同時にアップロードできるファイルの最大数。 <a href="https://www.php.net/manual/ja/ini.core.php#ini.max-file-uploads">php.netを参照</a>。</td>
+<td style="text-align: left;">同時にアップロードできるファイルの最大数。詳細は、<a href="https://www.php.net/manual/ja/ini.core.php#ini.max-file-uploads">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_MAX_INPUT_VARS</td>
 <td style="text-align: left;">2000</td>
-<td style="text-align: left;">受け入れ可能な入力変数の数。 <a href="https://www.php.net/manual/ja/info.configuration.php#ini.max-input-vars">php.netを参照</a>。</td>
+<td style="text-align: left;">受け入れ可能な入力変数の数。詳細は、<a href="https://www.php.net/manual/ja/info.configuration.php#ini.max-input-vars">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">PHP_MEMORY_LIMIT</td>
 <td style="text-align: left;">400M</td>
-<td style="text-align: left;">スクリプトが消費できるメモリの最大量。 <a href="https://www.php.net/memory-limit">php.netを参照</a>。</td>
+<td style="text-align: left;">スクリプトが消費できるメモリの最大量。詳細は、<a href="https://www.php.net/memory-limit">php.net</a>を参照してください。</td>
 </tr>
 <tr>
 <td style="text-align: left;">XDEBUG_ENABLE</td>
@@ -4865,17 +4869,17 @@
 <tr>
 <td style="text-align: left;">BLACKFIRE_SERVER_ID</td>
 <td style="text-align: left;">(設定なし)</td>
-<td style="text-align: left;">Blackfire.io から提供されている Blackfire サーバー ID に設定します。<code>BLACKFIRE_ENABLED</code> を <code>true</code> に設定する必要があります。</td>
+<td style="text-align: left;">Blackfire.ioが提供するBlackfireサーバーID。<code>BLACKFIRE_ENABLED</code>を<code>true</code>に設定する必要があります。</td>
 </tr>
 <tr>
 <td style="text-align: left;">BLACKFIRE_SERVER_TOKEN</td>
 <td style="text-align: left;">(設定なし)</td>
-<td style="text-align: left;">Blackfire.io から提供されている Blackfire サーバートークンに設定します。<code>BLACKFIRE_ENABLED</code> を <code>true</code> に設定する必要があります。</td>
+<td style="text-align: left;">Blackfire.ioが提供するBlackfireサーバートークン。<code>BLACKFIRE_ENABLED</code>を<code>true</code>に設定する必要があります。</td>
 </tr>
 <tr>
 <td style="text-align: left;">BLACKFIRE_LOG_LEVEL</td>
 <td style="text-align: left;">3</td>
-<td style="text-align: left;">blackfire エージェントのログレベルを変更します。利用可能な値:<code>ログの冗長性レベル (4: デバッグ, 3: 情報, 2: 警告, 1: エラー)</code> <a href="https://blackfire.io/docs/up-and-running/configuration/agent">blackfire.ioを参照</a>。</td>
+<td style="text-align: left;">blackfireエージェントのログレベルを変更します。利用可能な値:<code>ログの冗長性レベル (4: デバッグ, 3: 情報, 2: 警告, 1: エラー)</code> 詳細は、<a href="https://blackfire.io/docs/up-and-running/configuration/agent">blackfire.io</a>を参照して下さい。</td>
 </tr>
 </tbody>
 </table>

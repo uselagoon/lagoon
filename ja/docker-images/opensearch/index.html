@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2499,7 +2499,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4619,7 +4619,7 @@
 
 <h1 id="opensearch">OpenSearch<a class="headerlink" href="#opensearch" title="Permanent link">#</a></h1>
 <blockquote>
-<p><a href="https://opensearch.org/"><em>OpenSearch</em></a>は、データを簡単に取り込み、検索、視覚化、分析することを可能にする、コミュニティ主導のApache 2.0ライセンスのオープンソース検索および分析スイートです。</p>
+<p><a href="https://opensearch.org/"><em>OpenSearch</em></a>は、データを簡単に取り込み、検索、可視化、分析するためのコミュニティ主導のApache2.0ライセンスを採用したオープンソースの検索および分析スイートです。</p>
 <ul>
 <li>出典: <a href="https://opensearch.org/">https://opensearch.org/</a></li>
 </ul>
@@ -4629,7 +4629,7 @@
 <li>2 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch/2.Dockerfile">Dockerfile</a> - <code>uselagoon/opensearch-2</code></li>
 </ul>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>経由で設定可能です。</p>
+<p>OpenSearch の一部オプションは、<a href="../../concepts-advanced/environment-variables/">環境変数</a>を使用して設定できます。</p>
 <table>
 <thead>
 <tr>
@@ -4647,9 +4647,10 @@
 </tbody>
 </table>
 <h2 id="_1">既知の問題<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>Linuxベースのシステムでは、<code>vm.max_map_count</code>設定が低いためにOpenSearchコンテナの起動が失敗する可能性があります。 <code>bash title="エラー"
-opensearch_1  | エラー: [1] ブートストラップチェックが失敗しました
-opensearch_1  | [1]: 最大仮想メモリエリア vm.max_map_count [65530] が低すぎます、少なくとも [262144] に増やしてください</code></p>
+<p>Linuxベースのシステムでは、<code>vm.max_map_count</code>設定が低いために、OpenSearchコンテナの起動が失敗することがあります。</p>
+<p><code>bash title="エラー"
+opensearch_1  | ERROR: [1] bootstrap checks failed
+opensearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]</code></p>
 <p><a href="https://opensearch.org/docs/latest/opensearch/install/important-settings/">この問題の解決策はここで見つけることができます</a>.</p>
 
 

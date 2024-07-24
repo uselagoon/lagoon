@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2434,7 +2434,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4540,7 +4540,7 @@
 <h1 id="_1">ロギング<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <p>LagoonはKibanaを介して以下のログにアクセスを提供します:</p>
 <ul>
-<li>Kubernetes Routersからのログ。これには次の全てのHTTPおよびHTTPSリクエストが含まれます:<ul>
+<li>Kubernetesルーターからのログには、すべてのHTTPおよびHTTPSリクエストが含まれています。:<ul>
 <li>ソースIP</li>
 <li>URL</li>
 <li>パス</li>
@@ -4554,7 +4554,7 @@
 <li>応答時間</li>
 </ul>
 </li>
-<li>コンテナからのログ:<ul>
+<li>コンテナのログ:<ul>
 <li><code>stdout</code>と<code>stderr</code>メッセージ</li>
 <li>コンテナ名</li>
 <li>プロジェクト</li>
@@ -4567,22 +4567,23 @@
 <li>その他のLagoon関連ログ</li>
 </ul>
 </li>
-<li>アプリケーションログ:<ul>
+<li>アプリケーションのログ:<ul>
 <li>Drupalの場合: Drupal Watchdogからのログを受け取るために、<a href="https://www.drupal.org/project/lagoon_logs">Lagoon Logs</a>モジュールをインストールします。</li>
 <li>Laravelの場合: <a href="https://github.com/amazeeio/laravel_lagoon_logs">Laravel用Lagoon Logs</a>パッケージをインストールします。</li>
 <li>その他のワークロード:<ul>
 <li>ログを<code>udp://application-logs.lagoon.svc:5140</code>に送信します。</li>
 <li>ログがJSONエンコードされたオブジェクトとして構造化されていることを確認します。</li>
-<li><code>type</code>フィールドにはKubernetesの名前空間の名前(<code>$LAGOON_PROJECT-$LAGOON_ENVIRONMENT</code>)が含まれていることを確認します。</li>
+<li><code>type</code>フィールドにKubernetesネームスペースの名前が含まれていることを確認してください(<code>$LAGOON_PROJECT-$LAGOON_ENVIRONMENT</code>)。</li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<p>ログにアクセスするには、KibanaルートのURLを取得するためにLagoonの管理者に確認してください(amazee.ioの場合、これは<a href="https://logs.amazeeio.cloud/">https://logs.amazeeio.cloud/</a>です)。 logs.amazeeio.cloud/)。</p>
-<p>各Lagoonユーザーアカウントは独自のログインを持ち、アクセス権があるプロジェクトのログのみを見ることができます。</p>
+<p>ログにアクセスするには、Lagoon管理者に連絡してKibanaルートのURLを取得してください（amazee.ioの場合は<a href="https://logs.amazeeio.cloud/">https://logs.amazeeio.cloud/</a>です)。</p>
+<p>各Lagoonユーザーアカウントには個別のログインがあり、アクセス権のあるプロジェクトのログのみが表示されます。</p>
 <p>各Lagoonユーザーアカウントはまた、独自の<strong>Kibana Tenant</strong>を持っており、これは保存された検索やビジュアライゼーションが他のアカウントと共有されないことを意味します。</p>
-<p>Kibanaの使用方法について詳しく知りたい場合は、こちらをご覧ください:<a href="https://www.elastic.co/webinars/getting-started-kibana">https://www.elastic.co/webinars/getting-started-kibana</a>。</p>
+<p>Kibanaの使用方法について詳しく知りたい場合は、こちらをご覧ください:
+<a href="https://www.elastic.co/webinars/getting-started-kibana">https://www.elastic.co/webinars/getting-started-kibana</a></p>
 
 
   

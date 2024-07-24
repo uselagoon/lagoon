@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#laravel-on-lagoon" class="md-skip">
+        <a href="#laravellagoon" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1832,8 +1832,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#app-environment-key" class="md-nav__link">
-    App environment key
+  <a href="#_1" class="md-nav__link">
+    アプリケーション環境キー
   </a>
   
 </li>
@@ -2487,7 +2487,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4562,8 +4562,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#app-environment-key" class="md-nav__link">
-    App environment key
+  <a href="#_1" class="md-nav__link">
+    アプリケーション環境キー
   </a>
   
 </li>
@@ -4583,7 +4583,7 @@
                   
 
   
-    <a href="https://github.com/uselagoon/lagoon/edit/main/docs/applications/laravel.md" title="編集" class="md-content__button md-icon">
+    <a href="https://github.com/uselagoon/lagoon/edit/main/docs/ja/applications/laravel.md" title="編集" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -4591,17 +4591,17 @@
   
 
 
-<h1 id="laravel-on-lagoon">Laravel on Lagoon<a class="headerlink" href="#laravel-on-lagoon" title="Permanent link">#</a></h1>
-<p>There are multiple ways of running Laravel on Lagoon.</p>
+<h1 id="laravellagoon">LaravelをLagoonで実行<a class="headerlink" href="#laravellagoon" title="Permanent link">#</a></h1>
+<p>LaravelをLagoonで実行するには、複数の方法があります。</p>
 <ul>
-<li>You may choose to "lagoonize" your existing application yourself (see the <a href="../../lagoonizing/">Lagoonizing</a> documentation).</li>
-<li>We have a Laravel example repo of a <a href="https://github.com/lagoon-examples/laravel-example-simple">simple Lagoonized Laravel installation</a> for you to have a look at.</li>
-<li>(Recommended) We provide a tool called <a href="../../other-tools/sail/">"Sail:onLagoon"</a> that will take a standard Laravel Sail application and generate the appropriate Lagoon configuration files for you.</li>
+<li>既存のアプリケーションを自分で「lagoonize」することができます（<a href="../../lagoonizing/">Lagoonizing</a>のドキュメントを参照してください）。</li>
+<li>参考として、シンプルなlagoonizeされたLaravelインストールの例示リポジトリを用意しています。</li>
+<li>（推奨） <a href="../../other-tools/sail/">"Sail:onLagoon"</a>というツールを提供しています。これは標準的なLaravel Sailアプリケーションを取り、適切なLagoon設定ファイルを自動生成します。</li>
 </ul>
-<h2 id="app-environment-key">App environment key<a class="headerlink" href="#app-environment-key" title="Permanent link">#</a></h2>
-<p>In order to set your app key, set the <code>APP_KEY</code> <a href="../../concepts-advanced/environment-variables/">environment variable</a>, either via the cli or the UI.</p>
-<p>This eliminates the need to store the key in code (in, for instance, a <code>.env</code> file).</p>
-<p>You can generate an app key by running the <code>php artisan key:generate --show</code>, which will output a valid key, rather than adjusting the project files.</p>
+<h2 id="_1">アプリケーション環境キー<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p>アプリケーションキーを設定するには、CLIまたはUIを通じて<code>APP_KEY</code>環境変数(<a href="../../concepts-advanced/environment-variables/">environment variable</a>)を設定してください。</p>
+<p>これにより、キーをコード内（例えば<code>.env</code>ファイル）に保存する必要がなくなります。</p>
+<p>アプリケーションキーを生成するには、<code>php artisan key:generate --show</code>コマンドを実行してください。このコマンドはプロジェクトファイルを変更せずに、有効なキーを出力します。</p>
 
 
   

@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -833,22 +833,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    プロダクション環境
+  <a href="#production" class="md-nav__link">
+    production環境
   </a>
   
-    <nav class="md-nav" aria-label="プロダクション環境">
+    <nav class="md-nav" aria-label="production環境">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     バックアップスケジュール
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     バックアップ保持
   </a>
   
@@ -860,21 +860,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     開発環境
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     バックアップの取得
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     カスタムバックアップおよび/またはリストア位置
   </a>
   
@@ -976,7 +976,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -986,7 +986,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2524,7 +2524,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4599,22 +4599,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    プロダクション環境
+  <a href="#production" class="md-nav__link">
+    production環境
   </a>
   
-    <nav class="md-nav" aria-label="プロダクション環境">
+    <nav class="md-nav" aria-label="production環境">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     バックアップスケジュール
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     バックアップ保持
   </a>
   
@@ -4626,21 +4626,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     開発環境
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     バックアップの取得
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     カスタムバックアップおよび/またはリストア位置
   </a>
   
@@ -4671,24 +4671,24 @@
 
 <h1 id="_1">バックアップ<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <p>Lagoonは、データベースのデータとコンテナの永続的なストレージボリュームの両方のバックアップ機能を提供するために、<a href="https://github.com/vshn/k8up">k8up operator</a>を使用しています。このオペレータは、これらのバックアップをカタログ化するために<a href="https://github.com/restic/restic">Restic</a>を利用し、通常はAWS S3バケットに接続して生成されたバックアップの安全なオフサイトストレージを提供します。</p>
-<h2 id="_2">プロダクション環境<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<h3 id="_3">バックアップスケジュール<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
-<p>データベースとコンテナの永続的なストレージボリュームのバックアップは、デフォルトでプロダクション環境内で夜間に行われます。</p>
-<p>プロダクションバックアップの異なるバックアップスケジュールが必要な場合、これはプロジェクトレベルで指定できます。これは、プロジェクトの<a href="../../concepts-basics/lagoon-yml/#backup-schedule">.lagoon.yml</a>ファイルの"Backup Schedule"変数を設定することで行います。</p>
-<h3 id="_4">バックアップ保持<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
-<p>プロダクション環境のバックアップは、デフォルトで以下のスケジュールに従って保持されます:</p>
+<h2 id="production">production環境<a class="headerlink" href="#production" title="Permanent link">#</a></h2>
+<h3 id="_2">バックアップスケジュール<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
+<p>データベースとコンテナの永続的なストレージボリュームのバックアップは、デフォルトで<code>production</code>環境内で夜間に行われます。</p>
+<p>バックアップに異なるスケジュールが必要な場合はプロジェクトの<a href="../../concepts-basics/lagoon-yml/#backup-schedule">.lagoon.yml</a>ファイルの"Backup Schedule"変数を設定することでプロジェクトレベルで指定できます。</p>
+<h3 id="_3">バックアップ保持<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
+<p>production環境のバックアップは、デフォルトで以下のスケジュールに従って保持されます:</p>
 <ul>
 <li>日次:7</li>
 <li>週次:6</li>
 <li>月次:1</li>
 <li>時間ごと:0</li>
 </ul>
-<p>プロダクションバックアップの異なる保持期間が必要な場合、これはプロジェクトレベルで指定できます。これは、プロジェクトの<a href="../../concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a>ファイルの"Backup Retention"変数を設定することで行います。 ファイル。</p>
-<h2 id="_5">開発環境<a class="headerlink" href="#_5" title="Permanent link">#</a></h2>
-<p>開発環境のバックアップは毎晩試みられ、厳格に最善の努力サービスです。</p>
-<h2 id="_6">バックアップの取得<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
+<p>バックアップに異なる保持期間が必要な場合はプロジェクトの<a href="../../concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a>ファイルにある"Backup Retention"変数を設定することでプロジェクトレベルで指定できます。</p>
+<h2 id="_4">開発環境<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
+<p>開発環境のバックアップは毎晩試みられますが、あくまでベストエフォートサービスです。</p>
+<h2 id="_5">バックアップの取得<a class="headerlink" href="#_5" title="Permanent link">#</a></h2>
 <p>Resticに保存されたバックアップはLagoon内で追跡され、Lagoon UIの各環境の「バックアップ」タブから回復することができます。</p>
-<h2 id="_7">カスタムバックアップおよび/またはリストア位置<a class="headerlink" href="#_7" title="Permanent link">#</a></h2>
+<h2 id="_6">カスタムバックアップおよび/またはリストア位置<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
 <p>Lagoonは、各プロジェクトのLagoon APIに保存されている"<a href="../environment-variables/#custom-backup-settings">カスタムバックアップ設定</a>"および/または"<a href="../environment-variables/#custom-restore-location">カスタムリストア設定</a>"変数を使用して、カスタムバックアップとリストアの場所をサポートします。</p>
 <div class="admonition danger">
 <p class="admonition-title">危険</p>

@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1023,7 +1023,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -1033,7 +1033,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2571,7 +2571,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4764,21 +4764,21 @@
 
 
 <h1 id="_1">環境変数<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
-<p>APIトークンやアプリケーションの資格情報を環境変数に保存することは一般的です。</p>
-<p>ベストプラクティスに従って、これらの資格情報は環境ごとに異なります。私たちは、各環境が環境変数または環境ファイルで定義された別の環境変数セットを使用できるようにします。</p>
-<p>Dockerfileまたはランタイム時(API環境変数経由)のいずれかで定義されている環境変数があるため、環境変数の階層があります。低い数字で定義された環境変数が強いです。</p>
+<p>APIトークンやアプリケーションのクレデンシャルを環境変数に保存することは一般的です。</p>
+<p>ベストプラクティスに従うと、これらのクレデンシャルは環境ごとに異なります。私たちは、各環境が環境変数または.<code>env</code>ファイルで定義された別の環境変数セットを使用できるようにします。</p>
+<p>環境変数にはDockerfileまたはランタイム時(API環境変数経由)のいずれかで定義される場合があるため優先順位があり、より低い数字で定義された環境変数が優先されます。</p>
 <ol>
 <li>環境変数(Lagoon API経由で定義) - 環境固有。</li>
 <li>環境変数(Lagoon API経由で定義) - プロジェクト全体。</li>
 <li>Dockerfileで定義された環境変数(<code>ENV</code>コマンド)。</li>
-<li><code>.lagoon.env.$LAGOON_GIT_BRANCH</code>または<code>.lagoon.env.$LAGOON_GIT_SAFE_BRANCH</code>で定義された環境変数(ファイルが存在し、<code>$LAGOON_GIT_BRANCH</code> <code>$LAGOON_GIT_SAFE_BRANCH</code>がこのDockerイメージがビルドされたブランチの名前と安全な名前である場合)、これを特定のブランチのみの変数の上書きに使用します。</li>
-<li><code>.lagoon.env</code>で定義された環境変数(存在する場合)、これを全ての変数の上書きに使用します。 ブランチ。</li>
+<li><code>.lagoon.env.</code>の<code>$LAGOON_GIT_BRANCH</code>または<code>.lagoon.env.</code>の<code>$LAGOON_GIT_SAFE_BRANCH</code>で定義された環境変数(ファイルが存在し、<code>$LAGOON_GIT_BRANCH</code>と<code>$LAGOON_GIT_SAFE_BRANCH</code>がこのDockerイメージがビルドされたブランチの名前と一致する名前である場合、これらの値をこの特定のブランチの変数に上書きします。）</li>
+<li><code>.lagoon.env</code>で定義された環境変数(存在する場合)、これを全てのブランチの変数の上書きに使用します。</li>
 <li><code>.env</code>で定義された環境変数。</li>
 <li><code>.env.defaults</code>で定義された環境変数。</li>
 </ol>
-<p><code>.lagoon.env.$LAGOON_GIT_BRANCH</code>、<code>.lagoon.env.$LAGOON_GIT_SAFE_BRANCH</code>、<code>.env</code>、そして <code>.env.defaults</code>は、全て、各コンテナ自体によってエントリーポイントスクリプトの一部として実行される際にソース化されます。それらはLagoonではなく、コンテナの <code>ENTRYPOINT</code> スクリプトによって読み込まれ、コンテナの作業ディレクトリでそれらを探します。環境変数が期待通りに表示されない場合は、コンテナに他の場所を指す <code>WORKDIR</code> 設定があるかどうかを確認してください。</p>
+<p><code>.lagoon.env.</code>の<code>$LAGOON_GIT_BRANCH</code>、<code>.lagoon.env.</code>の<code>$LAGOON_GIT_SAFE_BRANCH</code>、<code>.env</code>、そして <code>.env.defaults</code>は、全て、各コンテナ自体によってエントリーポイントスクリプトの一部として実行される際にソース化されます。それらはLagoonではなく、コンテナの<code>ENTRYPOINT</code>スクリプトによって読み込まれ、コンテナの作業ディレクトリでそれらを探します。環境変数が期待通りに表示されない場合は、コンテナに他の場所を指す<code>WORKDIR</code>設定があるかどうかを確認してください。</p>
 <h2 id="environment-variables-lagoon-api">環境変数 - Lagoon API<a class="headerlink" href="#environment-variables-lagoon-api" title="Permanent link">#</a></h2>
-<p>Gitリポジトリに保存したくない変数(シークレットやAPIキーなど)については、Lagoon APIの環境変数システムを使用することをお勧めします。これらの変数は、誰かがローカルの開発環境やインターネット上に持っていると、危険にさらされる可能性があります。</p>
+<p>Gitリポジトリに保存したくない変数(シークレットキーやAPIキーなど)については、Lagoon APIの環境変数システムを使用することをお勧めします。これらの変数は、誰かがローカルの開発環境やインターネット上に持っていると、危険にさらされる可能性があります。</p>
 <p>Lagoon APIでは、プロジェクト全体または環境固有の変数を定義することができます。さらに、スコープ限定のビルド時またはランタイムに対して定義することもできます。これらはすべてLagoon GraphQL APIを通じて作成されます。GraphQL APIの使用方法については、<a href="../../interacting/graphql/">GraphQL API</a>のドキュメンテーションで詳しく説明しています。</p>
 <h3 id="runtime-environment-variables-lagoon-api">ランタイム環境変数 - LagoonAPI<a class="headerlink" href="#runtime-environment-variables-lagoon-api" title="Permanent link">#</a></h3>
 <p>ランタイム環境変数は自動的にすべてのコンテナで利用可能になりますが、環境が再デプロイされた後にのみ追加または更新されます。</p>
@@ -4816,7 +4816,7 @@
 <p>ビルド時の環境変数はビルド中にのみ利用可能であり、Dockerfilesで以下のように使用する必要があります:</p>
 <div class="language-graphql highlight"><span class="filename">ビルド時の環境変数の使用</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="err">ARG</span><span class="w"> </span><span class="err">MYVARIABLENAME</span>
 </span></code></pre></div>
-<p>通常、<code>ARG</code>はその後に行くでしょう。 FROM. <a href="https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact">ARGとFROMについてのdockerドキュメントを読む</a>。</p>
+<p>通常、<code>ARG</code>は<code>FROM</code>の後に記述します。<a href="https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact">ARGとFROMについてのdockerドキュメントを読む</a>。</p>
 <p>これは、ID <code>463</code>のプロジェクト全体のビルド時変数(すべての環境で利用可能)を定義します。</p>
 <div class="language-graphql highlight"><span class="filename">プロジェクト全体のビルド時変数を定義する</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">addBuildtimeEnv</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">addEnvVariable</span><span class="p">(</span>
@@ -4870,7 +4870,7 @@
 <h3 id="global-environment-variables-lagoon-api">グローバル環境変数 - Lagoon API<a class="headerlink" href="#global-environment-variables-lagoon-api" title="Permanent link">#</a></h3>
 <p>グローバル環境変数は、ビルドによって消費されるためのビルド時環境変数として、また実行中のコンテナ内で利用可能なランタイム変数として利用できます。</p>
 <h2 id="environment-files-existing-directly-in-the-git-repo">Gitリポジトリに直接存在する環境ファイル<a class="headerlink" href="#environment-files-existing-directly-in-the-git-repo" title="Permanent link">#</a></h2>
-<p>Gitリポジトリ内に安全に保存できる環境変数がある場合、追加することをお勧めします Gitリポジトリの環境ファイルに直接入力します。これらの変数はローカル開発環境でも利用可能であり、より移植性が高いです。</p>
+<p>Gitリポジトリ内に安全に保存できる環境変数がある場合、それらをファイルに直接追加することをお勧めします 。これらの変数はローカル開発環境でも利用可能であり、より移植性が高くなります。</p>
 <p>環境ファイルの構文は次のとおりです:</p>
 <div class="language-bash highlight"><span class="filename">myenvironment.env</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">MYVARIABLENAME</span><span class="o">=</span><span class="s2">&quot;MyVariableValue&quot;</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">MVARIABLENUMBER</span><span class="o">=</span><span class="m">4242</span>
@@ -4879,11 +4879,11 @@
 <h3 id="lagoonenvbranchname"><code>.lagoon.env.$BRANCHNAME</code><a class="headerlink" href="#lagoonenvbranchname" title="Permanent link">#</a></h3>
 <p>環境ごとに異なる環境変数を定義したい場合は、<code>.lagoon.env.$BRANCHNAME</code>を作成できます。例えば、メインブランチの場合は<code>.lagoon.env.main</code>です。これにより、環境間での環境変数の区別が容易になります。</p>
 <h3 id="env-and-envdefaults"><code>.env</code> and <code>.env.defaults</code><a class="headerlink" href="#env-and-envdefaults" title="Permanent link">#</a></h3>
-<p><code>.env</code>と<code>.env.defaults</code>は、他に定義されていない場合の環境変数のデフォルト値として機能します。例えば、プルリクエスト環境用のデフォルト環境変数として(<a href="../workflows/#pull-requests">Workflows</a>参照)。</p>
+<p><code>.env</code>と<code>.env.defaults</code>は、他に定義されていない場合の環境変数のデフォルト値として機能します。例えば、プルリクエスト環境用のデフォルト環境変数として利用します(<a href="../workflows/#pull-requests">Workflows</a>参照)。</p>
 <h2 id="special-environment-variables">特別な環境変数<a class="headerlink" href="#special-environment-variables" title="Permanent link">#</a></h2>
 <h3 id="php_error_reporting"><code>PHP_ERROR_REPORTING</code><a class="headerlink" href="#php_error_reporting" title="Permanent link">#</a></h3>
-<p>この変数が設定されている場合、PHPが使用する<a href="../../logging/logging/">ログ</a>レベルを定義します。指定されていない場合は、それが これはプロダクション環境か開発環境かによって動的に設定されます。</p>
-<p>プロダクション環境では、この値はデフォルトで<code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code>になります。</p>
+<p>この変数が設定されている場合、PHPが使用する<a href="../../logging/logging/">ログ</a>レベルを定義します。指定されていない場合は、<code>production</code>環境か開発環境かによって動的に設定されます。</p>
+<p><code>production</code>環境では、この値はデフォルトで<code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code>になります。</p>
 <p>開発環境では、この値はデフォルトで<code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT</code>になります。</p>
 <h3 id="custom-backup-settings">カスタムバックアップ設定<a class="headerlink" href="#custom-backup-settings" title="Permanent link">#</a></h3>
 <p>Lagoonは、次の4つの変数すべてが<code>BUILD</code>タイプの変数として設定されている場合、任意のプロジェクトのカスタムバックアップ場所と認証情報をサポートします。環境変数はプロジェクトレベルで(環境ごとではなく)設定する必要があり、それらを設定した後にLagoonのデプロイメントが必要です(すべての環境について)。</p>
@@ -4898,27 +4898,27 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT</code></td>
-<td style="text-align: left;">Lagoon によって開始されたバックアップを保存する S3 互換エンドポイントを指定します。S3 Sydney の例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
+<td style="text-align: left;">Lagoonによって開始されたバックアップを保存するS3互換エンドポイントを指定しますS3 Sydneyの例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_BUCKET</code></td>
-<td style="text-align: left;">Lagoon によって開始されたバックアップを保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code>.</td>
+<td style="text-align: left;">Lagoonによって開始されたバックアップを保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY</code></td>
-<td style="text-align: left;">カスタム バックアップ バケットにアクセスするために Lagoon が使用するアクセス キーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
+<td style="text-align: left;">カスタム バックアップバケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY</code></td>
-<td style="text-align: left;">カスタム バックアップ バケットにアクセスするために Lagoon が使用する秘密キーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
+<td style="text-align: left;">カスタムバックアップバケットにアクセスするためにLagoonが使用する秘密キーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code></td>
 </tr>
 </tbody>
 </table>
-<p>S3 バケットではパブリック アクセスは不要で、完全にプライベートにすることができます。</p>
-<p>Lagoon はこれらの S3 バケット内のファイルを自動的に削除するため、バケット レベルでオブジェクト保持ポリシーは必要ありません。</p>
+<p>S3バケットではパブリックアクセスは不要で、完全にプライベートにすることができます。</p>
+<p>LagoonはこれらのS3バケット内のファイルを自動的に削除するため、バケットレベルでのオブジェクト保持ポリシーは必要ありません。</p>
 <h3 id="custom-restore-location">カスタム復元場所<a class="headerlink" href="#custom-restore-location" title="Permanent link">#</a></h3>
-<p><code>BUILD</code>タイプの環境変数として以下の全4つの変数が設定されている場合、任意のプロジェクトに対してカスタムリストアロケーションと資格情報を設定できます。環境変数はプロジェクトレベルで設定する必要があり(環境ごとではなく)、それらを設定した後、Lagoonのデプロイが必要です(各環境について)。</p>
-<p>これらの変数を使用すると、Lagoonによって復元されたすべての環境とデータベースのスナップショットがこれらの資格情報を使用して保存されることに注意してください。これは、これらの資格情報へのアクセスが中断されると、復元されたファイルの失敗またはアクセス不能につながる可能性があることを意味します。</p>
+<p><code>BUILD</code>タイプの環境変数として以下の全4つの変数が設定されている場合、任意のプロジェクトに対してカスタムリストアロケーションとクレデンシャルを設定できます。環境変数はプロジェクトレベルで設定する必要があり(環境ごとではなく)、それらを設定した後、Lagoonのデプロイが必要です(各環境について)。</p>
+<p>これらの変数を使用すると、Lagoonによって復元されたすべての環境とデータベースのスナップショットがこれらのクレデンシャルを使用して保存されることに注意してください。これらのクレデンシャルへのアクセスが中断されると、復元されたファイルの失敗またはアクセス不能につながる可能性があることを意味します。</p>
 <table>
 <thead>
 <tr>
@@ -4929,24 +4929,24 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT</code></td>
-<td style="text-align: left;">Lagoon によって開始された復元を保存する S3 互換エンドポイントを指定します。S3 Sydney の例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
+<td style="text-align: left;">Lagoonによって開始された復元を保存する S3 互換エンドポイントを指定します。S3 Sydneyの例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_BUCKET</code></td>
-<td style="text-align: left;">Lagoon によって開始された復元を保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code>.</td>
+<td style="text-align: left;">Lagoonによって開始された復元を保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY</code></td>
-<td style="text-align: left;">カスタム復元バケットにアクセスするために Lagoon が使用するアクセス キーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
+<td style="text-align: left;">カスタム復元バケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY</code></td>
-<td style="text-align: left;">カスタム復元バケットにアクセスするために Lagoon が使用する秘密キーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
+<td style="text-align: left;">カスタム復元バケットにアクセスするためにLagoonが使用するシークレットキーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code></td>
 </tr>
 </tbody>
 </table>
-<p>Lagoon は必要に応じてバケット内のオブジェクトの<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">署名済み URL</a> を作成するため、S3 バケットではパブリック アクセスが有効になっている必要があります。</p>
-<p>S3 バケット <code>example-restore-bucket</code> のみへのアクセスを許可するように作成できる AWS IAM ポリシーの例は次のとおりです。</p>
+<p>Lagoonは必要に応じてバケット内のオブジェクトの<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">署名済みURL</a> を作成するため、S3バケットではパブリックアクセスが有効になっている必要があります。</p>
+<p>S3バケット <code>example-restore-bucket</code> のみへのアクセスを許可するように作成できる AWS IAM ポリシーの例は次のとおりです。</p>
 <div class="language-json highlight"><span class="filename">aws_iam_restore_policy.json</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;Statement&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -4976,7 +4976,7 @@
 </span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">  </span><span class="p">]</span>
 </span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>増強されたセキュリティと削減されたストレージコストのために、<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">設定されたライフタイム後に復元されたバックアップを削除する</a>(例えば、7日間)を選択することができます。Lagoonはこのシナリオをうまく処理し、必要に応じて復元されたスナップショットを再作成します。</p>
+<p>セキュリティの強化とストレージコスト削減のために、<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">設定されたライフタイム後に復元されたバックアップを削除する</a>(例えば、7日間)を選択することができます。Lagoonはこのシナリオをうまく処理し、必要に応じて復元されたスナップショットを再作成します。</p>
 
 
   

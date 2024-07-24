@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1011,14 +1011,14 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    含まれるツール
+    ツール
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    含まれるエントリーポイント
+    エントリーポイント
   </a>
   
 </li>
@@ -2492,7 +2492,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4568,14 +4568,14 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    含まれるツール
+    ツール
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    含まれるエントリーポイント
+    エントリーポイント
   </a>
   
 </li>
@@ -4604,18 +4604,18 @@
 
 
 <h1 id="commons">Commons<a class="headerlink" href="#commons" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/tree/main/images/commons">Lagoon <code>commons</code> Dockerイメージ</a>。<a href="https://hub.docker.com/_/alpine/">公式のAlpineイメージ</a>を基にしています。</p>
-<p>このイメージ自体には機能はありませんが、代わりに基本イメージであり、他のイメージを構築するために拡張して利用されることを目的としています。Lagoonのすべてのalpineベースのイメージは、共有リソースからコンポーネントを継承しています。</p>
-<h2 id="_1">含まれるツール<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p><a href="https://github.com/uselagoon/lagoon-images/tree/main/images/commons">Lagoon <code>commons</code> Dockerイメージ</a>。<a href="https://hub.docker.com/_/alpine/">公式のAlpineイメージ</a>をベースにしています。</p>
+<p>このイメージ自体は機能を持ちません。代わりに、他のイメージをビルドするための基本イメージとして使用されます。Lagoon内のすべてのalpineベースのイメージは、commonsからコンポーネントを継承しています。</p>
+<h2 id="_1">ツール<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <ul>
-<li><code>docker-sleep</code> - 標準化された1時間のスリープ</li>
-<li><code>fix-permissions</code> - 指定したディレクトリのパーミッションを自動的に全グループの読み書き可能に修正</li>
-<li><code>wait-for</code> - サービスが正しい順序で起動していることを保証する小さなスクリプト - https://github.com/eficode/wait-for を基にしています</li>
+<li><code>docker-sleep</code> - 標準化された1時間のスリープ機能</li>
+<li><code>fix-permissions</code> - 指定したディレクトリのパーミッションを自動的に全グループの読み書き可能に変更</li>
+<li><code>wait-for</code> - サービスが正しい順序で起動していることを確認する小さなスクリプト - https://github.com/eficode/wait-for を基にしています</li>
 <li><code>entrypoint-readiness</code> - 長時間実行されるエントリーポイントが完了したことを確認</li>
-<li><code>entrypoints</code> - /lagoon/entrypoints/* の下にあるすべてのエントリーポイントをアルファベット/数値順にソースするスクリプト</li>
+<li><code>entrypoints</code> - /lagoon/entrypoints/* ディレクトリ内のすべてのエントリーポイントをアルファベット順/数値順に読み込むスクリプト</li>
 </ul>
-<h2 id="_2">含まれるエントリーポイント<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>このイメージのデフォルトのエントリーポイントのリストは<a href="https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints">https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints</a>で見つけることができます。それに続くダウンストリームのイメージ 最終的なイメージで実行される<code>/lagoon</code>の下にエントリーポイントを提供します。</p>
+<h2 id="_2">エントリーポイント<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
+<p>このイメージのデフォルトのエントリーポイントの一覧は<a href="https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints">https://github.com/uselagoon/lagoon-images/tree/main/images/commons/lagoon/entrypoints</a>にあります。以降の下流イメージも、<code>/lagoon</code>配下にエントリーポイントを追加でき、最終的なイメージで実行さます。</p>
 
 
   

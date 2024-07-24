@@ -506,14 +506,14 @@
         
           <li class="md-nav__item">
   <a href="#webhook" class="md-nav__link">
-    ブランチWebhook プッシュ
+    ブランチWebhookプッシュ
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#rest" class="md-nav__link">
-    ブランチ REST トリガー
+    ブランチRESTトリガー
   </a>
   
 </li>
@@ -818,7 +818,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -828,7 +828,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1039,7 +1039,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -1049,7 +1049,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2587,7 +2587,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4678,14 +4678,14 @@
         
           <li class="md-nav__item">
   <a href="#webhook" class="md-nav__link">
-    ブランチWebhook プッシュ
+    ブランチWebhookプッシュ
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#rest" class="md-nav__link">
-    ブランチ REST トリガー
+    ブランチRESTトリガー
   </a>
   
 </li>
@@ -4803,11 +4803,11 @@
 <h2 id="1-openshiftkubernetes">1. 環境のためのOpenShiftプロジェクト/Kubernetesネームスペースの設定<a class="headerlink" href="#1-openshiftkubernetes" title="Permanent link">#</a></h2>
 <p>まず、Lagoonは指定された環境のOpenShiftプロジェクト/Kubernetesネームスペースが存在して正しく設定されているかどうかを確認します。必要なサービスアカウントがあることを確認し、シークレットを作成し、環境変数を<code>lagoon-env</code>というConfigMapに設定します。これは、環境のタイプや名前、Lagoonプロジェクトの名前などの情報で満たされます。</p>
 <h2 id="2-git">2. Gitのチェックアウトとマージ<a class="headerlink" href="#2-git" title="Permanent link">#</a></h2>
-<p>次に、LagoonはGitからコードをチェックアウトします。これは、<code>.lagoon.yml</code>や<code>docker-compose.yml</code>を読み取るために必要です。 そして、<code>.env</code>ファイルだけでなく、Dockerイメージをビルドします。</p>
-<p>ブランチ/PRがLagoonで設定されたブランチregexと一致する場合にのみ、Lagoonはこれらのアクションを処理します。デプロイがどのようにトリガーされたかにより、異なることが起こります:</p>
-<h3 id="webhook"><strong>ブランチWebhook プッシュ</strong><a class="headerlink" href="#webhook" title="Permanent link">#</a></h3>
+<p>次に、LagoonはGitからコードをチェックアウトします。<code>.lagoon.yml</code>、<code>docker-compose.yml</code>、および<code>.env</code>を読み取るためだけでなく、Dockerイメージをビルドするためにもこれが必要です。</p>
+<p>注意点として、Lagoonはブランチ/PRがLagoonで設定されたブランチの正規表現と一致する場合にのみ、これらのアクションを処理します。デプロイメントがどのようにトリガーされたかに基づいて、異なることが起こります。</p>
+<h3 id="webhook"><strong>ブランチWebhookプッシュ</strong><a class="headerlink" href="#webhook" title="Permanent link">#</a></h3>
 <p>デプロイがGit webhook経由で自動的にトリガーされ、単一のブランチ向けである場合、Lagoonはwebhookペイロードに含まれるGit SHAをチェックアウトします。これにより、プッシュされた各Git SHAごとにデプロイがトリガーされます。</p>
-<h3 id="rest"><strong>ブランチ REST トリガー</strong><a class="headerlink" href="#rest" title="Permanent link">#</a></h3>
+<h3 id="rest"><strong>ブランチRESTトリガー</strong><a class="headerlink" href="#rest" title="Permanent link">#</a></h3>
 <p>REST API経由(UIまたはGraphQL経由)で手動でブランチデプロイをトリガーし、POSTペイロードで<code>SHA</code>を定義しない場合、Lagoonはそのブランチの最新のコミットを単にチェックアウトし、それをデプロイします。</p>
 <h3 id="_2"><strong>プルリクエスト</strong><a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
 <p>デプロイがプルリクエスト(PR)デプロイである場合、LagoonはプルリクエストのベースとHEADブランチおよびSHAをロードし、次のことを行います:</p>
@@ -4815,22 +4815,22 @@
 <li>PRが指しているブランチ(ベースブランチ)をチェックアウトします。</li>
 <li>PRが起源となるブランチ(<code>HEAD</code>ブランチ)をベースブランチの上にマージします。</li>
 <li><strong>より具体的には:</strong><ul>
-<li>Lagoonはwebhookで送信された特定のSHAをチェックアウトし、マージします。それらのSHAは、あるいは_ないかもしれません_ ブランチのヘッドを指してください。たとえば、GitHubのプルリクエストに新たにプッシュをすると、基本ブランチのSHAが現在の基本ブランチのHEADを指さないことがあります。</li>
+<li>Lagoonは、Webhookで送信された特定のSHAをチェックアウトしてマージします。これらのSHAはブランチヘッドを指している場合もあれば、 <em>そうでない場合</em> もあります。例えば、GitHubプルリクエストに新しいプッシュを行うと、ベースブランチのSHAが現在のベースブランチHEADを指していない場合があります。</li>
 </ul>
 </li>
 </ul>
 <p>マージが失敗した場合、Lagoonも停止し、そのことをお知らせします。</p>
 <h2 id="3">3. イメージのビルド<a class="headerlink" href="#3" title="Permanent link">#</a></h2>
-<p><code>docker-compose.yml</code>で定義された各サービスについて、Lagoonはイメージがビルドする必要があるかどうかを確認します。ビルドする必要がある場合、この時点でそれが行われます。ビルドの順序は、<code>docker-compose.yml</code>での設定順に基づいています。いくつかのビルド引数が注入されます:</p>
+<p><code>docker-compose.yml</code>で定義された各サービスについて、Lagoonはイメージをビルドする必要があるかどうかを確認します。ビルドする必要がある場合、この時点でビルドが行われます。ビルドの順序は、<code>docker-compose.yml</code>での設定順に基づいています。いくつかのビルド引数が注入されます。</p>
 <ul>
 <li><code>LAGOON_GIT_SHA</code></li>
 <li><code>LAGOON_GIT_BRANCH</code></li>
 <li><code>LAGOON_PROJECT</code></li>
 <li><code>LAGOON_BUILD_TYPE</code> ( <code>pullrequest</code>、<code>branch</code>、または <code>promote</code> のいずれか)</li>
 <li><code>LAGOON_SSH_PRIVATE_KEY</code> - ソースリポジトリをクローンするために使用されるSSHの秘密鍵です。ビルド引数を実際の鍵に変換するには、<code>RUN /lagoon/entrypoints/05-ssh-key.sh</code>を使用します。この鍵は<code>/home/.ssh/key</code>にあり、SSHとGitが自動的に使用します。安全のため、<code>RUN rm /home/.ssh/key</code>を使用して鍵を再度削除します。</li>
-<li><code>LAGOON_GIT_SOURCE_REPOSITORY</code> - ソースリポジトリの完全なGit URL。</li>
+<li><code>LAGOON_GIT_SOURCE_REPOSITORY</code> - ソースリポジトリの完全なGit URLです</li>
 </ul>
-<p>また、これがプルリクエストのビルドである場合:</p>
+<p>また、これがプルリクエストのビルドである場合は以下となります。</p>
 <ul>
 <li><code>LAGOON_PR_HEAD_BRANCH</code></li>
 <li><code>LAGOON_PR_HEAD_SHA</code></li>
@@ -4840,31 +4840,31 @@
 </ul>
 <p>また、すでに構築された各イメージの名前も注入されます。あなたの<code>docker-compose.yml</code>が最初に<code>cli</code>イメージを構築し、次に<code>nginx</code>イメージを構築するように設定されている場合、<code>nginx</code>イメージの名前は<code>NGINX_IMAGE</code>として注入されます。</p>
 <h2 id="4-kubernetesopenshift">4. KubernetesまたはOpenShiftのサービスとルートを設定する<a class="headerlink" href="#4-kubernetesopenshift" title="Permanent link">#</a></h2>
-<p>次に、Lagoonは、サービスタイプから定義されるすべてのサービスとルート、および<code>.lagoon.yml</code>で定義した可能な追加のカスタムルートをKubernetesまたはOpenShiftに設定します。</p>
+<p>次に、Lagoonは、サービスタイプから定義されるすべてのサービスとルート、および<code>.lagoon.yml</code>で定義した追加可能なのカスタムルートをKubernetesまたはOpenShiftに設定します。</p>
 <p>このステップでは、<code>LAGOON_ROUTES</code>で定義されたすべてのルートをカンマ区切りのURLとして公開します。また、以下の順序で1つのルートを"main"ルートとして定義します:</p>
 <ol>
-<li>カスタムルートが定義されている場合:<code>.lagoon.yml</code>で最初に定義されたカスタムルート。</li>
-<li><code>docker-compose.yml</code>で定義されたサービスから自動生成された最初のルート。</li>
-<li>なし。</li>
+<li>カスタムルートが定義されている場合:<code>.lagoon.yml</code>で最初に定義されたカスタムルート</li>
+<li><code>docker-compose.yml</code>で定義されたサービスから自動生成された最初のルート</li>
+<li>なし</li>
 </ol>
 <p>"main"ルートは<code>LAGOON_ROUTE</code>環境変数を介して注入されます。</p>
 <h2 id="5">5. イメージのプッシュとタグ付け<a class="headerlink" href="#5" title="Permanent link">#</a></h2>
-<p>これで、以前に構築したDockerイメージを内部のDockerイメージレジストリにプッシュする時が来ました。</p>
-<p><code>docker-compose.yml</code>でDockerfileを指定せず、イメージのみを指定したサービスの場合、それらもタグ付けされます。 そして、これにより内部のDockerイメージレジストリがイメージを認識し、コンテナで使用できるようになります。</p>
+<p>これで、以前にビルドしたDockerイメージを内部のDockerイメージレジストリにプッシュすることができます。</p>
+<p><code>docker-compose.yml</code>でビルドするDockerfileを指定せずにイメージのみを指定したサービスについても、タグ付けが行われ、内部Dockerイメージレジストリに認識されるため、これらのイメージをコンテナで使用できるようになります。</p>
 <h2 id="6">6. 永続的なストレージ<a class="headerlink" href="#6" title="Permanent link">#</a></h2>
-<p>Lagoonは、永続的なストレージ(PVC)を必要とし、リクエストしたそれぞれのサービスに対して作成します。</p>
+<p>Lagoonは、永続的なストレージ（PVC）を必要として要求した各サービスのために永続的なストレージを作成します。</p>
 <h2 id="7-cron">7. Cronジョブ<a class="headerlink" href="#7-cron" title="Permanent link">#</a></h2>
-<p>Cronジョブをリクエストするサービス(MariaDBなど)、および<code>.lagoon.yml</code>で定義されたカスタムCronジョブそれぞれについて、Lagoonは後で<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">デプロイメント</a>に注入されるCronジョブ環境変数を生成します。</p>
+<p>MariaDBのようにcronジョブを要求する各サービス、および.lagoon.ymlに定義されたカスタムcronジョブごとに、Lagoonはcronジョブ環境変数を生成し、それらは後で<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">デプロイメント</a>に注入されます。</p>
 <h2 id="8">8. 定義済みのプレロールアウトタスクの実行<a class="headerlink" href="#8" title="Permanent link">#</a></h2>
-<p>これでLagoonは<code>.lagoon.yml</code>ファイルをチェックし、<code>pre-rollout</code>で定義されたタスクを探し、定義されたサービスで1つずつ実行します。これらのタスクは現在実行中のポッド上で実行されるため(最新のコミットに存在する機能やスクリプトを利用できません)、初回のデプロイメントでは実行されません。</p>
-<p>これらのいずれかが失敗すると、Lagoonはすぐに停止し、あなたに通知し、ロールアウトは進行しなくなります。</p>
+<p>次にLagoonは<code>.lagoon.yml</code>ファイルで定義された<code>pre-rollout</code>のタスクを確認し、それらを定義されたサービスごとに1つずつ実行します。これらのタスクは現在実行中のポッドで実行されるため、最新のコミットにのみ存在する機能やスクリプトを利用することはできません。また、最初のデプロイメントでは実行されません。</p>
+<p>これらのタスクのいずれかが失敗した場合、Lagoonは直ちに停止し通知します。そのため、ロールアウトは進行しません。</p>
 <h2 id="9-deploymentconfigsstatefulsetsdaemonsets">9. DeploymentConfigs、Statefulsets、Daemonsets<a class="headerlink" href="#9-deploymentconfigsstatefulsetsdaemonsets" title="Permanent link">#</a></h2>
 <p>これがおそらく最も重要なステップです。定義されたサービスタイプに基づいて、Lagoonは[ <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Deployment</a>、<a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">Statefulset</a> または <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/">Daemonsets</a> をサービス用に使用します。 (DeploymentはOpenShiftの <a href="https://docs.openshift.com/container-platform/latest/applications/deployments/what-deployments-are.html">DeploymentConfigs</a> と同等です)</p>
-<p>これには、以前に収集した情報、cronジョブ、永続ストレージの位置、プッシュされたイメージなど全てが含まれます。</p>
-<p>これらのオブジェクトの作成は、環境変数が変更されたり、イメージが変更されたりした場合など、必要に応じてKubernetesやOpenShiftがポッドの新しいデプロイメントを自動的にトリガーすることも引き起こします。しかし、変更がない場合はデプロイメントは行われません！これは、アプリケーションのPHPコードのみを更新した場合、Varnish、Solr、MariaDB、Redisなどの定義されているがあなたのコードを含まない他のサービスはデプロイされないということを意味します。これにより、全てが非常に高速になります。</p>
+<p>これには、以前に収集した情報、cronジョブ、永続的ストレージの位置、プッシュされたイメージなど全てが含まれます。</p>
+<p>これらのオブジェクトの作成は、環境変数が変更されたり、イメージが変更されたりした場合など、必要に応じてKubernetesやOpenShiftがポッドの新しいデプロイメントを自動的にトリガーすることも引き起こします。しかし、変更がない場合はデプロイメントは行われません。これは、アプリケーションのPHPコードのみを更新した場合、Varnish、Solr、MariaDB、Redisなどの定義されているがあなたのコードを含まない他のサービスはデプロイされないということを意味します。これにより、全てが非常に高速になります。</p>
 <h2 id="10">10. すべてのロールアウトが完了するのを待つ<a class="headerlink" href="#10" title="Permanent link">#</a></h2>
-<p>今、Lagoonは待ちます！それは、ちょうどトリガーされたデプロイメントの全部が 新しいポッドが完了し、その健康チェックが成功すること。</p>
-<p>デプロイメントや健康チェックのいずれかが失敗した場合、デプロイメントはここで停止し、デプロイメントが失敗したことを<a href="../../interacting/graphql-queries/#adding-notifications-to-the-project">定義済みの通知システム</a>(例えばSlack)を通じて通知します。</p>
+<p>ここでLagoonは待機します！新しいポッドのデプロイメントがすべて完了し、ヘルスチェックが成功するのを待ちます。</p>
+<p>デプロイメントやヘルスチェックのいずれかが失敗した場合、デプロイメントはここで停止され、Slackなどの<a href="../../interacting/graphql-queries/#adding-notifications-to-the-project">定義済みの通知システム</a>を通じてデプロイメントが失敗したことが通知されます。</p>
 <h2 id="11">11. 定義されたポストロールアウトタスクの実行<a class="headerlink" href="#11" title="Permanent link">#</a></h2>
 <p>次に、Lagoonは<code>.lagoon.yml</code>ファイルをチェックして<code>post-rollout</code>で定義されたタスクを探し、定義されたサービスでそれらを一つずつ実行します。</p>
 <p>これらのいずれかが失敗した場合、Lagoonは直ちに停止し、あなたに通知します。</p>

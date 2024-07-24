@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#solr-drupal" class="md-skip">
+        <a href="#solr" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1605,7 +1605,7 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    標準的な使用法
+    標準的な使い方
   </a>
   
 </li>
@@ -1619,7 +1619,7 @@
       
         <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
-    複数のコア
+    マルチコア
   </a>
   
 </li>
@@ -2503,7 +2503,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4579,7 +4579,7 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    標準的な使用法
+    標準的な使い方
   </a>
   
 </li>
@@ -4593,7 +4593,7 @@
       
         <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
-    複数のコア
+    マルチコア
   </a>
   
 </li>
@@ -4621,11 +4621,11 @@
   
 
 
-<h1 id="solr-drupal">Solr-Drupal<a class="headerlink" href="#solr-drupal" title="Permanent link">#</a></h1>
-<h2 id="_1">標準的な使用法<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>Solr 8、および 9のために、私たちは <a href="https://www.drupal.org/project/search_api_solr">search_api_solr</a> Drupalモジュールによって提供されるデフォルトのスキーマファイルを提供しています。 <code>docker-compose.yml</code> ファイルに使用したいSolrバージョンを追加してください。<a href="https://github.com/lagoon-examples/drupal-solr">私たちの例</a>に従ってください。</p>
+<h1 id="solr">Solr<a class="headerlink" href="#solr" title="Permanent link">#</a></h1>
+<h2 id="_1">標準的な使い方<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p>Solr 5.5、6.6、および 7.7では、<a href="https://www.drupal.org/project/search_api_solr">search_api_solr</a> Drupalモジュールによって提供されるデフォルトのスキーマファイルを提供しています。使用するSolrバージョンを<a href="https://github.com/lagoon-examples/drupal-solr">例</a>のように<code>docker-compose.yml</code>ファイルに追加してください。</p>
 <h2 id="_2">カスタムスキーマ<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>プロジェクトでSolrのスキーマカスタマイズを実装するには、Lagoonがどのように<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/8.Dockerfile">標準のイメージを作成するか</a>を参照してください。</p>
+<p>プロジェクトでSolrのスキーマカスタマイズを実装するには、Lagoonがどのように<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/8.Dockerfile">標準のイメージ</a>を作成するかを参照してください。</p>
 <ul>
 <li><code>docker-compose.yml</code> ファイルの <code>solr</code> セクションで、 <code>image: uselagoon/solr:8</code> を以下のように置き換えます:</li>
 </ul>
@@ -4634,7 +4634,7 @@
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">solr.dockerfile</span>
 </span></code></pre></div>
 <ul>
-<li>スキーマファイルをコードリポジトリに配置します。私たちは通常、 <code>.lagoon/solr</code> を使用します。</li>
+<li>スキーマファイルをコードリポジトリに配置します。通常、<code>.lagoon/solr</code>を使用します。</li>
 <li><code>solr.dockerfile</code> を作成します。</li>
 </ul>
 <div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>FROM<span class="w"> </span>uselagoon/solr:8
@@ -4643,9 +4643,9 @@
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>CMD<span class="w"> </span>solr-recreate<span class="w"> </span>drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-foreground
 </span></code></pre></div>
-<p>目標は、Solr設定ファイルが <code>/solr-conf/conf</code> に存在することです。 あなたが作成しているイメージ。</p>
-<h2 id="_3">複数のコア<a class="headerlink" href="#_3" title="Permanent link">#</a></h2>
-<p>複数のコアを実装するには、上記のように自分自身のSolrスキーマを出荷する必要があります。必要な変更はDockerfileの<code>CMD</code>に対してのみで、必要なコアごとに<code>precreate-core corename /solr-conf/ ;</code>のパターンを繰り返します。</p>
+<p>目標は、ビルドするイメージの<code>/solr-conf/conf</code>Solr設定ファイルが存在することです。</p>
+<h2 id="_3">マルチコア<a class="headerlink" href="#_3" title="Permanent link">#</a></h2>
+<p>複数のコアを実装するには、上記のように独自のSolrスキーマを用意する必要があります。必要な変更はDockerfileの<code>CMD</code>だけで、必要なコアごとに<code>precreate-core corename /solr-conf/ ;</code>のパターンを繰り返します。</p>
 <div class="language-bash highlight"><span class="filename">solr.dockerfile</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>FROM<span class="w"> </span>uselagoon/solr:8-drupal
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>CMD<span class="w"> </span>solr-recreate<span class="w"> </span>drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-recreate<span class="w"> </span>more-drupal<span class="w"> </span>/solr-conf<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>solr-foreground

@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1711,10 +1711,10 @@
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    ルートアプリケーションの修正
+    ルートアプリケーションの変更
   </a>
   
-    <nav class="md-nav" aria-label="ルートアプリケーションの修正">
+    <nav class="md-nav" aria-label="ルートアプリケーションの変更">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2541,7 +2541,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4617,10 +4617,10 @@
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    ルートアプリケーションの修正
+    ルートアプリケーションの変更
   </a>
   
-    <nav class="md-nav" aria-label="ルートアプリケーションの修正">
+    <nav class="md-nav" aria-label="ルートアプリケーションの変更">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4700,16 +4700,16 @@
 
 
 <h1 id="_1">サブフォルダ<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
-<p>例えば、<code>www.example.com</code>が一つのDrupalサイトを指し、<code>www.example.com/blog</code>が別のDrupalで作られたブログをロードする場合があります。</p>
-<p>両方のDrupalを1つのGitリポジトリで動かし、それを全体としてデプロイすることが可能ですが、このワークフローはすべてのチームに適合するわけではなく、別々のGitリポジトリを持つことが一部の状況にはより適しています。</p>
-<h2 id="_2">ルートアプリケーションの修正<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>ルートアプリケーション(この例では<code>www.example.com</code>のDrupalサイト)は、NGINXをサブフォルダアプリケーションへのリバースプロキシとして構成するいくつかのNGINX設定が必要です:</p>
+<p>例えば、<code>www.example.com</code>はあるDrupalサイトへのアクセスを提供し、<code>www.example.com/blog</code>は別のDrupalで構築されたブログを読み込みます。</p>
+<p>この場合、両方のDrupalを単一のGitリポジトリで管理し、まとめてデプロイすることも可能です。しかし、このワークフローは全てのチームに適しているわけではなく、状況によっては別々のGitリポジトリを使用した方が良い場合もあります。</p>
+<h2 id="_2">ルートアプリケーションの変更<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
+<p>ルートアプリケーション(この例では<code>www.example.com</code>のDrupalサイト)は、NGINXをサブフォルダアプリケーションへのリバースプロキシとして設定するためのNGINX設定ファイルがいくつか必要になります:</p>
 <h3 id="location_prependconf"><code>location_prepend.conf</code><a class="headerlink" href="#location_prependconf" title="Permanent link">#</a></h3>
 <p>Drupalインストールのルートに<code>location_prepend.conf</code>というファイルを作成します:</p>
 <div class="language-text highlight"><span class="filename">location_prepend.conf</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>resolver 8.8.8.8 valid=30s;
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>location ~ ^/subfolder {
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  # $http_x_forwarded_protoが空(上流のリバースプロキシから設定されていない場合)であれば、
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  # $http_x_forwarded_protoが空の場合 (上流のリバースプロキシから設定されていない場合)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  # 現在のスキームに設定します。
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  set_if_empty $http_x_forwarded_proto $scheme;
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
@@ -4720,42 +4720,42 @@
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  # 元のホストを下流が知るために使用されます。
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  proxy_set_header      X-REVERSEPROXY $hostname;
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  proxy_set_header      FORWARDED &quot;&quot;;
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  # drupal8が設定されているとエラーを出すため、FORWARDEDを未設定にします。
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  # Drupal 8でエラーが発生するため、FORWARDEDヘッダーを削除します。
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  proxy_set_header      Proxy &quot;&quot;;
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  # drupal8が設定されているとエラーを出すため、Proxyを未設定にします。
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  # Drupal 8でエラーが発生するため、Proxyヘッダーを削除します。
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  proxy_ssl_server_name on;
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  # DNS解決が正しく機能するためには、NGINXに変数を設定する必要があります。
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  # NGINXでDNS解決を正しく動作させるには、変数を設定する必要があります。
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  set                   $subfolder_drupal_host &quot;https://nginx-lagoonproject-${LAGOON_GIT_SAFE_BRANCH}.clustername.com:443&quot;;
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  # LAGOON_GIT_SAFE_BRANCH変数はdockerエントリーポイント時に置換されます。
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>  proxy_pass            $subfolder_drupal_host;
 </span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>  proxy_set_header      Host $proxy_host;
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>  # $proxy_hostはproxy_passに基づいてNGINXによって自動生成されます(スキームとポートは不要です)。
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>  # $proxy_hostは、NGINXがproxy_passディレクティブ(スキームとポートを除くホスト名)を元に自動生成されます。
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>  expires off; # プロキシからのキャッシュヘッダーを尊重し、上書きしないようにします
 </span></code></pre></div>
 <p>以下の文字列を置換してください:</p>
 <ul>
-<li><code>/subfolder</code> を使用したいサブフォルダの名前に置換します。例えば、<code>/blog</code>。</li>
-<li><code>nginx</code> をサブフォルダプロジェクト内で指すサービスに置換します。</li>
-<li><code>lagoonproject</code> をサブフォルダプロジェクトのLagoonプロジェクト名に置換します。</li>
+<li><code>/subfolder</code>：サブフォルダとして使用する名前を入力してください例えば、<code>/blog</code>。</li>
+<li><code>nginx</code>：サブフォルダプロジェクトが参照するサービス名を入力してください。</li>
+<li><code>lagoonproject</code>：サブフォルダプロジェクトのLagoonプロジェクト名を入力してください。</li>
 </ul>
 <h3 id="n-ginx-dockerfile">N GINX Dockerfile<a class="headerlink" href="#n-ginx-dockerfile" title="Permanent link">#</a></h3>
-<p>以下をあなたのNGINX Dockerfile(<code>nginx.dockerfile</code>または<code>Dockerfile.nginx</code>)に追加してください:</p>
+<p>以下の内容をNGINX Dockerfile(<code>nginx.dockerfile</code>または<code>Dockerfile.nginx</code>)に追加してください:</p>
 <div class="language-text highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>COPY location_prepend.conf /etc/nginx/conf.d/drupal/location_prepend.conf
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>RUN fix-permissions /etc/nginx/conf.d/drupal/*
 </span></code></pre></div>
 <h2 id="_3">サブフォルダアプリケーションの変更<a class="headerlink" href="#_3" title="Permanent link">#</a></h2>
-<p>ルートアプリケーションと同様に、サブフォルダアプリケーション(この例では、<code>www.example.com/blog</code>のDrupalインストール)にも、サブフォルダ下で動作していることを教える必要があります。これを行うために、以下の2つのファイルを作成します:</p>
+<p>ルートアプリケーションと同様に、サブフォルダアプリケーション(この例では、<code>www.example.com/blog</code>のDrupalインストール)に対しても、サブフォルダで動作していることを認識させる必要があります。そのためには、以下の2つのファイルを作成します:</p>
 <h3 id="location_drupal_append_subfolderconf"><code>location_drupal_append_subfolder.conf</code><a class="headerlink" href="#location_drupal_append_subfolderconf" title="Permanent link">#</a></h3>
-<p>サブフォルダのDrupalインストールのルートに<code>location_drupal_append_subfolder.conf</code>という名前のファイルを作成します:</p>
-<div class="language-text highlight"><span class="filename">location_drupal_append_subfolder.conf</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># `subfolder`という接頭辞がついたスクリプト名を注入すると、Drupalは
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a># `subfolder`が接頭辞として付けられたすべてのURLを描画します
+<p>サブフォルダアプリケーションのDrupalインストールのルートディレクトリに、<code>location_drupal_append_subfolder.conf</code>という名前のファイルを作成します:</p>
+<div class="language-text highlight"><span class="filename">location_drupal_append_subfolder.conf</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Drupalは、`subfolder`で始まるプレフィックスが付いたスクリプト名を注入すると、
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a># すべてのURLに`subfolder`をプレフィックスとして付加してレンダリングします。
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>fastcgi_param  SCRIPT_NAME        /subfolder/index.php;
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a># リバースプロキシ経由で実行している場合、元のHOST URLを
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a># PHPに注入します。これにより、Drupalは元のHOST URLで
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># すべてのURLを描画し、現在使用しているHOSTではありません。
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a># リバースプロキシ経由で実行している場合、オリジナルのHOST URLを
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a># PHPに注入します。これにより、Drupalは現在のHOSTではなく、
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># オリジナルのHOST URLを用いてすべての URL をレンダリングします。
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a># 最初に、HOSTを通常のホスト変数に設定します。
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>fastcgi_param  HTTP_HOST          $http
@@ -4763,38 +4763,37 @@
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a># それが存在する場合は、`X-Lagoon-Forwarded-Host`で上書きします。
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>fastcgi_param  HTTP_HOST          $http_x_lagoon_forwarded_host if_not_empty;
 </span></code></pre></div>
-<p><code>/subfolder</code>を使用したいサブフォルダの名前に置き換えてください。例えば、<code>/blog</code>。</p>
+<p>サブフォルダー名で <code>/subfolder</code>を置き換えてください。例えば、<code>/blog</code>のように置き換えます。</p>
 <h3 id="server_prepend_subfolderconf"><code>server_prepend_subfolder.conf</code><a class="headerlink" href="#server_prepend_subfolderconf" title="Permanent link">#</a></h3>
-<p>サブフォルダのDrupalインストールのルートに<code>server_prepend_subfolder.conf</code>という名前のファイルを作成します:</p>
-<div class="language-text highlight"><span class="filename">server_prepend_subfolder.conf</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># 内部のNGINXリライトを行う前に、リダイレクトを確認します。
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a># これは、内部のNGINXリライトが `last`を使用するためで、
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a># これはNGINXにリライトをこれ以上確認しないよう指示します(そして
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># `if`はリダイレクトモジュールの一部です)。
+<p>サブフォルダーでのDrupalインストールのルートディレクトリに、<code>server_prepend_subfolder.conf</code>という名前のファイルを作成してください:</p>
+<div class="language-text highlight"><span class="filename">server_prepend_subfolder.conf</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># 内部NGINXリライトは`last`フラグを使うため、
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a># リライトの前にリダイレクトの有無を確認します。
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a># `last`フフラグはNGINXに対して、これ以降のリライト処理を行わないよう指示します。
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># (また、`if`はリダイレクトモジュールの一部です。)
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>include /etc/nginx/helpers/010_redirects.conf;
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a># これは内部のNGINXリライトで、リクエストから`/subfolder/`を
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a># 削除して、NGINXが最初から`/`だったかのようにリクエストを
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a># 処理します。
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a># `last`フラグも重要です。これはNGINXにこれ以上のリライトを
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a># 実行しないよう指示します。なぜなら、以下のリライトで永遠に
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a># リダイレクトするからです。
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>rewrite ^/subfolder/(.*)          /$1             last;
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a># リダイレクトが絶対ではないことを確認し、URLのホストをNGINXが
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a># 上書きしないようにします - これは # NGINXが現在提供しているもの以外の何かである可能性があります。
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>absolute_redirect off;
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a># リクエストが`/subfolder`だけの場合、301リダイレクトを`/subfolder/`にします
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a># (Drupalは末尾のスラッシュが大好き)
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>rewrite ^/subfolder               /subfolder/     permanent;
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a># 他の全てのリクエストに対しては、301リダイレクトを`/subfolder/`でプレフィックスします。
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>rewrite ^\/(.*)                   /subfolder/$1   permanent;
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a># このリライトはリクエストURLから`/subfolder/`を削除し、
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a># あたかも最初から`/`であったかのようにNGINXが
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a># 処理できるようにします。
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a># `last`フラグも重要です。
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a># これにより、以下のリライトが永続的に繰り返されるのを防ぎます。
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>rewrite ^/subfolder/(.*)          /$1             last;
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a># NGINXによって現在処理されているホスト情報が上書きされないよう、
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a># リダイレクトの絶対パスを使用しないようにします。
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>absolute_redirect off;
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a># `/subfolder`だけがリクエストされた場合、301リダイレクトで
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a># `/subfolder`(Drupalは末尾のスラッシュを好みます)に転送します。
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>rewrite ^/subfolder               /subfolder/     permanent;
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a># その他のリクエストに対しては、301リダイレクトのパスに`/subfolder/`を先頭に追加します。
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>rewrite ^\/(.*)                   /subfolder/$1   permanent;
 </span></code></pre></div>
-<p><code>/subfolder</code>を使用したいサブフォルダの名前に置き換えてください。例えば、<code>/blog</code>。</p>
+<p><code>/subfolder</code>は、使用するサブフォルダーの名前と置き換えてください。例えば、ブログ用のサブフォルダーであれば <code>/blog</code>となります。</p>
 <h3 id="nginx-dockerfile">NGINX Dockerfile<a class="headerlink" href="#nginx-dockerfile" title="Permanent link">#</a></h3>
-<p>また、NGINX Dockerfileも修正する必要があります。</p>
-<p>以下をNGINX Dockerfile (<code>nginx.dockerfile</code> または <code>Dockerfile.nginx</code>)に追加してください:</p>
+<p>NGINX Dockerfileも編集が必要です。</p>
+<p>NGINX Dockerfile(通常は<code>nginx.dockerfile</code> または <code>Dockerfile.nginx</code>)に以下の内容を追加してください:</p>
 <div class="language-text highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>COPY location_drupal_append_subfolder.conf /etc/nginx/conf.d/drupal/location_drupal_append_subfolder.conf
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>COPY server_prepend_subfolder.conf /etc/nginx/conf.d/drupal/server_prepend_subfolder.conf
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>RUN fix-permissions /etc/nginx/conf.d/drupal/*

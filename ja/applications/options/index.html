@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -890,7 +890,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -900,7 +900,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2549,7 +2549,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4717,29 +4717,29 @@
 
 <h1 id="lagoon">Lagoonを使用するためのアプリケーション設定<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h1>
 <h2 id="lagoonyml"><code>lagoon.yml</code><a class="headerlink" href="#lagoonyml" title="Permanent link">#</a></h2>
-<p>Lagoonのプロジェクトレベルおよび環境レベルの設定は、リポジトリの <code>.lagoon.yml</code> ファイルに提供されています。</p>
+<p>Lagoonのプロジェクトレベルおよび環境レベルの設定は、リポジトリの <code>.lagoon.yml</code> ファイルで提供されています。</p>
 <p><a href="../../concepts-basics/lagoon-yml/"><code>lagoon-yml.md</code></a>を参照してください。</p>
 <h2 id="docker-composeyml"><code>docker-compose.yml</code><a class="headerlink" href="#docker-composeyml" title="Permanent link">#</a></h2>
-<p>Lagoonのサービスレベルの設定は、リポジトリの<code>docker-compose.yml</code>ファイルに提供されています。特に、<code>lagoon.type</code>と関連するサービスラベルは個々のサービスで文書化されています。</p>
+<p>Lagoonのサービスレベルの設定は、リポジトリの<code>docker-compose.yml</code>ファイルで提供されています。特に、<code>lagoon.type</code>と関連するサービスラベルは、個々のサービスのドキュメントに記載されています。</p>
 <p><a href="../../concepts-basics/docker-compose-yml/"><code>docker-compose-yml.md</code></a>を参照してください。</p>
 <h2 id="_1">ストレージ<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>Lagoonは、ほとんどのサービスにストレージを提供する能力があります - 組み込みのLagoonサービスタイプには、必要なPVC、ボリュームなどを追加するための<code>-persistent</code>バリアントがあります。この設定をローカルに反映するように例を更新しました。</p>
+<p>Lagoonはほとんどのサービスにストレージを提供する機能があります。Lagoon組み込みのサービスタイプには、必要なPVC、ボリュームなどを追加できる<code>-persistent</code>バリアントがあります。この設定をローカルで反映するように例を更新しました。</p>
 <h2 id="_2">データベース<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>Lagoonは以下の設定を利用できます:</p>
+<p>Lagoonは以下のデータベース設定に対応しています:</p>
 <ul>
-<li>Mariadb - すべてのサポートされているバージョン</li>
-<li>PostgreSQL - すべてのサポートされているバージョン</li>
+<li>Mariadb - サポートされている全バージョン</li>
+<li>PostgreSQL - サポートされている全バージョン</li>
 </ul>
 <h3 id="_3">データベース・アズ・ア・サービス<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
-<p>Lagoonはまた、<a href="https://github.com/amazeeio/dbaas-operator">dbaas-operator</a>を利用して、これらのデータベースを自動的にプロビジョニングする能力もあります。 管理データベースサービス(例:RDS、Google Cloud Databases、Azure Database)があります。これらのサービスがクラスターにプロビジョニングされ、設定されると自動的にこれらが利用されます。これらが利用できない場合、フォールバックとしてポッドがプロビジョニングされます。</p>
+<p>Lagoonはまた、<a href="https://github.com/amazeeio/dbaas-operator">dbaas-operator</a>を利用して、基盤となるマネージドデータベースサービス（例：RDS、Google Cloud Databases、Azure Database）を使用してこれらのデータベースを自動的にプロビジョニングする機能を持っています。これらのサービスがクラスタ用にプロビジョニングおよび設定されると、自動的に行われます。これらが利用できない場合は、フォールバックとしてポッドがプロビジョニングされます。</p>
 <h2 id="_4">キャッシュ<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
-<p>Lagoonは、キャッシュバックエンドとしてRedisをサポートしています。本番環境では、一部のユーザーがスケールを助けるために、本番環境用の管理されたRedisサービスをプロビジョニングします。</p>
+<p>LagoonはキャッシュバックエンドとしてRedisをサポートしています。本番環境では、一部のユーザーがスケーリングを支援するために、マネージドRedisサービスをプロビジョニングしています。</p>
 <h2 id="_5">検索<a class="headerlink" href="#_5" title="Permanent link">#</a></h2>
-<p>Lagoonは、Elasticsearch、Solr、OpenSearchを検索プロバイダとしてサポートしています。必要に応じて、外部検索プロバイダも設定できます。</p>
+<p>Lagoonは検索プロバイダーとしてElasticsearch、Solr、OpenSearchをサポートしています。必要に応じて外部の検索プロバイダーも設定できます。</p>
 <h2 id="_6">イングレス/ルート<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
 <p>Lagoonは、イングレス要件を持つサービスのルートを自動生成します。カスタムルートは、各サービスごとに <code>.lagoon.yml</code> に提供できます。</p>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>Lagoonは、ビルド時とランタイム時に環境変数を多用します。これらがアプリケーションの重要な設定(例:データベース設定/資格情報)を提供するために使用される場合、ローカルバージョンとLagoonバージョンが同様に名付けられていることが重要です。</p>
+<p>Lagoonは、ビルド時とランタイム時に環境変数を多用します。これらがアプリケーションの重要な設定(例:データベース設定/認証情報)を提供するために使用される場合、ローカルとLagoonのバージョンで同様の名前を付けることが重要です。</p>
 <p>詳細は <a href="../../concepts-advanced/environment-variables/">environment-variables.md</a>を参照してください。</p>
 
 

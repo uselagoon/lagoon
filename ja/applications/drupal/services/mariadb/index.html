@@ -132,7 +132,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#mariadb-drupal" class="md-skip">
+        <a href="#mariadb" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -890,7 +890,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -900,7 +900,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1526,8 +1526,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mariadb" class="md-nav__link">
-    その他のMariaDB ログ
+  <a href="#mariadb_1" class="md-nav__link">
+    MariaDB ログの追加設定
   </a>
   
 </li>
@@ -1542,7 +1542,7 @@
         
           <li class="md-nav__item">
   <a href="#mysql_1" class="md-nav__link">
-    コンテナから公開MySQLポートを取得する
+    コンテナから公開された MySQL ポートを取得する
   </a>
   
 </li>
@@ -2531,7 +2531,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4606,8 +4606,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mariadb" class="md-nav__link">
-    その他のMariaDB ログ
+  <a href="#mariadb_1" class="md-nav__link">
+    MariaDB ログの追加設定
   </a>
   
 </li>
@@ -4622,7 +4622,7 @@
         
           <li class="md-nav__item">
   <a href="#mysql_1" class="md-nav__link">
-    コンテナから公開MySQLポートを取得する
+    コンテナから公開された MySQL ポートを取得する
   </a>
   
 </li>
@@ -4675,8 +4675,8 @@
   
 
 
-<h1 id="mariadb-drupal">MariaDB-Drupal<a class="headerlink" href="#mariadb-drupal" title="Permanent link">#</a></h1>
-<p>Lagoonの <code>mariadb-drupal</code> Dockerイメージ <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb-drupal/10.5.Dockerfile">Dockerfile</a> は、LagoonのDrupalプロジェクト内で使用するためにカスタマイズされた <a href="../../../../docker-images/mariadb/"><code>mariadb</code></a> イメージです。 <code>mariadb</code> イメージとの違いは、初期データベースのセットアップのみで、これはいくつかの環境変数によって行われます:</p>
+<h1 id="mariadb">MariaDB<a class="headerlink" href="#mariadb" title="Permanent link">#</a></h1>
+<p>Lagoonの <code>mariadb-drupal</code> Dockerイメージ <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb-drupal/10.5.Dockerfile">Dockerfile</a> は、LagoonのDrupalプロジェクト内で使用するためにカスタマイズされた <a href="../../../../docker-images/mariadb/"><code>mariadb</code></a> イメージです。 <code>mariadb</code> イメージと異なるのは、いくつかの環境変数によって行われるデータベースの初期設定だけです:</p>
 <table>
 <thead>
 <tr>
@@ -4689,48 +4689,48 @@
 <tr>
 <td style="text-align: left;"><code>MARIADB_DATABASE</code></td>
 <td style="text-align: left;">drupal</td>
-<td style="text-align: left;">起動時に作成されるDrupalデータベース。</td>
+<td style="text-align: left;">起動時に作成されるDrupalデータベース</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>MARIADB_USER</code></td>
 <td style="text-align: left;">drupal</td>
-<td style="text-align: left;">起動時に作成されるデフォルトのユーザー。</td>
+<td style="text-align: left;">起動時に作成されるデフォルトユーザー</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>MARIADB_PASSWORD</code></td>
 <td style="text-align: left;">drupal</td>
-<td style="text-align: left;">起動時に作成されるデフォルトのユーザーのパスワード。</td>
+<td style="text-align: left;">起動時に作成されるデフォルトユーザーのパスワード</td>
 </tr>
 </tbody>
 </table>
-<p><code>LAGOON_ENVIRONMENT_TYPE</code> 変数が <code>production</code> に設定されている場合、パフォーマンスは <code>MARIADB_INNODB_BUFFER_POOL_SIZE=1024</code> および <code>MARIADB_INNODB_LOG_FILE_SIZE=256</code> を使用してそれに応じて設定されます。</p>
-<h2 id="mariadb">その他のMariaDB <a href="../../../../logging/logging/">ログ</a><a class="headerlink" href="#mariadb" title="Permanent link">#</a></h2>
-<p>開発の過程で、クエリログまたはスロークエリログを有効にする必要があるかもしれません。そうするためには、環境変数 <code>MARIADB_LOG_SLOW</code> または <code>MARIADB_LOG_QUERIES</code> を設定します。これは <code></code>docker-compose.yml`.</p>
+<p><code>LAGOON_ENVIRONMENT_TYPE</code> 変数が <code>production</code> に設定されている場合、パフォーマンスは <code>MARIADB_INNODB_BUFFER_POOL_SIZE=1024</code> および <code>MARIADB_INNODB_LOG_FILE_SIZE=256</code> に設定することで最適化されます。</p>
+<h2 id="mariadb_1">MariaDB <a href="../../../../logging/logging/">ログ</a>の追加設定<a class="headerlink" href="#mariadb_1" title="Permanent link">#</a></h2>
+<p>開発の過程で、クエリログまたはスロークエリログを有効にする必要があるかもしれません。そうするためには、環境変数 <code>MARIADB_LOG_SLOW</code> または <code>MARIADB_LOG_QUERIES</code> を設定します。これは<code>docker-compose.yml</code>で行うことができます.</p>
 <h2 id="mysql">ホストからMySQLコンテナへの接続<a class="headerlink" href="#mysql" title="Permanent link">#</a></h2>
-<p>Dockerコンテナ内のMySQLデータベースに<a href="http://www.sequelpro.com/">Sequel Pro</a>、<a href="http://www.mysql.com/products/workbench/">MySQL Workbench</a>、<a href="http://www.heidisql.com/">HeidiSQL</a>、<a href="http://dbeaver.jkiss.org/">DBeaver</a>、<code>mysql-cli</code>などの外部ツールから接続したい場合、IPアドレスとポート情報を取得する方法をここに示します。</p>
-<h3 id="mysql_1">コンテナから公開MySQLポートを取得する<a class="headerlink" href="#mysql_1" title="Permanent link">#</a></h3>
-<p>デフォルトでは、Dockerは各コンテナ開始時にMySQLの公開ポートをランダムに割り当てます。これはポートの衝突を防ぐために行われます。</p>
+<p><a href="http://www.sequelpro.com/">Sequel Pro</a>、<a href="http://www.mysql.com/products/workbench/">MySQL Workbench</a>、<a href="http://www.heidisql.com/">HeidiSQL</a>、<a href="http://dbeaver.jkiss.org/">DBeaver</a>、標準的な<code>mysql-cli</code>などの外部ツールを使って、Dockerコンテナ内のMySQLデータベースに接続したい場合、IPアドレスとポート情報を取得する方法を以下に示します。</p>
+<h3 id="mysql_1">コンテナから公開された MySQL ポートを取得する<a class="headerlink" href="#mysql_1" title="Permanent link">#</a></h3>
+<p>デフォルトでは、Dockerは各コンテナ起動時にMySQLの公開ポートをランダムに割り当てます。これはポートの衝突を防ぐために行われます。</p>
 <p><code>docker</code>を使って公開ポートを取得するには:</p>
-<p>実行:<code>docker port [container_name]</code>。</p>
+<p><code>docker port [container_name]</code>を実行</p>
 <div class="language-text highlight"><span class="filename">ポートを取得する</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$ docker port drupal_example_mariadb_1
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>3306/tcp -&gt; 0.0.0.0:32797
 </span></code></pre></div>
-<p>または、Drupalリポジトリ内で<code>docker-compose</code>を使って:</p>
-<p>実行:<code>docker-compose port [service_name] [internal_port]</code>。</p>
+<p>または、Drupalリポジトリ内の<code>docker-compose</code>を使用して:</p>
+<p><code>docker-compose port [service_name] [internal_port]</code>を実行</p>
 <div class="language-bash highlight"><span class="filename">ポートを設定する</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker-compose<span class="w"> </span>port<span class="w"> </span>mariadb<span class="w"> </span><span class="m">3306</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="m">0</span>.0.0.0:32797
 </span></code></pre></div>
 <h2 id="_1">静的ポートの設定(非推奨)<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <p>開発中に外部のデータベースツールを使用している場合、MySQL接続ポートを常に確認し設定するのは面倒になるかもしれません。</p>
-<p>静的ポートを設定するには、編集してください あなたの <code>docker-compose.yml</code> でのサービス定義。</p>
+<p>静的ポートを設定するには、<code>docker-compose.yml</code>のサービス定義を編集します。</p>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;33772:3306&quot;</span><span class="w"> </span><span class="c1"># ポート3306をホストポートの33772で公開します。これを行うことで、ポートの衝突を管理する責任があなたにあります。</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;33772:3306&quot;</span><span class="w"> </span><span class="c1"># ポート3306をホストポートの33772を指定して公開します。これを行うことで、ポートの衝突を管理する責任があることに注意すること。</span>
 </span></code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">警告</p>
-<p>静的ポートを設定すると、ポートの衝突を管理する責任があなたにあります。</p>
+<p>静的ポートを設定することで、ポートの衝突を管理する責任が生じます。</p>
 </div>
 <h3 id="mysql_2">MySQLへの接続<a class="headerlink" href="#mysql_2" title="Permanent link">#</a></h3>
 <p>これらの詳細を使用して、お好みのデータベース管理ツールに接続できます。</p>

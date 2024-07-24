@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2436,7 +2436,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4538,8 +4538,8 @@
 <h1 id="_1">プライベートリポジトリ<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <ol>
 <li>デプロイキーに、あなたのGitHub/GitLab/BitBucketのGitリポジトリへのアクセス権を与えます。</li>
-<li><code>dockerfile</code>に<code>ARG LAGOON_SSH_PRIVATE_KEY</code>を追加します(SSHキーが必要なビルドプロセスのステップの前に)。</li>
-<li><code>dockerfile</code>に<code>RUN /lagoon/entrypoints/05-ssh-key.sh</code>を追加します(SSHキーが必要なビルドプロセスのステップの前に)。</li>
+<li><code>dockerfile</code>に<code>ARG LAGOON_SSH_PRIVATE_KEY</code>を追加します。(SSHキーが必要なビルドプロセスのステップの前に)</li>
+<li><code>dockerfile</code>に<code>RUN /lagoon/entrypoints/05-ssh-key.sh</code>を追加します。(SSHキーが必要なビルドプロセスのステップの前に)</li>
 </ol>
 <div class="language-bash highlight"><span class="filename">プライベートリポジトリの設定</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RUN<span class="w"> </span>/lagoon/entrypoints/05-ssh-key.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>composer<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>/home/.ssh/key
 </span></code></pre></div>

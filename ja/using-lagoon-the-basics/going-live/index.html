@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2413,14 +2413,14 @@
         
           <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    リダイレクト
+    リダイレクトについて
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    クロンジョブ
+  <a href="#cron-jobs" class="md-nav__link">
+    Cron jobs
   </a>
   
 </li>
@@ -2439,21 +2439,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fastlycname" class="md-nav__link">
-    Fastlyのための推奨設定(CNAMEレコード):
+  <a href="#fastly" class="md-nav__link">
+    Fastlyの推奨設定
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#fastlya" class="md-nav__link">
-    Fastlyのための代替設定(Aレコード):
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     ルートドメイン
   </a>
   
@@ -2465,7 +2458,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     本番環境
   </a>
   
@@ -2551,7 +2544,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4642,14 +4635,14 @@
         
           <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    リダイレクト
+    リダイレクトについて
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    クロンジョブ
+  <a href="#cron-jobs" class="md-nav__link">
+    Cron jobs
   </a>
   
 </li>
@@ -4668,21 +4661,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fastlycname" class="md-nav__link">
-    Fastlyのための推奨設定(CNAMEレコード):
+  <a href="#fastly" class="md-nav__link">
+    Fastlyの推奨設定
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#fastlya" class="md-nav__link">
-    Fastlyのための代替設定(Aレコード):
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     ルートドメイン
   </a>
   
@@ -4694,7 +4680,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     本番環境
   </a>
   
@@ -4727,8 +4713,8 @@
 <p>おめでとうございます、あなたのウェブサイトがLagoon上でライブ配信する一歩手前に来ました！これをできるだけスムーズに進めるために、最後のチェックリストをご用意しました。これは、サイトをライブ配信する前に最後に確認すべきことをガイドします。</p>
 <h2 id="lagoonyml"><code>.lagoon.yml</code>を確認する<a class="headerlink" href="#lagoonyml" title="Permanent link">#</a></h2>
 <h3 id="ssl">ルート / SSL<a class="headerlink" href="#ssl" title="Permanent link">#</a></h3>
-<p>あなたの<code>.lagoon.yml</code>にすべてのルートが設定されていることを確認してください。ドメインをLagoonに向けない場合、Let's Encrypt(LE)の証明書の作成を無効にすべきであることを認識しておいてください。これは問題を引き起こす可能性があります。Lagoonに向けていないドメインは、Let's Encryptの制限を超えないように、しばらくすると無効になります。</p>
-<p>証明機関(CA)による署名付き証明書を使用する場合、<code>tls-acme</code>を<code>false</code>に設定できますが、<code>insecure</code>フラグは<code>Allow</code>または<code>Redirect</code>に設定したままにしておいてください。CA証明書の場合、Lagoonの管理者にルートと、設定する必要があるSSL証明書を知らせてください。</p>
+<p>あなたの<code>.lagoon.yml</code>にすべてのルートが設定されていることを確認してください。ドメインをLagoonに向けない場合、Let's Encrypt(LE)の証明書の作成を無効にすべきであることを認識しておいてください。このままでは問題を引き起こす可能性があります。Lagoonに向けていないドメインは、Let's Encryptの制限を超えないようにするためしばらくすると無効になります。</p>
+<p>証明機関(CA)による署名付き証明書を使用する場合、<code>tls-acme</code>を<code>false</code>に設定できますが、<code>insecure</code>フラグは<code>Allow</code>または<code>Redirect</code>に設定したままにしておいてください。CA証明書の場合、Lagoonの管理者にルートと設定する必要があるSSL証明書を知らせてください。</p>
 <div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">environments</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
@@ -4753,23 +4739,28 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">            </span><span class="nt">insecure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redirect</span>
 </span></code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">注意:</p>
-<p>ウェブサイトのすべてのページを確認するのは少し手間がかかるかもしれませんので、<a href="https://github.com/bramus/mixed-content-scan">mixed-content-scan</a>を利用することができます。これにより、サイト全体をクロールし、非HTTPSサイトからのアセットを含むページを返します。</p>
+<p class="admonition-title">注意</p>
+<p>ウェブサイトのすべてのページを確認するのは少し手間がかかるかもしれませんので、<a href="https://github.com/bramus/mixed-content-scan">mixed-content-scan</a>を利用することもできます。これにより、サイト全体をクロールし、非HTTPSサイトからのアセットを含むページを返します。</p>
 </div>
-<h3 id="_2">リダイレクト<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
-<p>非wwwからwwwへのリダイレクトが必要な場合は、それらが <code>redirects-map.conf</code> に設定されていることを確認してください - <a href="../../docker-images/nginx/#redirects-mapconf">ドキュメンテーションを参照</a>。</p>
-<h3 id="_3">クロンジョブ<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
-<p>プロダクション環境用のクロンジョブが設定されているか確認してください - <a href="../../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code></a>を参照してください。</p>
+<h3 id="_2">リダイレクトについて<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
+<p>非wwwからwwwへのリダイレクトが必要な場合は、それらが <code>redirects-map.conf</code> に設定されていることを確認してください。<a href="../../docker-images/nginx/#redirects-mapconf">ドキュメントを参照</a></p>
+<h3 id="cron-jobs">Cron jobs<a class="headerlink" href="#cron-jobs" title="Permanent link">#</a></h3>
+<p>production環境用のCron jobsが設定されているか確認してください。<a href="../../concepts-basics/lagoon-yml/"><code>.lagoon.ymlのドキュメント</code></a>を参照してください。</p>
 <h2 id="dns">DNS<a class="headerlink" href="#dns" title="Permanent link">#</a></h2>
-<p>あなたのサイトが私たちのサーバーを指すようにするためにできるだけスムーズに進行するように、専用のロードバランサーDNSレコードを用意しています。これらの技術的なDNSリソースレコードは、あなたのサイトを取得するために使用されます。 amazee.ioインフラストラクチャにリンクされ、他の目的では使用されません。CNAMEレコードに疑問がある場合は、Lagoonの管理者に設定する必要がある正確なCNAMEを尋ねてください。</p>
+<p>あなたのサイトがamazee.ioのサーバーにできるだけスムーズに接続できるように、専用のロードバランサーDNSレコードを用意しています。これらの技術的なDNSリソースレコードは、あなたのサイトをamazee.ioのインフラストラクチャにリンクされるために使用され他の目的では使用されません。CNAMEレコードに疑問がある場合は、Lagoonの管理者に正確なCNAMEを設定してもらってください。</p>
 <p><strong>amazee.ioの例:</strong> <code>&lt;region-identifier&gt;.amazee.io</code></p>
-<p>ドメインをLagoonに切り替える前に、ライブになる前にTime-to-Live (TTL)を下げておくことを確認してください。これにより、古いサーバーから新しいサーバーへの切り替えが迅速に行われます。通常、DNSの切り替え前にはTTLを300-600秒に設定することをお勧めします。<a href="https://en.wikipedia.org/wiki/Time_to_live#DNS_records">TTLについての詳細情報</a>。</p>
-<h3 id="fastlycname">Fastlyのための推奨設定(CNAMEレコード):<a class="headerlink" href="#fastlycname" title="Permanent link">#</a></h3>
-<p>ドメインのDNSレコードをLagoonに指す推奨方法は、以下に示すようなCNAMEレコードを使用することです:</p>
+<p>ドメインをLagoonに切り替える前に、（ライブになる前に）Time-to-Live (TTL)を下げておくことを確認してください。これにより、古いサーバーから新しいサーバーへの切り替えが迅速に行われます。通常、DNSの切り替え前にはTTLを300-600秒に設定することをお勧めします。<a href="https://en.wikipedia.org/wiki/Time_to_live#DNS_records">TTLについての詳細情報</a></p>
+<div class="admonition info">
+<p class="admonition-title">情報:</p>
+<p>この情報はamazee.ioがホストしているプロジェクトにのみ関連しており、まもなくこのドキュメントから削除され、amazee.io固有のドキュメントに追加されます</p>
+</div>
+<h3 id="fastly">Fastlyの推奨設定<a class="headerlink" href="#fastly" title="Permanent link">#</a></h3>
+<p><strong>サブドメイン (CNAME)</strong></p>
+<p>サブドメイン(例: www.example.com.)のDNSレコードをLagoonに向けるには、以下のようにCNAMEレコードを使用することをお勧めします：</p>
 <!-- markdown-link-check-disable-next-line -->
 <p><code>CNAME</code>: <code>cdn.amazee.io</code></p>
-<h3 id="fastlya">Fastlyのための代替設定(Aレコード):<a class="headerlink" href="#fastlya" title="Permanent link">#</a></h3>
-<p>DNSプロバイダがCNAMEレコードの使用をサポートしていない場合、代わりに以下のAレコードを使用できます。以下に示す各IPに対して個別のレコードを設定してください:</p>
+<p><strong>ルートドメイン(A/AAAA)</strong>
+ルートドメイン(example.com.など)の設定は、DNS仕様ではルートドメインがCNAMEを指すことを許可していないため、厄介な場合があります。 そのため、以下のAレコードとAAAAレコードを使用する必要があります。 下記の各IPに個別のレコードを設定してください：</p>
 <ul>
 <li><code>A</code>: <code>151.101.2.191</code></li>
 <li><code>A</code>: <code>151.101.66.191</code></li>
@@ -4786,7 +4777,7 @@
 <p class="admonition-title">注意:</p>
 <p>静的IPの設定は推奨しません DNSゾーン内のIPアドレス。Lagoonのロードバランサインフラが時間とともに変化する可能性があり、静的IPアドレスを設定するとサイトの利用可能性に影響を及ぼす可能性があります。</p>
 </div>
-<h3 id="_4">ルートドメイン<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
+<h3 id="_3">ルートドメイン<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
 <p>ルートドメイン(例:example.com)の設定は、DNSの仕様がルートドメインをCNAMEエントリにポイントすることを許可していないため、少々トリッキーになることがあります。DNSプロバイダによっては、レコード名が異なります:</p>
 <ul>
 <li>ALIAS at <a href="https://dnsimple.com/">DNSimple</a></li>
@@ -4797,7 +4788,7 @@
 <li>CNAME at <a href="http://ns1.com">NS1</a></li>
 </ul>
 <p>DNSプロバイダがルートドメイン用のIPアドレスを必要とする場合は、Lagoonの管理者に連絡してロードバランサのIPアドレスを提供してもらいます。</p>
-<h2 id="_5">本番環境<a class="headerlink" href="#_5" title="Permanent link">#</a></h2>
+<h2 id="_4">本番環境<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
 <p>Lagoonは開発環境と本番環境の概念を理解しています。開発環境は自動的に<code>noindex</code>と<code>nofollow</code>のヘッダーを送信し、検索エンジンによるインデックス化を禁止します。</p>
 <p><code>X-Robots-Tag: noindex, nofollow</code></p>
 <p>プロジェクトの設定中に、本番環境はすでに定義されているはずです。もしまだ定義されていない場合は、 省略された場合、あなたの環境は開発モードで動作します。Lagoonのユーザーインターフェースで環境が本番環境として設定されているかどうかを確認できます。本番環境が設定されていない場合は、Lagoonの管理者に知らせて、システムを適切に設定してもらってください。</p>

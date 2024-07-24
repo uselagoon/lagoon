@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#environment-variables" class="md-skip">
+        <a href="#_1" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -853,6 +853,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -881,6 +883,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -896,7 +900,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     クラスターレベルのコントロール
   </a>
   
@@ -938,7 +942,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -948,7 +952,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2486,7 +2490,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4551,6 +4555,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -4566,7 +4572,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     クラスターレベルのコントロール
   </a>
   
@@ -4595,23 +4601,47 @@
   
 
 
-  <h1>フィーチャーフラグ</h1>
-
-<p>＃フィーチャーフラグ</p>
+<h1 id="_1">フィーチャーフラグ<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <p>Lagoonの一部の機能は、フィーチャーフラグを設定することで制御できます。
 これは、新しいプラットフォーム機能を制御された方法で展開するためのユーザーと管理者を支援するように設計されています。</p>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
 <p>以下の環境変数は、フィーチャーフラグを切り替えるために環境またはプロジェクトに設定することができます。</p>
-<p>| 環境変数名 | アクティブスコープ | 導入されたバージョン | 削除されたバージョン | デフォルト値 | 説明 |
-| --- | --- | --- | --- | --- | --- | |
-| <code>LAGOON_FEATURE_FLAG_ROOTLESS_WORKLOAD</code>        | <code>global</code>     | 2.2.0              | -               | <code>無効</code>    | この環境またはプロジェクトのポッドに非rootポッドセキュリティコンテキストを設定するには、<code>有効</code>に設定します。<br><br>このフラグは最終的に廃止され、その時点で非rootワークロードが強制されます。 |
-| <code>LAGOON_FEATURE_FLAG_ISOLATION_NETWORK_POLICY</code> | <code>global</code>     | 2.2.0              | -               | <code>無効</code>    | デプロイ時に各環境にデフォルトの名前空間分離ネットワークポリシーを追加するには、<code>有効</code>に設定します。<br><br>このフラグは最終的に廃止され、その時点で名前空間分離ネットワークポリシーが強制されます。<br><br>注: この機能を有効にしてから無効にすると、既存のネットワークは削除されません。 以前のデプロイからのポリシー。これらは手動で削除する必要があります。|</p>
-<h2 id="_1">クラスターレベルのコントロール<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>環境変数名</th>
+<th>アクティブスコープ</th>
+<th>導入されたバージョン</th>
+<th>削除されたバージョン</th>
+<th>デフォルト値</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LAGOON_FEATURE_FLAG_ROOTLESS_WORKLOAD</code></td>
+<td><code>global</code></td>
+<td>2.2.0</td>
+<td>-</td>
+<td><code>無効</code></td>
+<td>この環境またはプロジェクトのポッドに非rootポッドセキュリティコンテキストを設定するには、<code>enabled</code>に設定します。<br><br>このフラグは最終的に廃止され、その時点で非rootワークロードが強制されます。</td>
+</tr>
+<tr>
+<td><code>LAGOON_FEATURE_FLAG_ISOLATION_NETWORK_POLICY</code></td>
+<td><code>global</code></td>
+<td>2.2.0</td>
+<td>-</td>
+<td><code>無効</code></td>
+<td>デプロイ時に各環境にデフォルトの名前空間分離ネットワークポリシーを追加するには、<code>enabled</code>に設定します。<br><br>このフラグは最終的に廃止され、その時点で名前空間分離ネットワークポリシーが強制されます。<br><br>注: この機能を有効にしてから無効にすると、既存のネットワークは削除されません。 以前のデプロイからのポリシー削除されません。これらは手動で削除する必要があります。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">クラスターレベルのコントロール<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
 <p>機能フラグはクラスターレベルでも制御することができます。これに対応している<a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-build-deploy/values.yaml"><code>lagoon-build-deploy</code>チャート</a>があります。
-各機能フラグには、設定できる値が2種類あります:<code>default</code>と<code>force</code>。</p>
+各機能フラグには、設定できる値が<code>default</code>と<code>force</code>の2種類あります。</p>
 <ul>
-<li><code>default</code>は、クラスターにデプロイされる環境のデフォルトポリシーを制御しますが、上記の環境変数によってプロジェクトレベルまたは環境レベルで上書きすることができます。</li>
-<li><code>force</code>もクラスターにデプロイされる環境のポリシーを制御しますが、上記の環境変数によって上書きすることは_できません_。</li>
+<li><code>default</code>はクラスターにデプロイされる環境のデフォルトポリシーを制御しますが、上記の環境変数によってプロジェクトレベルまたは環境レベルで上書きすることができます。</li>
+<li><code>force</code>もクラスターにデプロイされる環境のポリシーを制御しますが、上記の環境変数によって上書きすることはできません。</li>
 </ul>
 
 

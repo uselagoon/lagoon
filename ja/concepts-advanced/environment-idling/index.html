@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -962,7 +962,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -972,7 +972,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2510,7 +2510,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4650,11 +4650,11 @@
 <li>アイドリングは4時間ごとに試みられます。</li>
 <li>本番環境は決してアイドル状態になりません。</li>
 <li>CLIポッドは、cronジョブが含まれておらず、リモートシェル接続がアクティブでない場合にアイドル状態になります。</li>
-<li>他のすべてのサービスとポッドは、環境上で過去4時間間にトラフィックがなかった場合にアイドル状態になります。</li>
+<li>他のすべてのサービスとポッドは、環境上で過去4時間の間にトラフィックがなかった場合にアイドル状態になります。</li>
 <li>アクティブなビルドが進行中であれば、アイドリングは行われません。</li>
 </ul>
 <h3 id="_4">環境はどのようにしてアイドル状態から解除されますか？<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
-<p>Aergiaは、環境が訪問されるとすぐに自動的にアイドル状態を解除します。 したがって、環境の任意のURLを訪れるだけで環境が起動します。同様に、環境へのSSHセッションを開始すると、サービスも再開します。</p>
+<p>Aergiaは、任意の環境がアクセスされると自動的にアイドル状態を解除します。 そのため、環境のURLにアクセスするだけで環境が起動します。同様に、環境へのSSHセッションを開始すると、サービスも再開します。</p>
 <p>アンアイドリングは数秒かかります。なぜなら、Kubernetesクラスタはすべてのコンテナを再起動する必要があるからです。この間、訪問者には、現在自分の環境が起動中であることを示す待機画面が表示されます。</p>
 <h3 id="idler">Idlerが私の環境をアイドリングしないように設定することはできますか？<a class="headerlink" href="#idler" title="Permanent link">#</a></h3>
 <p>はい、プロジェクト(すべての環境に影響)と環境(1つの環境のみを対象にする必要がある場合)に<code>autoIdle</code>フィールドがあり、アイドリングが行われるかどうかを指定できます。<code>1</code>の値は、プロジェクト/環境がアイドリングの対象であることを示します。プロジェクトが<code>0</code>に設定されている場合、環境が<code>0</code>に設定されていても、環境は決してアイドル状態になりません。

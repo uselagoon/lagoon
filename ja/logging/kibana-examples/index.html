@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2434,7 +2434,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4712,14 +4712,14 @@
 
 
 <h1 id="kibana">Kibanaの例<a class="headerlink" href="#kibana" title="Permanent link">#</a></h1>
-<p><a href="https://www.elastic.co/webinars/getting-started-kibana">キバナの始め方のビデオ</a>を見て、ログの操作に取り組む準備ができましたか？ 私たちはここで助けを提供します！ このページでは、使用できるKibanaのクエリの例を提供します。これはKibana 101のクラスではありませんが、Kibanaで何ができるのかを理解するのに役立ちます。</p>
-<p>始める準備はできましたか？ よし！</p>
+<p><a href="https://www.elastic.co/webinars/getting-started-kibana">Kibanaの入門ビデオ</a>を見て、ログを扱う準備が整いましたか？私たちがサポートします！このページでは、使用できるKibanaクエリの例を紹介します。これはKibana 101のクラスではありませんが、Kibanaで何ができるのかを理解するのに役立ちます。</p>
+<p>始める準備はできましたか？　では始めましょう！</p>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
 <p>開始する前にテナントを選択していることを確認してください！ 左側のメニューにある <code>Tenant</code> アイコンをクリックしてそれを行うことができます。 テナントを選択したら、再度 <code>Discover</code> アイコンをクリックして始めてください。</p>
 </div>
 <h2 id="_1">ルーターログ<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>以下に、2つの一般的なログリクエストの例を示します:</p>
+<p>以下に、2つの一般的なログのリクエストの例を示します:</p>
 <ul>
 <li>あなたのサイトへのヒット/リクエストの総数を表示します。</li>
 <li>特定のIPアドレスからのヒット/リクエストの数を表示します。</li>
@@ -4727,69 +4727,69 @@
 <h3 id="_2">サイトへのヒット/リクエストの総数<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
 <ul>
 <li>Kibanaを起動し、<code>Discovery</code> を選択しましょう(以下のスクリーンショットの＃1)</li>
-<li>次にあなたのプロジェクトのルーターログ(＃2)。</li>
+<li>次にあなたのプロジェクトのルーターログです(＃2)。</li>
 <li>そこから、この情報を少し絞り込みます。私たちの主な製品環境に焦点を当てましょう。</li>
 <li>
 <p>検索バー(＃3)に入力します:</p>
-<p><code>openshift_project: "製品プロジェクトの名前"</code></p>
+<p><code>openshift_project: "本番プロジェクトの名前"</code></p>
 </li>
 </ul>
 <ul>
-<li>これにより、すべての 指定された時間枠内での生産環境へのヒット数。</li>
-<li>右上の角(#4)で時間枠を変更できます。</li>
-<li>エントリの隣の矢印(#5)をクリックすると、それが展開されて、すべてのキャプチャされた情報が表示されます。</li>
-<li>フィールドの上にマウスを置いて左側の追加をクリックすることで、そのフィールドをウィンドウに追加できます(#6)。</li>
-<li>また、検索バーを使用して結果をさらにフィルタリングすることもできます。</li>
+<li>これにより、指定された期間内の本番環境へのすべてのヒットが表示されます</li>
+<li>右上隅のメニュー (#4) で期間を変更できます。</li>
+<li>エントリの横にある矢印をクリックすると (#5)、エントリが展開され、キャプチャされたすべての情報が表示されます</li>
+<li>フィールドにカーソルを合わせて左側の「追加」ボタンをクリックすると (#6)、そのフィールドをウィンドウに追加できます</li>
+<li>検索バーを使用して、結果をさらに絞り込むこともできます。</li>
 </ul>
 <p><img alt="Kibanaでサイトへの総ヒット数/リクエスト数を取得する方法" src="../../images/kibana_example1.png" /></p>
 <h3 id="ip">特定のIPアドレスからのヒット数/リクエスト数<a class="headerlink" href="#ip" title="Permanent link">#</a></h3>
-<p>上記のクエリを実行すると、サイトへの全トラフィックを一般的に見ることができますが、特定のIPアドレスに絞り込む場合はどうでしょうか？ たとえば、IPがサイトを何回ヒットしたか、そして彼らが具体的にどのページを見ていたかを見たいかもしれません。次のクエリはその手助けになるはずです。</p>
-<p>まず、上記と同じクエリから始めますが、いくつかの項目を追加します。</p>
+<p>上記のクエリを実行すると、サイトへのすべてのトラフィックの概要が表示されますが、特定のIPアドレスに絞り込みたい場合はどうでしょうか？例えば、あるIPアドレスがサイトに何回アクセスしたか、そのIPアドレスがどのページを見ていたかを確認したい場合です。この次のクエリが役立ちます。</p>
+<p>まず、前回と同じクエリから始めますが、いくつかのフィールドを追加します。</p>
 <ul>
-<li>最初に、次のフィールドを追加します:<code>client_ip</code> と <code>http_request</code>。</li>
+<li>最初に、以下のフィールドを追加します：<code>client_ip</code>および<code>http_request</code></li>
 <li>これにより、すべてのIPアドレスとそのリクエストしたページのリストが表示されます。次は、Amazee.ioページの場合の表示内容です:</li>
 </ul>
 <p>![すべてのIPアドレスとそのリクエストしたページ:]( 要求された。](../images/kibana_example2.png)</p>
-<p>これは良さそうですが、特定のIPアドレスからのリクエストだけを表示したい場合はどうするのでしょうか？検索条件にアドレスを追加することでフィルタリングできます。</p>
+<p>これは良さそうですが、特定のIPアドレスからのリクエストだけを表示したい場合はどうでしょうか？検索条件にアドレスを追加することでフィルタリングできます。</p>
 <ul>
-<li>追加する内容:<code>AND client_ip: "IPアドレス"</code>.</li>
-<li>これにより、その特定のIPアドレスからのヒットと、そのアドレスから要求されたページだけが結果に表示されます。ここに私たちのAmazee.ioウェブサイトの例を示します:</li>
+<li>次のように追加します:<code>AND client_ip: "IPアドレス"</code>.</li>
+<li>これにより、その特定のIPアドレスからのヒットと、そのアドレスからリクエストされたページだけが結果に表示されます。以下はamazee.ioウェブサイトの例です:</li>
 </ul>
 <p><img alt="特定のIPアドレスからのヒット。" src="../../images/kibana_example3.png" /></p>
 <h2 id="_3">コンテナログ<a class="headerlink" href="#_3" title="Permanent link">#</a></h2>
-<p>コンテナログは、特定のコンテナとプロジェクトのすべての<code>stout</code>と<code>sterr</code>メッセージを表示します。特定のコンテナからログを取得し、そのコンテナ内で特定のエラー番号を見つける例を示します。</p>
+<p>コンテナログは、特定のコンテナとプロジェクトに対するすべての標準出力（<code>stdout</code>）および標準エラー（<code>stderr</code>）メッセージを表示します。次に、特定のコンテナからログを取得し、そのコンテナ内の特定のエラー番号を見つける例を示します。</p>
 <h3 id="_4">コンテナからのログ<a class="headerlink" href="#_4" title="Permanent link">#</a></h3>
-<p>特定のコンテナ(php、nginxなど)のログを見たいですか？このセクションが役立ちます！NGINXのログを見ることに焦点を当ててみましょう。</p>
+<p>特定のコンテナ（php、nginxなど）のログを確認したいですか？その場合はこのセクションが役立ちます！ここではNGINXログを確認する方法に焦点を当てます。</p>
 <ul>
-<li>Kibanaを開き、Discoverを選択します(下のスクリーンショットの＃1)。</li>
-<li>そこから、プロジェクトのコンテナログを選択します(＃2)。</li>
-<li>検索バー(＃3)に移動し、<code>kubernetes.container_name: "nginx"</code>を入力します。</li>
-<li>これにより、プロジェクトのすべてのNGINXログが表示されます。 エントリー(＃4)の隣の矢印をクリックすると、そのエントリーが展開され、収集したすべての情報が表示されます。</li>
-<li>ビューにメッセージフィールドとレベルフィールドを追加しましょう。左側の「追加」をクリックすることでそれができます(＃5)。</li>
+<li>まず、Kibanaを開き、Discoverを選択します(下のスクリーンショットの＃1)。</li>
+<li>次に、プロジェクトのコンテナログを選択します(＃2)。</li>
+<li>検索バー(＃3)に移動し、<code>kubernetes.container_name: "nginx"</code>と入力します。</li>
+<li>これにより、プロジェクトのすべてのNGINXログが表示されます。 エントリの隣の矢印をクリックする(＃4)と、そのエントリが展開され、収集したすべての情報が表示されます。</li>
+<li>メッセージフィールドとレベルフィールドをビューに追加しましょう。左側の「Add」をクリックすることで追加できます(＃5)。</li>
 <li>画面の右上隅(＃6)で時間枠を変更することができます。以下の例では、過去4時間のログを見ています。</li>
 </ul>
 <p><img alt="" src="../../images/kibana_example4.png" /></p>
 <h3 id="_5">ログの特定のエラー<a class="headerlink" href="#_5" title="Permanent link">#</a></h3>
-<p>あなたのNGINXコンテナでいくつの500 Internal Serverエラーが発生したかを知りたいですか？検索クエリを変更することでそれが可能です。もし検索するなら:</p>
+<p>NGINXコンテナで発生した500 Internal Serverエラーの数を確認したいですか？検索クエリを変更することで確認できます。次のように検索します:</p>
 <p><code>kubernetes.container_name: "nginx" AND message: "500"</code></p>
-<p>それはNGINXコンテナの500エラーメッセージのみを表示します。あなたが望む任意のコンテナで任意のエラーメッセージを検索することができます！</p>
+<p>これにより、NGINXコンテナ内の500エラーメッセージのみが表示されます。任意のコンテナ内の任意のエラーメッセージを検索することができます。</p>
 <h2 id="_6">可視化<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
-<p>Kibanaは、可視化やグラフを作成するオプションも提供します。私たちは、上記で使用した同じクエリを使用して、1ヶ月間のヒット数/リクエスト数を示すチャートを作成します。</p>
+<p>Kibanaでは、可視化やグラフを作成するオプションも提供されています。ここでは、上記のクエリを使用して、月間のヒット/リクエスト数を表示するチャートを作成します。</p>
 <ol>
-<li>Kibanaの左側にあるVisualizeをクリックします。</li>
-<li>青いプラス記号をクリックします。</li>
-<li>この例では、垂直バーチャートを選択します。</li>
-<li>プロジェクトのルーターログを選択します .</li>
-<li>バケツの下のX軸をクリックし、間隔を日次に設定した日付ヒストグラムを選択します</li>
-<li>成功!! これで、毎日のトラフィックを示す素晴らしい棒グラフが表示されるはずです。</li>
+<li>Kibanaの左側にある「Visualize」をクリックします</li>
+<li>青いプラス記号をクリックします</li>
+<li>この例では、「Vertical Bar」チャートを選択します</li>
+<li>プロジェクトのルーターログを選択します</li>
+<li>「Buckets」の下にある「X-Axis」をクリックし、「Date Histogram」を選択し、間隔を「daily（毎日）」に設定します</li>
+<li>成功です！これで、日々のトラフィックを表示するバーチャートが表示されるはずです。</li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
 <p>右上隅のデータの適切な時間枠を選択することを確認してください。</p>
 </div>
-<p>以下は、日次ヒットの視覚化チャートの例です:</p>
+<p>以下は、日々のヒット数を可視化したチャートの例です:</p>
 <p><img alt="日次ヒット視覚化チャート." src="../../images/kibana_example5.png" /></p>
-<p>また、視覚化(および検索)を保存できることにも注意してください！ それにより、将来的にそれらにより迅速にアクセスできます。 そして、各アカウントが自分のKibanaテナントを持っているため、検索や視覚化は他のアカウントと共有されません。</p>
+<p>また、可視化（および検索）を保存できることに注意してください！これにより、将来的にアクセスするのがさらに速くなります。各アカウントには独自のKibanaテナントがあるため、検索や可視化が他のアカウントと共有されることはありません。</p>
 <h2 id="_7">トラブルシューティング<a class="headerlink" href="#_7" title="Permanent link">#</a></h2>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 

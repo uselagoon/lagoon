@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2436,7 +2436,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4663,12 +4663,12 @@
 <div class="language-bash highlight"><span class="filename">Composerを使用してプロジェクトにSimpleSAMLphpを追加する</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>composer<span class="w"> </span>req<span class="w"> </span>simplesamlphp/simplesamlphp
 </span></code></pre></div>
 <h3 id="simplesamlphp_1">SimpleSAMLphpの設定を変更する<a class="headerlink" href="#simplesamlphp_1" title="Permanent link">#</a></h3>
-<p><code>vendor/simplesamlphp/simplesamlphp/config-templates</code>から<code>authsources.php</code>と<code>config.php</code>をベンダーディレクトリ外の<code>conf/simplesamlphp</code>のような場所にコピーします。また、<code>vendor/simplesamlphp/simplesamlphp/metadata-templates</code>から<code>saml20-idp-remote.php</code>も必要です。</p>
-<p><code>config.php</code>で次のLagoonの値を設定します:</p>
+<p><code>vendor/simplesamlphp/simplesamlphp/config-templates</code>から<code>authsources.php</code>と<code>config.php</code>を<code>vendor</code>ディレクトリ外の<code>conf/simplesamlphp</code>のような場所にコピーします。また、<code>vendor/simplesamlphp/simplesamlphp/metadata-templates</code>から<code>saml20-idp-remote.php</code>も必要です。</p>
+<p><code>config.php</code>でLagoonに以下の値を設定します:</p>
 <p>SimpleSAMLphpにアクセスするための基本URLパス:</p>
 <div class="language-php highlight"><span class="filename">config.php</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="x">  &#39;baseurlpath&#39; =&gt; &#39;https://YOUR_DOMAIN.TLD/simplesaml/&#39;,</span>
 </span></code></pre></div>
-<p>セッションをデータベースに保存する:</p>
+<p>セッションをデータベースに保存します。</p>
 <div class="language-php highlight"><span class="filename">config.php</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">  &#39;store.type&#39;                    =&gt; &#39;sql&#39;,</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="x">  &#39;store.sql.dsn&#39;                 =&gt; vsprintf(&#39;mysql:host=%s;port=%s;dbname=%s&#39;, [</span>
@@ -4677,14 +4677,14 @@
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="x">    getenv(&#39;MARIADB_DATABASE&#39;),</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="x">  ]),</span>
 </span></code></pre></div>
-<p>他の設定を好みに合わせて変更します:</p>
+<p>他の設定はお好みで設定してください。</p>
 <ul>
-<li>ログと証明書のパスを確認します。</li>
-<li>SimpleSAMLphpを保護します。 ダッシュボード。</li>
-<li>ロギングのレベルを設定します。</li>
-<li><code>technicalcontact</code>と<code>timezone</code>を設定します。</li>
+<li>ログと証明書のパスを確認します</li>
+<li>SimpleSAMLphpダッシュボードを保護します</li>
+<li>ロギングのレベルを設定します</li>
+<li><code>technicalcontact</code>と<code>timezone</code>を設定します</li>
 </ul>
-<p><code>authsources.php</code>にauthsources(IdPs)を追加します。例を参照してください:</p>
+<p>例を参考に<code>authsources.php</code>にauthsources(IdPs)を追加します。</p>
 <div class="language-php highlight"><span class="filename">authsources.php</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">  &#39;default-sp&#39; =&gt; [</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="x">    &#39;saml:SP&#39;,</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
@@ -4726,7 +4726,7 @@
 </span><span id="__span-3-39"><a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="x">    ],</span>
 </span><span id="__span-3-40"><a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="x">  ],</span>
 </span></code></pre></div>
-<p><code>saml20-idp-remote.php</code>にIdPメタデータを追加します。例を参照してください:</p>
+<p>例を参考に<code>saml20-idp-remote.php</code>にIdPメタデータを追加します。</p>
 <div class="language-php highlight"><span class="filename">saml20-idp-remote.php</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="cp">&lt;?php</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="sd">/**</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="sd"> * SAML 2.0 remote IdP metadata for SimpleSAMLphp.</span>
@@ -4750,7 +4750,7 @@
 </span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
 </span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="p">];</span>
 </span></code></pre></div>
-<p>ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします:</p>
+<p>ビルドプロセスで、設定ファイルをSimpleSAMLphpにコピーします</p>
 <ul>
 <li><code>vendor/simplesamlphp/simplesamlphp/config/authsources.php</code></li>
 <li><code>vendor/simplesamlphp/simplesamlphp/config/config.php</code></li>
@@ -4771,7 +4771,7 @@
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="o">}</span>
 </span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>これにより、<code>/simplesaml</code> URLがベンダーのSimpleSAMLphpにルーティングされます。</p>
+<p>これにより、<code>/simplesaml</code> URLが<code>vendor</code>のSimpleSAMLphpにルーティングされます。</p>
 <h3 id="nginxnginx">NGINXイメージに追加のNGINX設定を追加する<a class="headerlink" href="#nginxnginx" title="Permanent link">#</a></h3>
 <p><code>nginx.dockerfile</code>を修正し、<code>location_prepend_simplesamlphp.conf</code>をイメージに追加します:</p>
 <div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ARG<span class="w"> </span>CLI_IMAGE

@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1152,7 +1152,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -1162,7 +1162,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2700,7 +2700,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -5041,7 +5041,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>3000</code> 上の TCP 接続</td>
+<td style="text-align: left;"><code>3000</code>でTCP接続</td>
 <td style="text-align: left;"><code>3000</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">いいえ</td>
@@ -5050,7 +5050,7 @@
 </tbody>
 </table>
 <h2 id="basic-persistent"><code>basic-persistent</code><a class="headerlink" href="#basic-persistent" title="Permanent link">#</a></h2>
-<p><code>basic</code>と同じです。また、永続的なストレージを生成し、<code>lagoon.persistent</code> を通じてマウントの位置を定義します。</p>
+<p><code>basic</code>と同じですが、<strong>永続的なストレージを生成し</strong>、<code>lagoon.persistent</code> をでマウントの位値を定義します。</p>
 <table>
 <thead>
 <tr>
@@ -5063,7 +5063,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>3000</code>上のTCP接続</td>
+<td style="text-align: left;"><code>3000</code>でTCP接続</td>
 <td><code>3000</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">はい</td>
@@ -5094,7 +5094,7 @@
 </tbody>
 </table>
 <h2 id="cli-persistent"><code>cli-persistent</code><a class="headerlink" href="#cli-persistent" title="Permanent link">#</a></h2>
-<p><code>cli</code>と同様に、<code>lagoon.persistent.name</code>が永続ストレージを持つサービスの名前を指定されることを期待しています。それは定義された<code>lagoon.persistent</code>ラベルの下にマウントされます。自身の永続ストレージを生成せず、別のサービスの永続ストレージをマウントするためだけに使用されます。</p>
+<p><code>cli</code>と同じですが、<code>lagoon.persistent.name</code>は永続ストレージを持つサービスの名前を指定されることを期待しています。これは定義された<code>lagoon.persistent</code>ラベルの下にマウントされます。自身の永続ストレージを生成せず、別のサービスの永続ストレージをマウントするためだけに使用されます。</p>
 <table>
 <thead>
 <tr>
@@ -5116,7 +5116,7 @@
 </tbody>
 </table>
 <h2 id="elasticsearch"><code>elasticsearch</code><a class="headerlink" href="#elasticsearch" title="Permanent link">#</a></h2>
-<p>Elasticsearchコンテナは、<code>/usr/share/el</code>の下に永続ストレージを自動生成します。 <code>elasticsearch/data</code>。</p>
+<p>Elasticsearchコンテナは、<code>/usr/share/el</code>の下に永続ストレージを自動生成します。 <code>elasticsearch/data</code></p>
 <table>
 <thead>
 <tr>
@@ -5129,7 +5129,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>localhost:9200/_cluster/health?local=true</code> 上のHTTP</td>
+<td style="text-align: left;"><code>localhost:9200/_cluster/health?local=true</code> でHTTP通信</td>
 <td style="text-align: left;">9200</td>
 <td style="text-align: left;">なし</td>
 <td style="text-align: left;">はい</td>
@@ -5151,7 +5151,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>5601</code> 上のTCP接続</td>
+<td style="text-align: left;"><code>5601</code>でTCP接続</td>
 <td style="text-align: left;"><code>5601</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">なし</td>
@@ -5173,7 +5173,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>9600</code> 上のTCP接続</td>
+<td style="text-align: left;"><code>9600</code>でTCP接続</td>
 <td style="text-align: left;"><code>9600</code></td>
 <td style="text-align: left;">なし</td>
 <td style="text-align: left;">なし</td>
@@ -5182,7 +5182,7 @@
 </tbody>
 </table>
 <h2 id="mariadb"><code>mariadb</code><a class="headerlink" href="#mariadb" title="Permanent link">#</a></h2>
-<p>Lagoonに自動的に<code>mariadb-single</code>と<code>mariadb-dbaas</code>の間を決めるように指示するメタサービス。</p>
+<p>Lagoonに<code>mariadb-single</code>と<code>mariadb-dbaas</code>のどちらかを自動的に決定させるメタサービス。</p>
 <table>
 <thead>
 <tr>
@@ -5205,10 +5205,26 @@
 </table>
 <h2 id="mariadb-single"><code>mariadb-single</code><a class="headerlink" href="#mariadb-single" title="Permanent link">#</a></h2>
 <p>MariaDBコンテナ。<code>/lagoon/mysql-backup.sh 127.0.0.1</code>を実行するバックアップのcronジョブを24時間ごとに作成します。</p>
-<p>| ヘルスチェック | 公開ポート | 自動生成ルート | ストレージ | 追加のカスタマイズパラメータ |
- | ストレージ | 追加のカスタマイズパラメータ |
-| :--- | :--- | :--- | :--- | :--- |
-| <code>3306</code>でのTCP接続 | <code>3306</code> | なし | はい | <code>lagoon.persistent.size</code> |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ヘルスチェック</th>
+<th style="text-align: left;">公開ポート</th>
+<th style="text-align: left;">自動生成ルート</th>
+<th style="text-align: left;">ストレージ</th>
+<th style="text-align: left;">追加のカスタマイズパラメータ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>3306</code>でTCP接続</td>
+<td style="text-align: left;"><code>3306</code></td>
+<td style="text-align: left;">なし</td>
+<td style="text-align: left;">はい</td>
+<td style="text-align: left;"><code>lagoon.persistent.size</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="mariadb-dbaas"><code>mariadb-dbaas</code><a class="headerlink" href="#mariadb-dbaas" title="Permanent link">#</a></h2>
 <p>DBaaSオペレーターを介した共有MariaDBサーバーを使用します。</p>
 <table>
@@ -5232,7 +5248,7 @@
 </tbody>
 </table>
 <h2 id="mongo"><code>mongo</code><a class="headerlink" href="#mongo" title="Permanent link">#</a></h2>
-<p>Lagoonに<code>mongo-single</code>と<code>mongo-dbaas</code>の間で自動的に決定させるメタサービス。</p>
+<p>Lagoonに<code>mongo-single</code>と<code>mongo-dbaas</code>のどちらかを自動的に決定させるメタサービス。</p>
 <table>
 <thead>
 <tr>
@@ -5254,7 +5270,7 @@
 </tbody>
 </table>
 <h2 id="mongo-single"><code>mongo-single</code><a class="headerlink" href="#mongo-single" title="Permanent link">#</a></h2>
-<p>MongoDBコンテナー、<code>/data/db</code>にマウントされた最小1GBの永続ストレージを生成します。</p>
+<p>MongoDBコンテナ、<code>/data/db</code>にマウントされた最小1GBの永続ストレージを生成します。</p>
 <table>
 <thead>
 <tr>
@@ -5267,7 +5283,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>27017</code>でのTCP接続</td>
+<td style="text-align: left;"><code>27017</code>でTCP接続</td>
 <td style="text-align: left;"><code>27017</code></td>
 <td style="text-align: left;">なし</td>
 <td style="text-align: left;">はい</td>
@@ -5342,7 +5358,7 @@
 </tbody>
 </table>
 <h2 id="nginx-php-persistent"><code>nginx-php-persistent</code><a class="headerlink" href="#nginx-php-persistent" title="Permanent link">#</a></h2>
-<p><code>nginx-php</code>と同様。永続的なストレージを生成し、<code>lagoon.persistent</code> でマウント位置を定義します。</p>
+<p><code>nginx-php</code>と同様。永続的なストレージを生成し、<code>lagoon.persistent</code> でマウントの位置を定義します。</p>
 <table>
 <thead>
 <tr>
@@ -5356,7 +5372,7 @@
 <tbody>
 <tr>
 <td style="text-align: left;">NGINX: <code>localhost:50000/nginx_status</code>, PHP: <code>/usr/sbin/check_fcgi</code></td>
-<td style="text-align: left;">http on <code>8080</code></td>
+<td style="text-align: left;">httpの<code>8080</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;"><code>lagoon.autogeneratedroute</code>, <code>lagoon.persistent</code>, <code>lagoon.persistent.name</code>, <code>lagoon.persistent.size</code>, <code>lagoon.persistent.class</code></td>
@@ -5377,7 +5393,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>3000</code>でのTCP接続</td>
+<td style="text-align: left;"><code>3000</code>でTCP接続</td>
 <td style="text-align: left;"><code>3000</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">なし</td>
@@ -5386,7 +5402,7 @@
 </tbody>
 </table>
 <h2 id="node-persistent"><code>node-persistent</code><a class="headerlink" href="#node-persistent" title="Permanent link">#</a></h2>
-<p><code>node</code>と同様。永続的なストレージを生成し、<code>lagoon.persistent</code>を介してマウント場所を定義します。</p>
+<p><code>node</code>と同様。永続的なストレージを生成し、<code>lagoon.persistent</code>でマウントの位置を定義します。</p>
 <table>
 <thead>
 <tr>
@@ -5399,7 +5415,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>3000</code>でのTCP接続</td>
+<td style="text-align: left;"><code>3000</code>でTCP接続</td>
 <td style="text-align: left;"><code>3000</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">はい</td>
@@ -5452,7 +5468,7 @@
 </tbody>
 </table>
 <h2 id="postgres"><code>postgres</code><a class="headerlink" href="#postgres" title="Permanent link">#</a></h2>
-<p>Lagoonが自動的に<code>postgres-single</code>と<code>postgres-dbaas</code>の間を判断するように指示するメタサービス。</p>
+<p>Lagoonに<code>postgres-single</code>と<code>postgres-dbaas</code>のどちらかを自動的に決定に決定させるメタサービス。</p>
 <table>
 <thead>
 <tr>
@@ -5474,7 +5490,7 @@
 </tbody>
 </table>
 <h2 id="postgres-single"><code>postgres-single</code><a class="headerlink" href="#postgres-single" title="Permanent link">#</a></h2>
-<p>Postgresコンテナ。バックアップ用のcronジョブを作成し、それは24時間ごとに<code>/lagoon/postgres-backup.sh localhost</code>を実行します。</p>
+<p>Postgresコンテナ。バックアップ用のcronジョブを作成し、24時間ごとに<code>/lagoon/postgres-backup.sh localhost</code>を実行します。</p>
 <table>
 <thead>
 <tr>
@@ -5487,7 +5503,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>5432</code>でのTCP接続</td>
+<td style="text-align: left;"><code>5432</code>でTCP接続</td>
 <td style="text-align: left;"><code>5432</code></td>
 <td style="text-align: left;">いいえ</td>
 <td style="text-align: left;">はい</td>
@@ -5531,7 +5547,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>880でのHTTP接続 0</code></td>
+<td style="text-align: left;"><code>8800</code>でHTTP接続</td>
 <td style="text-align: left;"><code>8800</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">いいえ</td>
@@ -5553,7 +5569,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>8800</code>上のHTTP接続</td>
+<td style="text-align: left;"><code>8800</code>でHTTP接続</td>
 <td style="text-align: left;"><code>8800</code></td>
 <td style="text-align: left;">はい</td>
 <td style="text-align: left;">はい</td>
@@ -5575,7 +5591,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>6379</code>上のTCP接続</td>
+<td style="text-align: left;"><code>6379</code>でTCP接続</td>
 <td style="text-align: left;"><code>6379</code></td>
 <td style="text-align: left;">いいえ</td>
 <td style="text-align: left;">いいえ</td>
@@ -5597,7 +5613,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>6379</code>上のTCP接続</td>
+<td style="text-align: left;"><code>6379</code>でTCP接続</td>
 <td style="text-align: left;"><code>6379</code></td>
 <td style="text-align: left;">いいえ</td>
 <td style="text-align: left;">はい</td>
@@ -5619,7 +5635,7 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>8983</code>上のTCP接続</td>
+<td style="text-align: left;"><code>8983</code>でTCP接続</td>
 <td style="text-align: left;"><code>8983</code></td>
 <td style="text-align: left;">いいえ</td>
 <td style="text-align: left;">はい</td>
@@ -5628,7 +5644,7 @@
 </tbody>
 </table>
 <h2 id="varnish"><code>varnish</code><a class="headerlink" href="#varnish" title="Permanent link">#</a></h2>
-<p>バーニッシュコンテナー。</p>
+<p>Varnishコンテナ。</p>
 <table>
 <thead>
 <tr>
@@ -5650,7 +5666,7 @@
 </tbody>
 </table>
 <h2 id="varnish-persistent"><code>varnish-persistent</code><a class="headerlink" href="#varnish-persistent" title="Permanent link">#</a></h2>
-<p><code>/var/cache/varnish</code> 下にマウントされた自動生成される永続的なストレージを持つバーニッシュコンテナー。</p>
+<p><code>/var/cache/varnish</code> 下にマウントされた自動生成される永続的なストレージを持つVarnishコンテナ。</p>
 <table>
 <thead>
 <tr>
@@ -5672,7 +5688,7 @@
 </tbody>
 </table>
 <h2 id="worker"><code>worker</code><a class="headerlink" href="#worker" title="Permanent link">#</a></h2>
-<p>任意の種類のワーカーコンテナー(キューワーカーなど)で、公開サービスポートがない場合に使用します。</p>
+<p>任意の種類のワーカーコンテナ(キューワーカーなど)で、公開サービスポートがない場合に使用します。</p>
 <table>
 <thead>
 <tr>
@@ -5694,7 +5710,7 @@
 </tbody>
 </table>
 <h2 id="worker-persistent"><code>worker-persistent</code><a class="headerlink" href="#worker-persistent" title="Permanent link">#</a></h2>
-<p><code>worker</code>と同様に、<code>lagoon.persistent.name</code>が永続的なストレージを持つサービスの名前を与えられることを期待し、定義された<code>lagoon.persistent</code>ラベルの下にマウントされます。自身の永続的なストレージを生成することはありません、ただし使用されます。 他のサービスの永続的なストレージをマウントする。</p>
+<p><code>worker</code>と同じですが、<code>lagoon.persistent.name</code>が永続的なストレージを持つサービスの名前を与えられることを期待し、定義された<code>lagoon.persistent</code>ラベルの下にマウントされます。このサービスは自身の永続的なストレージを生成することなく、他のサービスの永続的なストレージをマウントするためにのみ使用されます。</p>
 <table>
 <thead>
 <tr>

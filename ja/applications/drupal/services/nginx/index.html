@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nginx-drupal" class="md-skip">
+        <a href="#nginx" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2510,7 +2510,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4635,36 +4635,36 @@
   
 
 
-<h1 id="nginx-drupal">NGINX-Drupal<a class="headerlink" href="#nginx-drupal" title="Permanent link">#</a></h1>
+<h1 id="nginx">NGINX<a class="headerlink" href="#nginx" title="Permanent link">#</a></h1>
 <p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/nginx-drupal/Dockerfile">Lagoonの<code>nginx-drupal</code> Dockerイメージ</a>。Drupalと連携するように最適化されています。<a href="../../../../docker-images/nginx/">Lagoonの<code>nginx</code>イメージ</a>に基づいています。</p>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージは、Lagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:</p>
+<p>このイメージは、Lagoonで使用するために準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
 <li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
-<li><code>drupal.conf</code>の設定ファイルをできるだけクリーンでカスタマイズ可能に保つために、ファイルの主要なセクション(<code>server</code>、<code>location /</code>、<code>location @drupal</code>、<code>location @php</code>)に<code>include</code>指示を追加しました。</li>
+<li><code>drupal.conf</code>の設定ファイルをできるだけシンプルで、カスタマイズしやすいようにするために、ファイルのメインセクション(<code>server</code>、<code>location /</code>、<code>location @drupal</code>、<code>location @php</code>)に<code>include</code>指示を追加しました。</li>
 <li><a href="#drupalconf-customization"><code>Drupal.conf</code>カスタマイズ</a>のセクションでさらなる情報を提供します。</li>
 </ul>
 <h2 id="drupal-drupalconf">含まれるDrupal設定 - <code id="included-drupal-configuration-drupalconf">drupal.conf</code><a class="headerlink" href="#drupal-drupalconf" title="Permanent link">#</a></h2>
-<p>このイメージには、Drupal 7, 8, 9の完全なNGINX作業設定が含まれています。いくつかの追加機能も含まれています:</p>
+<p>このイメージには、Drupal 7, 8, 9の完全なNGINX動作設定が含まれています。以下のような追加機能も含まれています:</p>
 <ul>
-<li><a href="https://www.drupal.org/project/humanstxt"><code>humanstxt</code> Drupalモジュール</a>のサポート。</li>
-<li><a href="https://www.drupal.org/project/ robotstxt"><code>robotstxt</code> Drupalモジュール</a>。</li>
+<li><a href="https://www.drupal.org/project/humanstxt"><code>humanstxt</code> Drupalモジュール</a>のサポート</li>
+<li><a href="https://www.drupal.org/project/ robotstxt"><code>robotstxt</code> Drupalモジュール</a></li>
 <li>ローカル開発用の<code>vagrant</code>ディレクトリへのアクセスを禁止します。</li>
 </ul>
 <h2 id="drupalconf-customization"><code>Drupal.conf</code>のカスタマイズ<a class="headerlink" href="#drupalconf-customization" title="Permanent link">#</a></h2>
-<p><code>drupal.conf</code>ファイルは、Drupal用に最適化された<code>nginx</code>設定ファイルのカスタマイズ版です。顧客はそれをカスタマイズするための異なる方法を持っています:</p>
+<p><code>drupal.conf</code>ファイルは、<code>nginx</code>設定ファイルをDrupal用にカスタマイズしたものです。顧客によってカスタマイズ方法は様々です:</p>
 <ul>
-<li><em>それを修正する</em> (エラーの場合、サポートが困難)。</li>
-<li><code>*.conf</code>ファイルを通じた組み込みのカスタマイズを使用。</li>
+<li>修正が困難 (エラーが発生した場合のサポートが難しい )</li>
+<li><code>*.conf</code>ファイルを使用した組み込みのカスタマイズ</li>
 </ul>
-<p><code>drupal.conf</code>ファイルはいくつかのセクションに分割されています。私たちがカスタマイズに含めたセクションは次の通りです:</p>
+<p><code>drupal.conf</code>ファイルはいくつかのセクションに分かれています。私たちがカスタマイズに含めたセクションは以下の通りです:</p>
 <ul>
 <li><code>server</code></li>
 <li><code>location /</code></li>
 <li><code>location @drupal</code></li>
 <li><code>location @php</code>.</li>
 </ul>
-<p>各セクションには<strong>二つ</strong>のインクルードがあります:</p>
+<p>このセクションには、それぞれ2つのインクルードがあります:</p>
 <ul>
 <li><code>*_prepend.conf</code></li>
 <li><code>*_append.conf</code></li>
@@ -4681,27 +4681,27 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span>include<span class="w"> </span>/etc/nginx/conf.d/drupal/location_drupal_append*.conf<span class="p">;</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>この設定は、顧客が<code>location_drupal_prepend.conf</code>および<code></code>location_drupal_append.conf`、ここに他のステートメントの前後に挿入したい設定をすべて置くことができます。</p>
-<p>これらのファイルは作成されたら、<code>nginx</code>コンテナ内に<strong>必ず</strong>存在していなければならず、それらを<code>Dockerfile.nginx</code>に以下のように追加します:</p>
+<p>この設定は、お客さまが<code>location_drupal_prepend.conf</code>および<code>location_drupal_append.conf</code>という名前のファイルを作成することを許可します。これらのファイルには、他のステートメントの前に挿入したい設定と、後に挿入したい設定をすべて記述することができます。</p>
+<p>これらのファイルは一度作成されると、<code>nginx</code>コンテナ内に<strong>必ず</strong>存在しなければならないので、<code>Dockerfile.nginx</code>に以下のように追加します:</p>
 <div class="language-bash highlight"><span class="filename">dockerfile.nginx</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>COPY<span class="w"> </span>location_drupal_prepend.conf<span class="w"> </span>/etc/nginx/conf.d/drupal/location_drupal_prepend.conf
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>RUN<span class="w"> </span>fix-permissions<span class="w"> </span>/etc/nginx/conf.d/drupal/location_drupal_prepend.conf
 </span></code></pre></div>
 <h2 id="drupal-core-statistics-module-configuration">Drupal Core Statisticsモジュールの設定<a class="headerlink" href="#drupal-core-statistics-module-configuration" title="Permanent link">#</a></h2>
-<p>コアのStatisticsモジュールを使用している場合、短時間で設定の変更が必要な問題に遭遇するかもしれません。</p>
-<p>デフォルトのNGINX設定では、トラッキングエンドポイント<code>/core/modules/statistics/statistics.php</code>へのリクエストが拒否され(404)ます。</p>
+<p>コアのStatisticsモジュールを使用している場合、簡単な設定変更が必要になるかもしれません。</p>
+<p>デフォルトのNGINX設定では、トラッキングエンドポイント<code>/core/modules/statistics/statistics.php</code>へのリクエストが拒否されます(404)</p>
 <p>これはデフォルトのNGINX設定に関連しています:</p>
 <div class="language-text highlight"><span class="filename">drupal.conf</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>location ~* ^.+\.php$ {
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    try_files /dev/null @drupal;
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>}
 </span></code></pre></div>
-<p>この問題を解決するために、特定のロケーションルールを定義し、これをロケーションの前置設定として注入します:</p>
+<p>この問題を解決するために、特定のロケーションルールを定義し、これをロケーションのプリペンド設定として注入します:</p>
 <div class="language-text highlight"><span class="filename">drupal.conf</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>## Allow access to to the statistics endpoint.
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>location ~* ^(/core/modules/statistics/statistics.php) {
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>      try_files /dev/null @php;
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>}
 </span></code></pre></div>
-<p>そして、これをNGINの間にコピーします Xコンテナービルド:</p>
-<div class="language-text highlight"><span class="filename">dockerfile.nginx</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Drupal統計モジュールの特定のNGINX設定を追加します。
+<p>NGINXコンテナのビルド時にこのファイルをコピーします。</p>
+<div class="language-text highlight"><span class="filename">dockerfile.nginx</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Drupal StatisticsモジュールのNGINX設定を追加する
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>COPY .lagoon/nginx/location_prepend_allow_statistics.conf /etc/nginx/conf.d/drupal/location_prepend_allow_statistics.conf
 </span></code></pre></div>
 

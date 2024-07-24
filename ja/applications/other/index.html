@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2487,7 +2487,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4591,11 +4591,11 @@
   
 
 
-<h1 id="lagoon">Lagoon上で他のアプリケーションを実行する<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h1>
-<p>たとえLagoonがあなたの特定のアプリケーション、フレームワーク、言語のための基本イメージを持っていなくても、Lagoonはそれを構築することができます！</p>
-<p><a href="../../docker-images/commons/">共通イメージ</a>を拡張したり、継承したりすることで、Lagoonはほぼどんなワークロードでも実行することができます。</p>
+<h1 id="lagoon">Lagoonで他のアプリケーションを実行<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h1>
+<p>Lagoonが特定のアプリケーション、フレームワーク、言語用のベースイメージを持っていなくても、Lagoonでビルドすることが可能です。</p>
+<p><a href="../../docker-images/commons/">commonsイメージ</a>を拡張または継承することで、Lagoonはほぼあらゆるワークロードを実行できます。</p>
 <h2 id="hugo">Hugo<a class="headerlink" href="#hugo" title="Permanent link">#</a></h2>
-<p>この簡単な例では、Hugoのウェブサイトを構築し、それをNGINXイメージの静的ファイルとして提供する方法を示しています。共通イメージはHugoの追加、サイトのコピー、構築のために使用されます。その後、NGINXイメージを使用してサイトを提供し、カスタマイズしたNGINX設定を追加します。</p>
+<p>この簡単な例は、Hugoウェブサイトをビルドし、NGINXイメージで静的ファイルとして提供する方法を示しています。commonsイメージを使用してHugoを追加し、サイトをコピーしてビルドします。その後、カスタマイズされたNGINX設定を追加したNGINXイメージを使用してサイトを提供します。</p>
 <div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>FROM<span class="w"> </span>uselagoon/commons<span class="w"> </span>AS<span class="w"> </span>builder
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>RUN<span class="w"> </span>apk<span class="w"> </span>add<span class="w"> </span>hugo<span class="w"> </span>git

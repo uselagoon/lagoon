@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2436,7 +2436,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -2499,7 +2499,7 @@
       
         <li class="md-nav__item">
   <a href="#azure-pipelines" class="md-nav__link">
-    Azure Pipelinesを使用して新しいデプロイメントをトリガーする
+    Azure Pipelinesを使用して新しいデプロイをトリガーする
   </a>
   
 </li>
@@ -4566,7 +4566,7 @@
       
         <li class="md-nav__item">
   <a href="#azure-pipelines" class="md-nav__link">
-    Azure Pipelinesを使用して新しいデプロイメントをトリガーする
+    Azure Pipelinesを使用して新しいデプロイをトリガーする
   </a>
   
 </li>
@@ -4602,10 +4602,10 @@
 
 
 <h1 id="_1">デプロイメントのトリガー<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
-<h2 id="azure-pipelines">Azure Pipelinesを使用して新しいデプロイメントをトリガーする<a class="headerlink" href="#azure-pipelines" title="Permanent link">#</a></h2>
-<p><a href="https://azure.microsoft.com/ja-jp/services/devops/pipelines/">Azure Pipelines</a>を使用して新しいデプロイメントを自動的にトリガーするには、以下の手順に従ってください:</p>
+<h2 id="azure-pipelines">Azure Pipelinesを使用して新しいデプロイをトリガーする<a class="headerlink" href="#azure-pipelines" title="Permanent link">#</a></h2>
+<p><a href="https://azure.microsoft.com/ja-jp/services/devops/pipelines/">Azure Pipelines</a>を使用して新しいデプロイを自動的にトリガーするには、以下の手順を行ってください。</p>
 <ol>
-<li>デプロイメントのSSHプライベートキーを<code>id_rsa_lagoon</code>としてAzureのセキュアファイルに追加します。セキュアファイルについての詳細は<a href="https://docs.microsoft.com/ja-jp/azure/devops/pipelines/library/secure-files?view=azure-devops">Azureのドキュメンテーションサイト</a>をご覧ください。</li>
+<li>デプロイのSSHプライベートキーを<code>id_rsa_lagoon</code>としてAzureのセキュアファイルに追加します。セキュアファイルについての詳細は<a href="https://docs.microsoft.com/ja-jp/azure/devops/pipelines/library/secure-files?view=azure-devops">Azureのドキュメント</a>をご覧ください。</li>
 <li>以下の設定を<code>azure-pipelines.yml</code>に追加します。</li>
 </ol>
 <div class="language-yaml highlight"><span class="filename">azure-pipelines.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">pool</span><span class="p">:</span>
@@ -4632,9 +4632,9 @@
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./lagoon deploy branch -e $(Build.SourceBranchName) -p my-awesome-project -b $(Build.SourceBranchName) --force</span>
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">          </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Trigger</span><span class="nv"> </span><span class="s">deployment</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">lagoon-cli&#39;</span>
 </span></code></pre></div>
-<p>これにより、<code>develop</code>ブランチまたは<code>staging</code>ブランチで変更が行われるたびに新しいデプロイメントがトリガーされます。これらの値を適切に調整して、デプロイメント戦略と設定に適合させてください。</p>
+<p>これにより、<code>develop</code>ブランチまたは<code>staging</code>ブランチで変更が行われるたびに新しいデプロイがトリガーされます。これらの値を適切に調整して、デプロイ戦略と設定に適合させてください。</p>
 <h2 id="_2">デプロイせずにプッシュ<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>デプロイせずにプッシュしたい場合があるかもしれません。コミットメッセージに "<code>[skip deploy]</code>" または "<code>[deploy skip]</code>" が含まれていることを確認してください。そうすると、Lagoonはそのコミットからデプロイメントをトリガーしません。</p>
+<p>デプロイせずにプッシュしたい場合があるかもしれません。コミットメッセージに "<code>[skip deploy]</code>" または "<code>[deploy skip]</code>" を含んでください。そうすると、Lagoonはそのコミットからデプロイをトリガーしません。</p>
 
 
   

@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1318,7 +1318,7 @@
       
         <li class="md-nav__item">
   <a href="#included-varnish-modules" class="md-nav__link">
-    含まれているバニッシュモジュール
+    Varnishモジュール
   </a>
   
 </li>
@@ -1332,7 +1332,7 @@
       
         <li class="md-nav__item">
   <a href="#included-defaultvcl-configuration-file" class="md-nav__link">
-    含まれている default.vcl 設定ファイル
+    default.vcl 設定ファイル
   </a>
   
 </li>
@@ -2513,7 +2513,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4596,7 +4596,7 @@
       
         <li class="md-nav__item">
   <a href="#included-varnish-modules" class="md-nav__link">
-    含まれているバニッシュモジュール
+    Varnishモジュール
   </a>
   
 </li>
@@ -4610,7 +4610,7 @@
       
         <li class="md-nav__item">
   <a href="#included-defaultvcl-configuration-file" class="md-nav__link">
-    含まれている default.vcl 設定ファイル
+    default.vcl 設定ファイル
   </a>
   
 </li>
@@ -4646,27 +4646,27 @@
 
 
 <h1 id="varnish">Varnish<a class="headerlink" href="#varnish" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/varnish">Lagoonの <code>Varnish</code> Docker画像</a>です。 <a href="https://hub.docker.com/_/varnish">公式 <code>Varnish</code>パッケージ</a>に基づいています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/varnish">Lagoonの <code>Varnish</code>イメージDockerfile</a>です。 <a href="https://hub.docker.com/_/varnish">公式 <code>Varnish</code>パッケージ</a>をベースに作成されています。</p>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>5(互換性のためだけに利用可能、公式にはもうサポートされていません)- <code>uselagoon/varnish-5</code></li>
+<li>5(互換性のためのみ利用可能、公式サポートは終了しています)- <code>uselagoon/varnish-5</code></li>
 <li>6.0 LTS <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile">Dockerfile</a> - <code>uselagoon/varnish-6</code></li>
 <li>7 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/7.Dockerfile">Dockerfile</a> - <code>uselagoon/varnish-7</code></li>
 </ul>
-<h2 id="included-varnish-modules">含まれているバニッシュモジュール<a class="headerlink" href="#included-varnish-modules" title="Permanent link">#</a></h2>
+<h2 id="included-varnish-modules">Varnishモジュール<a class="headerlink" href="#included-varnish-modules" title="Permanent link">#</a></h2>
 <ul>
-<li><a href="https://github.com/nigoroll/libvmod-dynamic"><code>vbox-dynamic</code></a> - DNSルックアップとSRVレコードからのサービスディスカバリからのダイナミックバックエンド。</li>
-<li><a href="https://github.com/aondio/libvmod-bodyaccess"><code>vbox-bodyaccess</code></a> - リクエストボディにアクセスできるようにするVarnish <code>vmod</code>。</li>
+<li><a href="https://github.com/nigoroll/libvmod-dynamic"><code>vbox-dynamic</code></a> - DNS ルックアップと SRV レコードからのサービス検出によるダイナミックバックエンド</li>
+<li><a href="https://github.com/aondio/libvmod-bodyaccess"><code>vbox-bodyaccess</code></a> - リクエストボディにアクセスできる Varnish <code>vmod</code></li>
 </ul>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの作業が行われています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に調整されるため、このイメージはランダムなユーザーで動作します。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
 </ul>
-<h2 id="included-defaultvcl-configuration-file">含まれている <code>default.vcl</code> 設定ファイル<a class="headerlink" href="#included-defaultvcl-configuration-file" title="Permanent link">#</a></h2>
-<p>このイメージには、Lagoonで動作するように最適化されたデフォルトの<code>vcl</code>設定ファイルが付属しています。いくつかのオプションは環境変数を介して設定可能です(<a href="#environment-variables">環境変数</a>を参照)。</p>
+<h2 id="included-defaultvcl-configuration-file"><code>default.vcl</code> 設定ファイル<a class="headerlink" href="#included-defaultvcl-configuration-file" title="Permanent link">#</a></h2>
+<p>このイメージには、Lagoonで動作するように最適化されたデフォルトの<code>vcl</code>設定ファイルが含まれています。いくつかのオプションは環境変数で設定可能です(<a href="#environment-variables">環境変数</a>を参照して下さい)。</p>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>を介して設定可能です。</p>
+<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>で設定可能です。</p>
 <table>
 <thead>
 <tr>
@@ -4679,57 +4679,62 @@
 <tr>
 <td style="text-align: left;">VARNISH_BACKEND_HOST</td>
 <td style="text-align: left;">NGINX</td>
-<td style="text-align: left;">デフォルトのバックエンドホスト。</td>
+<td style="text-align: left;">デフォルトのバックエンドホスト</td>
 </tr>
 <tr>
 <td style="text-align: left;">VARNISH_BACKEND_PORT</td>
 <td style="text-align: left;">8080</td>
-<td style="text-align: left;">デフォルトのVarnishリスニングポート。</td>
+<td style="text-align: left;">デフォルトのVarnishポート</td>
 </tr>
 <tr>
 <td style="text-align: left;">VARNISH_SECRET</td>
 <td style="text-align: left;">lagoon_default_secret</td>
-<td style="text-align: left;">管理に接続するために使用されるVarnishのシークレット。</td>
+<td style="text-align: left;">管理に接続するために使用されるVarnishシークレット</td>
 </tr>
 <tr>
 <td style="text-align: left;">LIBVMOD_DYNAMIC_VERSION</td>
 <td style="text-align: left;">5.2</td>
-<td style="text-align: left;"><code>vmod-dynamic</code>モジュールのデフォルトバージョン。</td>
+<td style="text-align: left;"><code>vmod-dynamic</code>モジュールのデフォルトバージョン</td>
+</tr>
+<tr>
+<td style="text-align: left;">LIBVMOD_BODYACCESS_VERSION</td>
+<td style="text-align: left;">5.0</td>
+<td style="text-align: left;"><code>vmod-bodyaccess</code>モジュールのデフォルトバージョン</td>
 </tr>
 <tr>
 <td style="text-align: left;">HTTP_RESP_HDR_LEN</td>
 <td style="text-align: left;">8k</td>
-<td style="text-align: left;">任意のHTTPバックエンドレスポンスヘッダの最大長さ。</td>
+<td style="text-align: left;">任意のHTTPバックエンドレスポンスヘッダの最大長</td>
 </tr>
 <tr>
 <td style="text-align: left;">HTTP_RESP_SIZE</td>
 <td style="text-align: left;">32k</td>
-<td style="text-align: left;">取り扱うHTTPバックエンドレスポンスのバイト数の最大値。</td>
+<td style="text-align: left;">処理可能なHTTPバックエンドレスポンスの最大バイト数</td>
 </tr>
 <tr>
 <td style="text-align: left;">NUKE_LIMIT</td>
 <td style="text-align: left;">150</td>
-<td style="text-align: left;">オブジェクトボディのスペースを作るために削除しようとするオブジェクトの最大数。</td>
+<td style="text-align: left;">オブジェクトボディのための空きを作るために削除を試みるオブジェクトの最大数</td>
 </tr>
 <tr>
 <td style="text-align: left;">CACHE_TYPE</td>
 <td style="text-align: left;">malloc</td>
-<td style="text-align: left;">varnishキャッシュのタイプ。</td>
+<td style="text-align: left;">varnishキャッシュのタイプ</td>
 </tr>
 <tr>
 <td style="text-align: left;">CACHE_SIZE</td>
 <td style="text-align: left;">100M</td>
-<td style="text-align: left;">キャッシュサイズ。</td>
+<td style="text-align: left;">キャッシュサイズ</td>
 </tr>
 <tr>
 <td style="text-align: left;">LISTEN</td>
 <td style="text-align: left;">8080</td>
-<td style="text-align: left;">デフォルトのバックエンドサーバーポート。</td>
+<td style="text-align: left;">デフォルトのバックエンドサーバーポート</td>
 </tr>
 <tr>
 <td style="text-align: left;">MANAGEMENT_LISTEN</td>
 <td style="text-align: left;">6082</td>
-<td style="text-align: left;">デフォルトの管理リスニングポート。 あなたが提供する内容は何ですか？</td>
+<td style="text-align: left;">デフォルトの管理リスニングポート</td>
 </tr>
 </tbody>
 </table>

@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1600,7 +1600,7 @@
         
           <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    持続性
+    永続性
   </a>
   
 </li>
@@ -2523,7 +2523,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4614,7 +4614,7 @@
         
           <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    持続性
+    永続性
   </a>
   
 </li>
@@ -4667,7 +4667,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/redis-5</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-user</span><span class="w"> </span><span class="c1"># トップから定義されたユーザーを使用します。</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-user</span><span class="w"> </span><span class="c1"># 定義済みのユーザーを使用します。</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-environment</span>
 </span></code></pre></div>
@@ -4686,54 +4686,55 @@
 </span></code></pre></div>
 <p>ファイルシステムの構造によっては、モジュールのパスを更新する必要があるかもしれません。</p>
 <h2 id="drupal-8">Drupal 8<a class="headerlink" href="#drupal-8" title="Permanent link">#</a></h2>
-<p>Drupal 8の設定は大部分が標準です。特筆すべきは、Drupalがインストールされている間はRedisが無効になっていることです。</p>
-<p>```php title=" "settings.php"
-if (getenv('LAGOON')){
-  $settings['redis.connection']['interface'] = 'PhpRedis';
-  $settings['redis.connection']['host'] = getenv('REDIS_HOST') ?: 'redis';
-  $settings['redis.connection']['port'] = getenv('REDIS_SERVICE_PORT') ?: '6379';
-  $settings['cache_prefix']['default'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_GIT_SAFE_BRANCH');</p>
-<p>// Drupalのインストール中にキャッシュを設定しない。
-  if (!drupal_installation_attempted() &amp;&amp; extension_loaded('redis')) {
-    $settings['cache']['default'] = 'cache.backend.redis';</p>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code>// そして、Redisモジュールが有効になっていなくても使用できます。
-$class_loader-&gt;addPsr4(&#39;Drupal\\redis\\&#39;, &#39;modules/contrib/redis/src&#39;);
-
-$settings[&#39;bootstrap_container_definition&#39;] = [
-  &#39;parameters&#39; =&gt; [],
-  &#39;services&#39; =&gt; [
-    &#39;redis.factory&#39; =&gt; [
-      &#39;class&#39; =&gt; &#39;Drupal\redis\ClientFactory&#39;,
-    ],
-    &#39;cache.backend.redis&#39; =&gt; [
-      &#39;class&#39; =&gt; &#39;Drupal\redis\Cache\CacheBackendFactory&#39;,
-      &#39;arguments&#39; =&gt; [&#39;@redis.factory&#39;, &#39;@cache_tags_provider.container&#39;, &#39;@serialization.phpserialize&#39;],
-    ],
-    &#39;cache.container&#39; =&gt; [
-      &#39;class&#39; =&gt; &#39;\Drupal\redis\Cache\PhpRedis&#39;,
-       &#39;factory&#39; =&gt; [&#39;@cache.backend.redis&#39;, &#39;get&#39;],
-      &#39;arguments&#39; =&gt; [&#39;container&#39;],
-    ],
-    &#39;cache_tags_provider.container&#39; =&gt; [
-      &#39;class&#39; =&gt; &#39;Drupal\redis\Cache\RedisCacheTagsChecksum&#39;,
-      &#39;arguments&#39; =&gt; [&#39;@redis.factory&#39;],
-    ],
-    &#39;serialization.phpserialize&#39; =&gt; [
-      &#39;class&#39; =&gt; &#39;Drupal\Component\Serialization\PhpSerialize&#39;,
-    ],
-  ],
-];
-</code></pre></div>
-<p>}
-}</p>
-<h3 id="_1">持続性<a class="headerlink" href="#_1" title="Permanent link">#</a></h3>
-<p>Redisは、持続的なバックエンドとしても設定できます。</p>
-<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">redis</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/redis-5-persistent</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis-persistent</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-environment</span>
+<p>Drupal 8 の設定はほとんどデフォルト設定のままですが、インストール時に Redis は無効化されます。</p>
+<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">if (getenv(&#39;LAGOON&#39;)){</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="x">  $settings[&#39;redis.connection&#39;][&#39;interface&#39;] = &#39;PhpRedis&#39;;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="x">  $settings[&#39;redis.connection&#39;][&#39;host&#39;] = getenv(&#39;REDIS_HOST&#39;) ?: &#39;redis&#39;;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="x">  $settings[&#39;redis.connection&#39;][&#39;port&#39;] = getenv(&#39;REDIS_SERVICE_PORT&#39;) ?: &#39;6379&#39;;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="x">  $settings[&#39;cache_prefix&#39;][&#39;default&#39;] = getenv(&#39;LAGOON_PROJECT&#39;) . &#39;_&#39; . getenv(&#39;LAGOON_GIT_SAFE_BRANCH&#39;);</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="x">  // Drupalのインストール中にキャッシュを設定しない。</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="x">  if (!drupal_installation_attempted() &amp;&amp; extension_loaded(&#39;redis&#39;)) {</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="x">    $settings[&#39;cache&#39;][&#39;default&#39;] = &#39;cache.backend.redis&#39;;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="x">    // そして、Redisモジュールが有効になっていなくても使用できます。</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="x">    $class_loader-&gt;addPsr4(&#39;Drupal\\redis\\&#39;, &#39;modules/contrib/redis/src&#39;);</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="x">    $settings[&#39;bootstrap_container_definition&#39;] = [</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="x">      &#39;parameters&#39; =&gt; [],</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="x">      &#39;services&#39; =&gt; [</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="x">        &#39;redis.factory&#39; =&gt; [</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="x">          &#39;class&#39; =&gt; &#39;Drupal\redis\ClientFactory&#39;,</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="x">        ],</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="x">        &#39;cache.backend.redis&#39; =&gt; [</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="x">          &#39;class&#39; =&gt; &#39;Drupal\redis\Cache\CacheBackendFactory&#39;,</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="x">          &#39;arguments&#39; =&gt; [&#39;@redis.factory&#39;, &#39;@cache_tags_provider.container&#39;, &#39;@serialization.phpserialize&#39;],</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="x">        ],</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="x">        &#39;cache.container&#39; =&gt; [</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="x">          &#39;class&#39; =&gt; &#39;\Drupal\redis\Cache\PhpRedis&#39;,</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="x">           &#39;factory&#39; =&gt; [&#39;@cache.backend.redis&#39;, &#39;get&#39;],</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="x">          &#39;arguments&#39; =&gt; [&#39;container&#39;],</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="x">        ],</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="x">        &#39;cache_tags_provider.container&#39; =&gt; [</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="x">          &#39;class&#39; =&gt; &#39;Drupal\redis\Cache\RedisCacheTagsChecksum&#39;,</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="x">          &#39;arguments&#39; =&gt; [&#39;@redis.factory&#39;],</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="x">        ],</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="x">        &#39;serialization.phpserialize&#39; =&gt; [</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="x">          &#39;class&#39; =&gt; &#39;Drupal\Component\Serialization\PhpSerialize&#39;,</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="x">        ],</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="x">      ],</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="x">    ];</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="x">  }</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="x">}</span>
+</span></code></pre></div>
+<h3 id="_1">永続性<a class="headerlink" href="#_1" title="Permanent link">#</a></h3>
+<p>Redisは、永続的なバックエンドとして設定することもできます。</p>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">redis</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/redis-5-persistent</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis-persistent</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-environment</span>
 </span></code></pre></div>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
 <p>環境変数は、Redisに関する一般的な情報を保存するためのものです。</p>
@@ -4764,39 +4765,39 @@ $settings[&#39;bootstrap_container_definition&#39;] = [
 </tbody>
 </table>
 <h2 id="redis_1">Redisのフェイルオーバー<a class="headerlink" href="#redis_1" title="Permanent link">#</a></h2>
-<p>以下は、Redisコンテナが利用できない場合(例えば、メンテナンス中など)にRedisのフェイルオーバーを実装するためのスニペットです。</p>
-<p>以下は、Drupalのアクティブな<code>settings.php</code>に挿入されます。 ファイル。</p>
-<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">if (getenv(&#39;LAGOON&#39;)) {</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="x">  $contrib_path = is_dir(&#39;sites/all/modules/contrib&#39;) ? &#39;sites/all/modules/contrib&#39; : &#39;sites/all/modules&#39;;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="x">  $redis = DRUPAL_ROOT . &#39;/sites/all/modules/contrib/redis&#39;;</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="x">  if (file_exists(&quot;$redis/redis.module&quot;)) {</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="x">    require_once &quot;$redis/redis.module&quot;;</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="x">    $conf[&#39;redis_client_host&#39;] = getenv(&#39;REDIS_HOST&#39;) ?: &#39;redis&#39;;</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="x">    $conf[&#39;redis_client_port&#39;] = getenv(&#39;REDIS_SERVICE_PORT&#39;) ?: 6379;</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="x">    $conf[&#39;cache_prefix&#39;] = getenv(&#39;REDIS_CACHE_PREFIX&#39;) ?: getenv(&#39;LAGOON_PROJECT&#39;) . &#39;_&#39; . getenv(&#39;LAGOON_GIT_SAFE_BRANCH&#39;);</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="x">    try {</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="x">      // Redisに接続があることを確認します。</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="x">      $client = Redis_Client::getClient();</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="x">      $response = $client-&gt;ping();</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="x">      if (!$response) {</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="x">      throw new \Exception(&#39;Redisに到達できましたが、正しく応答していません。&#39;);</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="x">      }</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="x">      $conf[&#39;redis_client_interface&#39;] = &#39;PhpRedis&#39;;</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="x">      $conf[&#39;lock_inc&#39;] = $contrib_path . &#39;/redis/redis.lock.inc&#39;;</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="x">      $conf[&#39;path_inc&#39;] = $contrib_path . &#39;/redis/redis.path.inc&#39;;</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="x">      $conf[&#39;cache_backends&#39;][] = $contrib_path . &#39;/redis/redis.autoload.inc&#39;;</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="x">      $conf[&#39;cache_default_class&#39;] = &#39;Redis_Cache&#39;;</span>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="x">    } catch (\Exception $e) {</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="x">      // Redis このリクエストには利用できないため、Redisバックエンドの設定を行わず、キャッシュが使用されないように確認する必要があります。これにより次のリクエストが再試行されます。</span>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="x">      // &#39;DrupalFakeCache&#39;クラスが存在しない場合</span>
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="x">      if (!class_exists(&#39;DrupalFakeCache&#39;)) {</span>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="x">        $conf[&#39;cache_backends&#39;][] = &#39;includes/cache-install.inc&#39;;</span>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="x">      }</span>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="x">      $conf[&#39;cache_default_class&#39;] = &#39;DrupalFakeCache&#39;;</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="x">    }</span>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="x">  }</span>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="x">}</span>
+<p>Redisコンテナが利用できない場合(例えば、メンテナンス中など)にRedisのフェイルオーバーを実装するためのスニペットを以下に示します。</p>
+<p>以下をDrupalのアクティブな<code>settings.php</code>ファイルに追加します。</p>
+<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="x">if (getenv(&#39;LAGOON&#39;)) {</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="x">  $contrib_path = is_dir(&#39;sites/all/modules/contrib&#39;) ? &#39;sites/all/modules/contrib&#39; : &#39;sites/all/modules&#39;;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="x">  $redis = DRUPAL_ROOT . &#39;/sites/all/modules/contrib/redis&#39;;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="x">  if (file_exists(&quot;$redis/redis.module&quot;)) {</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="x">    require_once &quot;$redis/redis.module&quot;;</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="x">    $conf[&#39;redis_client_host&#39;] = getenv(&#39;REDIS_HOST&#39;) ?: &#39;redis&#39;;</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="x">    $conf[&#39;redis_client_port&#39;] = getenv(&#39;REDIS_SERVICE_PORT&#39;) ?: 6379;</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="x">    $conf[&#39;cache_prefix&#39;] = getenv(&#39;REDIS_CACHE_PREFIX&#39;) ?: getenv(&#39;LAGOON_PROJECT&#39;) . &#39;_&#39; . getenv(&#39;LAGOON_GIT_SAFE_BRANCH&#39;);</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="x">    try {</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="x">      // Redisに接続があることを確認します。</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="x">      $client = Redis_Client::getClient();</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="x">      $response = $client-&gt;ping();</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="x">      if (!$response) {</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="x">      throw new \Exception(&#39;Redisにアクセスできましたが、正しく応答していません。&#39;);</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="x">      }</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="x">      $conf[&#39;redis_client_interface&#39;] = &#39;PhpRedis&#39;;</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="x">      $conf[&#39;lock_inc&#39;] = $contrib_path . &#39;/redis/redis.lock.inc&#39;;</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="x">      $conf[&#39;path_inc&#39;] = $contrib_path . &#39;/redis/redis.path.inc&#39;;</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="x">      $conf[&#39;cache_backends&#39;][] = $contrib_path . &#39;/redis/redis.autoload.inc&#39;;</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="x">      $conf[&#39;cache_default_class&#39;] = &#39;Redis_Cache&#39;;</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="x">    } catch (\Exception $e) {</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="x">      // Redis このリクエストには利用できないため、Redisバックエンドの設定を行わず、キャッシュが使用されないようにします。これにより次のリクエストが再試行されます。</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="x">      // &#39;DrupalFakeCache&#39;クラスが存在しない場合</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="x">      if (!class_exists(&#39;DrupalFakeCache&#39;)) {</span>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="x">        $conf[&#39;cache_backends&#39;][] = &#39;includes/cache-install.inc&#39;;</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="x">      }</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="x">      $conf[&#39;cache_default_class&#39;] = &#39;DrupalFakeCache&#39;;</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="x">    }</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="x">  }</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="x">}</span>
 </span></code></pre></div>
 
 

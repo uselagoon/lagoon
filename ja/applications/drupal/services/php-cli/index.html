@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#php-cli-drupal" class="md-skip">
+        <a href="#php-cli" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2496,7 +2496,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4607,27 +4607,27 @@
   
 
 
-<h1 id="php-cli-drupal">PHP-CLI-Drupal<a class="headerlink" href="#php-cli-drupal" title="Permanent link">#</a></h1>
+<h1 id="php-cli">PHP-cli<a class="headerlink" href="#php-cli" title="Permanent link">#</a></h1>
 <p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal">Lagoonの<code>php-cli-drupal</code> Dockerイメージ</a>はDrupalと連携するために最適化されています。これは<a href="../../../../docker-images/php-cli/">Lagoonの<code>php-cli</code>イメージ</a>を基に作られており、Drupalウェブサイトの日々のメンテナンスに必要なコマンドラインツール全てが含まれています。</p>
 <ul>
 <li><code>drush</code></li>
 <li><code>drupal console</code></li>
-<li><code>drush launcher</code> (サイトにインストールされたDrushが見つからない場合はDrush 8にフォールバックします)</li>
+<li><code>drush launcher</code> (Drushがインストールされたサイトが見つからない場合、Drush 8にフォールバックします)</li>
 </ul>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>7.3 (互換性のために利用可能ですが、公式にはサポートされていません)</li>
-<li>7.4 (互換性のために利用可能ですが、公式にはサポートされていません) - <code>uselagoon/php-7.4-cli-drupal</code></li>
-<li>8.0 (互換性のために利用可能ですが、公式にはサポートされていません) - <code>uselagoon/php-8.0-cli-drupal</code></li>
+<li>7.3 (互換性のために利用可能ですが、公式サポートは終了) - <code>uselagoon/php-7.3-cli-drupal</code></li>
+<li>7.4 (互換性のために利用可能ですが、公式サポートは終了) - <code>uselagoon/php-7.4-cli-drupal</code></li>
+<li>8.0 (互換性のために利用可能ですが、公式サポートは終了) - <code>uselagoon/php-8.0-cli-drupal</code></li>
 <li>8.1 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.1.Dockerfile">Dockerfile</a> - <code>uselagoon/php-8.1-cli-drupal</code></li>
 <li>8.2 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.2.Dockerfile">Dockerfile</a> - <code>uselagoon/php-8.2-cli-drupal</code></li>
 <li>8.3 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.3.Dockerfile">Dockerfile</a> - <code>uselagoon/php-8.3-cli-drupal</code></li>
 </ul>
 <p>全てのPHPバージョンはそれぞれのDockerfilesを使用します。</p>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの事項が完了しています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダのパーミッションは自動的に適応されます <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>を使用して、この画像はランダムなユーザーと一緒に動作します。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
 </ul>
 
 

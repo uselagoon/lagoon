@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2506,7 +2506,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4632,7 +4632,7 @@
 
 
 <h1 id="postgresql">PostgreSQL<a class="headerlink" href="#postgresql" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/postgres">Lagoon PostgreSQL Dockerイメージ</a>。<a href="https://hub.docker.com/_/postgres">公式PostgreSQL Alpineイメージ</a>を基にしています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/postgres">Lagoon PostgreSQL Dockerイメージ</a>。<a href="https://hub.docker.com/_/postgres">公式PostgreSQL Alpineイメージ</a>をベースに作成されています。</p>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
 <li>11 (互換性のためだけに利用可能、公式にはサポートされていません) - <code>uselagoon/postgres-11</code></li>
@@ -4644,30 +4644,30 @@
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">ヒント</p>
-<p>Lagoonリリースが公式に通知されたEOL日付の後に、通常、EOL PostgreSQLイメージの更新を停止します:<a href="https://www.postgresql.org/support/versioning/">https://www.postgresql.org/support/versioning</a></p>
+<p>Lagoonは、公式にアナウンスされた終了日(EOL)の後にリリースされるバージョンで、EOLに達したPostgreSQLイメージの更新を停止します。詳細は<a href="https://www.postgresql.org/support/versioning/">https://www.postgresql.org/support/versioning</a>を参照して下さい。</p>
 </div>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
 <p>Postgresコンテナのデフォルトの公開ポートはポート<code>5432</code>です。</p>
-<p>LagoonがPostgresコンテナを最適な方法で実行できるようにするためには、<code>lagoon.type: postgres</code>を使用してください。これにより、クラスタ内で利用可能な場合にDBaaSオペレータがクラウドデータベースをプロビジョニングできます。コンテナ内のPostgresを特にリクエストするには、<code>lagoon.type: postgres-single</code>を使用してください。永続的なストレージは常に、/var/lib/postgresql/dataでpostgresコンテナにプロビジョニングされます。</p>
+<p>LagoonがPostgresコンテナの実行方法を最適に選択できるようにするには、<code>lagoon.type: postgres</code>を使用します。これにより、DBaaSオペレーターは、クラスター内で利用可能な場合、クラウドデータベースをプロビジョニングできます。コンテナ内でPostgresを確実に実行したい場合は、<code>lagoon.type: postgres-single</code>を使用してください。Postgresコンテナに対しては、永続ストレージが常に<code>/var/lib/postgresql/data</code>にプロビジョニングされます。</p>
 <h2 id="docker-composeyml-snippet"><code>docker-compose.yml</code> スニペット<a class="headerlink" href="#docker-composeyml-snippet" title="Permanent link">#</a></h2>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">postgres</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/postgres-14-drupal:latest</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="c1"># LagoonにこれがPostgresデータベースであることを伝える</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="c1"># LagoonにPostgresのデータベースであることを伝える</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1"># ポート5432をランダムなローカルポートで公開する</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1"># ポート5432をランダムなローカルポートで公開し、</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="c1"># `docker-compose port postgres 5432`で見つけることができる</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5432&quot;</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="c1"># Postgresのデフォルトパスに名前付きボリュームをマウントする</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="c1"># Postgres用のデフォルトパスに名前付きボリュームをマウントする</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">db:/var/lib/postgresql/data</span>
 </span></code></pre></div>
 <h2 id="_1">ヒント＆コツ<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>SQLがある場合 コンテナの起動直後にデータベースを初期化するために実行する必要があるステートメントは、その <code>.sql</code> ファイルをコンテナの <code>docker-entrypoint-initdb.d</code> ディレクトリに配置できます。そのディレクトリに含まれる任意の <code>.sql</code> ファイルは、PostgreSQLコンテナを起動する一部として自動的に起動時に実行されます。</p>
+<p>コンテナ起動直後にデータベースを初期化するためのSQLステートメントがある場合、それらの<code>.sql</code>ファイルをコンテナの<code>docker-entrypoint-initdb.d</code>ディレクトリに配置することができます。このディレクトリにある <code>.sql</code> ファイルは、PostgreSQLコンテナの起動時に自動的に実行され、データベースの初期化処理の一部として動作します。</p>
 <div class="admonition warning">
 <p class="admonition-title">警告</p>
-<p>これらのスクリプトは、コンテナが空のデータベースで開始された場合にのみ実行されます。</p>
+<p>これらのスクリプトは、空のデータベースでコンテナが起動された場合にのみ実行されます。既存のデータベースに対しては動作しません。</p>
 </div>
 
 

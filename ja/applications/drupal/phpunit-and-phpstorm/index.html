@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#phpunit-phpstorm" class="md-skip">
+        <a href="#phpunitphpstorm" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1813,7 +1813,7 @@
         
           <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
-    テストを実行する前に行う最終チェック
+    テストを実行する前に、いくつかの確認が必要です。
   </a>
   
 </li>
@@ -1825,7 +1825,7 @@
       
         <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
-    実行の準備完了
+    実行準備完了
   </a>
   
 </li>
@@ -2561,7 +2561,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4699,7 +4699,7 @@
         
           <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
-    テストを実行する前に行う最終チェック
+    テストを実行する前に、いくつかの確認が必要です。
   </a>
   
 </li>
@@ -4711,7 +4711,7 @@
       
         <li class="md-nav__item">
   <a href="#_6" class="md-nav__link">
-    実行の準備完了
+    実行準備完了
   </a>
   
 </li>
@@ -4739,19 +4739,19 @@
   
 
 
-<h1 id="phpunit-phpstorm">PHPUnit と PhpStorm<a class="headerlink" href="#phpunit-phpstorm" title="Permanent link">#</a></h1>
+<h1 id="phpunitphpstorm">PHPUnitとPhpStorm<a class="headerlink" href="#phpunitphpstorm" title="Permanent link">#</a></h1>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
 <p>このドキュメントでは、以下を前提としています:</p>
-<p>- Dockerを使用しています。</p>
-<p>- <a href="../../../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code></a>ファイルを含む標準的なAmazee/Lagoonプロジェクトを使用しています。</p>
-<p>- Macを使用しています - 他のオペレーティングシステムでも動作するはずですが、フォルダ構造や一部の設定が異なる場合があります。</p>
+<p>- Dockerを使用している</p>
+<p>- <a href="../../../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code></a>ファイルを持つ標準的なAmazee/Lagoonプロジェクトを使用している</p>
+<p>- Macを使用している(他のOSでも動作するはずですが、フォルダ構造や設定が異なる場合があります)</p>
 </div>
 <h2 id="_1">プロジェクトの設定<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <ol>
-<li><code>/core/phpunit.xml.dist</code> ファイルを <code>/core/phpunit.xml</code> に複製します。</li>
+<li><code>/core/phpunit.xml.dist</code>ファイルを複製し、<code>/core/phpunit.xml</code>という名前で保存します。</li>
 <li>
-<p><code>/core/phpunit.xml</code> を編集し、以下の変数を入力します:</p>
+<p><code>/core/phpunit.xml</code>を編集し、以下の変数を設定します:</p>
 <ul>
 <li><strong>SIMPLETEST_DB</strong>: <code>mysql://drupal:drupal@mariadb:3306/drupal#db</code></li>
 <li><strong>SIMPLETEST_BASE_URL</strong>: <code>&lt;PROJECT_URL&gt;</code></li>
@@ -4761,23 +4761,22 @@
 <h2 id="phpstorm">PhpStormの設定<a class="headerlink" href="#phpstorm" title="Permanent link">#</a></h2>
 <h3 id="docker">Dockerの設定<a class="headerlink" href="#docker" title="Permanent link">#</a></h3>
 <ol>
-<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; ビルド、実行、デプロイ &gt; Docker</strong>に移動します。</li>
-<li><code>+</code>をクリックします。</li>
+<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; ビルド、実行、デプロイ &gt; Docker</strong>へ移動します。</li>
+<li><code>+</code>ボタンをクリックします。</li>
 <li><code>Docker for Mac</code>を選択します。</li>
 </ol>
 <p><img alt="Dockerの設定" src="../../../images/1-docker-setup.png" /></p>
 <h3 id="cli">CLIインタープリタの設定<a class="headerlink" href="#cli" title="Permanent link">#</a></h3>
 <p><strong>新しいCLIインタープリタを追加:</strong></p>
 <ol>
-<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; 言語 &amp; フレームワーク &gt; PHP</strong>に移動します。</li>
-<li><code>...</code>をクリックし、次に<code>+</code>をクリックします。</li>
+<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; 言語 &amp; フレームワーク &gt; PHP</strong>へ移動します。</li>
+<li><code>...</code>ボタンをクリックし、 <code>+</code>ボタンをクリックします。</li>
 <li>次に、Docker、vagrantなどから新しいCLIインタープリタを追加を選択します。</li>
-<li>次の設定を使用します:<ul>
-<li>サーバー: <code>&lt;DOCKER&gt;</code> * 設定ファイル: <code>./docker-compose.yml</code></li>
-<li>サービス: <code>cli</code></li>
-<li>ライフサイクル: <code>既存のコンテナに接続 ('docker-compose exec')</code></li>
-</ul>
-</li>
+<li>以下の設定を使用します:
+* サーバー: <code>&lt;DOCKER&gt;</code>
+* 設定ファイル: <code>./docker-compose.yml</code>
+* サービス: <code>cli</code>
+* ライフサイクル: <code>既存のコンテナに接続 ('docker-compose exec')</code></li>
 <li>パスのマッピング:<ul>
 <li>ローカルパス: <code>&lt;ROOT_PATH&gt;</code></li>
 <li>リモートパス: <code>/app</code></li>
@@ -4788,9 +4787,9 @@
 <h3 id="_2"><strong>リモートインタープリタの設定</strong><a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
 <p><strong>リモートインタープリタの追加:</strong></p>
 <ol>
-<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; 言語 &amp; フレームワーク &gt; PHP &gt; テストフレームワーク</strong>に移動します。</li>
-<li><code>+</code>をクリックして、<code>PHPUnit by Remote Interpreter</code>を選択します。</li>
-<li>次の設定を使用します:<ul>
+<li>PhpStormで、<strong>ファイル &gt; 設定 &gt; 言語 &amp; フレームワーク &gt; PHP &gt; テストフレームワーク</strong>へ移動します。</li>
+<li><code>+</code>ボタンをクリックして、<code>PHPUnit by Remote Interpreter</code>を選択します。</li>
+<li>以下の設定を使用します:<ul>
 <li>CLIインタープリタ: <code>&lt;CLI_INTERPRETER&gt;</code></li>
 <li>パスマッピング: <code>&lt;PROJECT_ROOT&gt; -&gt; /app</code></li>
 <li>PHPUnit: <code>Use Composer autoloader</code></li>
@@ -4803,9 +4802,9 @@
 <h4 id="_3">ランナーテンプレートの設定/構成 <a id="Drupal:PHPUnitandPhpStorm-Setup/ConfigureRunnerTemplate"></a><a class="headerlink" href="#_3" title="Permanent link">#</a></h4>
 <ol>
 <li><strong>ランナーの設定:</strong><ol>
-<li>PhpStormで、<strong>実行 &gt; 設定の編集... &gt; テンプレート &gt; PHPUnit</strong>に移動します。</li>
-<li>次の設定を使用します:<p>1. テストスコープ: <code>設定ファイルで定義されている</code></p>
-<p>2. 通訳者: <code>&lt;CLI_INTERPRETER&gt;</code></p>
+<li>PhpStormで、<strong>実行 &gt; 設定の編集... &gt; テンプレート &gt; PHPUnit</strong>へ移動します。</li>
+<li>以下の設定を使用します:<p>1. テストスコープ: <code>Defined in the configuration file</code></p>
+<p>2. インタープリター: <code>&lt;CLI_INTERPRETER&gt;</code></p>
 </li>
 </ol>
 </li>
@@ -4813,18 +4812,18 @@
 <p><img alt="ランナーの設定" src="../../../images/4-configure-runner.png" /></p>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
-<p>Macを使用していない場合、この内容は異なる場合があります。</p>
+<p>Mac以外のOSでは手順が異なる場合があります。</p>
 </div>
 <h2 id="_4">最終チェック<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
-<h3 id="_5">テストを実行する前に行う最終チェック<a class="headerlink" href="#_5" title="Permanent link">#</a></h3>
+<h3 id="_5">テストを実行する前に、いくつかの確認が必要です。<a class="headerlink" href="#_5" title="Permanent link">#</a></h3>
 <ol>
-<li>プロジェクトが起動し、稼働していること: <code>$ docker-compose up -d</code></li>
-<li>プロジェクトがエラーなく動作していること、サイトを訪れてすべてが期待通りに動作していることを確認する - これは100％必要ではありませんが、正常に動作していることを知っておくとよいでしょう。</li>
-<li>テストを実行する準備が整っているはずです！</li>
+<li>プロジェクトが起動していることを確認します:<code>$ docker-compose up -d</code></li>
+<li>プロジェクトがエラーなく動作していることを確認します (サイトにアクセスして、すべて想定通りに動作していることを確認してください)。必ずしも必要ではありませんが、正常に動作していることを確認しておくと安心です。</li>
+<li>これでテストを実行する準備が整いました！</li>
 </ol>
-<h2 id="_6">実行の準備完了<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
-<p>上記の設定を行ったら、実行したいテストに移動し、緑色の矢印を押すだけで簡単に実行できるはずです！</p>
-<p>このボタンを押すと、PhpStormはDockerを使用してCLIコンテナに入り、設定に基づいてPHPUnitの実行を開始します。</p>
+<h2 id="_6">実行準備完了<a class="headerlink" href="#_6" title="Permanent link">#</a></h2>
+<p>上記の設定が完了していれば、実行したいテストに移動し、緑色の矢印をクリックするだけで簡単に実行できます！</p>
+<p>PhpStormは、Dockerを使用してCLIコンテナに入り、設定に基づいてPHPUnitを実行します。</p>
 <p><img alt="これが実際の動作です、どうぞご覧ください!!" src="../../../images/5-going-green-1-.gif" /></p>
 
 

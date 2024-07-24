@@ -667,7 +667,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -677,7 +677,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -898,7 +898,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -908,7 +908,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2446,7 +2446,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4539,16 +4539,16 @@
 <p>Lagoonは現在、<code>production(本番環境)</code>と<code>development(開発環境)</code>の2つの異なる環境タイプを区別しています。</p>
 <p>Lagoon GraphQL APIを通じてプロジェクトを設定する際には、<code>productionEnvironment</code>を定義することができます。Lagoonが実行するすべてのデプロイメントで、現在の環境名が<code>productionEnvironment</code>で定義されているものと一致するかどうかをチェックします。もしそうであれば、Lagoonはこの環境を<code>production</code>環境としてマークします。これは2つの場所で行われます:</p>
 <ol>
-<li>GraphQL API自体内で。</li>
-<li>すべてのコンテナ内で<code>LAGOON_ENVIRONMENT_TYPE</code>という名前の環境変数として。</li>
+<li>GraphQL API自体内。</li>
+<li>すべてのコンテナ内の<code>LAGOON_ENVIRONMENT_TYPE</code>という名前の環境変数。</li>
 </ol>
-<p>しかしそれだけです。Lagoon自体は<code>development</code>と<code>production</code>の環境をまったく同じように扱います(最終的には環境の違いをできるだけ少なくすることが目指しています - それがLagoonの美しさです)。</p>
+<p>この2つだけです。Lagoon自体は<code>development</code>と<code>production</code>の環境をまったく同じように扱います(最終的には環境の違いをできるだけ少なくすることを目指しています - それがLagoonの美しさです)。</p>
 <p>この情報を使用するものがいくつかあります:</p>
 <ul>
-<li>デフォルトでは、<code>development</code>環境はヒットが4時間ない場合に休止状態になります(心配しないでください、自動的に起動します)。また、Lagoonの管理者に一つずつの環境で自動休止を無効にするよう依頼することも可能です！</li>
-<li>デフォルトのDrupal <code>settings.php</code>ファイルは、<code>development.settings.php</code>と <code>production.settings.php</code>は、環境タイプごとに異なる設定や構成を定義できます。</li>
-<li>もし、プロダクション環境として定義された環境(ウェブフックまたはREST経由で)を削除しようとすると、Lagoonはあなたが誤って削除するのを防ぐために、礼儀正しく削除を拒否します。プロダクション環境を削除するためには、APIで<code>productionEnvironment</code>を変更するか、REST APIのPOSTペイロードで秘密の<code>forceDeleteProductionEnvironment: true</code>を使用できます。</li>
-<li>Lagoonの管理者は、プロダクション環境情報を追加の事項に使用することがあります。例えば、amazee.ioでは、ホスティングの価格を計算するために、プロダクション環境のヒット数だけを計算しています。</li>
+<li>デフォルトでは、<code>development</code>環境はヒットが4時間ない場合に休止状態になります(心配しないでください、自動的に起動します)。また、Lagoonの管理者に1つずつの環境で自動休止を無効にするよう依頼することも可能です！</li>
+<li>デフォルトのDrupal <code>settings.php</code>ファイルは、<code>development.settings.php</code>と <code>production.settings.php</code>という追加の設定ファイルを読み込みます。これにより、環境タイプごとに異なる設定や構成を定義できます。</li>
+<li>もし、あなたが<code>production</code>環境として定義された環境(ウェブフックまたはREST経由で)を削除するなら、Lagoonは誤って削除するのを防ぐために拒否します。<code>production</code>環境を削除するには、APIで<code>productionEnvironment</code>を変更するか、REST APIのPOSTペイロードで<code>forceDeleteProductionEnvironment: true</code>を使用する必用があります。</li>
+<li>Lagoonの管理者は、<code>production</code>環境情報を追加の目的で使用することがあります。例えば、amazee.ioでは、ホスティングの価格を計算するために、<code>production</code>環境のヒット数だけを計算しています。</li>
 </ul>
 
 

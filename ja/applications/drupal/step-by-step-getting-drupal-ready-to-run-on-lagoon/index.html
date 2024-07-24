@@ -130,7 +130,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lagoondrupal" class="md-skip">
+        <a href="#drupallagoon" class="md-skip">
           コンテンツにスキップ
         </a>
       
@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1666,14 +1666,14 @@
         
           <li class="md-nav__item">
   <a href="#note-about-webroot-in-drupal-8" class="md-nav__link">
-    Drupal 8のWEBROOTについての注意
+    Drupal 8のWEBROOTに関する注意事項
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#note-about-composerjson" class="md-nav__link">
-    composer.jsonについての注意
+    composer.jsonに関する注意事項
   </a>
   
 </li>
@@ -1706,7 +1706,7 @@
       
         <li class="md-nav__item">
   <a href="#5-rerun-composer-install" class="md-nav__link">
-    5. composer installを再実行します
+    5. composer installを再実行します（composerプロジェクトのみ）
   </a>
   
 </li>
@@ -2570,7 +2570,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4661,14 +4661,14 @@
         
           <li class="md-nav__item">
   <a href="#note-about-webroot-in-drupal-8" class="md-nav__link">
-    Drupal 8のWEBROOTについての注意
+    Drupal 8のWEBROOTに関する注意事項
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#note-about-composerjson" class="md-nav__link">
-    composer.jsonについての注意
+    composer.jsonに関する注意事項
   </a>
   
 </li>
@@ -4701,7 +4701,7 @@
       
         <li class="md-nav__item">
   <a href="#5-rerun-composer-install" class="md-nav__link">
-    5. composer installを再実行します
+    5. composer installを再実行します（composerプロジェクトのみ）
   </a>
   
 </li>
@@ -4757,27 +4757,27 @@
   
 
 
-<h1 id="lagoondrupal">ステップバイステップ:LagoonでDrupalを実行する準備<a class="headerlink" href="#lagoondrupal" title="Permanent link">#</a></h1>
+<h1 id="drupallagoon">ステップバイステップ:DrupalをLagoonで実行する準備<a class="headerlink" href="#drupallagoon" title="Permanent link">#</a></h1>
 <h2 id="1-lagoon-drupal-setting-files">1. Lagoon Drupal 設定ファイル<a class="headerlink" href="#1-lagoon-drupal-setting-files" title="Permanent link">#</a></h2>
-<p>DrupalがLagoonと連携するためには、DrupalにLagoonのことを、LagoonにDrupalのことを教える必要があります。これは、特定のYAMLとPHPファイルをGitリポジトリにコピーすることで行われます。</p>
-<p>Drupalプロジェクトを手がけている場合は、<a href="https://github.com/uselagoon/lagoon-examples">私たちの例のリポジトリ</a>でさまざまなDrupalの例のプロジェクトをチェックできます。Drupal 8と9、さらに各々のバリアントがあります。最もニーズに合ったリポジトリをクローンして始めてください。</p>
-<p>以下に、LagoonとDrupalに特化したファイルの概要を示します:</p>
+<p>DrupalがLagoonと連携するためには、DrupalにLagoonのことを、LagoonにDrupalのことを教える必要があります。これは、特定のYAMLとPHPファイルをGitリポジトリにコピーします。</p>
+<p>Drupalプロジェクトに取り組んでいる場合は、<a href="https://github.com/uselagoon/lagoon-examples">私たちの例のリポジトリ</a>にある様々なDrupalサンプルプロジェクトを利用できます。ニーズに合わせて Drupal 8、Drupal 9 だけでなく、データベースの種類などバリエーションも用意されています。開始するには、自分のニーズに合ったリポジトリをクローンしてください！</p>
+<p>以下は、LagoonとDrupalに特化したファイルの概要です：</p>
 <ul>
-<li><code>.lagoon.yml</code> - Lagoonが何をデプロイすべきかなどを理解するために使用される主要なファイルです。このファイルには、一部の妥当なDrupalのデフォルト設定が含まれています。編集や変更を行いたい場合は、<a href="../../../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code>のドキュメンテーション</a>をご覧ください。</li>
-<li><code>docker-compose.yml</code>、<code>.dockerignore</code>、および <code>*.dockerfile</code> (または <code>Dockerfile</code>) - これらのファイルはローカルのDrupal開発環境を起動するために使用され、Dockerにどのサービスを開始し、それらをどのようにビルドするかを指示します。 次の内容を含む合理的なデフォルト設定と多くのコメント行があります。十分にコメントがつけられていて、その内容が自己説明的であることを願っています。詳しく知りたい場合は、<a href="../../../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code></a>のドキュメンテーションをご覧ください。</li>
-<li><code>sites/default/*</code> - これらの<code>.php</code>と<code>.yml</code>のファイルは、DrupalがLagoonのコンテナとローカルおよび本番環境で通信する方法を指示します。また、開発環境と本番環境で特定のオーバーライドを直接的に提供します。他のDrupalホスティングシステムとは異なり、Lagoonは決してDrupalの設定ファイルをあなたのDrupalに注入しません。したがって、あなたはそれらを好きなように編集できます。他のすべてのファイルと同様に、それらには合理的なデフォルト設定といくつかのコメント部分が含まれています。</li>
-<li><code>drush/aliases.drushrc.php</code> - これらのファイルはDrushに特化しており、DrushにLagoon GraphQL APIと通信し、存在するすべてのサイトエイリアスについて学ぶ方法を指示します。</li>
-<li><code>drush/drushrc.php</code> - Drushコマンドのためのいくつかの合理的なデフォルト設定。</li>
+<li><code>.lagoon.yml</code> - Lagoonがデプロイメントする内容などを理解するためのメインファイルです。Drupal向けの適切なデフォルト設定が用意されています。編集や変更を行う場合は、<a href="../../../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code>のドキュメント</a>を参照してください。</li>
+<li><code>docker-compose.yml</code>、<code>.dockerignore</code>、および <code>*.dockerfile</code> (または <code>Dockerfile</code>) - これらのファイルはローカルのDrupal開発環境の実行に使用されます。これらのファイルは、Dockerに対して起動するサービスの種類やビルド方法を指示します。適切なデフォルト設定と、多くのコメント行が含まれています。これらのファイルは、内容が読み取れるよう十分なコメントが付けられていることを目指しています。詳細は、<a href="../../../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code></a>のドキュメントを参照ください。</li>
+<li><code>sites/default/*</code> - <code>.php</code>と<code>.yml</code>のファイルは、Drupalがローカル環境と本番環境の両方でLagoonコンテナと通信する方法をDrupalに指示します。また、開発環境と本番環境で特定の設定をオーバーライド (上書き) するためのシンプルな仕組みも提供します。他のDrupalホスティングシステムとは異なり、LagoonはDrupalの設定ファイルに一切干渉しません。そのため、これらのファイルを自由に編集できます。他のファイルと同様に、適切なデフォルト設定と、一部コメント付きの部分が含まれています。</li>
+<li><code>drush/aliases.drushrc.php</code> - Drush独自のファイルで、DrushがLagoonのGraphQL APIを使ってサイトエイリアス (サイトの別名) を取得する方法をDrushに指示します。</li>
+<li><code>drush/drushrc.php</code> - Drushコマンド用の適切なデフォルト設定が用意されています。</li>
 </ul>
 <h3 id="update-your-gitignore-settings"><code>.gitignore</code>設定の更新<a class="headerlink" href="#update-your-gitignore-settings" title="Permanent link">#</a></h3>
-<p>設定ファイルをコミットできるように、<code>.gitignore</code>を確認するのを忘れないでください。</p>
-<p>Drupalは<code>sites/*/settings*.php</code>と<code>sites/*/services*.yml</code>を<code>.gitignore</code>で提供しています。それらを削除してください。 Lagoonでは、Gitリポジトリに機密情報を一切持っていません。</p>
-<h3 id="note-about-webroot-in-drupal-8">Drupal 8の<code>WEBROOT</code>についての注意<a class="headerlink" href="#note-about-webroot-in-drupal-8" title="Permanent link">#</a></h3>
-<p>残念ながら、Drupalコミュニティは標準化された<code>WEBROOT</code>フォルダ名について一致していません。一部のプロジェクトではDrupalを<code>web</code>内に置き、他のプロジェクトでは<code>docroot</code>や他の場所に置いています。LagoonのDrupal設定ファイルは、Drupalが<code>web</code>内にあると仮定していますが、あなたのDrupalでこれが異なる場合は、ファイルを適切に調整してください。</p>
-<h3 id="note-about-composerjson"><code>composer.json</code>についての注意<a class="headerlink" href="#note-about-composerjson" title="Permanent link">#</a></h3>
-<p>もしDrupalをcomposerを使ってインストールした場合は、<code>composer.json</code>を確認し、<code>name</code>が<code>drupal/drupal</code>でないことを確認してください。これはDrushやDrupalのユニバースの他のツールを混乱させる可能性があるため、それを<code>myproject/drupal</code>のようなものにリネームしてください。</p>
+<p>設定ファイルをコミットできるように、<code>.gitignore</code>ファイルを確認してください。</p>
+<p>Drupalは<code>sites/*/settings*.php</code>と<code>sites/*/services*.yml</code>を<code>.gitignore</code>でコミットから除外するように初期設定されています。Lagoon 環境では機密情報は Git リポジトリに保存しないので、この除外設定を削除してください。</p>
+<h3 id="note-about-webroot-in-drupal-8">Drupal 8の<code>WEBROOT</code>に関する注意事項<a class="headerlink" href="#note-about-webroot-in-drupal-8" title="Permanent link">#</a></h3>
+<p>残念ながら、Drupalコミュニティでは<code>WEBROOT</code>フォルダ名の標準化がまだ決まっていません。Drupalを<code>web</code>ディレクトリ内に配置するプロジェクトもあれば、<code>docroot</code>や別の場所に入れるプロジェクトもあります。LagoonのDrupal設定ファイルは、Drupalが<code>web</code>ディレクトリ内に配置されていることを前提としています。もしあなたのDrupalの構成が異なる場合は、設定ファイルをそれに合わせて修正してください。</p>
+<h3 id="note-about-composerjson"><code>composer.json</code>に関する注意事項<a class="headerlink" href="#note-about-composerjson" title="Permanent link">#</a></h3>
+<p>Composer を使って Drupal をインストールした場合、<code>composer.json</code>を確認し、<code>name</code>が<code>drupal/drupal</code>でないことを確認してください。この名前は Drush やその他の Drupal 関連ツールと競合してしまう可能性がありますので、<code>myproject/drupal</code>など、別の名前にしてください。</p>
 <h2 id="2-customize-docker-composeyml">2. <code>docker-compose.yml</code>のカスタマイズ<a class="headerlink" href="#2-customize-docker-composeyml" title="Permanent link">#</a></h2>
-<p><code>lagoon-project</code>と<code>LAGOON_ROUTE</code>の値を忘れずにカスタマイズし、サイト固有の名前とアクセスしたいURLに書き換えてください。以下に例を示します:</p>
+<p><code>lagoon-project</code>と<code>LAGOON_ROUTE</code>の値を忘れずにカスタマイズし、サイト名とアクセスしたいURLに書き換えてください。以下に例を示します:</p>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">x-environment</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nl">&amp;default-environment</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">LAGOON_PROJECT</span><span class="p">:</span><span class="w"> </span><span class="nv">*lagoon-project</span>
@@ -4788,27 +4788,27 @@
 <p>まず、定義されたイメージをビルドする必要があります:</p>
 <div class="language-bash highlight"><span class="filename">イメージをビルド</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker-compose<span class="w"> </span>build
 </span></code></pre></div>
-<p>これにより、<code>docker-compose.yml</code>内で<code>build:</code>の定義を持つすべてのコンテナのDockerイメージを<code>docker-compose</code>にビルドするよう指示します。通常、Drupalでは<code>cli</code>、<code>nginx</code>、<code>php</code>のイメージが該当します。これは、特定の<strong>ビルド</strong>コマンド(<code>composer install</code>など)を実行したり、特定の環境変数(<code>WEBROOT</code>など)をイメージに注入したりするためです。</p>
-<p>通常、Drupalのコードを編集するたびにビルドする必要はありません(コードはホストからコンテナにマウントされるため)が、再ビルドしても問題ありません。さらに、Lagoonはデプロイ時にまったく同じDockerイメージをビルドするので、<code>docker-compose build</code>を再度実行するだけで、ビルドがデプロイ時にも正常に動作することを確認できます。</p>
+<p>このコマンドを実行すると、<code>docker-compose.yml</code>内で<code>build:</code>の定義があるすべてのコンテナのDockerイメージをビルドするように<code>docker-compose</code>に指示します。通常、Drupalでは<code>cli</code>、<code>nginx</code>、<code>php</code>のイメージが該当します。これは、特定の<strong>ビルド</strong>コマンド(<code>composer install</code>など)を実行したり、特定の環境変数(<code>WEBROOT</code>など)をイメージに注入するためです。</p>
+<p>通常、Drupal コードを編集するたびにビルドを行う必要はありません (コードはホストからコンテナにマウントされるため)。とはいえ、ビルドをしても何らかの問題が生じるわけではありません。さらに、Lagoon はデプロイ中にまったく同じ Docker イメージをビルドするので、<code>docker-compose build</code>コマンドをもう一度実行することで、デプロイ時にもビルドが正常に動作することを確認できます。</p>
 <h2 id="4-start-containers">4. コンテナの起動<a class="headerlink" href="#4-start-containers" title="Permanent link">#</a></h2>
 <p>イメージがビルドされたので、コンテナを起動できます:</p>
 <div class="language-bash highlight"><span class="filename">コンテナを起動</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
 </span></code></pre></div>
-<p>これにより、すべてのコンテナが起動します。コマンドが完了した後、<code>docker-compose ps</code>で確認して、すべてが完全にアップしてクラッシュしていないことを確認できます。問題がある場合は、確認してください <code>docker-compose logs -f [servicename]</code>でログを確認します。</p>
-<h2 id="5-rerun-composer-install">5. <code>composer install</code>を再実行します<a class="headerlink" href="#5-rerun-composer-install" title="Permanent link">#</a></h2>
-<p>ローカルの開発環境では、すべての依存関係がダウンロードされインストールされることを期待するでしょう、それで<code>cli</code>コンテナへ接続し<code>composer install</code>を実行します:</p>
+<p>これにより、すべてのコンテナが起動します。コマンドが完了した後、<code>docker-compose ps</code>ですべてのコンテナが完全に立ち上がっているか、クラッシュしていないかを確認できます。問題がある場合は、<code>docker-compose logs -f [servicename]</code>でログを確認してください。</p>
+<h2 id="5-rerun-composer-install">5. <code>composer install</code>を再実行します（composerプロジェクトのみ）<a class="headerlink" href="#5-rerun-composer-install" title="Permanent link">#</a></h2>
+<p>ローカルの開発環境では、すべての依存関係をダウンロードしてインストールしたいと思うでしょう。そのため、<code>cli</code>コンテナに接続して<code>composer install</code>を実行します:</p>
 <div class="language-bash highlight"><span class="filename">CLIでcomposer installを実行</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>composer<span class="w"> </span>install
 </span></code></pre></div>
-<p>これは奇妙に聞こえるかもしれません、なぜならビルドステップの間にすでに<code>composer install</code>が実行されていたからです、それで説明させてください:</p>
+<p>少し奇妙に感じるかもしれませんが、ビルド手順ですでに<code>composer install</code>が実行されているため、説明を加えさせていただきます:</p>
 <ul>
-<li>ホスト上のファイルを編集し、それらをコンテナ内で即座に利用可能にするため、デフォルトの<code>docker-composer.yml</code>は全体のフォルダをコンテナ内にマウントします(これはボリュームセクションの<code>.:/app:delegated</code>で起こります)。これはまた、Dockerビルド中にインストールされたすべての依存関係がホスト上のファイルで上書きされることを意味します。</li>
-<li>ローカルでは、<code>composer.json</code>で<code>require-dev</code>として定義された依存関係も存在することを期待するでしょう、一方で本番環境ではそれらは単に不必要なスペースを使用するだけです。そのため、Dockerfileで<code>composer install --no-dev</code>を実行し、<code>composer install</code>は手動で実行します。</li>
+<li>ホスト上のファイルを編集して、すぐにコンテナで利用できるようにするため、デフォルトの<code>docker-composer.yml</code>ファイルは、すべてのフォルダーをコンテナ内にマウントしています (ボリュームセクションの<code>.:/app:delegated</code>がこれに該当します)。つまり、Dockerビルド時にインストールされたすべての依存関係は、ホスト上のファイルで上書きされます。</li>
+<li>ローカル開発環境においては、<code>composer.json</code>で<code>require-dev</code>として定義された依存関係も存在させる必要があるでしょう。一方、本番環境では、そうした依存関係はただ無駄な容量を消費するだけです。そのため、Dockerfile内では <code>composer install --no-dev</code>を実行し、手動で<code>composer install</code>を実行します。</li>
 </ul>
-<p>全てがうまく行った場合、<code>docker-compose</code>で定義された<code>LAGOON_ROUTE</code>を開きます。 .yml` (例えば http://drupal.docker.amazee.io) を開いて、素敵なDrupalエラーが表示されるはずです。心配しないでください - 今のところそれは大丈夫です、最も重要なのはDrupalサイトをロードしようとしていることです。</p>
-<p>500や類似のエラーが表示された場合は、Composerで正しくすべてがロードされていることを確認してください。</p>
+<p>すべて問題なく動作している場合、<code>docker-compose.yml</code> (例えば <code>http://drupal.docker.amazee.io</code>)で定義された<code>LAGOON_ROUTE</code>を開くと、Drupalエラーが表示されるはずです。心配しないでください。今の段階では問題ありません。重要なのは、Drupalサイトが読み込まれようとしていることです。</p>
+<p>500エラーや同様のエラーが発生した場合は、Composerによってすべてが正しく読み込まれたことを確認してください。</p>
 <h2 id="6-check-status-and-install-drupal">6. ステータスの確認とDrupalのインストール<a class="headerlink" href="#6-check-status-and-install-drupal" title="Permanent link">#</a></h2>
-<p>いよいよDrupalをインストールする時間がきましたが、その前にすべてが機能していることを確認したいと思います。それにはDrushを使用することをお勧めします:</p>
+<p>いよいよDrupalをインストールしますが、その前にすべてが機能していることを確認したいと思います。そのためにDrushを使用することをお勧めします:</p>
 <div class="language-bash highlight"><span class="filename">Drush status</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>drush<span class="w"> </span>status
 </span></code></pre></div>
@@ -4837,18 +4837,18 @@
 <p class="admonition-title">警告</p>
 <p>次のステップ前に、pygmyに公開鍵について伝える必要があるかもしれません。</p>
 </div>
-<p><code>Permission denied (publickey)</code>のようなエラーが出た場合は、こちらのドキュメンテーションをご覧ください: <a href="https://pygmystack.github.io/pygmy/ssh_agent/">pygmy - sshキーの追加</a></p>
-<p>次にDrupalをインストールします(既存のSQLファイルをインポートしたい場合は、<a href="./#7-import-existing-database-dump">ステップ7へスキップ</a>してください。しかし、始めは全てが機能することを確認するために、クリーンなDrupalのインストールから始めることをお勧めします)。</p>
+<p><code>Permission denied (publickey)</code>のようなエラーが出た場合は、こちらからSSHキーの追加方法に関するドキュメントを参照ください: <a href="https://pygmystack.github.io/pygmy/ssh_agent">pygmy - sshキーの追加</a></p>
+<p>次にDrupalをインストールします(既存のSQLファイルをインポートしたい場合は、<a href="./#7-import-existing-database-dump">ステップ7へスキップ</a>してください。ただし、すべてが機能することを確認するために、最初からクリーンなDrupalインストールをお勧めします。))。</p>
 <div class="language-bash highlight"><span class="filename">Drupalのインストール</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>drush<span class="w"> </span>site-install
 </span></code></pre></div>
 <p>以下のような出力が表示されるはずです:</p>
 <div class="language-bash highlight"><span class="filename">drush site-install</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>あなたは<span class="w"> </span><span class="s1">&#39;drupal&#39;</span><span class="w"> </span>データベースの全てのテーブルをDROPしようとしています。続行しますか？<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Drupalのインストールを開始します。これにはしばらく時間がかかります。--notify<span class="w"> </span>グローバルオプションを使用することを検討してみてください。
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>インストール完了。ユーザー名:<span class="w"> </span>admin<span class="w">  </span>ユーザーパスワード:<span class="w"> </span>a7kZJekcqh
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>おめでとうございます、Drupalをインストールしました！
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>You<span class="w"> </span>are<span class="w"> </span>about<span class="w"> </span>to<span class="w"> </span>DROP<span class="w"> </span>all<span class="w"> </span>tables<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span><span class="s1">&#39;drupal&#39;</span><span class="w"> </span>database.<span class="w"> </span>Do<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span><span class="k">continue</span>?<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Starting<span class="w"> </span>Drupal<span class="w"> </span>installation.<span class="w"> </span>This<span class="w"> </span>takes<span class="w"> </span>a<span class="w"> </span><span class="k">while</span>.<span class="w"> </span>Consider<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>--notify<span class="w"> </span>global<span class="w"> </span>option.
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Installation<span class="w"> </span>complete.<span class="w">  </span>User<span class="w"> </span>name:<span class="w"> </span>admin<span class="w">  </span>User<span class="w"> </span>password:<span class="w"> </span>a7kZJekcqh
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Congratulations,<span class="w"> </span>you<span class="w"> </span>installed<span class="w"> </span>Drupal!
 </span></code></pre></div>
-<p>これで <code>LAGOON_ROUTE</code>で定義されたURLを訪れると、新鮮でクリーンにインストールされたDrupalサイトが表示されるはずです - おめでとうございます！</p>
+<p><code>LAGOON_ROUTE</code>で定義されているURLにアクセスすると、新しくインストールされたDrupalサイトが表示されます。おめでとうございます！</p>
 <p><img alt="おめでとう！" src="https://media.giphy.com/media/XreQmk7ETCak0/giphy.gif" /></p>
 <h2 id="7-import-existing-database-dump">7. 既存のデータベースダンプをインポートする<a class="headerlink" href="#7-import-existing-database-dump" title="Permanent link">#</a></h2>
 <p>既に既存のDrupalサイトを持っている場合、そのデータベースをローカルサイトにインポートしたいと思うでしょう。</p>
@@ -4867,11 +4867,11 @@
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>drush<span class="w"> </span>sql-cli<span class="w"> </span>&lt;<span class="w"> </span>dump.sql
 </span></code></pre></div>
-<p>プロジェクトのURLを訪れてすべてが正常に動作することを確認します。Drupalサイトの機能的なコピーができているはずです！</p>
+<p>プロジェクトのURLにアクセスして、すべてが正常に動作することを確認してください。これで、Drupalサイトが正常に機能しているはずです！</p>
 <h2 id="8-drupal-files-directory">8. Drupalファイル ディレクトリ<a class="headerlink" href="#8-drupal-files-directory" title="Permanent link">#</a></h2>
-<p>Drupalサイトには、ファイルのディレクトリも必要です。全体のフォルダはDockerコンテナにマウントされるので、ファイルを正しいフォルダ(おそらく<code>web/sites/default/files</code>、<code>sites/default/files</code>またはそれに類似したもの)に追加してください。あなたが<code>WEBROOT</code>として設定したものを覚えておいてください - <a href="./#note-about-webroot-in-drupal-8">すべてのプロジェクトで同じではないかもしれません</a>。</p>
+<p>Drupalサイトには、ファイルのディレクトリも必要です。このフォルダ全体はDockerコンテナ内にマウントされるため、ファイルを正しいフォルダに追加してください (おそらく<code>web/sites/default/files</code>、<code>sites/default/files</code>または同様のフォルダです)。設定した<code>WEBROOT</code>を覚えておいてください - <a href="./#note-about-webroot-in-drupal-8">プロジェクトごとに異なる場合があるかもしれません</a></p>
 <h2 id="done">9. 完了<a class="headerlink" href="#done" title="Permanent link">#</a></h2>
-<p>あなたのローカルセットアップが完了しました。Lagoonチームは楽しいDrupal制作を願っています！</p>
+<p>ローカル設定が完了しました。Lagoon チームは、皆様の楽しい Drupaling を応援しています！</p>
 
 
   

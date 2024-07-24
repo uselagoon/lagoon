@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2436,7 +2436,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4609,20 +4609,21 @@
 <p>DeployTarget設定を利用してプロジェクトを設定する方法について説明する前に、知っておくべきことがいくつかあります。</p>
 <ol>
 <li>
-<p>環境には、それらがどのDeployTarget(KubernetesまたはOpenShift)で作成されたかを識別するための新たな2つのフィールドが利用可能になりました。</p>
+<p>環境にはどのDeployTarget(KubernetesまたはOpenShift)で作成されたかを識別するための新たな2つのフィールドが利用可能になりました。</p>
 <ol>
 <li><code>kubernetesNamespacePattern</code></li>
 <li><code>kubernetes</code></li>
 </ol>
 </li>
 <li>
-<p>特定のDeployTargetに一度デプロイされた環境は、DeployTarget設定やプロジェクト設定が変更されても、常にこのターゲットにデプロイされます。 3. これは、DeployTargetの設定を変更して異なるクラスターで新しい環境を作成するのを防ぐことで、既存の環境に一定の安全性を提供します。</p>
+<p>特定のDeployTargetに一度デプロイされた環境は、DeployTarget設定やプロジェクト設定が変更されても、常にこのターゲットにデプロイされます。</p>
 <ol>
-<li>これはLagoonの一部であり、特にDeployTarget設定に限定された新機能です。</li>
+<li>これによりDeployTargetの設定を変更しても、異なるクラスタで新しい環境が作成されることがなくなり、既存の環境に対して一定の安全性を提供できます。</li>
+<li>これはLagoonの新機能であり、DeployTarget設定に特化されたものではありません。</li>
 </ol>
 </li>
 <li>
-<p>デフォルトでは、プロジェクトにDeployTargetの設定が関連付けられていない場合、そのプロジェクトは既存の方法を続けて使用してどの環境をデプロイするかを決定します。これには以下のフィールドが使用されます。</p>
+<p>デフォルトでは、プロジェクトにDeployTargetの設定が関連付けられていない場合、そのプロジェクトは既存の方法を使用してどの環境にデプロイするかを決定します。これには以下のフィールドを使用されます。</p>
 <ol>
 <li><code>branches</code></li>
 <li><code>pullrequests</code></li>
@@ -4631,26 +4632,28 @@
 </ol>
 </li>
 <li>
-<p>プロジェクトにいかなるDeployTargetの設定が追加されると、そのプロジェクトのすべての将来のデプロイメントはこれらの設定を使用します。プロジェクトで定義されているものは無視され、DeployTargetの設定が使用されていることをユーザーに通知するために上書きされます。</p>
+<p>DeployTargetの設定がプロジェクトに追加されると、今後すべてのデプロイはこれらの設定を使用します。プロジェクトで定義されているものは無視され、DeployTargetの設定が使用されていることをユーザーに通知するために上書きされます。</p>
 </li>
 <li>
 <p>DeployTargetの設定は重み付けされており、これは大きい重みのDeployTarget設定が小さい重みのものより優先されることを意味します。</p>
-<p>1. クエリで返される順序が、環境がデプロイされるべき場所を決定するために使用される順序です。</p>
-</li>
-<li>
-<p>アクティブ/スタンバイ環境は、同じ クラスターなので、DeployTarget設定はそれらの環境を同じターゲットにデプロイできるように設定する必要があります。</p>
-</li>
-<li>
-<p>Lagoonの<code>promote</code>機能を活用するプロジェクトは、DeployTarget設定が<code>destination</code>環境では無視されることを認識していなければなりません。</p>
 <ol>
-<li>宛先環境は常に<code>source</code>環境がある同じターゲットにデプロイされますので、DeployTarget設定はこの<code>source</code>環境に対して正しく設定する必要があります。</li>
-<li>安全のため、<code>source</code>と<code>destination</code>の環境を同じDeployTarget設定のブランチ正規表現で定義するのが最善です。</li>
+<li>クエリで返される順序が、環境がデプロイされるべき場所を決定するために使用される順序です。</li>
+</ol>
+</li>
+<li>
+<p>Active/Standby環境は、同じクラスタなので、DeployTarget設定はそれらの環境を同じターゲットにデプロイできるように設定する必要があります。</p>
+</li>
+<li>
+<p>Lagoonの<code>promote</code>機能を活用するプロジェクトは、DeployTarget設定が<code>destination</code>環境では無視されることに注意する必要があります。</p>
+<ol>
+<li>ディスティネーション環境は常に<code>source</code>環境がある同じターゲットにデプロイされますので、DeployTarget設定はこの<code>source</code>環境に対して正しく設定する必要があります。</li>
+<li>安全のため、<code>source</code>と<code>destination</code>の環境を同じDeployTarget設定のブランチ正規表現で定義するのがベストです。</li>
 </ol>
 </li>
 </ol>
 <h2 id="_2">設定<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>プロジェクトをDeployTarget設定を使用するように設定するためには、まずプロジェクトに設定を追加することが第一歩です。</p>
-<p>以下のGraphQLの突然変異を使用できます。この特定の例では、プロジェクトID 1のプロジェクトにDeployTarget設定を追加します。
+<p>プロジェクトでDeployTarget設定を使用するよう構成するには、最初のステップとしてプロジェクトに設定を追加します。</p>
+<p>以下のGraphQLのミューテーションを使用できます。この特定の例では、プロジェクトID 1のプロジェクトにDeployTarget設定を追加します。
 これにより、名前が<code>main</code>と一致するブランチのみがデプロイされ、<code>pullrequests</code>は<code>false</code>に設定されます。
 これは、他のブランチがこの特定のターゲットにデプロイすることができず、プルリクエストもこの特定のターゲットにデプロイされないことを意味します。
 <code>deployTarget</code>はID 1で、これはKubernetesになる可能性があります。 特定の地域や特定の種類のワークロード(製品版または開発版)向けにクラスターを指定します。</p>
@@ -4682,9 +4685,9 @@
 <p><code>deployTarget</code>はLagoon API内のKubernetesまたはOpenShift IDのエイリアスです</p>
 </div>
 <p>また、複数のDeployTarget設定を構成することも可能です。</p>
-<p>以下のGraphQL変異を使用できます。この特定の例では、上記と同じプロジェクトにDeployTarget設定を追加します。</p>
-<p>これにより、<code>^feature/|^(dev|test|develop)$</code> と正規表現マッチするブランチのみがデプロイされ、<code>pullrequests</code> は <code>true</code> に設定されているため、すべてのプルリクエストがこのターゲットに到達します。</p>
-<p>この例では、ターゲットとなるクラスタはID 2で、これは<code>main</code>ブランチに上で定義されたものとは全く異なるKubernetesクラスタです。</p>
+<p>以下のGraphQLミューテーションを使用できます。この例では、上記と同じプロジェクトにDeployTarget設定を追加します。</p>
+<p>これにより、<code>^feature/|^(dev|test|develop)$</code> と正規表現がマッチするブランチのみがデプロイされます。そして、<code>pullrequests</code> は <code>true</code> に設定されているのですべてのプルリクエストがこのターゲットに到達します。</p>
+<p>この例では、ターゲットとなるクラスタはID2で、<code>main</code>ブランチ上で定義されたものとは全く異なるKubernetesクラスタです。</p>
 <div class="language-GraphQL highlight"><span class="filename">DeployTargetの設定</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">addDeployTargetConfig</span><span class="p">{</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">addDeployTargetConfig</span><span class="p">(</span><span class="n">input</span><span class="p">:{</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">project</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>

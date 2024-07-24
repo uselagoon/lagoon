@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2143,17 +2143,17 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    序章
+    はじめに
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#lagoonrails" class="md-nav__link">
-    Lagoon上でRailsを動作させる
+  <a href="#lagoon-rails" class="md-nav__link">
+    Lagoon で Rails を実行する
   </a>
   
-    <nav class="md-nav" aria-label="Lagoon上でRailsを動作させる">
+    <nav class="md-nav" aria-label="Lagoon で Rails を実行する">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2521,7 +2521,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4597,17 +4597,17 @@
       
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
-    序章
+    はじめに
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#lagoonrails" class="md-nav__link">
-    Lagoon上でRailsを動作させる
+  <a href="#lagoon-rails" class="md-nav__link">
+    Lagoon で Rails を実行する
   </a>
   
-    <nav class="md-nav" aria-label="Lagoon上でRailsを動作させる">
+    <nav class="md-nav" aria-label="Lagoon で Rails を実行する">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4660,17 +4660,17 @@
 
 
 <h1 id="rubyruby-on-rails">RubyとRuby on Rails<a class="headerlink" href="#rubyruby-on-rails" title="Permanent link">#</a></h1>
-<h2 id="_1">序章<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
-<p>私たちは、公式のRuby alpine Dockerイメージをベースに構築したRuby 3.0以上のイメージを提供しています。</p>
-<p>以下では、Lagoon上でRailsアプリをデプロイしようとしていると仮定していますが、記述されている詳細のほとんどはフレームワークに関係なく適用可能です。</p>
-<h2 id="lagoonrails">Lagoon上でRailsを動作させる<a class="headerlink" href="#lagoonrails" title="Permanent link">#</a></h2>
+<h2 id="_1">はじめに<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<p>私たちは、公式の Ruby alpine Docker イメージをベースにした Ruby 3.0 以上のイメージを提供しています。
+以下では、Rails アプリを Lagoon にデプロイしようとしていることを前提としていますが、ここで説明する詳細の多くは実際にはフレームワークに依存しません。</p>
+<h2 id="lagoon-rails">Lagoon で Rails を実行する<a class="headerlink" href="#lagoon-rails" title="Permanent link">#</a></h2>
 <h3 id="_2">リクエストへの応答<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
-<p>Lagoonの例のリポジトリにある<a href="https://github.com/lagoon-examples/ruby-on-rails">Ruby on Rails</a>の例は、ここで参考になります。</p>
-<p><a href="https://github.com/lagoon-examples/ruby-on-rails/blob/main/docker-compose.yml"><code>docker-compose.yml</code></a>では、<code>ruby</code>という名前のサービスを設定しています。これは、任意の動的リクエストを処理する主要なサービスです。</p>
+<p>Lagoonの例のリポジトリにある<a href="https://github.com/lagoon-examples/ruby-on-rails">Ruby on Rails</a>の例が参考になります。</p>
+<p><a href="https://github.com/lagoon-examples/ruby-on-rails/blob/main/docker-compose.yml"><code>docker-compose.yml</code></a>では、動的リクエストを処理する主要サービスとして<code>ruby</code>という名前のサービスを設定しています。</p>
 <p><code>ruby</code>サービス用に指定された<a href="https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/ruby.dockerfile">dockerfile</a>を見てみると、ポート3000を公開していることがわかります。<code>nginx</code>サービスは、非静的アセットのリクエストをこのポートの<code>ruby</code>サービスにリダイレクトします(詳細は<a href="https://github.com/lagoon-examples/ruby-on-rails/blob/main/lagoon/nginx/nginx.conf">nginx設定ファイル</a>を参照してください)。</p>
 <h3 id="_3">ロギング<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
 <p>Lagoonのロギングインフラストラクチャについては、次の文書で説明されています。 <a href="../../logging/logging/">こちらのドキュメント</a>をご覧ください。基本的に、このインフラを利用するためには、ログをUDPメッセージで<code>udp://application-logs.lagoon.svc:5140</code>に送信する必要があります。</p>
-<p>Railsの例では、<code>logstash-logger</code>というgemをインポートし、その後<code>config/application.rb</code>で以下のように初期化しています。</p>
+<p>Railsの例では、<code>logstash-logger</code>というgemをインポートし、その後<code>config/application.rb</code>で以下のように初期化しています：</p>
 <div class="language-ruby highlight"><span class="filename">config/application.rb</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="no">ENV</span><span class="o">.</span><span class="n">has_key?</span><span class="p">(</span><span class="s1">&#39;LAGOON_PROJECT&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="no">ENV</span><span class="o">.</span><span class="n">has_key?</span><span class="p">(</span><span class="s1">&#39;LAGOON_ENVIRONMENT&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">      </span><span class="n">lagoon_namespace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;LAGOON_PROJECT&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;LAGOON_ENVIRONMENT&#39;</span><span class="o">]</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">      </span><span class="no">LogStashLogger</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
@@ -4685,7 +4685,7 @@
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">end</span>
 </span></code></pre></div>
 <h2 id="_4">データベース設定<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
-<p>この例では、私たちのPostgreSQLイメージを使用しています(<code>docker-compose.yml</code>ファイルを参照してください)。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoonはデータベースのホスト、名前、資格情報を環境変数として注入するため、<a href="https://github.com/lagoon-examples/ruby-on-rails-demo/blob/main/config/database.yml これらのenv varsを認識し、存在する場合はそれらを利用するように.yml"><code>config/database.yml</code></a>を設定します。</p>
+<p>この例では、私たちのPostgreSQLイメージを使用しています(<code>docker-compose.yml</code>ファイルを参照してください)。LagoonでのRailsを用いたデータベースアクセスの設定は非常に簡単です。Lagoon はデータベース接続に必要な情報を環境変数として提供します。そのため、<a href="https://github.com/lagoon-examples/ruby-on-rails-demo/blob/main/config/database.yml"><code>config/database.yml</code></a> ファイルでこれらの環境変数を利用するように設定することで、簡単にデータベース接続を構成できます。</p>
 <div class="language-yaml highlight"><span class="filename">config/database.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="nl">&amp;default</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">adapter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">encoding</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unicode</span>

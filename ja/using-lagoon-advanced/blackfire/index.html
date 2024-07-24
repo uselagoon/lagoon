@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2436,7 +2436,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4631,8 +4631,8 @@
 
 <h1 id="_1">ブラックファイア<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <h2 id="blackfire">Blackfireの変数<a class="headerlink" href="#blackfire" title="Permanent link">#</a></h2>
-<p>Lagoon Base Imagesには、PHP ImagesにBlackfireのサポートが組み込まれています(<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/entrypoints/80-php-blackfire.sh">PHP images</a>を参照)。</p>
-<p>LagoonでBlackfireを使用するためには、以下の3つの環境変数を定義する必要があります:</p>
+<p>Lagoon Base Imagesには、PHP ImagesにBlackfireのサポートが組み込まれています。(<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/entrypoints/80-php-blackfire.sh">PHP images</a>を参照)</p>
+<p>LagoonでBlackfireを使用するためには、以下の3つの環境変数を定義する必要があります。</p>
 <table>
 <thead>
 <tr>
@@ -4660,7 +4660,7 @@
 </tbody>
 </table>
 <h2 id="blackfire_1">Blackfireのローカル使用<a class="headerlink" href="#blackfire_1" title="Permanent link">#</a></h2>
-<p>Lagoon ImagesでBlackfireをローカルで使用する場合、上記の環境変数をPHPコンテナに設定します。以下はDrupalアプリケーションの例です:</p>
+<p>Lagoon ImagesでBlackfireをローカルで使用する場合、上記の環境変数をPHPコンテナに設定します。以下はDrupalアプリケーションの例です。</p>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">services</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p p-Indicator">[[</span><span class="nv">snip</span><span class="p p-Indicator">]]</span>
@@ -4669,17 +4669,21 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p p-Indicator">[[</span><span class="nv">snip</span><span class="p p-Indicator">]]</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-environment</span><span class="w"> </span><span class="c1"># 上部で定義された環境変数を読み込む</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="nv">*default-environment</span><span class="w"> </span><span class="c1"># 定義された環境変数を上から読み込む</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">BLACKFIRE_ENABLED</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TRUE</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">BLACKFIRE_SERVER_ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">BLACKFIRE_SERVER_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
 </span></code></pre></div>
 <p>コンテナを再起動した後、<a href="https://blackfire.io/docs/profiling-cookbooks/profiling-http-via-browser">Blackfireブラウザプラグイン</a>または<a href="https://blackfire.io/docs/profiling-cookbooks/profiling-http-via-cli">Blackfire CLI</a>を通じてプロファイルを作成することができるはずです。</p>
 <h2 id="blackfire_2">Blackfireのリモート使用<a class="headerlink" href="#blackfire_2" title="Permanent link">#</a></h2>
-<p>デプロイされたLagoon環境でBlackfireを使用するためには、同じ環境変数を設定する必要があります。この時、<a href="../../concepts-advanced/environment-variables/">Lagoonに環境変数を追加する</a>方法の一つを通じて設定します。重要:ローカル開発用に<code>docker-compose.yml</code>に設定された環境変数はLagoonのリモート環境では使用されません！</p>
+<p>デプロイされたLagoon環境でBlackfireを使用するためには、同じ環境変数を設定する必要があります。この時、<a href="../../concepts-advanced/environment-variables/">Lagoonに環境変数を追加する</a>方法で設定します。</p>
+<div class="admonition warn">
+<p class="admonition-title">重要</p>
+<p>ローカル開発用に<code>docker-compose.yml</code>に設定された環境変数はLagoonのリモート環境では使用されません！</p>
+</div>
 <h2 id="_2">デバッグ<a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
-<p>PHPコンテナで動作しているBlackfireエージェントは、通常のコンテナログとしてログを出力します。これは<code>docker-compose logs</code>またはリモート環境のLagoon Logging Infrastructureを通じて見ることができます。</p>
-<p>デフォルトでは、ログはレベル<code>3</code>(情報)に設定されていますが、環境変数<code>BLACKFIRE_LOG_LEVEL</code>を使ってレベルを<code>4</code>(デバッグ)に上げることで、より多くの情報を生成することができます。 デバッグ出力。</p>
+<p>PHPコンテナで動作しているBlackfireエージェントは、通常のコンテナログとしてログを出力します。これは<code>docker-compose logs</code>またはリモート環境の<code>Lagoon Logging Infrastructure</code>を通じて見ることができます。</p>
+<p>デフォルトでは、ログはレベル<code>3</code>(情報)に設定されていますが、環境変数<code>BLACKFIRE_LOG_LEVEL</code>を使ってレベルを<code>4</code>(デバッグ)に上げることで、より多くの情報を生成することができます。</p>
 
 
   

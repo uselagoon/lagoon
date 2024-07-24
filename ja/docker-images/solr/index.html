@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2499,7 +2499,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4618,23 +4618,23 @@
 
 
 <h1 id="solr">Solr<a class="headerlink" href="#solr" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile">Lagoon <code>Solr</code>イメージのDockerfile</a>。公式の<a href="https://hub.docker.com/_/solr"><code>solr:&lt;version&gt;-alpine</code>イメージ</a>を基にしています。</p>
-<p>このDockerfileは、初期コア<code>mycore</code>を持つスタンドアロンのSolrサーバーをセットアップするために使用することを意図しています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile">Lagoon <code>Solr</code>イメージのDockerfile</a>。公式の<a href="https://hub.docker.com/_/solr"><code>solr:&lt;version&gt;-alpine</code>イメージ</a>をベースに作成されています。</p>
+<p>このDockerfileは、初期コア<code>mycore</code>を持つスタンドアロンのSolrサーバーをセットアップするために使用されます。</p>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>5.5 (互換性のために利用可能、公式サポートは終了)</li>
-<li>6.6 (互換性のために利用可能、公式サポートは終了)</li>
-<li>7.7 (互換性のために利用可能、公式サポートは終了)</li>
-<li>7 (互換性のために利用可能、公式サポートは終了) - <code>uselagoon/solr-7</code></li>
+<li>5.5 (互換性のためのみ利用可能、公式サポートは終了しています)</li>
+<li>6.6 (互換性のためのみ利用可能、公式サポートは終了しています)</li>
+<li>7.7 (互換性のためのみ利用可能、公式サポートは終了しています)</li>
+<li>7 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/solr-7</code></li>
 <li>8 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile">Dockerfile</a> - <code>uselagoon/solr-8</code></li>
 <li>9 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/solr/9.Dockerfile">Dockerfile</a> - <code>uselagoon/solr-9</code></li>
 </ul>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかのことが行われています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダの権限は自動的に<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で調整されるため、このイメージはランダムなユーザーで動作します。</li>
-<li><code>Solr</code>ポートを修正し確認する<code>10-solr-port.sh</code>スクリプト。</li>
-<li><code>20-solr-datadir.sh</code> <code>Solr</code>の設定がLagoonに適合しているかを確認するスクリプトです。これによりディレクトリのパスが設定され、正しいロックタイプが設定されます。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
+<li><code>10-solr-port.sh</code>スクリプトは、<code>Solr</code>ポートの修正と確認を行います。</li>
+<li><code>20-solr-datadir.sh</code>は、<code>Solr</code>の設定がLagoonに適合しているかを確認します。このスクリプトは、ディレクトリパスを設定し、正しいロックタイプを構成します。</li>
 </ul>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
 <p>一部のオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>を通じて設定可能です。</p>
@@ -4650,17 +4650,17 @@
 <tr>
 <td style="text-align: left;">SOLR_JAVA_MEM</td>
 <td style="text-align: left;">512M</td>
-<td style="text-align: left;">デフォルトのJava HEAPサイズ(例. <code>SOLR_JAVA_MEM="-Xms10g -Xmx10g"</code>)。</td>
+<td style="text-align: left;">デフォルトのJava HEAPサイズ(例. <code>SOLR_JAVA_MEM="-Xms10g -Xmx10g"</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;">SOLR_DATA_DIR</td>
 <td style="text-align: left;">/var/solr</td>
-<td style="text-align: left;">Solrのデータディレクトリのパス。注意してください、これを変更するとデータが失われる可能性があります！</td>
+<td style="text-align: left;">Solrデータディレクトリのパス。注意してください、これを変更するとデータが失われる可能性があります！</td>
 </tr>
 <tr>
 <td style="text-align: left;">SOLR_COPY_DATA_DIR_SOURCE</td>
-<td style="text-align: left;">(未設定)</td>
-<td style="text-align: left;">Solrのエントリーポイントスクリプトが定義した<code>SOLR_DATA_DIR</code>にコピーするためのパス。これはSolrにコアを事前に準備するために使用できます。スクリプトは実際のSolrデータファイルを必要とします！また、目的地が既にSolrコアを持っていない場合にのみデータをコピーします。</td>
+<td style="text-align: left;">(設定なし)</td>
+<td style="text-align: left;">起動スクリプトが定義済みの<code>SOLR_DATA_DIR</code>にコピーするために使用するパスです。既存のコアを使って Solr を事前に設定しておくことができます。 スクリプトは実際の Solr データファイルの存在を前提としています。コピーは、宛先に Solr コアが存在しない場合のみ行われます。</td>
 </tr>
 </tbody>
 </table>

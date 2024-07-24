@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2497,7 +2497,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4616,16 +4616,16 @@
 
 
 <h1 id="webhooks">Webhooksの設定<a class="headerlink" href="#webhooks" title="Permanent link">#</a></h1>
-<p>あなたのLagoon管理者は、<code>webhook-handler</code>へのルートもあなたに教えてくれるでしょう。このルートをリポジトリのアウトゴーイングwebhookに追加し、Lagoonに送信するイベントを選択します。通常、全てのプッシュとプルリクエストイベントを送信します。Lagoonでは、どのブランチやプルリクエストが実際にデプロイに結果するかを決定するための正規表現を追加することができ、あなたのLagoon管理者がそれを設定することができます。例えば、<code>feature-</code>で始まる全てのブランチがLagoonにデプロイされることができます。</p>
+<p>Lagoonの管理者は、<code>webhook-handler</code>へのルートもあなたに教えてくれるでしょう。このルートをリポジトリのアウトゴーイングwebhookに追加し、Lagoonに送信するイベントを選択します。通常は全てのプッシュとプルリクエストイベントを送信します。Lagoonではどのブランチやプルリクエストが実際にデプロイされるかを決定するための正規表現を追加することができ、Lagoonの管理者がそれを設定することができます。例えば、<code>feature-</code>で始まる全てのブランチをLagoonにデプロイすることができます。</p>
 <!-- markdown-link-check-disable -->
 <details class="info" open="open">
 <summary>amazee.ioのお客様への情報</summary>
-<p>あなたがamazee.ioのお客様である場合、webhook-handlerへのルートは次のとおりです:<a href="https://hooks.lagoon.amazeeio.cloud"><code>https://hooks.lagoon.amazeeio.cloud</code></a>。
+<p>amazee.ioを利用しているで場合、webhook-handlerへのルートは次のとおりです。<a href="https://hooks.lagoon.amazeeio.cloud"><code>https://hooks.lagoon.amazeeio.cloud</code></a>
 <!-- markdown-link-check-enable --></p>
 </details>
 <div class="admonition danger">
 <p class="admonition-title">危険</p>
-<p>以下の設定を管理するには、これらのリポジトリへの高いレベルのアクセスが必要となります。これはあなたの組織によって管理されます。これらの設定にアクセスできない場合は、システム管理者またはあなたの組織内の適切な人物に連絡してください。</p>
+<p>以下の設定を管理するには、これらのリポジトリへの高いレベルのアクセスが必要となります。これはあなたの組織によって管理されます。これらの設定にアクセスできない場合は、システム管理者またはあなたの組織内の適切な責任者に連絡してください。</p>
 </div>
 <h2 id="github">GitHub<a class="headerlink" href="#github" title="Permanent link">#</a></h2>
 <ol>
@@ -4633,8 +4633,8 @@
 <li><code>Payload URL</code>は、あなたのLagoon管理者から提供される、あなたのLagoonインスタンスの<code>webhook-handler</code>へのルートです。</li>
 <li><code>Content type</code>を<code>application/json</code>に設定します。
   <img alt="Payload URLを追加し、Content typeを設定します。" src="../../images/gh_webhook_1.png" /></li>
-<li>"<code>私が個々のイベントを選択させてください</code>"を選択します。</li>
-<li>どのイベントがあなたのwebhookをトリガーするかを選択します。私たちは、<code>Push</code>と<code>Pull request</code>のイベントを送信することを提案し、その後、あなたのプロジェクトのLagoon設定でさらにフィルタリングします。
+<li>"<code>Let me select individual events</code>"を選択します。</li>
+<li>どのイベントがwebhookをトリガーするかを選択します。<code>Push</code>と<code>Pull request</code>のイベントを送信し、プロジェクトのLagoon設定でさらにフィルタリングすることをお勧めします。
   <img alt="GitHubでwebhookイベントトリガーを選択します。" src="../../images/gh_webhook_2.png" /></li>
 <li>webhookが<code>Active</code>に設定されていることを確認します。</li>
 <li><code>Add webhook</code>をクリックして設定を保存します。</li>
@@ -4643,30 +4643,30 @@
 <ol>
 <li>GitLabリポジトリで設定 -&gt; インテグレーションに移動します。
   <img alt="GitLabリポジトリで設定 &amp;gt; インテグレーションに移動します。" src="../../images/gitlab-settings.png" /></li>
-<li><code>URL</code>は、あなたのLagoon管理者から提供される、あなたのLagoonインスタンスの<code>webhook-handler</code>へのルートです。</li>
-<li>Lagoonに通知を送信する<code>Trigger</code>イベントを選択します。我々はあなたが<code>Push events</code>と<code>Merge request events</code>を送信し、その後Lagoonの設定でさらにフィルタリングすることを提案します。 あなたのプロジェクトの設定。
+<li><code>URL</code>は、Lagoonの管理者から提供される、Lagoonインスタンスの<code>webhook-handler</code>へのルートです。</li>
+<li>Lagoonに通知を送信する<code>Trigger</code>イベントを選択します。<code>Push events</code>と<code>Merge request events</code>を選択し、その後Lagoonの設定でさらにフィルタリングすることをお勧めします。
   <img alt="GitLabでトリガーイベントを選択する。" src="../../images/gitlab_webhook.png" /></li>
 <li><code>Add webhook</code>をクリックして設定を保存します。</li>
 </ol>
 <h2 id="bitbucket">Bitbucket<a class="headerlink" href="#bitbucket" title="Permanent link">#</a></h2>
 <ol>
 <li>リポジトリで設定 -&gt; ウェブフック -&gt; 新しいウェブフックを追加に移動します。</li>
-<li><code>Title</code>はあなたの参照のためのものです。</li>
+<li><code>Title</code>は参照用です。</li>
 <li><code>URL</code>はあなたのLagoonインスタンスの<code>webhook-handler</code>へのルートで、Lagoonの管理者によって提供されます。</li>
 <li>
-<p><code>全てのトリガーから選択</code>をクリックし、以下を選択します:</p>
+<p><code>Choose from a full list of triggers</code>をクリックし、以下を選択します:</p>
 <ul>
-<li>リポジトリ<ul>
-<li>プッシュ</li>
+<li>Repository<ul>
+<li>PUsh</li>
 </ul>
 </li>
-<li>プルリクエスト<ul>
-<li>作成</li>
-<li>更新</li>
-<li>承認</li>
-<li>承認の削除</li>
-<li>マージ</li>
-<li>拒否</li>
+<li>Pull Request<ul>
+<li>Created</li>
+<li>Updated</li>
+<li>Approved</li>
+<li>Approval removed</li>
+<li>Merged</li>
+<li>Declined</li>
 </ul>
 </li>
 </ul>

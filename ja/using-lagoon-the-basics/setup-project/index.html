@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2331,8 +2331,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
-    3. ウェブフックの設定
+  <a href="#3-webhooks" class="md-nav__link">
+    3. Webhooksの設定
   </a>
   
 </li>
@@ -2504,7 +2504,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4593,8 +4593,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
-    3. ウェブフックの設定
+  <a href="#3-webhooks" class="md-nav__link">
+    3. Webhooksの設定
   </a>
   
 </li>
@@ -4632,9 +4632,9 @@
 <h1 id="_1">新しいプロジェクトの設定<a class="headerlink" href="#_1" title="Permanent link">#</a></h1>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
-<p>我々は全ての人がLagoonを使って自分自身でプロジェクトを設定し、構成することを可能にするためのCLIとGraphQL APIの設定に熱心に取り組んでいます。現在、これらの機能をリリースできる前に更なるテストが必要なので、お待ちください！</p>
+<p>我々は全ての人がLagoonを使って自分自身でプロジェクトを設定し、構成することを可能にするためのCLIとGraphQL APIの設定に熱心に取り組んでいます。現在これらの機能をリリースできる前に更なるテストが必要なのでお待ちください！</p>
 </div>
-<p>それまでは、新しいプロジェクトの設定はLagoonの管理者と話し合うことを含んでいます。それは大丈夫です、彼らはAPIよりもずっとフレンドリーです。😊</p>
+<p>それまでは新しいプロジェクトの設定はLagoonの管理者と話しす必要があります。それについては問題ないです、彼らはAPIよりもずっとフレンドリーです。😊</p>
 <p>あなたのLagoon管理者のために以下の情報を準備しておいてください:</p>
 <ul>
 <li>プロジェクトの名前<ul>
@@ -4642,23 +4642,23 @@
 <li>プロジェクト名内にダブルダッシュ(<code>--</code>)は許可されていません</li>
 </ul>
 </li>
-<li>このプロジェクトに取り組むすべての人のSSH公開鍵、メールアドレス、名前。ここには、<a href="https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh">GitHub</a>、<a href="https://docs.gitlab.com/ee/user/ssh.html">GitLab</a>、<a href="https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html">Bitbucket</a> のSSHキーの生成とコピーについての指示があります。</li>
-<li>あなたのコードがホストされているGitリポジトリのURL(<code>git@example.com:test/test.git</code>)。</li>
-<li>あなたが使用するGitブランチの名前 あなたの本番環境で使用したい環境について (<a href="../../concepts-advanced/environment-types/">環境タイプ</a> で環境の詳細を参照してください)。</li>
-<li>追加の環境にデプロイしたいブランチとプルリクエスト。Lagoonでは、正規表現でブランチとプルリクエストの名前をフィルタリングでき、あなたのLagoon管理者がこれを設定できます。</li>
+<li>このプロジェクトに取り組むすべての人のSSH公開鍵、メールアドレス、名前。ここには、<a href="https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh">GitHub</a>、<a href="https://docs.gitlab.com/ee/user/ssh.html">GitLab</a>、<a href="https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html">Bitbucket</a> のSSHキーの生成とコピーについての指示があります</li>
+<li>あなたのコードがホストされているGitリポジトリのURL(<code>git@example.com:test/test.git</code>)</li>
+<li>あなたが使用するGitブランチの名前あなたの本番環境で使用したい環境について (<a href="../../concepts-advanced/environment-types/">環境の種類</a> で環境の詳細を参照してください)</li>
+<li>追加の環境にデプロイしたいブランチとプルリクエスト。Lagoonでは、正規表現でブランチとプルリクエストの名前をフィルタリングでき、あなたのLagoon管理者が設定できます。</li>
 </ul>
-<p>特定の重要なブランチ(<code>develop</code>や<code>main</code>のような)やプルリクエストをデプロイすることをお勧めします。しかし、それはすべてあなた次第です！(<a href="../../concepts-advanced/workflows/">ワークフロー</a>で詳細情報を参照してください)</p>
+<p>特定の重要なブランチ(例えば<code>develop</code>や<code>main</code>)やプルリクエストをデプロイすることをお勧めします。しかし、最終的な判断はあなた次第です！(<a href="../../concepts-advanced/workflows/">ワークフロー</a>で詳細情報を参照してください)</p>
 <h2 id="1-lagoon">1. プロジェクトがLagoon化されていることを確認する<a class="headerlink" href="#1-lagoon" title="Permanent link">#</a></h2>
 <p>これは、<code>.lagoon.yml</code>ファイルと<code>docker-compose.yml</code>ファイルがあなたのGitリポジトリに存在し、適切に設定されていることを意味します。</p>
 <p>もしこれが実現していない場合は、先に進む前に<a href="../#step-by-step-guides">ステップバイステップガイド</a>のリストをチェックしてください。</p>
 <h2 id="2">2. あなたのコードへのアクセスを提供する<a class="headerlink" href="#2" title="Permanent link">#</a></h2>
-<p>あなたのコードをデプロイするために、Lagoonはそれへのアクセスが必要です。設計上、セキュリティのため、LagoonはあなたのGitリポジトリへの読み取りアクセスのみが必要です。</p>
-<p>あなたのLagoon管理者は、読み取りアクセスを与えるべきSSH公開鍵やGitアカウントを教えてくれるでしょう。</p>
-<h2 id="3">3. ウェブフックの設定<a class="headerlink" href="#3" title="Permanent link">#</a></h2>
-<p>Lagoonは、Gitリポジトリに何が起こっているかについていくつかのイベントを知る必要があります。現在、これらはプッシュとプルリクエストですが、将来的にはもっと追加するかもしれません。</p>
-<p>Lagoonは多くの異なるGitホストをサポートしているため、これらの指示をこのドキュメンテーションに分割しました:<a href="../configure-webhooks/">ウェブフックの設定</a>。</p>
+<p>あなたのコードをデプロイするために、Lagoonはコードへアクセスする必要があります。設計上、セキュリティのためにLagoonはあなたのGitリポジトリへの読み取りアクセスしか必要としません</p>
+<p>Lagoonの管理者から、読み取りアクセスを与えるべきSSH公開鍵やGitアカウントを教えてもらう必用があるかもしれません。</p>
+<h2 id="3-webhooks">3. Webhooksの設定<a class="headerlink" href="#3-webhooks" title="Permanent link">#</a></h2>
+<p>Lagoonは、Gitリポジトリで起こっているいくつかのイベントを知る必要があります。現在はプッシュとプルリクエストですが、将来的にはもっと追加される予定です。</p>
+<p>Lagoonは多くの異なるGitホストをサポートしているため、これらの指示をこのドキュメントに分割しました:<a href="../configure-webhooks/">Webhooksの設定</a>。</p>
 <h2 id="4">4. 次に:最初のデプロイメント<a class="headerlink" href="#4" title="Permanent link">#</a></h2>
-<p>おめでとうございます、あなたは今<a href="../first-deployment/">初めてのデプロイメント</a>を実行する準備ができました。</p>
+<p>おめでとうございます、あなたは今<a href="../first-deployment/">最初のデプロイ</a>を実行する準備ができました。</p>
 
 
   

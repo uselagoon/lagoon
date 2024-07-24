@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1245,7 +1245,7 @@
       
         <li class="md-nav__item">
   <a href="#rabbitmqdefinitionsjson" class="md-nav__link">
-    デフォルトのRabbitMQスキーマ(definitions.json)が含まれています
+    RabbitMQデフォルトスキーマ(definitions.json)
   </a>
   
 </li>
@@ -2506,7 +2506,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4596,7 +4596,7 @@
       
         <li class="md-nav__item">
   <a href="#rabbitmqdefinitionsjson" class="md-nav__link">
-    デフォルトのRabbitMQスキーマ(definitions.json)が含まれています
+    RabbitMQデフォルトスキーマ(definitions.json)
   </a>
   
 </li>
@@ -4632,33 +4632,33 @@
 
 
 <h1 id="rabbitmq">RabbitMQ<a class="headerlink" href="#rabbitmq" title="Permanent link">#</a></h1>
-<p>管理プラグインがインストールされた<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile">Lagoon RabbitMQ Dockerfile</a>。公式の <code>rabbitmq:3-management</code> イメージに基づいています。<a href="https://hub.docker.com/_/rabbitmq">docker-hub</a>でご確認いただけます。</p>
-<p>このDockerfileは、スタンドアロンのRabbitMQキューブローカーをセットアップするため、またデフォルトで高可用性キューサポート付きのクラスタをセットアップするためのベースイメージとして使用することを目的としています(<a href="https://www.rabbitmq.com/ha.html">ミラーリングキュー</a>参照)。</p>
-<p>デフォルトでは、RabbitMQブローカーは単一ノードとして起動します。クラスタを起動する場合は、<code>rabbitmq</code>イメージに加えて<code>rabbitmq_peer_discovery_k8s</code>プラグインを使用した<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq-cluster/Dockerfile"><code>rabbitmq-cluster</code></a> Dockerイメージを使用する必要があります。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile">Lagoon RabbitMQ Dockerfile</a>で、管理プラグインがインストールされています。<a href="https://hub.docker.com/_/rabbitmq">docker-hub</a>にある公式の<code>rabbitmq:3-management</code>イメージをベースにしています。</p>
+<p>このDockerfileは、スタンドアロンのRabbitMQキューブローカーをセットアップするためだけでなく、デフォルトで高可用性キューサポート(<a href="https://www.rabbitmq.com/ha.html">ミラーリングキュー</a>)を備えたクラスタをセットアップするためのベースイメージとしても使用できます。</p>
+<p>デフォルトでは、RabbitMQブローカーはシングルノードで起動します。クラスタを起動する場合は、<code>rabbitmq</code>イメージに加えて<code>rabbitmq_peer_discovery_k8s</code>プラグインが組み込まれた<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq-cluster/Dockerfile"><code>rabbitmq-cluster</code></a> Dockerイメージを使用する必要があります。</p>
 <h2 id="_1">サポートされるバージョン<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <ul>
-<li>3.10 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile">Dockerfile</a> (2023年7月までセキュリティサポートあり) - <code>uselagoon/rabbitmq</code></li>
+<li>3.10 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile">Dockerfile</a> (2023年7月までセキュリティサポート) - <code>uselagoon/rabbitmq</code></li>
 </ul>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。したがって、すでにいくつかの事項が完了しています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダの権限は、<a href="https://github.com/usel agoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>、ランダムなユーザーと一緒にこのイメージが動作します。</li>
-<li>ファイル<code>/etc/rabbitmq/definitions.json</code>は、<a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a>を通じてパースされ、コンテナエントリーポイントになります。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
+<li><code>/etc/rabbitmq/definitions.json</code>は、コンテナエントリーポイントを持つ<a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a>を通して処理されます。</li>
 </ul>
-<h2 id="rabbitmqdefinitionsjson">デフォルトのRabbitMQスキーマ(definitions.json)が含まれています<a class="headerlink" href="#rabbitmqdefinitionsjson" title="Permanent link">#</a></h2>
+<h2 id="rabbitmqdefinitionsjson">RabbitMQデフォルトスキーマ(definitions.json)<a class="headerlink" href="#rabbitmqdefinitionsjson" title="Permanent link">#</a></h2>
 <ul>
-<li>ミラーリングキューのサポートを有効にするには、少なくとも一つの<a href="https://www.rabbitmq.com/parameters.html#policies"><code>policy</code></a>が存在しなければなりません。</li>
-<li><code>definitions.json</code>スキーマファイルでは、コンテナの実行に必要な最小限のエンティティが定義されています: <code>virtualhost</code>(<code>vhost</code>)、<code>username</code>、管理UIへの<code>password</code>、<code>permissions</code>、<code>policies</code>。</li>
+<li>ミラーリングキューのサポートするには、少なくとも一つの<a href="https://www.rabbitmq.com/parameters.html#policies"><code>policy</code></a>が必要です。</li>
+<li><code>definitions.json</code>スキーマファイルには、コンテナの実行、<code>virtualhost</code>(<code>vhost</code>)、管理UIにアクセスするための<code>username</code>、<code>password</code>、<code>permissions</code>、<code>policies</code>を設定するための最小限のエンティティが定義されています。</li>
 </ul>
-<p>デフォルトでは、起動時に<code>lagoon-ha</code>というポリシーが作成されますが、キューの名前パターンと一致しないためアクティブではありません(デフォルトの<a href="./#environment-variables">環境変数</a>を参照)。</p>
+<p>デフォルトでは、起動時に<code>lagoon-ha</code>という名前のポリシーが作成されますが、デフォルトの<a href="./#environment-variables">環境変数</a>で設定されているキュー名のパターンに一致しないため、アクティブではありません。</p>
 <div class="language-javascript highlight"><span class="filename">definitions.json</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="s2">&quot;policies&quot;</span><span class="o">:</span><span class="p">[</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">        </span><span class="p">{</span><span class="s2">&quot;vhost&quot;</span><span class="o">:</span><span class="s2">&quot;${RABBITMQ_DEFAULT_VHOST}&quot;</span><span class="p">,</span><span class="s2">&quot;name&quot;</span><span class="o">:</span><span class="s2">&quot;lagoon-ha&quot;</span><span class="p">,</span><span class="s2">&quot;pattern&quot;</span><span class="o">:</span><span class="s2">&quot;${RABBITMQ_DEFAULT_HA_PATTERN}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;definition&quot;</span><span class="o">:</span><span class="p">{</span><span class="s2">&quot;ha-mode&quot;</span><span class="o">:</span><span class="s2">&quot;exactly&quot;</span><span class="p">,</span><span class="s2">&quot;ha-params&quot;</span><span class="o">:</span><span class="mf">2</span><span class="p">,</span><span class="s2">&quot;ha-sync-mode&quot;</span><span class="o">:</span><span class="s2">&quot;automatic&quot;</span><span class="p">,</span><span class="s2">&quot;ha-sync-batch-size&quot;</span><span class="o">:</span><span class="mf">5</span><span class="p">}}</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p">]</span>
 </span></code></pre></div>
-<p>デフォルトでは、<code>ha-mode</code>は<code>exactly</code>に設定されており、これは キュー(ミラーズ)のミラーリングノードの正確な数。 ノードの数は <code>ha-params</code> で制御されます。</p>
-<p>詳細な情報やカスタム設定については、<a href="https://www.rabbitmq.com/ha.html">公式の RabbitMQ ドキュメンテーション</a>を参照してください。</p>
+<p>デフォルトでは、<code>ha-mode</code>は<code>exactly</code>に設定されており、キュー(mirrors)のミラーリングノードの正確な数を制御します。ノードの数は <code>ha-params</code> で制御されます。</p>
+<p>詳細な情報やカスタム設定については、<a href="https://www.rabbitmq.com/ha.html">公式の RabbitMQ ドキュメント</a>を参照してください。</p>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>を通じて設定可能です。</p>
+<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>で設定可能です。</p>
 <table>
 <thead>
 <tr>
@@ -4671,22 +4671,22 @@
 <tr>
 <td style="text-align: left;">RABBITMQ_DEFAULT_USER</td>
 <td style="text-align: left;">guest</td>
-<td style="text-align: left;">管理UIへのアクセス用のユーザ名。</td>
+<td style="text-align: left;">管理UIへのアクセス用のユーザ名</td>
 </tr>
 <tr>
 <td style="text-align: left;">RABBITMQ_DEFAULT_PASS</td>
 <td style="text-align: left;">guest</td>
-<td style="text-align: left;">管理UIへのアクセス用のパスワード。</td>
+<td style="text-align: left;">管理UIへのアクセス用のパスワード</td>
 </tr>
 <tr>
 <td style="text-align: left;">RABBITMQ_DEFAULT_VHOST</td>
 <td style="text-align: left;">/</td>
-<td style="text-align: left;">RabbitMQのメインの仮想ホスト。</td>
+<td style="text-align: left;">RabbitMQのメインの仮想ホスト</td>
 </tr>
 <tr>
 <td style="text-align: left;">RABBITMQ_DEFAULT_HA_PATTERN</td>
 <td style="text-align: left;">^$</td>
-<td style="text-align: left;">ミラーリングキューにマッチする正規表現。</td>
+<td style="text-align: left;">ミラーリングされたキューを一致させるための正規表現</td>
 </tr>
 </tbody>
 </table>

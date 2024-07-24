@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2483,7 +2483,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4588,20 +4588,20 @@
 
 
 <h1 id="lagoon">Lagoonビルドのエラーと警告<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h1>
-<p>新しいバージョンのLagoonでは、ビルドに潜在的な問題があるかどうかを識別し、失敗せずにそれらを警告としてハイライトする機能があります。これはまた、Lagoonチームがユーザーに対して予定されている非推奨や機能の変更を通知する方法でもあります。</p>
-<p>例えば、Lagoonチームが <code>lagoon.yml</code> の設定を変更し、ユーザーが変更する必要がある何かがあった場合、警告にそれが記されます。そこでユーザーは、それが破壊的な変更になる前に変更することができます。可能な限り早期に解決するべきであり、将来のLagoonのリリースではエラーを処理できないかもしれませんが、ビルドを停止させるべきではありません。</p>
+<p>新しいバージョンのLagoonでは、ビルドに潜在的な問題があるかどうかを識別し、失敗せずにそれらを警告としてハイライトする機能があります。これはまたLagoonチームがユーザーに対して予定されている非推奨事項や機能の変更を通知する方法でもあります。</p>
+<p>例えば、Lagoonチームが <code>.lagoon.yml</code> の設定を変更し、ユーザーが変更すべきことがある場合、警告が表示されます。ユーザーは、それを破壊的な変更になる前に修正できるようになります。これは可能な限り早期に解決するべきであり、将来のLagoonのリリースではエラーを処理できないかもしれませんが、ビルドを停止することはありません。</p>
 <p>これらのエラーの解決方法がわからない場合は、Lagoonの管理者に連絡するか、<a href="../../community/discord/">Lagoonコミュニティ</a>で質問してください。</p>
 <h2 id="docker-compose-errors">Docker Composeのエラー<a class="headerlink" href="#docker-compose-errors" title="Permanent link">#</a></h2>
-<p><a href="../../concepts-basics/docker-compose-yml/#common-docker-compose-issues">一般的なDocker Composeの問題</a>についてのセクションも参照してください。これらの問題の一部はそこでカバーされているかもしれません。</p>
+<p><a href="../../concepts-basics/docker-compose-yml/#common-docker-compose-issues">よくあるDocker Composeの問題</a>についてのセクションも参照してください。これらの問題の一部はそこでカバーされているかもしれません。</p>
 <div class="language-shell highlight"><span class="filename">env_file エラーを示す Lagoon ビルド出力</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&gt;<span class="w"> </span>an<span class="w"> </span>env_file<span class="w"> </span>is<span class="w"> </span>defined<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span>docker-compose<span class="w"> </span>file,<span class="w"> </span>but<span class="w"> </span>no<span class="w"> </span>matching<span class="w"> </span>file<span class="w"> </span>found
 </span></code></pre></div>
 <p>Docker Compose ビルド時に参照されるenvファイルが存在することを期待していますが、そのenvファイルはローカル開発環境でのみ存在するか、Dockerfileから除外されています。Lagoonチームは、Docker Composeがこのエラーを無視することを可能にするための作業を行っていますので、解決策が見つかるまでこの警告は続きます。</p>
 <div class="language-shell highlight"><span class="filename">文字列キーエラーを示すLagoonビルド出力</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>&gt;<span class="w"> </span>an<span class="w"> </span>invalid<span class="w"> </span>string<span class="w"> </span>key<span class="w"> </span>was<span class="w"> </span>detected<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span>docker-compose<span class="w"> </span>file
 </span></code></pre></div>
-<p>あなたのDocker Composeファイルにエラーがあります、おそらく形式が不正またはエイリアスやアンカーの誤用に関連している可能性があります。エラーメッセージはあなたがどこで理解するのを助けるべきです。</p>
+<p>あなたのDocker Composeファイルにエラーがあります、おそらく形式が不正またはエイリアスやアンカーの不備に関連している可能性があります。エラーメッセージを見ればその場所がわかるはずです。</p>
 <div class="language-shell highlight"><span class="filename">yaml検証エラーを示すLagoonビルド出力</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&gt;<span class="w"> </span>There<span class="w"> </span>are<span class="w"> </span>yaml<span class="w"> </span>validation<span class="w"> </span>errors<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span>docker-compose<span class="w"> </span>file<span class="w"> </span>that<span class="w"> </span>should<span class="w"> </span>be<span class="w"> </span>corrected
 </span></code></pre></div>
-<p>あなたのDocker Composeファイルにエラーがあります、おそらく形式が不正またはエイリアスやアンカーの誤用に関連している可能性があります。エラーメッセージはあなたがどこで理解するのを助けるべきです。</p>
+<p>あなたのDocker Composeファイルにエラーがあります、おそらく形式が不正またはエイリアスやアンカーの不備に関連している可能性があります。エラーメッセージを見ればその場所がわかるはずです。</p>
 
 
   

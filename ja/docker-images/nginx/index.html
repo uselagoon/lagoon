@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1118,7 +1118,7 @@
       
         <li class="md-nav__item">
   <a href="#nginx-static-filesconf" class="md-nav__link">
-    含まれる NGINX 設定(static-files.conf)
+    NGINX 設定(static-files.conf)
   </a>
   
 </li>
@@ -1140,7 +1140,7 @@
         
           <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    基本認証
+    ベーシック認証
   </a>
   
 </li>
@@ -2526,7 +2526,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4609,7 +4609,7 @@
       
         <li class="md-nav__item">
   <a href="#nginx-static-filesconf" class="md-nav__link">
-    含まれる NGINX 設定(static-files.conf)
+    NGINX 設定(static-files.conf)
   </a>
   
 </li>
@@ -4631,7 +4631,7 @@
         
           <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
-    基本認証
+    ベーシック認証
   </a>
   
 </li>
@@ -4672,47 +4672,44 @@
 
 
 <h1 id="nginx">NGINX<a class="headerlink" href="#nginx" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/Dockerfile">Lagoonの <code>nginx</code> イメージDockerfile</a>です。公式の<a href="https://hub.docker.com/r/openresty/openresty/"><code>openresty/openresty</code> イメージ</a>を基に作成されています。</p>
-<p>このDockerfileは、Lagoon内の任意のウェブサーバーのベースとして使用することを目的としています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/Dockerfile">Lagoonの <code>nginx</code> イメージDockerfile</a>です。公式の<a href="https://hub.docker.com/r/openresty/openresty/"><code>openresty/openresty</code> イメージ</a>をベースに作成されています。</p>
+<p>このDockerfileは、Lagoon内のあらゆるウェブサーバーのベースとして使用することを想定しています。</p>
 <h2 id="lagoon">Lagoonの調整事項<a class="headerlink" href="#lagoon" title="Permanent link">#</a></h2>
 <p>NGINXコンテナのデフォルトの公開ポートは <code>8080</code> ポートです。</p>
-<p>このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの事項が処理されています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
-<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>により自動的に適応されるため、このイメージはランダムなユーザーでも動作します。</li>
-<li><code>/etc/nginx/*</code> 内のファイルは、コンテナエントリーポイントを使用して <a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a> を通じて解析されます。</li>
+<li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
+<li><code>/etc/nginx/*</code> 内のファイルは、コンテナエントリーポイントによって <a href="https://github.com/kreuzwerker/envplate"><code>envplate</code></a> を通じて処理されます。</li>
 </ul>
-<h2 id="nginx-static-filesconf">含まれる <code>NGINX</code> 設定(<code>static-files.conf</code>)<a class="headerlink" href="#nginx-static-filesconf" title="Permanent link">#</a></h2>
+<h2 id="nginx-static-filesconf"><code>NGINX</code> 設定(<code>static-files.conf</code>)<a class="headerlink" href="#nginx-static-filesconf" title="Permanent link">#</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">警告</p>
-<p>デフォルトでは <code>NGINX</code> は静的ファイルのみを提供します - これはデータベースやPHPコンポーネントが必要ない静的サイトに使用できます:例えば、静的サイトジェネレーターの <a href="https://gohugo.io/">Hugo</a>、<a href="https://jekyllrb.com/">Jekyll</a>、<a href="https://www.gatsbyjs.org/">Gatsby</a> などです。</p>
+<p>デフォルトでは <code>NGINX</code> は静的ファイルのみを提供します。これはデータベースやPHPコンポーネントが必要ない静的サイトに使用できます:例えば、静的サイトジェネレーターの <a href="https://gohugo.io/">Hugo</a>、<a href="https://jekyllrb.com/">Jekyll</a>、<a href="https://www.gatsbyjs.org/">Gatsby</a> などです。</p>
 </div>
-<p>PHPが必要な場合は、以下を参照してください。 <code>php-fpm</code>イメージを見て、<code>nginx</code>と<code>php-fpm</code>を一緒に使用します。</p>
-<p>ビルドプロセス中にコンテンツをビルドし、それを<code>nginx</code>コンテナに注入します。</p>
+<p>PHPが必要な場合は、<code>php-fpm</code>イメージを参照し、<code>nginx</code>と<code>php-fpm</code>を一緒に使用してください。</p>
+<p>コンテンツはビルドプロセス中にビルドし、<code>nginx</code>コンテナに投入します。</p>
 <h2 id="_1">ヘルパー<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <h3 id="redirects-mapconf"><code>redirects-map.conf</code><a class="headerlink" href="#redirects-mapconf" title="Permanent link">#</a></h3>
-<p>リダイレクトを作成するために、私たちは<code>redirects-map.conf</code>を設置しています。これにより、マーケティングドメインをサブサイトにリダイレクトしたり、非wwwからwwwへのリダイレクトを行うことができます。<strong>リダイレクトが多い場合は、<code>redirects-map.conf</code>をコードの隣に保存することでメンテナンスが容易になります。</strong></p>
+<p>リダイレクトを作成するために、<code>redirects-map.conf</code>ファイルが用意されています。これを使用して、マーケティングドメインをサブサイトにリダイレクトしたり、wwwなしをwww付きにするリダイレクトを行うことができます。<strong>リダイレクトが多い場合は、メンテナンス性を向上させるために<code>redirects-map.conf</code>をコードの隣に保存することを推奨します。</strong></p>
 <div class="admonition note">
 <p class="admonition-title">注意:</p>
-<p>リダイレクトが少ない場合は、<code>RUN</code>コマンドを使って<code>nginx.dockerfile</code>でリダイレクトを作成する便利な方法があります。</p>
+<p>リダイレクトが少ない場合は、<code>nginx.dockerfile</code>の<code>RUN</code>コマンドを使用してリダイレクトを作成する便利な方法があります。</p>
 </div>
-<p>以下は、<code>www.example.com</code>を<code>example.com</code>にリダイレクトし、リクエストを保持する方法を示した例です:</p>
+<p>以下は、<code>www.example.com</code>を<code>example.com</code>にリダイレクトし、リクエストを保持する方法を示す例です:</p>
 <div class="language-bash highlight"><span class="filename">Redirect</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RUN<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;~^www.example.com http://example.com\$request_uri;&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/nginx/redirects-map.conf
 </span></code></pre></div>
-<p>達成可能なさまざまなタイプのリダイレクトについて詳しく知りたい場合は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/redirects-map.conf"><code>redirects-map.conf</code></a>のドキュメンテーションを直接参照してください。</p>
-<p><code>redirects-map.conf</code>を設置した後、それを<code>nginx.dockerfile</code>にも含める必要があります。 ビルドに設定ファイルを取り込む方法。</p>
+<p>リダイレクトの種類の詳細については、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/redirects-map.conf"><code>redirects-map.conf</code></a>のドキュメントを参照してください。</p>
+<p><code>redirects-map.conf</code>を配置したら、ビルドに設定ファイルを取り込むために、<code>nginx.dockerfile</code>にもそれをインクルードする必要があります。</p>
 <div class="language-bash highlight"><span class="filename">nginx.dockerfile</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>COPY<span class="w"> </span>redirects-map.conf<span class="w"> </span>/etc/nginx/redirects-map.conf
 </span></code></pre></div>
-<h3 id="_2">基本認証<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
-<p><code>BASIC_AUTH_USERNAME</code>
-および <code>BASIC_AUTH_PASSWORD</code> <a href="../../concepts-advanced/environment-variables/">環境
-変数</a>が設定されている場合、基本認証は自動的に有効になります。</p>
+<h3 id="_2">ベーシック認証<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
+<p><code>BASIC_AUTH_USERNAME</code>および <code>BASIC_AUTH_PASSWORD</code> <a href="../../concepts-advanced/environment-variables/">環境変数</a>が設定されている場合、ベーシック認証は自動的に有効になります。</p>
 <div class="admonition warning">
 <p class="admonition-title">警告</p>
-<p>自動基本認証設定は便宜上提供されています。ウェブサイトやプライベートデータを保護する安全な方法とは考えられません。</p>
+<p>ベーシック認証の自動設定は、利便性のために提供されています。ウェブサイトや機密データを保護するための安全な方法とはみなされません。</p>
 </div>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境
-変数</a>を介して設定可能です。</p>
+<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>を使用して設定できます。</p>
 <table>
 <thead>
 <tr>
@@ -4725,22 +4722,22 @@
 <tr>
 <td style="text-align: left;">BASIC_AUTH</td>
 <td style="text-align: left;">restricted</td>
-<td style="text-align: left;">基本認証を無効にするには <code>off</code> に設定します。</td>
+<td style="text-align: left;">ベーシック認証を無効にするには <code>off</code> に設定します</td>
 </tr>
 <tr>
 <td style="text-align: left;">BASIC_AUTH_USERNAME</td>
 <td style="text-align: left;">(設定なし)</td>
-<td style="text-align: left;">基本認証のユーザーネーム。</td>
+<td style="text-align: left;">ベーシック認証のユーザーネーム</td>
 </tr>
 <tr>
 <td style="text-align: left;">BASIC_AUTH_PASSWORD</td>
 <td style="text-align: left;">(設定なし)</td>
-<td style="text-align: left;">基本認証のパスワード。 基本認証(非暗号化)。</td>
+<td style="text-align: left;">ベーシック認証のパスワード(非暗号化)</td>
 </tr>
 <tr>
 <td style="text-align: left;">FAST_HEALTH_CHECK</td>
-<td style="text-align: left;">(未設定)</td>
-<td style="text-align: left;">特定のユーザーエージェント(StatusCake、Pingdom、Site25x7、Uptime、nagios)からのGETリクエストを軽量なLagoonサービスヘルスチェックにリダイレクトするには、<code>true</code>に設定します。</td>
+<td style="text-align: left;">(設定なし)</td>
+<td style="text-align: left;">特定のユーザーエージェント(StatusCake、Pingdom、Site25x7、Uptime、nagios)からのGETリクエストは、軽量なLagoonサービスヘルスチェックにリダイレクトするには、<code>true</code>に設定します。</td>
 </tr>
 </tbody>
 </table>

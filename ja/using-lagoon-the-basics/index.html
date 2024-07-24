@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2551,7 +2551,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4723,12 +4723,12 @@
   
 
 
-<h1 id="lagoon-">Lagoonの使用 - 概要<a class="headerlink" href="#lagoon-" title="Permanent link">#</a></h1>
-<p>このセクションでは、Lagoonの基本的な特徴と機能について説明します。これらに慣れている方は、<a href="../using-lagoon-advanced/">Lagoonの使用 - 上級</a>に進んでください。</p>
-<p>ヘルプが必要な場合は、Lagoonの管理者に連絡するか、私たちの<a href="../community/discord/">Discord</a>でコミュニティとメンテナに問い合わせてください。</p>
+<h1 id="lagoon-">Lagoonの基本的な使い方 - 概要<a class="headerlink" href="#lagoon-" title="Permanent link">#</a></h1>
+<p>このセクションでは、Lagoonの基本的な特徴と機能について説明します。これらに慣れている方は、<a href="../using-lagoon-advanced/">Lagoonの高度な使い方</a>に進んでください。</p>
+<p>ヘルプが必要な場合は、Lagoonの管理者に連絡するか、私たちの<a href="../community/discord/">Discord</a>でコミュニティのメンバーとメンテナに問い合わせてください。</p>
 <h2 id="_1">必要条件<a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
 <h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">#</a></h3>
-<p>Lagoonプロジェクトを実行するには、システムがDockerを実行するための要件を満たしている必要があります。ワークステーションに最新バージョンのDockerをインストールすることをおすすめします。Dockerは<a href="https://www.docker.com/get-docker">こちら</a>からダウンロードできます。また、Dockerには最低でも<strong>4 CPUs</strong>と<strong>4 GB RAM</strong>を割り当てることをおすすめします。</p>
+<p>Lagoonプロジェクトを実行するには、システムがDockerを実行するための要件を満たしている必要があります。ワークステーションに最新バージョンのDockerをインストールすることをおすすめします。Dockerは<a href="https://www.docker.com/get-docker">こちら</a>からダウンロードできます。また、Dockerには最低でも<strong>4CPUs</strong>と<strong>4GB RAM</strong>を割り当てることをおすすめします。</p>
 <h3 id="_2">ローカル開発環境<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
 <p>pygmy、Lando、DDEVから選ぶことができます - 選択はあなた次第です！</p>
 <p>Lagoonと<a href="local-development-environments/">ローカル開発環境</a>についてもっと学びましょう。</p>
@@ -4744,12 +4744,12 @@
 <h3 id="lagoonyml"><code>.lagoon.yml</code><a class="headerlink" href="#lagoonyml" title="Permanent link">#</a></h3>
 <p>これはLagoonが何をデプロイするべきか、また多くの他の事柄を理解するために使用する主要なファイルです。<a href="../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code>のドキュメンテーション</a>を参照してください。</p>
 <h3 id="docker-composeyml"><code>docker-compose.yml</code><a class="headerlink" href="#docker-composeyml" title="Permanent link">#</a></h3>
-<p>このファイルは<code>Docker Compose</code>によってローカル開発環境を開始するために使用されます。Lagoonもこれを使用して、どのサービスがデプロイされるべきか、どのタイプで、どのようにビルドするかを理解します。これは<code>labels</code>を通じて行われます。<a href="../concepts-basics/docker-compose-yml/"><code>docker-compose.yml</code>のドキュメンテーション</a>を参照してください。</p>
+<p>このファイルは<code>Docker Compose</code>によってローカル開発環境を開始するために使用されます。Lagoonもこれを使用して、どのサービスがデプロイされるべきか、どのタイプで、どのようにビルドするかを理解します。これは<code>labels</code>を通じて行われます。<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>を参照してください。</p>
 <h3 id="dockerfiles">Dockerfiles<a class="headerlink" href="#dockerfiles" title="Permanent link">#</a></h3>
 <p>一部のDockerイメージとコンテナは、提供されたイメージから追加のカスタマイズが必要です。これには通常、2つの理由があります:</p>
 <ol>
-<li><strong>アプリケーションコード</strong>: NGINX、PHP、Node.jsなどのコンテナは、そのイメージ内に実際のプログラミングコードが必要です。これはDockerビルドステップ中に行われ、Dockerfileで設定されます。LagoonはDockerを完全にサポートしており、そのためDockerfileのカスタマイズを通じて結果として得られるイメージに対する完全なコントロールを許可します。</li>
-<li><strong>イメージのカスタマイズ </strong>: Lagoonでは、ベースイメージをあなたのニーズに合わせてカスタマイズすることも可能です。これには、追加の環境変数を挿入したり、サービスの設定を変更したり、さらに追加のツールをインストールすることも含まれます。Dockerイメージに追加のツールをインストールする際には注意が必要です。なぜなら、将来的に任意の適応を維持する必要があるからです！</li>
+<li><strong>アプリケーションコード</strong>: NGINX、PHP、Node.jsなどのコンテナは、そのイメージ内に実際のプログラミングコードが必要です。これはDockerビルドステップ中に行われ、Dockerfileで設定されます。LagoonはDockerを完全にサポートしているためDockerfileのカスタマイズによって出来上がるイメージを完全に制御できます。</li>
+<li><strong>イメージのカスタマイズ</strong>: Lagoonでは、ベースイメージをあなたのニーズに合わせてカスタマイズすることも可能です。これには、追加の環境変数を挿入したり、サービスの設定を変更したり、さらに追加のツールをインストールすることも含まれます。Dockerイメージに追加のツールをインストールする際には注意が必要です。なぜなら、将来的に任意の適応を維持する必要があるからです！</li>
 </ol>
 <h2 id="lagoon_1">Lagoonによるサポートサービスとベースイメージ<a class="headerlink" href="#lagoon_1" title="Permanent link">#</a></h2>
 <table>
@@ -4834,7 +4834,7 @@
 </tbody>
 </table>
 <p>すべてのイメージは<a href="https://hub.docker.com/u/uselagoon">https://hub.docker.com/u/uselagoon</a>にプッシュされます。特性とセキュリティの観点から常に最新のタグ(例:<code>uselagoon/nginx:latest</code>)を使用することをおすすめします。</p>
-<p>特定のLagoonバージョンのイメージ、例えば<code>uselagoon/nginx:20.10.0</code>や<code>uselagoon/node-10:20.10.0</code>を使用する場合、新しいLagoonバージョンがリリースされたらすぐにイメージのバージョンをアップグレードするのはあなた自身の責任です！</p>
+<p>特定のLagoonバージョンのイメージ、例えば<code>uselagoon/nginx:20.10.0</code>や<code>uselagoon/node-10:20.10.0</code>を使用する場合、新しいLagoonバージョンがリリースされたらすぐにイメージのバージョンを各自の責任でアップグレードしてください！</p>
 
 
   

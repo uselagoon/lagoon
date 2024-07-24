@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1165,10 +1165,10 @@
       
         <li class="md-nav__item">
   <a href="#cli" class="md-nav__link">
-    含まれるCLIツール
+    CLIツール
   </a>
   
-    <nav class="md-nav" aria-label="含まれるCLIツール">
+    <nav class="md-nav" aria-label="CLIツール">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2519,7 +2519,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4609,10 +4609,10 @@
       
         <li class="md-nav__item">
   <a href="#cli" class="md-nav__link">
-    含まれるCLIツール
+    CLIツール
   </a>
   
-    <nav class="md-nav" aria-label="含まれるCLIツール">
+    <nav class="md-nav" aria-label="CLIツール">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4658,33 +4658,33 @@
 
 
 <h1 id="php-cli">PHP-CLI<a class="headerlink" href="#php-cli" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli">Lagoonの <code>php-cli</code> Dockerイメージ</a>です。<a href="../php-fpm/">Lagoonの <code>php-fpm</code>イメージ</a>を基に、日常的な操作に必要なコマンドラインツールが全て揃っています。</p>
-<p><code>cli</code>イメージから起動されたコンテナ(またはポッド)はComposerやNode.jsベースのプロジェクトのコードを構築する責任があります。</p>
-<p>また、このイメージにはMariaDBとPostgreSQLの両方のデータベース<code>cli</code>が含まれています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli">Lagoonの <code>php-cli</code> Dockerイメージ</a>です。<a href="../php-fpm/">Lagoonの <code>php-fpm</code>イメージ</a>をベースに、日常的な操作に必要なコマンドラインツールがすべて揃っています。</p>
+<p><code>cli</code>イメージから起動されたコンテナ(またはポッド)はComposerやNode.jsベースのプロジェクトのコードビルドを担当します。</p>
+<p>また、MariaDBとPostgreSQL両方のデータベース<code>cli</code>が含まれています。</p>
 <div class="admonition info">
 <p class="admonition-title">情報</p>
-<p>このDockerfileは、Lagoon内で<code>cli</code>が必要な場合に基本として使用することを意図しています。</p>
+<p>このDockerfileは、Lagoon内でのあらゆる<code>cli</code>ニーズの基盤として使用されることを想定しています。</p>
 </div>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>7.3(互換性のために利用可能、公式サポートは終了) - <code>uselagoon/php-7.3-cli</code></li>
-<li>7.4(互換性のために利用可能、公式サポートは終了) - <code>uselagoon/php-7.4-cli</code></li>
-<li>8.0(互換性のために利用可能、公式サポートは終了) - <code>uselagoon/php-8.0-cli</code></li>
+<li>7.3 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-7.3-cli</code></li>
+<li>7.4 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-7.4-cli</code></li>
+<li>8.0 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/php-8.0-cli</code></li>
 <li>8.1 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile">Dockerfile</a> (2024年11月までセキュリティサポート) - <code>uselagoon/php-8.1-cli</code></li>
 <li>8.2 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.2.Dockerfile">Dockerfile</a> (2025年12月までセキュリティサポート) - <code>uselagoon/php-8.2-cli</code></li>
-<li>8.3 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.3.Dockerfile">Dockerfile</a> (2026年12月までのセキュリティサポート) - <code>uselagoon/php-8.3-cli</code></li>
+<li>8.3 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.3.Dockerfile">Dockerfile</a> (2026年12月までセキュリティサポート) - <code>uselagoon/php-8.3-cli</code></li>
 </ul>
 <p>すべてのPHPバージョンは、それぞれのDockerfilesを使用します。</p>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
-<p>このイメージはLagoonで使用するために準備されています。そのため、すでにいくつかの事項が完了しています:</p>
+<p>このイメージはLagoonで使用されることを想定して準備されています。そのため、すでにいくつかのことが行われています:</p>
 <ul>
 <li>フォルダの権限は、<a href="https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions"><code>fix-permissions</code></a>で自動的に適応されるため、このイメージはランダムなユーザーで動作します。</li>
-<li><code>COMPOSER_ALLOW_SUPERUSER=1</code>は、rootとしてのComposerの使用に関する警告を削除します。</li>
-<li><code>80-shell-timeout.sh</code>スクリプトは、コンテナがKubernetes環境で実行されているかどうかを確認し、その後、アイドル<code>cli</code>ポッドに10分のタイムアウトを設定します。</li>
-<li><code>cli</code>コンテナは、Lagoonによって注入されたSSHキーまたは<code>SSH_PRIVATE_KEY</code>環境変数に定義されたSSHキーを使用します。</li>
+<li><code>COMPOSER_ALLOW_SUPERUSER=1</code>は、rootとしてComposerを使用することに関する警告を削除します。</li>
+<li><code>80-shell-timeout.sh</code>スクリプトは、コンテナがKubernetes環境で実行されているかどうかを確認し、アイドル状態の<code>cli</code>ポッドに対して10分のタイムアウトを設定します。</li>
+<li><code>cli</code>コンテナは、Lagoonによって注入されるか、<code>SSH_PRIVATE_KEY</code>環境変数で定義されたSSHキーを使用します。</li>
 </ul>
-<h2 id="cli">含まれるCLIツール<a class="headerlink" href="#cli" title="Permanent link">#</a></h2>
-<p>含まれるCLIツールは次のとおりです:</p>
+<h2 id="cli">CLIツール<a class="headerlink" href="#cli" title="Permanent link">#</a></h2>
+<p>組み込まれているCLIツールは以下の通りです:</p>
 <ul>
 <li><a href="https://getcomposer.org/"><code>composer</code>バージョン1.9.0</a> ( <code>COMPOSER_VERSION</code>および<code>COMPOSER_HASH_SHA256</code>経由で変更可能)</li>
 <li><a href="https://nodejs.org/en/"><code>node.js</code>バージョン17</a> (2022年3月現在)</li>
@@ -4694,12 +4694,12 @@
 <li><code>postgres ql-client</code></li>
 </ul>
 <h3 id="nodejs">Node.jsバージョンの変更<a class="headerlink" href="#nodejs" title="Permanent link">#</a></h3>
-<p>デフォルトでは、このイメージには<code>nodejs-current</code>パッケージ(2022年3月時点でv17)が付属しています。別のバージョンが必要な場合は、現在のバージョンを削除して選択したバージョンをインストールできます。例えば、Node.js 16をインストールするには、dockerfileを以下のように修正します。</p>
+<p>デフォルトでは、このイメージには<code>nodejs-current</code>パッケージ(2022年3月時点でv17)が搭載されています。別のバージョンが必要な場合は、現在のバージョンを削除して目的のバージョンをインストールできます。例えば、Node.js 16をインストールするには、Dockerfileを次のように変更します。</p>
 <div class="language-bash highlight"><span class="filename">Node.jsバージョンの更新</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RUN<span class="w"> </span>apk<span class="w"> </span>del<span class="w"> </span>nodejs-current<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="o">&amp;&amp;</span><span class="w"> </span>apk<span class="w"> </span>add<span class="w"> </span>--no-cache<span class="w"> </span><span class="nv">nodejs</span><span class="o">=</span>~16
 </span></code></pre></div>
 <h2 id="environment-variables">環境変数<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>を介して設定可能です。<a href="../php-fpm/#environment-variables">php-fpm環境変数</a>も適用されます。</p>
+<p>いくつかのオプションは<a href="../../concepts-advanced/environment-variables/">環境変数</a>で設定できます。<a href="../php-fpm/#environment-variables">php-fpm環境変数</a>も適用されます。</p>
 <table>
 <thead>
 <tr>
@@ -4712,7 +4712,7 @@
 <tr>
 <td style="text-align: left;">MARIADB_MAX_ALLOWED_PACKET</td>
 <td style="text-align: left;">64M</td>
-<td style="text-align: left;">MySqlクライアントの最大許容パケットを制御します。</td>
+<td style="text-align: left;">MySqlクライアントの最大許容パケットサイズを制御します。</td>
 </tr>
 </tbody>
 </table>

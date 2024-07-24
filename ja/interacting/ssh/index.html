@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -886,7 +886,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -896,7 +896,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2434,7 +2434,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4939,7 +4939,7 @@
 <p>次に、SSHキーをアップロードできるページが表示され、アップロードされたキーが表示されます。キーをテキストボックスに貼り付け、名前を付けて「追加」をクリックします。それだけです！必要に応じて追加のキーを追加します。</p>
 <p><img alt="キーをテキストボックスに貼り付けます。" src="../../images/ui-ssh.png" /></p>
 <h3 id="_1">コマンドライン経由<a class="headerlink" href="#_1" title="Permanent link">#</a></h3>
-<p>Lagoon APIをGraphQL経由で使用してユーザーにSSHキーを追加する一般的な例は<a href="../graphql-queries/#allowing-access-to-the-project">ここ</a>にあります。 -プロジェクト)</p>
+<p>ユーザーにSSHキーを追加するためのLagoon APIをGraphQL経由で使用する一般的な例は、<a href="../graphql-queries/#allowing-access-to-the-project">こちら</a>にあります。</p>
 <h2 id="ssh_5">ポッドへのSSH接続<a class="headerlink" href="#ssh_5" title="Permanent link">#</a></h2>
 <h3 id="_2">接続<a class="headerlink" href="#_2" title="Permanent link">#</a></h3>
 <p>接続は直接的で、次のパターンに従います:</p>
@@ -4956,38 +4956,38 @@
 <p>これにより、<code>main</code>環境のプロジェクト<code>drupal-example</code>に接続します。</p>
 <h3 id="_3">ポッド/サービス、コンテナ定義<a class="headerlink" href="#_3" title="Permanent link">#</a></h3>
 <p>デフォルトでは、リモートシェルはタイプ<code>cli</code>で定義されたコンテナに接続しようとします。他のポッド/サービスに接続したい場合は、以下のように定義できます:</p>
-<div class="language-bash highlight"><span class="filename">SSH to another service</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="o">[</span>PORT<span class="o">]</span><span class="w"> </span>-t<span class="w"> </span><span class="o">[</span>PROJECT-ENVIRONMENT-NAME<span class="o">]</span>@<span class="o">[</span>HOST<span class="o">]</span><span class="w"> </span><span class="nv">service</span><span class="o">=[</span>SERVICE-NAME<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">SSH to another service</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="o">[</span>PORT<span class="o">]</span><span class="w"> </span>-t<span class="w"> </span><span class="o">[</span>プロジェクト-環境名<span class="o">]</span>@<span class="o">[</span>ホスト<span class="o">]</span><span class="w"> </span><span class="nv">service</span><span class="o">=[</span>サービス名<span class="o">]</span>
 </span></code></pre></div>
 <p>あなたのポッド/サービスに複数のコンテナが含まれている場合、Lagoonはあなたを最初に定義されたコンテナに接続します。また、接続したい特定のコンテナを定義することもできます:</p>
-<p>```bash title=" "コンテナ"を定義します。
-ssh -p [ポート] -t [プロジェクト-環境名]@[ホスト] service=[サービス名] container=[コンテナ名]</p>
+<div class="language-bash highlight"><span class="filename">コンテナを定義します。</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="o">[</span>ポート<span class="o">]</span><span class="w"> </span>-t<span class="w"> </span><span class="o">[</span>プロジェクト-環境名<span class="o">]</span>@<span class="o">[</span>ホスト<span class="o">]</span><span class="w"> </span><span class="nv">service</span><span class="o">=[</span>サービス名<span class="o">]</span><span class="w"> </span><span class="nv">container</span><span class="o">=[</span>コンテナ名<span class="o">]</span>
+</span></code></pre></div>
 <p>例えば、<code>nginx</code>ポッド内の<code>php</code>コンテナに接続するには:</p>
-<div class="language-bash highlight"><span class="filename">SSH to php container</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span><span class="w"> </span>-t<span class="w"> </span>drupal-example-main@sssh.example.com<span class="w"> </span><span class="nv">service</span><span class="o">=</span>nginx<span class="w"> </span><span class="nv">container</span><span class="o">=</span>php
+<div class="language-bash highlight"><span class="filename">SSH to php container</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span><span class="w"> </span>-t<span class="w"> </span>drupal-example-main@sssh.example.com<span class="w"> </span><span class="nv">service</span><span class="o">=</span>nginx<span class="w"> </span><span class="nv">container</span><span class="o">=</span>php
 </span></code></pre></div>
 <h2 id="_4">ファイルのコピー<a class="headerlink" href="#_4" title="Permanent link">#</a></h2>
 <p>一般的なケースで、ファイルを<code>cli</code>ポッドにコピーすることは、通常のSSH互換ツールを使って達成できます。</p>
 <h3 id="scp">scp<a class="headerlink" href="#scp" title="Permanent link">#</a></h3>
-<div class="language-bash highlight"><span class="filename">Copy file with scp</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>scp<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">[</span>ローカルパス<span class="o">]</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com:<span class="o">[</span>リモートパス<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">Copy file with scp</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>scp<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">[</span>ローカルパス<span class="o">]</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com:<span class="o">[</span>リモートパス<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="rsync">rsync<a class="headerlink" href="#rsync" title="Permanent link">#</a></h3>
-<div class="language-bash highlight"><span class="filename">Copy files with rsync</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rsync<span class="w"> </span>--rsh<span class="o">=</span><span class="s1">&#39;ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 22&#39;</span><span class="w"> </span><span class="o">[</span>ローカルパス<span class="o">]</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com:<span class="o">[</span>リモートパス<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">Copy files with rsync</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>rsync<span class="w"> </span>--rsh<span class="o">=</span><span class="s1">&#39;ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 22&#39;</span><span class="w"> </span><span class="o">[</span>ローカルパス<span class="o">]</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com:<span class="o">[</span>リモートパス<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="tar">tar<a class="headerlink" href="#tar" title="Permanent link">#</a></h3>
-<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com<span class="w"> </span>tar<span class="w"> </span>-zcf<span class="w"> </span>-<span class="w"> </span><span class="o">[</span>リモートパス<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-zxf<span class="w"> </span>-<span class="w"> </span>-C<span class="w"> </span>/tmp/
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com<span class="w"> </span>tar<span class="w"> </span>-zcf<span class="w"> </span>-<span class="w"> </span><span class="o">[</span>リモートパス<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-zxf<span class="w"> </span>-<span class="w"> </span>-C<span class="w"> </span>/tmp/
 </span></code></pre></div>
 <h3 id="cli">非CLIポッド/サービスの指定<a class="headerlink" href="#cli" title="Permanent link">#</a></h3>
 <p>まれなケースで、非CLIサービスを指定する必要がある場合は、指定することができます。 <code>service=...</code>および/または<code>container=...</code>引数はコピーコマンドにあります。</p>
 <p><code>tar</code>を<code>ssh</code>接続を通してパイプすることは最も単純な方法で、通常の<code>tar</code>フラグを用いてファイルやディレクトリーをコピーするために使用できます:</p>
-<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">[</span>project_name<span class="o">]</span>-<span class="o">[</span>environment_name<span class="o">]</span>@ssh.example.com<span class="w"> </span><span class="nv">service</span><span class="o">=</span>solr<span class="w"> </span>tar<span class="w"> </span>-zcf<span class="w"> </span>-<span class="w"> </span><span class="o">[</span>remote_path<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-zxf<span class="w"> </span>-<span class="w"> </span>-C<span class="w"> </span>/tmp/
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-P<span class="w"> </span><span class="m">32222</span><span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@ssh.example.com<span class="w"> </span><span class="nv">service</span><span class="o">=</span>solr<span class="w"> </span>tar<span class="w"> </span>-zcf<span class="w"> </span>-<span class="w"> </span><span class="o">[</span>リモートパス<span class="o">]</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-zxf<span class="w"> </span>-<span class="w"> </span>-C<span class="w"> </span>/tmp/
 </span></code></pre></div>
 <p>また、LagoonのSSHサービスに必要な形で<code>ssh</code>の引数を並べ替えるラッパースクリプトを用いて<code>rsync</code>を使用することもできます:</p>
-<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="ch">#!/usr/bin/env sh</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">svc</span><span class="o">=</span><span class="nv">$1</span><span class="w"> </span><span class="nv">user</span><span class="o">=</span><span class="nv">$3</span><span class="w"> </span><span class="nv">host</span><span class="o">=</span><span class="nv">$4</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">shift</span><span class="w"> </span><span class="m">4</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nb">exec</span><span class="w"> </span>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span><span class="w"> </span>-l<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$user</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$host</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$svc</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="ch">#!/usr/bin/env sh</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">svc</span><span class="o">=</span><span class="nv">$1</span><span class="w"> </span><span class="nv">user</span><span class="o">=</span><span class="nv">$3</span><span class="w"> </span><span class="nv">host</span><span class="o">=</span><span class="nv">$4</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nb">shift</span><span class="w"> </span><span class="m">4</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nb">exec</span><span class="w"> </span>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">UserKnownHostsFile</span><span class="o">=</span>/dev/null<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span><span class="w"> </span>-l<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$user</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$host</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$svc</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$@</span><span class="s2">&quot;</span>
 </span></code></pre></div>
 <p>それを実行可能なシェルスクリプト<code>rsh.sh</code>に入れて、<code>rsync</code>コマンドで<code>service=...</code>を指定します:</p>
-<div class="language-bash highlight"><span class="filename">rsync to non-CLI pod</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>rsync<span class="w"> </span>--rsh<span class="o">=</span><span class="s2">&quot;/path/to/rsh.sh service=cli&quot;</span><span class="w"> </span>/tmp/foo<span class="w"> </span><span class="o">[</span>project_name<span class="o">]</span>-<span class="o">[</span>environment_name<span class="o">]</span>@ssh.example.com:/tmp/foo
+<div class="language-bash highlight"><span class="filename">rsync to non-CLI pod</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>rsync<span class="w"> </span>--rsh<span class="o">=</span><span class="s2">&quot;/path/to/rsh.sh service=cli&quot;</span><span class="w"> </span>/tmp/foo<span class="w"> </span><span class="o">[</span>プロジェクト名<span class="o">]</span>-<span class="o">[</span>環境名<span class="o">]</span>@sssh.example.com:/tmp/foo
 </span></code></pre></div>
 <p>このスクリプトは、<code>container=...</code>引数も処理するように調整することもできます。</p>
 

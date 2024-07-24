@@ -665,7 +665,7 @@
             
   
   <span class="md-ellipsis">
-    高度なLagoonの概念
+    Lagoonの高度な概念
   </span>
   
 
@@ -675,7 +675,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            高度なLagoonの概念
+            Lagoonの高度な概念
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -888,7 +888,7 @@
             
   
   <span class="md-ellipsis">
-    Lagoon化
+    Lagoonizing
   </span>
   
 
@@ -898,7 +898,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Lagoon化
+            Lagoonizing
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2499,7 +2499,7 @@
         
   
   <span class="md-ellipsis">
-    アクティブ/スタンバイ
+    Active/Standby
   </span>
   
 
@@ -4618,11 +4618,11 @@
 
 
 <h1 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h1>
-<p><a href="https://github.com/uselagoon/lagoon-images/tree/main/images/python">Lagoon <code>python</code> Docker image</a>。これは<a href="https://hub.docker.com/_/python/">公式のPython Alpineイメージ</a>に基づいています。</p>
+<p><a href="https://github.com/uselagoon/lagoon-images/tree/main/images/python">Lagoon <code>python</code> Docker image</a>。これは<a href="https://hub.docker.com/_/python/">公式のPython Alpineイメージ</a>をベースに作成されています。</p>
 <h2 id="supported-versions">サポートされているバージョン<a class="headerlink" href="#supported-versions" title="Permanent link">#</a></h2>
 <ul>
-<li>2.7 (互換性のためのみで、公式にはもうサポートされていません) - <code>uselagoon/python-2.7</code></li>
-<li>3.7 (互換性のためのみで、公式にはもうサポートされていません) - <code>uselagoon/python-3.7</code></li>
+<li>2.7 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/python-2.7</code></li>
+<li>3.7 (互換性のためのみ利用可能、公式サポートは終了しています) - <code>uselagoon/python-3.7</code></li>
 <li>3.8 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.8.Dockerfile">Dockerfile</a> (2024年10月までセキュリティサポート) - <code>uselagoon/python-3.8</code></li>
 <li>3.9 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.9.Dockerfile">Dockerfile</a> (2025年10月までセキュリティサポート) - <code>uselagoon/python-3.9</code></li>
 <li>3.10 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.10.Dockerfile">Dockerfile</a> (2026年10月までセキュリティサポート) - <code>uselagoon/python-3.10</code></li>
@@ -4631,35 +4631,35 @@
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">ヒント</p>
-<p>私たちは通常、公式に通知されたEOL日付の後に来るLagoonリリースとともにEOL Pythonイメージの更新と公開を停止します:<a href="https://devguide.python.org/versions/#versions">https://devguide.python.org/versions/#versions</a>。以前に公開されたバージョンは引き続き利用可能です。</p>
+<p>Lagoonは、公式にアナウンスされた終了日(EOL)の後にリリースされるバージョンで、EOLに達したPythonイメージの更新を停止します。詳細は<a href="https://devguide.python.org/versions/#versions">https://devguide.python.org/versions/#versions</a>を参照して下さい。</p>
 </div>
 <h2 id="lagoon-adaptions">Lagoonの適応<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
 <p>Pythonコンテナのデフォルトの公開ポートはポート<code>8800</code>です。</p>
-<p>永続的なストレージは、<code>lagoon.type: python-persistent</code>を使用してLagoonで設定可能です。詳細については<a href="../../concepts-basics/docker-compose-yml/#persistent-storage">ドキュメント</a>をご覧ください。</p>
-<p>次のラベルを<code>docker-compose.yml</code>ファイルで使用して設定します:
-<code>lagoon.persistent</code> = これを使用して、永続的なストレージとして使用するコンテナ内のパスを定義します - 例えば/app/files
-<code>lagoon.persistent.size</code> = これを使用してLagoonにこのパスにどれだけのストレージを割り当てるかを伝えます。</p>
+<p>Lagoonでは、<code>lagoon.type: python-persistent</code>を使用して永続的なストレージを設定可能です。詳細については<a href="../../concepts-basics/docker-compose-yml/#persistent-storage">ドキュメント</a>を参照ください。</p>
+<p>永続的なストレージを設定するには、<code>docker-compose.yml</code>ファイルで以下のラベルを使用します:
+<code>lagoon.persistent</code> = コンテナ内の永続ストレージとして使用するパスを定義します - 例えば/app/files
+<code>lagoon.persistent.size</code> = Lagoonに対して、このパスに割り当てるストレージ容量を指定します。</p>
 <p>同じストレージを共有する複数のサービスがある場合は、これを使用します
-<code>lagoon.persistent.name</code> =(オプション)これを使用してLagoonに別の名前付きサービスで定義されたストレージを使用するように伝えます。</p>
+<code>lagoon.persistent.name</code> =(オプション)複数のサービスが同じストレージを共有する場合、別の名前付きサービスで定義されたストレージを使用するようにLagoonに指示します。</p>
 <h2 id="docker-composeyml-snippet"><code>docker-compose.yml</code> スニペット<a class="headerlink" href="#docker-composeyml-snippet" title="Permanent link">#</a></h2>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">python</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="c1"># これはビルドを設定します ルートフォルダにあるDockerfile</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="c1"># ルートフォルダにあるDockerfileを使用してビルドを行うように設定します。</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">        </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dockerfile</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1"># Lagoonにこれがpythonサービスであり、/app/filesに500MBの永続的なストレージが設定されていることを伝えます</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1"># Lagoonに対し、Pythonサービスであることと、/app/filesに500MBの永続ストレージを設定します。</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">        </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python-persistent</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/files</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="nt">lagoon.persistent.size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500Mi</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="c1"># ローカル開発のみ</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">          </span><span class="c1"># 8800ポートをランダムなローカルポートで公開します</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">          </span><span class="c1"># `docker compose port python 8800`で見つけることができます</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="c1"># ローカル開発のみ適用される設定です</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">            </span><span class="c1"># ポート8800をランダムなローカルポートにマッピングし、</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">            </span><span class="c1"># `docker compose port node 8800`でポートを確認することができます。</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8800&quot;</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="c1"># ローカル開発のみ</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="c1"># このサービスの定義されたパスで名前付きボリューム(ファイル)をマウントし、本番環境を再現します</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="c1"># ローカル開発のみ適用される設定です</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="c1"># filesという名前のボリュームを定義されたパスにをマウントします。これは、本番環境と同じ状態を再現するためにローカル開発環境で利用されます。</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">files:/app/files</span>
 </span></code></pre></div>
 
