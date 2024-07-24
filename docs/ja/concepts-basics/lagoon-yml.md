@@ -2,7 +2,7 @@
 
 `.lagoon.yml` ファイルは、プロジェクトを設定するための中心となるファイルです。以下の操作を行うための設定が含まれています:
 
-* [サイトへのアクセスルートを定義する](#routes)
+* [サイトへのアクセスルートを定義する](lagoon-yml.md#routes)
 * [プリロールアウトタスクを定義する](#pre-rollout-tasks-pre_rolloutirun)
 * [ポストロールアウトタスクを定義する](#post-rollout-tasks-post_rolloutirun)
 * [SSL証明書を設定する](#ssl-configuration-tls-acme)
@@ -20,7 +20,7 @@
 
 この設定は、デプロイされたGit SHAを環境変数としてプロジェクトに設定することを有効にします。デフォルトではこれは無効です。値を `true` に設定すると、SHAが環境変数 `LAGOON_GIT_SHA` として設定されます。
 
-## ルート
+## ルート { #routes }
 
 ルートはトラフィックをサービスへ転送するために使用されます 。環境内の各サービスにはルートがあり、ドメイン名は手動または自動で定義されます。トップレベルの `routes` セクションの設定は、すべての環境のすべてのルートに対して適用されます。
 
@@ -58,7 +58,7 @@
 
 定義可能なタスクには複数の種類があり、それらはビルドフローの中のどのタイミングで実行されるかが異なります。
 
-### プリロールアウトタスク - `pre_rollout.[i].run`
+### プリロールアウトタスク - `pre_rollout.[i].run` { #pre-rollout-tasks-pre_rolloutirun}
 
 すべてのイメージが正常にビルドされた後、かつ、以下のタイミングの前に、プロジェクトに対して実行するタスクを指定することができます。
 
@@ -73,7 +73,7 @@
     * 最後のデプロイ以降にDockerfileに加えられた変更は、プリロールアウトタスクが実行されるときには反映されません。
     * 既存のコンテナがない場合(例えば、新しい環境の初期デプロイメント時など)、プリロールアウトタスクはスキップされます。
 
-### ポストロールアウトタスク - `post_rollout.[i].run`
+### ポストロールアウトタスク - `post_rollout.[i].run` { #post-rollout-tasks-post_rolloutirun }
 
 以下のタイミングの後にプロジェクトに対して実行する必要があるタスクを指定することができます。
 
@@ -225,7 +225,7 @@ Drupal & Drush 9: マスター環境からデータベースとファイルを�
     hstsEnabled: true
 ```
 
-### SSL設定 `tls-acme`
+### SSL設定 `tls-acme` { #ssl-configuration-tls-acme }
 
 !!! Warning "警告"
     `tls-acme: true`から`tls-acme: false`に切り替えると、このルートに対して以前に生成された証明書がすべて削除されます。これは、外部のCDNを使用していて証明書のピン留めを行っている場合、予期しない挙動を引き起こす可能性があります。
@@ -387,7 +387,7 @@ environments:
     autogenerateRoutes: true
 ```
 
-### `environments.[name].cronjobs`
+### `environments.[name].cronjobs` { #environmentsnamecronjobs }
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Yd_JfDyfbR0" title="YouTubeビデオプレーヤー" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
