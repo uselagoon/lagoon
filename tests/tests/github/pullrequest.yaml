@@ -3,7 +3,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "node{{ node_version }}/"
+    git_files: "node/"
     branch: "pullrequest_base"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml

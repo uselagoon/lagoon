@@ -8,7 +8,6 @@
 - ansible.builtin.import_playbook: gitlab/skip-deployment.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - skip deployment"
-    node_version: 16
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ cluster_type }}
     branch: skip
@@ -17,7 +16,6 @@
 - ansible.builtin.import_playbook: gitlab/branch.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - slash branch"
-    node_version: 16
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ cluster_type }}
     branch: gitlab/slash/branch
@@ -26,7 +24,6 @@
 - ansible.builtin.import_playbook: gitlab/pullrequest.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - PULLREQUEST"
-    node_version: 16
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"

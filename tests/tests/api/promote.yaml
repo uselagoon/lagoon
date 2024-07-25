@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "node{{ node_version }}/"
+    git_files: "node/"
     branch: "{{ source_environment }}"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
