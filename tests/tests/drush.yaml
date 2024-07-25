@@ -18,19 +18,3 @@
 - ansible.builtin.import_playbook: api/delete-project.yaml
   vars:
     project: ci-drush-la-{{ cluster_type }}
-
-- ansible.builtin.import_playbook: api/add-project.yaml
-  vars:
-    project: ci-drush-sa-{{ cluster_type }}
-    git_repo_name: drush-sa.git
-    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
-
-- ansible.builtin.import_playbook: drupal/drush-sa.yaml
-  vars:
-    testname: "DRUSH legacy {{ cluster_type|upper }}"
-    git_repo_name: drush-sa.git
-    project: ci-drush-sa-{{ cluster_type }}
-
-- ansible.builtin.import_playbook: api/delete-project.yaml
-  vars:
-    project: ci-drush-sa-{{ cluster_type }}
