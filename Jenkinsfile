@@ -90,12 +90,12 @@ pipeline {
           steps {
             sh script: "make -j$NPROC local-dev/k3d", label: "Configure k3d"
             sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
-            sh script: "make -j$NPROC k3d/test TESTS=[drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
+            sh script: "make -j$NPROC k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
-            script {
-              skipRemainingStages = true
-              echo "Drush only test, no further tests."
-            }
+            // script {
+            //   skipRemainingStages = true
+            //   echo "single test only, no further tests."
+            // }
           }
         }
         stage ('collect logs') {
@@ -183,7 +183,7 @@ pipeline {
         stage ('3: run third test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,python,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }
