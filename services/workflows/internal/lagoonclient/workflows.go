@@ -6,13 +6,12 @@ import (
 )
 
 type Workflow struct {
-	Id int
-	AdvancedTaskId int
+	Id                  int
+	AdvancedTaskId      int
 	AdvancedTaskDetails string
-	EnvironmentId int
-	EnvironmentName string
+	EnvironmentId       int
+	EnvironmentName     string
 }
-
 
 func InvokeWorkflowOnEnvironment(ctx context.Context, client graphql.Client, environmentId int, advancedTaskDefinition int) (string, error) {
 	resp, err := invokeCustomTask(ctx, client, environmentId, advancedTaskDefinition)
@@ -41,7 +40,6 @@ func GetEnvironmentWorkflowsByEnvironmentId(ctx context.Context, client graphql.
 
 	return ret, nil
 }
-
 
 func GetEnvironmentWorkflows(ctx context.Context, client graphql.Client, projectId int, environmentName string) ([]Workflow, error) {
 	var ret []Workflow
