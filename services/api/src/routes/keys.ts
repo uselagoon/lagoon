@@ -48,6 +48,7 @@ const keysRoute = async (
     sqlClientPool,
     knex('ssh_key AS sk')
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
+      .where("key_fingerprint","=", fingerprint)
       .toString(),
   );
   const keys = R.map(R.prop('sshKey'), rows);
