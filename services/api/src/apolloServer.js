@@ -147,6 +147,12 @@ const apolloServer = new ApolloServer({
         // grab the users project ids and roles in the first request
         groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
       }
+      if (legacyGrant) {
+        const { role } = legacyGrant;
+        if (role == 'admin') {
+          platformOwner = true
+        }
+      }
 
       return {
         keycloakAdminClient,
@@ -226,6 +232,12 @@ const apolloServer = new ApolloServer({
         // grab the users project ids and roles in the first request
         groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
         await User.User(modelClients).userLastAccessed(currentUser);
+      }
+      if (legacyGrant) {
+        const { role } = legacyGrant;
+        if (role == 'admin') {
+          platformOwner = true
+        }
       }
 
       // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
