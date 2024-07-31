@@ -16,5 +16,5 @@ github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/streadway/amqp v1.0.0 h1:kuuDrUJFZL1QYL9hUNuCxNObNzB0bV/ZG5jV3RWAQgo=
 github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
-github.com/uselagoon/machinery v0.0.22 h1:4FVJRLS8he2NAZYMIJXQqVb25jQ03tF8dNhQbrBMX3g=
-github.com/uselagoon/machinery v0.0.22/go.mod h1:NbgtEofjK2XY0iUpk9aMYazIo+W/NI56+UF72jv8zVY=
+github.com/uselagoon/machinery v0.0.25-0.20240731103619-a4140d3a8941 h1:clRmB6HIdP9KQtviEQjRTJJYNEWqudBZE3diNFAadnU=
+github.com/uselagoon/machinery v0.0.25-0.20240731103619-a4140d3a8941/go.mod h1:NbgtEofjK2XY0iUpk9aMYazIo+W/NI56+UF72jv8zVY=

@@ -142,21 +142,6 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("unable to decode json data from webhook, error is %s:", err.Error())
 	} else {
 		// get backups from the API
-
-		token, err := jwt.GenerateAdminToken(b.Endpoint.TokenSigningKey, b.Endpoint.JWTAudience, b.Endpoint.JWTSubject, b.Endpoint.JWTIssuer, time.Now().Unix(), 60)
-		if err != nil {
-			// the token wasn't generated
-			log.Printf("unable to generate token: %v", err)
-			return
-		}
-		l := lclient.New(b.Endpoint.Endpoint, b.Endpoint.JWTSubject, b.Endpoint.Version, &token, false)
-		ctx := context.Background()
-		apiEnv, err := lagoon.GetEnvironmentByNamespace(ctx, backupData.Name, l)
-		if err != nil {
-			log.Printf("unable to connect to the api, error is %s:", err.Error())
-			return
-		}
-
 		// handle restores
 		if backupData.RestoreLocation != "" {
 			singleBackup := Webhook{
@@ -169,9 +154,21 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 			// else handle snapshots
 		} else if backupData.Snapshots != nil {
 			// use the name from the webhook to get the environment in the api
-			backupsEnv, err := lagoon.GetBackupsForEnvironmentByName(ctx, apiEnv.Name, apiEnv.ProjectID, l)
+			ctx := context.Background()
+			token, err := jwt.GenerateAdminToken(b.Endpoint.TokenSigningKey, b.Endpoint.JWTAudience, b.Endpoint.JWTSubject, b.Endpoint.JWTIssuer, time.Now().Unix(), 60)
+			if err != nil {
+				// the token wasn't generated
+				log.Printf("unable to generate token: %v", err)
+				return
+			}
+			l := lclient.New(b.Endpoint.Endpoint, b.Endpoint.JWTSubject, b.Endpoint.Version, &token, false)
+			backupsEnv, err := lagoon.GetBackupsByEnvironmentNamespace(ctx, backupData.Name, l)
 			if err != nil {
 				log.Printf("unable to connect to the api, error is %s:", err.Error())
+				return
+			}
+			if backupsEnv.OpenshiftProjectName != backupData.Name {
+				log.Printf("unable to handle backups, returned environment does not match namespace for backups %s", backupData.Name)
 				return
 			}
 			// remove backups that no longer exists from the api

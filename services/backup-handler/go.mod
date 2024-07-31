@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/isayme/go-amqp-reconnect v0.0.0-20210303120416-fc811b0bcda2
 	github.com/streadway/amqp v1.0.0
-	github.com/uselagoon/machinery v0.0.22
+	github.com/uselagoon/machinery v0.0.25-0.20240731103619-a4140d3a8941
 )
 
 require (
