@@ -24,8 +24,14 @@ They can add users to groups, change the roles of users within those groups, and
 
 Organization owners now also have the ability to create Slack or other notifications directly, and associate those notifications with a project without requiring help from {{ defaults.helpstring }}.
 
+Organization owners also have the ability to add and remove other owners, admins, or viewers to manage their organization.
+
 !!! Warning "NOTE"
     By default this role does not allow organization owners to create environments or trigger deployments within a project. They can add themselves to a group with a role that does grant them this permission. When creating a project, an organization owner can opt to be added as an owner of the project default group.
+
+#### Organization Admin
+
+The organization admin role allows is the same as organization admin, except that this role cannot make changes to the owners, admins, or viewers of the organization.
 
 #### Organization Viewer
 
