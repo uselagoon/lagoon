@@ -16,6 +16,8 @@ The platform-wide admin has access to everything across all of Lagoon. That incl
 
 The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.
 
+### Organization Roles
+
 #### Organization Owner
 
 The organization owner role allows for the creation and deletion of projects, groups, and notifications within their organization.
@@ -31,7 +33,7 @@ Organization owners also have the ability to add and remove other owners, admins
 
 #### Organization Admin
 
-The organization admin role allows is the same as organization admin, except that this role cannot make changes to the owners, admins, or viewers of the organization.
+The organization admin role is the same as organization owner, except that this role cannot make changes to the owners, admins, or viewers of the organization.
 
 #### Organization Viewer
 
