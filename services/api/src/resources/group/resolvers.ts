@@ -19,7 +19,7 @@ export const getAllGroups: ResolverFn = async (
   { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
 
       if (name) {
@@ -99,7 +99,7 @@ export const getGroupRolesByUserId: ResolverFn =async (
   { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
       let groups = []
@@ -192,7 +192,7 @@ export const getGroupsByProjectId: ResolverFn = async (
   { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid)
       return projectGroups;
@@ -260,7 +260,7 @@ export const getGroupsByUserId: ResolverFn = async (
   { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
 
@@ -283,7 +283,7 @@ export const getGroupByName: ResolverFn = async (
   { models, hasPermission, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       const group = await models.GroupModel.loadGroupByName(name);
       return group;
@@ -748,7 +748,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
   } = models;
 
   // use the admin scope check instead of `hasPermission` for speed
-  if (adminScopes.platformOwner && adminScopes.platformViewer) {
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       // get group from all keycloak groups apollo context
       const group = await loadGroupByIdOrName(groupInput);
