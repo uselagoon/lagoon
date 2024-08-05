@@ -141,8 +141,14 @@ export async function processProjects(
     return;
   }
 
+  // count if any projects are disabled in the result
+  let disabledProjects = projects.filter(function(element){
+    return element.deploymentsDisabled == 1;
+  }).length
+
   // if there are more than 1 projects returned, it is probably a polysite deployment
-  if (projects.length > 1) {
+  // also if the number of projects minus the number of any disabled projects is more than 1
+  if (projects.length > 1 && (projects.length - disabledProjects > 1)) {
     // label them as a bulk or grouped deployment
     // assign a random uuid
     webhook.bulkId = crypto.randomUUID()
