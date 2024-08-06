@@ -342,12 +342,14 @@ export const addProject = async (
   const openshiftProjectPattern =
     input.kubernetesNamespacePattern || input.openshiftProjectPattern;
 
-  // check if a user has permission to disable deployments of a project or not
-  let deploymentsDisabled = 0;
-  if (input.deploymentsDisabled) {
-    if (adminScopes.platformOwner) {
-      deploymentsDisabled = input.deploymentsDisabled
-    }
+  if (input.deploymentsDisabled && !adminScopes.platformOwner) {
+    // only platform owner can set this, it won't return an error, just ignores the value
+    delete input.deploymentsDisabled
+  }
+
+  if (input.storageCalc && !adminScopes.platformOwner) {
+    // only platform owner can set this, it won't return an error, just ignores the value
+    delete input.storageCalc
   }
 
   let buildImage = null;
@@ -648,6 +650,13 @@ export const updateProject: ResolverFn = async (
   if (deploymentsDisabled) {
     if (!adminScopes.platformOwner) {
       throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+
+  // only platform owner can modify storage calculator
+  if (storageCalc) {
+    if (!adminScopes.platformOwner) {
+      throw new Error('Disabling storage calculator is only available to administrators.');
     }
   }
 
