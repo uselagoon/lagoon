@@ -35,6 +35,8 @@ PermitUserEnvironment no
 PermitTunnel no
 Banner none
 
+PubkeyAcceptedAlgorithms +ssh-rsa
+
 ClientAliveInterval 60
 ClientAliveCountMax 1440 # max keepalive of 24h
 
