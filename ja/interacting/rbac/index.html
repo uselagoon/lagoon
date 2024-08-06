@@ -3042,10 +3042,10 @@
       
         <li class="md-nav__item">
   <a href="#roles" class="md-nav__link">
-    ロール
+    役柄
   </a>
   
-    <nav class="md-nav" aria-label="ロール">
+    <nav class="md-nav" aria-label="役柄">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3070,9 +3070,29 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-roles" class="md-nav__link">
+    組織の役割
+  </a>
+  
+    <nav class="md-nav" aria-label="組織の役割">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#organization-owner" class="md-nav__link">
     組織の所有者
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-admin" class="md-nav__link">
+    組織管理者
   </a>
   
 </li>
@@ -4661,10 +4681,10 @@
       
         <li class="md-nav__item">
   <a href="#roles" class="md-nav__link">
-    ロール
+    役柄
   </a>
   
-    <nav class="md-nav" aria-label="ロール">
+    <nav class="md-nav" aria-label="役柄">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4689,9 +4709,29 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-roles" class="md-nav__link">
+    組織の役割
+  </a>
+  
+    <nav class="md-nav" aria-label="組織の役割">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#organization-owner" class="md-nav__link">
     組織の所有者
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-admin" class="md-nav__link">
+    組織管理者
   </a>
   
 </li>
@@ -4793,21 +4833,25 @@
 
 <h1 id="rbac">ロールベースのアクセス制御 (RBAC)<a class="headerlink" href="#rbac" title="Permanent link">#</a></h1>
 <p>Lagoon バージョン 1.0 では、プロジェクトへのアクセス方法が変更されました。プロジェクトへのアクセスはグループ経由で処理され、プロジェクトは 1 つまたは複数のグループに割り当てられます。ユーザーはロールを持つグループに追加されます。グループはサブグループ内にネストすることもできます。この変更により、柔軟性が大幅に向上し、Lagoon 内で実際のチームを再現できるようになります。</p>
-<h2 id="roles">ロール<a class="headerlink" href="#roles" title="Permanent link">#</a></h2>
+<h2 id="roles">役柄<a class="headerlink" href="#roles" title="Permanent link">#</a></h2>
 <p>ユーザーをグループに割り当てるときは、このグループ内でそのユーザーにグループ ロールを提供する必要があります。現在存在する 5 つのグループ ロールのそれぞれが、グループとグループに割り当てられたプロジェクトに対する異なる権限をユーザーに付与します。現在 Lagoon にあるプラットフォーム全体のロールとグループ ロールは次のとおりです。</p>
 <h3 id="platform-wide-roles">プラットフォーム全体のロール<a class="headerlink" href="#platform-wide-roles" title="Permanent link">#</a></h3>
 <h4 id="platform-wide-admin">プラットフォーム全体の管理者<a class="headerlink" href="#platform-wide-admin" title="Permanent link">#</a></h4>
 <p>プラットフォーム全体の管理者は、Lagoon 全体のすべてにアクセスできます。これには、すべてのプロジェクトを削除するなどの危険な変更も含まれます。<strong>非常に</strong>慎重に使用してください。</p>
 <h4 id="platform-wide-owner">プラットフォーム全体の所有者<a class="headerlink" href="#platform-wide-owner" title="Permanent link">#</a></h4>
 <p>プラットフォーム全体のオーナーは、グループオーナーの役割と同様にすべてのLagoonグループにアクセスできます。すべてにアクセスする必要があるが、各グループにユーザーを割り当てたくない場合に使用できます。</p>
+<h3 id="organization-roles">組織の役割<a class="headerlink" href="#organization-roles" title="Permanent link">#</a></h3>
 <h4 id="organization-owner">組織の所有者<a class="headerlink" href="#organization-owner" title="Permanent link">#</a></h4>
 <p>組織の所有者のロールにより、組織内でプロジェクト、グループ、通知を作成および削除できます。</p>
 <p>彼らはユーザーをグループに追加し、そのグループ内のユーザーのロールを変更し、プロジェクトをグループに関連付けることができます。これにより、組織のオーナーは誰がアクセス権を持っているかを明確に把握し、ユーザーを迅速に追加・削除することができます。</p>
 <p>組織のオーナーは、Slackやその他の通知を直接作成し、それらの通知をLagoon管理者の助けを借りずにプロジェクトに関連付けることができるようになりました。</p>
+<p>組織の所有者は、組織を管理するために他の所有者、管理者、または閲覧者を追加および削除することもできます。</p>
 <div class="admonition warning">
 <p class="admonition-title">注意</p>
 <p>デフォルトでは、このロールは組織のオーナーがプロジェクト内で環境を作成したり、デプロイをトリガーしたりすることを許可していません。彼らは自分自身を、その権限を付与するロールを持つグループに追加することができます。プロジェクトを作成するとき、組織のオーナーはプロジェクトのデフォルトグループのオーナーとして追加されることを選択できます。</p>
 </div>
+<h4 id="organization-admin">組織管理者<a class="headerlink" href="#organization-admin" title="Permanent link">#</a></h4>
+<p>組織管理者の役割は組織所有者と同じですが、この役割では組織の所有者、管理者、または閲覧者に変更を加えることはできません。</p>
 <h4 id="organization-viewer">組織のビューア<a class="headerlink" href="#organization-viewer" title="Permanent link">#</a></h4>
 <p>組織のビューワーは、自組織内のプロジェクト、グループとユーザーのアクセス、通知を表示するアクセス権を持っています。</p>
 <h3 id="group-roles">グループのロール<a class="headerlink" href="#group-roles" title="Permanent link">#</a></h3>

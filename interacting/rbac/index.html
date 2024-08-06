@@ -3070,9 +3070,29 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-roles" class="md-nav__link">
+    Organization Roles
+  </a>
+  
+    <nav class="md-nav" aria-label="Organization Roles">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#organization-owner" class="md-nav__link">
     Organization Owner
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-admin" class="md-nav__link">
+    Organization Admin
   </a>
   
 </li>
@@ -4689,9 +4709,29 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-roles" class="md-nav__link">
+    Organization Roles
+  </a>
+  
+    <nav class="md-nav" aria-label="Organization Roles">
+      <ul class="md-nav__list">
+        
           <li class="md-nav__item">
   <a href="#organization-owner" class="md-nav__link">
     Organization Owner
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organization-admin" class="md-nav__link">
+    Organization Admin
   </a>
   
 </li>
@@ -4800,14 +4840,18 @@
 <p>The platform-wide admin has access to everything across all of Lagoon. That includes dangerous mutations like deleting all projects. Use very, <em>very,</em> <strong>very</strong> carefully.</p>
 <h4 id="platform-wide-owner">Platform-Wide Owner<a class="headerlink" href="#platform-wide-owner" title="Permanent link">#</a></h4>
 <p>The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.</p>
+<h3 id="organization-roles">Organization Roles<a class="headerlink" href="#organization-roles" title="Permanent link">#</a></h3>
 <h4 id="organization-owner">Organization Owner<a class="headerlink" href="#organization-owner" title="Permanent link">#</a></h4>
 <p>The organization owner role allows for the creation and deletion of projects, groups, and notifications within their organization.</p>
 <p>They can add users to groups, change the roles of users within those groups, and associate projects with groups. This gives the organization owner the ability to clearly see who has access, and quickly add and remove users.</p>
 <p>Organization owners now also have the ability to create Slack or other notifications directly, and associate those notifications with a project without requiring help from your Lagoon administrator.</p>
+<p>Organization owners also have the ability to add and remove other owners, admins, or viewers to manage their organization.</p>
 <div class="admonition warning">
 <p class="admonition-title">NOTE</p>
 <p>By default this role does not allow organization owners to create environments or trigger deployments within a project. They can add themselves to a group with a role that does grant them this permission. When creating a project, an organization owner can opt to be added as an owner of the project default group.</p>
 </div>
+<h4 id="organization-admin">Organization Admin<a class="headerlink" href="#organization-admin" title="Permanent link">#</a></h4>
+<p>The organization admin role is the same as organization owner, except that this role cannot make changes to the owners, admins, or viewers of the organization.</p>
 <h4 id="organization-viewer">Organization Viewer<a class="headerlink" href="#organization-viewer" title="Permanent link">#</a></h4>
 <p>The organization view has access to view the projects, group and user access, and notifications within their organization.</p>
 <h3 id="group-roles">Group Roles<a class="headerlink" href="#group-roles" title="Permanent link">#</a></h3>
