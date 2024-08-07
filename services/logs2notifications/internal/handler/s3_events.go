@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/uselagoon/lagoon/services/logs2notifications/internal/helpers"
+	"github.com/uselagoon/machinery/utils/namespace"
 )
 
 // MessageType .
@@ -41,7 +41,7 @@ func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
 		if notification.Meta.Environment != "" {
 			filePath = fmt.Sprintf("tasklogs/%s/%s/%s-%s.txt",
 				notification.Project,
-				helpers.ShortenEnvironment(notification.Project, helpers.MakeSafe(notification.Meta.Environment)),
+				namespace.ShortenEnvironment(notification.Project, namespace.MakeSafe(notification.Meta.Environment)),
 				notification.Meta.Task.ID,
 				notification.Meta.RemoteID,
 			)
@@ -56,8 +56,7 @@ func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
 
 // UploadFileS3
 func (h *Messaging) uploadFileS3(message, fileName string) {
-	var forcePath bool
-	forcePath = true
+	forcePath := true
 	session, err := session.NewSession(&aws.Config{
 		Region:           aws.String(h.S3FilesRegion),
 		Endpoint:         aws.String(h.S3FilesOrigin),
@@ -81,6 +80,5 @@ func (h *Messaging) uploadFileS3(message, fileName string) {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(fmt.Sprintf("Uploaded file %s", fileName))
-	return
+	log.Printf("Uploaded file %s\n", fileName)
 }

@@ -101,7 +101,7 @@ func (h *Messaging) sendSlackMessage(emoji, color, appID, channel, webhook, even
 		log.Printf("Error sending message to slack channel %s for project %s: %v", channel, project, err)
 		return
 	}
-	log.Println(fmt.Sprintf("Sent %s message to slack channel %s for project %s", event, channel, project))
+	log.Printf("Sent %s message to slack channel %s for project %s", event, channel, project)
 }
 
 func getSlackEvent(msgEvent string) (string, string, string, error) {

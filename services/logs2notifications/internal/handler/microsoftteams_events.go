@@ -115,6 +115,10 @@ func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, proj
 
 	teamsPayloadBytes, _ := json.Marshal(teamsPayload)
 	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(teamsPayloadBytes))
+	if err != nil {
+		log.Printf("Error sending message to microsoft teams for project %s: %v", project, err)
+		return
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -124,7 +128,7 @@ func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, proj
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to microsoft teams for project %s", event, project))
+	log.Printf("Sent %s message to microsoft teams for project %s", event, project)
 }
 
 func getMicrosoftTeamsEvent(msgEvent string) (string, string, string, error) {

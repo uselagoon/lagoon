@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/uselagoon/lagoon/services/logs2notifications/internal/schema"
+	"github.com/uselagoon/machinery/api/schema"
 )
 
 // WebhookData .
@@ -24,7 +24,7 @@ type WebhookData struct {
 }
 
 // SendToWebhook .
-func (h *Messaging) SendToWebhook(notification *Notification, webhook schema.NotificationWebhook) {
+func (h *Messaging) SendToWebhook(notification *Notification, webhook schema.AddNotificationWebhookInput) {
 	message, err := h.processWebhookTemplate(notification)
 	if err != nil {
 		return
@@ -32,9 +32,13 @@ func (h *Messaging) SendToWebhook(notification *Notification, webhook schema.Not
 	h.sendWebhookMessage(notification.Meta.ProjectName, *message, webhook)
 }
 
-func (h *Messaging) sendWebhookMessage(project string, data WebhookData, webhook schema.NotificationWebhook) {
+func (h *Messaging) sendWebhookMessage(project string, data WebhookData, webhook schema.AddNotificationWebhookInput) {
 	message, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook.Webhook, bytes.NewBuffer(message))
+	if err != nil {
+		log.Printf("Error sending message to webhook: %v", err)
+		return
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(message)))
 
@@ -45,13 +49,7 @@ func (h *Messaging) sendWebhookMessage(project string, data WebhookData, webhook
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to webhook", data.Event))
-	if err != nil {
-		log.Printf("Error sending message to webhook for project %s: %v", project, err)
-		return
-	}
-	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to webhook for project %s", data.Event, project))
+	log.Printf("Sent %s message to webhook for project %s", data.Event, project)
 }
 
 // processWebhookTemplate .
