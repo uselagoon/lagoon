@@ -1,12 +1,10 @@
 import * as R from 'ramda';
+import { Pool } from 'mariadb';
 import { ResolverFn } from '../';
-import { Environment } from '../../resolvers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { isPatchEmpty, query, knex } from '../../util/db';
-import { getProjectByEnvironmentId } from '../project/resolvers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
-import { deployTargetBranches } from '@lagoon/commons/src/deploy-tasks';
 import { Sql as EnvironmentSql } from '../environment/sql'
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as organizationHelpers } from '../organization/helpers';
@@ -70,13 +68,13 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
 };
 
 // used to check if project within an organization has requested valid deploy target
-const checkProjectDeployTargetByOrg = async (project, deployTarget, sqlClientPool) => {
-  const projectdata = await projectHelpers(sqlClientPool).getProjectById(project)
+const checkProjectDeployTargetByOrg = async (projectId: number, deployTargetId: number, sqlClientPool: Pool) => {
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(projectId)
   if (projectdata.organization != null) {
     let validDeployTarget = false
     const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
     for (const dt of deploytargets) {
-      if (dt.dtid == deployTarget) {
+      if (dt.dtid == deployTargetId) {
         validDeployTarget = true
       }
     }
@@ -262,44 +260,77 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   return 'success';
 };
 
+interface UpdateDeployTargetConfigPatchInput {
+  branches?: string;
+  deployTarget?: number;
+  deployTargetProjectPattern?: string;
+  pullrequests?: string;
+  weight?: number;
+}
+
+interface UpdateDeployTargetConfigInput {
+  id: number
+  patch: UpdateDeployTargetConfigPatchInput
+}
+
+interface UpdateDeployTargetConfigArgs {
+  input: UpdateDeployTargetConfigInput
+}
+
 export const updateDeployTargetConfig: ResolverFn = async (
   root,
-  { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { input: { id, patch } }: UpdateDeployTargetConfigArgs,
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-  if (isPatchEmpty(input)) {
+  if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  const id = input.id;
-  const deployTarget = input.patch.deployTarget;
-  const deployTargetProjectPattern = input.patch.deployTargetNamespacePattern;
+  const {
+    branches,
+    deployTarget,
+    deployTargetProjectPattern,
+    pullrequests,
+    weight,
+  } = patch;
 
   // get the projected id for a deploy config so permissions can be checked
-  const deployTargetConfig = await Helpers(sqlClientPool).getDeployTargetConfigById(id);
+  const deployTargetConfig =
+    await Helpers(sqlClientPool).getDeployTargetConfigById(id);
+
   if (!deployTargetConfig) {
     return null;
   }
+
   // since deploytargetconfigs are associated to a project
   // re-use the existing `project:update` permissions check, since the same sorts of fields
   // are updateable by the same permissions at the project scope
-  await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, deployTargetConfig.project)
+  await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(
+    hasPermission,
+    deployTargetConfig.project,
+  );
 
-  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  await checkProjectDeployTargetByOrg(deployTargetConfig.project, deployTarget, sqlClientPool)
+  if (deployTarget) {
+    // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+    await checkProjectDeployTargetByOrg(
+      deployTargetConfig.project,
+      deployTarget,
+      sqlClientPool,
+    );
+  }
 
   await query(
     sqlClientPool,
     Sql.updateDeployTargetConfig({
       id,
       patch: {
-        weight: input.patch.weight,
-        branches: input.patch.branches,
-        pullrequests: input.patch.pullrequests,
+        weight,
+        branches,
+        pullrequests,
         deployTarget,
         deployTargetProjectPattern,
-      }
-    })
+      },
+    }),
   );
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(id));
@@ -308,8 +339,8 @@ export const updateDeployTargetConfig: ResolverFn = async (
   userActivityLogger(`User updated DeployTargetConfig`, {
     event: 'api:updateDeployTargetConfig',
     payload: {
-      data: withK8s
-    }
+      data: withK8s,
+    },
   });
 
   return R.prop(0, withK8s);
