@@ -181,10 +181,11 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 					// now delete it from the api as it no longer exists
 					_, err := lagoon.DeleteBackup(ctx, backup.BackupID, l)
 					if err != nil {
+						// log, but don't break the loop
 						log.Printf("unable to delete backup %v from api, error is %s:", backup.BackupID, err.Error())
-						return
+					} else {
+						log.Printf("deleted backup %s for %s", backup.BackupID, backupsEnv.OpenshiftProjectName)
 					}
-					log.Printf("deleted backup %s for %s", backup.BackupID, backupsEnv.OpenshiftProjectName)
 				}
 			}
 
