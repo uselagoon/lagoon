@@ -18,7 +18,6 @@ The Lagoon core team is responsible for the priorization, creation, development 
 They are responsible for the development, testing and release processes.
 
 - Toby Bellwood
-- Alanna Burke
 - Davit Darsavelidze
 - Chris Goodwin
 - Ben Jackson
@@ -42,6 +41,12 @@ They suggest and review features, develop integrations and tools, and work close
 - Justin Winter
 
 The Lagoon team would also like to acknowledge the massive contributions from everyone over the years to help get Lagoon to where we are today. ❤️
+
+## Lagoon Alumni
+
+- Alanna Burke
+- Tim Clifford
+- Tyler Ward
 
 ## Scope of the Lagoon team
 
