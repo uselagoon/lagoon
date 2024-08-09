@@ -89,15 +89,15 @@ mutation PopulateApi {
     name
   }
 
-  UIOrganizationAddViewer: addUserToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: 1}) {
+  UIOrganizationAddViewer: addAdminToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: {id: 1}, role: VIEWER}) {
     id
   }
 
-  UIOrganizationAddAdmin: addUserToOrganization(input: {user: {email: "orgadmin@example.com"}, organization: 1, admin: true}) {
+  UIOrganizationAddAdmin: addAdminToOrganization(input: {user: {email: "orgadmin@example.com"}, organization: {id: 1}, role: ADMIN}) {
     id
   }
 
-  UIOrganizationAddOwner: addUserToOrganization(input: {user: {email: "orgowner@example.com"}, organization: 1, owner: true}) {
+  UIOrganizationAddOwner: addAdminToOrganization(input: {user: {email: "orgowner@example.com"}, organization: {id: 1}, role: OWNER}) {
     id
   }
 

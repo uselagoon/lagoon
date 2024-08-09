@@ -110,6 +110,12 @@ const typeDefs = gql`
     OWNER
   }
 
+  enum OrganizationRole {
+    VIEWER
+    ADMIN
+    OWNER
+  }
+
   enum ProblemSeverityRating {
     NONE
     UNKNOWN
@@ -1069,10 +1075,11 @@ const typeDefs = gql`
     email: String
     firstName: String
     lastName: String
-    admin: Boolean
-    owner: Boolean
+    admin: Boolean @deprecated(reason: "use organizationRole")
+    owner: Boolean @deprecated(reason: "use organizationRole")
     comment: String
     groupRoles: [GroupRoleInterface]
+    organizationRole: OrganizationRole
   }
 
   type Organization {
@@ -1460,6 +1467,12 @@ const typeDefs = gql`
     id: Int
     name: String
     environment: EnvironmentInput
+  }
+
+  # Must provide id OR name
+  input OrganizationInput {
+    id: Int
+    name: String
   }
 
   input AddSshKeyInput {
@@ -1930,6 +1943,17 @@ const typeDefs = gql`
     owner: Boolean
   }
 
+  input AddAdminToOrganizationInput {
+    user: UserInput!
+    organization: OrganizationInput!
+    role: OrganizationRole!
+  }
+
+  input RemoveAdminFromOrganizationInput {
+    user: UserInput!
+    organization: OrganizationInput!
+  }
+
   input ResetUserPasswordInput {
     user: UserInput!
   }
@@ -2395,12 +2419,14 @@ const typeDefs = gql`
     Add a user to an organization as a viewer or owner of the organization.
     This allows the user to view or manage the organizations groups, projects, and notifications
     """
-    addUserToOrganization(input: addUserToOrganizationInput!): Organization
+    addAdminToOrganization(input: AddAdminToOrganizationInput!): Organization
+    addUserToOrganization(input: addUserToOrganizationInput!): Organization  @deprecated(reason: "Use addAdminToOrganization instead")
     """
     Remove a viewer or owner from an organization.
     This removes the users ability to view or manage the organizations groups, projects, and notifications
     """
-    removeUserFromOrganization(input: addUserToOrganizationInput!): Organization
+    removeAdminFromOrganization(input: RemoveAdminFromOrganizationInput!): Organization
+    removeUserFromOrganization(input: addUserToOrganizationInput!): Organization @deprecated(reason: "Use removeAdminFromOrganization instead")
     resetUserPassword(input: ResetUserPasswordInput!): String
     deleteUser(input: DeleteUserInput!): String
     addDeployment(input: AddDeploymentInput!): Deployment

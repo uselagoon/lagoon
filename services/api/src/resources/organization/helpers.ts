@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
+import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { Sql } from './sql';
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -65,5 +66,36 @@ export const Helpers = (sqlClientPool: Pool) => {
     getNotificationsForOrganizationId,
     getNotificationsByTypeForOrganizationId,
     getEnvironmentsByOrganizationId,
+    getOrganizationByOrganizationInput: async (organizationInput, scope: string, resource: string) => {
+      const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
+      const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
+      const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
+
+      const orgFromId = asyncPipe(R.prop('id'), getOrganizationById, organization => {
+        if (!organization) {
+          throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}"`);
+        }
+        return organization;
+      });
+
+      const orgFromName = asyncPipe(R.prop('name'), async name => {
+        const rows = await query(sqlClientPool, Sql.selectOrganizationByName(name));
+        const organization = R.prop(0, rows);
+        if (!organization) {
+          throw new Error(`Unauthorized: You don't have permission to "${scope}" on "${resource}"`);
+        }
+        return organization;
+      });
+      return R.cond([
+        [hasId, orgFromId],
+        [hasName, orgFromName],
+        [
+          R.T,
+          () => {
+            throw new Error('Must provide organization "id" or "name"');
+          }
+        ]
+      ])(organizationInput);
+    },
   }
 };
