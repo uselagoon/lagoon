@@ -120,6 +120,10 @@ func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook,
 	}
 	jsonBytes, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		log.Printf("Error sending message to rocketchat channel %s for project %s: %v", channel, project, err)
+		return
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(jsonBytes)))
 
@@ -130,7 +134,7 @@ func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook,
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to rocketchat channel %s for project %s", event, channel, project))
+	log.Printf("Sent %s message to rocketchat channel %s for project %s", event, channel, project)
 }
 
 func getRocketChatEvent(msgEvent string) (string, string, string, error) {
