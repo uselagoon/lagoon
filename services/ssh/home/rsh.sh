@@ -129,7 +129,10 @@ if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) 
   # get any other deployments that may have been idled and unidle them if required
   # this only needs to be done for kubernetes
   # we do this first to give the services a bit of time to unidle before starting the one that was requested
-  DEPLOYMENTS=$($KUBECTL get deployments -l "idling.amazee.io/watch=true" -o name)
+  DEPLOYMENTS=$($KUBECTL get deployments -l "idling.lagoon.sh/watch=true" -o name)
+  if [ -z "${DEPLOYMENTS}" ]; then
+    DEPLOYMENTS=$($KUBECTL get deployments -l "idling.amazee.io/watch=true" -o name)
+  fi
   if [ ! -z "${DEPLOYMENTS}" ]; then
     echo "${UUID}: Environment is idled attempting to scale up for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
     # loop over the deployments and unidle them
@@ -138,8 +141,12 @@ if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) 
       # if the deployment is idled, unidle it :)
       DEP_JSON=$($KUBECTL get ${DEP} -o json)
       if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
-        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
-        if [ ! -z "$REPLICAS" ]; then
+        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.lagoon.sh/unidle-replicas" // 1')
+        if [ -z "$REPLICAS" ]; then
+          REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
+        fi
+        # if no replicas in annotations, set 1
+        if [ -z "$REPLICAS" ]; then
           REPLICAS=1
         fi
         echo "${UUID}: Attempting to scale deployment='${DEP}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
