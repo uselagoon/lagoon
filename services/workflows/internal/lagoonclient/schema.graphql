@@ -1976,7 +1976,6 @@ input UpdateNotificationMicrosoftTeamsInput {
 input UpdateNotificationMicrosoftTeamsPatchInput {
   name: String
   webhook: String
-  channel: String
 }
 
 input UpdateNotificationRocketChatInput {
