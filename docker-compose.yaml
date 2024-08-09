@@ -170,6 +170,7 @@ services:
     user: '111111111'
     depends_on:
       - keycloak-db
+    command: 'start-dev'
     ports:
       - '8088:8080'
     environment:
@@ -179,9 +180,9 @@ services:
       # - NEW_RELIC_LICENSE_KEY=
       # - NEW_RELIC_APP_NAME=keycloak-local
     volumes:
-      - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
-      - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
-      - "./services/keycloak/themes/lagoon:/opt/jboss/keycloak/themes/lagoon"
+      - "./services/keycloak/profile.properties:/opt/keycloak/standalone/configuration/profile.properties"
+      - "./services/keycloak/startup-scripts:/opt/keycloak/startup-scripts"
+      - "./services/keycloak/themes/lagoon:/opt/keycloak/themes/lagoon"
       - "./local-dev/keycloak:/lagoon/keycloak"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
