@@ -54,7 +54,6 @@
 - ansible.builtin.import_playbook: features/remote-shell.yaml
   vars:
     testname: "REMOTE SHELL {{ cluster_type|upper }}"
-    node_version: 16
     git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
     branch: remoteshell
@@ -73,7 +72,6 @@
 # - ansible.builtin.import_playbook: features/openshift-limit.yaml
 #   vars:
 #     testname: "openshift-character-limit {{ cluster_type|upper }}"
-#     node_version: 16
 #     git_repo_name: features.git
 #     project: ci-features-{{ cluster_type }}
 #     branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit

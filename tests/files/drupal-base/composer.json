@@ -1,0 +1,76 @@
+{
+    "name": "lagoon-examples/drupal-base",
+    "description": "Project template for Drupal projects with MariaDB, hosted on Lagoon",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "The Lagoon Authors",
+            "homepage": "https://github.com/uselagoon",
+            "email": "uselagoon@amazee.io"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "amazeeio/drupal_integrations": "0.4.0",
+        "composer/installers": "2.3.0",
+        "cweagans/composer-patches": "1.7.3",
+        "drupal/core-composer-scaffold": "10.3.1",
+        "drupal/core-project-message": "10.3.1",
+        "drupal/core-recommended": "10.3.1",
+        "drupal/lagoon_logs": "3.0.1",
+        "drush/drush": "12.5.2",
+        "zaporylie/composer-drupal-optimizations": "1.2.0"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config":{
+        "platform": {"php": "8.1.12"},
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true,
+            "cweagans/composer-patches": true,
+            "drupal/core-composer-scaffold": true,
+            "drupal/core-project-message": true,
+            "zaporylie/composer-drupal-optimizations": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true,
+            "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
+            "web/modules/custom/{$name}": ["type:drupal-custom-module"],
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
+        },
+        "drupal-scaffold": {
+            "allowed-packages": [
+                "amazeeio/drupal_integrations"
+            ],
+            "file-mapping": {
+                "[web-root]/sites/default/all.settings.php": "assets/all.settings.php",
+                "[project-root]/drush/sites/lagoon.site.yml": "assets/lagoon.site.yml"
+            },
+            "locations": {
+                "web-root": "web/"
+            }
+        }
+    },
+    "require-dev": {
+        "drupal/core-dev-pinned": "10.3.1"
+    }
+}

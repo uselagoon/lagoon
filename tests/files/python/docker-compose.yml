@@ -1,0 +1,17 @@
+services:
+  python:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: python
+    ports:
+      - "8800:8800"
+    environment:
+      - AMAZEEIO_URL=python.docker.amazee.io
+networks:
+  amazeeio-network:
+    external: true

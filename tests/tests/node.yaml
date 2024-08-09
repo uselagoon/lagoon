@@ -11,20 +11,10 @@
 
 - ansible.builtin.import_playbook: api/deploy-branch.yaml
   vars:
-    testname: "NODE 16 {{ cluster_type|upper }}"
-    node_version: 16
+    testname: "NODE {{ cluster_type|upper }}"
     git_repo_name: node.git
     project: ci-node-{{ cluster_type }}
-    branch: node16
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- ansible.builtin.import_playbook: api/deploy-branch.yaml
-  vars:
-    testname: "NODE 14 {{ cluster_type|upper }}"
-    node_version: 14
-    git_repo_name: node.git
-    project: ci-node-{{ cluster_type }}
-    branch: node14
+    branch: node
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - ansible.builtin.import_playbook: api/delete-project.yaml

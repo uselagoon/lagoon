@@ -32,7 +32,6 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/multiproject.git && \
 	git --bare init /git/node.git && \
 	git --bare init /git/drush.git && \
-	git --bare init /git/drush-sa.git && \
 	git --bare init /git/nginx.git && \
 	git --bare init /git/features.git && \
 	git --bare init /git/features-cronjobs.git && \

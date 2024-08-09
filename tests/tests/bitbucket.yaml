@@ -8,7 +8,6 @@
 - ansible.builtin.import_playbook: bitbucket/branch.yaml
   vars:
     testname: "BITBUCKET {{ cluster_type|upper }} - slash branch"
-    node_version: 16
     git_repo_name: bitbucket.git
     git_repo_full_name: git/bitbucket
     git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"
@@ -20,7 +19,6 @@
 - ansible.builtin.import_playbook: github/skip-deployment.yaml
   vars:
     testname: "BITBUCKET {{ cluster_type|upper }} - skip deployment"
-    node_version: 16
     git_repo_name: bitbucket.git
     git_repo_full_name: git/bitbucket
     git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"
@@ -32,7 +30,6 @@
 - ansible.builtin.import_playbook: bitbucket/pullrequest.yaml
   vars:
     testname: "BITBUCKET {{ cluster_type|upper }} - PULLREQUEST"
-    node_version: 16
     git_repo_name: bitbucket.git
     git_repo_full_name: git/bitbucket
     git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"

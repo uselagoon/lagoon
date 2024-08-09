@@ -12,7 +12,6 @@
 - ansible.builtin.import_playbook: features/remote-ssh-legacy.yaml
   vars:
     testname: "REMOTE SSH LEGACY {{ cluster_type|upper }}"
-    node_version: 16
     git_repo_name: features.git
     project: ci-ssh-legacy-{{ cluster_type }}
     branch: remoteshell
