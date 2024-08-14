@@ -1,7 +1,6 @@
 package lagoonclient
 
-
-var Events = map[string][]string {
+var Events = map[string][]string{
 	"mergeRequestOpened": []string{
 		"github:pull_request:opened:handled",
 		"gitlab:merge_request:opened:handled",

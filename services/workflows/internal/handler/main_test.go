@@ -21,11 +21,11 @@ func checkEqual(t *testing.T, got, want interface{}, msgs ...interface{}) {
 type MqMessageFake struct {
 }
 
-func (f MqMessageFake) Ack(Multiple bool) error  {
+func (f MqMessageFake) Ack(Multiple bool) error {
 	return nil
 }
 
-func (f MqMessageFake) Nack(Multiple bool, request bool) error  {
+func (f MqMessageFake) Nack(Multiple bool, request bool) error {
 	return nil
 }
 

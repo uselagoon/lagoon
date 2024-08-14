@@ -9,12 +9,11 @@ import (
 	"testing"
 )
 
-
 func TestGetEnvironmentWorkflows(t *testing.T) {
 
 	testResponse, err := ioutil.ReadFile("./testassets/TestGetEnvironmentWorkflows.response.json")
 	if err != nil {
-		t.Fatalf("Could not open file" )
+		t.Fatalf("Could not open file")
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -36,17 +35,16 @@ func TestGetEnvironmentWorkflows(t *testing.T) {
 	}
 
 	if w[0].Id != 1 {
-		t.Errorf("GetEnvironmentWorkflows() error = %v", "Incorrent id returned" )
+		t.Errorf("GetEnvironmentWorkflows() error = %v", "Incorrent id returned")
 		return
 	}
 
 }
 
-
 func TestInvokeWorkflowOnEnvironment(t *testing.T) {
 	testResponse, err := ioutil.ReadFile("./testassets/TestInvokeWorkflowOnEnvironment.response.json")
 	if err != nil {
-		t.Fatalf("Could not open file" )
+		t.Fatalf("Could not open file")
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

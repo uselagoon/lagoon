@@ -1,17 +1,16 @@
 package schema
 
 type Workflow struct {
-	Id int `json:"id"`
-	Event string `json:"event"`
-	Project int `json:"project"`
+	Id                     int                    `json:"id"`
+	Event                  string                 `json:"event"`
+	Project                int                    `json:"project"`
 	AdvancedTaskDefinition AdvancedTaskDefinition `json:"AdvancedTaskDefinition"`
 }
 
 type AdvancedTaskDefinition struct {
-	Id int `json:"id"`
+	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
-
 
 // Notification .
 type Notification struct {
@@ -34,7 +33,7 @@ type Notification struct {
 		} `json:"headers"`
 		Project                  string `json:"project"`
 		ProjectName              string `json:"projectName"`
-		BranchName               string `json:"branchName`
+		BranchName               string `json:"branchName"`
 		Event                    string `json:"event"`
 		Level                    string `json:"level"`
 		Message                  string `json:"message"`
