@@ -387,7 +387,7 @@ api-logs-development: build-ui-logs-development
 # ADDITIONAL_SERVICES - a way to pass through additional services ("ui", "ui ssh", etc..)
 .PHONY: compose-api-logs-development
 compose-api-logs-development:
-	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) CI_BUILD_TAG=$(COMPOSE_STACK_NAME) wait-for-keycloak
 
 ## CI targets

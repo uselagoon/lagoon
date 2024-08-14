@@ -43,7 +43,7 @@ services:
   api-sidecar-handler:
     # this is neded for the internal dns references
     container_name: apisidecarhandler
-    image: ${IMAGE_REPO:-lagoon}/api-sidecar-handler
+    image: ${IMAGE_REPO:-lagoon}/api-sidecar-handler:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
       - '3333:3333'
   logs2notifications:
