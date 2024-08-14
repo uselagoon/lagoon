@@ -4103,46 +4103,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../2.21.0/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    2.21.0
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../2.20.1/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    2.20.1
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../2.20.0/" class="md-nav__link">
         
   
@@ -4232,13 +4192,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-notes" class="md-nav__link">
-    Release Notes
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#upgrades" class="md-nav__link">
     Upgrades
   </a>
@@ -4249,54 +4202,6 @@
   <a href="#deprecations" class="md-nav__link">
     Deprecations
   </a>
-  
-    <nav class="md-nav" aria-label="Deprecations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#in-built-drupal-tasks" class="md-nav__link">
-    In-built Drupal Tasks
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setenvironmentservices" class="md-nav__link">
-    setEnvironmentServices
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#core-registry-variable" class="md-nav__link">
-    Core Registry variable
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bytesused" class="md-nav__link">
-    bytesUsed
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#addorupdateenvironmentstorage" class="md-nav__link">
-    addOrUpdateEnvironmentStorage
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#activesystems" class="md-nav__link">
-    activesystems
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -4668,13 +4573,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-notes" class="md-nav__link">
-    Release Notes
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#upgrades" class="md-nav__link">
     Upgrades
   </a>
@@ -4685,54 +4583,6 @@
   <a href="#deprecations" class="md-nav__link">
     Deprecations
   </a>
-  
-    <nav class="md-nav" aria-label="Deprecations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#in-built-drupal-tasks" class="md-nav__link">
-    In-built Drupal Tasks
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setenvironmentservices" class="md-nav__link">
-    setEnvironmentServices
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#core-registry-variable" class="md-nav__link">
-    Core Registry variable
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bytesused" class="md-nav__link">
-    bytesUsed
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#addorupdateenvironmentstorage" class="md-nav__link">
-    addOrUpdateEnvironmentStorage
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#activesystems" class="md-nav__link">
-    activesystems
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -4766,35 +4616,10 @@
 <li>lagoon <a href="https://github.com/uselagoon/lagoon/releases/tag/v2.18.2">v2.18.2</a></li>
 <li>lagoon-core chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-1.44.0">1.44.0</a></li>
 </ul>
-<h2 id="release-notes">Release Notes<a class="headerlink" href="#release-notes" title="Permanent link">#</a></h2>
-<p>This release resolved a couple of minor issues discovered after releasing the <a href="../2.18.0/">2.18.0</a> and <a href="./">2.18.1</a> release.</p>
 <h2 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">#</a></h2>
 <p>There are no required actions or considerations with this release. As always, we suggest upgrading all minor versions.</p>
 <h2 id="deprecations">Deprecations<a class="headerlink" href="#deprecations" title="Permanent link">#</a></h2>
-<h3 id="in-built-drupal-tasks">In-built Drupal Tasks<a class="headerlink" href="#in-built-drupal-tasks" title="Permanent link">#</a></h3>
-<ul>
-<li>The standard drupal based tasks that Lagoon ships with (Drush ....) have been flagged as deprecated and should not be used anymore. These will need to be replaced with <a href="https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/">custom tasks</a>. Example replacement tasks will be provided prior to their removal.</li>
-</ul>
-<h3 id="setenvironmentservices">setEnvironmentServices<a class="headerlink" href="#setenvironmentservices" title="Permanent link">#</a></h3>
-<ul>
-<li>This release introduces a deprecation of the <code>setEnvironmentServices</code> mutation to updated services for an environment, it is being replaced with <code>addOrUpdateEnvironmentService</code> and <code>deleteEnvironmentService</code>. This is because the type is being refactored to support additional information, and eventually additional functionality. For now, the actions-handler service will still support the older <code>setEnvironmentServices</code> for backwards compatibility for a short period to allow older versions of <code>lagoon-remote</code> to still work, but a new version of <code>lagoon-remote</code> will be available that will no longer provides the payload that the actions-handler uses.</li>
-</ul>
-<h3 id="core-registry-variable">Core Registry variable<a class="headerlink" href="#core-registry-variable" title="Permanent link">#</a></h3>
-<ul>
-<li>The value for <code>registry</code> which was previously required by the <code>lagoon-core</code> chart is no longer required. If you are using this, you will need to add it under the new <code>unauthenticatedRegistry</code> setting when installing <code>lagoon-remote</code> in the <code>lagoon-build-deploy</code> section of your values file. If you aren't using an actual registry and have the example <code>disabled-only-use-harbor-via-deploy-controller.invalid</code> value, then you do not need to do anything except you can now remove the <code>registry</code> setting from your core values file.</li>
-</ul>
-<h3 id="bytesused">bytesUsed<a class="headerlink" href="#bytesused" title="Permanent link">#</a></h3>
-<ul>
-<li>The environment storage return field named <code>bytesUsed</code> is deprecated. The actual value stored is <code>kibibytes</code>. A new return field called <code>kibUsed</code> exists and should be used, the returned data is the same and both fields are still returned. <code>bytesUsed</code> will be removed in a future release, make any adjustments now to use <code>kibUsed</code>. This will be a breaking change in a future release.</li>
-</ul>
-<h3 id="addorupdateenvironmentstorage">addOrUpdateEnvironmentStorage<a class="headerlink" href="#addorupdateenvironmentstorage" title="Permanent link">#</a></h3>
-<ul>
-<li><code>addOrUpdateEnvironmentStorage</code> is deprecated, <code>addOrUpdateStorageOnEnvironment</code> is the replacement to use as it supports the updated input value for <code>kibUsed</code>. <code>addOrUpdateEnvironmentStorage</code> will be completely removed in a future release.</li>
-</ul>
-<h3 id="activesystems">activesystems<a class="headerlink" href="#activesystems" title="Permanent link">#</a></h3>
-<ul>
-<li>The ability to configure projects to use different subsystems for managing deployments/tasks has been removed. Setting any values for the <code>activeSystems*</code> fields on the project will have no effect and the fields will be removed in a future release.</li>
-</ul>
+<p>As per the  <a href="../2.18.0/">2.18.0</a> release</p>
 
 
   

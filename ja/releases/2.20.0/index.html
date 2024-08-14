@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://docs.lagoon.sh/ja/releases/2.20.0/">
       
       
-        <link rel="prev" href="../2.20.1/">
+        <link rel="prev" href="../policy/">
       
       
         <link rel="next" href="../2.19.0/">
@@ -4101,46 +4101,6 @@
                 
   
   
-  
-    <li class="md-nav__item">
-      <a href="../2.21.0/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    2.21.0
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../2.20.1/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    2.20.1
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -4192,16 +4152,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-notes" class="md-nav__link">
-    Release Notes
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#upgrades" class="md-nav__link">
     Upgrades
   </a>
+  
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#harbor-21x-and-earlier" class="md-nav__link">
+    Harbor 2.1.x and earlier
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4209,6 +4175,47 @@
   <a href="#deprecations" class="md-nav__link">
     Deprecations
   </a>
+  
+    <nav class="md-nav" aria-label="Deprecations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" class="md-nav__link">
+    Kubernetes minimum supported version is now 1.25, tested up to 1.30
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleted-backups" class="md-nav__link">
+    Deleted Backups
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-harbor-support" class="md-nav__link">
+    API Harbor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleteallremoveall-mutations-removed" class="md-nav__link">
+    DeleteAll/RemoveAll mutations removed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-on-deployment-triggers" class="md-nav__link">
+    Error handling on deployment triggers
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4620,16 +4627,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-notes" class="md-nav__link">
-    Release Notes
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#upgrades" class="md-nav__link">
     Upgrades
   </a>
+  
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#harbor-21x-and-earlier" class="md-nav__link">
+    Harbor 2.1.x and earlier
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4637,6 +4650,47 @@
   <a href="#deprecations" class="md-nav__link">
     Deprecations
   </a>
+  
+    <nav class="md-nav" aria-label="Deprecations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" class="md-nav__link">
+    Kubernetes minimum supported version is now 1.25, tested up to 1.30
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleted-backups" class="md-nav__link">
+    Deleted Backups
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-harbor-support" class="md-nav__link">
+    API Harbor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleteallremoveall-mutations-removed" class="md-nav__link">
+    DeleteAll/RemoveAll mutations removed
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-on-deployment-triggers" class="md-nav__link">
+    Error handling on deployment triggers
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4672,13 +4726,36 @@
 <li>lagoon-build-deploy <a href="https://github.com/uselagoon/build-deploy-tool/releases/tag/core-v2.20.0">core-v2.20.0</a></li>
 <li>lagoon-core chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-1.46.0">1.46.0</a></li>
 <li>lagoon-remote chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-remote-0.92.0">0.92.0</a></li>
+<li>lagoon-test chart: <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-test-0.58.0">0.58.0</a></li>
 </ul>
-<h2 id="release-notes">Release Notes<a class="headerlink" href="#release-notes" title="Permanent link">#</a></h2>
-<p>This release was superseded, and the <a href="../2.20.1/">2.20.1</a> release is recommended to be installed instead.</p>
 <h2 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">#</a></h2>
-<p>This release was superseded, and the <a href="../2.20.1/">2.20.1</a> release is recommended to be installed instead.</p>
+<p>This release contains changes that you may need to be aware of. Read carefully before you upgrade.</p>
+<h3 id="harbor-21x-and-earlier">Harbor 2.1.x and earlier<a class="headerlink" href="#harbor-21x-and-earlier" title="Permanent link">#</a></h3>
+<ul>
+<li>This release removes the support for Harbor from the Lagoon API. If you're still using the Harbor support in the API, you should NOT upgrade until you have configured your <code>lagoon-remote</code> installations to use Harbor instead. See the documentation <a href="https://docs.lagoon.sh/installing-lagoon/install-lagoon-remote">here</a> and read the section about Harbor.</li>
+<li>We also recommend that if you're using Harbor version 2.1.x and earlier, that you upgrade this as soon as possible. Follow any instructions that Harbor recommend for upgrading. As of this release, <code>lagoon-remote</code> has been tested up to Harbor version 2.10.0 (helm chart version 1.14.0). <a href="https://docs.lagoon.sh/releases/2.17.0/#harbor-21-and-earlier-support">Lagoon will stop supporting Harbor 2.1.x and earlier in a future release</a>.</li>
+</ul>
 <h2 id="deprecations">Deprecations<a class="headerlink" href="#deprecations" title="Permanent link">#</a></h2>
-<p>This release was superseded, and the <a href="../2.20.1/">2.20.1</a> release is recommended to be installed instead.</p>
+<h3 id="kubernetes-minimum-supported-version-is-now-125-tested-up-to-130">Kubernetes minimum supported version is now 1.25, tested up to 1.30<a class="headerlink" href="#kubernetes-minimum-supported-version-is-now-125-tested-up-to-130" title="Permanent link">#</a></h3>
+<ul>
+<li>The minimum supported version of Kubernetes is now 1.25, owing to deprecations in some core <a href="https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-25">API functions</a>, and the availability of upstream charts. The v2.20.0 release will not install into an earlier version of Kubernetes, so any Kubernetes upgrades will need to be performed prior to the Lagoon update.</li>
+</ul>
+<h3 id="deleted-backups">Deleted Backups<a class="headerlink" href="#deleted-backups" title="Permanent link">#</a></h3>
+<ul>
+<li>When a backup is deleted via the webhook, it will now actually be removed from the API rather than being flagged as deleted. The <code>Backup</code> type field <code>deleted</code> is deprecated, and will be removed in a future release. Additionally, <code>includeDeleted</code> if requested when querying backups will not change the result as there will be no deleted backups to include.</li>
+</ul>
+<h3 id="api-harbor-support">API Harbor support<a class="headerlink" href="#api-harbor-support" title="Permanent link">#</a></h3>
+<ul>
+<li>In <a href="https://docs.lagoon.sh/releases/2.17.0/#api-harbor-support">v2.17.0</a> we announced that Harbor support in the API was deprecated. This release of Lagoon removes all support for Harbor from the API. See upgrade notes above.</li>
+</ul>
+<h3 id="deleteallremoveall-mutations-removed">DeleteAll/RemoveAll mutations removed<a class="headerlink" href="#deleteallremoveall-mutations-removed" title="Permanent link">#</a></h3>
+<ul>
+<li>This release removes all <code>DeleteAllX</code> and <code>RemoveAllX</code> from the API. These were only ever meant for local development and are no longer relevant.</li>
+</ul>
+<h3 id="error-handling-on-deployment-triggers">Error handling on deployment triggers<a class="headerlink" href="#error-handling-on-deployment-triggers" title="Permanent link">#</a></h3>
+<ul>
+<li>In the past, if triggering a deployment using any of the <code>DeployEnvironmentX</code> mutations and an error was encountered, the API would not return an actual error, just a string that contained the error. This was changed in this release to actually return an error now. As this is a change in behaviour, it may impact any users that may have previously been capturing the string error text and parsing it to check for errors.</li>
+</ul>
 
 
   
