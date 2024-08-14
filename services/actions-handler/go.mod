@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.24
+	github.com/uselagoon/machinery v0.0.29
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 

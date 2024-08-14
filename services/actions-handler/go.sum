@@ -844,6 +844,8 @@ github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtX
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/uselagoon/machinery v0.0.24 h1:Kea7eQiwqrlF1NnG4YmV5dMNM1NxuhiY1vhoahEFkQA=
 github.com/uselagoon/machinery v0.0.24/go.mod h1:NbgtEofjK2XY0iUpk9aMYazIo+W/NI56+UF72jv8zVY=
+github.com/uselagoon/machinery v0.0.29 h1:invFIPv1Z1xCt8/1ilbiNDuAEPrb+AUO21BnNG+CX8c=
+github.com/uselagoon/machinery v0.0.29/go.mod h1:X0qguIO9skumMhhT0ap5CKHulKgYzy3TiIn+xlwiFQc=
 github.com/vishvananda/netlink v0.0.0-20181108222139-023a6dafdcdf/go.mod h1:+SR5DhBJrl6ZM7CoCKvpw5BKroDKQ+PJqOg65H/2ktk=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852/go.mod h1:twkDnbuQxJYemMlGd4JFIcuhgX83tXhKS2B/PRMpOho=

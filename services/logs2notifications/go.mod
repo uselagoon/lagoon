@@ -3,7 +3,7 @@ module github.com/uselagoon/lagoon/services/logs2notifications
 go 1.22
 
 require (
-	github.com/aws/aws-sdk-go v1.55.3
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/machinebox/graphql v0.2.3-0.20181106130121-3a9253180225

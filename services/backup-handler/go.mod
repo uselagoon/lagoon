@@ -5,8 +5,8 @@ go 1.22
 require (
 	github.com/google/uuid v1.6.0
 	github.com/isayme/go-amqp-reconnect v0.0.0-20210303120416-fc811b0bcda2
-	github.com/streadway/amqp v1.0.0
-	github.com/uselagoon/machinery v0.0.28
+	github.com/streadway/amqp v1.1.0
+	github.com/uselagoon/machinery v0.0.29
 )
 
 require (
