@@ -1,8 +1,8 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','email','firstName','lastName'); section>
-
-    <#if section = "form">
-        <h1>${msg("loginProfileTitle")}</h1>
+    <#if section = "header">
+        ${msg("loginProfileTitle")}
+    <#elseif section = "form">
         <form id="kc-update-profile-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <#if user.editUsernameAllowed>
                 <div class="${properties.kcFormGroupClass!}">

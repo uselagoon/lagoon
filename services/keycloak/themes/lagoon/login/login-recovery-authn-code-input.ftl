@@ -1,9 +1,9 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('recoveryCodeInput'); section>
 
-
-    <#if section = "form">
-        <h1>${msg("auth-recovery-code-header")}</h1>
+    <#if section = "header">
+        ${msg("auth-recovery-code-header")}
+    <#elseif section = "form">
         <form id="kc-recovery-code-login-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">

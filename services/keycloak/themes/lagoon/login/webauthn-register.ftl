@@ -1,6 +1,4 @@
     <#import "template.ftl" as layout>
-    <#import "password-commons.ftl" as passwordCommons>
-
     <@layout.registrationLayout; section>
     <#if section = "title">
         title
@@ -17,7 +15,6 @@
                 <input type="hidden" id="authenticatorLabel" name="authenticatorLabel"/>
                 <input type="hidden" id="transports" name="transports"/>
                 <input type="hidden" id="error" name="error"/>
-                <@passwordCommons.logoutOtherSessions/>
             </div>
         </form>
 
@@ -39,7 +36,7 @@
                 let userid = "${userid}";
                 let username = "${username}";
 
-                let signatureAlgorithms =[<#list signatureAlgorithms as sigAlg>${sigAlg},</#list>]
+                let signatureAlgorithms = "${signatureAlgorithms}";
                 let pubKeyCredParams = getPubKeyCredParams(signatureAlgorithms);
 
                 let rpEntityName = "${rpEntityName}";
@@ -131,12 +128,13 @@
                     });
             }
 
-            function getPubKeyCredParams(signatureAlgorithmsList) {
+            function getPubKeyCredParams(signatureAlgorithms) {
                 let pubKeyCredParams = [];
-                if (signatureAlgorithmsList === []) {
+                if (signatureAlgorithms === "") {
                     pubKeyCredParams.push({type: "public-key", alg: -7});
                     return pubKeyCredParams;
                 }
+                let signatureAlgorithmsList = signatureAlgorithms.split(',');
 
                 for (let i = 0; i < signatureAlgorithmsList.length; i++) {
                     pubKeyCredParams.push({

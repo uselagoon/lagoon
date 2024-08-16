@@ -1,8 +1,8 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout; section>
-
-    <#if section = "form">
-        <h1>${msg("oauth2DeviceVerificationTitle")}</h1>
+    <#if section = "header">
+        ${msg("oauth2DeviceVerificationTitle")}
+    <#elseif section = "form">
         <form id="kc-user-verify-device-user-code-form" class="${properties.kcFormClass!}" action="${url.oauth2DeviceVerificationAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">

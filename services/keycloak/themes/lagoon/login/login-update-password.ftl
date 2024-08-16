@@ -1,9 +1,8 @@
 <#import "template.ftl" as layout>
-
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('password','password-confirm'); section>
-
-    <#if section = "form">
-        <h1>${msg("updatePasswordTitle")}</h1>
+    <#if section = "header">
+        ${msg("updatePasswordTitle")}
+    <#elseif section = "form">
         <form id="kc-passwd-update-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <input type="text" id="username" name="username" value="${username}" autocomplete="username"
                    readonly="readonly" style="display:none;"/>
@@ -50,12 +49,11 @@
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
                     <div class="${properties.kcFormOptionsWrapperClass!}">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="logout-sessions" name="logout-sessions" value="on" checked>
-                                ${msg("logoutOtherSessions")}
-                            </label>
-                        </div>
+                        <#if isAppInitiatedAction??>
+                            <div class="checkbox">
+                                <label><input type="checkbox" id="logout-sessions" name="logout-sessions" value="on" checked> ${msg("logoutOtherSessions")}</label>
+                            </div>
+                        </#if>
                     </div>
                 </div>
 

@@ -1,6 +1,5 @@
 <#import "template.ftl" as layout>
 <#import "user-profile-commons.ftl" as userProfileCommons>
-<#import "register-commons.ftl" as registerCommons>
 <@layout.registrationLayout displayMessage=messagesPerField.exists('global') displayRequiredFields=true; section>
     <#if section = "header">
         ${msg("registerTitle")}
@@ -50,8 +49,6 @@
 		            </#if>
                 </#if>  
             </@userProfileCommons.userProfileFormFields>
-
-            <@registerCommons.termsAcceptance/>
             
             <#if recaptchaRequired??>
                 <div class="form-group">
