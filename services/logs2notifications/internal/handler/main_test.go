@@ -1,25 +1,12 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	mq "github.com/cheshir/go-mq/v2"
 )
-
-func checkEqual(t *testing.T, got, want interface{}, msgs ...interface{}) {
-	if !reflect.DeepEqual(got, want) {
-		buf := bytes.Buffer{}
-		buf.WriteString("got:\n[%v]\nwant:\n[%v]\n")
-		for _, v := range msgs {
-			buf.WriteString(v.(string))
-		}
-		t.Errorf(buf.String(), got, want)
-	}
-}
 
 func TestProcessing(t *testing.T) {
 	config := mq.Config{}

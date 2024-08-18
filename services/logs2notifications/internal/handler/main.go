@@ -10,10 +10,11 @@ import (
 
 	mq "github.com/cheshir/go-mq/v2"
 	"github.com/matryer/try"
-	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon"
-	lclient "github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/client"
-	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/jwt"
-	"github.com/uselagoon/lagoon/services/logs2notifications/internal/schema"
+
+	"github.com/uselagoon/machinery/api/lagoon"
+	lclient "github.com/uselagoon/machinery/api/lagoon/client"
+	"github.com/uselagoon/machinery/api/schema"
+	"github.com/uselagoon/machinery/utils/jwt"
 )
 
 // RabbitBroker .
@@ -31,6 +32,7 @@ type LagoonAPI struct {
 	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
+	Version         string `json:"version"`
 }
 
 // Action is the structure of an action that is received via the message queue.
@@ -38,11 +40,6 @@ type Action struct {
 	Type      string                 `json:"type"`      // defines the action type
 	EventType string                 `json:"eventType"` // defines the eventtype field in the event notification
 	Data      map[string]interface{} `json:"data"`      // contains the payload for the action, this could be any json so using a map
-}
-
-type messaging interface {
-	Consumer()
-	Publish(string, []byte)
 }
 
 // Messaging is used for the config and client information for the messaging queue.
@@ -204,7 +201,7 @@ func (h *Messaging) Consumer() {
 
 	go func() {
 		for err := range messageQueue.Error() {
-			log.Println(fmt.Sprintf("Caught error from message queue: %v", err))
+			log.Printf("Caught error from message queue: %v", err)
 		}
 	}()
 
@@ -217,7 +214,7 @@ func (h *Messaging) Consumer() {
 		message.Ack(false) // ack to remove from queue
 	})
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
+		log.Printf("Failed to set handler to consumer `%s`: %v", "items-queue", err)
 	}
 	<-forever
 }
@@ -282,7 +279,7 @@ func (h *Messaging) processMessage(message []byte) {
 }
 
 func (h *Messaging) getProjectNotifictions(ctx context.Context, projectName string) (*schema.Project, error) {
-	token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
+	token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
 		// the token wasn't generated
 		if h.EnableDebug {
@@ -291,7 +288,7 @@ func (h *Messaging) getProjectNotifictions(ctx context.Context, projectName stri
 		return nil, err
 	}
 	// get all notifications for said project
-	l := lclient.New(h.LagoonAPI.Endpoint, token, "logs2notifications", false)
+	l := lclient.New(h.LagoonAPI.Endpoint, "actions-handler", h.LagoonAPI.Version, &token, false)
 	projectNotifications, err := lagoon.NotificationsForProject(ctx, projectName, l)
 	if err != nil {
 		log.Println(err)
