@@ -391,20 +391,22 @@ export const getUsersByOrganizationId: ResolverFn = async (
         groupMembers[member].user.owner = false
         groupMembers[member].user.admin = false
         groupMembers[member].user.comment = null
-        if (groupMembers[member].user.attributes["comment"]) {
-          groupMembers[member].user.comment = groupMembers[member].user.attributes["comment"][0]
-        }
-        if (groupMembers[member].user.attributes["lagoon-organizations"]) {
-          for (const a in groupMembers[member].user.attributes["lagoon-organizations"]) {
-            if (parseInt(groupMembers[member].user.attributes["lagoon-organizations"][a]) == args.organization) {
-              groupMembers[member].user.owner = true
+        if (groupMembers[member].user.attributes) {
+          if (groupMembers[member].user.attributes["comment"]) {
+            groupMembers[member].user.comment = groupMembers[member].user.attributes["comment"][0]
+          }
+          if (groupMembers[member].user.attributes["lagoon-organizations"]) {
+            for (const a in groupMembers[member].user.attributes["lagoon-organizations"]) {
+              if (parseInt(groupMembers[member].user.attributes["lagoon-organizations"][a]) == args.organization) {
+                groupMembers[member].user.owner = true
+              }
             }
           }
-        }
-        if (groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
-          for (const a in groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
-            if (parseInt(groupMembers[member].user.attributes["lagoon-organizations-admin"][a]) == args.organization) {
-              groupMembers[member].user.admin = true
+          if (groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
+            for (const a in groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
+              if (parseInt(groupMembers[member].user.attributes["lagoon-organizations-admin"][a]) == args.organization) {
+                groupMembers[member].user.admin = true
+              }
             }
           }
         }
