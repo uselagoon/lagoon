@@ -11,11 +11,10 @@
 
 - ansible.builtin.import_playbook: python/deploy-branch.yaml
   vars:
-    testname: "PYTHON 3.9 {{ cluster_type|upper }}"
-    python_version: 3.9
+    testname: "PYTHON {{ cluster_type|upper }}"
     git_repo_name: python.git
     project: ci-python-{{ cluster_type }}
-    branch: python39
+    branch: python
     check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - ansible.builtin.import_playbook: api/delete-project.yaml

@@ -1,0 +1,63 @@
+services:
+  cli:
+    build:
+      context: .
+      dockerfile: lagoon/cli.dockerfile
+    image: builder
+    labels:
+      lagoon.type: cli-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.name: nginx
+    environment:
+      LAGOON_PROJECT: ci-drupal
+      LAGOON_ROUTE: drupal-mariadb.docker.amazee.io
+    volumes:
+      - .:/app:delegated
+    user: root
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: lagoon/nginx.dockerfile
+      args:
+        CLI_IMAGE: builder
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.size: 1Gi
+      lagoon.name: nginx
+      lagoon.deployment.servicetype: nginx
+    volumes:
+      - .:/app:delegated
+    depends_on:
+      - cli
+    ports:
+      - "8080"
+    environment:
+      LAGOON_LOCALDEV_URL: drupal-mariadb.docker.amazee.io
+  php:
+    build:
+      context: .
+      dockerfile: lagoon/php.dockerfile
+      args:
+        CLI_IMAGE: builder
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
+      lagoon.deployment.servicetype: php
+    volumes:
+      - .:/app:delegated
+    depends_on:
+      - cli
+  mariadb:
+    build:
+      context: .
+      dockerfile: lagoon/mariadb.dockerfile
+    labels:
+      lagoon.type: mariadb-single
+networks:
+  amazeeio-network:
+    external: true

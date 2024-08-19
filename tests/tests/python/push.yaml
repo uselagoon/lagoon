@@ -3,7 +3,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "python{{ python_version }}/"
+    git_files: "python/"
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/git-init.yaml
   - ansible.builtin.include_tasks: ../../tasks/git-add-commit-push.yaml
