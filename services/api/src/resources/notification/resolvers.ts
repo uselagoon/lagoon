@@ -707,7 +707,7 @@ export const getAllNotifications: ResolverFn = async (
     rows = await query(sqlClientPool, Sql.selectNotificationByNameAndType(args.name, args.type));
 
     if (rows.length === 0) {
-      throw new Error(`No notification found for ${args.name} & ${args.type}`);
+      throw new Error(`Unauthorized: You don't have permission to "view" on "notification"`);
     }
 
     if (rows.length > 0) {
