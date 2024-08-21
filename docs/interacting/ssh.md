@@ -104,7 +104,7 @@ ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-t drupa
 
 ## Copying files
 
-The common case of copying a file into your `cli` pod can be acheived with the usual SSH-compatible tools.
+The common case of copying a file into your `cli` pod can be achieved with the usual SSH-compatible tools.
 
 ### scp
 
