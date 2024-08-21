@@ -59,39 +59,47 @@ A general example of using the Lagoon API via GraphQL to add an SSH key to a use
 Connecting is straightforward and follows the following pattern:
 
 ```bash title="SSH"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST]
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}[PROJECT-ENVIRONMENT-NAME]@[HOST]
 ```
 
-* `PORT` - The remote shell SSH endpoint port (for example: `{{ defaults.sshport }}`).
 * `HOST` - The remote shell SSH endpoint host (for example `{{ defaults.sshhostname }}`).
 * `PROJECT-ENVIRONMENT-NAME` - The environment you want to connect to. This is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`.
 
 As an example:
 
 ```bash title="SSH example"
-ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }}
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}drupal-example-main@{{ defaults.sshhostname }}
 ```
 
-This will connect you to the project `drupal-example` on the environment `main`.
+This will connect you to a `cli` pod in the environment `main` of the project `drupal-example`.
 
 ### Pod/Service, Container Definition
 
-By default, the remote shell will try to connect you to the container defined with the type `cli`. If you would like to connect to another pod/service you can define it via:
+By default the remote shell will try to connect you to the first container in the pod of the service type `cli`.
+If you would like to connect to another service you can specify it using a `service=[SERVICE-NAME]` argument to the SSH command.
 
-```bash title="SSH to another service"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
+!!! Note
+    When you run the [`ssh` client](https://man7.org/linux/man-pages/man1/ssh.1.html) command with just a `USER@HOST` argument, it will assume that you want an interactive session and allocate a [pty](https://www.man7.org/linux/man-pages/man7/pty.7.html).
+    This give you a regular shell environment where you can enter commands at a prompt, send interrupts using `^C` etc.
+
+    However, when you provide an argument to the `ssh` client command, it assumes that you want a non-interactive session (e.g. just run a command and return) and will not allocate a pty.
+
+    **So when providing an argument such as `service=[SERVICE-NAME]`, if you want an interactive shell session you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.**
+
+```bash title="SSH to another service example"
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
 ```
 
 If your pod/service contains multiple containers, Lagoon will connect you to the first defined container. You can also define the specific container to connect to via:
 
 ```bash title="Define container"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
 ```
 
 For example, to connect to the `php` container within the `nginx` pod:
 
 ```bash title="SSH to php container"
-ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
 ```
 
 ## Copying files
