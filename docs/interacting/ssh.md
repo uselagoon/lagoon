@@ -54,6 +54,11 @@ A general example of using the Lagoon API via GraphQL to add an SSH key to a use
 
 ## SSH into a pod
 
+!!! Note
+    The easiest way to SSH into a pod is to use the [Lagoon CLI](https://github.com/uselagoon/lagoon-cli).
+
+    The instructions below only apply if you want to use the regular `ssh` client, or other advanced use cases.
+
 ### Connection
 
 Connecting is straightforward and follows the following pattern:
