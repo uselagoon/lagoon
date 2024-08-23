@@ -634,6 +634,15 @@ EOF
 EOF
 }
 
+function service-api_add_view-users_permission {
+	if /opt/keycloak/bin/kcadm.sh get-roles -r lagoon --uusername service-account-service-api --cclientid realm-management --config /tmp/kcadm.config | jq -e '.[].name|contains("view-users")' >/dev/null; then
+		echo "service-api already has view-users realm-management role"
+	else
+		echo "adding service-api view-users realm-management role"
+		/opt/keycloak/bin/kcadm.sh add-roles -r lagoon --uusername service-account-service-api --cclientid realm-management --rolename view-users --config $CONFIG_PATH
+	fi
+}
+
 ##################
 # Initialization #
 ##################
@@ -667,6 +676,7 @@ function configure_keycloak {
     migrate_remove_harbor_scan_permissions
     remove_deleteall_permissions_scopes
     add_update_platform_viewer_permissions
+    service-api_add_view-users_permission
 
     # always run last
     sync_client_secrets
