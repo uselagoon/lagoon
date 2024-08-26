@@ -834,6 +834,20 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.0/"/>
     </url>
     <url>
+        <loc>https://docs.lagoon.sh/releases/2.20.1/</loc>
+        <lastmod>2024-08-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.1/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.1/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/releases/2.21.0/</loc>
+        <lastmod>2024-08-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.21.0/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.21.0/"/>
+    </url>
+    <url>
         <loc>https://docs.lagoon.sh/releases/policy/</loc>
         <lastmod>2024-08-26</lastmod>
         <changefreq>daily</changefreq>
@@ -2098,6 +2112,20 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.0/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/ja/releases/2.20.1/</loc>
+        <lastmod>2024-08-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.1/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.1/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/ja/releases/2.21.0/</loc>
+        <lastmod>2024-08-26</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.21.0/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.21.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/policy/</loc>
