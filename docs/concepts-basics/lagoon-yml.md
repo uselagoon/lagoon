@@ -275,12 +275,20 @@ that's important!):
 
 ### Monitoring a specific path
 
-When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Kubernetes or OpenShift\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+!!! Info
+    Lagoon does not provide any monitoring capabilties out of the box, only labels and annotations. Check with {{ defaults.helpstring }} if monitoring is supported.
+
+Lagoon will add the label `lagoon.sh/primaryIngress=true` to the first route defined in the `.lagoon.yml` file for an environment.
+
+If a specific path on a route requires monitoring, define `monitoring-path` with the path to use. Lagoon will add this path to the annotation `monitor.stakater.com/overridePath` to the route.
 
 ```yaml title=".lagoon.yml"
 - "www.example.com":
       monitoring-path: "/bypass-cache"
 ```
+
+!!! Info
+    The annotation `monitor.stakater.com/overridePath` used by monitoring-path references the stakater monitoring controller, this is not used by Lagoon. This annotation will eventually be replaced with a `lagoon.sh` scoped annotation in the future.
 
 ### Ingress annotations
 
