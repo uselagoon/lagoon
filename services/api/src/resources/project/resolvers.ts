@@ -5,7 +5,6 @@ import { logger } from '../../loggers/logger';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { Helpers } from './helpers';
-import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
@@ -566,7 +565,7 @@ export const deleteProject: ResolverFn = async (
 
   // Remove the default project group
   try {
-    const group = await models.GroupModel.loadGroupByName(
+    const group = await models.GroupModel.loadSparseGroupByName(
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
@@ -842,7 +841,7 @@ export const updateProject: ResolverFn = async (
   // Rename the default group and user
   if (patch.name && oldProject.name !== patch.name) {
     try {
-      const group = await models.GroupModel.loadGroupByName(
+      const group = await models.GroupModel.loadSparseGroupByName(
         `project-${oldProject.name}`
       );
       await models.GroupModel.updateGroup({

@@ -1,14 +1,12 @@
 import * as R from 'ramda';
-import pickNonNil from '../util/pickNonNil';
-import { logger } from '../loggers/logger';
-import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
-import { Group } from './group';
+import type { UserRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
 import { sqlClientPool } from '../clients/sqlClient';
+import pickNonNil from '../util/pickNonNil';
 import { query } from '../util/db';
+import { toNumber } from '../util/func';
+import { Group, GroupType, KeycloakLagoonGroup } from './group';
 import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
-import { Helpers as groupHelpers } from '../resources/group/helpers';
-import { getRedisKeycloakCache } from '../clients/redisClient';
 
 interface IUserAttributes {
   comment?: [string];
@@ -36,16 +34,18 @@ interface UserEdit {
   lastName?: string;
   comment?: string;
   gitlabId?: string;
+  organization?: number;
+  remove?: boolean;
 }
 
-interface UserModel {
+export interface UserModel {
   loadAllUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (email: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
-  getAllOrganizationIdsForUser: (userInput: User) => Promise<number[]>;
-  getAllGroupsForUser: (userId: string) => Promise<Group[]>;
+  getAllOrganizationIdsForUser: (userInput: UserEdit) => Promise<number[]>;
+  getAllGroupsForUser: (userId: string, organization?: number) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userId: string, groups?: Group[]) => Promise<{}>;
   getUserRolesForProject: (
     userInput: User,
@@ -85,15 +85,6 @@ const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
 const lagoonOrganizationsAdminLens = R.lensPath(['lagoon-organizations-admin']);
 const lagoonOrganizationsViewerLens = R.lensPath(['lagoon-organizations-viewer']);
 
-const attrLagoonProjectsLens = R.compose(
-  // @ts-ignore
-  attrLens,
-  lagoonOrganizationsLens,
-  lagoonOrganizationsAdminLens,
-  lagoonOrganizationsViewerLens,
-  R.lensPath([0])
-);
-
 const attrLagoonOrgOwnerLens = R.compose(
   // @ts-ignore
   attrLens,
@@ -124,7 +115,6 @@ const attrCommentLens = R.compose(
 
 export const User = (clients: {
   keycloakAdminClient: any;
-  redisClient: any;
   sqlClientPool: any;
   esClient: any;
 }): UserModel => {
@@ -351,35 +341,44 @@ export const User = (clients: {
     return users;
   };
 
-  const getAllGroupsForUser = async (userId: string, organization?: number): Promise<Group[]> => {
+  const getAllGroupsForUser = async (
+    userId: string,
+    organization?: number,
+  ): Promise<Group[]> => {
     const GroupModel = Group(clients);
-    const roleSubgroups = await keycloakAdminClient.users.listGroups({
+    const keycloakGroups = (await keycloakAdminClient.users.listGroups({
       id: userId,
-      briefRepresentation: false
-    });
+      briefRepresentation: false,
+    })) as KeycloakLagoonGroup[];
+    const roleSubgroups = keycloakGroups.map(
+      GroupModel.createGroupFromKeycloak,
+    );
 
-    const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
-    let userGroups = [];
+    let userGroups: {
+      [key: string]: Group;
+    } = {};
     for (const ug of roleSubgroups) {
-      // push the group ids into an array of group ids only for sql lookups
-      let index = userGroups.findIndex((item) => item.name === ug.name.replace(regexp, ""));
-      if (index === -1) {
-        const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ""))
-        if (organization) {
-          const parentOrg = R.defaultTo('', R.prop('lagoon-organization',  parentGroup.attributes)).toString()
-          const orgid = parentOrg.split(',')[0]
-          if (parseInt(orgid, 10) != organization) {
-            continue
-          }
+      if (ug.type !== GroupType.ROLE_SUBGROUP || !ug.parentGroupId) {
+        continue;
+      }
+
+      if (!userGroups[ug.parentGroupId]) {
+        const parentGroup = await GroupModel.loadGroupById(ug.parentGroupId);
+        const parentOrg = parentGroup.attributes?.['lagoon-organization']?.[0];
+        if (organization && parentOrg && toNumber(parentOrg) != organization) {
+          continue;
         }
-        // only set the users role-group as the subgroup, this is because `loadGroupByName` retrieves all the subgroups not just the one the user is in
-        parentGroup.subGroups = [ug]
-        userGroups.push(parentGroup);
+        // only set the users role-group as the subgroup, this is because
+        // `loadGroupByName` retrieves all the subgroups not just the one the
+        // user is in
+        parentGroup.subGroups = parentGroup.subGroups?.filter(
+          (g) => g.id === ug.id,
+        );
+        userGroups[ug.parentGroupId] = parentGroup;
       }
     }
 
-    const retGroups = await GroupModel.transformKeycloakGroups(userGroups);
-    return retGroups;
+    return Object.values(userGroups);
   };
 
   const getAllProjectsIdsForUser = async (
@@ -550,41 +549,28 @@ export const User = (clients: {
     // set the last accessed as a unix timestamp on the user attributes
     // @TODO: no op last accessed for the time being due to raciness
     // @TODO: refactor later
-    /*
-    try {
-      const lastAccessed = {last_accessed: Math.floor(Date.now() / 1000)}
-      await keycloakAdminClient.users.update(
-        {
-          id: userInput.id
-        },
-        {
-          attributes: {
-            ...userInput.attributes,
-            ...lastAccessed
-          }
-        }
-      );
-    } catch (err) {
-      if (err.response.status && err.response.status === 404) {
-        throw new UserNotFoundError(`User not found: ${userInput.id}`);
-      } else {
-        logger.warn(`Error updating Keycloak user: ${err.message}`);
-      }
-    }
-    */
     return true
   };
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
-    // comments used to be removed when updating a user, now they aren't
-    let organizations = null;
-    let organizationsAdmin = null;
-    let organizationsView = null;
-    let comment = null;
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
-      // collect users existing attributes
+      let organizations = null;
+      let organizationsAdmin = null;
+      let organizationsView = null;
+      let comment = null;
+
+      // Since keycloak 24, partial user updates are not supported.
+      // Get the current users data to use as default.
       const user = await loadUserById(userInput.id);
+
+      const {
+        email: curEmail,
+        username: curUsername,
+        firstName: curFirstName,
+        lastName: curLastName
+      } = user;
+
       // set the comment if provided
       if (R.prop('comment', userInput)) {
         comment = {comment: R.prop('comment', userInput)}
@@ -620,10 +606,10 @@ export const User = (clients: {
           id: userInput.id
         },
         {
-          ...pickNonNil(
-            ['email', 'username', 'firstName', 'lastName'],
-            userInput
-          ),
+          email: userInput.email ?? curEmail,
+          username: userInput.username ?? curUsername,
+          firstName: userInput.firstName ?? curFirstName,
+          lastName: userInput.lastName ?? curLastName,
           attributes: {
             ...user.attributes,
             ...organizations,
@@ -679,7 +665,7 @@ export const User = (clients: {
   };
 
   const getAllOrganizationIdsForUser = async (
-    userInput: User
+    userInput: UserEdit
   ): Promise<number[]> => {
     let organizations = [];
 

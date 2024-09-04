@@ -25,12 +25,10 @@ const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 const { keycloakGrantManager } = require('./clients/keycloakClient');
-const { getRedisKeycloakCache, saveRedisKeycloakCache } = require('./clients/redisClient');
 
 const User = require('./models/user');
 const Group = require('./models/group');
-const ProjectModel = require('./models/project');
-const EnvironmentModel = require('./models/environment');
+const Environment = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -166,8 +164,7 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          ProjectModel: ProjectModel.ProjectModel(modelClients),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
+          EnvironmentModel: Environment.Environment(modelClients)
         },
         keycloakUsersGroups,
         adminScopes: {
@@ -273,8 +270,7 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          ProjectModel: ProjectModel.ProjectModel(modelClients),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
+          EnvironmentModel: Environment.Environment(modelClients)
         },
         keycloakUsersGroups,
         adminScopes: {

@@ -47,7 +47,7 @@ export const getUserBySshKey: ResolverFn = async (
   );
   const userId = R.map(R.prop('usid'), rows);
 
-  const user = await models.UserModel.loadUserById(userId);
+  const user = await models.UserModel.loadUserById(userId[0]);
 
   return user;
 };
@@ -68,7 +68,7 @@ export const getUserBySshFingerprint: ResolverFn = async (
       Sql.selectUserIdBySshFingerprint({keyFingerprint: fingerprint}),
     );
     const userId = R.map(R.prop('usid'), rows);
-    const user = await models.UserModel.loadUserById(userId);
+    const user = await models.UserModel.loadUserById(userId[0]);
     return user;
   } catch (err) {
     throw new UserNotFoundError("No user found matching provided fingerprint");
