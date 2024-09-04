@@ -180,7 +180,6 @@ services:
       # - NEW_RELIC_LICENSE_KEY=
       # - NEW_RELIC_APP_NAME=keycloak-local
     volumes:
-      - "./services/keycloak/profile.properties:/opt/keycloak/standalone/configuration/profile.properties"
       - "./services/keycloak/startup-scripts:/opt/keycloak/startup-scripts"
       - "./services/keycloak/themes/lagoon:/opt/keycloak/themes/lagoon"
       - "./local-dev/keycloak:/lagoon/keycloak"
