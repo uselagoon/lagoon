@@ -5,9 +5,8 @@ import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { sqlClientPool } from '../clients/sqlClient';
 import { esClient } from '../clients/esClient';
-import redisClient from '../clients/redisClient';
 import { query } from '../util/db';
-import { Group } from '../models/group';
+import { Group, SparseGroup } from '../models/group';
 import { User } from '../models/user';
 import { validateKey, generatePrivateKey as genpk } from '../util/func';
 import { Sql as sshKeySql } from '../resources/sshKey/sql';
@@ -30,13 +29,11 @@ interface GitlabProject {
     sqlClientPool,
     keycloakAdminClient,
     esClient,
-    redisClient
   });
   const UserModel = User({
     sqlClientPool,
     keycloakAdminClient,
     esClient,
-    redisClient
   });
 
   const projectArgs = process.argv.slice(2);
@@ -45,13 +42,14 @@ interface GitlabProject {
     return;
   }
 
-  const allGitlabProjects = (await gitlabApi.getAllProjects()) as GitlabProject[];
+  const allGitlabProjects =
+    (await gitlabApi.getAllProjects()) as GitlabProject[];
   const projectRecords = await query(
     sqlClientPool,
     'SELECT * FROM `project` WHERE name IN (:projects)',
     {
-      projects: projectArgs
-    }
+      projects: projectArgs,
+    },
   );
 
   for (const project of projectRecords) {
@@ -59,16 +57,22 @@ interface GitlabProject {
 
     const gitlabProject = R.find(
       (findProject: GitlabProject) =>
-        sanitizeGroupName(findProject.path) === project.name
-    )(allGitlabProjects);
+        sanitizeGroupName(findProject.path) === project.name,
+    )(allGitlabProjects) as GitlabProject;
 
     // Load default group
     const projectGroupName = `project-${project.name}`;
-    let keycloakGroup;
+    let keycloakGroup: SparseGroup | undefined;
     try {
-      keycloakGroup = await GroupModel.loadGroupByName(projectGroupName);
-    } catch (err) {
-      logger.error(`Could not load group ${projectGroupName}: ${err.message}`);
+      keycloakGroup = await GroupModel.loadSparseGroupByName(projectGroupName);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        logger.error(
+          `Could not load group ${projectGroupName}: ${err.message}`,
+        );
+      } else {
+        throw err;
+      }
     }
 
     // //////////////////////
@@ -77,25 +81,35 @@ interface GitlabProject {
     if (R.prop('privateKey', project)) {
       let keyPair = {} as any;
       try {
-        const privkey = new Buffer((R.prop('privateKey', project))).toString('base64')
-        const publickey = await validateKey(privkey, "private")
+        const privkey = new Buffer(R.prop('privateKey', project)).toString(
+          'base64',
+        );
+        const publickey = await validateKey(privkey, 'private');
         keyPair = {
           ...keyPair,
-          private: R.replace(/\n/g, '\n', (R.prop('privateKey', project)).toString('openssh')),
+          private: R.replace(
+            /\n/g,
+            '\n',
+            R.prop('privateKey', project).toString('openssh'),
+          ),
           public: publickey['publickey'],
-          fingerprint: publickey['sha256fingerprint']
+          fingerprint: publickey['sha256fingerprint'],
         };
-      } catch (err) {
-        throw new Error(
-          `There was an error with the privateKey: ${err.message}`
-        );
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          throw new Error(
+            `There was an error with the privateKey: ${err.message}`,
+          );
+        } else {
+          throw err;
+        }
       }
       const keyParts = keyPair.public.split(' ');
 
       // Delete users with current key
       const userRows = await query(
         sqlClientPool,
-        sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint)
+        sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint),
       );
 
       for (const userRow of userRows) {
@@ -103,9 +117,11 @@ interface GitlabProject {
 
         try {
           await UserModel.deleteUser(userId);
-        } catch (err) {
-          if (!err.message.includes('User not found')) {
-            throw new Error(err);
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            if (!err.message.includes('User not found')) {
+              throw err;
+            }
           }
         }
 
@@ -114,8 +130,8 @@ interface GitlabProject {
           sqlClientPool,
           'DELETE FROM ssh_key WHERE key_value = :key',
           {
-            key: keyParts[1]
-          }
+            key: keyParts[1],
+          },
         );
 
         // Delete user_ssh_key link
@@ -123,8 +139,8 @@ interface GitlabProject {
           sqlClientPool,
           'DELETE FROM user_ssh_key WHERE usid = :usid',
           {
-            usid: userId
-          }
+            usid: userId,
+          },
         );
       }
 
@@ -133,8 +149,8 @@ interface GitlabProject {
         sqlClientPool,
         'UPDATE project p SET private_key = NULL WHERE id = :pid',
         {
-          pid: project.id
-        }
+          pid: project.id,
+        },
       );
     }
 
@@ -143,12 +159,12 @@ interface GitlabProject {
     // ////////////////
 
     // Generate new keypair
-    const genkey = await genpk()
+    const genkey = await genpk();
     const keyPair = {
       private: genkey['privatekeypem'],
       public: genkey['publickey'],
       fingerprint: genkey['sha256fingerprint'],
-      type: genkey['type']
+      type: genkey['type'],
     };
 
     // Save the newly generated key
@@ -157,25 +173,25 @@ interface GitlabProject {
       'UPDATE project p SET private_key = :pkey WHERE id = :pid',
       {
         pkey: keyPair.private,
-        pid: project.id
-      }
+        pid: project.id,
+      },
     );
 
     // Find or create a user that has the public key linked to them
     const userRows = await query(
       sqlClientPool,
-      sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint)
+      sshKeySql.selectUserIdsBySshKeyFingerprint(keyPair.fingerprint),
     );
     const userId = R.path([0, 'usid'], userRows) as string;
 
-    let user;
+    let user: (User & { id: string }) | undefined;
     if (!userId) {
       try {
-        user = await UserModel.addUser({
+        user = (await UserModel.addUser({
           email: `default-user@${project.name}`,
           username: `default-user@${project.name}`,
-          comment: `autogenerated user for project ${project.name}`
-        });
+          comment: `autogenerated user for project ${project.name}`,
+        })) as User & { id: string };
 
         const keyParts = keyPair.public.split(' ');
 
@@ -186,38 +202,54 @@ interface GitlabProject {
             name: 'auto-add via reset',
             keyValue: keyParts[1],
             keyType: keyParts[0],
-            keyFingerprint: keyPair.fingerprint
-          })
+            keyFingerprint: keyPair.fingerprint,
+          }),
         );
         await query(
           sqlClientPool,
-          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
         );
-      } catch (err) {
-        logger.error(
-          `Could not create default project user for ${project.name}: ${err.message}`
-        );
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          logger.error(
+            `Could not create default project user for ${project.name}: ${err.message}`,
+          );
+        } else {
+          throw err;
+        }
       }
     } else {
-      user = await UserModel.loadUserById(userId);
+      user = (await UserModel.loadUserById(userId)) as User & { id: string };
     }
 
-    // Add the user (with linked public key) to the default group as maintainer
-    try {
-      await GroupModel.addUserToGroup(user, keycloakGroup, 'maintainer');
-    } catch (err) {
-      logger.error(
-        `Could not link user to default projet group for ${project.name}: ${err.message}`
-      );
+    if (user && keycloakGroup) {
+      // Add the user (with linked public key) to the default group as maintainer
+      try {
+        await GroupModel.addUserToGroup(
+          user,
+          { id: keycloakGroup.id },
+          'maintainer',
+        );
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          logger.error(
+            `Could not link user to default projet group for ${project.name}: ${err.message}`,
+          );
+        } else {
+          throw err;
+        }
+      }
     }
 
     try {
       await gitlabApi.addDeployKeyToProject(gitlabProject.id, keyPair.public);
-    } catch (err) {
-      if (!err.message.includes('has already been taken')) {
-        throw new Error(
-          `Could not add deploy_key to gitlab project ${gitlabProject.id}, reason: ${err}`
-        );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (!err.message.includes('has already been taken')) {
+          throw new Error(
+            `Could not add deploy_key to gitlab project ${gitlabProject.id}, reason: ${err}`,
+          );
+        }
       }
     }
   }

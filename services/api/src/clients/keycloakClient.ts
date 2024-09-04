@@ -30,9 +30,8 @@ const keycloakConfig = new KeycloakConfig({
 export const keycloakGrantManager = new KeycloakGrantManager(keycloakConfig);
 
 // Override the library "validateToken" function because it is very strict about
-// verifying the ISS, which is the URI of the keycloak server. This will almost
-// always fail since the URI will be different for end users authenticated via
-// the web console and services communicating via backchannel.
+// verifying the ISS, which is the URI of the keycloak server. This fails when
+// the URL used in the UI doesn't match what's used in the API.
 keycloakGrantManager.validateToken = function validateToken(
   token,
   expectedType

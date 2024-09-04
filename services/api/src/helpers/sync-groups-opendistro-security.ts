@@ -2,7 +2,6 @@ import * as R from 'ramda';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sqlClientPool } from '../clients/sqlClient';
 import { esClient } from '../clients/esClient';
-import redisClient from '../clients/redisClient';
 import { Group } from '../models/group';
 import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
@@ -13,7 +12,6 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
     sqlClientPool,
     keycloakAdminClient,
     esClient,
-    redisClient
   });
 
   const groupRegex = process.env.GROUP_REGEX

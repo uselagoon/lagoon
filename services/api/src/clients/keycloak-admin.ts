@@ -3,6 +3,22 @@ import { KeycloakAdminClient } from '@s3pweb/keycloak-admin-client-cjs';
 import { logger } from '../loggers/logger';
 import { config } from './keycloakClient';
 
+/// Helper to type check try/catch. Remove when we can stop using the @s3pweb
+// commonJS version.
+export const isNetworkError = (
+  error: unknown,
+): error is {
+  response: {
+    status: number;
+  };
+} => {
+  return (
+    typeof error === 'object' &&
+    'response' in error &&
+    typeof error.response === 'object'
+  );
+};
+
 export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => {
   const keycloakAdminClient = new KeycloakAdminClient({
     baseUrl: `${config.origin}/auth`,

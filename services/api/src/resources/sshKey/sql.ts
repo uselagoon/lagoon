@@ -48,7 +48,7 @@ export const Sql = {
     keyType,
     keyFingerprint,
   }: {
-    id: number,
+    id: number | null,
     name: string,
     keyValue: string,
     keyType: string,
@@ -64,7 +64,7 @@ export const Sql = {
       })
       .toString(),
   addSshKeyToUser: (
-    { sshKeyId, userId }: { sshKeyId: number, userId: number }) =>
+    { sshKeyId, userId }: { sshKeyId: number, userId: string }) =>
     knex('user_ssh_key')
       .insert({
         usid: userId,

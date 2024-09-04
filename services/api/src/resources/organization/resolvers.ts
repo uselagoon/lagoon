@@ -5,7 +5,7 @@ import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers} from './helpers';
 import { Sql } from './sql';
-import { arrayDiff } from '../../util/func';
+import { arrayDiff, toNumber } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
@@ -500,10 +500,9 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
     });
 
     const group = await models.GroupModel.loadGroupByName(name);
-    if (R.prop('lagoon-organization', group.attributes)) {
-      if (R.prop('lagoon-organization', group.attributes).toString() == organization) {
-        return group
-      }
+    const groupOrg = group.attributes?.['lagoon-organization']?.[0];
+    if (groupOrg && toNumber(groupOrg) == organization) {
+      return group
     }
   } catch (err) {
       return [];

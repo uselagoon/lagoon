@@ -3,7 +3,6 @@ import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { getKeycloakAdminClient } from '../../../clients/keycloak-admin';
 import { sqlClientPool } from '../../../clients/sqlClient';
 import { esClient } from '../../../clients/esClient';
-import redisClient from '../../../clients/redisClient';
 import { Group } from '../../../models/group';
 import { Helpers } from '../../../resources/group/helpers';
 
@@ -14,7 +13,6 @@ export const up = async (migrate) => {
     sqlClientPool,
     keycloakAdminClient,
     esClient,
-    redisClient
   });
 
   // load all groups from keycloak

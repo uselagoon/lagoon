@@ -1,14 +1,12 @@
 import * as R from 'ramda';
-import pickNonNil from '../util/pickNonNil';
-import { logger } from '../loggers/logger';
 import type { UserRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
-import { Group } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
+import pickNonNil from '../util/pickNonNil';
 import { query } from '../util/db';
+import { toNumber } from '../util/func';
+import { Group, GroupType, KeycloakLagoonGroup } from './group';
 import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
-import { Helpers as groupHelpers } from '../resources/group/helpers';
-import { getRedisKeycloakCache } from '../clients/redisClient';
 
 interface IUserAttributes {
   comment?: [string];
@@ -36,16 +34,18 @@ interface UserEdit {
   lastName?: string;
   comment?: string;
   gitlabId?: string;
+  organization?: number;
+  remove?: boolean;
 }
 
-interface UserModel {
+export interface UserModel {
   loadAllUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (email: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
-  getAllOrganizationIdsForUser: (userInput: User) => Promise<number[]>;
-  getAllGroupsForUser: (userId: string) => Promise<Group[]>;
+  getAllOrganizationIdsForUser: (userInput: UserEdit) => Promise<number[]>;
+  getAllGroupsForUser: (userId: string, organization?: number) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userId: string, groups?: Group[]) => Promise<{}>;
   getUserRolesForProject: (
     userInput: User,
@@ -85,15 +85,6 @@ const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
 const lagoonOrganizationsAdminLens = R.lensPath(['lagoon-organizations-admin']);
 const lagoonOrganizationsViewerLens = R.lensPath(['lagoon-organizations-viewer']);
 
-const attrLagoonProjectsLens = R.compose(
-  // @ts-ignore
-  attrLens,
-  lagoonOrganizationsLens,
-  lagoonOrganizationsAdminLens,
-  lagoonOrganizationsViewerLens,
-  R.lensPath([0])
-);
-
 const attrLagoonOrgOwnerLens = R.compose(
   // @ts-ignore
   attrLens,
@@ -124,7 +115,6 @@ const attrCommentLens = R.compose(
 
 export const User = (clients: {
   keycloakAdminClient: any;
-  redisClient: any;
   sqlClientPool: any;
   esClient: any;
 }): UserModel => {
@@ -351,35 +341,44 @@ export const User = (clients: {
     return users;
   };
 
-  const getAllGroupsForUser = async (userId: string, organization?: number): Promise<Group[]> => {
+  const getAllGroupsForUser = async (
+    userId: string,
+    organization?: number,
+  ): Promise<Group[]> => {
     const GroupModel = Group(clients);
-    const roleSubgroups = await keycloakAdminClient.users.listGroups({
+    const keycloakGroups = (await keycloakAdminClient.users.listGroups({
       id: userId,
-      briefRepresentation: false
-    });
+      briefRepresentation: false,
+    })) as KeycloakLagoonGroup[];
+    const roleSubgroups = keycloakGroups.map(
+      GroupModel.createGroupFromKeycloak,
+    );
 
-    const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
-    let userGroups = [];
+    let userGroups: {
+      [key: string]: Group;
+    } = {};
     for (const ug of roleSubgroups) {
-      // push the group ids into an array of group ids only for sql lookups
-      let index = userGroups.findIndex((item) => item.name === ug.name.replace(regexp, ""));
-      if (index === -1) {
-        const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ""))
-        if (organization) {
-          const parentOrg = R.defaultTo('', R.prop('lagoon-organization',  parentGroup.attributes)).toString()
-          const orgid = parentOrg.split(',')[0]
-          if (parseInt(orgid, 10) != organization) {
-            continue
-          }
+      if (ug.type !== GroupType.ROLE_SUBGROUP || !ug.parentGroupId) {
+        continue;
+      }
+
+      if (!userGroups[ug.parentGroupId]) {
+        const parentGroup = await GroupModel.loadGroupById(ug.parentGroupId);
+        const parentOrg = parentGroup.attributes?.['lagoon-organization']?.[0];
+        if (organization && parentOrg && toNumber(parentOrg) != organization) {
+          continue;
         }
-        // only set the users role-group as the subgroup, this is because `loadGroupByName` retrieves all the subgroups not just the one the user is in
-        parentGroup.subGroups = [ug]
-        userGroups.push(parentGroup);
+        // only set the users role-group as the subgroup, this is because
+        // `loadGroupByName` retrieves all the subgroups not just the one the
+        // user is in
+        parentGroup.subGroups = parentGroup.subGroups?.filter(
+          (g) => g.id === ug.id,
+        );
+        userGroups[ug.parentGroupId] = parentGroup;
       }
     }
 
-    const retGroups = await GroupModel.transformKeycloakGroups(userGroups);
-    return retGroups;
+    return Object.values(userGroups);
   };
 
   const getAllProjectsIdsForUser = async (
@@ -679,7 +678,7 @@ export const User = (clients: {
   };
 
   const getAllOrganizationIdsForUser = async (
-    userInput: User
+    userInput: UserEdit
   ): Promise<number[]> => {
     let organizations = [];
 
