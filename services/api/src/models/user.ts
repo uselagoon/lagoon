@@ -549,41 +549,28 @@ export const User = (clients: {
     // set the last accessed as a unix timestamp on the user attributes
     // @TODO: no op last accessed for the time being due to raciness
     // @TODO: refactor later
-    /*
-    try {
-      const lastAccessed = {last_accessed: Math.floor(Date.now() / 1000)}
-      await keycloakAdminClient.users.update(
-        {
-          id: userInput.id
-        },
-        {
-          attributes: {
-            ...userInput.attributes,
-            ...lastAccessed
-          }
-        }
-      );
-    } catch (err) {
-      if (err.response.status && err.response.status === 404) {
-        throw new UserNotFoundError(`User not found: ${userInput.id}`);
-      } else {
-        logger.warn(`Error updating Keycloak user: ${err.message}`);
-      }
-    }
-    */
     return true
   };
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
-    // comments used to be removed when updating a user, now they aren't
-    let organizations = null;
-    let organizationsAdmin = null;
-    let organizationsView = null;
-    let comment = null;
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
-      // collect users existing attributes
+      let organizations = null;
+      let organizationsAdmin = null;
+      let organizationsView = null;
+      let comment = null;
+
+      // Since keycloak 24, partial user updates are not supported.
+      // Get the current users data to use as default.
       const user = await loadUserById(userInput.id);
+
+      const {
+        email: curEmail,
+        username: curUsername,
+        firstName: curFirstName,
+        lastName: curLastName
+      } = user;
+
       // set the comment if provided
       if (R.prop('comment', userInput)) {
         comment = {comment: R.prop('comment', userInput)}
@@ -619,10 +606,10 @@ export const User = (clients: {
           id: userInput.id
         },
         {
-          ...pickNonNil(
-            ['email', 'username', 'firstName', 'lastName'],
-            userInput
-          ),
+          email: userInput.email ?? curEmail,
+          username: userInput.username ?? curUsername,
+          firstName: userInput.firstName ?? curFirstName,
+          lastName: userInput.lastName ?? curLastName,
           attributes: {
             ...user.attributes,
             ...organizations,
