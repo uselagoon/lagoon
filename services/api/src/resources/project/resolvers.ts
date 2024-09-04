@@ -5,7 +5,6 @@ import { logger } from '../../loggers/logger';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { Helpers } from './helpers';
-import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';

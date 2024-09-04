@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
-import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
+import type { UserRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
 import { Group } from './group';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';

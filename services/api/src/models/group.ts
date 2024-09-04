@@ -3,7 +3,7 @@ import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
-import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
+import type { GroupRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
 import { User } from './user';
 import { groupCacheExpiry, get, del, redisClient } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
