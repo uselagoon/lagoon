@@ -5584,10 +5584,19 @@ Authority (CA) to a Let's Encrypt certificate, it's best to get in touch
 with your Lagoon administrator to oversee the transition.</p>
 </div>
 <h3 id="monitoring-a-specific-path">Monitoring a specific path<a class="headerlink" href="#monitoring-a-specific-path" title="Permanent link">#</a></h3>
-<p>When <a href="https://uptimerobot.com/">UptimeRobot</a> is configured for your cluster (Kubernetes or OpenShift), Lagoon will inject annotations to each route/ingress for use by the <code>stakater/IngressControllerMonitor</code>. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a <code>monitoring-path</code> to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Lagoon does not provide any monitoring capabilties out of the box, only labels and annotations. Check with your Lagoon administrator if monitoring is supported.</p>
+</div>
+<p>Lagoon will add the label <code>lagoon.sh/primaryIngress=true</code> to the first route defined in the <code>.lagoon.yml</code> file for an environment.</p>
+<p>If a specific path on a route requires monitoring, define <code>monitoring-path</code> with the path to use. Lagoon will add this path to the annotation <code>monitor.stakater.com/overridePath</code> to the route.</p>
 <div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;www.example.com&quot;</span><span class="p p-Indicator">:</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">      </span><span class="nt">monitoring-path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/bypass-cache&quot;</span>
 </span></code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>The annotation <code>monitor.stakater.com/overridePath</code> used by monitoring-path references the stakater monitoring controller, this is not used by Lagoon. This annotation will eventually be replaced with a <code>lagoon.sh</code> scoped annotation in the future.</p>
+</div>
 <h3 id="ingress-annotations">Ingress annotations<a class="headerlink" href="#ingress-annotations" title="Permanent link">#</a></h3>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
