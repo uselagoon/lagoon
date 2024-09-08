@@ -252,9 +252,6 @@ routes:
 
 environments:
   main:
-    monitoring_urls:
-      - "www.example.com"
-      - "www.example.com/special_page"
     routes:
       - nginx:
         - example.com
@@ -351,15 +348,6 @@ The following options are allowed:
 ### Environments
 
 Environment names match your deployed branches or pull requests. This allows each environment to have a different configuration. In this example, we have the environments main and staging.
-
-#### Monitoring a Specific Path
-
-When UptimeRobot is configured for your cluster, Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
-
-```yaml title=".lagoon.yml example"
-     - "www.example.com":
-            monitoring-path: "/bypass-cache"
-```
 
 #### `environments.[name].routes`
 
