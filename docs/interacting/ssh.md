@@ -54,66 +54,79 @@ A general example of using the Lagoon API via GraphQL to add an SSH key to a use
 
 ## SSH into a pod
 
+!!! Note
+    The easiest way to SSH into a pod is to use the [Lagoon CLI](https://github.com/uselagoon/lagoon-cli).
+
+    The instructions below only apply if you want to use the regular `ssh` client, or other advanced use cases.
+
 ### Connection
 
 Connecting is straightforward and follows the following pattern:
 
 ```bash title="SSH"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST]
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}[PROJECT-ENVIRONMENT-NAME]@[HOST]
 ```
 
-* `PORT` - The remote shell SSH endpoint port (for example: `{{ defaults.sshport }}`).
 * `HOST` - The remote shell SSH endpoint host (for example `{{ defaults.sshhostname }}`).
 * `PROJECT-ENVIRONMENT-NAME` - The environment you want to connect to. This is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`.
 
 As an example:
 
 ```bash title="SSH example"
-ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }}
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}drupal-example-main@{{ defaults.sshhostname }}
 ```
 
-This will connect you to the project `drupal-example` on the environment `main`.
+This will connect you to a `cli` pod in the environment `main` of the project `drupal-example`.
 
 ### Pod/Service, Container Definition
 
-By default, the remote shell will try to connect you to the container defined with the type `cli`. If you would like to connect to another pod/service you can define it via:
+By default the remote shell will try to connect you to the first container in the pod of the service type `cli`.
+If you would like to connect to another service you can specify it using a `service=[SERVICE-NAME]` argument to the SSH command.
 
-```bash title="SSH to another service"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
+!!! Note
+    When you run the [`ssh` client](https://man7.org/linux/man-pages/man1/ssh.1.html) command with just a `USER@HOST` argument, it will assume that you want an interactive session and allocate a [pty](https://www.man7.org/linux/man-pages/man7/pty.7.html).
+    This give you a regular shell environment where you can enter commands at a prompt, send interrupts using `^C` etc.
+
+    However, when you provide an argument to the `ssh` client command, it assumes that you want a non-interactive session (e.g. just run a command and return) and will not allocate a pty.
+
+    **So when providing an argument such as `service=[SERVICE-NAME]`, if you want an interactive shell session you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.**
+
+```bash title="SSH to another service example"
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
 ```
 
 If your pod/service contains multiple containers, Lagoon will connect you to the first defined container. You can also define the specific container to connect to via:
 
 ```bash title="Define container"
-ssh -p [PORT] -t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
+ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
 ```
 
 For example, to connect to the `php` container within the `nginx` pod:
 
 ```bash title="SSH to php container"
-ssh -p {{ defaults.sshport }} -t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
 ```
 
 ## Copying files
 
-The common case of copying a file into your `cli` pod can be acheived with the usual SSH-compatible tools.
+The common case of copying a file into your `cli` pod can be achieved with the usual SSH-compatible tools.
 
 ### scp
 
 ```bash title="Copy file with scp"
-scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
+scp {% if defaults.sshport != 22 %}-P {{ defaults.sshport }} {% endif %}[local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
 ```
 
 ### rsync
 
 ```bash title="Copy files with rsync"
-rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }}' [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
+rsync {% if defaults.sshport != 22 %}--rsh='ssh -p {{ defaults.sshport }}'{% else %}--rsh=ssh{% endif %} [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
 ```
 
 ### tar
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [project_name]-[environment_name]@{{ defaults.sshhostname }} tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}[project_name]-[environment_name]@{{ defaults.sshhostname }} tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
 ### Specifying non-CLI pod/service
@@ -123,7 +136,7 @@ In the rare case that you need to specify a non-CLI service you can specify the 
 Piping `tar` through the `ssh` connection is the simplest method, and can be used to copy a file or directory using the usual `tar` flags:
 
 ```bash
-ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P {{ defaults.sshport }} [project_name]-[environment_name]@{{ defaults.sshhostname }} service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}[project_name]-[environment_name]@{{ defaults.sshhostname }} service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
 You can also use `rsync` with a wrapper script to reorder the arguments to `ssh` in the manner required by Lagoon's SSH service:
@@ -132,7 +145,7 @@ You can also use `rsync` with a wrapper script to reorder the arguments to `ssh`
 #!/usr/bin/env sh
 svc=$1 user=$3 host=$4
 shift 4
-exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p {{ defaults.sshport }} -l "$user" "$host" "$svc" "$@"
+exec ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-l "$user" "$host" "$svc" "$@"
 ```
 
 Put that in an executable shell script `rsh.sh` and specify the `service=...` in the `rsync` command:
