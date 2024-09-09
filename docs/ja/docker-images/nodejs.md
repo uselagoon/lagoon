@@ -11,9 +11,9 @@ Node.jsのイメージは2つのバージョンがあります。通常の`node:
 * 12 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-12`
 * 14 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-14`
 * 16 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-16`
-* 18 \(互換性のためのみ利用可能、公式サポートは終了しています\) - `uselagoon/node-18`
-* 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (2025年4月までのセキュリティサポート) - `uselagoon/node-20`
-* 22 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/22.Dockerfile) (2026年4月までのセキュリティサポート) - `uselagoon/node-22`
+* 18 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/18.Dockerfile) (2025年4月までのセキュリティサポート) - `uselagoon/node-18`
+* 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (2026年4月までのセキュリティサポート) - `uselagoon/node-20`
+* 22 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/22.Dockerfile) (2027年4月までのセキュリティサポート) - `uselagoon/node-22`
 
 !!! Tip "ヒント"
     Lagoonは、公式にアナウンスされた終了日(EOL)の後にリリースされるバージョンで、EOLに達したNode.jsイメージの更新を停止します。詳細は[https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/)を参照して下さい。

@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'docs/**'
+      - 'mkdocs'
   pull_request:
     branches:
       - 'main'
