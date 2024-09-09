@@ -511,7 +511,7 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-  const { name } = input;
+  const { name, patch: {name: newName = ''} } = input;
   const check = await query(
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
@@ -535,7 +535,7 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectNotificationMicrosoftTeamsByName(name)
+    Sql.selectNotificationMicrosoftTeamsByName(newName ? newName : name)
   );
 
   return R.prop(0, rows);
@@ -552,7 +552,7 @@ export const updateNotificationWebhook: ResolverFn = async (
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-  const { name } = input;
+  const { name, patch: {name: newName = ''} } = input;
   const check = await query(
     sqlClientPool,
     Sql.selectNotificationWebhookByName(name)
@@ -576,7 +576,7 @@ export const updateNotificationWebhook: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectNotificationWebhookByName(name),
+    Sql.selectNotificationWebhookByName(newName ? newName : name),
   );
 
   return R.prop(0, rows);
@@ -590,7 +590,7 @@ export const updateNotificationEmail: ResolverFn = async (
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-  const { name } = input;
+  const { name, patch: {name: newName = ''} } = input;
   const check = await query(
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
@@ -614,7 +614,7 @@ export const updateNotificationEmail: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectNotificationEmailByName(name)
+    Sql.selectNotificationEmailByName(newName ? newName : name)
   );
 
   return R.prop(0, rows);
@@ -628,7 +628,7 @@ export const updateNotificationRocketChat: ResolverFn = async (
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-  const { name } = input;
+  const { name, patch: {name: newName = ''} } = input;
   const check = await query(
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
@@ -652,7 +652,7 @@ export const updateNotificationRocketChat: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectNotificationRocketChatByName(name)
+    Sql.selectNotificationRocketChatByName(newName ? newName : name)
   );
 
   return R.prop(0, rows);
@@ -666,7 +666,7 @@ export const updateNotificationSlack: ResolverFn = async (
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
-  const { name } = input;
+  const { name, patch: {name: newName = ''} } = input;
   const check = await query(
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)
@@ -690,7 +690,7 @@ export const updateNotificationSlack: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectNotificationSlackByName(name)
+    Sql.selectNotificationSlackByName(newName ? newName : name)
   );
 
   return R.prop(0, rows);
