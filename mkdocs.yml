@@ -49,6 +49,7 @@ nav:
       - Solr: docker-images/solr.md
       - Redis: docker-images/redis.md
       - Varnish: docker-images/varnish.md
+      - Deprecated Images: docker-images/deprecated-images.md
     - Configuring Applications:
       - Overview: applications/index.md
       - Options: applications/options.md
@@ -363,6 +364,7 @@ plugins:
         # Shortcut URLs for build and compose errors
         'lagoon-build-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md'
         'docker-compose-errors.md': 'using-lagoon-the-basics/lagoon-build-errors-and-warnings.md#docker-compose-errors'
+        'deprecated-images.md': 'docker-images/deprecated-images.md'
         # Redirect existing Gitbooks traffic from lagoon/* prefix
         'lagoon/README.md': 'README.md'
         'lagoon/getting-started/README.md': 'README.md'
