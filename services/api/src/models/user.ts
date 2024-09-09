@@ -24,6 +24,7 @@ export interface User {
   attributes?: IUserAttributes;
   owner?: boolean;
   admin?: boolean;
+  organizationRole?: string;
 }
 
 interface UserEdit {
@@ -163,7 +164,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner', 'organizationRole']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -320,9 +321,14 @@ export const User = (clients: {
     let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
       filteredOwners[f1].owner = true
+      filteredOwners[f1].organizationRole = "OWNER"
     }
     for (const f1 in filteredAdmins) {
       filteredAdmins[f1].admin = true
+      filteredAdmins[f1].organizationRole = "ADMIN"
+    }
+    for (const f1 in filteredViewers) {
+      filteredViewers[f1].organizationRole = "VIEWER"
     }
     const orgUsers = [...filteredOwners, ...filteredAdmins, ...filteredViewers]
 

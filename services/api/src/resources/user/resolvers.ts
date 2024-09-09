@@ -218,7 +218,7 @@ export const deleteUser: ResolverFn = async (
   return 'success';
 };
 
-// addUserToOrganization adds a user as an organization owner
+// @DEPRECATED use addAdminToOrganization - addUserToOrganization adds a user as an organization owner
 export const addUserToOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organization, admin: admin, owner: owner } },
@@ -227,7 +227,15 @@ export const addUserToOrganization: ResolverFn = async (
 
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
   if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
+    let scope = "addViewer"
+    if (owner) {
+      scope = "addOwner"
+    } else {
+      if (admin) {
+        scope = "addOwner"
+      }
+    }
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
   }
 
   const user = await models.UserModel.loadUserByIdOrUsername({
@@ -278,7 +286,7 @@ export const addUserToOrganization: ResolverFn = async (
 
 };
 
-// removeUserFromOrganization a user as an organization owner
+// @DEPRECATED use removeAdminFromOrganization - removeUserFromOrganization a user as an organization owner
 export const removeUserFromOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organization } },
@@ -287,7 +295,7 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
   if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
+    throw new Error(`Unauthorized: You don't have permission to "addOwner" on "organization"`)
   }
 
   const user = await models.UserModel.loadUserByIdOrUsername({
@@ -312,6 +320,120 @@ export const removeUserFromOrganization: ResolverFn = async (
       user: {
         id: user.id,
         organization: organization,
+      },
+    }
+  });
+
+  return organizationData;
+};
+
+// addAdminToOrganization adds a user as an organization administrator
+export const addAdminToOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization, role } },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
+) => {
+  let updateUser = {
+    id: "",
+    admin: false,
+    owner: false,
+    organization: 0
+  }
+  let scope = "addOwner"
+  switch (role) {
+    case "ADMIN":
+      scope = "addOwner"
+      updateUser.admin = true
+      break;
+    case "OWNER":
+      scope = "addOwner"
+      updateUser.owner = true
+      break;
+    case "VIEWER": //fallthrough default
+    default:
+      scope = "addViewer"
+      updateUser.admin = false
+      updateUser.owner = false
+      break;
+  }
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationByOrganizationInput(
+    organization,
+    scope,
+    "organization"
+  );
+  if (organizationData === undefined) {
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    email: R.prop('email', userInput),
+  });
+
+  updateUser.id = user.id
+  updateUser.organization = organizationData.id
+
+  await hasPermission('organization', scope, {
+    organization: organizationData.id
+  });
+
+  await models.UserModel.updateUser(updateUser);
+
+  userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:addAdminToOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+        organization: organizationData.id,
+        role: role,
+      },
+    }
+  });
+
+  return organizationData;
+};
+
+// removeAdminFromOrganization an administrator from and organization
+export const removeAdminFromOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization } },
+  { sqlClientPool, models, hasPermission, userActivityLogger },
+) => {
+
+  const scope = 'addOwner'
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationByOrganizationInput(
+    organization,
+    scope,
+    "organization"
+  );
+  if (organizationData === undefined) {
+    throw new Error(`Unauthorized: You don't have permission to scope on "organization"`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    email: R.prop('email', userInput),
+  });
+
+  await hasPermission('organization', scope, {
+    organization: organizationData.id
+  });
+
+  await models.UserModel.updateUser({
+    id: user.id,
+    organization: organizationData.id,
+    remove: true,
+  });
+
+  userActivityLogger(`User removed an administrator from organization '${organizationData.name}'`, {
+    project: '',
+    event: 'api:removeAdminFromOrganization',
+    payload: {
+      user: {
+        id: user.id,
+        organization: organizationData.id,
       },
     }
   });
