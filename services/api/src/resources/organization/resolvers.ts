@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
 import { query, isPatchEmpty, knex } from '../../util/db';
+import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers} from './helpers';
 import { Sql } from './sql';
@@ -489,25 +490,22 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
 }
 
 // list all groups by organization id
-export const getGroupsByNameAndOrganizationId: ResolverFn = async (
-  root,
+export const getGroupByNameAndOrganizationId: ResolverFn = async (
+  _,
   { name, organization },
-  { hasPermission, models, keycloakGrant }
+  { hasPermission, models }
 ) => {
-  try {
-    await hasPermission('organization', 'viewGroup', {
-      organization: organization,
-    });
+  await hasPermission('organization', 'viewGroup', {
+    organization: organization,
+  });
 
-    const group = await models.GroupModel.loadGroupByName(name);
-    const groupOrg = group.attributes?.['lagoon-organization']?.[0];
-    if (groupOrg && toNumber(groupOrg) == organization) {
-      return group
-    }
-  } catch (err) {
-      return [];
+  const group = await models.GroupModel.loadGroupByName(name);
+  const groupOrg = group.attributes?.['lagoon-organization']?.[0];
+  if (!groupOrg || toNumber(groupOrg) != organization) {
+    throw new GroupNotFoundError(`Group not found: ${name}`);
   }
-  return [];
+
+  return group;
 };
 
 export const getGroupCountByOrganizationProject: ResolverFn = async (
