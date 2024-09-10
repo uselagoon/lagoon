@@ -85,7 +85,6 @@ services:
     volumes:
       - ./services/api/src:/app/services/api/src
     environment:
-      - KEYCLOAK_URL=http://172.17.0.1:8088
       - NODE_ENV=development
       - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
@@ -103,7 +102,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     environment:
-      - KEYCLOAK_URL=http://172.17.0.1:8088
+      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/
       - NODE_ENV=development
       - OPENSEARCH_INTEGRATION_ENABLED=false
       - DISABLE_CORE_HARBOR=true
