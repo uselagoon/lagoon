@@ -54,7 +54,7 @@
     "morgan": "^1.9.0",
     "mysql": "^2.18.1",
     "newrelic": "^6.9.0",
-    "node-cache": "^4.2.1",
+    "node-cache": "^5.1.0",
     "rabbit-chatter": "^2.0.0",
     "ramda": "0.25.0",
     "redis": "^3.0.2",
