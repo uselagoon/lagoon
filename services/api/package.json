@@ -59,7 +59,7 @@
     "ramda": "0.25.0",
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
-    "validator": "^10.8.0",
+    "validator": "^13.12.0",
     "winston": "^3",
     "winston-transport": "^4.4.0"
   },
