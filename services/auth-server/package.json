@@ -30,7 +30,6 @@
     "express": "^4.16.2",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.9.0",
-    "nano": "^6.4.3",
     "ramda": "0.25.0",
     "winston": "^3"
   },
