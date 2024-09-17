@@ -27,3 +27,9 @@ There is an error in your Docker Compose file, most likely relating to a malform
 ```
 
 There is an error in your Docker Compose file, most likely relating to a malformed or misused alias or anchor. The error message should help you understand where.
+
+## Deprecated Images
+
+Please see the [dedicated page](../docker-images/deprecated-images.md) on how to handle this warning
+
+![Deprecated Images in a build:](../images/deprecated-images-build.png)
