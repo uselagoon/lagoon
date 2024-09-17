@@ -4,7 +4,19 @@ From time to time, the Lagoon team may need to mark images as deprecated.
 
 This is conveyed in a "sh.lagoon.image.deprecated" . It can be viewed in Docker Desktop, via a `docker inspect` command, or in future releases of Lagoon, highlighted in a build.
 
+![Deprecated Images in a build:](../images/deprecated-images-build.png)
+
 If the image has a suggested replacement, it will be conveyed in a "sh.lagoon.image.deprecated.suggested" label attached the deprecated image.
+
+```shell title="docker inspect output showing deprecated image"
+$ docker inspect amazeeio/mongo:latest
+...
+{
+  ...
+  "sh.lagoon.image.deprecated.status": "replaced",
+  "sh.lagoon.image.deprecated.suggested": "docker.io/uselagoon/mongo-4"
+}
+```
 
 ## Changing the image
 
