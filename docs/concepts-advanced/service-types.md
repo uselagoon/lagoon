@@ -2,7 +2,7 @@
 
 The below lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](../concepts-basics/docker-compose-yml.md).
 
-For more information on the `lagoon.volumes.X.path` label, please see [Additional Volumes](../../concepts-basics/docker-compose-yml/#additional-volumes)
+For more information on the `lagoon.volumes.X.path` label, please see [Additional Volumes](../concepts-basics/docker-compose-yml.md/#additional-volumes)
 
 !!! Warning
     Once a `lagoon.type` is defined and the environment is deployed, changing it to a different type is not supported and could result in a broken environment.
