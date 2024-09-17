@@ -551,6 +551,54 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#additional-volumes" class="md-nav__link">
+    Additional Volumes
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Volumes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-persistent-volume-flags" class="md-nav__link">
+    Supported persistent volume flags
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-persistent-volumes" class="md-nav__link">
+    Default persistent volumes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ignored-volume" class="md-nav__link">
+    Ignored volume
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maximum-number-of-volumes" class="md-nav__link">
+    Maximum number of volumes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-service-types" class="md-nav__link">
+    Supported service types
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-container-pods" class="md-nav__link">
     Multi-Container Pods
   </a>
@@ -4306,6 +4354,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../../releases/2.22.0/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    2.22.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../releases/2.21.0/" class="md-nav__link">
         
   
@@ -4835,6 +4903,54 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#additional-volumes" class="md-nav__link">
+    Additional Volumes
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Volumes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-persistent-volume-flags" class="md-nav__link">
+    Supported persistent volume flags
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-persistent-volumes" class="md-nav__link">
+    Default persistent volumes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ignored-volume" class="md-nav__link">
+    Ignored volume
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maximum-number-of-volumes" class="md-nav__link">
+    Maximum number of volumes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-service-types" class="md-nav__link">
+    Supported service types
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-container-pods" class="md-nav__link">
     Multi-Container Pods
   </a>
@@ -4933,56 +5049,54 @@
 </div>
 <p>This is intentional, as the <code>docker-compose</code> file is there to define your local environment configuration. Lagoon learns from the <code>lagoon.type</code> the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.</p>
 <p>Here a straightforward example of a <code>docker-compose.yml</code> file for Drupal:</p>
-<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;2.3&#39;</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">x-lagoon-project</span><span class="p">:</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c1"># Lagoon project name (leave `&amp;lagoon-project` when you edit this)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nl">&amp;lagoon-project</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal-example</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">x-volumes</span><span class="p">:</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nl">&amp;default-volumes</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="c1"># Define all volumes you would like to have real-time mounted into the docker containers</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app:delegated</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nt">x-environment</span><span class="p">:</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nl">&amp;default-environment</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">LAGOON_PROJECT</span><span class="p">:</span><span class="w"> </span><span class="nv">*lagoon-project</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="c1"># Route that should be used locally, if you are using pygmy, this route *must* end with .docker.amazee.io</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nt">LAGOON_ROUTE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://drupal-example.docker.amazee.io</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="c1"># Uncomment if you want to have the system behave as it will in production</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="c1">#LAGOON_ENVIRONMENT_TYPE: production</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="c1"># Uncomment to enable Xdebug and then restart via `docker compose up -d`</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="c1">#XDEBUG_ENABLE: &quot;true&quot;</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="nt">x-user</span><span class="p">:</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nl">&amp;default-user</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="c1"># The default user under which the containers should run. Change this if you are on linux and run with another user than ID `1000`</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;1000&#39;</span>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">x-lagoon-project</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1"># Lagoon project name (leave `&amp;lagoon-project` when you edit this)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nl">&amp;lagoon-project</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal-example</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">x-volumes</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nl">&amp;default-volumes</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1"># Define all volumes you would like to have real-time mounted into the docker containers</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.:/app:delegated</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">x-environment</span><span class="p">:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nl">&amp;default-environment</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">LAGOON_PROJECT</span><span class="p">:</span><span class="w"> </span><span class="nv">*lagoon-project</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="c1"># Route that should be used locally, if you are using pygmy, this route *must* end with .docker.amazee.io</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">LAGOON_ROUTE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://drupal-example.docker.amazee.io</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="c1"># Uncomment if you want to have the system behave as it will in production</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="c1">#LAGOON_ENVIRONMENT_TYPE: production</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="c1"># Uncomment to enable Xdebug and then restart via `docker compose up -d`</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="c1">#XDEBUG_ENABLE: &quot;true&quot;</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="nt">x-user</span><span class="p">:</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">  </span><span class="nl">&amp;default-user</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="c1"># The default user under which the containers should run. Change this if you are on linux and run with another user than ID `1000`</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;1000&#39;</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="nt">services</span><span class="p">:</span>
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nt">services</span><span class="p">:</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="nt">nginx</span><span class="p">:</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span><span class="w"> </span><span class="c1"># (1)</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">  </span><span class="nt">php</span><span class="p">:</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span><span class="w"> </span><span class="c1"># (2)</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/mariadb-10.11-drupal</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span><span class="w"> </span><span class="c1"># (1)</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="nt">php</span><span class="p">:</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span><span class="w"> </span><span class="c1"># (2)</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">  </span><span class="nt">mariadb</span><span class="p">:</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/mariadb-10.11-drupal</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
 </span></code></pre></div>
 <ol>
 <li>Note the <a href="./#multi-container-pods">multi-container pods</a> here.</li>
@@ -5049,11 +5163,73 @@
 <li><code>lagoon.persistent.size</code> - The size of persistent storage you require (Lagoon usually gives you minimum 5G of persistent storage, if you need more, define it here).</li>
 <li><code>lagoon.persistent.class</code> - By default Lagoon automatically assigns the right storage class for your service (like SSDs for MySQL, bulk storage for Nginx, etc.). If you need to overwrite this, you can do so here. This is highly dependent on the underlying Kubernetes/OpenShift that Lagoon runs on. Contact your Lagoon administrator for this.</li>
 </ul>
+<p>See the <a href="#additional-volumes">Additional Volumes</a> section on how to add more volumes</p>
 <h3 id="auto-generated-routes">Auto-generated Routes<a class="headerlink" href="#auto-generated-routes" title="Permanent link">#</a></h3>
 <p>The docker-compose.yml file also supports per-service enabling and disabling of <a href="../lagoon-yml/#routes">autogenerated routes</a></p>
 <ul>
 <li><code>lagoon.autogeneratedroute: false</code> label will stop a route from being automatically created for that service. It can be applied to all services with autogenerated routes, but is mostly useful for the <a href="../../concepts-advanced/service-types/#basic"><code>basic</code></a> and <a href="../../concepts-advanced/service-types/#basic-persistent"><code>basic-persistent</code></a> service types when used to create an additional internal-facing service for a database service or similar. The inverse is also true - it will enable an auto-generated route for a service when the .lagoon.yml file <a href="../lagoon-yml/#routesautogenerate">disables them</a>.</li>
 </ul>
+<h2 id="additional-volumes">Additional Volumes<a class="headerlink" href="#additional-volumes" title="Permanent link">#</a></h2>
+<p>In situations where more than one persistent volume is required by a service (or services), Lagoon can support the creation of multiple additional volumes.</p>
+<p>To do this, the volume should be created in the docker-compose.yml with a <code>lagoon.type</code> label - currently only "persistent" is supported.</p>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml volumes snippet</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">extravol</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">persistent</span>
+</span></code></pre></div>
+<p>This volume can then be referenced in each service that requires it, along with the path</p>
+<p><div class="language-yaml highlight"><span class="filename">docker-compose.yml volume usage snippet</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">basic</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic.dockerfile</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic-persistent</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/data</span><span class="w"> </span><span class="c1"># basic-persistent provides a default volume, this needs to be defined</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="nt">lagoon.volumes.extravol.path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/extra</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w"> </span><span class="c1"># these volumes are ignored by lagoon, only the labels above are consumed to handle volume mapping</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./data:/data:delegated</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">extravol:/extra</span>
+</span></code></pre></div>
+Note that the original volume created for this service still exists.</p>
+<h3 id="supported-persistent-volume-flags">Supported persistent volume flags<a class="headerlink" href="#supported-persistent-volume-flags" title="Permanent link">#</a></h3>
+<ul>
+<li>The default size is 5Gi - but can be modified with a <code>lagoon.persistent.size: XXGi</code> label on the volume.</li>
+<li>By default, Lagoon will back up all persistent volumes, but this can be disabled with a <code>lagoon.backup: false</code> label on the volume.</li>
+</ul>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml volumes snippet</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">extravol</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">persistent</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="nt">lagoon.persistent.size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10Gi</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="nt">lagoon.backup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span></code></pre></div>
+<h3 id="default-persistent-volumes">Default persistent volumes<a class="headerlink" href="#default-persistent-volumes" title="Permanent link">#</a></h3>
+<ul>
+<li>If a service type provides a default persistent volume (nginx-php-persistent, basic-persistent, node-persistent, python-persistent), it will be created and named as the name of the service (unless the lagoon.persistent.name label is assigned).</li>
+<li>If a volume defined in the volumes block is also named the same as a default volume would be, it will be ignored and only the default volume will be created.</li>
+<li>If a lagoon.volumes.${volume_name}.path is also defined on a service that has a default volume (or a volume linked to it using the lagoon.persistent.name label, it will also be ignored and the value of the lagoon.persistent path will be used.</li>
+</ul>
+<h3 id="ignored-volume">Ignored volume<a class="headerlink" href="#ignored-volume" title="Permanent link">#</a></h3>
+<ul>
+<li>If a volume defined in the volumes block has a label lagoon.type: none it will not be created.</li>
+<li>If a volume defined in the volumes block has a label lagoon.type of a type (currently only persistent), but it is not consumed by any service using a lagoon.volumes.${volume_name}.path, then the volume will not be created.</li>
+</ul>
+<h3 id="maximum-number-of-volumes">Maximum number of volumes<a class="headerlink" href="#maximum-number-of-volumes" title="Permanent link">#</a></h3>
+<ul>
+<li>Currently a hard-coded limit of 6 volumes is in place, this may be made configurable in the future.</li>
+</ul>
+<h3 id="supported-service-types">Supported service types<a class="headerlink" href="#supported-service-types" title="Permanent link">#</a></h3>
+<p>Currently, the only service types that support additional volumes are the following</p>
+<ul>
+<li>basic / basic-persistent</li>
+<li>worker / worker-persistent</li>
+<li>node / node-persistent</li>
+<li>python / python-persistent</li>
+<li>nginx / nginx-php / nginx-php-persistent</li>
+<li>cli / cli-persistent</li>
+</ul>
+<p>Adding a volume to any other type will result in an error during a build.</p>
 <h2 id="multi-container-pods">Multi-Container Pods<a class="headerlink" href="#multi-container-pods" title="Permanent link">#</a></h2>
 <p>Kubernetes and OpenShift don't deploy plain containers. Instead, they deploy pods, with each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined <code>docker-compose</code> service. For some cases, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and NGINX containers that both contain PHP code of a web application like Drupal.</p>
 <p>For these cases, it is possible to tell Lagoon which services should stay together, which is done in the following way (remember that we are calling containers <code>services</code> because of <code>docker-compose</code>:</p>
@@ -5068,24 +5244,24 @@
 </div>
 <p>Lagoon still needs to understand which of the two services is the actual individual service type (<code>nginx</code> and <code>php</code> in this case). It does this by searching for service names with the same name that are given by the type, so <code>nginx-php-persistent</code> expects one service with the name <code>nginx</code> and one with <code>php</code> in the <code>docker-compose.yml.</code> If for any reason you want to use different names for the services, or you need for than one pod with the type <code>nginx-php-persistent</code> there is an additional label <code>lagoon.deployment.servicetype</code> which can be used to define the actual service type.</p>
 <p>An example:</p>
-<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">nginx</span><span class="p">:</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># If this isn&#39;t present, Lagoon will use the container name, which in this case is nginx.</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nt">php</span><span class="p">:</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># We want this service to be part of the NGINX pod in Lagoon.</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php</span>
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx.dockerfile</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># If this isn&#39;t present, Lagoon will use the container name, which in this case is nginx.</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="nt">php</span><span class="p">:</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">      </span><span class="nt">dockerfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php.dockerfile</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx-php-persistent</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">      </span><span class="nt">lagoon.persistent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/web/sites/default/files/</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">      </span><span class="nt">lagoon.name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span><span class="w"> </span><span class="c1"># We want this service to be part of the NGINX pod in Lagoon.</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">      </span><span class="nt">lagoon.deployment.servicetype</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">php</span>
 </span></code></pre></div>
 <p>In the example above, the services are named <code>nginx</code> and <code>php</code> (but you can call them whatever you want). The <code>lagoon.name</code> tells Lagoon which services go together - all of the services with the same name go together.</p>
 <p>In order for Lagoon to realize which one is the <code>nginx</code> and which one is the <code>php</code> service, we define it via <code>lagoon.deployment.servicetype: nginx</code> and <code>lagoon.deployment.servicetype: php</code>.</p>
@@ -5106,11 +5282,11 @@
 <p>Note that while using older versions of Docker Compose V2 locally, you may experience some known issues - these have been resolved in later releases (v2.17.3 onwards).</p>
 </div>
 <p>The resolution for these errors is usually to update (or <a href="https://docs.docker.com/compose/install/">install a later version</a> of) the version of Docker Compose you are using, either standalone or by upgrading the version of Docker Desktop you're using.  See the Docker Desktop <a href="https://docs.docker.com/desktop/release-notes/">release notes</a> for more information</p>
-<div class="language-shell highlight"><span class="filename">Docker Compose output indicating depends_on error</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Failed<span class="w"> </span>to<span class="w"> </span>solve<span class="w"> </span>with<span class="w"> </span>frontend<span class="w"> </span>dockerfile.v0:<span class="w"> </span>failed<span class="w"> </span>to<span class="w"> </span>create<span class="w"> </span>LLB<span class="w"> </span>definition:<span class="w"> </span>pull<span class="w"> </span>access<span class="w"> </span>denied,<span class="w"> </span>repository<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>exist<span class="w"> </span>or<span class="w"> </span>may<span class="w"> </span>require<span class="w"> </span>authorization
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>or
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Failed<span class="w"> </span>to<span class="w"> </span>solve:<span class="w"> </span>drupal9-base-cli:<span class="w"> </span>pull<span class="w"> </span>access<span class="w"> </span>denied,<span class="w"> </span>repository<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>exist<span class="w"> </span>or<span class="w"> </span>may<span class="w"> </span>require<span class="w"> </span>authorization:<span class="w"> </span>server<span class="w"> </span>message:<span class="w"> </span>insufficient_scope:<span class="w"> </span>authorization<span class="w"> </span>failed<span class="sb">`</span>
+<div class="language-shell highlight"><span class="filename">Docker Compose output indicating depends_on error</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Failed<span class="w"> </span>to<span class="w"> </span>solve<span class="w"> </span>with<span class="w"> </span>frontend<span class="w"> </span>dockerfile.v0:<span class="w"> </span>failed<span class="w"> </span>to<span class="w"> </span>create<span class="w"> </span>LLB<span class="w"> </span>definition:<span class="w"> </span>pull<span class="w"> </span>access<span class="w"> </span>denied,<span class="w"> </span>repository<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>exist<span class="w"> </span>or<span class="w"> </span>may<span class="w"> </span>require<span class="w"> </span>authorization
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>or
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Failed<span class="w"> </span>to<span class="w"> </span>solve:<span class="w"> </span>drupal9-base-cli:<span class="w"> </span>pull<span class="w"> </span>access<span class="w"> </span>denied,<span class="w"> </span>repository<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>exist<span class="w"> </span>or<span class="w"> </span>may<span class="w"> </span>require<span class="w"> </span>authorization:<span class="w"> </span>server<span class="w"> </span>message:<span class="w"> </span>insufficient_scope:<span class="w"> </span>authorization<span class="w"> </span>failed<span class="sb">`</span>
 </span></code></pre></div>
 <ul>
 <li>These are resolved in Docker Compose v2.13.0.</li>
@@ -5118,7 +5294,7 @@
 <li>You can also use the <a href="https://docs.docker.com/compose/compose-file/build/#target">target</a> field inside the build to reconfigure as a multi-stage build.</li>
 <li>If you are already running a newer Docker Compose version, this error may be because you're defaulting to using a docker-container build context with buildx. You should make sure that <code>docker buildx ls</code> shows the docker builder as default, not a docker-container based one. Check the docs on Docker buildx <a href="https://docs.docker.com/engine/reference/commandline/buildx_use/">here</a>.</li>
 </ul>
-<div class="language-shell highlight"><span class="filename">Docker Compose output indicating volumes_from error</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>no<span class="w"> </span>such<span class="w"> </span>service:<span class="w"> </span>container:amazeeio-ssh-agent
+<div class="language-shell highlight"><span class="filename">Docker Compose output indicating volumes_from error</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>no<span class="w"> </span>such<span class="w"> </span>service:<span class="w"> </span>container:amazeeio-ssh-agent
 </span></code></pre></div>
 <ul>
 <li>This is resolved in Docker Compose v2.17.3.</li>
@@ -5127,26 +5303,26 @@
 </ul>
 <h2 id="buildkit-and-lagoon">BuildKit and Lagoon<a class="headerlink" href="#buildkit-and-lagoon" title="Permanent link">#</a></h2>
 <p>BuildKit is a toolkit for converting source code to build artifacts in an efficient, expressive and repeatable manner.</p>
-<p>With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker compose builds. To enable BuildKit for your Project or Environment, add <code>DOCKER_BUILDKIT=1</code> as a build-time variable to your Lagoon project or environment.</p>
+<p>With the release of Lagoon v2.11.0, Lagoon now provides support for more advanced BuildKit-based docker compose builds, and in Lagoon v2.21.0, BuildKit is now enabled by default for all builds. To specifically disable BuildKit for your Project or Environment, add <code>DOCKER_BUILDKIT=0</code> as a build-time variable to your Lagoon project or environment.</p>
 <h2 id="docker-compose-errors-in-lagoon-builds">Docker Compose Errors in Lagoon Builds<a class="headerlink" href="#docker-compose-errors-in-lagoon-builds" title="Permanent link">#</a></h2>
 <p>See the <a href="../../using-lagoon-the-basics/lagoon-build-errors-and-warnings/#docker-compose-errors">Lagoon Build Errors page</a> for how to resolve common build errors with Docker Compose.</p>
 <h2 id="common-docker-compose-issues">Common Docker Compose Issues<a class="headerlink" href="#common-docker-compose-issues" title="Permanent link">#</a></h2>
 <p>This section outlines some of the more common Docker Compose errors, and how to remedy them. These may present in local development, or as <a href="../../using-lagoon-the-basics/lagoon-build-errors-and-warnings/#docker-compose-errors">Lagoon Build Errors and Warnings</a>.</p>
 <h3 id="dual-mapping-keys">Dual Mapping keys<a class="headerlink" href="#dual-mapping-keys" title="Permanent link">#</a></h3>
-<div class="language-shell highlight"><span class="filename">Docker Compose output indicating mapping key error</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ERR:<span class="w"> </span>yaml:<span class="w"> </span>unmarshal<span class="w"> </span>errors:<span class="w"> </span>line<span class="w"> </span><span class="m">22</span>:<span class="w"> </span>mapping<span class="w"> </span>key<span class="w"> </span><span class="s2">&quot;&lt;&lt;&quot;</span><span class="w"> </span>already<span class="w"> </span>defined<span class="w"> </span>at<span class="w"> </span>line<span class="w"> </span><span class="m">21</span>
+<div class="language-shell highlight"><span class="filename">Docker Compose output indicating mapping key error</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ERR:<span class="w"> </span>yaml:<span class="w"> </span>unmarshal<span class="w"> </span>errors:<span class="w"> </span>line<span class="w"> </span><span class="m">22</span>:<span class="w"> </span>mapping<span class="w"> </span>key<span class="w"> </span><span class="s2">&quot;&lt;&lt;&quot;</span><span class="w"> </span>already<span class="w"> </span>defined<span class="w"> </span>at<span class="w"> </span>line<span class="w"> </span><span class="m">21</span>
 </span></code></pre></div>
 <p>Early releases of the Lagoon examples contained a pair of YAML aliases attached to services to provide volumes and user code. Newer releases of Docker Compose will report this as an error. While all examples have now been updated, there may be some older codebases around that need updating.</p>
 <p>This error arises from Docker Compose not knowing what it is inserting into the array, so just assuming it may be duplicate.</p>
 <p>If your <code>docker-compose.yml</code> contains one or more of this (or similar) code blocks, you will be affected.</p>
-<div class="language-yaml highlight"><span class="filename">Docker Compose error with dual mapping keys</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nn">...</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">]</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nn">...</span>
+<div class="language-yaml highlight"><span class="filename">Docker Compose error with dual mapping keys</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nn">...</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">]</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nn">...</span>
 </span></code></pre></div>
 <p>The corrected version combines both aliases into a single mapping key - you'll need to remedy all occurrances.</p>
-<div class="language-yaml highlight"><span class="filename">Docker Compose correct insertion of multiple alias mapping keys</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nn">...</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nn">...</span>
+<div class="language-yaml highlight"><span class="filename">Docker Compose correct insertion of multiple alias mapping keys</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nn">...</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nn">...</span>
 </span></code></pre></div>
 
 
