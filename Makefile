@@ -273,16 +273,16 @@ webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.local-dev.yaml --compatibility up -d $(main-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d $(main-test-services)
 	$(MAKE) wait-for-keycloak
 
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.local-dev.yaml --compatibility up -d $(drupal-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d $(drupal-test-services)
 
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.local-dev.yaml --compatibility up -d $(webhooks-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d $(webhooks-test-services)
 
 #######
 ####### Publishing Images
@@ -329,13 +329,13 @@ logs:
 # Start all Lagoon Services
 up:
 ifeq ($(ARCH), darwin)
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.development.yaml --compatibility up -d
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 else
 	# once this docker issue is fixed we may be able to do away with this
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
-		docker compose -p $(CI_BUILD_TAG) -f docker-compose.development.yaml --compatibility up -d
+		docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 endif
 	$(MAKE) wait-for-keycloak
 
@@ -363,21 +363,21 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
 
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
 
 # compose-api-logs-development can be consumed by other repositories to start a local api
 # supported make variable passthrough are
