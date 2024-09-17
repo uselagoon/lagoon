@@ -392,15 +392,15 @@ compose-api-logs-development:
 
 ## CI targets
 
-KUBECTL_VERSION := v1.30.1
-HELM_VERSION := v3.15.2
-K3D_VERSION = v5.6.3
+KUBECTL_VERSION := v1.31.0
+HELM_VERSION := v3.16.1
+K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
-K3D_IMAGE = docker.io/rancher/k3s:v1.30.1-k3s1
+K3D_IMAGE = docker.io/rancher/k3s:v1.31.0-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = lagoon_v221
+CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
 
 # the name of the docker network to create
