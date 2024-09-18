@@ -408,10 +408,11 @@ DOCKER_NETWORK = k3d
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
+.PHONY: local-dev/kubectl
 local-dev/kubectl:
 ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(KUBECTL_VERSION))
-	ln -s $(shell command -v kubectl) ./local-dev/kubectl
+	ln -sf $(shell command -v kubectl) ./local-dev/kubectl
 else
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
 	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
@@ -420,30 +421,37 @@ endif
 
 # Symlink the installed helm client if the correct version is already
 # installed, otherwise downloads it.
+.PHONY: local-dev/helm
 local-dev/helm:
 ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
 	$(info linking local helm version $(HELM_VERSION))
-	ln -s $(shell command -v helm) ./local-dev/helm
+	ln -sf $(shell command -v helm) ./local-dev/helm
 else
 	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
 	curl -sSL https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar -xzC local-dev --strip-components=1 $(ARCH)-amd64/helm
 	chmod a+x local-dev/helm
 endif
 
+# Symlink the installed k3d client if the correct version is already
+# installed, otherwise downloads it.
+.PHONY: local-dev/k3d
 local-dev/k3d:
 ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version (v[0-9.]+).*/\1/p'))
 	$(info linking local k3d version $(K3D_VERSION))
-	ln -s $(shell command -v k3d) ./local-dev/k3d
+	ln -sf $(shell command -v k3d) ./local-dev/k3d
 else
 	$(info downloading k3d version $(K3D_VERSION) for $(ARCH))
 	curl -sSLo local-dev/k3d https://github.com/k3d-io/k3d/releases/download/$(K3D_VERSION)/k3d-$(ARCH)-amd64
 	chmod a+x local-dev/k3d
 endif
 
+# Symlink the installed jq client if the correct version is already
+# installed, otherwise downloads it.
+.PHONY: local-dev/jq
 local-dev/jq:
 ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
 	$(info linking local jq version $(GOJQ_VERSION))
-	ln -s $(shell command -v jq) ./local-dev/jq
+	ln -sf $(shell command -v jq) ./local-dev/jq
 else
 	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
 ifeq ($(ARCH), darwin)
@@ -457,10 +465,13 @@ endif
 	chmod a+x local-dev/jq
 endif
 
+# Symlink the installed stern client if the correct version is already
+# installed, otherwise downloads it.
+.PHONY: local-dev/stern
 local-dev/stern:
 ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern version //p'))
 	$(info linking local stern version $(STERN_VERSION))
-	ln -s $(shell command -v stern) ./local-dev/stern
+	ln -sf $(shell command -v stern) ./local-dev/stern
 else
 	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
 	curl -sSLo local-dev/stern https://github.com/derdanne/stern/releases/download/$(STERN_VERSION)/stern_$(ARCH)_amd64
@@ -496,7 +507,7 @@ k3d/cluster: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl
 		$$([ $(USE_CALICO_CNI) != true ] && envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG) \
 		$$([ $(USE_CALICO_CNI) = true ] && envsubst < ./k3d-calico.config.yaml.tpl > $$K3DCONFIG) \
 		$$([ $(USE_CALICO_CNI) = true ] && wget -N https://k3d.io/$(K3D_VERSION)/usage/advanced/calico.yaml) \
-		&& $(K3D) cluster create $(CI_BUILD_TAG) --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
+		&& $(K3D) cluster create $(CI_BUILD_TAG)  --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
 		&& cp $$KUBECONFIG "kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && ssh $$NODE_NAME sudo cat $$KUBECONFIG > \$$KUBECONFIG && K3D_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$K3D_PORT:127.0.0.1:\$$K3D_PORT $$NODE_NAME" \
