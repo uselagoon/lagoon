@@ -6,7 +6,8 @@ import { Sql } from './sql';
 import { Sql as problemSql } from '../problem/sql';
 import { Sql as factSql } from '../fact/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
-// import { logger } from '../../loggers/logger';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
+import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (environments: any[]) => {
@@ -31,36 +32,70 @@ export const Helpers = (sqlClientPool: Pool) => {
     aliasOpenshiftToK8s,
     getEnvironmentById,
     deleteEnvironment: async (name: string, eid: number, pid: number) => {
-      // clean up environment variables
-      // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment variables`)
-      await query(
-        sqlClientPool,
-        Sql.deleteEnvironmentVariables(eid)
-      );
-      // clean up services
-      // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
-      await query(
-        sqlClientPool,
-        Sql.deleteServices(eid)
-      );
-      // @TODO: environment_storage, deployment, environment_backup, task, environment_problem, environment_fact
+      const environmentData = await Helpers(sqlClientPool).getEnvironmentById(eid);
+      const projectData = await projectHelpers(sqlClientPool).getProjectById(pid);
+      try {
+        // clean up environment variables
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment variables`)
+        await query(
+          sqlClientPool,
+          Sql.deleteEnvironmentVariables(eid)
+        );
+        // clean up service containers
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment service containers`)
+        await query(
+          sqlClientPool,
+          Sql.deleteServiceContainersByEnvironmentId(
+            eid
+          )
+        );
+        // clean up services
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
+        await query(
+          sqlClientPool,
+          Sql.deleteServices(eid)
+        );
+        // Here we clean up insights attached to the environment
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment facts`)
+        await query(
+          sqlClientPool,
+          factSql.deleteFactsForEnvironment(eid)
+        );
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment problems`)
+        await query(
+          sqlClientPool,
+          problemSql.deleteProblemsForEnvironment(eid)
+        );
+
+        // @TODO: environment_storage, environment_backup
+      } catch (e) {
+        logger.error(`error cleaning up linked environment tables: ${e}`)
+      }
+
+      try {
+        // export a dump of the project, environment data, and associated task and deployment history before the environment is deleted
+        await HistoryRetentionEnforcer().saveEnvironmentHistoryBeforeDeletion(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running save environment history: ${e}`)
+      }
+      // purge all history for this environment, including logs and files from s3
+      try {
+        // remove all deployments and associated files
+        await HistoryRetentionEnforcer().cleanupAllDeployments(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running deployment retention enforcer: ${e}`)
+      }
+      try {
+        // remove all tasks and associated files
+        await HistoryRetentionEnforcer().cleanupAllTasks(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running task retention enforcer: ${e}`)
+      }
       // delete the environment
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid}`)
       await query(
         sqlClientPool,
         Sql.deleteEnvironment(name, pid)
-      );
-
-      // Here we clean up insights attached to the environment
-
-      await query(
-        sqlClientPool,
-        factSql.deleteFactsForEnvironment(eid)
-      );
-
-      await query(
-        sqlClientPool,
-        problemSql.deleteProblemsForEnvironment(eid)
       );
 
     },
