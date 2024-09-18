@@ -533,21 +533,6 @@ export const deleteEnvironment: ResolverFn = async (
     project: projectId
   });
 
-  // Deleting environment in api w/o executing the openshift remove.
-  // This gets called after successful removal from cluster.
-  if (execute === false) {
-    try {
-      await hasPermission('environment', 'deleteNoExec', {
-        project: projectId
-      });
-      await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
-
-      return 'success';
-    } catch (err) {
-      // Not allowed to stop execution.
-    }
-  }
-
   let canDeleteProduction;
   try {
     await hasPermission('environment', 'delete:production', {
@@ -602,21 +587,49 @@ export const deleteEnvironment: ResolverFn = async (
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
+  // Deleting environment in api w/o executing the openshift remove.
+  // This gets called after successful removal from cluster.
+  // the environment hasn't been deleted yet
+  let deleted = false;
+
+  // check if the execute flag is false
+  if (execute === false) {
+    try {
+      // check the permission to delete with noexec, typically platform level only or system call
+      await hasPermission('environment', 'deleteNoExec', {
+        project: projectId
+      });
+      await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+      // mark this env as being deleted
+      deleted = true;
+    } catch (err) {
+      // Not allowed to stop execution, proceed with the remaining process of trying to delete the environment the usual way
+    }
+  }
+
+  // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
+  // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
+  const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
+  if (deploytarget.length == 0 || deploytarget[0].disabled) {
+    // if the deploytarget is disabled, delete the environment
+    await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+    // mark this env as being deleted
+    deleted = true;
+  }
+
   userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     project: '',
     event: 'api:deleteEnvironment',
     payload: {
       projectName,
       environment,
+      deleted: deleted, // log if the actual deletion took place
       data
     }
   });
 
-  // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
-  // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
-  const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
-  if (deploytarget.length == 0 || deploytarget[0].disabled) {
-    await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
+  if (deleted) {
+    // return sucess to drop out here if the environment was actually deleted from the api, nothing else to do
     return 'success';
   }
 
