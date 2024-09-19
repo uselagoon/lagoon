@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} AS commons
-FROM rabbitmq:3.11.28-management-alpine
+FROM rabbitmq:3.12.14-management-alpine
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -20,7 +20,7 @@ RUN apk add --no-cache \
       gojq \
       curl
 
-RUN wget -P /plugins https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/3.11.1/rabbitmq_delayed_message_exchange-3.11.1.ez \
+RUN wget -P /plugins https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v3.12.0/rabbitmq_delayed_message_exchange-3.12.0.ez \
     && chown rabbitmq:rabbitmq /plugins/rabbitmq_delayed_message_exchange-*
 
 # override sticky bit set in upstream whilst we still ep the files in /etc/rabbitmq
