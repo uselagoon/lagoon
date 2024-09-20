@@ -643,6 +643,20 @@ function service-api_add_view-users_permission {
 	fi
 }
 
+function add_lagoon-cli_client {
+    local lagoon_cli_client=$( /opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-cli --config $CONFIG_PATH | jq -r '.[0]["id"] // false')
+    if [ "$lagoon_cli_client" != "false" ]; then
+        echo "lagoon-cli already exists"
+        return 0
+    fi
+
+    echo Creating client lagoon-cli
+    echo '{"clientId": "lagoon-cli", "publicClient": true, "webOrigins": ["*"], "redirectUris": ["http://127.0.0.1"]}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating mapper for lagoon-cli "lagoon-uid"
+    CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-cli --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+}
+
 ##################
 # Initialization #
 ##################
@@ -677,6 +691,7 @@ function configure_keycloak {
     remove_deleteall_permissions_scopes
     add_update_platform_viewer_permissions
     service-api_add_view-users_permission
+    add_lagoon-cli_client
 
     # always run last
     sync_client_secrets
