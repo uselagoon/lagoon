@@ -771,3 +771,22 @@ k3d/clean: local-dev/k3d
 ifeq ($(ARCH), darwin)
 	docker rm --force $(CI_BUILD_TAG)-k3d-proxy-32080 || true
 endif
+
+# clean up any old charts to prevent bloating of old charts from running k3d stacks regularly
+.PHONY: k3d/clean-charts
+k3d/clean-charts:
+	@for chart in $$(ls -1 | grep lagoon-charts | egrep -v "lagoon-charts.k3d|$$(ls -l | grep -o "lagoon-charts.k3d.lagoon.*" | awk '{print $$3}' | cut -c 3-)") ; do \
+		echo removing chart directory $$chart ; \
+		rm -rf $$chart ; \
+	done
+
+# clean up any old k3d kubeconfigs
+.PHONY: k3d/clean-k3dconfigs
+k3d/clean-k3dconfigs:
+	@for kubeconfig in $$(ls -1 | grep k3dconfig) ; do \
+		echo removing k3dconfig $$kubeconfig ; \
+		rm $$kubeconfig ; \
+	done
+
+.PHONY: k3d/clean-all
+k3d/clean-all: k3d/clean k3d/clean-k3dconfigs k3d/clean-charts
