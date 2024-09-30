@@ -414,9 +414,11 @@ ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null |
 	$(info linking local kubectl version $(KUBECTL_VERSION))
 	ln -sf $(shell command -v kubectl) ./local-dev/kubectl
 else
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
 	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
+endif
 endif
 
 # Symlink the installed helm client if the correct version is already
@@ -427,9 +429,11 @@ ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -
 	$(info linking local helm version $(HELM_VERSION))
 	ln -sf $(shell command -v helm) ./local-dev/helm
 else
+ifneq ($(HELM_VERSION), v$(shell ./local-dev/helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
 	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
 	curl -sSL https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar -xzC local-dev --strip-components=1 $(ARCH)-amd64/helm
 	chmod a+x local-dev/helm
+endif
 endif
 
 # Symlink the installed k3d client if the correct version is already
@@ -440,9 +444,11 @@ ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version (
 	$(info linking local k3d version $(K3D_VERSION))
 	ln -sf $(shell command -v k3d) ./local-dev/k3d
 else
+ifneq ($(K3D_VERSION), $(shell ./local-dev/k3d version 2>/dev/null | sed -nE 's/k3d version (v[0-9.]+).*/\1/p'))
 	$(info downloading k3d version $(K3D_VERSION) for $(ARCH))
 	curl -sSLo local-dev/k3d https://github.com/k3d-io/k3d/releases/download/$(K3D_VERSION)/k3d-$(ARCH)-amd64
 	chmod a+x local-dev/k3d
+endif
 endif
 
 # Symlink the installed jq client if the correct version is already
@@ -453,6 +459,7 @@ ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v
 	$(info linking local jq version $(GOJQ_VERSION))
 	ln -sf $(shell command -v jq) ./local-dev/jq
 else
+ifneq ($(GOJQ_VERSION), $(shell ./local-dev/jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
 	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
 ifeq ($(ARCH), darwin)
 	TMPDIR=$$(mktemp -d) \
@@ -464,6 +471,7 @@ else
 endif
 	chmod a+x local-dev/jq
 endif
+endif
 
 # Symlink the installed stern client if the correct version is already
 # installed, otherwise downloads it.
@@ -473,9 +481,11 @@ ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern v
 	$(info linking local stern version $(STERN_VERSION))
 	ln -sf $(shell command -v stern) ./local-dev/stern
 else
+ifneq ($(STERN_VERSION), v$(shell ./local-dev/stern --version 2>/dev/null | sed -nE 's/stern version //p'))
 	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
 	curl -sSLo local-dev/stern https://github.com/derdanne/stern/releases/download/$(STERN_VERSION)/stern_$(ARCH)_amd64
 	chmod a+x local-dev/stern
+endif
 endif
 
 .PHONY: helm/repos
