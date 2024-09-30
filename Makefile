@@ -410,11 +410,11 @@ DOCKER_NETWORK = k3d
 # installed, otherwise downloads it.
 .PHONY: local-dev/kubectl
 local-dev/kubectl:
-ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(KUBECTL_VERSION))
 	ln -sf $(shell command -v kubectl) ./local-dev/kubectl
 else
-ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifneq ($(KUBECTL_VERSION), v$(shell ./local-dev/kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
 	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
