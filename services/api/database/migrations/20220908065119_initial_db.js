@@ -9,18 +9,18 @@
             .createTable('advanced_task_definition', function (table) {
                 table.increments('id').notNullable().primary();
                 table.string('name', 300).notNullable();
-                table.specificType('description', 'text').defaultTo('').notNullable();
+                table.specificType('description', 'text').notNullable();
                 table.string('image', 2000).defaultTo('');
                 table.string('service', 100);
                 table.string('type', 100).notNullable();
                 table.integer('environment');
                 table.integer('project');
-                table.string('group_name', 2000);
+                table.string('group_name', 300);
                 table.enu('permission', ['GUEST', 'DEVELOPER', 'MAINTAINER']).defaultTo('GUEST');
-                table.specificType('command', 'text').defaultTo('');
+                table.specificType('command', 'text');
                 table.string('confirmation_text', 2000);
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.timestamp('deleted').notNullable();
                 table.unique(['name', 'environment', 'project', 'group_name'], {indexName: 'name', storageEngineIndexType: 'hash'});
             })
             .createTable('advanced_task_definition_argument', function (table) {
@@ -76,8 +76,8 @@
                 table.string('name', 100);
                 table.integer('project');
                 table.enu('deploy_type', ['branch', 'pullrequest', 'promote']).notNullable();
-                table.string('deploy_base_ref', 100);
-                table.string('deploy_head_ref', 100);
+                table.string('deploy_base_ref', 250);
+                table.string('deploy_head_ref', 250);
                 table.string('deploy_title', 300);
                 table.enu('environment_type', ['production', 'development']).notNullable();
                 table.integer('auto_idle', 1).notNullable().defaultTo(1);
@@ -89,7 +89,7 @@
                 table.string('openshift_project_pattern', 300);
                 table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.timestamp('deleted').notNullable();
                 table.unique(['project', 'name', 'deleted'], {indexName: 'project_name_deleted'});
             })
             .createTable('environment_backup', function (table) {
@@ -98,7 +98,7 @@
                 table.string('source', 300);
                 table.string('backup_id', 300).unique({indexName:'backup_id'});
                 table.timestamp('created').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.timestamp('deleted').notNullable();
                 table.index('environment', 'backup_environment');
             })
             .createTable('environment_fact', function (table) {
@@ -109,9 +109,9 @@
                 table.string('value', 300).notNullable();
                 table.enu('type', ['TEXT', 'URL', 'SEMVER']).defaultTo('TEXT');
                 table.string('source', 300).defaultTo('');
-                table.specificType('description', 'text').defaultTo('');
+                table.specificType('description', 'text');
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.specificType('category', 'text').defaultTo('');
+                table.specificType('category', 'text');
                 table.boolean('key_fact').notNullable().defaultTo(0);
                 table.unique(['environment', 'name', 'source'], {indexName: 'environment_fact'});
             })
@@ -126,17 +126,17 @@
                 table.integer('environment');
                 table.string('severity', 300).defaultTo('');
                 table.decimal('severity_score', 1, 1).defaultTo(0);
-                table.string('identifier', 300).notNullable();
-                table.string('lagoon_service', 300).defaultTo('');
+                table.string('identifier', 100).notNullable();
+                table.string('lagoon_service', 100).defaultTo('');
                 table.string('source', 300).defaultTo('');
                 table.string('associated_package', 300).defaultTo('');
-                table.specificType('description', 'text').defaultTo('');
-                table.string('version', 300).defaultTo('');
+                table.specificType('description', 'text');
+                table.string('version', 100).defaultTo('');
                 table.string('fixed_version', 300).defaultTo('');
                 table.string('links', 300).defaultTo('');
                 table.json('data');
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.timestamp('deleted').notNullable();
                 table.unique(['environment', 'lagoon_service', 'version', 'identifier', 'deleted'], {indexName: 'environment'});
             })
             .createTable('environment_service', function (table) {
@@ -235,7 +235,7 @@
                 table.integer('development_environments_limit');
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
                 table.string('private_key', 5000);
-                table.json('metadata').defaultTo('{}');
+                table.json('metadata');
                 table.string('router_pattern', 300).defaultTo(null);
             })
             .createTable('project_notification', function (table) {
@@ -251,7 +251,7 @@
                 table.string('filename', 100).notNullable();
                 table.text('s3_key').notNullable();
                 table.datetime('created').notNullable().defaultTo(knex.fn.now());
-                table.datetime('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.datetime('deleted').notNullable();
             })
             .createTable('ssh_key', function (table) {
                table.increments('id').notNullable().primary();
@@ -295,7 +295,7 @@
                 table.integer('project', 11).notNullable();
                 table.integer('advanced_task_definition', 11).notNullable();
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.timestamp('deleted').notNullable();
             })
         }
         else {
