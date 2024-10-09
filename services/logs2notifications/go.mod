@@ -5,7 +5,6 @@ go 1.22
 require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2
 	github.com/slack-go/slack v0.13.1
 	github.com/uselagoon/machinery v0.0.29

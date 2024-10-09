@@ -1,2 +1,2 @@
-[ci-github-openshift] <code>lagoon-type-override</code> Build <code>lagoon-build-1234</code> error.
+[ci-github-openshift] <code>lagoon-type-override</code> Build <code>lagoon-build-1234</code> failed at build step `applyingDeployments`.
  <a href="https://logs">Logs</a>
