@@ -1,0 +1,4 @@
+*[ci-github-openshift]* `lagoon-type-override` Build `lagoon-build-1234` Succeeded with warnings, check the build log for more information.  [Logs](https://logs)
+* https://route1
+* https://route2
+* https://route3

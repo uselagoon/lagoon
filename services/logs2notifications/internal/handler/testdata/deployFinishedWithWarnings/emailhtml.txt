@@ -1,0 +1,10 @@
+[ci-github-openshift] <code>lagoon-type-override</code> Build <code>lagoon-build-1234</code> completed with warnings, check the build log for more information. <a href="https://logs">Logs</a>
+</p>
+</div>
+<div>
+<p>
+<ul>
+<li><a href="https://route1">https://route1</a></li>
+<li><a href="https://route2">https://route2</a></li>
+<li><a href="https://route3">https://route3</a></li>
+</ul>

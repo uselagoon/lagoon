@@ -1,1 +1,1 @@
-`lagoon-type-override` Build `lagoon-build-1234` Failed.  [Logs](https://logs)
+`lagoon-type-override` Build `lagoon-build-1234` failed at build step `applyingDeployments`.  [Logs](https://logs)

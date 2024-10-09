@@ -4,7 +4,7 @@
   "meta":{
     "projectName":"ci-github-openshift",
     "branchName":"lagoon-type-override",
-    "buildStep":"applyingDeployments",
+    "buildStep":"buildingImages",
     "project":"ci-github-openshift",
     "buildName":"lagoon-build-1234",
     "logLink":"https://logs"
