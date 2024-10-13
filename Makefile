@@ -394,7 +394,7 @@ compose-api-logs-development:
 
 KUBECTL_VERSION := v1.31.0
 HELM_VERSION := v3.16.1
-K3D_VERSION = v5.7.4
+K3D_VERSION = v5.7.3
 GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
@@ -410,12 +410,13 @@ DOCKER_NETWORK = k3d
 # installed, otherwise downloads it.
 .PHONY: local-dev/kubectl
 local-dev/kubectl:
-ifeq ($(KUBECTL_VERSION), $(shell kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: (v[0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(KUBECTL_VERSION))
 	ln -sf $(shell command -v kubectl) ./local-dev/kubectl
 else
-ifneq ($(KUBECTL_VERSION), v$(shell ./local-dev/kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
+ifneq ($(KUBECTL_VERSION), v$(shell ./local-dev/kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: (v[0-9.]+).*/\1/'))
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
+	rm local-dev/kubectl || true
 	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
 endif
@@ -425,12 +426,13 @@ endif
 # installed, otherwise downloads it.
 .PHONY: local-dev/helm
 local-dev/helm:
-ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
+ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/(v[0-9.]+).*/\1/p'))
 	$(info linking local helm version $(HELM_VERSION))
 	ln -sf $(shell command -v helm) ./local-dev/helm
 else
-ifneq ($(HELM_VERSION), v$(shell ./local-dev/helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
+ifneq ($(HELM_VERSION), v$(shell ./local-dev/helm version --short --client 2>/dev/null | sed -nE 's/(v[0-9.]+).*/\1/p'))
 	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
+	rm local-dev/helm || true
 	curl -sSL https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar -xzC local-dev --strip-components=1 $(ARCH)-amd64/helm
 	chmod a+x local-dev/helm
 endif
@@ -446,6 +448,7 @@ ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version (
 else
 ifneq ($(K3D_VERSION), $(shell ./local-dev/k3d version 2>/dev/null | sed -nE 's/k3d version (v[0-9.]+).*/\1/p'))
 	$(info downloading k3d version $(K3D_VERSION) for $(ARCH))
+	rm local-dev/k3d || true
 	curl -sSLo local-dev/k3d https://github.com/k3d-io/k3d/releases/download/$(K3D_VERSION)/k3d-$(ARCH)-amd64
 	chmod a+x local-dev/k3d
 endif
@@ -455,16 +458,17 @@ endif
 # installed, otherwise downloads it.
 .PHONY: local-dev/jq
 local-dev/jq:
-ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
-	$(info linking local jq version $(GOJQ_VERSION))
-	ln -sf $(shell command -v jq) ./local-dev/jq
+ifeq ($(GOJQ_VERSION), $(shell gojq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
+	$(info linking local gojq version $(GOJQ_VERSION))
+	ln -sf $(shell command -v gojq) ./local-dev/jq
 else
 ifneq ($(GOJQ_VERSION), $(shell ./local-dev/jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
 	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
+	rm local-dev/jq || true
 ifeq ($(ARCH), darwin)
 	TMPDIR=$$(mktemp -d) \
-		&& curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64.zip -o $$TMPDIR/gojq.zip \
-		&& (cd $$TMPDIR && unzip gojq.zip) && cp $$TMPDIR/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64/gojq ./local-dev/jq && rm -rf $$TMPDIR
+		&& curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_arm64.zip -o $$TMPDIR/gojq.zip \
+		&& (cd $$TMPDIR && unzip gojq.zip) && cp $$TMPDIR/gojq_$(GOJQ_VERSION)_$(ARCH)_arm64/gojq ./local-dev/jq && rm -rf $$TMPDIR
 else
 	curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64.tar.gz | tar -xzC local-dev --strip-components=1 gojq_$(GOJQ_VERSION)_$(ARCH)_amd64/gojq
 	mv ./local-dev/{go,}jq
@@ -483,6 +487,7 @@ ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern v
 else
 ifneq ($(STERN_VERSION), v$(shell ./local-dev/stern --version 2>/dev/null | sed -nE 's/stern version //p'))
 	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
+	rm local-dev/stern || true
 	curl -sSLo local-dev/stern https://github.com/derdanne/stern/releases/download/$(STERN_VERSION)/stern_$(ARCH)_amd64
 	chmod a+x local-dev/stern
 endif
