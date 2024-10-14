@@ -736,8 +736,11 @@ export const deleteAdvancedTaskDefinition = async (
         group: group.id
       });
       break;
+    case AdvancedTaskDefinitionTarget.SystemWide:
+      await hasPermission('advanced_task', 'delete:advanced');
+      break;
     default:
-      throw Error('Images and System Wide Tasks are not yet supported');
+      throw Error('Image Tasks are not yet supported');
   }
 
   const rows = await query(
