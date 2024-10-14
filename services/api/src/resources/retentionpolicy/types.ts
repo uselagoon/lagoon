@@ -101,32 +101,29 @@ export const RetentionPolicy = () => {
         return c
     };
 
+     // run the configuration patches through the validation process
+     const returnValidatedHarborConfiguration = async (patch: any): Promise<string> => {
+        const c = JSON.stringify(patch)
+        try {
+            await convertJSONToHarborRetentionPolicy(c)
+            return c
+        } catch (e) {
+            throw new Error(
+                `Provided harbor configuration is not valid: ${e}`
+            );
+        }
+    }
+
     // run the configuration patches through the validation process
-    const returnValidatedConfiguration = async (type: string, patch: any): Promise<string> => {
-        const c = JSON.stringify(patch[type])
-        switch (type) {
-            case "harbor":
-                try {
-                    await convertJSONToHarborRetentionPolicy(c)
-                    return c
-                } catch (e) {
-                    throw new Error(
-                        `Provided configuration is not valid for type ${type}: ${e}`
-                    );
-                }
-            case "history":
-                try {
-                    await convertJSONToHistoryRetentionPolicy(c)
-                    return c
-                } catch (e) {
-                    throw new Error(
-                        `Provided configuration is not valid for type ${type}: ${e}`
-                    );
-                }
-            default:
-                throw new Error(
-                    `Provided configuration is not valid for type ${type}`
-                );
+    const returnValidatedHistoryConfiguration = async (patch: any): Promise<string> => {
+        const c = JSON.stringify(patch)
+        try {
+            await convertJSONToHistoryRetentionPolicy(c)
+            return c
+        } catch (e) {
+            throw new Error(
+                `Provided history configuration is not valid: ${e}`
+            );
         }
     }
 
@@ -135,6 +132,7 @@ export const RetentionPolicy = () => {
         convertHistoryRetentionPolicyToJSON,
         convertJSONToHarborRetentionPolicy,
         convertJSONToHistoryRetentionPolicy,
-        returnValidatedConfiguration
+        returnValidatedHarborConfiguration,
+        returnValidatedHistoryConfiguration
     };
 };
