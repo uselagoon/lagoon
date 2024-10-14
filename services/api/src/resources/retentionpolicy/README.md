@@ -43,25 +43,22 @@ If the organization based policy is removed from the organization, then the enfo
 
 ```
 mutation createHarborPolicy {
-  createRetentionPolicy(input:{
+  createHarborRetentionPolicy(input:{
     name: "custom-harbor-policy"
-    type: HARBOR
-    harbor: {
-      enabled: true
-      rules: [
-        {
-          name: "all branches, excluding pullrequests"
-          pattern: "[^pr\\-]*/*"
-          latestPulled: 3
-        },
-        {
-          name: "pullrequests"
-          pattern: "pr-*"
-          latestPulled: 1
-        }
-      ]
-      schedule: "3 3 * * 3"
-    }
+    enabled: true
+    rules: [
+      {
+        name: "all branches, excluding pullrequests"
+        pattern: "[^pr\\-]*/*"
+        latestPulled: 3
+      },
+      {
+        name: "pullrequests"
+        pattern: "pr-*"
+        latestPulled: 1
+      }
+    ]
+    schedule: "3 3 * * 3"
   }) {
     id
     name
@@ -76,7 +73,6 @@ mutation createHarborPolicy {
         schedule
       }
     }
-    type
     created
     updated
   }
@@ -107,16 +103,13 @@ history policies are enforced on demand. For example, when a new task or deploym
 
 ```
 mutation createHistoryPolicy {
-  createRetentionPolicy(input:{
+  createHistoryRetentionPolicy(input:{
     name: "custom-history-policy"
-    type: HISTORY
-    history: {
-      enabled: true
-      deploymentHistory: 15
-      deploymentType: DAYS
-      taskHistory: 3
-      taskType: MONTHS
-    }
+    enabled: true
+    deploymentHistory: 15
+    deploymentType: DAYS
+    taskHistory: 3
+    taskType: MONTHS
   }) {
     id
     name
@@ -129,7 +122,6 @@ mutation createHistoryPolicy {
         taskType
       }
     }
-    type
     created
     updated
   }
