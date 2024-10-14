@@ -284,14 +284,22 @@ const {
 } = require('./resources/backup/resolvers');
 
 const {
-  createRetentionPolicy,
-  updateRetentionPolicy,
-  deleteRetentionPolicy,
-  getRetentionPoliciesByProjectId,
-  getRetentionPoliciesByOrganizationId,
-  listRetentionPolicies,
-  addRetentionPolicyLink,
-  removeRetentionPolicyLink,
+  createHarborRetentionPolicy,
+  updateHarborRetentionPolicy,
+  createHistoryRetentionPolicy,
+  updateHistoryRetentionPolicy,
+  deleteHarborRetentionPolicy,
+  deleteHistoryRetentionPolicy,
+  getHarborRetentionPoliciesByProjectId,
+  getHarborRetentionPoliciesByOrganizationId,
+  getHistoryRetentionPoliciesByProjectId,
+  getHistoryRetentionPoliciesByOrganizationId,
+  listHarborRetentionPolicies,
+  listHistoryRetentionPolicies,
+  addHarborRetentionPolicyLink,
+  addHistoryRetentionPolicyLink,
+  removeHarborRetentionPolicyLink,
+  removeHistoryRetentionPolicyLink,
 } = require('./resources/retentionpolicy/resolvers');
 
 const {
@@ -502,13 +510,15 @@ const resolvers = {
     deployTargets: getDeployTargetsByOrganizationId,
     notifications: getNotificationsByOrganizationId,
     envVariables: getEnvVarsByOrganizationId,
-    retentionPolicies: getRetentionPoliciesByOrganizationId
+    harborRetentionPolicies: getHarborRetentionPoliciesByOrganizationId,
+    historyRetentionPolicies: getHistoryRetentionPoliciesByOrganizationId
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
     groupCount: getGroupCountByOrganizationProject,
     notifications: getNotificationsForOrganizationProjectId,
-    retentionPolicies: getRetentionPoliciesByProjectId,
+    harborRetentionPolicies: getHarborRetentionPoliciesByProjectId,
+    historyRetentionPolicies: getHistoryRetentionPoliciesByProjectId,
   },
   OrgEnvironment: {
     project: getProjectById,
@@ -551,18 +561,6 @@ const resolvers = {
           return 'NotificationEmail';
         case 'webhook':
           return 'NotificationWebhook';
-        default:
-          return null;
-      }
-    }
-  },
-  RetentionPolicyConfiguration: {
-    __resolveType(obj) {
-      switch (obj.type) {
-        case 'harbor':
-          return 'HarborRetentionPolicy';
-        case 'history':
-          return 'HistoryRetentionPolicy';
         default:
           return null;
       }
@@ -647,7 +645,8 @@ const resolvers = {
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
     getAuditLogs,
-    listRetentionPolicies,
+    listHarborRetentionPolicies,
+    listHistoryRetentionPolicies
   },
   Mutation: {
     addProblem,
@@ -771,11 +770,16 @@ const resolvers = {
     deleteEnvironmentService,
     addPlatformRoleToUser,
     removePlatformRoleFromUser,
-    createRetentionPolicy,
-    updateRetentionPolicy,
-    deleteRetentionPolicy,
-    addRetentionPolicyLink,
-    removeRetentionPolicyLink
+    createHarborRetentionPolicy,
+    updateHarborRetentionPolicy,
+    deleteHarborRetentionPolicy,
+    addHarborRetentionPolicyLink,
+    removeHarborRetentionPolicyLink,
+    createHistoryRetentionPolicy,
+    updateHistoryRetentionPolicy,
+    deleteHistoryRetentionPolicy,
+    addHistoryRetentionPolicyLink,
+    removeHistoryRetentionPolicyLink,
   },
   Subscription: {
     backupChanged: backupSubscriber,
