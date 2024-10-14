@@ -19,6 +19,11 @@ export const Sql = {
     knex('retention_policy')
       .where('name', '=', name)
       .toString(),
+  selectRetentionPolicyByNameAndType: (name: string, type: string) =>
+    knex('retention_policy')
+      .where('name', '=', name)
+      .where('type', '=', type)
+      .toString(),
   selectRetentionPoliciesByType: (type: string) =>
     knex('retention_policy')
       .where('type', '=', type)
