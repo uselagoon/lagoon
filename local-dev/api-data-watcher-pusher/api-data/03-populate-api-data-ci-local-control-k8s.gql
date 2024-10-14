@@ -128,92 +128,78 @@ mutation PopulateApi {
     id
   }
 
-  RetPol1: createRetentionPolicy(input:{
+  RetPol1: createHarborRetentionPolicy(input:{
     name: "harbor-policy"
-    type: HARBOR
-    harbor: {
-      enabled: true
-      rules: [
-        {
-          name: "all branches, excluding pullrequests"
-          pattern: "[^pr-]*/*"
-          latestPulled: 3
-        },
-        {
-          name: "pullrequests"
-          pattern: "pr-*"
-          latestPulled: 1
-        }
-      ]
-      schedule: "3 * * * *"
-    }
+    enabled: true
+    rules: [
+      {
+        name: "all branches, excluding pullrequests"
+        pattern: "[^pr-]*/*"
+        latestPulled: 3
+      },
+      {
+        name: "pullrequests"
+        pattern: "pr-*"
+        latestPulled: 1
+      }
+    ]
+    schedule: "3 * * * *"
   }) {
     id
     name
     configuration {
-      ... on HarborRetentionPolicy {
-        enabled
-        rules {
-          name
-          pattern
-          latestPulled
-        }
-        schedule
+      enabled
+      rules {
+        name
+        pattern
+        latestPulled
       }
+      schedule
     }
-    type
     created
     updated
   }
 
-  RetPol2: createRetentionPolicy(input:{
+  RetPol2: createHistoryRetentionPolicy(input:{
     name: "history-policy"
-    type: HISTORY
-    history: {
-      enabled: true
-      deploymentHistory: 5
-      deploymentType: COUNT
-      taskHistory: 10
-      taskType: COUNT
-    }
+    enabled: true
+    deploymentHistory: 5
+    deploymentType: COUNT
+    taskHistory: 10
+    taskType: COUNT
   }) {
     id
     name
     configuration {
-      ... on HistoryRetentionPolicy {
-        enabled
-        deploymentHistory
-        deploymentType
-        taskHistory
-        taskType
-      }
+      enabled
+      deploymentHistory
+      deploymentType
+      taskHistory
+      taskType
     }
-    type
     created
     updated
   }
 
-  RetPolLink1: addRetentionPolicyLink(input:{
-    id: 1
+  RetPolLink1: addHarborRetentionPolicyLink(input:{
+    name: "harbor-policy"
     scope: GLOBAL
     scopeName: "global",
   }) {
     id
     name
-    type
     source
     created
     updated
   }
 
-  RetPolLink2: addRetentionPolicyLink(input:{
-    id: 2
+  RetPolLink2: addHistoryRetentionPolicyLink(input:{
+    name: "history-policy"
     scope: GLOBAL
     scopeName: "global",
   }) {
     id
     name
-    type
     source
     created
     updated

@@ -18,6 +18,10 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectRetentionPolicyByName(name));
     return R.prop(0, rows);
   };
+  const getRetentionPolicyByNameAndType = async (name: string, type: string) => {
+    const rows = await query(sqlClientPool, Sql.selectRetentionPolicyByNameAndType(name, type));
+    return R.prop(0, rows);
+  };
   const getRetentionPolicyByTypeAndLink = async (type: string, sid: number, scope: string) => {
     const rows = await query(sqlClientPool, Sql.selectRetentionPoliciesByTypeAndLink(type, sid, scope));
     return R.prop(0, rows); // ? R.prop(0, rows) : null;
@@ -325,6 +329,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   return {
     getRetentionPolicy,
     getRetentionPolicyByName,
+    getRetentionPolicyByNameAndType,
     getRetentionPoliciesByProjectWithType,
     getRetentionPoliciesByOrganizationWithType,
     getRetentionPoliciesByGlobalWithType,

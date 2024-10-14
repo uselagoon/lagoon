@@ -6,11 +6,12 @@ exports.up = async function(knex) {
     return knex.schema
     .createTable('retention_policy', function (table) {
         table.increments('id').notNullable().primary();
-        table.string('name', 300).unique({indexName: 'name'});
+        table.string('name', 300);
         table.enu('type',['harbor','history']).notNullable();
         table.text('configuration');
         table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
         table.timestamp('created').notNullable().defaultTo(knex.fn.now());
+        table.unique(['name', 'type'], {indexName: 'retention_policy'});
     })
     .createTable('retention_policy_reference', function (table) {
         table.integer('retention_policy');
