@@ -1,5 +1,4 @@
 
-import * as R from 'ramda';
 import { ResolverFn } from '..';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
@@ -9,30 +8,10 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 
-export const createRetentionPolicy: ResolverFn = async (
-  _root,
-  { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
+const createRetentionPolicy = async (sqlClientPool, hasPermission, userActivityLogger, input, type) => {
   await hasPermission('retention_policy', 'add');
 
-  if (input.id) {
-    const retpol = await Helpers(sqlClientPool).getRetentionPolicy(input.id)
-    if (retpol) {
-      throw new Error(
-        `Retention policy with ID ${input.id} already exists`
-      );
-    }
-  }
-
-  // @ts-ignore
-  if (!input.type) {
-    throw new Error(
-      'Must provide type'
-    );
-  }
-
-  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByName(input.name)
+  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByNameAndType(input.name, type)
   if (retpol) {
     throw new Error(
       `Retention policy with name ${input.name} already exists`
@@ -40,8 +19,22 @@ export const createRetentionPolicy: ResolverFn = async (
   }
 
   // convert the type to the configuration json on import after passing through the validator
+  let event
   try {
-    input.configuration = await RetentionPolicy().returnValidatedConfiguration(input.type, input)
+    switch (type) {
+      case "harbor":
+        event = 'api:createHarborRetentionPolicy'
+        input.configuration = await RetentionPolicy().returnValidatedHarborConfiguration(input)
+        break;
+      case "history":
+        event = 'api:createHistoryRetentionPolicy'
+        input.configuration = await RetentionPolicy().returnValidatedHistoryConfiguration(input)
+        break;
+      default:
+        throw new Error(
+          `No matching type`
+        );
+    }
   } catch (e) {
     throw new Error(
       `${e}`
@@ -51,14 +44,15 @@ export const createRetentionPolicy: ResolverFn = async (
   const { insertId } = await query(
     sqlClientPool,
     Sql.createRetentionPolicy({
+      type: type,
     ...input,
   }));
 
   const row = await Helpers(sqlClientPool).getRetentionPolicy(insertId);
 
-  userActivityLogger(`User created a retention policy`, {
+  userActivityLogger(`User created a ${type} retention policy`, {
     project: '',
-    event: 'api:createRetentionPolicy',
+    event: event,
     payload: {
       patch: {
         name: input.name,
@@ -68,23 +62,33 @@ export const createRetentionPolicy: ResolverFn = async (
     }
   });
 
-
   return { ...row, configuration: {type: row.type, ...JSON.parse(row.configuration)} };
-  // return row;
-};
+}
 
-export const updateRetentionPolicy: ResolverFn = async (
-  root,
+export const createHarborRetentionPolicy: ResolverFn = async (
+  _root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  return await createRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, input, 'harbor');
+};
+
+export const createHistoryRetentionPolicy: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await createRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, input, 'history');
+};
+
+const updateRetentionPolicy = async (sqlClientPool, hasPermission, userActivityLogger, input, type) => {
   await hasPermission('retention_policy', 'update');
 
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  const retpol = await Helpers(sqlClientPool).getRetentionPolicy(input.id)
+  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByNameAndType(input.name, type)
   if (!retpol) {
     throw new Error(
       `Retention policy does not exist`
@@ -95,28 +99,36 @@ export const updateRetentionPolicy: ResolverFn = async (
     name: input.patch.name
   }
 
-  if (!input.patch[retpol.type]) {
-    throw new Error(
-      `Missing configuration for type ${retpol.type}, patch not provided`
-    );
-  }
-
   // convert the type to the configuration json on import after passing through the validator
+  let event
   try {
-    patch["configuration"] = await RetentionPolicy().returnValidatedConfiguration(retpol.type, input.patch)
+    switch (type) {
+      case "harbor":
+        event = 'api:updateHarborRetentionPolicy'
+        patch["configuration"] = await RetentionPolicy().returnValidatedHarborConfiguration(input.patch)
+        break;
+      case "history":
+        event = 'api:updateHistoryRetentionPolicy'
+        patch["configuration"] = await RetentionPolicy().returnValidatedHistoryConfiguration(input.patch)
+        break;
+      default:
+        throw new Error(
+          `No matching type`
+        );
+    }
   } catch (e) {
     throw new Error(
       `${e}`
     );
   }
 
-  await Helpers(sqlClientPool).updateRetentionPolicy(input.id, patch);
+  await Helpers(sqlClientPool).updateRetentionPolicy(retpol.id, patch);
 
-  const row = await Helpers(sqlClientPool).getRetentionPolicy(input.id);
+  const row = await Helpers(sqlClientPool).getRetentionPolicy(retpol.id);
 
-  userActivityLogger(`User updated retention policy`, {
+  userActivityLogger(`User updated ${type} retention policy`, {
     project: '',
-    event: 'api:updateRetentionPolicy',
+    event: event,
     payload: {
       patch: patch,
       data: row
@@ -127,54 +139,89 @@ export const updateRetentionPolicy: ResolverFn = async (
     // if a policy is updated, and the configuration is not the same as before the update
     // then run postRetentionPolicyUpdateHook to make sure that the policy enforcer does
     // any policy updates for any impacted projects
-    const policyEnabled = input.patch[retpol.type].enabled
+    const policyEnabled = input.patch.enabled
     await Helpers(sqlClientPool).postRetentionPolicyUpdateHook(retpol.type, retpol.id, null, !policyEnabled)
   }
 
   return { ...row, configuration: {type: row.type, ...JSON.parse(row.configuration)} };
-  // return row;
-};
+}
 
-export const deleteRetentionPolicy: ResolverFn = async (
-  _root,
-  { id: rid },
+export const updateHarborRetentionPolicy: ResolverFn = async (
+  root,
+  { input },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  return await updateRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, input, 'harbor');
+};
+
+export const updateHistoryRetentionPolicy: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await updateRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, input, 'history');
+};
+
+const deleteRetentionPolicy = async (sqlClientPool, hasPermission, userActivityLogger, name, type) => {
   await hasPermission('retention_policy', 'delete');
 
-  const retpol = await Helpers(sqlClientPool).getRetentionPolicy(rid)
+  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByNameAndType(name, type)
   if (!retpol) {
     throw new Error(
       `Retention policy does not exist`
     );
   }
 
-  await Helpers(sqlClientPool).deleteRetentionPolicy(rid);
+  let event
+  switch (type) {
+    case "harbor":
+      event = 'api:deleteHarborRetentionPolicy'
+      break;
+    case "history":
+      event = 'api:deleteHistoryRetentionPolicy'
+      break;
+    default:
+      throw new Error(
+        `No matching type`
+      );
+  }
 
-  userActivityLogger(`User deleted a retention policy '${retpol.name}'`, {
+  await Helpers(sqlClientPool).deleteRetentionPolicy(retpol.id);
+
+  userActivityLogger(`User deleted a ${type} retention policy '${retpol.name}'`, {
     project: '',
-    event: 'api:deleteRetentionPolicy',
+    event: event,
     payload: {
       input: {
-        retentionPolicy: rid
+        retentionPolicy: retpol.id
       }
     }
   });
 
   return 'success';
+}
+
+export const deleteHarborRetentionPolicy: ResolverFn = async (
+  _root,
+  { name },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await deleteRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, name, 'harbor');
 };
 
-export const listRetentionPolicies: ResolverFn = async (
-  root,
-  { type, name },
-  { sqlClientPool, hasPermission }
+export const deleteHistoryRetentionPolicy: ResolverFn = async (
+  _root,
+  { name },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  return await deleteRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, name, 'history');
+};
+
+const listRetentionPolicies = async (sqlClientPool, hasPermission, name, type) => {
   await hasPermission('retention_policy', 'viewAll');
 
   let queryBuilder = knex('retention_policy');
-  if (type) {
-    queryBuilder = queryBuilder.and.where('type', type);
-  }
+  queryBuilder = queryBuilder.and.where('type', type);
 
   if (name) {
     queryBuilder = queryBuilder.where('name', name);
@@ -182,19 +229,39 @@ export const listRetentionPolicies: ResolverFn = async (
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
   return rows.map(row => ({ ...row, source: null, configuration: {type: row.type, ...JSON.parse(row.configuration)} }));
+}
+
+export const listHarborRetentionPolicies: ResolverFn = async (
+  root,
+  { name },
+  { sqlClientPool, hasPermission }
+) => {
+  return await listRetentionPolicies(sqlClientPool, hasPermission, name, 'harbor')
 };
 
-
-export const addRetentionPolicyLink: ResolverFn = async (
-  _root,
-  { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+export const listHistoryRetentionPolicies: ResolverFn = async (
+  root,
+  { name },
+  { sqlClientPool, hasPermission }
 ) => {
+  return await listRetentionPolicies(sqlClientPool, hasPermission, name, 'history')
+};
 
+const addRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivityLogger, input, type) => {
   let scopeId = 0
+  let event, prefix
+  switch (type) {
+    case "harbor":
+      prefix = 'api:addHarbor'
+      break;
+    case "history":
+      prefix = 'api:addHistory'
+      break;
+  }
   switch (input.scope) {
     case "global":
       await hasPermission('retention_policy', 'addGlobal');
+      event = `${prefix}RetentionPolicyGlobal`
       break;
     case "organization":
       const organization = await organizationHelpers(sqlClientPool).getOrganizationByName(input.scopeName)
@@ -205,6 +272,7 @@ export const addRetentionPolicyLink: ResolverFn = async (
       }
       await hasPermission('retention_policy', 'addOrganization');
       scopeId = organization.id
+      event = `${prefix}RetentionPolicyOrganization`
       break;
     case "project":
       const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({name: input.scopeName})
@@ -215,6 +283,7 @@ export const addRetentionPolicyLink: ResolverFn = async (
       }
       await hasPermission('retention_policy', 'addProject');
       scopeId = project.id
+      event = `${prefix}RetentionPolicyProject`
       break;
     default:
       throw new Error(
@@ -222,7 +291,7 @@ export const addRetentionPolicyLink: ResolverFn = async (
       );
   }
 
-  const retpol = await Helpers(sqlClientPool).getRetentionPolicy(input.id)
+  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByNameAndType(input.name, type)
   if (!retpol) {
     throw new Error(
       `Retention policy does not exist`
@@ -239,7 +308,7 @@ export const addRetentionPolicyLink: ResolverFn = async (
   await query(
     sqlClientPool,
     Sql.addRetentionPolicyLink(
-      input.id,
+      retpol.id,
       input.scope,
       scopeId,
     )
@@ -250,9 +319,9 @@ export const addRetentionPolicyLink: ResolverFn = async (
   // any policy updates for any impacted projects
   await Helpers(sqlClientPool).postRetentionPolicyLinkHook(scopeId, input.scope, retpol.type, retpol.id, false)
 
-  userActivityLogger(`User added a retention policy '${retpol.name}' to ${input.scope}`, {
+  userActivityLogger(`User added a ${type} retention policy '${retpol.name}' to ${input.scope}`, {
     project: '',
-    event: 'api:addRetentionPolicyOrganization',
+    event: event,
     payload: {
       input: {
         retentionPolicy: retpol.id,
@@ -262,19 +331,41 @@ export const addRetentionPolicyLink: ResolverFn = async (
     }
   });
 
-  const row = await Helpers(sqlClientPool).getRetentionPolicy(input.id)
+  const row = await Helpers(sqlClientPool).getRetentionPolicy(retpol.id)
   return { ...row, configuration: {type: row.type, ...JSON.parse(row.configuration)} };
-};
+}
 
-export const removeRetentionPolicyLink: ResolverFn = async (
+export const addHarborRetentionPolicyLink: ResolverFn = async (
   _root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  return await addRetentionPolicyLink(sqlClientPool, hasPermission, userActivityLogger, input, 'harbor')
+};
+
+export const addHistoryRetentionPolicyLink: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await addRetentionPolicyLink(sqlClientPool, hasPermission, userActivityLogger, input, 'history')
+};
+
+const removeRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivityLogger, input, type) => {
   let scopeId = 0
+  let event, prefix
+  switch (type) {
+    case "harbor":
+      prefix = 'api:removeHarbor'
+      break;
+    case "history":
+      prefix = 'api:removeHistory'
+      break;
+  }
   switch (input.scope) {
     case "global":
       await hasPermission('retention_policy', 'addGlobal');
+      event = `${prefix}RetentionPolicyGlobal`
       break;
     case "organization":
       const organization = await organizationHelpers(sqlClientPool).getOrganizationByName(input.scopeName)
@@ -285,6 +376,7 @@ export const removeRetentionPolicyLink: ResolverFn = async (
       }
       await hasPermission('retention_policy', 'addOrganization');
       scopeId = organization.id
+      event = `${prefix}RetentionPolicyOrganization`
       break;
     case "project":
       const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({name: input.scopeName})
@@ -295,6 +387,7 @@ export const removeRetentionPolicyLink: ResolverFn = async (
       }
       await hasPermission('retention_policy', 'addProject');
       scopeId = project.id
+      event = `${prefix}RetentionPolicyProject`
       break;
     default:
       throw new Error(
@@ -302,14 +395,14 @@ export const removeRetentionPolicyLink: ResolverFn = async (
       );
   }
 
-  const retpol = await Helpers(sqlClientPool).getRetentionPolicy(input.id);
+  const retpol = await Helpers(sqlClientPool).getRetentionPolicyByNameAndType(input.name, type);
   if (!retpol) {
     throw new Error(
       `Retention policy does not exist`
     );
   }
 
-  const retpoltypes = await Helpers(sqlClientPool).getRetentionPoliciesByTypePolicyIDAndLink(retpol.type, input.id, scopeId, input.scope);
+  const retpoltypes = await Helpers(sqlClientPool).getRetentionPoliciesByTypePolicyIDAndLink(retpol.type, retpol.id, scopeId, input.scope);
   if (retpoltypes.length == 0) {
     throw new Error(
       `No matching retention policy attached to this ${input.scope}`
@@ -326,7 +419,7 @@ export const removeRetentionPolicyLink: ResolverFn = async (
   await query(
     sqlClientPool,
     Sql.deleteRetentionPolicyLink(
-      input.id,
+      retpol.id,
       input.scope,
       scopeId,
     )
@@ -346,9 +439,9 @@ export const removeRetentionPolicyLink: ResolverFn = async (
     await Helpers(sqlClientPool).postRetentionPolicyUpdateHook(retpol.type, retpol.id, preDeleteProjectIds, true)
   }
 
-  userActivityLogger(`User removed a retention policy '${retpol.name}' from organization`, {
+  userActivityLogger(`User removed a ${type} retention policy '${retpol.name}' from organization`, {
     project: '',
-    event: 'api:removeRetentionPolicyOrganization',
+    event: event,
     payload: {
       input: {
         retentionPolicy: retpol.id,
@@ -359,10 +452,26 @@ export const removeRetentionPolicyLink: ResolverFn = async (
   });
 
   return "success"
+}
+
+export const removeHarborRetentionPolicyLink: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await removeRetentionPolicyLink(sqlClientPool, hasPermission, userActivityLogger, input, 'harbor')
 };
 
-// This is only called by the project resolver, so there is no need to do any permission checks
-export const getRetentionPoliciesByProjectId: ResolverFn = async (
+export const removeHistoryRetentionPolicyLink: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  return await removeRetentionPolicyLink(sqlClientPool, hasPermission, userActivityLogger, input, 'history')
+};
+
+// This is only called by the project resolver, so there is no need to do any permission checks as they're already done by the project
+export const getHarborRetentionPoliciesByProjectId: ResolverFn = async (
   project,
   args,
   { sqlClientPool }
@@ -373,12 +482,28 @@ export const getRetentionPoliciesByProjectId: ResolverFn = async (
     pid = project.id;
   }
   let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink(args.type, "project", project.id);
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('harbor', 'project', project.id);
   return rows;
 };
 
-// This is only called by the organization resolver, so there is no need to do any permission checks
-export const getRetentionPoliciesByOrganizationId: ResolverFn = async (
+// This is only called by the project resolver, so there is no need to do any permission checks as they're already done by the project
+export const getHistoryRetentionPoliciesByProjectId: ResolverFn = async (
+  project,
+  args,
+  { sqlClientPool }
+) => {
+
+  let pid = args.project;
+  if (project) {
+    pid = project.id;
+  }
+  let rows = []
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('history', 'project', project.id);
+  return rows;
+};
+
+// This is only called by the organization resolver, so there is no need to do any permission checks as they're already done by the organization
+export const getHarborRetentionPoliciesByOrganizationId: ResolverFn = async (
   organization,
   args,
   { sqlClientPool }
@@ -389,6 +514,22 @@ export const getRetentionPoliciesByOrganizationId: ResolverFn = async (
     oid = organization.id;
   }
   let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink(args.type, "organization", oid);
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('harbor', 'organization', oid);
+  return rows;
+};
+
+// This is only called by the organization resolver, so there is no need to do any permission checks as they're already done by the organization
+export const getHistoryRetentionPoliciesByOrganizationId: ResolverFn = async (
+  organization,
+  args,
+  { sqlClientPool }
+) => {
+
+  let oid = args.organization;
+  if (organization) {
+    oid = organization.id;
+  }
+  let rows = []
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('history', 'organization', oid);
   return rows;
 };
