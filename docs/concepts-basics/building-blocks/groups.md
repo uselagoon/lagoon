@@ -11,9 +11,11 @@ If you need to change the quota, please contact {{ defaults.helpstring }}.
 
 # Subgroups
 
-!!! warning
-    Subgroups and not commonly used in Lagoon, and you probably don't need them.
-    However, they can be useful in some rare situations.
+!!! danger
+    Subgroups are not commonly used in Lagoon.
+    Unless you are a Lagoon developer, and know exactly what you are doing, you shouldn't use them.
+
+    There is also no guarantee that subgroups will be something Lagoon supports in future, since their complexity is out of proportion to the functionality they provide.
 
 !!! note
     Subgroups are not exposed by the Lagoon UI or Lagoon CLI, but can be created through the Lagoon GraphQL API.
@@ -23,14 +25,11 @@ Subgroups are groups which are a child of another group.
 
 A user's role in an ancestor group is inherited by descendant groups.
 
-## Subgroups example
+## Subgroup permission inheritance example
 
 Consider this group structure:
 
-``` mermaid
----
-title: Subgroup permissions example
----
+```mermaid
 erDiagram
     CompanyGroup ||--o{ DivisionGroup : child
     DivisionGroup ||--o{ TeamGroup : child
