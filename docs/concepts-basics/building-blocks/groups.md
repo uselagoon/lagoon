@@ -13,7 +13,10 @@ If you need to change the quota, please contact {{ defaults.helpstring }}.
 
 !!! warning
     Subgroups and not commonly used in Lagoon, and you probably don't need them.
-    However, they can be useful in some situations.
+    However, they can be useful in some rare situations.
+
+!!! note
+    Subgroups are not exposed by the Lagoon UI or Lagoon CLI, but can be created through the Lagoon GraphQL API.
 
 Groups can be nested to an arbitrary depth.
 Subgroups are groups which are a child of another group.
