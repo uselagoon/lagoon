@@ -12,18 +12,6 @@
 
 それは素晴らしいニュースです！[sales@amazee.io](mailto:sales@amazee.io)までメールでお問い合わせいただけます。
 
-## バックアップをどのように復元することができますか？
-
-ファイルやデータベースのバックアップを提供しており、通常は最大で24時間ごとに取得しています。これらのバックアップはオフサイトで保存されています。
-
-日次バックアップは最大7つ、週次バックアップは最大4つ保持しています。
-
-バックアップの復元や回復が必要な場合は、お気軽にチケットを提出するか、チャットでメッセージを送ってください。喜んでお手伝いします！
-
-## データベースダンプをどのようにダウンロードすることができますか？
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 ## 私は無効なSSL証明書エラーが出ています
 
 まず最初に試すべきことは、[私たちのドキュメンテーションに記載されているSSLに関する情報](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme)を参照してみてください。
