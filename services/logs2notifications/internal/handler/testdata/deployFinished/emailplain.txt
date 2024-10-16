@@ -1,4 +1,4 @@
-[ci-github-openshift] lagoon-type-override Build lagoon-build-1234 complete. [Logs](https://logs)
+[ci-github-openshift] lagoon-type-override Build lagoon-build-1234 completed. [Logs](https://logs)
 https://route1
 https://route2
 https://route3

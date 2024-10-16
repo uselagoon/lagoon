@@ -1,1 +1,1 @@
-{"type":"DEPLOYMENT","event":"task:builddeploy-kubernetes:failed","project":"ci-github-openshift","environment":"lagoon-type-override","buildName":"lagoon-build-1234","logLink":"https://logs"}
+{"type":"DEPLOYMENT","event":"task:builddeploy-kubernetes:failed","project":"ci-github-openshift","environment":"lagoon-type-override","buildName":"lagoon-build-1234","buildStep":"applyingDeployments","logLink":"https://logs"}

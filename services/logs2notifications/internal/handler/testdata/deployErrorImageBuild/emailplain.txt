@@ -1,0 +1,2 @@
+[ci-github-openshift] lagoon-type-override Build lagoon-build-1234 failed at build step buildingImages.
+ [Logs](https://logs)

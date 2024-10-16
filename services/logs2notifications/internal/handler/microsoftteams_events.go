@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -71,9 +72,15 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 	case "notDeleted":
 		teamsTpl = "`{{.BranchName}}`" + ` not deleted. {{.Error}}`
 	case "deployError":
-		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Failed. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}`
+		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` failed at build step ` + "`{{.BuildStep}}`" + `. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}`
 	case "deployFinished":
-		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Succeeded. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}
+		match, _ := regexp.MatchString(".*WithWarnings$", notification.Meta.BuildStep)
+		msg := "Succeeded"
+		if match {
+			emoji = ":warning:"
+			msg = "Succeeded with warnings, check the build log for more information"
+		}
+		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}` " + msg + `. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}
 * {{.Route}}{{range .Routes}}{{if ne . $.Route}}* {{.}}{{end}}
 {{end}}`
 	case "problemNotification":
@@ -187,22 +194,4 @@ var microsoftTeamsEvent = map[string]EventMap{
 	"github:push:CannotDeleteProductionEnvironment":                {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
 	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
 	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
-
-	// deprecated
-	// "rest:remove:CannotDeleteProductionEnvironment": {Emoji: ":warning:", Color: "gold"},
-	// "rest:deploy:receive":                           {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:remove:receive":                           {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:promote:receive":                          {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:pullrequest:deploy":                       {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:pullrequest:remove":                       {Emoji: ":information_source:", Color: "#E8E8E8"},
-
-	// deprecated
-	// "task:deploy-openshift:error":           {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
-	// "task:remove-openshift-resources:error": {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
-
-	// deprecated
-	// "task:deploy-openshift:retry":           {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-openshift:retry":           {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-kubernetes:retry":          {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-openshift-resources:retry": {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
 }
