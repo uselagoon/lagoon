@@ -15,24 +15,24 @@ function configure_user_passwords {
   for i in ${LAGOON_DEMO_USERS[@]}
   do
     echo Configuring password for $i
-    /opt/keycloak/bin/kcadm.sh set-password --config $CONFIG_PATH --username $i -p $i --target-realm Lagoon
+    /opt/keycloak/bin/kcadm.sh set-password --config $CONFIG_PATH --username $i -p $i --target-realm lagoon
   done
 
   for i in ${LAGOON_DEMO_ORG_USERS[@]}
   do
     echo Configuring password for $i
-    /opt/keycloak/bin/kcadm.sh set-password --config $CONFIG_PATH --username $i -p $i --target-realm Lagoon
+    /opt/keycloak/bin/kcadm.sh set-password --config $CONFIG_PATH --username $i -p $i --target-realm lagoon
   done
 }
 
 function configure_platformowner {
   echo Configuring platform owner role
-    /opt/keycloak/bin/kcadm.sh add-roles --uusername platformowner@example.com --rolename platform-owner --config $CONFIG_PATH --target-realm Lagoon
+    /opt/keycloak/bin/kcadm.sh add-roles --uusername platformowner@example.com --rolename platform-owner --config $CONFIG_PATH --target-realm lagoon
 }
 
 function configure_platformviewer {
   echo Configuring platform viewer role
-    /opt/keycloak/bin/kcadm.sh add-roles --uusername platformviewer@example.com --rolename platform-viewer --config $CONFIG_PATH --target-realm Lagoon
+    /opt/keycloak/bin/kcadm.sh add-roles --uusername platformviewer@example.com --rolename platform-viewer --config $CONFIG_PATH --target-realm lagoon
 }
 
 function configure_keycloak {

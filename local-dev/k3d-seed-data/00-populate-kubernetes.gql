@@ -87,21 +87,6 @@ mutation PopulateApi {
     id
   }
 
-  LagoonDemoToGroup: addGroupsToProject(
-    input: {
-      project: {
-        name: "lagoon-demo"
-      }
-      groups: [
-        {
-          name: "lagoon-demo-group"
-        }
-      ]
-    }
-  ) {
-    id
-  }
-
   UserExampleGuestGroup: addUserToGroup(
     input: {
       user: {
@@ -428,6 +413,21 @@ mutation PopulateApi {
       productionEnvironment: "main"
       problemsUi: 1
       factsUi: 1
+    }
+  ) {
+    id
+  }
+
+  LagoonDemoToGroup: addGroupsToProject(
+    input: {
+      project: {
+        name: "lagoon-demo"
+      }
+      groups: [
+        {
+          name: "lagoon-demo-group"
+        }
+      ]
     }
   ) {
     id

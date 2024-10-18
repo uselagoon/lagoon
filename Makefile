@@ -262,7 +262,20 @@ wait-for-keycloak:
 	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' \
 	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
 	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
+	&& echo "" \
+	&& echo "If you want to create an example SSO identity provider and example user, run make compose/example-sso" \
+	&& echo "If you want to configure simple webauthn browswer flow, run make compose/configure-webauthn" \
 	&& echo ""
+
+.PHONY: compose/example-sso
+compose/example-sso:
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-example-sso.sh keycloak:/tmp/seed-example-sso.sh \
+	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-example-sso.sh'
+
+.PHONY: compose/configure-webauthn
+compose/configure-webauthn:
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/configure-webauthn.sh keycloak:/tmp/configure-webauthn.sh \
+	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/configure-webauthn.sh'
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
 main-test-services = actions-handler broker api-sidecar-handler logs2notifications api api-db api-redis api-sidecar-handler keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
@@ -734,7 +747,22 @@ k3d/seed-data:
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-users.sh' \
 	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
 	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
+	&& echo "" \
+	&& echo "If you want to create an example SSO identity provider and example user, run make k3d/example-sso" \
+	&& echo "If you want to configure simple webauthn browswer flow, run make k3d/configure-webauthn" \
 	&& echo ""
+
+.PHONY: k3d/example-sso
+k3d/example-sso:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	cat ./local-dev/k3d-seed-data/seed-example-sso.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-example-sso.sh" \
+	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-example-sso.sh'
+
+.PHONY: k3d/configure-webauthn
+k3d/configure-webauthn:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	cat ./local-dev/k3d-seed-data/configure-webauthn.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/configure-webauthn.sh" \
+	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/configure-webauthn.sh'
 
 # Use k3d/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
 # log in the foreground, so perform this command in a separate window/terminal.
