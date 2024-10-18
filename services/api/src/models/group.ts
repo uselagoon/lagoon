@@ -81,10 +81,6 @@ interface GroupEdit {
   attributes?: object;
 }
 
-interface AttributeFilterFn {
-  (attribute: { name: string; value: string[] }): boolean;
-}
-
 export class GroupExistsError extends Error {
   constructor(message: string) {
     super(message);
@@ -101,25 +97,6 @@ export class GroupNotFoundError extends Error {
 
 // Group types that are for internal use only.
 const internalGroupTypes = [GroupType.ROLE_SUBGROUP];
-
-const attrLens = R.lensPath(['attributes']);
-const lagoonProjectsLens = R.lensPath(['lagoon-projects']);
-
-const attrLagoonProjectsLens = R.compose(
-  // @ts-ignore
-  attrLens,
-  lagoonProjectsLens,
-  R.lensPath([0])
-);
-
-const getProjectIdsFromGroup = R.pipe(
-  // @ts-ignore
-  R.view(attrLagoonProjectsLens),
-  R.defaultTo(''),
-  R.split(','),
-  R.reject(R.isEmpty),
-  R.map(id => parseInt(id, 10))
-);
 
 export const isRoleSubgroup = R.pathEq(
   ['attributes', 'type', 0],
@@ -156,7 +133,7 @@ export interface GroupModel {
   loadGroupByName: (name: string) => Promise<Group>
   loadGroupByIdOrName: (groupInput: GroupInput) => Promise<Group>
   loadParentGroup: (groupInput: Group) => Promise<Group>
-  createGroupFromKeycloak: (group: KeycloakLagoonGroup) => SparseGroup
+  createGroupFromKeycloak: (group: KeycloakLagoonGroup, projectIdsArray: number[], organizationAttr: number) => SparseGroup
   getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>
   getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>
   getProjectsFromGroup: (group: Group) => Promise<number[]>
@@ -186,17 +163,17 @@ export const Group = (clients: {
     keycloakGroups: GroupRepresentation[]
   ): Promise<Group[]> => {
     // Map from keycloak object to group object
-    const groups = keycloakGroups.map(
-      (keycloakGroup: GroupRepresentation): Group => ({
+    const groups = await Promise.all(keycloakGroups.map(
+      async (keycloakGroup: GroupRepresentation): Promise<Group> => ({
         id: keycloakGroup.id,
         name: keycloakGroup.name,
         type: attributeKVOrNull('type', keycloakGroup),
         path: keycloakGroup.path,
         attributes: keycloakGroup.attributes,
         subGroups: keycloakGroup.subGroups,
-        organization: parseInt(attributeKVOrNull('lagoon-organization', keycloakGroup), 10) || null, // if it exists set it or null
+        organization: await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id), // if it exists set it or null
       })
-    );
+    ));
 
     let groupsWithGroupsAndMembers = [];
 
@@ -216,17 +193,8 @@ export const Group = (clients: {
     return groupsWithGroupsAndMembers;
   };
 
-  const createGroupFromKeycloak = (group: KeycloakLagoonGroup): SparseGroup => {
+  const createGroupFromKeycloak = (group: KeycloakLagoonGroup, projectsArray: number[], organizationAttr: number): SparseGroup => {
     const groupAttr = group.attributes?.['type']?.[0];
-    const projectsAttr = group.attributes?.['lagoon-projects']?.[0];
-    const projectsArray = projectsAttr
-      ? projectsAttr
-        .split(',')
-        .map((id) => id.trim())
-        .filter((id) => !!id)
-        .map(toNumber)
-      : [];
-    const organizationAttr = group.attributes?.['lagoon-organization']?.[0];
 
     if (!group.id) {
       throw new Error('Missing group id');
@@ -239,7 +207,7 @@ export const Group = (clients: {
     return {
       id: group.id,
       name: group.name,
-      organization: organizationAttr ? toNumber(organizationAttr) : null,
+      organization: organizationAttr,
       parentGroupId: group.parentId ?? null,
       projects: new Set(projectsArray),
       subGroupCount: group.subGroupCount ?? 0,
@@ -257,7 +225,11 @@ export const Group = (clients: {
       throw new GroupNotFoundError(`Group not found: ${id}`);
     }
 
-    return createGroupFromKeycloak(keycloakGroup);
+    // get the projectids from the group_project database table instead of group attributes
+    const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroup.id);
+    const organizationId = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id);
+
+    return createGroupFromKeycloak(keycloakGroup, projectIds, organizationId);
   };
 
   /**
@@ -324,7 +296,11 @@ export const Group = (clients: {
       );
     }
 
-    return createGroupFromKeycloak(keycloakGroups[0]);
+    // get the projectids from the group_project database table instead of group attributes
+    const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroups[0].id);
+    const organizationId = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroups[0].id);
+
+    return createGroupFromKeycloak(keycloakGroups[0], projectIds, organizationId);
   };
 
   /**
@@ -456,7 +432,11 @@ export const Group = (clients: {
 
     let subGroups: HieararchicalGroup[] = [];
     for (const keycloakGroup of keycloakGroups) {
-      const subGroup = createGroupFromKeycloak(keycloakGroup);
+      // get the projectids from the group_project database table instead of group attributes
+      const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroup.id);
+      const organizationId = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id);
+
+      const subGroup = createGroupFromKeycloak(keycloakGroup, projectIds, organizationId);
 
       const groupWithSubgroups = await loadSubGroups(subGroup, depth ? depth -1 : null);
       subGroups.push({
@@ -526,7 +506,8 @@ export const Group = (clients: {
   const getProjectsFromGroupAndParents = async (
     group: Group
   ): Promise<number[]> => {
-    const projectIds = getProjectIdsFromGroup(group);
+    // get the projectids from the group_project database table instead of group attributes
+    const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
 
     const parentGroup = await loadParentGroup(group);
     const parentProjectIds = parentGroup
@@ -545,7 +526,8 @@ export const Group = (clients: {
     group: Group
   ): Promise<number[]> => {
     try {
-      const groupProjectIds = getProjectIdsFromGroup(group);
+      // get the projectids from the group_project database table instead of group attributes
+      const groupProjectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
 
       let subGroupProjectIds = [];
       // @TODO: check is `groups.groups` ever used? it always appears to be empty
@@ -577,7 +559,8 @@ export const Group = (clients: {
     group: Group
   ): Promise<number[]> => {
     try {
-      const groupProjectIds = getProjectIdsFromGroup(group);
+      // get the projectids from the group_project database table instead of group attributes
+      const groupProjectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
       // remove deleted projects from the result to prevent null errors in user queries
       const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(groupProjectIds);
       let existingProjectsIds = [];
@@ -913,10 +896,10 @@ export const Group = (clients: {
     if (group.type) {
       attributes.type = [group.type];
     }
+    // lagoon-organization and lagoon-projects/project-ids attributes are added for legacy reasons only, theses values are stored in the api-db now
     if (group.organization) {
       attributes['lagoon-organization'] = [group.organization.toString()];
     }
-
     attributes['lagoon-projects'] = [Array.from(group.projects).join(',')];
     attributes['group-lagoon-project-ids'] = [
       `{${JSON.stringify(group.name)}:[${Array.from(group.projects).join(',')}]}`,
@@ -957,10 +940,10 @@ export const Group = (clients: {
     if (group.type) {
       attributes.type = [group.type];
     }
+    // lagoon-organization and lagoon-projects/project-ids attributes are added for legacy reasons only, theses values are stored in the api-db now
     if (group.organization) {
       attributes['lagoon-organization'] = [group.organization.toString()];
     }
-
     attributes['lagoon-projects'] = [Array.from(group.projects).join(',')];
     attributes['group-lagoon-project-ids'] = [
       `{${JSON.stringify(group.name)}:[${Array.from(group.projects).join(',')}]}`,
