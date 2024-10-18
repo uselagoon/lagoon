@@ -394,11 +394,13 @@ export const addProject = async (
   let group;
   let attributes = {
     type: ['project-default-group'],
+    // lagoon-projects and group-lagoon-project-ids attributes are added for legacy reasons only, theses values are stored in the api-db now
     'lagoon-projects': [project.id],
     'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
   };
   // add the organization attribute if this exists
   if (input.organization != null) {
+    // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
     attributes['lagoon-organization'] = [input.organization];
   }
   try {

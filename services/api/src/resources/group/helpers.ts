@@ -7,24 +7,24 @@ import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
     return {
-        selectProjectIdsByGroupIDs: async (groupIds: string[]) => {
+        selectProjectIdsByGroupIDs: async (groupIds: string[]): Promise<number[]> => {
             const projectIdsArray = await query(
                 sqlClientPool,
                 Sql.selectProjectIdsByGroupIDs(groupIds)
             )
             if (projectIdsArray[0]["projectIds"] != null) {
-                const values = projectIdsArray[0]["projectIds"].split(',');
+                const values = projectIdsArray[0]["projectIds"].split(',').map(Number);
                 return values
             }
             return []
         },
-        selectProjectIdsByGroupID: async (groupId: string) => {
+        selectProjectIdsByGroupID: async (groupId: string): Promise<number[]> => {
             const projectIdsArray = await query(
                 sqlClientPool,
                 Sql.selectProjectIdsByGroupID(groupId)
             )
             if (projectIdsArray[0]["projectIds"] != null) {
-                const values = projectIdsArray[0]["projectIds"].split(',');
+                const values = projectIdsArray[0]["projectIds"].split(',').map(Number);
                 return values
             }
             return []
@@ -68,10 +68,24 @@ export const Helpers = (sqlClientPool: Pool) => {
             return []
         },
         selectOrganizationByGroupId: async (groupId: string) => {
-            return await query(
+            const organization = await query(
                 sqlClientPool,
                 Sql.selectOrganizationByGroupId(groupId)
             )
+            if (organization[0] != null) {
+                return organization[0]
+            }
+            return null
+        },
+        selectOrganizationIdByGroupId: async (groupId: string) => {
+            const organization = await query(
+                sqlClientPool,
+                Sql.selectOrganizationByGroupId(groupId)
+            )
+            if (organization[0] != null) {
+                return organization[0].organizationId
+            }
+            return null
         },
         removeProjectFromGroup: async (projectId: number, groupId: string) => {
             await query(
@@ -94,6 +108,17 @@ export const Helpers = (sqlClientPool: Pool) => {
                 await query(
                     sqlClientPool,
                     Sql.addOrganizationToGroup({organizationId, groupId})
+                );
+            } catch (err) {
+                return null
+            }
+        },
+        removeGroupFromOrganization: async (groupId: string) => {
+            try {
+                // delete the reference for the group from the group_organization table
+                await query(
+                    sqlClientPool,
+                    Sql.deleteOrganizationGroup(groupId)
                 );
             } catch (err) {
                 return null
