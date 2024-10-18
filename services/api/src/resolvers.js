@@ -290,12 +290,9 @@ const {
   updateHistoryRetentionPolicy,
   deleteHarborRetentionPolicy,
   deleteHistoryRetentionPolicy,
-  getHarborRetentionPoliciesByProjectId,
-  getHarborRetentionPoliciesByOrganizationId,
-  getHistoryRetentionPoliciesByProjectId,
-  getHistoryRetentionPoliciesByOrganizationId,
-  listHarborRetentionPolicies,
-  listHistoryRetentionPolicies,
+  getRetentionPoliciesByProjectId,
+  getRetentionPoliciesByOrganizationId,
+  listAllRetentionPolicies,
   addHarborRetentionPolicyLink,
   addHistoryRetentionPolicyLink,
   removeHarborRetentionPolicyLink,
@@ -435,6 +432,10 @@ const resolvers = {
     DAYS: 'days',
     MONTHS: 'months',
   },
+  RetentionPolicyType: {
+    HARBOR: 'harbor',
+    HISTORY: 'history',
+  },
   Openshift: {
     projectUser: getProjectUser,
     token: getToken,
@@ -510,15 +511,13 @@ const resolvers = {
     deployTargets: getDeployTargetsByOrganizationId,
     notifications: getNotificationsByOrganizationId,
     envVariables: getEnvVarsByOrganizationId,
-    harborRetentionPolicies: getHarborRetentionPoliciesByOrganizationId,
-    historyRetentionPolicies: getHistoryRetentionPoliciesByOrganizationId
+    retentionPolicies: getRetentionPoliciesByOrganizationId,
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
     groupCount: getGroupCountByOrganizationProject,
     notifications: getNotificationsForOrganizationProjectId,
-    harborRetentionPolicies: getHarborRetentionPoliciesByProjectId,
-    historyRetentionPolicies: getHistoryRetentionPoliciesByProjectId,
+    retentionPolicies: getRetentionPoliciesByProjectId,
   },
   OrgEnvironment: {
     project: getProjectById,
@@ -561,6 +560,18 @@ const resolvers = {
           return 'NotificationEmail';
         case 'webhook':
           return 'NotificationWebhook';
+        default:
+          return null;
+      }
+    }
+  },
+  RetentionPolicy: {
+    __resolveType(obj) {
+      switch (obj.type) {
+        case 'harbor':
+          return 'HarborRetentionPolicy';
+        case 'history':
+          return 'HistoryRetentionPolicy';
         default:
           return null;
       }
@@ -645,8 +656,7 @@ const resolvers = {
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
     getAuditLogs,
-    listHarborRetentionPolicies,
-    listHistoryRetentionPolicies
+    listAllRetentionPolicies
   },
   Mutation: {
     addProblem,
