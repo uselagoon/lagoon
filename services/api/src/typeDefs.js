@@ -794,15 +794,10 @@ const typeDefs = gql`
     buildImage: String
     sharedBaasBucket: Boolean
     """
-    harborRetentionPolicies are the available harbor retention policies to a project, this will also include inherited policies from an organization
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
     if the project is associated to an organization, and the organization has any retention policies
     """
-    harborRetentionPolicies: [HarborRetentionPolicy]
-    """
-    historyRetentionPolicies are the available history retention policies to a project, this will also include inherited policies from an organization
-    if the project is associated to an organization, and the organization has any retention policies
-    """
-    historyRetentionPolicies: [HistoryRetentionPolicy]
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1094,13 +1089,9 @@ const typeDefs = gql`
     created: String
     envVariables: [EnvKeyValue]
     """
-    harborRetentionPolicies are the available harbor retention policies to an organization
+    retentionPolicies are the available retention policies to an organization
     """
-    harborRetentionPolicies: [HarborRetentionPolicy]
-    """
-    historyRetentionPolicies are the available history retention policies to an organization
-    """
-    historyRetentionPolicies: [HistoryRetentionPolicy]
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   input AddOrganizationInput {
@@ -1147,15 +1138,10 @@ const typeDefs = gql`
     groupCount: Int
     notifications: [OrganizationNotification]
     """
-    harborRetentionPolicies are the available harbor retention policies to a project, this will also include inherited policies from an organization
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
     if the project is associated to an organization, and the organization has any retention policies
     """
-    harborRetentionPolicies: [HarborRetentionPolicy]
-    """
-    historyRetentionPolicies are the available history retention policies to a project, this will also include inherited policies from an organization
-    if the project is associated to an organization, and the organization has any retention policies
-    """
-    historyRetentionPolicies: [HistoryRetentionPolicy]
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1513,8 +1499,7 @@ const typeDefs = gql`
     checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
     allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
     getAuditLogs(input: AuditLogInput): [AuditLog]
-    listHarborRetentionPolicies(name: String): [HarborRetentionPolicy]
-    listHistoryRetentionPolicies(name: String): [HistoryRetentionPolicy]
+    listAllRetentionPolicies(name: String, type: RetentionPolicyType): [RetentionPolicy]
   }
 
   type ProjectGroupsToOrganization {
@@ -2417,7 +2402,7 @@ const typeDefs = gql`
   }
 
   """
-  HarborRetentionPolicy is the type for harbor retention policies
+  HarborRetentionPolicyConfiguration is the type for harbor retention policies configuration
   """
   type HarborRetentionPolicyConfiguration {
     enabled: Boolean
@@ -2437,7 +2422,7 @@ const typeDefs = gql`
   }
 
   """
-  HistoryRetentionPolicyConfiguration is the type for history retention policies
+  HistoryRetentionPolicyConfiguration is the type for history retention policies configuration
   """
   type HistoryRetentionPolicyConfiguration {
     enabled: Boolean
@@ -2500,6 +2485,13 @@ const typeDefs = gql`
     or from an organization itself
     """
     source: String
+  }
+
+  union RetentionPolicy = HarborRetentionPolicy | HistoryRetentionPolicy
+
+  enum RetentionPolicyType {
+    HARBOR
+    HISTORY
   }
 
   """
