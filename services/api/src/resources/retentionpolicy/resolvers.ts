@@ -217,11 +217,18 @@ export const deleteHistoryRetentionPolicy: ResolverFn = async (
   return await deleteRetentionPolicy(sqlClientPool, hasPermission, userActivityLogger, name, 'history');
 };
 
-const listRetentionPolicies = async (sqlClientPool, hasPermission, name, type) => {
+export const listAllRetentionPolicies: ResolverFn = async (
+  root,
+  { name, type },
+  { sqlClientPool, hasPermission }
+) => {
   await hasPermission('retention_policy', 'viewAll');
 
   let queryBuilder = knex('retention_policy');
-  queryBuilder = queryBuilder.and.where('type', type);
+
+  if (type) {
+    queryBuilder = queryBuilder.and.where('type', type);
+  }
 
   if (name) {
     queryBuilder = queryBuilder.where('name', name);
@@ -229,22 +236,6 @@ const listRetentionPolicies = async (sqlClientPool, hasPermission, name, type) =
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
   return rows.map(row => ({ ...row, source: null, configuration: {type: row.type, ...JSON.parse(row.configuration)} }));
-}
-
-export const listHarborRetentionPolicies: ResolverFn = async (
-  root,
-  { name },
-  { sqlClientPool, hasPermission }
-) => {
-  return await listRetentionPolicies(sqlClientPool, hasPermission, name, 'harbor')
-};
-
-export const listHistoryRetentionPolicies: ResolverFn = async (
-  root,
-  { name },
-  { sqlClientPool, hasPermission }
-) => {
-  return await listRetentionPolicies(sqlClientPool, hasPermission, name, 'history')
 };
 
 const addRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivityLogger, input, type) => {
@@ -470,8 +461,7 @@ export const removeHistoryRetentionPolicyLink: ResolverFn = async (
   return await removeRetentionPolicyLink(sqlClientPool, hasPermission, userActivityLogger, input, 'history')
 };
 
-// This is only called by the project resolver, so there is no need to do any permission checks as they're already done by the project
-export const getHarborRetentionPoliciesByProjectId: ResolverFn = async (
+export const getRetentionPoliciesByProjectId: ResolverFn = async (
   project,
   args,
   { sqlClientPool }
@@ -482,28 +472,12 @@ export const getHarborRetentionPoliciesByProjectId: ResolverFn = async (
     pid = project.id;
   }
   let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('harbor', 'project', project.id);
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink(args.type, "project", project.id);
   return rows;
 };
 
-// This is only called by the project resolver, so there is no need to do any permission checks as they're already done by the project
-export const getHistoryRetentionPoliciesByProjectId: ResolverFn = async (
-  project,
-  args,
-  { sqlClientPool }
-) => {
-
-  let pid = args.project;
-  if (project) {
-    pid = project.id;
-  }
-  let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('history', 'project', project.id);
-  return rows;
-};
-
-// This is only called by the organization resolver, so there is no need to do any permission checks as they're already done by the organization
-export const getHarborRetentionPoliciesByOrganizationId: ResolverFn = async (
+// This is only called by the organization resolver, so there is no need to do any permission checks
+export const getRetentionPoliciesByOrganizationId: ResolverFn = async (
   organization,
   args,
   { sqlClientPool }
@@ -514,22 +488,6 @@ export const getHarborRetentionPoliciesByOrganizationId: ResolverFn = async (
     oid = organization.id;
   }
   let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('harbor', 'organization', oid);
-  return rows;
-};
-
-// This is only called by the organization resolver, so there is no need to do any permission checks as they're already done by the organization
-export const getHistoryRetentionPoliciesByOrganizationId: ResolverFn = async (
-  organization,
-  args,
-  { sqlClientPool }
-) => {
-
-  let oid = args.organization;
-  if (organization) {
-    oid = organization.id;
-  }
-  let rows = []
-  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink('history', 'organization', oid);
+  rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink(args.type, "organization", oid);
   return rows;
 };
