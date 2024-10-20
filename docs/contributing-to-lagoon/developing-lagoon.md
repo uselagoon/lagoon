@@ -73,20 +73,113 @@ make -j8 build
 
 The make file offers a command that allows you to spin up Lagoon inside of a k3d cluster locally and explore its functionality.
 
-Using the following make command will create a k3d cluster, install Lagoon and all of the necessary components to get you up and running and ready to explore.
+Using the following make command will create a k3d cluster and install any dependencies (ingress, harbor, s3 compatible storage, etc) that are required by Lagoon. It will then build any images required and push them to the registry, and install `lagoon-core`, `lagoon-remote`, and `lagoon-build-deploy` charts.
 
 ```bash title="Deploy local stack"
 make k3d/local-stack
 ```
 
 !!! warning
+    Once you have a running `make k3d/local-stack` you should not run it again. There are other targets that can be run safely after the initial stack is running.
+
+At the end of the process, the command will provide some useful information that will help to get you up and running and able to log in to the UI or using the API with tools like the Lagoon CLI.
+
+!!! warning
     This can take some time to complete as it will install a lot of components necessary to make Lagoon work. This includes things like ingress-nginx, harbor, and all the additional services to make exploring Lagoon easy.
 
-At the end of the process, the command will provide some useful information that will get you up and running and able to log in to the UI or using the API with tools like the Lagoon CLI.
+
+### Local stack setup options
+
+There are a number of variables that can be used with `make k3d/local-stack` that can enable or disable certain options when setting up the initial cluster.
+
+#### DBaaS providers
+
+There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatability reasons, you can disable them individually.
+
+```bash title="Deploy local stack without specific provider"
+# disable all of them
+make k3d/local-stack INSTALL_DBAAS_PROVIDERS=false
+
+# just disable mongodb
+make k3d/local-stack INSTALL_MONGODB_PROVIDER=false
+# just disable mariadb
+make k3d/local-stack INSTALL_MARIADB_PROVIDER=false
+# just disable postgres
+make k3d/local-stack INSTALL_POSTGRES_PROVIDER=false
+# other combinations as needed
+make k3d/local-stack INSTALL_POSTGRES_PROVIDER=false  INSTALL_MONGODB_PROVIDER=false
+```
+
+!!! info
+    If you're using an arm64 based operating system (MacOS M* for example), then `INSTALL_MONGODB_PROVIDER` will always be set to `false`, this is because there are some issues due to MongoDB not working properly.
+
+#### Stable chart installation and upgrading chart versions
+
+It is possible to run the local-stack as it would be directly from a stable chart version.
+
+This can be useful if you want to get a Lagoon up and running without having to build all the service images.
+
+Using this feature also allows for upgrading from a stable chart version to a feature chart.
+
+##### All stable components
+
+This will install lagoon-core, lagoon-remote, and lagoon-build-deploy charts with their current stable versions
+
+```bash title="Deploy local stack with stable core, remote, build-deploy"
+make k3d/stable-local-stack
+
+# which is a shorter target for
+make k3d/local-stack INSTALL_STABLE_LAGOON=true
+```
+
+##### Specific stable components
+
+It's also possible to selectively install certain components with a stable version. Anything not set to `true` will install the version from the charts repository.
+
+```bash title="Deploy local stack with stable versions"
+make k3d/local-stack INSTALL_STABLE_CORE=true
+make k3d/local-stack INSTALL_STABLE_REMOTE=true
+make k3d/local-stack INSTALL_STABLE_BUILDDEPLOY=true
+```
+
+### Upgrading Lagoon components only
+
+Once you have a `k3d/local-stack` running, if you need to re-run the Lagoon installation to test an upgrade you can use the following target.
+
+```bash title="Install or upgrade all Lagoon components"
+make k3d/install-lagoon
+
+# or shortcut to a stable lagoon
+make k3d/stable-install-lagoon
+# which is a shorter target for
+make k3d/install-lagoon INSTALL_STABLE_LAGOON=true
+```
+
+This can be used if you started an initial `local-stack` with stable chart versions. Running this without any of the `INSTALL_STABLE_X` flags, will build and install Lagoon with the versions of images in the current `uselagoon/lagoon` branch, and install using the charts from the repository listed under `CHARTS_REPOSITORY` and `CHARTS_TREEISH`.
+
+You can also retain any stable versions of other components if you wish, for example only installing the bleeding edge lagoon-core. This can be used to verify an upgrade path from a stable chart
+
+```bash title="Install all stable then upgrade Lagoon core only"
+# install a local stack with all stable components
+make k3d/local-stack INSTALL_STABLE_LAGOON=true
+
+# optionally checkout a new version of the charts branch if there are changes made
+make k3d/checkout-charts
+
+# make changes to a lagoon service or the lagoon-core charts and re-install lagoon
+make k3d/install-lagoon INSTALL_STABLE_REMOTE=true INSTALL_STABLE_BUILDDEPLOY=true
+```
+
+!!! warning
+    The upstream charts `CHARTS_REPOSITORY` and `CHARTS_TREEISH` are only checked out when the cluster is first created and installed.
+    If you make changes to the charts branch, you can use `make k3d/dev` to clone and checkout the latest changes. Otherwise the existing checked out chart branch would be used. `make k3d/dev` is a short cut to `make k3d/checkout-charts` and `make k3d/install-lagoon`, which can also be used independently.
+
+!!! warning
+    Starting a `make k3d/local-stack` without any stable versions, then using `make k3d/install-lagoon` with `INSTALL_STABLE_X` flags may result in a broken Lagoon installation, however, this can be useful for verifying any downgrade or rollback paths.
 
 ### Run the Lagoon test-suite
 
-If you're developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options
+If you're developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options.
 
 1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
@@ -164,7 +257,7 @@ make k3d/get-lagoon-cli-details
 
 #### Rebuild Lagoon core and push images
 
-This will re-push the images listed in `KIND_SERVICES` with the correct tag, and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`.
+This will checkout `CHARTS_REPOSITORY` and `CHARTS_TREEISH` again, then build and re-push the images listed in `KIND_SERVICES` with the correct tag, and redeploy the lagoon charts. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`.
 
 ```bash title="Re-push images"
 make k3d/dev
@@ -220,6 +313,21 @@ This will remove the K3D Lagoon cluster from your local Docker.
 
 ```bash title="Remove cluster"
 make k3d/clean
+```
+
+##### Additional cleanup commands
+
+There could be a number of old resources hanging around after you've run the stack a few times, you can use the following to clean up further.
+
+```bash title="Cleanup commands"
+# remove any unused generated kubeconfigs
+make k3d/clean-k3dconfigs
+
+# remove any unused cloned chart directories
+make k3d/clean-charts
+
+# combination of tear down, remove any unused cloned chart directories, and unused generated kubeconfigs
+make k3d/clean-all
 ```
 
 ### Ansible
@@ -328,4 +436,20 @@ make k3d/push-images IMAGES=tests
 
 ```bash title="Re-run tests"
 make k3d/retest TESTS=[features-variables]
+```
+
+### k3d internal DNS cluster service resolution issues
+
+If you encounter an issue whe running a local-stack that seems to indicate that the cluster can't resolve an internal service within the cluster, you may need to run
+```bash title="br_netfilter"
+sudo modprobe br_netfilter
+```
+
+### k3d containers reporting too many open files
+
+You may need to bump `fs.inotify.max_user_instances` and `fs.inotify.max_user_watches`
+
+```bash title="sysctl"
+sudo sysctl fs.inotify.max_user_instances=8192
+sudo sysctl fs.inotify.max_user_watches=524288
 ```
