@@ -131,6 +131,14 @@
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/api/add-environment.yaml
 
+- name: "{{ testname }} - wait for 30 seconds to give all projects time to create"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "30"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/pause.yaml
+
 - name: "{{ testname }} - Trigger bulk deployment"
   hosts: localhost
   serial: 1
