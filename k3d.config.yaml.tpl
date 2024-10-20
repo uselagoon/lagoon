@@ -8,11 +8,14 @@ volumes:
   - volume: services:/lagoon/services
   - volume: node_packages:/lagoon/node-packages
 registries:
+  create: # pass through for k3d node to share images with the host
+    image: ligfx/k3d-registry-dockerd:v0.5
+    proxy:
+      remoteURL: "*"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   config: |
     mirrors:
-      docker.io:
-        endpoint:
-        - "https://imagecache.amazeeio.cloud"
       "registry.${LAGOON_K3D_NETWORK}.nip.io":
         endpoint:
           - https://registry.${LAGOON_K3D_NETWORK}.nip.io
