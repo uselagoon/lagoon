@@ -394,14 +394,55 @@ compose-api-logs-development:
 
 KUBECTL_VERSION := v1.31.0
 HELM_VERSION := v3.16.1
-K3D_VERSION = v5.7.3
+K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
-K3D_IMAGE = docker.io/rancher/k3s:v1.31.0-k3s1
+K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = stable-chart-install
+CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
+#CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
+
+# can be used to skip installing all the lagoon-dependencies (registry, ingress, minio, providers)
+INSTALL_LAGOON_DEPS = true
+
+# the following can be used to install stable versions of lagoon directly from chart versions
+# rather than the bleeding edge from CHARTS_TREEISH
+# these will not build or use built images from this repository, just what the charts provide
+# this can be used to install a known version and then revert to test upgrading from a stable version
+INSTALL_STABLE_CORE = false
+INSTALL_STABLE_REMOTE = false
+INSTALL_STABLE_BUILDDEPLOY = false
+INSTALL_STABLE_LAGOON = false
+ifeq ($(INSTALL_STABLE_LAGOON), true)
+	INSTALL_STABLE_CORE = true
+	INSTALL_STABLE_REMOTE = true
+	INSTALL_STABLE_BUILDDEPLOY = true
+endif
+STABLE_CORE_CHART_VERSION =
+STABLE_REMOTE_CHART_VERSION =
+STABLE_STABLE_BUILDDEPLOY_CHART_VERSION =
+
+# the following can be used to selectively leave out the installation of certain
+# dbaas provider types
+INSTALL_MARIADB_PROVIDER =
+INSTALL_POSTGRES_PROVIDER =
+INSTALL_MONGODB_PROVIDER =
+INSTALL_DBAAS_PROVIDERS = true
+ifeq ($(INSTALL_DBAAS_PROVIDERS), false)
+	INSTALL_MARIADB_PROVIDER = false
+	INSTALL_POSTGRES_PROVIDER = false
+	INSTALL_MONGODB_PROVIDER = false
+endif
+# mongo currently doesn't work on arm based systems, so just disable the provider entirely for now
+ifeq ($(ARCH), darwin)
+	INSTALL_MONGODB_PROVIDER = false
+endif
+ifeq ($(MACHINE), arm64)
+	INSTALL_MONGODB_PROVIDER = false
+endif
 
 # the name of the docker network to create
 DOCKER_NETWORK = k3d
@@ -410,11 +451,11 @@ DOCKER_NETWORK = k3d
 # installed, otherwise downloads it.
 .PHONY: local-dev/kubectl
 local-dev/kubectl:
-ifeq ($(KUBECTL_VERSION), $(shell kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: (v[0-9.]+).*/\1/'))
+ifeq ($(KUBECTL_VERSION), $(shell kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info linking local kubectl version $(KUBECTL_VERSION))
 	ln -sf $(shell command -v kubectl) ./local-dev/kubectl
 else
-ifneq ($(KUBECTL_VERSION), v$(shell ./local-dev/kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: (v[0-9.]+).*/\1/'))
+ifneq ($(KUBECTL_VERSION), v$(shell ./local-dev/kubectl version --client 2>/dev/null | grep Client | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
 	rm local-dev/kubectl || true
 	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
@@ -426,11 +467,11 @@ endif
 # installed, otherwise downloads it.
 .PHONY: local-dev/helm
 local-dev/helm:
-ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/(v[0-9.]+).*/\1/p'))
+ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
 	$(info linking local helm version $(HELM_VERSION))
 	ln -sf $(shell command -v helm) ./local-dev/helm
 else
-ifneq ($(HELM_VERSION), v$(shell ./local-dev/helm version --short --client 2>/dev/null | sed -nE 's/(v[0-9.]+).*/\1/p'))
+ifneq ($(HELM_VERSION), v$(shell ./local-dev/helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
 	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
 	rm local-dev/helm || true
 	curl -sSL https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar -xzC local-dev --strip-components=1 $(ARCH)-amd64/helm
@@ -442,7 +483,7 @@ endif
 # installed, otherwise downloads it.
 .PHONY: local-dev/k3d
 local-dev/k3d:
-ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version (v[0-9.]+).*/\1/p'))
+ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version v([0-9.]+).*/\1/p'))
 	$(info linking local k3d version $(K3D_VERSION))
 	ln -sf $(shell command -v k3d) ./local-dev/k3d
 else
@@ -546,59 +587,74 @@ K3D_TOOLS = k3d helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a k3d cluster
 .PHONY: k3d/test
-k3d/test: k3d/setup
-	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& cd lagoon-charts.k3d.lagoon \
-		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
-			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
-			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-			SKIP_ALL_DEPS=true \
-			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=false \
-			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
-			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
-		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
-			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
-			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
-			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
-			ct install --helm-extra-args "--timeout 60m"
+k3d/test: k3d/setup k3d/install-lagoon k3d/retest
 
 LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: k3d/setup
-k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) build
+k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) k3d/checkout-charts
+	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.k3d.lagoon \
+		&& $(MAKE) install-lagoon-dependencies DOCKER_NETWORK=$(DOCKER_NETWORK) JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) USE_CALICO_CNI=false
+
+# k3d/dev can only be run once a cluster is up and running (run k3d/test or k3d/local-stack first) - it doesn't rebuild the cluster at all
+# just checks out the repository and rebuilds and pushes the built images
+# into the image registry and reinstalls lagoon charts
+.PHONY: k3d/dev
+k3d/dev: k3d/checkout-charts k3d/install-lagoon
+	@$(MAKE) k3d/get-lagoon-details
+
+# this is used to checkout the chart repo/branch again if required. otherwise will use the symbolic link
+# that is created for subsequent commands
+.PHONY: k3d/checkout-charts
+k3d/checkout-charts:
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
-		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
+		&& git clone $(CHARTS_REPOSITORY) "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
-		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
+		&& git checkout $(CHARTS_TREEISH)
+
+# this just installs lagoon-core, lagoon-remote, and lagoon-build-deploy
+# doing this allows for lagoon to be installed with a known stable chart version with the INSTALL_STABLE_X overrides
+# and then running just the install-lagoon target without the INSTALL_STABLE_X overrides to verify if an upgrade is likely to succeed
+.PHONY: k3d/install-lagoon
+k3d/install-lagoon:
+ifneq ($(INSTALL_STABLE_CORE),true)
+	$(MAKE) build
+	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& $(MAKE) install-registry DOCKER_NETWORK=$(DOCKER_NETWORK) JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) USE_CALICO_CNI=false \
-		&& cd .. && $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) && cd "$$CHARTSDIR" \
-		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
-			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
-			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
-			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-			SKIP_INSTALL_REGISTRY=true \
-			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=false \
-			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
-			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled
+		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL)
+endif
+	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
+	&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+	&& cd lagoon-charts.k3d.lagoon \
+	&& $(MAKE) install-lagoon DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
+		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
+		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
+		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
+		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		SKIP_INSTALL_REGISTRY=true \
+		LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
+		USE_CALICO_CNI=false \
+		LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
+		LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
+		$$([ $(INSTALL_STABLE_CORE) ] && echo 'INSTALL_STABLE_CORE=$(INSTALL_STABLE_CORE)') \
+		$$([ $(INSTALL_STABLE_REMOTE) ] && echo 'INSTALL_STABLE_REMOTE=$(INSTALL_STABLE_REMOTE)') \
+		$$([ $(INSTALL_STABLE_BUILDDEPLOY) ] && echo 'INSTALL_STABLE_BUILDDEPLOY=$(INSTALL_STABLE_BUILDDEPLOY)') \
+		$$([ $(STABLE_CORE_CHART_VERSION) ] && echo 'STABLE_CORE_CHART_VERSION=$(STABLE_CORE_CHART_VERSION)') \
+		$$([ $(STABLE_REMOTE_CHART_VERSION) ] && echo 'STABLE_REMOTE_CHART_VERSION=$(STABLE_REMOTE_CHART_VERSION)') \
+		$$([ $(STABLE_BUILDDEPLOY_CHART_VERSION) ] && echo 'STABLE_BUILDDEPLOY_CHART_VERSION=$(STABLE_BUILDDEPLOY_CHART_VERSION)') \
+		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
+		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
+		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
 
 # k3d/local-stack will deploy and seed a lagoon-core with a lagoon-remote and all basic services to get you going
 # and will provide some initial seed data for a user to jump right in and start using lagoon
 .PHONY: k3d/local-stack
-k3d/local-stack: k3d/setup k3d/seed-data k3d/get-lagoon-details
+k3d/local-stack: k3d/setup k3d/install-lagoon k3d/seed-data k3d/get-lagoon-details
 
 # k3d/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
 # the deployments should be restarted to trigger any updated code changes
@@ -639,23 +695,7 @@ k3d/local-dev-logging:
 		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
 		&& echo -e 'with a default `container-logs-*` pattern'
 
-# k3d/dev can only be run once a cluster is up and running (run k3d/test first) - it doesn't rebuild the cluster at all, just pushes the built images
-# into the image registry and reinstalls the lagoon-core helm chart.
-.PHONY: k3d/dev
-k3d/dev: build
-	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
-		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& $(MAKE) k3d/push-images && cd lagoon-charts.k3d.lagoon \
-		&& $(MAKE) install-lagoon-core DOCKER_NETWORK=$(DOCKER_NETWORK) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
-			HELM=$(HELM) KUBECTL=$(KUBECTL) \
-			JQ=$(JQ) \
-			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
-			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
-			$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
-			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
-			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
-			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"
-	@$(MAKE) k3d/get-lagoon-details
+
 
 # k3d/push-images pushes locally build images into the k3d cluster registry.
 IMAGES = $(K3D_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
@@ -749,6 +789,8 @@ k3d/port-forwards:
 .PHONY: k3d/retest
 k3d/retest:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
+		&& $(MAKE) build/tests \
+		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests" \
 		&& cd lagoon-charts.k3d.lagoon \
 		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
