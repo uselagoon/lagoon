@@ -13,6 +13,12 @@ export const Sql = {
     knex('env_vars')
       .where('project', projectId)
       .toString(),
+  selectBackupsByEnvironmentId: (environmentId: number) =>
+    knex('environment_backup')
+      .where('environment', '=', environmentId)
+      .orderBy('created', 'desc')
+      .orderBy('id', 'desc')
+      .toString(),
   insertBackup: ({
     id,
     environment,
@@ -123,5 +129,17 @@ export const Sql = {
         'environment.id'
       )
       .where('environment_backup.backup_id', backupId)
-      .toString()
+      .toString(),
+  // delete all environments backups from backup table that match environment id
+  deleteBackupsByEnvironmentId: (environmentId: number) =>
+    knex('environment_backup')
+      .where('environment', '=', environmentId)
+      .delete()
+      .toString(),
+  // delete all environments backups from backup table that match environment ids
+  deleteBackupsByEnvironmentIds: (environmentIds: number[]) =>
+    knex('environment_backup')
+      .whereIn('environment', environmentIds)
+      .delete()
+      .toString(),
 };
