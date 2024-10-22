@@ -4,6 +4,8 @@ import { Helpers } from './helpers';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { Sql as deploymentSql } from '../deployment/sql';
 import { Sql as taskSql } from '../task/sql';
+import { Sql as backupSql } from '../backup/sql';
+import { Sql as environmentSql } from '../environment/sql';
 import {
   sendToLagoonActions,
   // @ts-ignore
@@ -198,22 +200,27 @@ export const HistoryRetentionEnforcer = () => {
     }
     const saveEnvironmentHistoryBeforeDeletion = async (projectData: any, environmentData: any) => {
         // ENABLE_SAVED_HISTORY_EXPORT will save the deployment and task history if set to true
-        // this is a way to export a full copy of the environment data (id, name, created, deleted etc..), the project, and the task/deployment history
+        // this is a way to export a full copy of the environment data (id, name, created, deleted etc..), the project, and the task/deployment/backup/storage history
         // this is a JSON payload that could later be consumed for historical purposes
-        // by default this feature is DISABLED. you should enable this feature if you want to save deleted environment history
+        // by default this feature is ENABLED
         // the deleted data ends up in the lagoon files bucket in a directory called history
-        const ENABLE_SAVED_HISTORY_EXPORT = process.env.ENABLE_SAVED_HISTORY_EXPORT || "false"
-        if (ENABLE_SAVED_HISTORY_EXPORT == "true" ) {
+        // the format of the path is history/{projectname}-{projectid}/{environmentname}-{environmentid}/history-{deletedunixtimestamp}.json
+        const ENABLE_SAVED_HISTORY_EXPORT = process.env.ENABLE_SAVED_HISTORY_EXPORT || "true"
+        if (ENABLE_SAVED_HISTORY_EXPORT == "true") {
             const taskHistory = await query(sqlClientPool, taskSql.selectTaskHistoryForEnvironment(environmentData.id));
             const deploymentHistory = await query(sqlClientPool, deploymentSql.selectDeploymentHistoryForEnvironment(environmentData.id));
+            const backupHistory = await query(sqlClientPool, backupSql.selectBackupsByEnvironmentId(environmentData.id));
+            const environmentStorage = await query(sqlClientPool, environmentSql.selectEnvironmentStorageByEnvironmentId(environmentData.id));
             const actionData = {
                 type: "retentionHistory",
                 eventType: "saveHistory",
                 data: {
                     environment: environmentData,
                     project: projectData,
-                    taskHistory: taskHistory,
-                    deploymentHistory: deploymentHistory
+                    tasks: taskHistory,
+                    deployments: deploymentHistory,
+                    backups: backupHistory,
+                    storage: environmentStorage,
                 }
             }
             sendToLagoonActions("retentionHistory", actionData)
