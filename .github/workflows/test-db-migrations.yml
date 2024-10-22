@@ -47,7 +47,7 @@ jobs:
       -
         name: Show initial migration logs
         run: |
-          docker compose -p lagoon logs api-init
+          docker compose -p lagoon logs api-db-init
       -
         name: Initiate rollback
         run: |
