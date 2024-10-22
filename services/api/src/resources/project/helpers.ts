@@ -4,6 +4,7 @@ import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as environmentSql } from '../environment/sql';
+import { Sql as backupSql } from '../backup/sql';
 // import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -191,6 +192,23 @@ export const Helpers = (sqlClientPool: Pool) => {
       await query(
         sqlClientPool,
         Sql.deleteDeployTargetConfigs(id)
+      );
+      // logger.debug(`deleting project ${id} environment leftover backups rows`)
+      // clean up backups table so backups for environments don't remain in limbo once the project is deleted
+      // @INFO: this step is to clear out any backup rows from the database for a project that is being deleted
+      // at the moment this only happens when the project is deleted
+      // but there is a commented section in the environment helpers where when an environment
+      // is deleted, the deletion of the data for the environment could handle this step instead
+      const projectEnvironmentIds = await query(sqlClientPool, environmentSql.selectEnvironmentsByProjectID(id, true));
+      await query(
+        sqlClientPool,
+        backupSql.deleteBackupsByEnvironmentIds(projectEnvironmentIds)
+      );
+      // same for environment storage
+      // logger.debug(`deleting project ${id} environment leftover storage rows`)
+      await query(
+        sqlClientPool,
+        environmentSql.deleteEnvironmentStorageByEnvironmentIds(projectEnvironmentIds)
       );
       // logger.debug(`deleting project ${id} leftover environment rows`)
       // clean up environments table so environments don't remain in limbo once the project is deleted
