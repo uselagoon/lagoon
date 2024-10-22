@@ -276,6 +276,22 @@ const {
 } = require('./resources/backup/resolvers');
 
 const {
+  createHarborRetentionPolicy,
+  updateHarborRetentionPolicy,
+  createHistoryRetentionPolicy,
+  updateHistoryRetentionPolicy,
+  deleteHarborRetentionPolicy,
+  deleteHistoryRetentionPolicy,
+  getRetentionPoliciesByProjectId,
+  getRetentionPoliciesByOrganizationId,
+  listAllRetentionPolicies,
+  addHarborRetentionPolicyLink,
+  addHistoryRetentionPolicyLink,
+  removeHarborRetentionPolicyLink,
+  removeHistoryRetentionPolicyLink,
+} = require('./resources/retentionpolicy/resolvers');
+
+const {
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
   addEnvVariable,
@@ -376,6 +392,20 @@ const resolvers = {
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
   },
+  RetentionPolicyScope: {
+    GLOBAL: 'global',
+    ORGANIZATION: 'organization',
+    PROJECT: 'project',
+  },
+  HistoryRetentionType: {
+    COUNT: 'count',
+    DAYS: 'days',
+    MONTHS: 'months',
+  },
+  RetentionPolicyType: {
+    HARBOR: 'harbor',
+    HISTORY: 'history',
+  },
   Openshift: {
     projectUser: getProjectUser,
     token: getToken,
@@ -398,6 +428,7 @@ const resolvers = {
     groups: getGroupsByProjectId,
     privateKey: getPrivateKey,
     publicKey: getProjectDeployKey,
+    retentionPolicies: getRetentionPoliciesByProjectId,
   },
   GroupInterface: {
     __resolveType(group) {
@@ -448,12 +479,14 @@ const resolvers = {
     environments: getEnvironmentsByOrganizationId,
     owners: getOwnersByOrganizationId,
     deployTargets: getDeployTargetsByOrganizationId,
-    notifications: getNotificationsByOrganizationId
+    notifications: getNotificationsByOrganizationId,
+    retentionPolicies: getRetentionPoliciesByOrganizationId,
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
     groupCount: getGroupCountByOrganizationProject,
     notifications: getNotificationsForOrganizationProjectId,
+    retentionPolicies: getRetentionPoliciesByProjectId,
   },
   OrgEnvironment: {
     project: getProjectById,
@@ -496,6 +529,18 @@ const resolvers = {
           return 'NotificationEmail';
         case 'webhook':
           return 'NotificationWebhook';
+        default:
+          return null;
+      }
+    }
+  },
+  RetentionPolicy: {
+    __resolveType(obj) {
+      switch (obj.type) {
+        case 'harbor':
+          return 'HarborRetentionPolicy';
+        case 'history':
+          return 'HistoryRetentionPolicy';
         default:
           return null;
       }
@@ -581,7 +626,8 @@ const resolvers = {
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
-    checkBulkImportProjectsAndGroupsToOrganization
+    checkBulkImportProjectsAndGroupsToOrganization,
+    listAllRetentionPolicies
   },
   Mutation: {
     addProblem,
@@ -705,7 +751,17 @@ const resolvers = {
     removeUserFromOrganizationGroups,
     bulkImportProjectsAndGroupsToOrganization,
     addOrUpdateEnvironmentService,
-    deleteEnvironmentService
+    deleteEnvironmentService,
+    createHarborRetentionPolicy,
+    updateHarborRetentionPolicy,
+    deleteHarborRetentionPolicy,
+    addHarborRetentionPolicyLink,
+    removeHarborRetentionPolicyLink,
+    createHistoryRetentionPolicy,
+    updateHistoryRetentionPolicy,
+    deleteHistoryRetentionPolicy,
+    addHistoryRetentionPolicyLink,
+    removeHistoryRetentionPolicyLink,
   },
   Subscription: {
     backupChanged: backupSubscriber,
