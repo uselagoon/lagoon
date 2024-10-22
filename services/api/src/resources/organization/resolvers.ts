@@ -435,17 +435,17 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
     user.owner = false
     user.admin = false
     user.comment = null
-    if (user.attributes["comment"]) {
+    if (user.attributes?.["comment"]) {
       user.comment = user.attributes["comment"][0]
     }
-    if (user.attributes["lagoon-organizations"]) {
+    if (user.attributes?.["lagoon-organizations"]) {
       for (const a in user.attributes["lagoon-organizations"]) {
         if (parseInt(user.attributes["lagoon-organizations"][a]) == organization) {
           user.owner = true
         }
       }
     }
-    if (user.attributes["lagoon-organizations-admin"]) {
+    if (user.attributes?.["lagoon-organizations-admin"]) {
       for (const a in user.attributes["lagoon-organizations-admin"]) {
         if (parseInt(user.attributes["lagoon-organizations-admin"][a]) == organization) {
           user.admin = true
@@ -467,18 +467,19 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
 export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
   { id: uid, organization },
   _input,
-  { hasPermission, models, adminScopes }
+  { models, sqlClientPool }
 ) => {
   if (organization) {
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
     let groups = []
     for (const g in queryUserGroups) {
       let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
-      if (queryUserGroups[g].attributes["type"]) {
+      if (queryUserGroups[g].attributes?.["type"]) {
         group.groupType = queryUserGroups[g].attributes["type"][0]
       }
-      if (queryUserGroups[g].attributes["lagoon-organization"]) {
-        group.organization = queryUserGroups[g].attributes["lagoon-organization"][0]
+      const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(queryUserGroups[g].id)
+      if (org) {
+        group.organization = org
       }
       groups.push(group)
     }
@@ -492,7 +493,7 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
 export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   root,
   { name, organization },
-  { hasPermission, models, keycloakGrant }
+  { hasPermission, models, sqlClientPool }
 ) => {
   try {
     await hasPermission('organization', 'viewGroup', {
@@ -500,8 +501,8 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
     });
 
     const group = await models.GroupModel.loadGroupByName(name);
-    const groupOrg = group.attributes?.['lagoon-organization']?.[0];
-    if (groupOrg && toNumber(groupOrg) == organization) {
+    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id)
+    if (org == organization) {
       return group
     }
   } catch (err) {
@@ -543,19 +544,17 @@ const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupName
     // get all the groups the requested project is in
     for (const group of projectGroups) {
       // for each group the project is in, check if it has an organization
-      if (R.prop('lagoon-organization', group.attributes)) {
+
+      const groupOrganization = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
         // if it has an organization that is not the requested organization, add it to a list
-        if (R.prop('lagoon-organization', group.attributes) != oid) {
-          projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
-          otherOrgs.push(R.prop('lagoon-organization', group.attributes).toString())
-        }
+      if (groupOrganization != null && groupOrganization != oid) {
+        projectGroupNames.push({group: group.name, organization: groupOrganization.toString()})
+        otherOrgs.push(groupOrganization.toString())
       }
       // for each group the project is in, get the list of projects that are also in this group
-      if (R.prop('lagoon-projects', group.attributes)) {
-        const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-        for (const project of groupProjects) {
-          groupProjectIds.push({group: group.name, project: project})
-        }
+      const groupProjects = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
+      for (const project of groupProjects) {
+        groupProjectIds.push({group: group.name, project: project})
       }
     }
 
@@ -649,9 +648,13 @@ export const removeProjectFromOrganization: ResolverFn = async (
           name: projectGroups[g].name,
           attributes: {
             ...projectGroups[g].attributes,
+            // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
             "lagoon-organization": [""]
           }
         });
+        // remove the default project group from the group_organization association table
+        // when the project is removed from the organization
+        await groupHelpers(sqlClientPool).removeGroupFromOrganization(projectGroups[g].id)
       } else {
         removeGroups.push(projectGroups[g])
       }
@@ -735,9 +738,13 @@ export const addExistingProjectToOrganization: ResolverFn = async (
           name: projectGroups[g].name,
           attributes: {
             ...projectGroups[g].attributes,
+            // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
             "lagoon-organization": [""]
           }
         });
+        // remove the default project group from the group_organization association table
+        // when the project is about to be added to the new organization
+        await groupHelpers(sqlClientPool).removeGroupFromOrganization(projectGroups[g].id)
       } else {
         removeGroups.push(projectGroups[g])
       }
@@ -768,6 +775,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       name: group.name,
       attributes: {
         ...group.attributes,
+        // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
         "lagoon-organization": [input.organization]
       }
     });
@@ -839,12 +847,10 @@ const checkOrgProjectGroup = async (sqlClientPool, input, models) => {
 
   // get the project ids
   const groupProjectIds = []
-  if (R.prop('lagoon-projects', group.attributes)) {
-    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-    if (groupProjects.length > 0) {
-      for (const project of groupProjects) {
-        groupProjectIds.push(parseInt(project))
-      }
+  const groupProjects = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
+  if (groupProjects.length > 0) {
+    for (const project of groupProjects) {
+      groupProjectIds.push(project)
     }
   }
 
@@ -907,9 +913,11 @@ export const addExistingGroupToOrganization: ResolverFn = async (
     name: group.name,
     attributes: {
       ...group.attributes,
+      // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
       "lagoon-organization": [input.organization]
     }
   });
+  await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
 
   // log this activity
   userActivityLogger(`User added a group to organization`, {
@@ -958,7 +966,8 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   let groupsRemoved = []
   for (const group in orgGroups) {
     // if the groups organization is the one to remove from, push it to a new array
-    if (R.prop('lagoon-organization',  orgGroups[group].attributes) == organizationInput) {
+    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(orgGroups[group].id)
+    if (org == organizationInput) {
       groupsRemoved.push(orgGroups[group]);
     }
   }
@@ -1218,6 +1227,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
           name: group.name,
           attributes: {
             ...group.attributes,
+            // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
             "lagoon-organization": [input.organization]
           }
         });

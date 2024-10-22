@@ -7,6 +7,7 @@ import { toNumber } from '../util/func';
 import { Group, GroupType, KeycloakLagoonGroup } from './group';
 import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
+import { Helpers as groupHelpers } from '../resources/group/helpers';
 
 interface IUserAttributes {
   comment?: [string];
@@ -356,9 +357,12 @@ export const User = (clients: {
       id: userId,
       briefRepresentation: false,
     })) as KeycloakLagoonGroup[];
-    const roleSubgroups = keycloakGroups.map(
-      GroupModel.createGroupFromKeycloak,
-    );
+    let roleSubgroups = [];
+    for (const keycloakGroup of keycloakGroups){
+      const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroup.id);
+      const organizationId = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id);
+      roleSubgroups.push(GroupModel.createGroupFromKeycloak(keycloakGroup, projectIds, organizationId))
+    }
 
     let userGroups: {
       [key: string]: Group;
@@ -370,7 +374,7 @@ export const User = (clients: {
 
       if (!userGroups[ug.parentGroupId]) {
         const parentGroup = await GroupModel.loadGroupById(ug.parentGroupId);
-        const parentOrg = parentGroup.attributes?.['lagoon-organization']?.[0];
+        const parentOrg = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(parentGroup.id);
         if (organization && parentOrg && toNumber(parentOrg) != organization) {
           continue;
         }

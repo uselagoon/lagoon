@@ -108,8 +108,9 @@ export const getGroupRolesByUserId: ResolverFn =async (
         if (queryUserGroups[g].attributes["type"]) {
           group.groupType = queryUserGroups[g].attributes["type"][0]
         }
-        if (queryUserGroups[g].attributes["lagoon-organization"]) {
-          group.organization = queryUserGroups[g].attributes["lagoon-organization"]
+        const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+        if (org) {
+          group.organization = org
         }
         groups.push(group)
       }
@@ -128,8 +129,9 @@ export const getGroupRolesByUserId: ResolverFn =async (
     if (keycloakUsersGroups[g].attributes["type"]) {
       group.groupType = keycloakUsersGroups[g].attributes["type"][0]
     }
-    if (keycloakUsersGroups[g].attributes["lagoon-organization"]) {
-      group.organization = keycloakUsersGroups[g].attributes["lagoon-organization"]
+    const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakUsersGroups[g].id);
+    if (org) {
+      group.organization = org
     }
     groups.push(group)
   }
@@ -349,6 +351,7 @@ export const addGroup: ResolverFn = async (
 
     attributes = {
       attributes: {
+        // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
         "lagoon-organization": [input.organization]
       }
     }
@@ -431,11 +434,11 @@ export const updateGroup: ResolverFn = async (
   { models, hasPermission, userActivityLogger }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-
-  if (R.prop('lagoon-organization', group.attributes)) {
+  const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  if (org) {
     // if this is a group in an organization, check that the user updating it has permission to do so before deleting the group
     await hasPermission('organization', 'addGroup', {
-      organization: R.prop('lagoon-organization', group.attributes)
+      organization: org
     });
   } else {
     await hasPermission('group', 'update', {
@@ -480,11 +483,11 @@ export const deleteGroup: ResolverFn = async (
   { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-
-  if (R.prop('lagoon-organization', group.attributes)) {
+  const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  if (org) {
     // if this is a group in an organization, check that the user deleting it has permission to do so before deleting the group
     await hasPermission('organization', 'removeGroup', {
-      organization: R.prop('lagoon-organization', group.attributes)
+      organization: org
     });
   } else {
     await hasPermission('group', 'delete', {
@@ -542,11 +545,11 @@ export const addUserToGroup: ResolverFn = async (
     }
   }
 
-
-  if (R.prop('lagoon-organization', group.attributes)) {
+  const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  if (org) {
     // if this is a group in an organization, check that the user adding members to the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
-      organization: R.prop('lagoon-organization', group.attributes)
+      organization: org
     });
     // only organization:addGroup will be able to "invite users" this way
     if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
@@ -622,11 +625,11 @@ export const removeUserFromGroup: ResolverFn = async (
   }
 
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-
-  if (R.prop('lagoon-organization', group.attributes)) {
+  const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  if (org) {
     // if this is a group in an organization, check that the user removing members from the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
-      organization: R.prop('lagoon-organization', group.attributes)
+      organization: org
     });
   } else {
     await hasPermission('group', 'removeUser', {
@@ -681,14 +684,15 @@ export const addGroupsToProject: ResolverFn = async (
 
   for (const groupInput of groupsInput) {
     const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-    if (R.prop('lagoon-organization', group.attributes) === undefined && project.organization != null) {
+    const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+    if (org == null && project.organization != null) {
       throw new Error('Group must be in same organization as the project');
     }
-    if (R.prop('lagoon-organization', group.attributes) && project.organization != null) {
-      if (project.organization == R.prop('lagoon-organization', group.attributes)) {
+    if (org && project.organization != null) {
+      if (project.organization == org) {
         // if this is a group in an organization, check that the user removing members from the group in this org is in the org
         await hasPermission('organization', 'addGroup', {
-          organization: R.prop('lagoon-organization', group.attributes)
+          organization: org
         });
       } else {
         throw new Error('Group must be in same organization as the project');
