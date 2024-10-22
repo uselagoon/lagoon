@@ -5,6 +5,7 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as problemSql } from '../problem/sql';
 import { Sql as factSql } from '../fact/sql';
+// import { Sql as backupSql } from '../backup/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { logger } from '../../loggers/logger';
@@ -34,6 +35,29 @@ export const Helpers = (sqlClientPool: Pool) => {
     deleteEnvironment: async (name: string, eid: number, pid: number) => {
       const environmentData = await Helpers(sqlClientPool).getEnvironmentById(eid);
       const projectData = await projectHelpers(sqlClientPool).getProjectById(pid);
+
+      // attempt to run any retention policy processes before the environment is deleted
+      try {
+        // export a dump of the project, environment data, and associated task and deployment history before the environment is deleted
+        await HistoryRetentionEnforcer().saveEnvironmentHistoryBeforeDeletion(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running save environment history: ${e}`)
+      }
+      // purge all history for this environment, including logs and files from s3
+      try {
+        // remove all deployments and associated files
+        await HistoryRetentionEnforcer().cleanupAllDeployments(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running deployment retention enforcer: ${e}`)
+      }
+      try {
+        // remove all tasks and associated files
+        await HistoryRetentionEnforcer().cleanupAllTasks(projectData, environmentData)
+      } catch (e) {
+        logger.error(`error running task retention enforcer: ${e}`)
+      }
+
+      // then proceed to purge related data
       try {
         // clean up environment variables
         // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment variables`)
@@ -67,30 +91,30 @@ export const Helpers = (sqlClientPool: Pool) => {
           problemSql.deleteProblemsForEnvironment(eid)
         );
 
-        // @TODO: environment_storage, environment_backup
+        // delete the environment backups rows
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment backups`)
+        // @TODO: this could be done here, but it would mean that to recover all the backup ids of a deleted environment
+        // in the event that an environment is "accidentally deleted" it would require accessing the bucket
+        // to retrieve them from the saved history export JSON dump
+        // this is disabled for now, but when a project is deleted, all of the backups for any environments of that project
+        // will have the table cleaned out to keep the database leaner
+        // await query(
+        //   sqlClientPool,
+        //   backupSql.deleteBackupsByEnvironmentId(eid)
+        // );
+        // clean up storage data
+        // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment storage`)
+        // @TODO: this could be done here, but amazee.io might still use this data for environments that are deleted
+        // this is disabled for now, but when a project is deleted, all of the storages for any environments of that project
+        // will have the table cleaned out to keep the database leaner
+        // await query(
+        //   sqlClientPool,
+        //   Sql.deleteEnvironmentStorageByEnvironmentId(eid)
+        // );
       } catch (e) {
         logger.error(`error cleaning up linked environment tables: ${e}`)
       }
 
-      try {
-        // export a dump of the project, environment data, and associated task and deployment history before the environment is deleted
-        await HistoryRetentionEnforcer().saveEnvironmentHistoryBeforeDeletion(projectData, environmentData)
-      } catch (e) {
-        logger.error(`error running save environment history: ${e}`)
-      }
-      // purge all history for this environment, including logs and files from s3
-      try {
-        // remove all deployments and associated files
-        await HistoryRetentionEnforcer().cleanupAllDeployments(projectData, environmentData)
-      } catch (e) {
-        logger.error(`error running deployment retention enforcer: ${e}`)
-      }
-      try {
-        // remove all tasks and associated files
-        await HistoryRetentionEnforcer().cleanupAllTasks(projectData, environmentData)
-      } catch (e) {
-        logger.error(`error running task retention enforcer: ${e}`)
-      }
       // delete the environment
       // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid}`)
       await query(

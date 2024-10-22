@@ -198,4 +198,14 @@ export const Sql = {
       .where('project', '=', projectId)
       .delete()
       .toString(),
+  deleteEnvironmentStorageByEnvironmentId: (id: number) =>
+    knex('environment_storage')
+      .where('environment', '=', id)
+      .delete()
+      .toString(),
+  deleteEnvironmentStorageByEnvironmentIds: (ids: number[]) =>
+    knex('environment_storage')
+      .whereIn('environment', ids)
+      .delete()
+      .toString(),
 };
