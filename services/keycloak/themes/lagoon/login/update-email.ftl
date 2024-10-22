@@ -1,9 +1,8 @@
 <#import "template.ftl" as layout>
-
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('email'); section>
-
-    <#if section = "form">
-        <h1>${msg("updateEmailTitle")}</h1>
+    <#if section = "header">
+        ${msg("updateEmailTitle")}
+    <#elseif section = "form">
         <form id="kc-update-email-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">
@@ -26,17 +25,6 @@
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
                     <div class="${properties.kcFormOptionsWrapperClass!}">
-                    </div>
-                </div>
-
-                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
-                    <div class="${properties.kcFormOptionsWrapperClass!}">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="logout-sessions" name="logout-sessions" value="on" checked>
-                                ${msg("logoutOtherSessions")}
-                            </label>
-                        </div>
                     </div>
                 </div>
 
