@@ -62,7 +62,7 @@ pipeline {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
       }
       steps {
-        sh script: "make -O build", label: "Building images"
+        sh script: "make -j$NPROC -O build", label: "Building images"
         retry(3) {
           sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
           sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built amd64 images to testlagoon/*"
@@ -88,9 +88,9 @@ pipeline {
       parallel {
         stage ('0: setup test cluster') {
           steps {
-            sh script: "make -j$NPROC local-dev/k3d", label: "Configure k3d"
+            sh script: "make local-dev-tools", label: "Configure k3d"
             sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
-            sh script: "make -j$NPROC k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
+            sh script: "make k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
             // script {
             //   skipRemainingStages = true
