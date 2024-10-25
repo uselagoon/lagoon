@@ -1,2 +1,2 @@
-[ci-github-openshift] lagoon-type-override Build lagoon-build-1234 error.
+[ci-github-openshift] lagoon-type-override Build lagoon-build-1234 failed at build step applyingDeployments.
  [Logs](https://logs)

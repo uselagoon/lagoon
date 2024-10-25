@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -107,6 +107,16 @@ func TestProcessing(t *testing.T) {
 			teams:       "testdata/deployError/teams.txt",
 			webhook:     "testdata/deployError/webhook.txt",
 		},
+		"deployErrorImageBuild": {
+			description: "test github repo push deleted events",
+			input:       "testdata/input.deployErrorImageBuild.json",
+			slack:       "testdata/deployErrorImageBuild/slack.txt",
+			rocketchat:  "testdata/deployErrorImageBuild/rocketchat.txt",
+			emailhtml:   "testdata/deployErrorImageBuild/emailhtml.txt",
+			emailplain:  "testdata/deployErrorImageBuild/emailplain.txt",
+			teams:       "testdata/deployErrorImageBuild/teams.txt",
+			webhook:     "testdata/deployErrorImageBuild/webhook.txt",
+		},
 		"deployFinished": {
 			description: "test github repo push deleted events",
 			input:       "testdata/input.deployFinished.json",
@@ -116,6 +126,16 @@ func TestProcessing(t *testing.T) {
 			emailplain:  "testdata/deployFinished/emailplain.txt",
 			teams:       "testdata/deployFinished/teams.txt",
 			webhook:     "testdata/deployFinished/webhook.txt",
+		},
+		"deployFinishedWithWarnings": {
+			description: "test github repo push deleted events",
+			input:       "testdata/input.deployFinishedWithWarnings.json",
+			slack:       "testdata/deployFinishedWithWarnings/slack.txt",
+			rocketchat:  "testdata/deployFinishedWithWarnings/rocketchat.txt",
+			emailhtml:   "testdata/deployFinishedWithWarnings/emailhtml.txt",
+			emailplain:  "testdata/deployFinishedWithWarnings/emailplain.txt",
+			teams:       "testdata/deployFinishedWithWarnings/teams.txt",
+			webhook:     "testdata/deployFinishedWithWarnings/webhook.txt",
 		},
 		"mergeRequestClosed": {
 			description: "test github repo push handled events",
@@ -157,7 +177,7 @@ func TestProcessing(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(tt *testing.T) {
 			// read the input into a the notification struct
-			inputBytes, err := ioutil.ReadFile(tc.input) // just pass the file name
+			inputBytes, err := os.ReadFile(tc.input) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
@@ -165,7 +185,7 @@ func TestProcessing(t *testing.T) {
 			json.Unmarshal(inputBytes, notification)
 
 			// process slack template
-			resultBytes, err := ioutil.ReadFile(tc.slack) // just pass the file name
+			resultBytes, err := os.ReadFile(tc.slack) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
@@ -174,11 +194,11 @@ func TestProcessing(t *testing.T) {
 				tt.Fatalf("unexpected error %v", err)
 			}
 			if message != string(resultBytes) {
-				tt.Fatalf("message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
+				tt.Fatalf("slack message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
 			}
 
 			// process rocketchat template
-			resultBytes, err = ioutil.ReadFile(tc.rocketchat) // just pass the file name
+			resultBytes, err = os.ReadFile(tc.rocketchat) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
@@ -187,15 +207,15 @@ func TestProcessing(t *testing.T) {
 				tt.Fatalf("unexpected error %v", err)
 			}
 			if message != string(resultBytes) {
-				tt.Fatalf("message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
+				tt.Fatalf("rocketchat message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
 			}
 
 			// process email templates
-			resultBytesHTML, err := ioutil.ReadFile(tc.emailhtml) // just pass the file name
+			resultBytesHTML, err := os.ReadFile(tc.emailhtml) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
-			resultBytesPlainText, err := ioutil.ReadFile(tc.emailplain) // just pass the file name
+			resultBytesPlainText, err := os.ReadFile(tc.emailplain) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
@@ -204,14 +224,14 @@ func TestProcessing(t *testing.T) {
 				tt.Fatalf("unexpected error %v", err)
 			}
 			if htmlMessage != string(resultBytesHTML) {
-				tt.Fatalf("html doesn't match, wanted `%s` got `%s`", string(htmlMessage), string(resultBytes))
+				tt.Fatalf("html doesn't match, wanted `%s` got `%s`", string(htmlMessage), string(resultBytesHTML))
 			}
 			if plaintextMessage != string(resultBytesPlainText) {
-				tt.Fatalf("plaintextmessage doesn't match, wanted `%s` got `%s`", string(plaintextMessage), string(resultBytes))
+				tt.Fatalf("plaintextmessage doesn't match, wanted `%s` got `%s`", string(plaintextMessage), string(resultBytesPlainText))
 			}
 
 			// process teams template
-			resultBytes, err = ioutil.ReadFile(tc.teams) // just pass the file name
+			resultBytes, err = os.ReadFile(tc.teams) // just pass the file name
 			if err != nil {
 				tt.Fatalf("unexpected error %v", err)
 			}
@@ -220,12 +240,12 @@ func TestProcessing(t *testing.T) {
 				tt.Fatalf("unexpected error %v", err)
 			}
 			if message != string(resultBytes) {
-				tt.Fatalf("message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
+				tt.Fatalf("teams message doesn't match, wanted `%s` got `%s`", message, string(resultBytes))
 			}
 
 			// process webhook template
 			if tc.webhook != "" {
-				resultBytes, err = ioutil.ReadFile(tc.webhook) // just pass the file name
+				resultBytes, err = os.ReadFile(tc.webhook) // just pass the file name
 				if err != nil {
 					tt.Fatalf("unexpected error %v", err)
 				}
@@ -235,7 +255,7 @@ func TestProcessing(t *testing.T) {
 				}
 				messageBytes, _ := json.Marshal(&message)
 				if string(messageBytes) != string(resultBytes) {
-					tt.Fatalf("message doesn't match, wanted `%s` got `%s`", string(messageBytes), string(resultBytes))
+					tt.Fatalf("webhook message doesn't match, wanted `%s` got `%s`", string(messageBytes), string(resultBytes))
 				}
 			}
 		})

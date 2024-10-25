@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/uselagoon/machinery/api/schema"
@@ -18,6 +19,8 @@ type WebhookData struct {
 	Project     string   `json:"project"`
 	Environment string   `json:"environment"`
 	BuildName   string   `json:"buildName,omitempty"`
+	Warnings    bool     `json:"warnings,omitempty"`
+	BuildStep   string   `json:"buildStep,omitempty"`
 	Route       string   `json:"route,omitempty"`
 	Routes      []string `json:"routes,omitempty"`
 	LogLink     string   `json:"logLink,omitempty"`
@@ -76,8 +79,13 @@ func (h *Messaging) processWebhookTemplate(notification *Notification) (*Webhook
 
 	switch tpl {
 	case "deployFinished":
+		match, _ := regexp.MatchString(".*WithWarnings$", notification.Meta.BuildStep)
+		if match {
+			data.Warnings = true
+		}
 		data.Type = "DEPLOYMENT"
 	case "deployError":
+		data.BuildStep = notification.Meta.BuildStep
 		data.Type = "DEPLOYMENT"
 	default:
 		return nil, fmt.Errorf("no matching event")
@@ -93,70 +101,52 @@ func getWebhookEvent(msgEvent string) (string, error) {
 }
 
 var webhookEventTypeMap = map[string]EventMap{
-	"github:pull_request:opened:handled":           {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"},
-	"gitlab:merge_request:opened:handled":          {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"},
-	"bitbucket:pullrequest:created:opened:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack
-	"bitbucket:pullrequest:created:handled":        {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in teams
+	"github:pull_request:opened:handled":           {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"gitlab:merge_request:opened:handled":          {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"bitbucket:pullrequest:created:opened:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack
+	"bitbucket:pullrequest:created:handled":        {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in teams
 
-	"github:pull_request:synchronize:handled":      {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
-	"gitlab:merge_request:updated:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
-	"bitbucket:pullrequest:updated:opened:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
-	"bitbucket:pullrequest:updated:handled":        {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
+	"github:pull_request:synchronize:handled":      {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+	"gitlab:merge_request:updated:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+	"bitbucket:pullrequest:updated:opened:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
+	"bitbucket:pullrequest:updated:handled":        {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
 
-	"github:pull_request:closed:handled":      {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pullrequest:fulfilled:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pullrequest:rejected:handled":  {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"gitlab:merge_request:closed:handled":     {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"github:pull_request:closed:handled":      {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pullrequest:fulfilled:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pullrequest:rejected:handled":  {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"gitlab:merge_request:closed:handled":     {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
 
-	"github:delete:handled":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"},
-	"gitlab:remove:handled":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
-	"bitbucket:delete:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
-	"api:deleteEnvironment":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
+	"github:delete:handled":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"},
+	"gitlab:remove:handled":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
+	"bitbucket:delete:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
+	"api:deleteEnvironment":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
 
-	"github:push:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
-	"bitbucket:repo:push:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
-	"gitlab:push:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"github:push:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
+	"bitbucket:repo:push:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
+	"gitlab:push:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
 
-	"github:push:skipped":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
-	"gitlab:push:skipped":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
-	"bitbucket:push:skipped": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"github:push:skipped":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"gitlab:push:skipped":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"bitbucket:push:skipped": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushSkipped"},
 
-	"api:deployEnvironmentLatest": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deployEnvironment"},
-	"api:deployEnvironmentBranch": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deployEnvironment"},
+	"api:deployEnvironmentLatest": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deployEnvironment"},
+	"api:deployEnvironmentBranch": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deployEnvironment"},
 
-	"task:deploy-openshift:finished":           {Emoji: "✅", Color: "good", Template: "deployFinished"},
-	"task:remove-openshift-resources:finished": {Emoji: "✅", Color: "good", Template: "deployFinished"},
-	"task:builddeploy-openshift:complete":      {Emoji: "✅", Color: "good", Template: "deployFinished"},
-	"task:builddeploy-kubernetes:complete":     {Emoji: "✅", Color: "good", Template: "deployFinished"}, //not in teams
+	"task:deploy-openshift:finished":           {Emoji: successEmoji, Color: "good", Template: "deployFinished"},
+	"task:remove-openshift-resources:finished": {Emoji: successEmoji, Color: "good", Template: "deployFinished"},
+	"task:builddeploy-openshift:complete":      {Emoji: successEmoji, Color: "good", Template: "deployFinished"},
+	"task:builddeploy-kubernetes:complete":     {Emoji: successEmoji, Color: "good", Template: "deployFinished"}, //not in teams
 
-	"task:remove-openshift:finished":  {Emoji: "✅", Color: "good", Template: "removeFinished"},
-	"task:remove-kubernetes:finished": {Emoji: "✅", Color: "good", Template: "removeFinished"},
+	"task:remove-openshift:finished":  {Emoji: successEmoji, Color: "good", Template: "removeFinished"},
+	"task:remove-kubernetes:finished": {Emoji: successEmoji, Color: "good", Template: "removeFinished"},
 
-	"task:remove-openshift:error":        {Emoji: "🛑", Color: "danger", Template: "deployError"},
-	"task:remove-kubernetes:error":       {Emoji: "🛑", Color: "danger", Template: "deployError"},
-	"task:builddeploy-kubernetes:failed": {Emoji: "🛑", Color: "danger", Template: "deployError"}, //not in teams
-	"task:builddeploy-openshift:failed":  {Emoji: "🛑", Color: "danger", Template: "deployError"},
+	"task:remove-openshift:error":        {Emoji: failEmoji, Color: "danger", Template: "deployError"},
+	"task:remove-kubernetes:error":       {Emoji: failEmoji, Color: "danger", Template: "deployError"},
+	"task:builddeploy-kubernetes:failed": {Emoji: failEmoji, Color: "danger", Template: "deployError"}, //not in teams
+	"task:builddeploy-openshift:failed":  {Emoji: failEmoji, Color: "danger", Template: "deployError"},
 
-	"github:pull_request:closed:CannotDeleteProductionEnvironment": {Emoji: "⚠️", Color: "warning", Template: "notDeleted"},
-	"github:push:CannotDeleteProductionEnvironment":                {Emoji: "⚠️", Color: "warning", Template: "notDeleted"},
-	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: "⚠️", Color: "warning", Template: "notDeleted"},
-	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: "⚠️", Color: "warning", Template: "notDeleted"},
-
-	// deprecated
-	// "rest:remove:CannotDeleteProductionEnvironment": {Emoji: "⚠️", Color: "warning"},
-	// "rest:deploy:receive":                           {Emoji: "ℹ️", Color: "#E8E8E8"},
-	// "rest:remove:receive":                           {Emoji: "ℹ️", Color: "#E8E8E8"},
-	// "rest:promote:receive":                          {Emoji: "ℹ️", Color: "#E8E8E8"},
-	// "rest:pullrequest:deploy":                       {Emoji: "ℹ️", Color: "#E8E8E8"},
-	// "rest:pullrequest:remove":                       {Emoji: "ℹ️", Color: "#E8E8E8"},
-
-	// deprecated
-	// "task:deploy-openshift:error":           {Emoji: "🛑", Color: "danger", Template: "deployError"},
-	// "task:remove-openshift-resources:error": {Emoji: "🛑", Color: "danger", Template: "deployError"},
-
-	// deprecated
-	// "task:deploy-openshift:retry":           {Emoji: "⚠️", Color: "warning", Template: "removeRetry"},
-	// "task:remove-openshift:retry":           {Emoji: "⚠️", Color: "warning", Template: "removeRetry"},
-	// "task:remove-kubernetes:retry":          {Emoji: "⚠️", Color: "warning", Template: "removeRetry"},
-	// "task:remove-openshift-resources:retry": {Emoji: "⚠️", Color: "warning", Template: "removeRetry"},
+	"github:pull_request:closed:CannotDeleteProductionEnvironment": {Emoji: warningEmoji, Color: "warning", Template: "notDeleted"},
+	"github:push:CannotDeleteProductionEnvironment":                {Emoji: warningEmoji, Color: "warning", Template: "notDeleted"},
+	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: warningEmoji, Color: "warning", Template: "notDeleted"},
+	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: warningEmoji, Color: "warning", Template: "notDeleted"},
 }

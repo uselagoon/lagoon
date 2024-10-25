@@ -98,6 +98,8 @@ type Notification struct {
 		Timestamp                string   `json:"timestamp"`
 		ShortSha                 string   `json:"shortSha"`
 		BuildName                string   `json:"buildName"`
+		BuildPhase               string   `json:"buildPhase"`
+		BuildStep                string   `json:"buildStep"`
 		CommitURL                string   `json:"commitUrl"`
 		Environment              string   `json:"environment"`
 		EnvironmentID            string   `json:"environmentId"`
@@ -133,6 +135,13 @@ type EventMap struct {
 	Color    string `json:"color"`
 	Template string `json:"template"`
 }
+
+var (
+	warningEmoji string = "⚠️"
+	infoEmoji    string = "ℹ️"
+	successEmoji string = "✅"
+	failEmoji    string = "🛑"
+)
 
 // NewMessaging returns a messaging with config
 func NewMessaging(config mq.Config,
