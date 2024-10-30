@@ -167,7 +167,37 @@ volumes:
       lagoon.type: persistent
 ```
 
-This volume can then be referenced in each service that requires it, along with the path
+This volume can then be referenced in each service that requires it, along with the path.
+
+### Add additional volumes to an existing non `-persistent` service type
+
+If you have a `basic` or other supported standalone service type and you want to add volumes, you can use the additional volumes to do this without chaning the service type to a `-persistent` type.
+
+```yaml title="docker-compose.yml volume usage snippet"
+services:
+  basic:
+    build:
+      context: .
+      dockerfile: basic.dockerfile
+    labels:
+      lagoon.type: basic
+      lagoon.volumes.data.path: /data # basic-persistent provides a default volume, this needs to be defined
+      lagoon.volumes.extravol.path: /extra
+    volumes: # these volumes are ignored by lagoon, only the labels above are consumed to handle volume mapping
+      - data:/data:delegated
+      - extravol:/extra
+
+volumes:
+  data:
+    labels:
+      lagoon.type: persistent
+  extravol:
+    labels:
+      lagoon.type: persistent
+      lagoon.backup: false
+```
+
+### Add additional volume to an existing `-persistent` service type
 
 ```yaml title="docker-compose.yml volume usage snippet"
 services:
@@ -182,6 +212,12 @@ services:
     volumes: # these volumes are ignored by lagoon, only the labels above are consumed to handle volume mapping
       - ./data:/data:delegated
       - extravol:/extra
+
+volumes:
+  extravol:
+    labels:
+      lagoon.type: persistent
+      lagoon.backup: false
 ```
 Note that the original volume created for this service still exists.
 
@@ -218,6 +254,60 @@ Currently, the only service types that support additional volumes are the follow
 * cli / cli-persistent
 
 Adding a volume to any other type will result in an error during a build.
+
+## Additional Service Ports
+
+If you have a service that has many ports, you can use the `lagoon.service.usecomposeports: true` label to inform Lagoon to use the ports defined on the service.
+
+!!! info
+    Only TCP based ports will be allowed to have a route attached, but UDP ports can be used for internal communications.
+
+For example, if you have a `basic` service that requires ports `8080` and `10009`.
+
+* port 8080 could be a HTTP based port and you want to route to this using a route in `.lagoon.yml`
+* port 10009 could be used by other services within the environment for internal communications
+
+
+You would define your service to consume the `ports` like so:
+
+```yaml title="docker-compose.yml service port snippet"
+version: '2'
+services:
+  custom:
+    build:
+      context: internal/testdata/basic/docker
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: basic
+      lagoon.service.usecomposeports: true
+    ports:
+      - "8080"
+      - "10009"
+```
+
+The first port in the list of ports will be the "default" port for the service, so standard routes like so will route to the default port.
+An example `.lagoon.yml` is show how this looks the same as any other standard service route.
+
+```yaml title=".lagoon.yml default port route"
+environments:
+  main:
+    routes:
+      - custom:
+        - example.com
+```
+
+Alternatively, if you wanted to also have a route specifically for port 10009, you could define the route like so in your `.lagoon.yml`.
+
+```yaml title=".lagoon.yml default and alternative port route"
+environments:
+  main:
+    routes:
+      - custom-10009:
+        - otherport.example.com
+```
+
+!!! info
+    You can define both the "default" route and a custom port route together, as long as they have different domains used.
 
 ## Multi-Container Pods
 
