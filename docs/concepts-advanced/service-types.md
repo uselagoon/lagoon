@@ -2,10 +2,20 @@
 
 The below lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](../concepts-basics/docker-compose-yml.md).
 
-For more information on the `lagoon.volumes.X.path` label, please see [Additional Volumes](../concepts-basics/docker-compose-yml.md/#additional-volumes)
-
 !!! Warning
     Once a `lagoon.type` is defined and the environment is deployed, changing it to a different type is not supported and could result in a broken environment.
+
+## Additional Volumes
+
+Some service types allow for additional volumes to be added, for more information on the `lagoon.volumes.X.path` label, please see [Additional Volumes](../concepts-basics/docker-compose-yml.md/#additional-volumes)
+
+If you're provisioning a new project, we recommend avoiding the usage of `-persistent` service types, and use additional volumes as required for any persistent data.
+
+## Additional Service Ports
+
+Most services provide a default port, in cases where you want to use the services already defined in your `docker-compose.yml` file, you can configure a service to use those ports instead.
+
+To use this feature, you set the `lagoon.service.usecomposeports: true` label on the service in your `docker-compose.yml` file. For more information on how to use this feature, see [Additional Service Ports](../concepts-basics/docker-compose-yml.md/#additional-service-ports)
 
 ## `basic`
 
