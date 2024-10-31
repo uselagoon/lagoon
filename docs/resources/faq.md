@@ -12,18 +12,6 @@ If you've found a security issue, please send your findings to [security@amazee.
 
 That's great news! You can contact them via email at [sales@amazee.io](mailto:sales@amazee.io).
 
-## How can I restore a backup?
-
-We have backups available for files and databases, typically taken every 24 hours at most. These backups are stored offsite.
-
-We keep up to 7 daily backups and 4 weekly backups.
-
-If you ever need to recover or restore a backup, feel free to submit a ticket or send us a message via chat and we will be more than happy to help!
-
-## How can I download a database dump?
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 ## I'm getting an invalid SSL certificate error
 
 The first thing to try is what is listed in [our documentation about SSL](../concepts-basics/lagoon-yml.md#ssl-configuration-tls-acme).
