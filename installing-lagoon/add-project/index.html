@@ -4701,14 +4701,14 @@
 <li>
 <p>Run this command:</p>
 <div class="language-bash highlight"><span class="filename">Add project</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>lagoon<span class="w"> </span>add<span class="w"> </span>project<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--gitUrl<span class="w"> </span>&lt;YOUR-GITHUB-REPO-URL&gt;<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>--openshift<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--productionEnvironment<span class="w"> </span>&lt;YOUR-PROD-ENV&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--git-url<span class="w"> </span>&lt;YOUR-GITHUB-REPO-URL&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>--deploytarget<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--production-environment<span class="w"> </span>&lt;YOUR-PROD-ENV&gt;<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span>--branches<span class="w"> </span>&lt;THE-BRANCHES-YOU-WANT-TO-DEPLOY&gt;<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>--project<span class="w"> </span>&lt;YOUR-PROJECT-NAME&gt;
 </span></code></pre></div>
 <ul>
-<li>The value for <code>--openshift</code> is the ID of your Kubernetes cluster.</li>
+<li>The value for <code>--deploytarget</code> is the ID of your Kubernetes cluster.</li>
 <li>Your production environment should be the name of the branch you want to have as your production environment.</li>
 <li>The branches you want to deploy might look like this: <code>“^(main|develop)$”</code></li>
 <li>The name of your project is anything you want - “Company Website,” “example,” etc.</li>
