@@ -6,14 +6,14 @@
 
   ```bash title="Add project"
   lagoon add project \
-    --gitUrl <YOUR-GITHUB-REPO-URL> \
-    --openshift 1 \
-    --productionEnvironment <YOUR-PROD-ENV> \
+    --git-url <YOUR-GITHUB-REPO-URL> \
+    --deploytarget 1 \
+    --production-environment <YOUR-PROD-ENV> \
     --branches <THE-BRANCHES-YOU-WANT-TO-DEPLOY> \
     --project <YOUR-PROJECT-NAME>
   ```
 
-   * The value for `--openshift` is the ID of your Kubernetes cluster.
+   * The value for `--deploytarget` is the ID of your Kubernetes cluster.
    * Your production environment should be the name of the branch you want to have as your production environment.
    * The branches you want to deploy might look like this: `“^(main|develop)$”`
    * The name of your project is anything you want - “Company Website,” “example,” etc.
