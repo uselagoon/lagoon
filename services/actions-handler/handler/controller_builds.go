@@ -206,7 +206,10 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			}
 			// then update all the existing services
 			for _, mService := range message.Meta.EnvironmentServices {
-				var containers []schema.ServiceContainerInput
+				containers := []schema.ServiceContainerInput{}
+				for _, sCon := range mService.Containers {
+					containers = append(containers, schema.ServiceContainerInput(sCon))
+				}
 				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers}
 				// add or update it
 				setServices, err := lagoon.AddOrUpdateEnvironmentService(ctx, s2add, l)
