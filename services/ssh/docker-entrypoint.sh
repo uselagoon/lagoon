@@ -2,6 +2,8 @@
 
 export USER_ID=$(id -u)
 
+ep /etc/ssh/sshd_config
+
 ep /home/token.sh
 ep /home/grant.sh
 ep /home/token-debug.sh

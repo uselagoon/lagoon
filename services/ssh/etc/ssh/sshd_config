@@ -6,6 +6,9 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 
 LogLevel INFO
 
+# Sets the allowed number of ssh-agent key attempts before failure
+MaxAuthTries ${MAX_AUTH_TRIES:-6}
+
 PermitRootLogin no
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
