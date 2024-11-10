@@ -90,6 +90,12 @@
         "attributes": {}
       },
       {
+        "name": "platform-organization-owner",
+        "composite": false,
+        "clientRole": false,
+        "attributes": {}
+      },
+      {
         "name": "reporter",
         "composite": true,
         "composites": {
@@ -1455,6 +1461,14 @@
             "config": {}
           },
           {
+            "name": "[Lagoon] Users role for realm is Platform Organization Owner",
+            "description": "Checks the users role for the realm is Platform Organization Owner or higher",
+            "type": "script-policies/users-role-for-realm-is-platform-organization-owner.js",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {}
+          },
+          {
             "name": "[Lagoon] Users role for group is Developer",
             "description": "Checks the users role for a group is Developer or higher",
             "type": "script-policies/users-role-for-group-is-developer.js",
@@ -1758,7 +1772,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"updateOrganization\"]",
-              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1791,7 +1805,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
-              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
             }
           },
           {
@@ -1864,11 +1878,11 @@
             "name": "Platform Owner Manage Organizations and Owners",
             "type": "scope",
             "logic": "POSITIVE",
-            "decisionStrategy": "UNANIMOUS",
+            "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"delete\",\"update\",\"add\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1923,7 +1937,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"addViewer\",\"addOwner\"]",
-              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1934,7 +1948,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"addProject\",\"updateProject\",\"deleteProject\"]",
-              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1945,7 +1959,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"removeGroup\",\"addGroup\"]",
-              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1956,7 +1970,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"addNotification\",\"removeNotification\",\"updateNotification\"]",
-              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -1989,7 +2003,7 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2363,7 +2377,7 @@
             "config": {
               "resources": "[\"openshift\"]",
               "scopes": "[\"viewAll\"]",
-              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {

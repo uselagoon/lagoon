@@ -440,3 +440,122 @@ export const removeAdminFromOrganization: ResolverFn = async (
 
   return organizationData;
 };
+
+// query to list all platform users
+export const getAllPlatformUsers: ResolverFn = async (
+  _root,
+  { id, email, gitlabId, role },
+  { models, adminScopes },
+) => {
+  // if user is platform owner or viewer
+  if (adminScopes.platformOwner || adminScopes.platformViewer) {
+    const users = await models.UserModel.loadAllPlatformUsers();
+    if (id) {
+      const filteredById = users.filter(function (item) {
+        return item.id === id;
+      });
+      return filteredById;
+    }
+    if (email) {
+      const filteredByEmail = users.filter(function (item) {
+        return item.email === email;
+      });
+      return filteredByEmail;
+    }
+    if (gitlabId) {
+      const filteredByGitlab = users.filter(function (item) {
+        return item.gitlabId === gitlabId;
+      });
+      return filteredByGitlab;
+    }
+    if (role) {
+      const filteredByPlatformRole = users.filter(function (item) {
+        const found = item.platformRoles.some(el => el === role);
+        if (found) {
+          return item;
+        }
+      });
+      return filteredByPlatformRole;
+    }
+    return users;
+  } else {
+    throw new Error(
+      `Unauthorized: You don't have permission to perform this action`
+    );
+  }
+};
+
+// addPlatformRoleToUser is used to add platform-owner or platform-viewer to a user
+export const addPlatformRoleToUser: ResolverFn = async (
+  _root,
+  { user: userInput, role },
+  { models, userActivityLogger, adminScopes },
+) => {
+  // if user is platform owner
+  if (adminScopes.platformOwner) {
+    const user = await models.UserModel.loadUserByIdOrUsername({
+      id: R.prop('id', userInput),
+      email: R.prop('email', userInput),
+    });
+    await models.UserModel.addPlatformRoleToUser(user, role);
+    const users = await models.UserModel.loadAllPlatformUsers();
+    const filteredByEmail = users.filter(function (item) {
+      return item.email === user.email;
+    });
+    userActivityLogger(`User added a platform role to user '${user.email}'`, {
+      project: '',
+      event: 'api:addPlatformRoleToUser',
+      payload: {
+        user: {
+          id: user.id,
+          email: user.email,
+          role: role,
+        },
+      }
+    });
+    return filteredByEmail[0];
+  } else {
+    throw new Error(
+      `Unauthorized: You don't have permission to perform this action`
+    );
+  }
+};
+
+// removePlatformRoleFromUser will remove a platform role from a user
+export const removePlatformRoleFromUser: ResolverFn = async (
+  _root,
+  { user: userInput, role },
+  { models, userActivityLogger, adminScopes },
+) => {
+  // if user is platform owner
+  if (adminScopes.platformOwner) {
+    const user = await models.UserModel.loadUserByIdOrUsername({
+      id: R.prop('id', userInput),
+      email: R.prop('email', userInput),
+    });
+    await models.UserModel.removePlatformRoleFromUser(user, role);
+    const users = await models.UserModel.loadAllPlatformUsers();
+    const filteredByEmail = users.filter(function (item) {
+      return item.email === user.email;
+    });
+    userActivityLogger(`User removed platform role from user '${user.email}'`, {
+      project: '',
+      event: 'api:removePlatformRoleFromUser',
+      payload: {
+        user: {
+          id: user.id,
+          email: user.email,
+          role: role,
+        },
+      }
+    });
+    if (filteredByEmail[0]) {
+      return filteredByEmail[0]
+    }
+    return user;
+  } else {
+    throw new Error(
+      `Unauthorized: You don't have permission to perform this action`
+    );
+  }
+};
