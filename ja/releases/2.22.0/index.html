@@ -4183,6 +4183,33 @@
     Upgrades
   </a>
   
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lagoon-custom-resource-definitions-crds" class="md-nav__link">
+    Lagoon Custom Resource Definitions (CRDs)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerhost-statefulset" class="md-nav__link">
+    DockerHost StatefulSet
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nats-ssh-portal" class="md-nav__link">
+    NATS / SSH Portal
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4671,6 +4698,33 @@
     Upgrades
   </a>
   
+    <nav class="md-nav" aria-label="Upgrades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lagoon-custom-resource-definitions-crds" class="md-nav__link">
+    Lagoon Custom Resource Definitions (CRDs)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerhost-statefulset" class="md-nav__link">
+    DockerHost StatefulSet
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nats-ssh-portal" class="md-nav__link">
+    NATS / SSH Portal
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4710,13 +4764,24 @@
 <li>lagoon <a href="https://github.com/uselagoon/lagoon/releases/tag/v2.22.0">v2.22.0</a></li>
 <li>lagoon-ui <a href="https://github.com/uselagoon/lagoon-ui/releases/tag/core-v2.22.0">core-v2.22.0</a></li>
 <li>lagoon-build-deploy <a href="https://github.com/uselagoon/build-deploy-tool/releases/tag/core-v2.22.0">core-v2.22.0</a></li>
-<li>lagoon-core chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-x.xx.0">x.xx.x</a></li>
-<li>lagoon-remote chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-remote-x.xx.x">x.xx.x</a></li>
+<li>lagoon-core chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-1.49.0">1.49.0</a></li>
+<li>lagoon-remote chart <a href="https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-remote-0.95.x">0.95.0</a></li>
 </ul>
 <h2 id="release-notes">Release Notes<a class="headerlink" href="#release-notes" title="Permanent link">#</a></h2>
-<p>tbc - Not released yet</p>
+<p>This release is a standard Lagoon release. There are changes required for teams managing their own Lagoon installations (core and remote).</p>
 <h2 id="upgrades">Upgrades<a class="headerlink" href="#upgrades" title="Permanent link">#</a></h2>
-<p>tbc</p>
+<p>Self-managed Lagoon installs will need to be aware of three changes in lagoon-core and lagoon-remote. Please read the following sections carefully to ensure you update components that apply to your installation correctly.</p>
+<h3 id="lagoon-custom-resource-definitions-crds">Lagoon Custom Resource Definitions (CRDs)<a class="headerlink" href="#lagoon-custom-resource-definitions-crds" title="Permanent link">#</a></h3>
+<p>We introduced a new API version of the Lagoon Build and Task CRDs in https://github.com/uselagoon/lagoon-charts/pull/688. You must upgrade these after installing the latest version of <code>lagoon-remote</code>. Failure to update the CRDs will result in the remote controller failing to start, or builds and tasks failing.</p>
+<p>If you're installing the version defined in the top of these release notes, you can use the following to upgrade the CRDs to the version required.</p>
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>helm show crds lagoon/lagoon-build-deploy --version 0.30.2 | kubectl apply -f -
+</span></code></pre></div>
+<p>Alternatively, see the <a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-build-deploy/README.md#lagoon-remote">README in the lagoon-build-deploy chart</a> for further examples on how to update the Lagoon Build and Task CRDs.</p>
+<h3 id="dockerhost-statefulset">DockerHost StatefulSet<a class="headerlink" href="#dockerhost-statefulset" title="Permanent link">#</a></h3>
+<p>To help with improving or distributing build loads, we converted the docker-host from a <code>Deployment</code> to a <code>StatefulSet</code> in https://github.com/uselagoon/lagoon-charts/pull/687. This allows the docker-host to be scaled.</p>
+<p>This will provide the ability to load-balance docker build workloads. It will result in a new docker-host cache being created the first time any replica starts up (including on the first deployment), this may result in the first few builds being less-optimized whilst the cache rebuilds. This StatefulSet must only be scaled up or down via helm, and not directly in kubernetes otherwise the load-balancing of the workloads will not be able to be fully utilised.</p>
+<h3 id="nats-ssh-portal">NATS / SSH Portal<a class="headerlink" href="#nats-ssh-portal" title="Permanent link">#</a></h3>
+<p>The version of NATS used by Lagoon was updated in https://github.com/uselagoon/lagoon-charts/pull/602. If your installation of Lagoon utilises SSH portals and NATS, you need to be aware of changes to the structure of the NATS values. This upgrade requires minimal config structure changes in your lagoon-core and lagoon-remote values files. There are no changes to the certs or keys, just the naming of the YAML items. See the pullrequest description for more information.</p>
 <h2 id="deprecations">Deprecations<a class="headerlink" href="#deprecations" title="Permanent link">#</a></h2>
 <p>tbc</p>
 
