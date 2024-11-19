@@ -75,7 +75,7 @@ UI_IMAGE_TAG = main
 
 # OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular build image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=pr-243
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=pr-267
 OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
