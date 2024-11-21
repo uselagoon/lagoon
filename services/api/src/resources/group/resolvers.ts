@@ -532,7 +532,7 @@ export const addUserToGroup: ResolverFn = async (
   let createUserErr;
   try {
     // check if user already exists
-    user = await models.UserModel.loadUserByIdOrUsername({
+    user = await models.UserModel.loadUserByIdOrEmail({
       id: R.prop('id', userInput),
       email: R.prop('email', userInput)
     });
@@ -568,7 +568,7 @@ export const addUserToGroup: ResolverFn = async (
           return e
         }
       } else if (createUserErr) {
-        // otherwise return whatever error loadUserByIdOrUsername returned
+        // otherwise return whatever error loadUserByIdOrEmail returned
         return createUserErr
       }
     }
@@ -580,7 +580,7 @@ export const addUserToGroup: ResolverFn = async (
       // otherwise return the error
       throw new Error('Cannot invite user to group that is not in an organization');
     } else if (createUserErr) {
-      // otherwise return whatever error loadUserByIdOrUsername returned
+      // otherwise return whatever error loadUserByIdOrEmail returned
       return createUserErr
     }
   }
@@ -615,7 +615,7 @@ export const removeUserFromGroup: ResolverFn = async (
     throw new Error('You must provide a user id or email');
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput)
   });

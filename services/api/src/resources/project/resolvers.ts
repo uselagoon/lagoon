@@ -583,7 +583,7 @@ export const deleteProject: ResolverFn = async (
 
   // Remove the default user
   try {
-    const user = await models.UserModel.loadUserByUsername(
+    const user = await models.UserModel.loadUserByEmail(
       `default-user@${project.name}`
     );
     await models.UserModel.deleteUser(user.id);
@@ -740,7 +740,7 @@ export const updateProject: ResolverFn = async (
             keyFingerprint: keyPair.fingerprint
           })
         );
-        const user = await models.UserModel.loadUserByUsername(
+        const user = await models.UserModel.loadUserByEmail(
           `default-user@${oldProject.name}`
         );
         await query(
@@ -857,7 +857,7 @@ export const updateProject: ResolverFn = async (
     }
 
     try {
-      const user = await models.UserModel.loadUserByUsername(
+      const user = await models.UserModel.loadUserByEmail(
         `default-user@${oldProject.name}`
       );
       await models.UserModel.updateUser({
