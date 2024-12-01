@@ -108,7 +108,7 @@ func Test_validatePrivateKey(t *testing.T) {
 			name:       "with private ed25519",
 			method:     http.MethodPost,
 			input:      fmt.Sprintf("key=%s", ed25519Key),
-			want:       `{"publickey":"ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA==\n","sha256fingerprint":"SHA256:RBRWA2mJFPK/8DtsxVoVzoSShFiuRAzlUBws7cXkwG0","md5fingerprint":"72:86:48:50:59:1b:97:81:21:27:e7:55:98:fa:35:95","type":"ecdsa-sha2-nistp521","value":"AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA==\n"}`,
+			want:       `{"publickey":"ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA==","sha256fingerprint":"SHA256:RBRWA2mJFPK/8DtsxVoVzoSShFiuRAzlUBws7cXkwG0","md5fingerprint":"72:86:48:50:59:1b:97:81:21:27:e7:55:98:fa:35:95","type":"ecdsa-sha2-nistp521","value":"AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAD8E5wfvLg8vvfO9mmHVsZQK8dNgdKM5FrTxL4ORDq66Z50O8zUzBwF1VTO5Zx+qwB7najMdWsnW00BC6PMysSNJQD5HI4CokyKqmGdeSXcROYwvYOjlDQ+jD5qOSmkllRZZnkEYXE5FVBXaZWToyfGUGIoECvKGUQZxkBDHsbK13JdfA=="}`,
 			statusCode: http.StatusOK,
 		},
 		{

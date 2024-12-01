@@ -85,7 +85,7 @@ func validatePrivateKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sshPubKey := ssh.MarshalAuthorizedKey(signer.PublicKey())
-	resp.PublicKey = string(sshPubKey)
+	resp.PublicKey = strings.TrimSpace(string(sshPubKey))
 	pub, _, _, _, err := ssh.ParseAuthorizedKey(sshPubKey)
 	if err != nil {
 		resp.Error = err.Error()
@@ -96,7 +96,7 @@ func validatePrivateKey(w http.ResponseWriter, r *http.Request) {
 	resp.SHA256Fingerprint = ssh.FingerprintSHA256(pub)
 	resp.MD5Fingerprint = ssh.FingerprintLegacyMD5(pub)
 	resp.Type = pub.Type()
-	resp.Value = strings.Split(string(sshPubKey), " ")[1]
+	resp.Value = strings.TrimSpace(strings.Split(string(sshPubKey), " ")[1])
 	log.Printf("validated private key with public fingerprint %s", resp.SHA256Fingerprint)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, resp.String())
