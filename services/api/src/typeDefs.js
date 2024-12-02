@@ -1140,6 +1140,7 @@ const typeDefs = gql`
     id: Int
     name: String
     organization: Int
+    gitUrl: String
     groups: [OrgGroupInterface]
     groupCount: Int
     notifications: [OrganizationNotification]
