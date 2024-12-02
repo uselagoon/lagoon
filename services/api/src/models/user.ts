@@ -43,8 +43,8 @@ interface UserEdit {
 export interface UserModel {
   loadAllUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
-  loadUserByUsername: (email: string) => Promise<User>;
-  loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
+  loadUserByEmail: (email: string) => Promise<User>;
+  loadUserByIdOrEmail: (userInput: UserEdit) => Promise<User>;
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
   getAllOrganizationIdsForUser: (userInput: UserEdit) => Promise<number[]>;
   getAllGroupsForUser: (userId: string, organization?: number) => Promise<Group[]>;
@@ -248,7 +248,11 @@ export const User = (clients: {
   };
 
   // used by project resolver only, so leave this one out of redis for now
-  const loadUserByUsername = async (email: string): Promise<User> => {
+  const loadUserByEmail = async (email: string): Promise<User> => {
+    // keycloak saves usernames and email addresses as lowercase :(
+    // there isn't a simple way to change that, numerous threads in SO and GH
+    // from various people with issues with this
+    email = email.toLocaleLowerCase();
     const keycloakUsers = await keycloakAdminClient.users.find({
       email
     });
@@ -270,13 +274,13 @@ export const User = (clients: {
     return await loadUserById(userId);
   };
 
-  const loadUserByIdOrUsername = async (userInput: UserEdit): Promise<User> => {
+  const loadUserByIdOrEmail = async (userInput: UserEdit): Promise<User> => {
     if (R.prop('id', userInput)) {
       return loadUserById(R.prop('id', userInput));
     }
 
     if (R.prop('email', userInput)) {
-      return loadUserByUsername(R.prop('email', userInput));
+      return loadUserByEmail(R.prop('email', userInput));
     }
 
     throw new Error('You must provide a user id or email');
@@ -708,8 +712,8 @@ export const User = (clients: {
   return {
     loadAllUsers,
     loadUserById,
-    loadUserByUsername,
-    loadUserByIdOrUsername,
+    loadUserByEmail,
+    loadUserByIdOrEmail,
     loadUsersByOrganizationId,
     getAllOrganizationIdsForUser,
     getAllGroupsForUser,

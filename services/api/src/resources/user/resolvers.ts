@@ -83,19 +83,28 @@ export const getAllUsers: ResolverFn = async (
 ) => {
   await hasPermission('user', 'viewAll');
 
-  const users = await models.UserModel.loadAllUsers();
-  if (id) {
-    const filteredById = users.filter(function (item) {
-      return item.id === id;
-    });
-    return filteredById;
-  }
   if (email) {
-    const filteredByEmail = users.filter(function (item) {
-      return item.email === email;
-    });
-    return filteredByEmail;
+    try {
+      // use the model to get a user by email address instead of filtering
+      const user = await models.UserModel.loadUserByEmail(email);
+      return [user]
+    } catch (e) {
+      // if no user found, return empty user list like before
+      return []
+    }
   }
+  if (id) {
+    try {
+      // use the model to get a user by id instead of filtering
+      const user = await models.UserModel.loadUserById(id);
+      return [user]
+    } catch (e) {
+      // if no user found, return empty user list like before
+      return []
+    }
+  }
+  // since gitlab users are harder to check, do the all users query and then filter them
+  const users = await models.UserModel.loadAllUsers();
   if (gitlabId) {
     const filteredByGitlab = users.filter(function (item) {
       return item.gitlabId === gitlabId;
@@ -113,7 +122,7 @@ export const getUserByEmail: ResolverFn = async (
   { sqlClientPool, models, hasPermission, keycloakGrant },
 ) => {
 
-  const user = await models.UserModel.loadUserByUsername(email);
+  const user = await models.UserModel.loadUserByEmail(email);
   if (keycloakGrant) {
     if (keycloakGrant.access_token.content.sub == user.id) {
       await hasPermission('ssh_key', 'view:user', {
@@ -157,7 +166,7 @@ export const updateUser: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -184,7 +193,7 @@ export const resetUserPassword: ResolverFn = async (
   { input: { user: userInput } },
   { models, hasPermission },
 ) => {
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -204,7 +213,7 @@ export const deleteUser: ResolverFn = async (
   { input: { user: userInput } },
   { models, hasPermission },
 ) => {
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -238,7 +247,7 @@ export const addUserToOrganization: ResolverFn = async (
     throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -298,7 +307,7 @@ export const removeUserFromOrganization: ResolverFn = async (
     throw new Error(`Unauthorized: You don't have permission to "addOwner" on "organization"`)
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -365,7 +374,7 @@ export const addAdminToOrganization: ResolverFn = async (
     throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });
@@ -412,7 +421,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
     throw new Error(`Unauthorized: You don't have permission to scope on "organization"`)
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput),
   });

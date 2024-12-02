@@ -44,7 +44,7 @@ export const addSshKey: ResolverFn = async (
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput)
   });

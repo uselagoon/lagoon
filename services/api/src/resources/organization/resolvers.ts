@@ -429,7 +429,7 @@ export const getUserByEmailAndOrganizationId: ResolverFn = async (
   });
 
   try {
-    const user = await models.UserModel.loadUserByUsername(email);
+    const user = await models.UserModel.loadUserByEmail(email);
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(user.id, organization);
 
     user.owner = false
@@ -945,7 +945,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
     throw new Error('You must provide a user id or email');
   }
 
-  const user = await models.UserModel.loadUserByIdOrUsername({
+  const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
     email: R.prop('email', userInput)
   });
