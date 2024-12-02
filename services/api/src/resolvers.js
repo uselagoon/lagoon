@@ -124,6 +124,7 @@ const {
   getEnvironmentByServiceId,
   getServiceContainersByServiceId,
   deleteEnvironmentService,
+  environmentIdling,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -705,7 +706,8 @@ const resolvers = {
     removeUserFromOrganizationGroups,
     bulkImportProjectsAndGroupsToOrganization,
     addOrUpdateEnvironmentService,
-    deleteEnvironmentService
+    deleteEnvironmentService,
+    environmentIdling,
   },
   Subscription: {
     backupChanged: backupSubscriber,
