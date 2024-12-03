@@ -19,9 +19,9 @@ until is_broker_running; do
 done
 
 echo enabling any disabled feature flags
-for feature in $(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/feature-flags/" | gojq -r '.[] | select(.state=="disabled") | .name'); do
+for feature in $(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/feature-flags/" | gojq -r '.[] | select(.state=="disabled" and .stability!="experimental") | .name'); do
   echo " - enabling ${feature}"
-  curl -X PUT --header "Content-Type: application/json" -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" -d '{"name":"'${feature}'"}' http://${SERVICE_NAME}:15672/api/feature-flags/${feature}/enable
+  curl -X PUT --header "Content-Type: application/json" -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" -d '{"name":"'${feature}'"}' "http://${SERVICE_NAME}:15672/api/feature-flags/${feature}/enable"
 done
 
 echo all feature flags enabled
