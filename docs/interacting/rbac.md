@@ -8,13 +8,24 @@ When assigning a user to a group, you need to provide a group role for that user
 
 ### Platform-Wide Roles
 
-#### Platform-Wide Admin
-
-The platform-wide admin has access to everything across all of Lagoon. That includes dangerous mutations like deleting all projects. Use very, _very,_ **very** carefully.
+Platform-wide roles are typically assigned to people that manage Lagoon.
 
 #### Platform-Wide Owner
 
-The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.
+The platform-wide owner has access to everything across all of Lagoon.
+
+#### Platform-Wide Viewer
+
+Similar to the platform-wide owner, except this role can only view.
+
+#### Platform-Wide Organization Owner
+
+The platform-wide organization owner role provides permission to create, update, delete, and all other permissions related to changes withing an organization, including existing organizations. It does not grant full platform-wide owner access, this means the ability to access and deploy projects still needs to be granted via a group within an organization.
+
+This role also has the ability to view all the deploytargets (kubernetes clusters) assigned to Lagoon so that they can be assigned to an organization when it is being created.
+
+!!! Warning "NOTE"
+    By default this role does not allow the creation of environments or the ability to trigger deployments within a project within an organization. They can add themselves to a group with a role that does grant them this permission.
 
 ### Organization Roles
 

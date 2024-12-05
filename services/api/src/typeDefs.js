@@ -462,6 +462,13 @@ const typeDefs = gql`
     # @TODO: no op last accessed for the time being due to raciness
     # @TODO: refactor later
     # lastAccessed: String
+    platformRoles: [PlatformRole]
+  }
+
+  enum PlatformRole {
+    VIEWER
+    OWNER
+    ORGANIZATION_OWNER
   }
 
   type GroupMembership {
@@ -1441,6 +1448,7 @@ const typeDefs = gql`
     getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String  @deprecated(reason: "Use checkBulkImportProjectsAndGroupsToOrganization instead")
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
     checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
+    allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
   }
 
   type ProjectGroupsToOrganization {
@@ -2548,6 +2556,8 @@ const typeDefs = gql`
     bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
     addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
+    addPlatformRoleToUser(user: UserInput!, role: PlatformRole!): User
+    removePlatformRoleFromUser(user: UserInput!, role: PlatformRole!): User
   }
 
   type Subscription {

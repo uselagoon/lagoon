@@ -674,6 +674,184 @@ function add_lagoon-ui-oidc_client {
     echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 }
 
+function add_update_platform_organization_permissions {
+  # The changes here match the changes that are made in the realm import script
+  # fresh installs will not need to perform this migration as the changes will already be in the import
+  # this will only run on existing installations to get it into a state that matches the realm import
+  CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  platform_organization_owner_permission=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Organizations --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  associated_policies=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$platform_organization_owner_permission/associatedPolicies --config $CONFIG_PATH | jq -c 'map({name})')
+
+  # check the permission to see if the platform organization owner role is already configured
+  if [[ "$associated_policies" =~ 'Users role for realm is Platform Organization Owner' ]]; then
+      echo "add_update_platform_organization_permissions already configured"
+      return 0
+  fi
+
+  echo Creating platform organization owner js mapper policy
+  local p_name1="Users role for realm is Platform Organization Owner"
+  local script_name1="[Lagoon] $p_name1"
+  local script_type1="script-policies/$(echo $p_name1 | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+  echo '{"name":"'$script_name1'","type":"'$script_type1'"}' | /opt/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type1 | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+  echo Create platform organization owner role
+  /opt/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-organization-owner
+
+  echo Re-configuring organization:updateOrganization
+  #Delete existing permissions
+  update_organization=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Update+Organization --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$update_organization --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Update Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["updateOrganization"],
+  "policies": ["[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:view:viewProject:viewGroup:viewNotification:viewUser:viewUsers
+  #Delete existing permissions
+  view_organization=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Organization --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_organization --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["view","viewProject","viewGroup","viewNotification","viewUser","viewUsers"],
+  "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Viewer","[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is viewer of organization"]
+}
+EOF
+
+  echo Re-configuring organization:delete:update:add
+  #Delete existing permissions
+  manage_organization=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Platform+Owner+Manage+Organizations+and+Owners --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Platform Owner Manage Organizations and Owners",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["delete","update","add"],
+  "policies": ["[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:addViewer:addOwner
+  #Delete existing permissions
+  manage_organization_owners=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization+Owners --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization_owners --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Owners",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addViewer","addOwner"],
+  "policies": ["[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:addProject:updateProject:deleteProject
+  #Delete existing permissions
+  manage_organization_projects=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization+Projects --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization_projects --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Projects",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addProject","updateProject","deleteProject"],
+  "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:removeGroup:addGroup
+  #Delete existing permissions
+  manage_organization_groups=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization+Groups --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization_groups --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Groups",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["removeGroup","addGroup"],
+  "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:addNotification:removeNotification:updateNotification
+  #Delete existing permissions
+  manage_organization_notifications=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Manage+Organization+Notifications --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$manage_organization_notifications --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage Organization Notifications",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addNotification","removeNotification","updateNotification"],
+  "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring openshift:viewAll
+  #Delete existing permissions
+  view_all_openshifts=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Openshifts --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_all_openshifts --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Openshifts",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["openshift"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Viewer","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+  echo Re-configuring organization:viewAll
+  #Delete existing permissions
+  view_all_organizations=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Organizations --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  /opt/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$view_all_organizations --config $CONFIG_PATH
+
+  /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Organizations",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Viewer","[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -710,6 +888,7 @@ function configure_keycloak {
     service-api_add_view-users_permission
     add_lagoon-cli_client
     add_lagoon-ui-oidc_client
+    add_update_platform_organization_permissions
 
     # always run last
     sync_client_secrets

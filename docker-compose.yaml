@@ -86,7 +86,7 @@ services:
   api:
     image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
-      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/
+      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth
       - NODE_ENV=development
       - OPENSEARCH_INTEGRATION_ENABLED=false
       - DISABLE_CORE_HARBOR=true
@@ -97,6 +97,8 @@ services:
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
       - CONSOLE_LOGGING_LEVEL=debug
       - SIDECAR_HANDLER_HOST=apisidecarhandler
+      - SSH_TOKEN_ENDPOINT=localhost
+      - SSH_TOKEN_ENDPOINT_PORT=2020
     depends_on:
       api-lagoon-migrations:
         condition: service_started

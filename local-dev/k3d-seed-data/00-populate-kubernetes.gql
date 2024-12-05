@@ -79,6 +79,48 @@ mutation PopulateApi {
     id
   }
 
+  UserExamplePlatformOrgOwner: addUser(
+    input: {
+      email: "platformorgowner@example.com"
+      comment: "platform organization owner user"
+    }
+  ) {
+    id
+  }
+
+  ## Assign platform owner role
+  UserExamplePlatformOwnerRole: addPlatformRoleToUser(
+    user:{
+      email:"platformowner@example.com"
+    }
+    role: OWNER
+  ){
+    email
+    platformRoles
+  }
+
+  ## Assign platform viewer role
+  UserExamplePlatformViewerRole: addPlatformRoleToUser(
+    user:{
+      email:"platformviewer@example.com"
+    }
+    role: VIEWER
+  ){
+    email
+    platformRoles
+  }
+
+  ## Assign platform organization owner role
+  UserExamplePlatformOrgOwnerRole: addPlatformRoleToUser(
+    user:{
+      email:"platformorgowner@example.com"
+    }
+    role: ORGANIZATION_OWNER
+  ){
+    email
+    platformRoles
+  }
+
   LagoonDemoGroup: addGroup(
     input: {
       name: "lagoon-demo-group"

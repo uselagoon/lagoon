@@ -26,6 +26,7 @@ export interface User {
   owner?: boolean;
   admin?: boolean;
   organizationRole?: string;
+  platformRoles?: [string];
 }
 
 interface UserEdit {
@@ -42,6 +43,7 @@ interface UserEdit {
 
 export interface UserModel {
   loadAllUsers: () => Promise<User[]>;
+  loadAllPlatformUsers: () => Promise<User[]>;
   loadUserById: (id: string) => Promise<User>;
   loadUserByEmail: (email: string) => Promise<User>;
   loadUserByIdOrEmail: (userInput: UserEdit) => Promise<User>;
@@ -55,11 +57,20 @@ export interface UserModel {
     userGroups: Group[]
   ) => Promise<string[]>;
   addUser: (userInput: User, resetPassword?: Boolean) => Promise<User>;
+  addPlatformRoleToUser: (userInput: User, role: PlatformRole) => Promise<User>;
+  removePlatformRoleFromUser: (userInput: User, role: PlatformRole) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   resetUserPassword: (id: string) => Promise<void>;
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
+}
+
+// these match the names of the roles created in keycloak
+enum PlatformRole {
+  VIEWER = 'platform-viewer',
+  OWNER = 'platform-owner',
+  ORGANIZATION_OWNER = 'platform-organization-owner'
 }
 
 interface AttributeFilterFn {
@@ -165,7 +176,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner', 'organizationRole']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner', 'organizationRole', 'platformRoles']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -351,6 +362,82 @@ export const User = (clients: {
 
     return users;
   };
+
+  const loadAllPlatformUsers = async (): Promise<User[]> => {
+    let platformUsers = [];
+    const keycloakPlatformOwners = await keycloakAdminClient.roles.findUsersWithRole({
+      name: PlatformRole.OWNER,
+      max: -1
+    });
+    for (const f1 in keycloakPlatformOwners) {
+      keycloakPlatformOwners[f1].platformRoles = []
+      const found = platformUsers.findIndex(el => el.email === keycloakPlatformOwners[f1].email);
+      if (found === -1) {
+        keycloakPlatformOwners[f1].platformRoles.push(PlatformRole.OWNER)
+        platformUsers.push(keycloakPlatformOwners[f1])
+      } else {
+        platformUsers[found].platformRoles.push(PlatformRole.OWNER)
+      }
+    }
+    const keycloakPlatformViewers = await keycloakAdminClient.roles.findUsersWithRole({
+      name: PlatformRole.VIEWER,
+      max: -1
+    });
+    for (const f1 in keycloakPlatformViewers) {
+      keycloakPlatformViewers[f1].platformRoles = []
+      const found = platformUsers.findIndex(el => el.email === keycloakPlatformViewers[f1].email);
+      if (found === -1) {
+        keycloakPlatformViewers[f1].platformRoles.push(PlatformRole.VIEWER)
+        platformUsers.push(keycloakPlatformViewers[f1])
+      } else {
+        platformUsers[found].platformRoles.push(PlatformRole.VIEWER)
+      }
+    }
+    const keycloakPlatformOrgOwners = await keycloakAdminClient.roles.findUsersWithRole({
+      name: PlatformRole.ORGANIZATION_OWNER,
+      max: -1
+    });
+    for (const f1 in keycloakPlatformOrgOwners) {
+      keycloakPlatformOrgOwners[f1].platformRoles = []
+      const found = platformUsers.findIndex(el => el.email === keycloakPlatformOrgOwners[f1].email);
+      if (found === -1) {
+        keycloakPlatformOrgOwners[f1].platformRoles.push(PlatformRole.ORGANIZATION_OWNER)
+        platformUsers.push(keycloakPlatformOrgOwners[f1])
+      } else {
+        platformUsers[found].platformRoles.push(PlatformRole.ORGANIZATION_OWNER)
+      }
+    }
+    const users = await transformKeycloakUsers(platformUsers);
+    return users;
+  };
+
+  const addPlatformRoleToUser = async (userInput: User, role: PlatformRole): Promise<User> => {
+    const kcRole = await keycloakAdminClient.roles.findOneByName({
+      name: role
+    });
+    let keycloakUser = await keycloakAdminClient.users.addRealmRoleMappings({
+      id: userInput.id,
+      roles: [{
+        id: kcRole.id,
+        name: kcRole.name
+      }]
+    });
+    return keycloakUser
+  }
+
+  const removePlatformRoleFromUser = async (userInput: User, role: PlatformRole): Promise<User> => {
+    const kcRole = await keycloakAdminClient.roles.findOneByName({
+      name: role
+    });
+    const keycloakUser = await keycloakAdminClient.users.delRealmRoleMappings({
+      id: userInput.id,
+      roles: [{
+        id: kcRole.id,
+        name: kcRole.name
+      }]
+    });
+    return keycloakUser
+  }
 
   const getAllGroupsForUser = async (
     userId: string,
@@ -711,6 +798,7 @@ export const User = (clients: {
 
   return {
     loadAllUsers,
+    loadAllPlatformUsers,
     loadUserById,
     loadUserByEmail,
     loadUserByIdOrEmail,
@@ -720,6 +808,8 @@ export const User = (clients: {
     getAllProjectsIdsForUser,
     getUserRolesForProject,
     addUser,
+    addPlatformRoleToUser,
+    removePlatformRoleFromUser,
     updateUser,
     userLastAccessed,
     deleteUser,

@@ -212,6 +212,9 @@ const {
   deleteUser,
   getAllUsers,
   getUserByEmail,
+  getAllPlatformUsers,
+  addPlatformRoleToUser,
+  removePlatformRoleFromUser,
 } = require('./resources/user/resolvers');
 
 const {
@@ -375,6 +378,11 @@ const resolvers = {
     QUEUED: 'queued',
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
+  },
+  PlatformRole: {
+    VIEWER: 'platform-viewer',
+    OWNER: 'platform-owner',
+    ORGANIZATION_OWNER: 'platform-organization-owner',
   },
   Openshift: {
     projectUser: getProjectUser,
@@ -581,7 +589,8 @@ const resolvers = {
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
     getEnvVariablesByProjectEnvironmentName,
-    checkBulkImportProjectsAndGroupsToOrganization
+    checkBulkImportProjectsAndGroupsToOrganization,
+    allPlatformUsers: getAllPlatformUsers,
   },
   Mutation: {
     addProblem,
@@ -705,7 +714,9 @@ const resolvers = {
     removeUserFromOrganizationGroups,
     bulkImportProjectsAndGroupsToOrganization,
     addOrUpdateEnvironmentService,
-    deleteEnvironmentService
+    deleteEnvironmentService,
+    addPlatformRoleToUser,
+    removePlatformRoleFromUser,
   },
   Subscription: {
     backupChanged: backupSubscriber,

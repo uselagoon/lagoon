@@ -260,24 +260,21 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const getEnvironmentsByKubernetes: ResolverFn = async (
   _,
   { kubernetes, order, createdAfter, type },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
   const openshift = await openshiftHelpers(
     sqlClientPool
   ).getOpenshiftByOpenshiftInput(kubernetes);
 
   let userProjectIds: number[];
-  try {
-    await hasPermission('openshift', 'viewAll');
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getEnvironmentsByKubernetes');
-      return [];
-    }
-
-    // Only return projects the user can view
+  // if user is not platform owner or viewer, check the project ids the user has access to
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
+    if (userProjectIds.length == 0) {
+      // return an empty result if the user has no project ids
+      return [];
+    }
   }
 
   let queryBuilder = knex('environment').where('openshift', openshift.id);
