@@ -3077,15 +3077,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#platform-wide-admin" class="md-nav__link">
-    Platform-Wide Admin
+  <a href="#platform-wide-owner" class="md-nav__link">
+    Platform-Wide Owner
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#platform-wide-owner" class="md-nav__link">
-    Platform-Wide Owner
+  <a href="#platform-wide-viewer" class="md-nav__link">
+    Platform-Wide Viewer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#platform-wide-organization-owner" class="md-nav__link">
+    Platform-Wide Organization Owner
   </a>
   
 </li>
@@ -4776,15 +4783,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#platform-wide-admin" class="md-nav__link">
-    Platform-Wide Admin
+  <a href="#platform-wide-owner" class="md-nav__link">
+    Platform-Wide Owner
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#platform-wide-owner" class="md-nav__link">
-    Platform-Wide Owner
+  <a href="#platform-wide-viewer" class="md-nav__link">
+    Platform-Wide Viewer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#platform-wide-organization-owner" class="md-nav__link">
+    Platform-Wide Organization Owner
   </a>
   
 </li>
@@ -4916,10 +4930,18 @@
 <h2 id="roles">Roles<a class="headerlink" href="#roles" title="Permanent link">#</a></h2>
 <p>When assigning a user to a group, you need to provide a group role for that user inside this group. Each one of the 5 current existing group roles gives the user different permissions to the group and projects assigned to the group. Here are the platform-wide roles and the group roles that are currently found in Lagoon:</p>
 <h3 id="platform-wide-roles">Platform-Wide Roles<a class="headerlink" href="#platform-wide-roles" title="Permanent link">#</a></h3>
-<h4 id="platform-wide-admin">Platform-Wide Admin<a class="headerlink" href="#platform-wide-admin" title="Permanent link">#</a></h4>
-<p>The platform-wide admin has access to everything across all of Lagoon. That includes dangerous mutations like deleting all projects. Use very, <em>very,</em> <strong>very</strong> carefully.</p>
+<p>Platform-wide roles are typically assigned to people that manage Lagoon.</p>
 <h4 id="platform-wide-owner">Platform-Wide Owner<a class="headerlink" href="#platform-wide-owner" title="Permanent link">#</a></h4>
-<p>The platform-wide owner has access to every Lagoon group, like the group owner role, and can be used if you need a user that needs access to everything but you don't want to assign the user to every group.</p>
+<p>The platform-wide owner has access to everything across all of Lagoon.</p>
+<h4 id="platform-wide-viewer">Platform-Wide Viewer<a class="headerlink" href="#platform-wide-viewer" title="Permanent link">#</a></h4>
+<p>Similar to the platform-wide owner, except this role can only view.</p>
+<h4 id="platform-wide-organization-owner">Platform-Wide Organization Owner<a class="headerlink" href="#platform-wide-organization-owner" title="Permanent link">#</a></h4>
+<p>The platform-wide organization owner role provides permission to create, update, delete, and all other permissions related to changes withing an organization, including existing organizations. It does not grant full platform-wide owner access, this means the ability to access and deploy projects still needs to be granted via a group within an organization.</p>
+<p>This role also has the ability to view all the deploytargets (kubernetes clusters) assigned to Lagoon so that they can be assigned to an organization when it is being created.</p>
+<div class="admonition warning">
+<p class="admonition-title">NOTE</p>
+<p>By default this role does not allow the creation of environments or the ability to trigger deployments within a project within an organization. They can add themselves to a group with a role that does grant them this permission.</p>
+</div>
 <h3 id="organization-roles">Organization Roles<a class="headerlink" href="#organization-roles" title="Permanent link">#</a></h3>
 <h4 id="organization-owner">Organization Owner<a class="headerlink" href="#organization-owner" title="Permanent link">#</a></h4>
 <p>The organization owner role allows for the creation and deletion of projects, groups, and notifications within their organization.</p>
