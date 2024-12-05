@@ -13,7 +13,7 @@ export interface Environment {
   openshiftProjectName?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   updated?: string; // timestamp NOT NULL DEFAULT current_timestamp(),
   created?: string; //  timestamp NOT NULL DEFAULT current_timestamp(),
-  deleted?: string; // timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  deleted?: string;
   route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
   autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
