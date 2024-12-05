@@ -12,6 +12,8 @@ exports.up = async function(knex) {
     })
     .alterTable('environment', function (table) {
         table.timestamp('deleted').notNullable().alter();
+        table.string('deploy_base_ref', 250).alter();
+        table.string('deploy_head_ref', 250).alter();
     })
     .alterTable('environment_fact', function (table) {
         table.specificType('description', 'text').alter();
