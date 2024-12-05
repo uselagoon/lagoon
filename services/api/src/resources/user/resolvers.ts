@@ -502,7 +502,7 @@ export const addPlatformRoleToUser: ResolverFn = async (
 ) => {
   // if user is platform owner
   if (adminScopes.platformOwner) {
-    const user = await models.UserModel.loadUserByIdOrUsername({
+    const user = await models.UserModel.loadUserByIdOrEmail({
       id: R.prop('id', userInput),
       email: R.prop('email', userInput),
     });
@@ -538,7 +538,7 @@ export const removePlatformRoleFromUser: ResolverFn = async (
 ) => {
   // if user is platform owner
   if (adminScopes.platformOwner) {
-    const user = await models.UserModel.loadUserByIdOrUsername({
+    const user = await models.UserModel.loadUserByIdOrEmail({
       id: R.prop('id', userInput),
       email: R.prop('email', userInput),
     });
