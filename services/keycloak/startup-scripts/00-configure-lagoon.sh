@@ -146,6 +146,23 @@ function configure_lagoon_redirect_uris {
   fi
 }
 
+function configure_admin_api_client {
+  # this client is used by the lagoon api to perform actions against keycloak without needing to use the username and password
+  # this allows for configuring the username and password of the admin account with 2fa if required
+  admin_api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH)
+  if [ "$admin_api_client_id" != "[ ]" ]; then
+      echo "Client admin-api is already created, skipping basic setup"
+      return 0
+  fi
+  echo Creating client admin-api
+  echo '{"clientId": "admin-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'${KEYCLOAK_ADMIN_API_CLIENT_SECRET}'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r master -f -
+  ADMIN_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  echo Enable fine grained permissions
+  /opt/keycloak/bin/kcadm.sh update clients/$ADMIN_API_CLIENT_ID/management/permissions --config $CONFIG_PATH -r master -s enabled=true
+
+	/opt/keycloak/bin/kcadm.sh add-roles -r master --uusername service-account-admin-api --rolename admin --config $CONFIG_PATH
+}
+
 ##############
 # Migrations #
 ##############
@@ -866,7 +883,21 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
+    # attempt to log in with the admin-api client service account
+    # this can fail the first time as the admin-api client might not exist because it is called by 'configure_admin_api_client'
+    # it will then fall back to using the username and password to authenticate against keycloak
+    # this has the same downside as the username/password problem in that if the user password or the admin-api client secret are ever rotated
+    # then they will need to be changed in keycloak at the same time that the changes are applied when rotating them via lagoon if they are being changed
+    # otherwise there is currently no way to change these without knowing the previous password or client secret
+    if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
+    then
+      if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
+      then
+        echo "Unable to log in to keycloak with client admin-api or keycloak admin username and password"
+        echo "If you have rotated the admin-api secret, you will need to log in and update it manually"
+        exit 1
+      fi
+    fi
 
     # Sets the order of migrations, add new ones at the end.
     import_lagoon_realm
@@ -875,6 +906,7 @@ function configure_keycloak {
     configure_smtp_settings
     configure_realm_settings
     configure_lagoon_redirect_uris
+    configure_admin_api_client
 
     check_migrations_version
     migrate_to_custom_group_mapper

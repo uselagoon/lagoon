@@ -42,8 +42,15 @@ function configure_keycloak {
   CONFIG_PATH=/tmp/kcadm.config
 
   echo Keycloak is running, proceeding with configuration
-
-  /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+  if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
+  then
+    if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    then
+      echo "Unable to log in to keycloak with client admin-api or username and password"
+      echo "If you have rotated the admin-api secret, you will need to log in and update it manually"
+      exit 1
+    fi
+  fi
 
   configure_user_passwords
 
