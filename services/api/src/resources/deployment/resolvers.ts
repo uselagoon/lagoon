@@ -343,6 +343,9 @@ export const addDeployment: ResolverFn = async (
   if (!sourceType) {
     sourceType = "API"
   }
+  if (sourceType) {
+    sourceType.toLocaleLowerCase();
+  }
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({

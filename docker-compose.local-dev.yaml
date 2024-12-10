@@ -29,6 +29,7 @@ services:
   api:
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
     volumes:
+      - ./services/api/database:/app/services/api/database
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
