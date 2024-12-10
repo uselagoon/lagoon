@@ -12,6 +12,8 @@ COPY ./legacy-migration-scripts/* /legacy-migration-scripts/
 RUN chown -R mysql /legacy-migration-scripts/ \
     && /bin/fix-permissions /legacy-migration-scripts/
 
+# replace the generate-env script with our password, since generate-env only adds a domain which isnt valid in this image
+COPY password-entrypoint.bash /lagoon/entrypoints/55-generate-env.sh
 RUN sed -i 's/mariadb-init-complete/startup-init-complete/g' /lagoon/entrypoints/9999-mariadb-init.bash
 
 USER mysql
