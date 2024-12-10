@@ -11,6 +11,8 @@ COPY ./legacy-migration-scripts/* /legacy-migration-scripts/
 RUN chown -R mysql /legacy-migration-scripts/ \
     && /bin/fix-permissions /legacy-migration-scripts/
 
+COPY mysql-init.bash /lagoon/entrypoints/9999-mysql-init.bash
+
 USER mysql
 
 ENV MYSQL_DATABASE=infrastructure \

@@ -12,6 +12,10 @@ ENV MYSQL_DATABASE=keycloak \
     # MYSQL_CHARSET=utf8 \
     # MYSQL_COLLATION=utf8_general_ci
 
+USER root
+COPY mysql-init.bash /lagoon/entrypoints/9999-mysql-init.bash
+USER mysql
+
 # not used in mysql8
 # COPY my_query-cache.cnf /etc/mysql/conf.d/my_query-cache.cnf
 # USER root
