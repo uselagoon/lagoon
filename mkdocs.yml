@@ -415,7 +415,7 @@ plugins:
         'lagoon/drupal/services/varnish.md': 'applications/drupal/services/varnish.md'
         'lagoon/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
         'lagoon/drupal/subfolders.md': 'applications/drupal/subfolders.md'
-        'lagoon/logging/kibana-examples.md': 'logging/kibana-examples.md'
+        'lagoon/logging/kibana-examples.md': 'logging/logging.md'
         'lagoon/logging/logging.md': 'logging/logging.md'
         'lagoon/resources/faq.md': 'resources/faq.md'
         'lagoon/resources/glossary.md': 'resources/glossary.md'
