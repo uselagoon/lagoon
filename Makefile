@@ -442,6 +442,10 @@ STABLE_STABLE_BUILDDEPLOY_CHART_VERSION =
 # install mailpit for lagoon local development
 INSTALL_MAILPIT = true
 
+# optionally install k8up for lagoon local development testing
+INSTALL_K8UP = false
+BUILD_DEPLOY_CONTROLLER_K8UP_VERSION = v2
+
 # the following can be used to selectively leave out the installation of certain
 # dbaas provider types
 INSTALL_MARIADB_PROVIDER =
@@ -578,6 +582,8 @@ helm/repos: local-dev/helm
 	$(HELM) repo add jetstack https://charts.jetstack.io
 	$(HELM) repo add jouve https://jouve.github.io/charts/
 	$(HELM) repo add twuni https://helm.twun.io
+	$(HELM) repo add k8up https://k8up-io.github.io/k8up
+	$(HELM) repo add appuio https://charts.appuio.ch
 	$(HELM) repo update
 
 # stand up a k3d cluster configured appropriately for lagoon testing
@@ -632,6 +638,7 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) k3d/check
 			JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) \
 			USE_CALICO_CNI=false \
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
+		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
@@ -691,6 +698,8 @@ endif
 		$$([ $(STABLE_REMOTE_CHART_VERSION) ] && echo 'STABLE_REMOTE_CHART_VERSION=$(STABLE_REMOTE_CHART_VERSION)') \
 		$$([ $(STABLE_BUILDDEPLOY_CHART_VERSION) ] && echo 'STABLE_BUILDDEPLOY_CHART_VERSION=$(STABLE_BUILDDEPLOY_CHART_VERSION)') \
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
+		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
+		BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=$(BUILD_DEPLOY_CONTROLLER_K8UP_VERSION) \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
