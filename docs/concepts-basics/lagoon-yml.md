@@ -319,7 +319,7 @@ Drupal & Drush 9: Sync database & files from master environment:
 
 Specify the number of monthly backups Lagoon should retain for your project's production environment\(s\).
 
-The global default is `1` if this value is not specified.
+The global default is `0` if this value is not specified.
 
 ### `backup-retention.production.weekly`
 
@@ -345,7 +345,11 @@ The global default is `0` if this value is not specified.
 
 Specify the backup schedule for this project. Accepts cron-compatible syntax with the notable exception that the `Minute` block must be the letter `M`. Any other value in the `Minute` block will cause the Lagoon build to fail. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.
 
-The global default is `M H(22-2) * * *` if this value is not specified. Take note that these backups will use the cluster's local timezone.
+The global default is `M H(22-2) * * *` if this value is not specified.
+
+!!! Info "Timezones:"
+
+    Backup schedules use the cluster's local timezone.
 
 ## Environments
 
