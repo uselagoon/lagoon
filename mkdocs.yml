@@ -123,7 +123,6 @@ nav:
   - Role-Based Access Control (RBAC): interacting/rbac.md
   - Understanding Logs:
     - Logging: logging/logging.md
-    - Kibana Examples: logging/kibana-examples.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
   - Bulk storage Provisioner: installing-lagoon/bulk-storage-provisioner.md
@@ -416,7 +415,7 @@ plugins:
         'lagoon/drupal/services/varnish.md': 'applications/drupal/services/varnish.md'
         'lagoon/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
         'lagoon/drupal/subfolders.md': 'applications/drupal/subfolders.md'
-        'lagoon/logging/kibana-examples.md': 'logging/kibana-examples.md'
+        'lagoon/logging/kibana-examples.md': 'logging/logging.md'
         'lagoon/logging/logging.md': 'logging/logging.md'
         'lagoon/resources/faq.md': 'resources/faq.md'
         'lagoon/resources/glossary.md': 'resources/glossary.md'
@@ -498,3 +497,5 @@ plugins:
         'drupal/services/solr-drupal.md': 'applications/drupal/services/solr.md'
         'drupal/services/varnish-drupal.md': 'applications/drupal/services/varnish.md'
         'installing-lagoon/efs-provisioner.md': 'installing-lagoon/bulk-storage-provisioner.md'
+        # December 2024 reorganization redirects
+        'logging/kibana-examples.md': 'logging/logging.md'
