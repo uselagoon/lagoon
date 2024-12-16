@@ -680,13 +680,6 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/lagoonizing/"/>
     </url>
     <url>
-        <loc>https://docs.lagoon.sh/logging/kibana-examples/</loc>
-        <lastmod>2024-12-16</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/logging/kibana-examples/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/logging/kibana-examples/"/>
-    </url>
-    <url>
         <loc>https://docs.lagoon.sh/logging/logging/</loc>
         <lastmod>2024-12-16</lastmod>
         <changefreq>daily</changefreq>
@@ -1768,7 +1761,6 @@
         <lastmod>2024-12-16</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/logging/kibana-examples/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/logging/kibana-examples/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/logging/logging/</loc>
