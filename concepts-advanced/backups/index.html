@@ -833,11 +833,26 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#production-environments" class="md-nav__link">
-    Production Environments
+  <a href="#automated-backups" class="md-nav__link">
+    Automated Backups
   </a>
   
-    <nav class="md-nav" aria-label="Production Environments">
+    <nav class="md-nav" aria-label="Automated Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#downloading" class="md-nav__link">
+    Downloading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring" class="md-nav__link">
+    Configuring
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -854,28 +869,67 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#storage-location" class="md-nav__link">
+    Storage Location
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieval-location" class="md-nav__link">
+    Retrieval Location
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-environments" class="md-nav__link">
-    Development Environments
+  <a href="#manual-backups" class="md-nav__link">
+    Manual Backups
   </a>
+  
+    <nav class="md-nav" aria-label="Manual Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    Tasks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync" class="md-nav__link">
+    Sync
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual" class="md-nav__link">
+    Manual
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#retrieving-backups" class="md-nav__link">
-    Retrieving Backups
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-backup-andor-restore-locations" class="md-nav__link">
-    Custom Backup and/or Restore Locations
+  <a href="#restoring-backups" class="md-nav__link">
+    Restoring Backups
   </a>
   
 </li>
@@ -4679,11 +4733,26 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#production-environments" class="md-nav__link">
-    Production Environments
+  <a href="#automated-backups" class="md-nav__link">
+    Automated Backups
   </a>
   
-    <nav class="md-nav" aria-label="Production Environments">
+    <nav class="md-nav" aria-label="Automated Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#downloading" class="md-nav__link">
+    Downloading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring" class="md-nav__link">
+    Configuring
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4700,28 +4769,67 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#storage-location" class="md-nav__link">
+    Storage Location
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieval-location" class="md-nav__link">
+    Retrieval Location
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#development-environments" class="md-nav__link">
-    Development Environments
+  <a href="#manual-backups" class="md-nav__link">
+    Manual Backups
   </a>
+  
+    <nav class="md-nav" aria-label="Manual Backups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tasks" class="md-nav__link">
+    Tasks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync" class="md-nav__link">
+    Sync
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual" class="md-nav__link">
+    Manual
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#retrieving-backups" class="md-nav__link">
-    Retrieving Backups
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-backup-andor-restore-locations" class="md-nav__link">
-    Custom Backup and/or Restore Locations
+  <a href="#restoring-backups" class="md-nav__link">
+    Restoring Backups
   </a>
   
 </li>
@@ -4750,30 +4858,268 @@
 
 
 <h1 id="backups">Backups<a class="headerlink" href="#backups" title="Permanent link">#</a></h1>
-<p>Lagoon makes use of the <a href="https://github.com/vshn/k8up">k8up operator</a> to provide backup functionality for both database data as well as containers' persistent storage volumes. This operator utilizes <a href="https://github.com/restic/restic">Restic</a> to catalog these backups, which is typically connected to an AWS S3 bucket to provide secure, off-site storage for the generated backups.</p>
-<h2 id="production-environments">Production Environments<a class="headerlink" href="#production-environments" title="Permanent link">#</a></h2>
-<h3 id="backup-schedules">Backup Schedules<a class="headerlink" href="#backup-schedules" title="Permanent link">#</a></h3>
-<p>Backups of databases and containers' persistent storage volumes happens nightly within production environments by default.</p>
-<p>If a different backup schedule for production backups is required, this can be specified at a project level via setting the "Backup Schedule" variables in the project's <a href="../../concepts-basics/lagoon-yml/#backup-schedule">.lagoon.yml</a> file.</p>
-<h3 id="backup-retention">Backup Retention<a class="headerlink" href="#backup-retention" title="Permanent link">#</a></h3>
-<p>Production environment backups will be held according to the following schedule by default:</p>
+<p>Lagoon provides multiple methods for backing up environment data. Automated
+backups are done without user interaction and manual backups are done on-demand,
+as requested by users.</p>
+<h2 id="automated-backups">Automated Backups<a class="headerlink" href="#automated-backups" title="Permanent link">#</a></h2>
+<p>By default, Lagoon will run nightly backups for each database and persistent
+volume. Daily backups are kept for seven days, and weekly backups are kept for
+six weeks.</p>
+<p>Lagoon keeps an up to date list of available backups. To view them, check the
+<code>Backups</code> tab of an environment in the Lagoon UI or use the Lagoon CLI (<code>lagoon
+list backups --help</code>).</p>
+<div class="admonition note">
+<p class="admonition-title">Lagoon administrators</p>
+<p>Automated backups are reliant on the <a href="/installing-lagoon/requirements/#k8up-for-backups">installation of
+K8up</a>. Default settings
+can be <a href="https://github.com/uselagoon/build-deploy-tool/blob/main/docs/buildrequirements.md#backup-related-variables">configured</a>
+per Lagoon remote.</p>
+</div>
+<h3 id="downloading">Downloading<a class="headerlink" href="#downloading" title="Permanent link">#</a></h3>
+<p>In order to download the contents of a backup, it must first be retrieved. Click
+the <code>Retrieve</code> button in the UI or run <code>lagoon retrieve --help</code>. After some time
+(how long depends on how large the backup is), it will be available to download.
+Click the <code>Download</code> button in the UI or run <code>lagoon get backup --help</code>.</p>
+<h3 id="configuring">Configuring<a class="headerlink" href="#configuring" title="Permanent link">#</a></h3>
+<p>Automated backups can be disabled by setting the <code>LAGOON_BACKUPS_DISABLED=true</code>
+<a href="/concepts-advanced/environment-variables/#build-time-environment-variables-lagoon-api">environment
+variable</a>.</p>
+<p>The storage bucket name can be changed by setting the <code>LAGOON_BAAS_BUCKET_NAME</code>
+environment variable. <strong>Do not change this unless asked by your Lagoon
+administrator.</strong></p>
+<h4 id="backup-schedules">Backup Schedules<a class="headerlink" href="#backup-schedules" title="Permanent link">#</a></h4>
+<p>Schedules use a cron-compatible syntax with the default being to run nightly
+backups (<code>M H(22-2) * * *</code>). The <code>M</code> is special to Lagoon to allow for load
+balancing, and must be set, any other value will cause build failures.</p>
+<div class="admonition info">
+<p class="admonition-title">Timezones:</p>
+<p>Backup schedules use the cluster's local timezone.</p>
+</div>
+<p>Each environment type can be configured to have it's own schedule:</p>
+<p><strong>Production</strong></p>
+<ul>
+<li>The schedule can be set in code by changing the <code>backup-schedule</code> in the
+  <a href="../../concepts-basics/lagoon-yml/#backup-schedule">.lagoon.yml</a> file.</li>
+<li>The schedule can be set using environment variables:<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LAGOON_FEATURE_FLAG_CUSTOM_BACKUP_CONFIG</code></td>
+<td style="text-align: left;"><code>enabled</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BACKUP_PROD_SCHEDULE</code></td>
+<td style="text-align: left;">Cron schedule</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+<p><strong>Development</strong></p>
+<p>The schedule can be set using environment variables:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LAGOON_FEATURE_FLAG_CUSTOM_BACKUP_CONFIG</code></td>
+<td style="text-align: left;"><code>enabled</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BACKUP_DEV_SCHEDULE</code></td>
+<td style="text-align: left;">Cron schedule</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pull Request</strong></p>
+<p>The schedule can be set using environment variables:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LAGOON_FEATURE_FLAG_CUSTOM_BACKUP_CONFIG</code></td>
+<td style="text-align: left;"><code>enabled</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BACKUP_PR_SCHEDULE</code></td>
+<td style="text-align: left;">Cron schedule</td>
+</tr>
+</tbody>
+</table>
+<h4 id="backup-retention">Backup Retention<a class="headerlink" href="#backup-retention" title="Permanent link">#</a></h4>
+<p>Backups will be held according to the following retention policy by default:</p>
 <ul>
 <li>Daily: 7</li>
 <li>Weekly: 6</li>
-<li>Monthly: 1</li>
-<li>Hourly: 0</li>
 </ul>
-<p>If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's <a href="../../concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a> file.</p>
-<h2 id="development-environments">Development Environments<a class="headerlink" href="#development-environments" title="Permanent link">#</a></h2>
-<p>Backups of development environments are attempted nightly and are strictly a best effort service.</p>
-<h2 id="retrieving-backups">Retrieving Backups<a class="headerlink" href="#retrieving-backups" title="Permanent link">#</a></h2>
-<p>Backups stored in Restic will be tracked within Lagoon, and can be recovered via the "Backup" tab for each environment in the Lagoon UI.</p>
-<h2 id="custom-backup-andor-restore-locations">Custom Backup and/or Restore Locations<a class="headerlink" href="#custom-backup-andor-restore-locations" title="Permanent link">#</a></h2>
-<p>Lagoon supports custom backup and restore locations via the use of the "<a href="../environment-variables/#custom-backup-settings">Custom Backup Settings</a>" and/or "<a href="../environment-variables/#custom-restore-location">Custom Restore Settings</a>" variables stored in the Lagoon API for each project.</p>
+<p>Production environments can set a different retention policy by changing
+<code>backup-retention</code> in the
+<a href="http://localhost:8000/concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a>
+file.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Retention policies are evaluated by Restic, a 3rd party open source
+software. Make sure you are familiar with the <a href="https://restic.readthedocs.io/en/v0.17.1/060_forget.html#removing-snapshots-according-to-a-policy">policy
+options</a>
+as they can be unintuitive.</p>
+</div>
+<p>Other environment types cannot set a different retention policy.</p>
+<h4 id="storage-location">Storage Location<a class="headerlink" href="#storage-location" title="Permanent link">#</a></h4>
+<p>Lagoon supports custom backup locations and credentials for any project when all
+four of the following variables are set as <code>BUILD</code> type variables. The
+environment variables need to be set at the project level (not per environment),
+and requires a Lagoon deployment after setting them (for every environment).</p>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
-<p>Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.</p>
+<p>Using custom settings will override cluster default. Any misconfiguration or
+invalid/expired credentials may cause automated backups to fail or be
+inaccessible.</p>
 </div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Environment variable name</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT</code></td>
+<td style="text-align: left;">Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored. An example for S3 Sydney would be: <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_BUCKET</code></td>
+<td style="text-align: left;">Specify the bucket name where any Lagoon initiated backups should be stored.An example custom setting would be: <code>example-restore-bucket</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY</code></td>
+<td style="text-align: left;">Specify the access key Lagoon should use to access the custom backup bucket. An example custom setting would be: <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY</code></td>
+<td style="text-align: left;">Specify the secret key Lagoon should use to access the custom backup bucket. An example custom setting would be: <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>No public access is needed on the S3 bucket and can be made entirely private.</p>
+<p>Lagoon will automatically prune the files in these S3 buckets, so no object
+retention policy is needed at the bucket level.</p>
+<h4 id="retrieval-location">Retrieval Location<a class="headerlink" href="#retrieval-location" title="Permanent link">#</a></h4>
+<p>Lagoon supports custom retrieval locations and credentials for any project when
+all four of the following variables are set as <code>BUILD</code> type environment
+variables. The environment variables need to be set at the project level (not
+per environment), and requires a Lagoon deployment after setting them (for every
+environment).</p>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>Using custom settings will override cluster default. Any misconfiguration or
+invalid/expired credentials may cause retrieval of backups to fail or be
+inaccessible.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Environment variable name</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT</code></td>
+<td style="text-align: left;">Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored. An example for S3 Sydney would be: <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_BUCKET</code></td>
+<td style="text-align: left;">Specify the bucket name where any Lagoon initiated restores should be stored.An example custom setting would be: <code>example-restore-bucket</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY</code></td>
+<td style="text-align: left;">Specify the access key Lagoon should use to access the custom restore bucket. An example custom setting would be: <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY</code></td>
+<td style="text-align: left;">Specify the secret key Lagoon should use to access the custom restore bucket. An example custom setting would be: <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The S3 bucket must have public access enabled, as Lagoon will create <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">presigned
+URLs</a>
+for the objects inside the bucket as needed.</p>
+<p>An example AWS IAM policy that you can create to allow access to just the S3
+bucket <code>example-restore-bucket</code> is:</p>
+<div class="language-json highlight"><span class="filename">aws_iam_restore_policy.json</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;Statement&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">        </span><span class="s2">&quot;s3:ListBucket&quot;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket&quot;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="s2">&quot;s3:PutObject&quot;</span><span class="p">,</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="s2">&quot;s3:GetObject&quot;</span><span class="p">,</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="s2">&quot;s3:GetObjectVersion&quot;</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="s2">&quot;s3:PutObjectAcl&quot;</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">         </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket/*&quot;</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>For increased security and reduced storage costs you can opt into <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">removing
+restored backups after a set
+lifetime</a>
+(e.g. 7 days). Lagoon caters for this scenario gracefully and will re-create any
+restored snapshots as needed.</p>
+<h2 id="manual-backups">Manual Backups<a class="headerlink" href="#manual-backups" title="Permanent link">#</a></h2>
+<p>Users can manually backup databases and files by running a task, syncing data
+from one environment to another, or by running custom commands in containers.</p>
+<h3 id="tasks">Tasks<a class="headerlink" href="#tasks" title="Permanent link">#</a></h3>
+<p>For Drupal projects, there are tasks available that will run drush backups. For
+non-Drupal projects, a <a href="/using-lagoon-advanced/custom-tasks/">custom task</a> can
+be created to take a backup.</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw"
+title="YouTube video player" frameborder="0"
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+allowfullscreen></iframe>
+
+<h3 id="sync">Sync<a class="headerlink" href="#sync" title="Permanent link">#</a></h3>
+<p>For Drupal projects, the use of <code>drush</code> to sync the database and files is
+recommneded. For non-Drupal projects,
+<a href="https://github.com/uselagoon/lagoon-sync">lagoon-sync</a> can be added to the
+project and used to sync the database and files.</p>
+<h3 id="manual">Manual<a class="headerlink" href="#manual" title="Permanent link">#</a></h3>
+<p>The Lagoon cli base images contain all the tools needed to backup databases and
+transfer files. A user familiar with <code>mysqldump</code> and <code>rsync</code> can make manual
+backups.</p>
+<h2 id="restoring-backups">Restoring Backups<a class="headerlink" href="#restoring-backups" title="Permanent link">#</a></h2>
+<p>Lagoon cannot automatically restore backups. After downloading the backups,
+users can restore them manually by <a href="/interacting/ssh/#copying-files">copying</a>
+them to the desired environment.</p>
 
 
   

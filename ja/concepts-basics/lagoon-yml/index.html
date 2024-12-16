@@ -5578,7 +5578,7 @@
 <h2 id="backup-retention">バックアップの保持期間 ( #backup-retention }<a class="headerlink" href="#backup-retention" title="Permanent link">#</a></h2>
 <h3 id="backup-retentionproductionmonthly"><code>backup-retention.production.monthly</code><a class="headerlink" href="#backup-retentionproductionmonthly" title="Permanent link">#</a></h3>
 <p>プロジェクトのproduction環境の月次バックアップの保持数を指定します。</p>
-<p>この値が指定されていない場合、デフォルトは <code>1</code> です。</p>
+<p>この値が指定されていない場合、デフォルトは <code>0</code> です。</p>
 <h3 id="backup-retentionproductionweekly"><code>backup-retention.production.weekly</code><a class="headerlink" href="#backup-retentionproductionweekly" title="Permanent link">#</a></h3>
 <p>プロジェクトのproduction環境の週次バックアップの保持数を指定します。</p>
 <p>この値が指定されていない場合、デフォルトは <code>6</code> です。</p>
@@ -5591,7 +5591,11 @@
 <h2 id="backup-schedule">バックアップスケジュール<a class="headerlink" href="#backup-schedule" title="Permanent link">#</a></h2>
 <h3 id="backup-scheduleproduction"><code>backup-schedule.production</code><a class="headerlink" href="#backup-scheduleproduction" title="Permanent link">#</a></h3>
 <p>プロジェクトのバックアップスケジュールを指定します。ただし、<code>Minute</code> ブロックは <code>M</code> でなければならず、他の値は Lagoon ビルドに失敗します。これにより、Lagoonはこれらのバックアップを何分に行うかランダムに選択することができ、ユーザーはスケジュールの残りの部分を時間単位で指定できます。</p>
-<p>この値が指定されていない場合、グローバルデフォルトは <code>M H(22-2) * * *</code> です。注意して頂きたいのは、 これらのバックアップは、クラスタのローカルタイムゾーンを使用します。</p>
+<p>この値が指定されていない場合、グローバルデフォルトは <code>M H(22-2) * * *</code> です。</p>
+<div class="admonition info">
+<p class="admonition-title">タイムゾーン:</p>
+<p>バックアップ スケジュールでは、クラスターのローカル タイムゾーンが使用されます。</p>
+</div>
 <h2 id="environments">環境<a class="headerlink" href="#environments" title="Permanent link">#</a></h2>
 <p>環境名は、デプロイされたブランチ名やプルリクエスト名と一致します。これにより、各環境で異なる設定を持つことが可能になります。私たちの例では、<code>main</code>と<code>staging</code>環境に適用されます。</p>
 <h3 id="environmentsnameroutes"><code>environments.[name].routes</code><a class="headerlink" href="#environmentsnameroutes" title="Permanent link">#</a></h3>

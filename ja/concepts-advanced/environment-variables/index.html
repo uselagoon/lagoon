@@ -868,20 +868,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-backup-settings" class="md-nav__link">
-    カスタムバックアップ設定
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-restore-location" class="md-nav__link">
-    カスタム復元場所
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4801,20 +4787,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-backup-settings" class="md-nav__link">
-    カスタムバックアップ設定
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-restore-location" class="md-nav__link">
-    カスタム復元場所
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4965,98 +4937,6 @@
 <p>この変数が設定されている場合、PHPが使用する<a href="../../logging/logging/">ログ</a>レベルを定義します。指定されていない場合は、<code>production</code>環境か開発環境かによって動的に設定されます。</p>
 <p><code>production</code>環境では、この値はデフォルトで<code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code>になります。</p>
 <p>開発環境では、この値はデフォルトで<code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT</code>になります。</p>
-<h3 id="custom-backup-settings">カスタムバックアップ設定<a class="headerlink" href="#custom-backup-settings" title="Permanent link">#</a></h3>
-<p>Lagoonは、次の4つの変数すべてが<code>BUILD</code>タイプの変数として設定されている場合、任意のプロジェクトのカスタムバックアップ場所と認証情報をサポートします。環境変数はプロジェクトレベルで(環境ごとではなく)設定する必要があり、それらを設定した後にLagoonのデプロイメントが必要です(すべての環境について)。</p>
-<p>これらの変数のいずれかを使用すると、Lagoonが作成および管理するすべての環境とデータベースのバックアップがこれらの認証情報を使用して格納されることを意味します。つまり、これらの認証情報の中断がバックアップの失敗またはアクセス不能を引き起こす可能性があります。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">環境変数名</th>
-<th style="text-align: left;">目的</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT</code></td>
-<td style="text-align: left;">Lagoonによって開始されたバックアップを保存するS3互換エンドポイントを指定しますS3 Sydneyの例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_BUCKET</code></td>
-<td style="text-align: left;">Lagoonによって開始されたバックアップを保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY</code></td>
-<td style="text-align: left;">カスタム バックアップバケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY</code></td>
-<td style="text-align: left;">カスタムバックアップバケットにアクセスするためにLagoonが使用する秘密キーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code></td>
-</tr>
-</tbody>
-</table>
-<p>S3バケットではパブリックアクセスは不要で、完全にプライベートにすることができます。</p>
-<p>LagoonはこれらのS3バケット内のファイルを自動的に削除するため、バケットレベルでのオブジェクト保持ポリシーは必要ありません。</p>
-<h3 id="custom-restore-location">カスタム復元場所<a class="headerlink" href="#custom-restore-location" title="Permanent link">#</a></h3>
-<p><code>BUILD</code>タイプの環境変数として以下の全4つの変数が設定されている場合、任意のプロジェクトに対してカスタムリストアロケーションとクレデンシャルを設定できます。環境変数はプロジェクトレベルで設定する必要があり(環境ごとではなく)、それらを設定した後、Lagoonのデプロイが必要です(各環境について)。</p>
-<p>これらの変数を使用すると、Lagoonによって復元されたすべての環境とデータベースのスナップショットがこれらのクレデンシャルを使用して保存されることに注意してください。これらのクレデンシャルへのアクセスが中断されると、復元されたファイルの失敗またはアクセス不能につながる可能性があることを意味します。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">環境変数名</th>
-<th style="text-align: left;">目的</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT</code></td>
-<td style="text-align: left;">Lagoonによって開始された復元を保存する S3 互換エンドポイントを指定します。S3 Sydneyの例は次のようになります。 <code>https://s3.ap-southeast-2.amazonaws.com</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_BUCKET</code></td>
-<td style="text-align: left;">Lagoonによって開始された復元を保存するバケット名を指定します。カスタム設定の例は次のようになります。 <code>example-restore-bucket</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY</code></td>
-<td style="text-align: left;">カスタム復元バケットにアクセスするためにLagoonが使用するアクセスキーを指定します。カスタム設定の例は次のようになります。 <code>AKIAIOSFODNN7EXAMPLE</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY</code></td>
-<td style="text-align: left;">カスタム復元バケットにアクセスするためにLagoonが使用するシークレットキーを指定します。カスタム設定の例は次のようになります。 <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code></td>
-</tr>
-</tbody>
-</table>
-<p>Lagoonは必要に応じてバケット内のオブジェクトの<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">署名済みURL</a> を作成するため、S3バケットではパブリックアクセスが有効になっている必要があります。</p>
-<p>S3バケット <code>example-restore-bucket</code> のみへのアクセスを許可するように作成できる AWS IAM ポリシーの例は次のとおりです。</p>
-<div class="language-json highlight"><span class="filename">aws_iam_restore_policy.json</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;Statement&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="s2">&quot;s3:ListBucket&quot;</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket&quot;</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">      </span><span class="p">]</span>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="s2">&quot;s3:PutObject&quot;</span><span class="p">,</span>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="s2">&quot;s3:GetObject&quot;</span><span class="p">,</span>
-</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">        </span><span class="s2">&quot;s3:GetObjectVersion&quot;</span><span class="p">,</span>
-</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
-</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">        </span><span class="s2">&quot;s3:PutObjectAcl&quot;</span>
-</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">         </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket/*&quot;</span>
-</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">      </span><span class="p">]</span>
-</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="p">}</span>
-</span></code></pre></div>
-<p>セキュリティの強化とストレージコスト削減のために、<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">設定されたライフタイム後に復元されたバックアップを削除する</a>(例えば、7日間)を選択することができます。Lagoonはこのシナリオをうまく処理し、必要に応じて復元されたスナップショットを再作成します。</p>
 
 
   

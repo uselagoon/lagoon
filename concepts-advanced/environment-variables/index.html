@@ -868,20 +868,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-backup-settings" class="md-nav__link">
-    Custom Backup Settings
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-restore-location" class="md-nav__link">
-    Custom Restore Location
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4801,20 +4787,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-backup-settings" class="md-nav__link">
-    Custom Backup Settings
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-restore-location" class="md-nav__link">
-    Custom Restore Location
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -4965,98 +4937,6 @@
 <p>This variable, if set, will define the <a href="../../logging/logging/">logging</a> level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.</p>
 <p>On production environments, this value defaults to <code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT &amp; ~E_NOTICE</code>.</p>
 <p>On development environments, this value defaults to <code>E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT</code>.</p>
-<h3 id="custom-backup-settings">Custom Backup Settings<a class="headerlink" href="#custom-backup-settings" title="Permanent link">#</a></h3>
-<p>Lagoon supports custom backup locations and credentials for any project when all four of the following variables are set as <code>BUILD</code> type variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).</p>
-<p>Please note that any use of these variables means that all environment and database backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Environment variable name</th>
-<th style="text-align: left;">Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT</code></td>
-<td style="text-align: left;">Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored. An example for S3 Sydney would be: <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_BUCKET</code></td>
-<td style="text-align: left;">Specify the bucket name where any Lagoon initiated backups should be stored.An example custom setting would be: <code>example-restore-bucket</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY</code></td>
-<td style="text-align: left;">Specify the access key Lagoon should use to access the custom backup bucket. An example custom setting would be: <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY</code></td>
-<td style="text-align: left;">Specify the secret key Lagoon should use to access the custom backup bucket. An example custom setting would be: <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
-</tr>
-</tbody>
-</table>
-<p>No public access is needed on the S3 bucket and can be made entirely private.</p>
-<p>Lagoon will automatically prune the files in these S3 buckets, so no object retention policy is needed at the bucket level.</p>
-<h3 id="custom-restore-location">Custom Restore Location<a class="headerlink" href="#custom-restore-location" title="Permanent link">#</a></h3>
-<p>Lagoon supports custom restore locations and credentials for any project when all four of the following variables are set as <code>BUILD</code> type environment variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).</p>
-<p>Please note that any use of these variables means that all environment and database snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Environment variable name</th>
-<th style="text-align: left;">Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT</code></td>
-<td style="text-align: left;">Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored. An example for S3 Sydney would be: <code>https://s3.ap-southeast-2.amazonaws.com</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_BUCKET</code></td>
-<td style="text-align: left;">Specify the bucket name where any Lagoon initiated restores should be stored.An example custom setting would be: <code>example-restore-bucket</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY</code></td>
-<td style="text-align: left;">Specify the access key Lagoon should use to access the custom restore bucket. An example custom setting would be: <code>AKIAIOSFODNN7EXAMPLE</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY</code></td>
-<td style="text-align: left;">Specify the secret key Lagoon should use to access the custom restore bucket. An example custom setting would be: <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>.</td>
-</tr>
-</tbody>
-</table>
-<p>The S3 bucket must have public access enabled, as Lagoon will create <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html">presigned URLs</a> for the objects inside the bucket as needed.</p>
-<p>An example AWS IAM policy that you can create to allow access to just the S3 bucket <code>example-restore-bucket</code> is:</p>
-<div class="language-json highlight"><span class="filename">aws_iam_restore_policy.json</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;Version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;Statement&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="s2">&quot;s3:ListBucket&quot;</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket&quot;</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">      </span><span class="p">]</span>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">      </span><span class="nt">&quot;Effect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">      </span><span class="nt">&quot;Action&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">        </span><span class="s2">&quot;s3:PutObject&quot;</span><span class="p">,</span>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">        </span><span class="s2">&quot;s3:GetObject&quot;</span><span class="p">,</span>
-</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">        </span><span class="s2">&quot;s3:GetObjectVersion&quot;</span><span class="p">,</span>
-</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">        </span><span class="s2">&quot;s3:GetBucketLocation&quot;</span><span class="p">,</span>
-</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">        </span><span class="s2">&quot;s3:PutObjectAcl&quot;</span>
-</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">      </span><span class="nt">&quot;Resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">         </span><span class="s2">&quot;arn:aws:s3:::example-restore-bucket/*&quot;</span>
-</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">      </span><span class="p">]</span>
-</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">  </span><span class="p">]</span>
-</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="p">}</span>
-</span></code></pre></div>
-<p>For increased security and reduced storage costs you can opt into <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html">removing restored backups after a set lifetime</a> (e.g. 7 days). Lagoon caters for this scenario gracefully and will re-create any restored snapshots as needed.</p>
 
 
   

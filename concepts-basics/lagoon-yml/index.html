@@ -5838,7 +5838,7 @@ This can make it easier to roll back in case of a problem with the deploy.</p>
 <h2 id="backup-retention">Backup Retention<a class="headerlink" href="#backup-retention" title="Permanent link">#</a></h2>
 <h3 id="backup-retentionproductionmonthly"><code>backup-retention.production.monthly</code><a class="headerlink" href="#backup-retentionproductionmonthly" title="Permanent link">#</a></h3>
 <p>Specify the number of monthly backups Lagoon should retain for your project's production environment(s).</p>
-<p>The global default is <code>1</code> if this value is not specified.</p>
+<p>The global default is <code>0</code> if this value is not specified.</p>
 <h3 id="backup-retentionproductionweekly"><code>backup-retention.production.weekly</code><a class="headerlink" href="#backup-retentionproductionweekly" title="Permanent link">#</a></h3>
 <p>Specify the number of weekly backups Lagoon should retain for your project's production environment(s).</p>
 <p>The global default is <code>6</code> if this value is not specified.</p>
@@ -5851,7 +5851,11 @@ This can make it easier to roll back in case of a problem with the deploy.</p>
 <h2 id="backup-schedule">Backup Schedule<a class="headerlink" href="#backup-schedule" title="Permanent link">#</a></h2>
 <h3 id="backup-scheduleproduction"><code>backup-schedule.production</code><a class="headerlink" href="#backup-scheduleproduction" title="Permanent link">#</a></h3>
 <p>Specify the backup schedule for this project. Accepts cron-compatible syntax with the notable exception that the <code>Minute</code> block must be the letter <code>M</code>. Any other value in the <code>Minute</code> block will cause the Lagoon build to fail. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.</p>
-<p>The global default is <code>M H(22-2) * * *</code> if this value is not specified. Take note that these backups will use the cluster's local timezone.</p>
+<p>The global default is <code>M H(22-2) * * *</code> if this value is not specified.</p>
+<div class="admonition info">
+<p class="admonition-title">Timezones:</p>
+<p>Backup schedules use the cluster's local timezone.</p>
+</div>
 <h2 id="environments">Environments<a class="headerlink" href="#environments" title="Permanent link">#</a></h2>
 <p>Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the <code>main</code> and <code>staging</code> environment.</p>
 <h3 id="environmentsnameroutes"><code>environments.[name].routes</code><a class="headerlink" href="#environmentsnameroutes" title="Permanent link">#</a></h3>
