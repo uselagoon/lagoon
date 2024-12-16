@@ -2455,39 +2455,6 @@
     DNS
   </a>
   
-    <nav class="md-nav" aria-label="DNS">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recommended-settings-for-fastly" class="md-nav__link">
-    Recommended settings for Fastly:
-  </a>
-  
-    <nav class="md-nav" aria-label="Recommended settings for Fastly:">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#subdomains-cname" class="md-nav__link">
-    Subdomains (CNAME)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#root-domains-aaaaa" class="md-nav__link">
-    Root domains (A/AAAA)
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -4750,39 +4717,6 @@
     DNS
   </a>
   
-    <nav class="md-nav" aria-label="DNS">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#recommended-settings-for-fastly" class="md-nav__link">
-    Recommended settings for Fastly:
-  </a>
-  
-    <nav class="md-nav" aria-label="Recommended settings for Fastly:">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#subdomains-cname" class="md-nav__link">
-    Subdomains (CNAME)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#root-domains-aaaaa" class="md-nav__link">
-    Root domains (A/AAAA)
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -4853,32 +4787,8 @@
 <h3 id="cron-jobs">Cron jobs<a class="headerlink" href="#cron-jobs" title="Permanent link">#</a></h3>
 <p>Check if your cron jobs have been set up for your production environment - see <a href="../../concepts-basics/lagoon-yml/"><code>.lagoon.yml</code></a>.</p>
 <h2 id="dns">DNS<a class="headerlink" href="#dns" title="Permanent link">#</a></h2>
-<p>To make it as smooth as possible for you to get your site pointing to our servers, we have dedicated load-balancer DNS records. Those technical DNS resource records are used for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record, contact your Lagoon administrator about the exact CNAME you need to set up.</p>
-<p><strong>Example on amazee.io :</strong> <code>&lt;region-identifier&gt;.amazee.io</code></p>
-<p>Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live (TTL) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. <a href="https://en.wikipedia.org/wiki/Time_to_live#DNS_records">More information about TTL</a>.</p>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>This information only relates to amazee.io hosted projects, and will shortly be removed from these docs and added to amazee.io specific ones</p>
-</div>
-<h3 id="recommended-settings-for-fastly">Recommended settings for Fastly:<a class="headerlink" href="#recommended-settings-for-fastly" title="Permanent link">#</a></h3>
-<h4 id="subdomains-cname">Subdomains (CNAME)<a class="headerlink" href="#subdomains-cname" title="Permanent link">#</a></h4>
-<p>The recommended method of pointing your subdomain's (e.g. www.example.com) DNS records at Lagoon is via a CNAME record as shown below:</p>
-<!-- markdown-link-check-disable-next-line -->
-<p><code>CNAME</code>: <code>cdn.amazee.io</code></p>
-<h4 id="root-domains-aaaaa">Root domains (A/AAAA)<a class="headerlink" href="#root-domains-aaaaa" title="Permanent link">#</a></h4>
-<p>Configuring the root domain (e.g. example.com.) can be tricky because the DNS specification does not allow root domains to point to a CNAME. Therefore, the following A and AAAA records should be used. Please ensure you set up individual records for each IP listed below:</p>
-<ul>
-<li><code>A</code>: <code>151.101.2.191</code></li>
-<li><code>A</code>: <code>151.101.66.191</code></li>
-<li><code>A</code>: <code>151.101.130.191</code></li>
-<li><code>A</code>: <code>151.101.194.191</code></li>
-</ul>
-<ul>
-<li><code>AAAA</code>: <code>2a04:4e42::703</code></li>
-<li><code>AAAA</code>: <code>2a04:4e42:200::703</code></li>
-<li><code>AAAA</code>: <code>2a04:4e42:400::703</code></li>
-<li><code>AAAA</code>: <code>2a04:4e42:600::703</code></li>
-</ul>
+<p>You will need to update your DNS to point at your Lagoon hosting providers servers (e.g. their CDN or load balancers). Please contact your Lagoon administrator for more information.</p>
+<p>Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live (TTL) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300 seconds prior to the DNS switch. <a href="https://en.wikipedia.org/wiki/Time_to_live#DNS_records">More information about TTL</a>.</p>
 <h2 id="production-environment">Production environment<a class="headerlink" href="#production-environment" title="Permanent link">#</a></h2>
 <p>Lagoon understands the concept of development and production environments. Development environments automatically send <code>noindex</code> and <code>nofollow</code> headers in order to prohibit indexing by search engines.</p>
 <p><code>X-Robots-Tag: noindex, nofollow</code></p>
