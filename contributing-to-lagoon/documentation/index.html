@@ -4681,7 +4681,7 @@
 <p>We use <a href="https://www.mkdocs.org/">mkdocs</a> with the excellent <a href="https://squidfunk.github.io/mkdocs-material/">Material</a> theme.</p>
 <h2 id="viewing-and-updating-docs-locally">Viewing and updating docs locally<a class="headerlink" href="#viewing-and-updating-docs-locally" title="Permanent link">#</a></h2>
 <p>From the root of the Lagoon repository (you'll need Docker), run:</p>
-<div class="language-bash highlight"><span class="filename">Get local docs up and running.</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-p<span class="w"> </span><span class="m">127</span>.0.0.1:8000:8000<span class="w"> </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>:/docs<span class="w"> </span>ghcr.io/amazeeio/mkdocs-material
+<div class="language-bash highlight"><span class="filename">Get local docs up and running.</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>make<span class="w"> </span>docs/serve
 </span></code></pre></div>
 <!-- markdown-link-check-disable-next-line -->
 <p>This will start a development server on <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>, configured to live-reload on any updates.</p>
