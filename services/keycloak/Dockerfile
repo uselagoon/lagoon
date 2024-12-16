@@ -1,4 +1,4 @@
-FROM maven:3.8.2-jdk-11 as builder
+FROM maven:3.9.9-eclipse-temurin-21-alpine as builder
 # build the custom token mapper in builder
 COPY custom-mapper/. .
 RUN mvn clean compile package
@@ -17,7 +17,7 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:24.0.5
+FROM quay.io/keycloak/keycloak:25.0.6
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
@@ -86,7 +86,7 @@ COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-k
 COPY startup-scripts /opt/keycloak/startup-scripts
 COPY themes/lagoon /opt/keycloak/themes/lagoon
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
-COPY --from=builder /target/custom-protocol-mapper-1.0.0.jar /opt/keycloak/providers/custom-protocol-mapper-1.0.0.jar
+COPY --from=builder /target/custom-protocol-mapper-1.1.0.jar /opt/keycloak/providers/custom-protocol-mapper-1.1.0.jar
 
 COPY lagoon-realm-base-import.json /lagoon/seed/lagoon-realm-base-import.json
 
