@@ -76,6 +76,10 @@ PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
+# Settings for the MKDocs serving
+MKDOCS_IMAGE ?= ghcr.io/amazeeio/mkdocs-material
+MKDOCS_SERVE_PORT ?= 8000
+
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
 $(shell >scan.txt)
@@ -823,3 +827,13 @@ k3d/clean-k3dconfigs:
 
 .PHONY: k3d/clean-all
 k3d/clean-all: k3d/clean k3d/clean-k3dconfigs k3d/clean-charts
+
+.PHONY: docs/serve
+docs/serve:
+	@echo "Starting container to serve documentation"
+	@docker pull $(MKDOCS_IMAGE)
+	@docker run --rm -it \
+		-p 127.0.0.1:$(MKDOCS_SERVE_PORT):$(MKDOCS_SERVE_PORT) \
+		-v ${PWD}:/docs \
+		--entrypoint sh $(MKDOCS_IMAGE) \
+		-c 'mkdocs serve -s --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
