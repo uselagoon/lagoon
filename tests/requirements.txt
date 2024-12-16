@@ -1,4 +1,4 @@
-ansible-core >= 2.15.4
-kubernetes >= 27.2.0
+ansible-core >= 2.17.5
+kubernetes >= 31.0.0
 jmespath == 1.0.1
-PyJWT == 2.6.0
+PyJWT == 2.9.0
