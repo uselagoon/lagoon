@@ -2,6 +2,7 @@ import { decode } from 'jsonwebtoken';
 import { KeycloakAdminClient } from '@s3pweb/keycloak-admin-client-cjs';
 import { logger } from '../loggers/logger';
 import { config } from './keycloakClient';
+import { getConfigFromEnv } from '../util/config';
 
 /// Helper to type check try/catch. Remove when we can stop using the @s3pweb
 // commonJS version.
@@ -49,10 +50,12 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
       });
 
       await keycloakAdminClient.auth({
-        username: config.user,
-        password: config.pass,
-        grantType: 'password',
-        clientId: 'admin-cli',
+        grantType: 'client_credentials',
+        clientId: 'admin-api',
+        clientSecret: getConfigFromEnv(
+          'KEYCLOAK_ADMIN_API_CLIENT_SECRET',
+          '<secret not set>'
+        ),
       });
 
       keycloakAdminClient.setConfig({
