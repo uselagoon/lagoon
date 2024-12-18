@@ -591,7 +591,7 @@ export const getControllerBuildData = async function(deployData: any) {
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
-  const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+  const [routerPattern, envVars, projectVars, orgVars] = await getEnvironmentsRouterPatternAndVariables(
     lagoonProjectData,
     environment.addOrUpdateEnvironment,
     deployTarget.openshift,
@@ -653,6 +653,7 @@ export const getControllerBuildData = async function(deployData: any) {
           statuspageID: uptimeRobotStatusPageId,
         },
         variables: {
+          organization: orgVars,
           project: projectVars,
           environment: envVars,
         },
@@ -682,7 +683,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
   buildPriority: number,
   buildVariables: any,
   bulkTask: bulkType
-): Promise<[string, string, string]> {
+): Promise<[string, string, string, string]> {
   let projectVars: Array<Pick<EnvKeyValue, 'name' | 'value'> & {
     scope: EnvVariableScope | InternalEnvVariableScope;
   }> = [...project.envVariables];
@@ -738,9 +739,17 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
     }
   }
 
+  let orgVars: Array<Pick<EnvKeyValue, 'name' | 'value'> & {
+    scope: EnvVariableScope | InternalEnvVariableScope;
+  }> = [];
   if (project.organization) {
-    // check the environment quota, this prevents environments being deployed by the api or webhooks
     const curOrg = await getOrganizationById(project.organization);
+
+    orgVars = [
+      ...curOrg.envVariables
+    ]
+
+    // check the environment quota, this prevents environments being deployed by the api or webhooks
     projectVars = [
       ...projectVars,
       {
@@ -749,6 +758,20 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
         scope: InternalEnvVariableScope.INTERNAL_SYSTEM
       }
     ];
+
+    // @TODO
+    // For backwards compatibility, also add org vars with project vars until
+    // the remote side is checking standalone org vars data
+    for (const orgVar of orgVars) {
+      const index = projectVars.findIndex((projectVar) =>
+        projectVar.name === orgVar.name);
+
+      // Project vars take precedence, so don't add if one with the same name
+      // already exists
+      if (index == -1) {
+        projectVars.push(orgVar);
+      }
+    }
   }
 
   // handle any bulk deploy related injections here
@@ -822,8 +845,9 @@ export const getEnvironmentsRouterPatternAndVariables = async function name(
   // encode some values so they get sent to the controllers nicely
   const envVarsEncoded = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
   const projectVarsEncoded = new Buffer(JSON.stringify(projectVars)).toString('base64')
+  const orgVarsEncoded = new Buffer(JSON.stringify(orgVars)).toString('base64')
 
-  return [routerPattern, envVarsEncoded, projectVarsEncoded]
+  return [routerPattern, envVarsEncoded, projectVarsEncoded, orgVarsEncoded]
 }
 
 /*
@@ -1120,13 +1144,13 @@ export const getTaskProjectEnvironmentVariables =async (projectName: string, env
   // needing to trigger a full deployment
   const result = await getOpenShiftInfoForProject(projectName);
   const environment = await getEnvironmentByIdWithVariables(environmentId);
-  const [_, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+  const [_, envVars, projectVars, orgVars] = await getEnvironmentsRouterPatternAndVariables(
     result.project,
     environment.environmentById,
     environment.environmentById.openshift,
     null, null, null, null, bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
   )
-  return [projectVars, envVars]
+  return [projectVars, envVars, orgVars]
 }
 
 export const getBaasBucketName = async (
@@ -1165,11 +1189,12 @@ export const createTaskTask = async function(taskData: any) {
   const { project } = taskData;
 
   // inject variables into tasks the same way it is in builds
-  const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+  const [_, envVars, projectVars, orgVars] = await getTaskProjectEnvironmentVariables(
     project.name,
     taskData.environment.id
   )
   taskData.project.variables = {
+    organization: orgVars,
     project: projectVars,
     environment: envVars,
   }
@@ -1355,11 +1380,12 @@ export const createMiscTask = async function(taskData: any) {
       break;
     case 'deploytarget:task:advanced':
       // inject variables into advanced tasks the same way it is in builds and standard tasks
-      const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+      const [_, envVars, projectVars, orgVars] = await getTaskProjectEnvironmentVariables(
         taskData.data.project.name,
         taskData.data.environment.id
       )
       miscTaskData.project.variables = {
+        organization: orgVars,
         project: projectVars,
         environment: envVars,
       }
