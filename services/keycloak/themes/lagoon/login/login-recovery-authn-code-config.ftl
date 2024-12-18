@@ -1,9 +1,9 @@
 <#import "template.ftl" as layout>
-<#import "password-commons.ftl" as passwordCommons>
 <@layout.registrationLayout; section>
 
-<#if section = "form">
-    <h1>${msg("recovery-code-config-header")}</h1>
+<#if section = "header">
+    ${msg("recovery-code-config-header")}
+<#elseif section = "form">
     <!-- warning -->
     <div class="pf-c-alert pf-m-warning pf-m-inline ${properties.kcRecoveryCodesWarning}" aria-label="Warning alert">
         <div class="pf-c-alert__icon">
@@ -38,27 +38,17 @@
     </div>
 
     <!-- confirmation checkbox -->
-    <div class="${properties.kcFormOptionsClass!}">
-        <input class="${properties.kcCheckInputClass}" type="checkbox" id="kcRecoveryCodesConfirmationCheck" name="kcRecoveryCodesConfirmationCheck"
+    <div class="${properties.kcCheckClass} ${properties.kcRecoveryCodesConfirmation}">
+        <input class="${properties.kcCheckInputClass}" type="checkbox" id="kcRecoveryCodesConfirmationCheck" name="kcRecoveryCodesConfirmationCheck" 
         onchange="document.getElementById('saveRecoveryAuthnCodesBtn').disabled = !this.checked;"
         />
-        <label for="kcRecoveryCodesConfirmationCheck">${msg("recovery-codes-confirmation-message")}</label>
+        <label class="${properties.kcCheckLabelClass}" for="kcRecoveryCodesConfirmationCheck">${msg("recovery-codes-confirmation-message")}</label>
     </div>
 
-    <form action="${url.loginAction}" class="${properties.kcFormGroupClass!}" id="kc-recovery-codes-settings-form" method="post">
+    <form action="${url.loginAction}" class="${properties.kcFormClass!}" id="kc-recovery-codes-settings-form" method="post">
         <input type="hidden" name="generatedRecoveryAuthnCodes" value="${recoveryAuthnCodesConfigBean.generatedRecoveryAuthnCodesAsString}" />
         <input type="hidden" name="generatedAt" value="${recoveryAuthnCodesConfigBean.generatedAt?c}" />
         <input type="hidden" id="userLabel" name="userLabel" value="${msg("recovery-codes-label-default")}" />
-        <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
-            <div class="${properties.kcFormOptionsWrapperClass!}">
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="logout-sessions" name="logout-sessions" value="on" checked>
-                        ${msg("logoutOtherSessions")}
-                    </label>
-                </div>
-            </div>
-        </div>
 
         <#if isAppInitiatedAction??>
             <input type="submit"
