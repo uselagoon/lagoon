@@ -1,6 +1,6 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/python-3.11:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/python-3.12:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
@@ -27,7 +27,7 @@ RUN apk add --no-cache --virtual .build-deps \
 RUN ansible-galaxy collection install -vvv ansible.posix community.general kubernetes.core
 
 # download, extract and install kubectl binary
-ENV KUBECTL_VER=v1.25.5
+ENV KUBECTL_VER=v1.31.0
 RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
     && curl -s -LO "https://dl.k8s.io/release/$KUBECTL_VER/bin/linux/${architecture}/kubectl" \
     && curl -s -LO "https://dl.k8s.io/$KUBECTL_VER/bin/linux/${architecture}/kubectl.sha256" \
