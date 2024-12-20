@@ -42,6 +42,12 @@ export const Sql = {
       .andWhere('project', '=', projectId)
       .andWhere('deleted', '0000-00-00 00:00:00')
       .toString(),
+  selectEnvVarByNameAndOrgId: (name: string, orgId: number) =>
+    knex('env_vars')
+      .select('env_vars.*')
+      .where('env_vars.name', '=', name)
+      .andWhere('env_vars.organization', '=', orgId)
+      .toString(),
   selectEnvVarByNameAndProjectId: (name: string, projectId: number) =>
     knex('env_vars')
       .select('env_vars.*')
@@ -53,6 +59,12 @@ export const Sql = {
       .select('env_vars.*')
       .where('env_vars.name', '=', name)
       .andWhere('env_vars.environment', '=', environmentId)
+      .toString(),
+  selectEnvVarsByOrgId: (orgId: number) =>
+    knex('env_vars')
+      .select('env_vars.*')
+      .where('env_vars.organization', '=', orgId)
+      .orderBy('env_vars.name', 'asc')
       .toString(),
   selectEnvVarsByProjectId: (projectId: number) =>
     knex('env_vars')

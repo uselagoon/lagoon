@@ -279,6 +279,7 @@ const {
 } = require('./resources/backup/resolvers');
 
 const {
+  getEnvVarsByOrganizationId,
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
   addEnvVariable,
@@ -456,7 +457,8 @@ const resolvers = {
     environments: getEnvironmentsByOrganizationId,
     owners: getOwnersByOrganizationId,
     deployTargets: getDeployTargetsByOrganizationId,
-    notifications: getNotificationsByOrganizationId
+    notifications: getNotificationsByOrganizationId,
+    envVariables: getEnvVarsByOrganizationId,
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
