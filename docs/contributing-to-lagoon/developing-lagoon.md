@@ -177,6 +177,39 @@ make k3d/install-lagoon INSTALL_STABLE_REMOTE=true INSTALL_STABLE_BUILDDEPLOY=tr
 !!! warning
     Starting a `make k3d/local-stack` without any stable versions, then using `make k3d/install-lagoon` with `INSTALL_STABLE_X` flags may result in a broken Lagoon installation, however, this can be useful for verifying any downgrade or rollback paths.
 
+#### Harbor or unauthenticated registry
+
+Currently, Harbor does not have any arm64 based images. This means local-stack will not install Harbor on an arm64 based system. Instead an unauthenticed registry will be installed, and `lagoon-remote` will be configured to use this. This has the downsides that you won't be able to properly test any Harbor integrations on arm64 based systems for now.
+
+If you want to skip installing Harbor entirely, even if your system is not arm based, you can use the following
+
+```bash title="Harbor disabled
+INSTALL_UNAUTHENTICATED_REGISTRY=true
+```
+
+!!! info
+    There are [open issues](https://github.com/goharbor/harbor/issues/20074) in the harbor repository with people requesting support for arm, and even a [harbor-arm repository](https://github.com/goharbor/harbor-arm), which appears to be abandoned.
+
+#### Backups / K8up
+
+It is possible to start the local-stack with k8up support for `backup.appuio.ch/v1alpha`(v1) and `k8up.io/v1`(v2) for testing and validating that backups work, or verifying changes to backup functionality.
+
+There are 2 make variables you can set, by default k8up is not installed.
+
+If you wish to install k8up, you can change the following in the Makefile (or use it on every make command you run). This will install both versions of k8up into the local-stack in separate namespaces. The version that `lagoon-remote` will use is defined with a separate variable
+
+```bash title="K8up enabled
+INSTALL_K8UP=true
+```
+
+If k8up is installed, the default version that will be supported by `lagoon-remote` will be `k8up.io/v1`(v2) of k8up. This means any builds will create resources with this CRD version. You can change the version that `lagoon-remote` uses by specifying `v1` or `v2`.
+
+```bash title="K8up version
+BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
+```
+
+Installing k8up will also configure `lagoon-core` to start the `backup-handler` service so that the entire system works locally.
+
 ### Run the Lagoon test-suite
 
 If you're developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options.
