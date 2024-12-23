@@ -869,6 +869,15 @@ EOF
 
 }
 
+function lagoon-opensearch-sync_add_view-users_permission {
+	if /opt/keycloak/bin/kcadm.sh get-roles -r lagoon --uusername service-account-lagoon-opensearch-sync --cclientid realm-management --config /tmp/kcadm.config | jq -e '.[].name|contains("view-users")' >/dev/null; then
+		echo "lagoon-opensearch-sync already has view-users realm-management role"
+	else
+		echo "adding lagoon-opensearch-sync view-users realm-management role"
+		/opt/keycloak/bin/kcadm.sh add-roles -r lagoon --uusername service-account-lagoon-opensearch-sync --cclientid realm-management --rolename view-users --config $CONFIG_PATH
+	fi
+}
+
 ##################
 # Initialization #
 ##################
@@ -921,6 +930,7 @@ function configure_keycloak {
     add_lagoon-cli_client
     add_lagoon-ui-oidc_client
     add_update_platform_organization_permissions
+    lagoon-opensearch-sync_add_view-users_permission
 
     # always run last
     sync_client_secrets
