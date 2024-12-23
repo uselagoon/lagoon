@@ -13,6 +13,8 @@
 
 - [ ] If your PR contains a database migation, it **MUST** be the latest in date order alphabetically
 
+# Description
+
 Explain the **details** for making this change. What existing problem does the pull request solve?
 
 <!--
