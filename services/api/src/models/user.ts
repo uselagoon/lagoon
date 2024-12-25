@@ -8,6 +8,7 @@ import { Group, GroupType, KeycloakLagoonGroup } from './group';
 import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
+import { logger } from '../loggers/logger';
 
 interface IUserAttributes {
   comment?: [string];
@@ -20,6 +21,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   comment?: string;
+  created?: string;
   lastAccessed?: string;
   gitlabId?: string;
   attributes?: IUserAttributes;
@@ -178,23 +180,22 @@ export const User = (clients: {
         R.pipe(
           R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes', 'admin', 'owner', 'organizationRole', 'platformRoles']),
           // @ts-ignore
-          R.set(commentLens, R.view(attrCommentLens, keycloakUser))
+          R.set(commentLens, R.view(attrCommentLens, keycloakUser)),
+          // set the user created time
+          R.set(R.lensPath(['created']), new Date(keycloakUser.createdTimestamp).toISOString().slice(0, 19).replace('T', ' ') || null),
         )(keycloakUser)
     );
 
     let usersWithGitlabIdFetch = [];
 
     for (const user of users) {
-      // set the lastaccessed attribute
-      // @TODO: no op last accessed for the time being due to raciness
-      // @TODO: refactor later
-      /*
-      let date = null;
-      if (user['attributes'] && user['attributes']['last_accessed']) {
-        date = new Date(user['attributes']['last_accessed']*1000).toISOString()
-        user.lastAccessed = date
+      const userdate = await query(
+        sqlClientPool,
+        Sql.selectLastAccessed(user.id)
+      );
+      if (userdate.length) {
+        user.lastAccessed = userdate[0].lastAccessed
       }
-      */
       usersWithGitlabIdFetch.push({
         ...user,
         gitlabId: await fetchGitlabId(user)
@@ -648,8 +649,14 @@ export const User = (clients: {
 
   const userLastAccessed = async (userInput: User): Promise<Boolean> => {
     // set the last accessed as a unix timestamp on the user attributes
-    // @TODO: no op last accessed for the time being due to raciness
-    // @TODO: refactor later
+    try {
+      await query(
+        sqlClientPool,
+        Sql.updateLastAccessed(userInput.id)
+      );
+    } catch (err) {
+      logger.warn(`Error updating user: ${err.message}`);
+    }
     return true
   };
 
@@ -753,6 +760,11 @@ export const User = (clients: {
       await query(
         sqlClientPool,
         Sql.deleteFromUserSshKeys(id)
+      );
+      // delete from the user table
+      await query(
+        sqlClientPool,
+        Sql.deleteFromUser(id)
       );
 
       await keycloakAdminClient.users.del({ id });
