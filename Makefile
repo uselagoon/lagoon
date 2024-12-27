@@ -52,6 +52,22 @@ UPSTREAM_TAG ?= latest
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= edge
 
+# UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
+# UI_IMAGE_REPO = uselagoon/ui
+UI_IMAGE_TAG = pr-307
+
+# SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
+SSHPORTALAPI_IMAGE_REPO = shreddedbacon/ssh-portal-api
+SSHPORTALAPI_IMAGE_TAG = latest
+
+# SSHTOKEN_IMAGE_REPO and SSHTOKEN_IMAGE_TAG are an easy way to override the ssh token image used in the local stack lagoon-core
+SSHTOKEN_IMAGE_REPO = shreddedbacon/ssh-token
+SSHTOKEN_IMAGE_TAG = latest
+
+# SSHPORTAL_IMAGE_REPO and SSHPORTAL_IMAGE_TAG are an easy way to override the ssh portal image used in the local stack lagoon-remote
+# SSHPORTAL_IMAGE_REPO =
+# SSHPORTAL_IMAGE_TAG =
+
 # OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular build image if required, defaults to nothing to consume what the chart provides
 OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
@@ -354,11 +370,14 @@ logs:
 # Start all Lagoon Services
 up:
 ifeq ($(ARCH), darwin)
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 else
 	# once this docker issue is fixed we may be able to do away with this
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
+		UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 endif
@@ -388,21 +407,28 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) \
+		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
 
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) \
+		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
 
 # compose-api-logs-development can be consumed by other repositories to start a local api
 # supported make variable passthrough are
@@ -412,7 +438,9 @@ api-logs-development: build-ui-logs-development
 # ADDITIONAL_SERVICES - a way to pass through additional services ("ui", "ui ssh", etc..)
 .PHONY: compose-api-logs-development
 compose-api-logs-development:
-	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) \
+		--compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler \
+		local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) CI_BUILD_TAG=$(COMPOSE_STACK_NAME) wait-for-keycloak
 
 ## CI targets
@@ -425,7 +453,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = keycloak-tls-updates
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
@@ -725,6 +753,10 @@ endif
 		INSTALL_LAGOON_DEPENDENCIES=false DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
+		UI_IMAGE_REPO=$(UI_IMAGE_REPO) UI_IMAGE_TAG=$(UI_IMAGE_TAG) \
+		SSHPORTALAPI_IMAGE_REPO=$(SSHPORTALAPI_IMAGE_REPO) SSHPORTALAPI_IMAGE_TAG=$(SSHPORTALAPI_IMAGE_TAG) \
+		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
+		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
 		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
 		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
@@ -822,8 +854,8 @@ k3d/push-images:
 k3d/get-lagoon-details:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	echo "===============================" && \
-	echo "Lagoon UI URL: http://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo "Lagoon API URL: http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
+	echo "Lagoon UI URL: https://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
+	&& echo "Lagoon API URL: https://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
 	&& echo "Lagoon API admin legacy token: $$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
 		-e JWTAUDIENCE=api.dev \
@@ -834,7 +866,7 @@ k3d/get-lagoon-details:
 	&& echo "SSH Core Service: lagoon-ssh.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.spec.ports[0].port}')" \
 	&& echo "SSH Portal Service: lagoon-ssh-portal.$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" \
 	&& echo "SSH Token Service: lagoon-token.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "Keycloak admin URL: http://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
+	&& echo "Keycloak admin URL: https://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
 	&& echo "Keycloak admin password: $$($(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)" \
 	&& echo "MailPit (email catching service): http://mailpit.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
 	&& echo "" \
