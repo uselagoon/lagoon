@@ -703,10 +703,10 @@
   resolved "https://registry.yarnpkg.com/@js-sdsl/ordered-map/-/ordered-map-4.4.2.tgz#9299f82874bab9e4c7f9c48d865becbfe8d6907c"
   integrity sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==
 
-"@keycloak/keycloak-admin-client@25.0.4":
-  version "25.0.4"
-  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-25.0.4.tgz#2ec46bab133cc807df78ffd7ca7bba47ec8ed000"
-  integrity sha512-mZVFwly7cHZq1XpvJrrOutU0qrUbGo8NUdpb7PS4309x8yG2a4/WyZfh2lgiopBRQ6R/b24RsuHa4GetQPqT+g==
+"@keycloak/keycloak-admin-client@26.0.6":
+  version "26.0.6"
+  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-26.0.6.tgz#b2ac56de7f4251c8a6a938745843e98000498646"
+  integrity sha512-pZmaSAyg+LwQ3qnZF+01ZkURpcoEdLAloUK5KOZjE9jyNd86EHdx98/XmTYaJIuQ6ydMXxTWWc5Grq18H+PvJQ==
   dependencies:
     camelize-ts "^3.0.0"
     url-join "^5.0.0"
@@ -926,12 +926,12 @@
   resolved "https://registry.yarnpkg.com/@rtsao/scc/-/scc-1.1.0.tgz#927dd2fae9bc3361403ac2c7a00c32ddce9ad7e8"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
 
-"@s3pweb/keycloak-admin-client-cjs@^25.0.2":
-  version "25.0.4"
-  resolved "https://registry.yarnpkg.com/@s3pweb/keycloak-admin-client-cjs/-/keycloak-admin-client-cjs-25.0.4.tgz#925aa0f780233992e44d09a1efbfcbf4718f924a"
-  integrity sha512-0qQYvmftr4rZKO1JuDq077odNwQ8rS/FGlvBOSOoncvM2i7HljEHvMcsAHR3gNrOkawVlPoYwA+zZdtHICIU4A==
+"@s3pweb/keycloak-admin-client-cjs@^26.0.0":
+  version "26.0.6"
+  resolved "https://registry.yarnpkg.com/@s3pweb/keycloak-admin-client-cjs/-/keycloak-admin-client-cjs-26.0.6.tgz#49b81da9980d2d3d058a616c8677d64d08a43a34"
+  integrity sha512-cF4SZcxj/CUK0hZ1dHmyPjVI1BcLvz7u6S8e9YUfqy7wweZScIl1/VpxPgfA9aaLCAcE6kAv++BjcQcvxzkmSg==
   dependencies:
-    "@keycloak/keycloak-admin-client" "25.0.4"
+    "@keycloak/keycloak-admin-client" "26.0.6"
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
