@@ -15,4 +15,9 @@ export KC_HOSTNAME_ADMIN_URL=${KEYCLOAK_FRONTEND_URL}
 export KC_DB_POOL_MAX_SIZE=${KEYCLOAK_DS_MAX_POOL_SIZE:-20}
 export KC_DB_POOL_MIN_SIZE=${KEYCLOAK_DS_MIN_POOL_SIZE:-0}
 
+# https://www.keycloak.org/docs/latest/upgrading/#admin-bootstrapping-and-recovery
+# https://www.keycloak.org/server/bootstrap-admin-recovery
+export KC_BOOTSTRAP_ADMIN_USERNAME=$KEYCLOAK_ADMIN_USER
+export KC_BOOTSTRAP_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
+
 KEYCLOAK_USER=$KEYCLOAK_ADMIN_USER KEYCLOAK_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN_USER /lagoon/kc-startup.sh "$@"

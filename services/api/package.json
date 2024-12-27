@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "@s3pweb/keycloak-admin-client-cjs": "^25.0.2",
+    "@s3pweb/keycloak-admin-client-cjs": "^26.0.0",
     "@supercharge/request-ip": "^1.1.2",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
