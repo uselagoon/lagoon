@@ -15,6 +15,7 @@ local-dev/kubectl
 local-dev/jq
 local-dev/stern
 local-dev/go
+local-dev/certificates
 **/v8-*
 node_modules/
 build/*
