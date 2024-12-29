@@ -3,8 +3,8 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-    organizations = await knex.schema.hasTable('user');
-    if (!organizations) {
+    userTable = await knex.schema.hasTable('user');
+    if (!userTable) {
         return knex.schema
         .createTable('user', function (table) {
             table.specificType('usid', 'CHAR(36)');
@@ -22,5 +22,5 @@ exports.up = async function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function(knex) {
-    return knex.schema
+    return knex.schema.dropTable('user');
 };
