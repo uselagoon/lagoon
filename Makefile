@@ -435,6 +435,7 @@ ifeq ($(INSTALL_STABLE_LAGOON), true)
 	INSTALL_STABLE_REMOTE = true
 	INSTALL_STABLE_BUILDDEPLOY = true
 endif
+STABLE_CORE_CHART_APP_VERSION =
 STABLE_CORE_CHART_VERSION =
 STABLE_REMOTE_CHART_VERSION =
 STABLE_STABLE_BUILDDEPLOY_CHART_VERSION =
@@ -819,6 +820,9 @@ k3d/get-lagoon-cli-details:
 # it is also called as part of k3d/local-stack though so should not need to be called directly.
 .PHONY: k3d/seed-data
 k3d/seed-data:
+ifeq (,$(subst ",,$(STABLE_CORE_CHART_APP_VERSION)))
+	$(eval STABLE_CORE_CHART_APP_VERSION = $(shell $(HELM) search repo lagoon/lagoon-core -o json | $(JQ) -r '.[]|.app_version'))
+endif
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	export LAGOON_LEGACY_ADMIN=$$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
@@ -830,11 +834,23 @@ k3d/seed-data:
 	export SSH_PORTAL_HOST="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
 	export SSH_PORTAL_PORT="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" && \
 	export ROUTER_PATTERN="\$${project}.\$${environment}.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
-	export SEED_DATA=$$(envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}') && \
-    export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
+	export SEED_DATA=$$(if [ $(INSTALL_STABLE_CORE) = true ]; then \
+		envsubst < <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/00-populate-kubernetes.gql) | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
+	else \
+		envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
+	fi) && \
+	export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
     wget --quiet --header "Content-Type: application/json" --header "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" --post-data "$$SEED_DATA_JSON" --content-on-error -O - && \
 	echo "Loading API seed users" && \
-	cat ./local-dev/k3d-seed-data/seed-users.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh" \
+	if [ $(INSTALL_STABLE_CORE) = true ]; then \
+		cat <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/seed-users.sh) \
+			| $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods \
+			-l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh"; \
+	else \
+		cat ./local-dev/k3d-seed-data/seed-users.sh \
+			| $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods \
+			-l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh"; \
+	fi \
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-users.sh' \
 	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
 	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
