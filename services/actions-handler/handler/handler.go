@@ -24,6 +24,16 @@ type LagoonAPI struct {
 	Version         string `json:"version"`
 }
 
+// S3Configuration .
+type S3Configuration struct {
+	S3FilesAccessKeyID     string
+	S3FilesSecretAccessKey string
+	S3FilesBucket          string
+	S3FilesRegion          string
+	S3FilesOrigin          string
+	S3IsGCS                bool
+}
+
 // Action is the structure of an action that is received via the message queue.
 type Action struct {
 	Type      string                 `json:"type"`      // defines the action type
@@ -31,16 +41,11 @@ type Action struct {
 	Data      map[string]interface{} `json:"data"`      // contains the payload for the action, this could be any json so using a map
 }
 
-type messenger interface {
-	Consumer()
-	Publish(string, []byte)
-	handleRemoval(context.Context, mq.MessageQueue, *schema.LagoonMessage, string) error
-}
-
 // Messenger is used for the config and client information for the messaging queue.
 type Messenger struct {
 	Config                  mq.Config
 	LagoonAPI               LagoonAPI
+	S3Configuration         S3Configuration
 	ConnectionAttempts      int
 	ConnectionRetryInterval int
 	ActionsQueueName        string
@@ -49,10 +54,11 @@ type Messenger struct {
 }
 
 // New returns a messaging with config
-func New(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInterval int, actionsQueueName, controllerQueueName string, enableDebug bool) *Messenger {
+func New(config mq.Config, lagoonAPI LagoonAPI, s3Configuration S3Configuration, startupAttempts int, startupInterval int, actionsQueueName, controllerQueueName string, enableDebug bool) *Messenger {
 	return &Messenger{
 		Config:                  config,
 		LagoonAPI:               lagoonAPI,
+		S3Configuration:         s3Configuration,
 		ConnectionAttempts:      startupAttempts,
 		ConnectionRetryInterval: startupInterval,
 		ActionsQueueName:        actionsQueueName,
@@ -91,14 +97,14 @@ func (m *Messenger) Consumer() {
 
 	go func() {
 		for err := range messageQueue.Error() {
-			log.Println(fmt.Sprintf("Caught error from message queue: %v", err))
+			log.Printf("Caught error from message queue: %v", err)
 		}
 	}()
 
 	forever := make(chan bool)
 
 	// Handle any tasks that go to the queue
-	log.Println(fmt.Sprintf("Listening for messages in queue %s", m.ActionsQueueName))
+	log.Printf("Listening for messages in queue %s\n", m.ActionsQueueName)
 	err = messageQueue.SetConsumerHandler(m.ActionsQueueName, func(message mq.Message) {
 		action := &Action{}
 		json.Unmarshal(message.Body(), action)
@@ -113,22 +119,30 @@ func (m *Messenger) Consumer() {
 		// and perform the steps to run the mutation against the lagoon api
 		case "deployEnvironmentLatest":
 			err = m.handleDeployEnvironment(ctx, messageQueue, action, messageID)
+		// check if this a `retentionCleanup` type of action
+		// and perform the steps to clean up anything related to the retention clean up event type
+		case "retentionCleanup":
+			err = m.handleRetention(action, messageID)
+		// check if this a `retentionHistory` type of action
+		// and perform the steps to save anything related to the retention save event type
+		case "retentionHistory":
+			err = m.handleSaveHistory(action, messageID)
 		}
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
 		if LagoonAPIRetryErrorCheck(err) != nil {
-			log.Println(fmt.Sprintf("Lagoon API error retry: %v", err))
+			log.Printf("Lagoon API error retry: %v", err)
 			message.Nack(false, true) // resubmit the message to the queue for processing
 		} else {
 			message.Ack(false) // ack to remove from queue
 		}
 	})
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", m.ActionsQueueName, err))
+		log.Printf("Failed to set handler to consumer `%s`: %v", m.ActionsQueueName, err)
 	}
 
 	// Handle any tasks that go to the lagoon-tasks:controller queue
-	log.Println(fmt.Sprintf("Listening for messages in queue %s", m.ControllerQueueName))
+	log.Printf("Listening for messages in queue %s", m.ControllerQueueName)
 	err = messageQueue.SetConsumerHandler(m.ControllerQueueName, func(message mq.Message) {
 		logMsg := &schema.LagoonMessage{}
 		json.Unmarshal(message.Body(), logMsg)
@@ -147,14 +161,14 @@ func (m *Messenger) Consumer() {
 		// if there aren't any errors, then ack the message, an error indicates that there may have been an issue with the api handling the request
 		// skipping this means the message will remain in the queue
 		if LagoonAPIRetryErrorCheck(err) != nil {
-			log.Println(fmt.Sprintf("Lagoon API error retry: %v", err))
+			log.Printf("Lagoon API error retry: %v", err)
 			message.Nack(false, true) // resubmit the message to the queue for processing
 		} else {
 			message.Ack(false) // ack to remove from queue
 		}
 	})
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", m.ControllerQueueName, err))
+		log.Printf("Failed to set handler to consumer `%s`: %v", m.ControllerQueueName, err)
 	}
 
 	<-forever
@@ -170,7 +184,7 @@ func (m *Messenger) toLagoonLogs(messageQueue *mq.MessageQueue, message map[stri
 	}
 	producer, err := messageQueue.AsyncProducer("lagoon-logs")
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to get async producer: %v", err))
+		log.Printf("Failed to get async producer: %v", err)
 		return
 	}
 	producer.Produce(msgBytes)
