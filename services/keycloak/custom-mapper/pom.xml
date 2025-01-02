@@ -6,11 +6,11 @@
 
     <groupId>net.cake.keycloak.custom</groupId>
     <artifactId>custom-protocol-mapper</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
-        <keycloak.version>17.0.1</keycloak.version>
+        <keycloak.version>26.0.7</keycloak.version>
     </properties>
 
     <dependencies>
@@ -52,7 +52,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.13.0</version>
                 <configuration>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
                     <source>1.8</source>
@@ -62,7 +62,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.6.0</version>
                 <executions>
                     <!-- Run shade goal on package phase -->
                     <execution>
