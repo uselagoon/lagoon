@@ -97,6 +97,7 @@ HELM = $(realpath ./local-dev/helm)
 KUBECTL = $(realpath ./local-dev/kubectl)
 JQ = $(realpath ./local-dev/jq)
 K3D = $(realpath ./local-dev/k3d)
+MCLI = $(realpath ./local-dev/mcli)
 
 #######
 ####### Functions
@@ -209,12 +210,10 @@ build/ssh: services/ssh/Dockerfile
 service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
-build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
 build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
-localdevimages := local-git \
-									local-api-data-watcher-pusher
+localdevimages := local-git
 
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -262,27 +261,45 @@ build-ui-logs-development:
 wait-for-keycloak:
 	@$(info Waiting for Keycloak to be ready....)
 	@grep -m 1 "Config of Keycloak done." <(docker compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
-	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-users.sh keycloak:/tmp/seed-users.sh \
-	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' \
-	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
-	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
-	&& echo "" \
-	&& echo "If you want to create an example SSO identity provider and example user, run make compose/example-sso" \
-	&& echo "If you want to configure simple webauthn browswer flow, run make compose/configure-webauthn" \
-	&& echo ""
+	@export LAGOON_LEGACY_ADMIN=$$(docker run \
+		-e JWTSECRET="super-secret-string" \
+		-e JWTAUDIENCE=api.dev \
+		-e JWTUSER=localadmin \
+		uselagoon/tests \
+		python3 /ansible/tasks/api/admin_token.py) && \
+	echo "Loading API seed data" && \
+	export SSH_PORTAL_HOST="lagoon-remote-ssh-portal.lagoon.svc" && \
+	export SSH_PORTAL_PORT="2222" && \
+	export CONSOLE_URL="https://172.17.0.1:16643/" && \
+	export KUBERNETES_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6IjZWamZLTzEzZ2lPSGFtc0d6QXVkWXpDYi1fcmlfLWVBd3JtbEEydGItTHcifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoia3ViZXJuZXRlc2J1aWxkZGVwbG95LXRva2VuLXJxNDg1Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Imt1YmVybmV0ZXNidWlsZGRlcGxveSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjA3YzViODAxLTI5ZDgtNDU5Ni1hODBlLTZlMmU3MmY3YmMwMCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpsYWdvb246a3ViZXJuZXRlc2J1aWxkZGVwbG95In0.srj-zZguNXCQbeTIS5GtJw7Jl61k_miC8hXED70NQULm6OAMkImHrURRCfD4kjKPy-jbwEI88m5TNLFP8_0sMfdwj2vr2Gv8fTC55qoAJ589ff_dwv8THSKdKNj6VaHynzEzQ4IfZscd3ogP4HYF9alt-X4mMcJ2BApBt4F13Hg-bE2-4uzO0b_u13pJhzn0XrH8JGXWP0_oMPtE7M0zJL9BfOrBph_MgSb2djSbVBNbhPJ0fs9-eIB5aAu0NmqPhpxj6WL4UOAKX178IsDAq4vtRZrScZwvZxRcaDUxZ-MgwewWI8Ll0yg7UCxtZTdkLglkCgpjTK33Ei0PXWdE4A" && \
+	export ROUTER_PATTERN="\$${project}.\$${environment}.172.17.0.1" && \
+	export SEED_DATA=$$(envsubst < ./local-dev/seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}') && \
+	export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
+    wget --quiet --header "Content-Type: application/json" --header "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "http://172.17.0.1:3000/graphql" --post-data "$$SEED_DATA_JSON" --content-on-error -O - && \
+	$(MCLI) config host add local-minio http://172.17.0.1:9000 minio minio123 && \
+	$(MCLI) cp --recursive local-dev/seed-data/minio-data/lagoon-files/ local-minio/lagoon-files && \
+	$(MCLI) cp --recursive local-dev/seed-data/minio-data/restores/ local-minio/restores && \
+	docker compose -p $(CI_BUILD_TAG) cp ./local-dev/seed-data/seed-users.sh keycloak:/tmp/seed-users.sh && \
+	docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-users.sh' && \
+	echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" && \
+	echo "eg. maintainer@example.com has the password maintainer@example.com" && \
+	echo "" && \
+	echo "If you want to create an example SSO identity provider and example user, run make compose/example-sso" && \
+	echo "If you want to configure simple webauthn browswer flow, run make compose/configure-webauthn" && \
+	echo ""
 
 .PHONY: compose/example-sso
 compose/example-sso:
-	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-example-sso.sh keycloak:/tmp/seed-example-sso.sh \
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/seed-data/seed-example-sso.sh keycloak:/tmp/seed-example-sso.sh \
 	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-example-sso.sh'
 
 .PHONY: compose/configure-webauthn
 compose/configure-webauthn:
-	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/configure-webauthn.sh keycloak:/tmp/configure-webauthn.sh \
+	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/seed-data/configure-webauthn.sh keycloak:/tmp/configure-webauthn.sh \
 	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/configure-webauthn.sh'
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker api-sidecar-handler logs2notifications api api-db api-redis api-sidecar-handler keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = actions-handler broker api-sidecar-handler logs2notifications api api-db api-redis api-sidecar-handler keycloak keycloak-db ssh auth-server local-git local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -380,12 +397,12 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
@@ -404,7 +421,7 @@ api-logs-development: build-ui-logs-development
 # ADDITIONAL_SERVICES - a way to pass through additional services ("ui", "ui ssh", etc..)
 .PHONY: compose-api-logs-development
 compose-api-logs-development:
-	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) CI_BUILD_TAG=$(COMPOSE_STACK_NAME) wait-for-keycloak
 
 ## CI targets
@@ -414,10 +431,11 @@ HELM_VERSION := v3.16.1
 K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
+MCLI_VERSION = RELEASE.2024-11-21T17-21-54Z
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = remove-data-watcher-pusher
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
@@ -565,8 +583,23 @@ ifneq ($(STERN_VERSION), v$(shell ./local-dev/stern --version 2>/dev/null | sed 
 endif
 endif
 
+# Symlink the installed minio client if the correct version is already
+# installed, otherwise downloads it.
+.PHONY: local-dev/mcli
+local-dev/mcli:
+ifeq ($(MCLI_VERSION), $(shell mcli --version 2>/dev/null | grep -oi RELEASE.*Z))
+	$(info linking local mcli version $(MCLI_VERSION))
+	ln -sf $(shell command -v mcli) ./local-dev/mcli
+else
+ifneq ($(MCLI_VERSION), $(shell ./local-dev/mcli --version 2>/dev/null | grep -oi RELEASE.*Z))
+	$(info downloading mcli version $(MCLI_VERSION) for $(ARCH))
+	curl -sSLo local-dev/mcli https://dl.min.io/client/mc/release/$(ARCH)-amd64/mc
+	chmod a+x local-dev/mcli
+endif
+endif
+
 .PHONY: local-dev-tools
-local-dev-tools: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl local-dev/stern
+local-dev-tools: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl local-dev/stern local-dev/mcli
 
 .PHONY: helm/repos
 helm/repos: local-dev/helm
@@ -618,13 +651,13 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-K3D_SERVICES = api api-db api-redis auth-server actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
-K3D_TESTS = local-api-data-watcher-pusher local-git tests
+K3D_SERVICES = api api-db api-redis auth-server actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks  local-git ssh tests workflows $(TASK_IMAGES)
+K3D_TESTS =  local-git tests
 K3D_TOOLS = k3d helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a k3d cluster
 .PHONY: k3d/test
-k3d/test: k3d/setup k3d/install-lagoon k3d/retest
+k3d/test: k3d/setup k3d/install-lagoon k3d/seed-data k3d/retest
 
 LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler webhooks2tasks
 
@@ -833,21 +866,26 @@ endif
 	echo "Loading API seed data" && \
 	export SSH_PORTAL_HOST="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
 	export SSH_PORTAL_PORT="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" && \
+	export CONSOLE_URL="https://kubernetes.default.svc/" && \
+	export KUBERNETES_TOKEN="$$($(KUBECTL) get secret -n lagoon lagoon-remote-ssh-core-token -o jsonpath="{.data.token}" | base64 --decode)" && \
 	export ROUTER_PATTERN="\$${project}.\$${environment}.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
 	export SEED_DATA=$$(if [ $(INSTALL_STABLE_CORE) = true ]; then \
-		envsubst < <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/00-populate-kubernetes.gql) | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
+		envsubst < <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/seed-data/00-populate-kubernetes.gql) | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
 	else \
-		envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
+		envsubst < ./local-dev/seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
 	fi) && \
 	export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
     wget --quiet --header "Content-Type: application/json" --header "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" --post-data "$$SEED_DATA_JSON" --content-on-error -O - && \
+	$(MCLI) config host add local-minio http://minio-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io lagoonFilesAccessKey lagoonFilesSecretKey && \
+	$(MCLI) cp --recursive local-dev/seed-data/minio-data/lagoon-files/ local-minio/lagoon-files && \
+	$(MCLI) cp --recursive local-dev/seed-data/minio-data/restores/ local-minio/restores && \
 	echo "Loading API seed users" && \
 	if [ $(INSTALL_STABLE_CORE) = true ]; then \
-		cat <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/seed-users.sh) \
+		cat <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/seed-data/seed-users.sh) \
 			| $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods \
 			-l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh"; \
 	else \
-		cat ./local-dev/k3d-seed-data/seed-users.sh \
+		cat ./local-dev/seed-data/seed-users.sh \
 			| $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods \
 			-l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh"; \
 	fi \
@@ -862,13 +900,13 @@ endif
 .PHONY: k3d/example-sso
 k3d/example-sso:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	cat ./local-dev/k3d-seed-data/seed-example-sso.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-example-sso.sh" \
+	cat ./local-dev/seed-data/seed-example-sso.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-example-sso.sh" \
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-example-sso.sh'
 
 .PHONY: k3d/configure-webauthn
 k3d/configure-webauthn:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	cat ./local-dev/k3d-seed-data/configure-webauthn.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/configure-webauthn.sh" \
+	cat ./local-dev/seed-data/configure-webauthn.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/configure-webauthn.sh" \
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/configure-webauthn.sh'
 
 # Use k3d/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always

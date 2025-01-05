@@ -188,12 +188,6 @@ services:
       - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
-  local-api-data-watcher-pusher:
-    depends_on:
-      - api
-    image: ${IMAGE_REPO:-lagoon}/local-api-data-watcher-pusher:${IMAGE_REPO_API_DATA_WATCHER_TAG:-${IMAGE_REPO_TAG:-latest}}
-    environment:
-      - CLEAR_API_DATA=false
   local-minio:
     image: minio/minio
     entrypoint: sh
