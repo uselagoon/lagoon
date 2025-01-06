@@ -151,7 +151,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"], month, includeDeleted } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -181,13 +181,29 @@ export const getDeploymentsByFilter: ResolverFn = async (
       queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
   }
 
+  // collect builds for a specific year/month
+  if (month) {
+    queryBuilder = queryBuilder.andWhere(
+      knex.raw(`YEAR(deployment.created) = YEAR(STR_TO_DATE(?, '%Y-%m'))`, month),
+    )
+    .andWhere(
+      knex.raw(`MONTH(deployment.created) = MONTH(STR_TO_DATE(?, '%Y-%m'))`, month),
+    );
+  }
+
   if(openshifts) {
     queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
   }
 
   queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
 
-  queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
+  // if includeDeleted is false, exclude deleted environments in the results (default)
+  if (!includeDeleted) {
+    queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
+  }
+
+  // exclude results where a project doesn't exist
+  queryBuilder = queryBuilder.whereRaw('environment.project IN (SELECT id FROM project)')
 
   const queryBuilderString = queryBuilder.toString();
 
