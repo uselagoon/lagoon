@@ -1,5 +1,5 @@
 # Build the binary
-FROM golang:1.22-alpine3.20 AS builder
+FROM golang:1.23-alpine3.20 AS builder
 
 COPY . /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/
 WORKDIR /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/

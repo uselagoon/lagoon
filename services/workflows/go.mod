@@ -1,6 +1,6 @@
 module github.com/uselagoon/lagoon/services/workflows
 
-go 1.22
+go 1.23
 
 require (
 	github.com/Khan/genqlient v0.3.0
@@ -20,5 +20,5 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.16 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.21 // indirect
 )
