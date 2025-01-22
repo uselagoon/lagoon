@@ -6,4 +6,4 @@ fi
 
 ls -d -- git/*
 
-exec /sbin/runsvdir /etc/service
+exec /usr/sbin/runsvdir /etc/service
