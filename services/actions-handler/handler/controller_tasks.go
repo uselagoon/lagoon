@@ -70,7 +70,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 				updateProject.StandbyProductionEnvironment = &advTask.ProductionEnvironment
 			}
 			// update the project in the api
-			updatedProject, err := lagoon.UpdateProject(ctx, uint(int(project.ID)), updateProject, l)
+			updatedProject, err := lagoon.UpdateProject(ctx, project.ID, updateProject, l)
 			if err != nil {
 				// send the log to the lagoon-logs exchange to be processed
 				m.toLagoonLogs(messageQueue, map[string]interface{}{
