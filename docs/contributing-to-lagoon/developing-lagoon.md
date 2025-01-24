@@ -320,7 +320,7 @@ make k3d/local-dev-logging
 
 #### Re run specific tests
 
-This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git, and the data-watcher-pusher\). You can specify tests to run by passing the TESTS variable inline.
+This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git). You can specify tests to run by passing the TESTS variable inline.
 
 ```bash title="Re-run tests."
 make k3d/retest
@@ -371,7 +371,6 @@ The configuration for these tests is held in three services:
 
 * `tests` is the Ansible test services themselves.  The local testing routine runs each individual test as a separate container within a test-suite pod.  These are listed below.
 * `local-git` is a Git server hosted in the cluster that holds the source files for the tests.  Ansible pulls and pushes to this repository throughout the tests
-* `api-data-watcher-pusher` is a set of GraphQL mutations that pre-populates local Lagoon with the necessary Kubernetes configuration, test user accounts and SSH keys, and the necessary groups and notifications.  **Note that this will wipe local projects and environments on each run.**
 
 The individual routines relevant to Kubernetes are:
 

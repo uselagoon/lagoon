@@ -54,7 +54,6 @@ group "default" {
     "api-sidecar-handler",
     "keycloak-db",
     "keycloak",
-    "local-api-data-watcher-pusher",
     "local-git",
     "logs2notifications",
     "ssh",
@@ -76,14 +75,12 @@ group "ui-logs-development" {
     "api-sidecar-handler",
     "keycloak-db",
     "keycloak",
-    "local-api-data-watcher-pusher",
     "logs2notifications"
   ]
 }
 
 group "local-dev" {
   targets = [
-    "local-api-data-watcher-pusher",
     "local-git"
   ]
 }
@@ -280,15 +277,6 @@ target "task-activestandby" {
     "org.opencontainers.image.title": "lagoon-core/task-activestandby - the active/standby task image for Lagoon"
   }
   tags = ["${IMAGE_REPO}/task-activestandby:${TAG}"]
-}
-
-target "local-api-data-watcher-pusher" {
-  inherits = ["default"]
-  context = "local-dev/api-data-watcher-pusher"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/local-api-data-watcher-pusher - the local-dev data pusher image for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/local-api-data-watcher-pusher:${TAG}"]
 }
 
 target "local-git" {

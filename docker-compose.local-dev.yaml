@@ -41,6 +41,3 @@ services:
       - "./services/keycloak/startup-scripts:/opt/keycloak/startup-scripts"
       - "./services/keycloak/themes/lagoon:/opt/keycloak/themes/lagoon"
       - "./local-dev/keycloak:/lagoon/keycloak"
-  local-api-data-watcher-pusher:
-    volumes:
-      - ./local-dev/api-data-watcher-pusher:/home
