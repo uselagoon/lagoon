@@ -577,6 +577,7 @@ ifeq ($(GO_VERSION), $(shell go version 2>/dev/null | sed -nE 's/go version go//
 else
 ifneq ($(GO_VERSION), $(shell ./local-dev/go/bin/go version 2>/dev/null | sed -nE 's/go version go//p' | awk '{print $$1}'))
 	$(info downloading go version $(GO_VERSION) for $(ARCH))
+	rm -rf local-dev/go || true
 	mkdir -p local-dev/go
 	TMPDIR=$$(mktemp -d) \
 		&& curl -sSLo $$TMPDIR/go.tar.gz https://go.dev/dl/go$(GO_VERSION).$(ARCH)-amd64.tar.gz \
@@ -641,35 +642,15 @@ endif
 
 GO_SERVICES = services/backup-handler services/workflows services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
 .PHONY: go/test
-go/test: local-dev/go tidy fmt vet
+go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
 		echo "test $$service" \
 		&& cd "$$service" \
-		&& $(GO) clean -testcache && $(GO) test -v ./... && cd ../..; \
-	done
-
-.PHONY: fmt
-fmt:
-	for service in $(GO_SERVICES); do \
-		echo "fmt $$service" \
-		&& cd "$$service" \
-		&& $(GO) fmt ./... && cd ../..; \
-	done
-
-.PHONY: vet
-vet:
-	for service in $(GO_SERVICES); do \
-		echo "vet $$service" \
-		&& cd "$$service" \
-		&& $(GO) vet ./... && cd ../..; \
-	done
-
-.PHONY: tidy
-tidy:
-	for service in $(GO_SERVICES); do \
-		echo "tidy $$service" \
-		&& cd "$$service" \
-		&& $(GO) mod tidy && cd ../..; \
+		&& $(GO) fmt ./... \
+		&& $(GO) vet ./... \
+		&& $(GO) mod tidy \
+		&& $(GO) clean -testcache && $(GO) test -v ./... \
+		&& cd ../..; \
 	done
 
 K3D_SERVICES = api api-db api-redis auth-server actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
