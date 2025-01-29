@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/andreyvit/diff"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -134,9 +135,9 @@ func Test_checkKubernetesServices(t *testing.T) {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
 			}
 			if !reflect.DeepEqual(ingressToMigrate, wantIngressList) && !tt.wantErr {
-				gotB, _ := json.Marshal(ingressToMigrate)
-				wantB, _ := json.Marshal(wantIngressList)
-				t.Errorf("checkKubernetesServices() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				gotB, _ := json.MarshalIndent(ingressToMigrate, "", "  ")
+				wantB, _ := json.MarshalIndent(wantIngressList, "", "  ")
+				t.Errorf("checkKubernetesServices() = \n%v", diff.LineDiff(string(gotB), string(wantB)))
 			}
 		})
 	}
@@ -228,9 +229,9 @@ func TestRunMigration(t *testing.T) {
 				t.Errorf("RunMigration() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if *tt.args.rData != tt.want {
-				gotB, _ := json.Marshal(tt.args.rData)
-				wantB, _ := json.Marshal(tt.want)
-				t.Errorf("RunMigration() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				gotB, _ := json.MarshalIndent(tt.args.rData, "", "  ")
+				wantB, _ := json.MarshalIndent(tt.want, "", "  ")
+				t.Errorf("RunMigration() = \n%v", diff.LineDiff(string(gotB), string(wantB)))
 			}
 		})
 	}

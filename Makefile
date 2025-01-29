@@ -618,6 +618,41 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
+# run go tests
+
+GO_SERVICES = services/backup-handler services/workflows services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+.PHONY: go/test
+go/test: tidy fmt vet
+	for service in $(GO_SERVICES); do \
+		echo "test $$service" \
+		&& cd "$$service" \
+		&& go clean -testcache && go test -v ./... && cd ../..; \
+	done
+
+.PHONY: fmt
+fmt:
+	for service in $(GO_SERVICES); do \
+		echo "fmt $$service" \
+		&& cd "$$service" \
+		&& go fmt ./... && cd ../..; \
+	done
+
+.PHONY: vet
+vet:
+	for service in $(GO_SERVICES); do \
+		echo "vet $$service" \
+		&& cd "$$service" \
+		&& go vet ./... && cd ../..; \
+	done
+
+.PHONY: tidy
+tidy:
+	for service in $(GO_SERVICES); do \
+		echo "tidy $$service" \
+		&& cd "$$service" \
+		&& go mod tidy && cd ../..; \
+	done
+
 K3D_SERVICES = api api-db api-redis auth-server actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
 K3D_TESTS = local-api-data-watcher-pusher local-git tests
 K3D_TOOLS = k3d helm kubectl jq stern
