@@ -54,7 +54,7 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular build image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
+OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=pr-267
 OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
@@ -417,7 +417,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = retention-policies
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
