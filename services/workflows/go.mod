@@ -4,7 +4,6 @@ go 1.23
 
 require (
 	github.com/Khan/genqlient v0.3.0
-	github.com/cheshir/go-mq v1.0.2
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/machinebox/graphql v0.2.3-0.20181106130121-3a9253180225
@@ -19,6 +18,5 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
-	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.21 // indirect
 )

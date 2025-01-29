@@ -77,11 +77,6 @@ type LagoonLog struct {
 	Message  string         `json:"message,omitempty"`
 }
 
-type messaging interface {
-	Consumer()
-	Publish(string, []byte)
-}
-
 // Messaging is used for the config and client information for the messaging queue.
 type Messaging struct {
 	Config                  mq.Config
@@ -131,7 +126,7 @@ func (h *Messaging) Consumer() {
 
 	go func() {
 		for err := range messageQueue.Error() {
-			log.Println(fmt.Sprintf("Caught error from message queue: %v", err))
+			log.Printf("Caught error from message queue: %v", err)
 		}
 	}()
 
@@ -141,7 +136,7 @@ func (h *Messaging) Consumer() {
 	log.Println("Listening for messages in queue lagoon-logs:workflows")
 	err = messageQueue.SetConsumerHandler("items-queue", processingIncomingMessageQueueFactory(h))
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
+		log.Printf("Failed to set handler to consumer `%s`: %v", "items-queue", err)
 	}
 	<-forever
 }
@@ -198,7 +193,7 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 						incoming.Event, projectId, environmentIdentifier)
 					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
 					if err != nil {
-						log.Println(fmt.Sprintf("Invocation error of %v for project:%v and environment %v - %v.\n", incoming.Event, projectId, environmentIdentifier, err))
+						log.Printf("Invocation error of %v for project:%v and environment %v - %v.\n", incoming.Event, projectId, environmentIdentifier, err)
 					} else {
 						log.Printf("Invocation result of %v for project:%v and environment %v - %v.\n",
 							incoming.Event, projectId, environmentIdentifier, result)
@@ -208,20 +203,4 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 		}
 		message.Ack(false) // ack to remove from queue
 	}
-}
-
-// toLagoonLogs sends logs to the lagoon-logs message queue
-func (h *Messaging) toLagoonLogs(messageQueue mq.MessageQueue, message map[string]interface{}) {
-	msgBytes, err := json.Marshal(message)
-	if err != nil {
-		if h.EnableDebug {
-			log.Println(err, "Unable to encode message as JSON")
-		}
-	}
-	producer, err := messageQueue.AsyncProducer("lagoon-logs")
-	if err != nil {
-		log.Println(fmt.Sprintf("Failed to get async producer: %v", err))
-		return
-	}
-	producer.Produce(msgBytes)
 }

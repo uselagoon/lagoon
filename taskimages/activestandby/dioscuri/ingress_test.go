@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/andreyvit/diff"
 	networkv1 "k8s.io/api/networking/v1"
 )
 
@@ -72,9 +73,9 @@ func Test_getIngressWithLabel(t *testing.T) {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
 			}
 			if !reflect.DeepEqual(got, wantIngressList) {
-				gotB, _ := json.Marshal(got)
-				wantB, _ := json.Marshal(wantIngressList)
-				t.Errorf("getIngressWithLabel() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				gotB, _ := json.MarshalIndent(got, "", "  ")
+				wantB, _ := json.MarshalIndent(wantIngressList, "", "  ")
+				t.Errorf("getIngressWithLabel() = \n%v", diff.LineDiff(string(gotB), string(wantB)))
 			}
 		})
 	}
@@ -123,9 +124,9 @@ func Test_patchIngress(t *testing.T) {
 				t.Errorf("patchIngress() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(cIngress.ObjectMeta.Labels, tt.wantLabels) {
-				gotB, _ := json.Marshal(cIngress.ObjectMeta.Labels)
-				wantB, _ := json.Marshal(tt.wantLabels)
-				t.Errorf("checkKubernetesServices() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				gotB, _ := json.MarshalIndent(cIngress.ObjectMeta.Labels, "", "  ")
+				wantB, _ := json.MarshalIndent(tt.wantLabels, "", "  ")
+				t.Errorf("checkKubernetesServices() = \n%v", diff.LineDiff(string(gotB), string(wantB)))
 			}
 		})
 	}
@@ -181,9 +182,9 @@ func Test_individualIngressMigration(t *testing.T) {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
 			}
 			if !reflect.DeepEqual(got, wantIngress) {
-				gotB, _ := json.Marshal(got)
-				wantB, _ := json.Marshal(wantIngress)
-				t.Errorf("individualIngressMigration() got: \n%v \nwant: \n%v", string(gotB), string(wantB))
+				gotB, _ := json.MarshalIndent(got, "", "  ")
+				wantB, _ := json.MarshalIndent(wantIngress, "", "  ")
+				t.Errorf("individualIngressMigration() = \n%v", diff.LineDiff(string(gotB), string(wantB)))
 			}
 		})
 	}

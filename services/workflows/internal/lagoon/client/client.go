@@ -5,14 +5,17 @@
 package client
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/machinebox/graphql"
-	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/client/lgraphql"
 )
+
+//go:embed _lgraphql/*
+var lgraphql embed.FS
 
 // Client implements the lagoon package interfaces for the Lagoon GraphQL API.
 type Client struct {
@@ -50,7 +53,7 @@ func New(endpoint, token, userAgent string, debug bool) *Client {
 func (c *Client) newRequest(
 	assetName string, varStruct interface{}) (*graphql.Request, error) {
 
-	q, err := lgraphql.Asset(assetName)
+	q, err := lgraphql.ReadFile(assetName)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get asset: %w", err)
 	}

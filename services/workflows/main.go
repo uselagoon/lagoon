@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -12,7 +11,6 @@ import (
 )
 
 var (
-	httpListenPort               = os.Getenv("HTTP_LISTEN_PORT")
 	mqUser                       string
 	mqPass                       string
 	mqHost                       string
@@ -83,11 +81,9 @@ func main() {
 
 	// configure the backup handler settings
 	broker := handler.RabbitBroker{
-		Hostname:     fmt.Sprintf("%s:%s", mqHost, mqPort),
-		Username:     mqUser,
-		Password:     mqPass,
-		QueueName:    workflowsQueueName,
-		ExchangeName: workflowsExchange,
+		Hostname: fmt.Sprintf("%s:%s", mqHost, mqPort),
+		Username: mqUser,
+		Password: mqPass,
 	}
 	graphQLConfig := handler.LagoonAPI{
 		Endpoint:        lagoonAPIHost,
@@ -176,16 +172,6 @@ func main() {
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
-	}
-	return fallback
-}
-
-// accepts fallback values 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
-// anything else is false.
-func getEnvBool(key string, fallback bool) bool {
-	if value, ok := os.LookupEnv(key); ok {
-		rVal, _ := strconv.ParseBool(value)
-		return rVal
 	}
 	return fallback
 }
