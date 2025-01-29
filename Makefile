@@ -565,6 +565,25 @@ ifneq ($(STERN_VERSION), v$(shell ./local-dev/stern --version 2>/dev/null | sed 
 endif
 endif
 
+GO = $(realpath ./local-dev/go/bin/go)
+GO_VERSION := 1.23.5
+
+.PHONY: local-dev/go
+local-dev/go:
+ifeq ($(GO_VERSION), $(shell go version 2>/dev/null | sed -nE 's/go version go//p' | awk '{print $$1}'))
+	$(info linking local go version $(GO_VERSION))
+	mkdir -p local-dev/go/bin
+	ln -sf $(shell command -v go) ./local-dev/go/bin/go
+else
+ifneq ($(GO_VERSION), $(shell ./local-dev/go/bin/go version 2>/dev/null | sed -nE 's/go version go//p' | awk '{print $$1}'))
+	$(info downloading go version $(GO_VERSION) for $(ARCH))
+	mkdir -p local-dev/go
+	TMPDIR=$$(mktemp -d) \
+		&& curl -sSLo $$TMPDIR/go.tar.gz https://go.dev/dl/go$(GO_VERSION).$(ARCH)-amd64.tar.gz \
+		&& (cd $$TMPDIR && tar -xz --strip-components=1 -f go.tar.gz) && cp -r $$TMPDIR/. ./local-dev/go && rm -rf $$TMPDIR
+endif
+endif
+
 .PHONY: local-dev-tools
 local-dev-tools: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl local-dev/stern
 
@@ -622,11 +641,11 @@ endif
 
 GO_SERVICES = services/backup-handler services/workflows services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
 .PHONY: go/test
-go/test: tidy fmt vet
+go/test: local-dev/go tidy fmt vet
 	for service in $(GO_SERVICES); do \
 		echo "test $$service" \
 		&& cd "$$service" \
-		&& go clean -testcache && go test -v ./... && cd ../..; \
+		&& $(GO) clean -testcache && $(GO) test -v ./... && cd ../..; \
 	done
 
 .PHONY: fmt
@@ -634,7 +653,7 @@ fmt:
 	for service in $(GO_SERVICES); do \
 		echo "fmt $$service" \
 		&& cd "$$service" \
-		&& go fmt ./... && cd ../..; \
+		&& $(GO) fmt ./... && cd ../..; \
 	done
 
 .PHONY: vet
@@ -642,7 +661,7 @@ vet:
 	for service in $(GO_SERVICES); do \
 		echo "vet $$service" \
 		&& cd "$$service" \
-		&& go vet ./... && cd ../..; \
+		&& $(GO) vet ./... && cd ../..; \
 	done
 
 .PHONY: tidy
@@ -650,7 +669,7 @@ tidy:
 	for service in $(GO_SERVICES); do \
 		echo "tidy $$service" \
 		&& cd "$$service" \
-		&& go mod tidy && cd ../..; \
+		&& $(GO) mod tidy && cd ../..; \
 	done
 
 K3D_SERVICES = api api-db api-redis auth-server actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
