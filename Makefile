@@ -356,6 +356,19 @@ else
 endif
 	$(MAKE) wait-for-keycloak
 
+# Start all Lagoon Services with mysql instead of mariadb
+up-mysql:
+ifeq ($(ARCH), darwin)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev-mysql.yaml -f docker-compose.local-dev.yaml --compatibility up -d
+else
+	# once this docker issue is fixed we may be able to do away with this
+	# linux-specific workaround: https://github.com/docker/cli/issues/2290
+	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
+		IMAGE_REPO=$(CI_BUILD_TAG) \
+		docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev-mysql.yaml -f docker-compose.local-dev.yaml --compatibility up -d
+endif
+	$(MAKE) wait-for-keycloak
+
 down:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
 
@@ -395,6 +408,15 @@ ui-logs-development: build-ui-logs-development
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
 	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
+
+# MySQL specific targets for local dev
+.PHONY: ui-logs-development-mysql
+ui-logs-development-mysql: build-ui-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev-mysql.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
+
+.PHONY: api-logs-development-mysql
+api-logs-development-mysql: build-ui-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev-mysql.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
 
 # compose-api-logs-development can be consumed by other repositories to start a local api
 # supported make variable passthrough are
