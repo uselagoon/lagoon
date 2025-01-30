@@ -99,8 +99,8 @@ JQ = $(realpath ./local-dev/jq)
 K3D = $(realpath ./local-dev/k3d)
 
 # which database vendor type to use, can be mariadb (default) or mysql
-# DATABASE_VENDOR = mariadb
-DATABASE_VENDOR = mysql
+DATABASE_VENDOR = mariadb
+# DATABASE_VENDOR = mysql
 DATABASE_DOCKERFILE = Dockerfile
 ifeq ($(DATABASE_VENDOR), mysql)
 DATABASE_DOCKERFILE = Dockerfile.mysql
