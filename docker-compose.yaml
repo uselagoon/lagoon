@@ -5,9 +5,14 @@ volumes:
 
 services:
   api-db:
-    image: ${IMAGE_REPO:-lagoon}/api-db:${IMAGE_REPO_API_DB_TAG:-${IMAGE_REPO_TAG:-latest}}
+    image: uselagoon/mysql-8.0:latest
     ports:
       - '3366:3306'
+    command: mysqld --sql_mode=""
+    environment:
+      - MYSQL_USER=api
+      - MYSQL_PASSWORD=api
+      - MYSQL_DATABASE=infrastructure
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler:${IMAGE_REPO_WEBHOOK_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
@@ -158,13 +163,19 @@ services:
     environment:
       - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth/
       - KEYCLOAK_ADMIN_EMAIL=admin@example.com
+      - DB_VENDOR=mysql
+      - LAGOON_DB_VENDOR=mysql
       # Uncomment for local new relic tracking
       # - NEW_RELIC_LICENSE_KEY=
       # - NEW_RELIC_APP_NAME=keycloak-local
   keycloak-db:
-    image: ${IMAGE_REPO:-lagoon}/keycloak-db:${IMAGE_REPO_KEYCLOAK_DB_TAG:-${IMAGE_REPO_TAG:-latest}}
+    image: uselagoon/mysql-8.0:latest
     ports:
       - '3336:3306'
+    environment:
+      - MYSQL_USER=keycloak
+      - MYSQL_PASSWORD=keycloak
+      - MYSQL_DATABASE=keycloak
   tests-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests:${IMAGE_REPO_TESTS_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
