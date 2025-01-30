@@ -10,7 +10,7 @@ exports.up = async function(knex) {
             table.increments('id').notNullable().primary();
             table.string('name', 300).unique({indexName: 'name'});
             table.string('friendly_name', 300).notNullable();
-            table.specificType('description', 'text').defaultTo('').notNullable();
+            table.specificType('description', 'text').notNullable();
             table.integer('quota_project').defaultTo(1).notNullable();
             table.integer('quota_group').defaultTo(10).notNullable();
             table.integer('quota_notification').defaultTo(10).notNullable();
