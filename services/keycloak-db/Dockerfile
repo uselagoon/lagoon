@@ -13,5 +13,6 @@ ENV MARIADB_DATABASE=keycloak \
 
 COPY my_query-cache.cnf /etc/mysql/conf.d/my_query-cache.cnf
 USER root
+RUN sed -i 's/mariadb-init-complete/startup-init-complete/g' /lagoon/entrypoints/9999-mariadb-init.bash
 RUN fix-permissions /etc/mysql/conf.d/
 USER mysql

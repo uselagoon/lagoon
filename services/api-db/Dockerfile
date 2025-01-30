@@ -12,6 +12,8 @@ COPY ./legacy-migration-scripts/* /legacy-migration-scripts/
 RUN chown -R mysql /legacy-migration-scripts/ \
     && /bin/fix-permissions /legacy-migration-scripts/
 
+RUN sed -i 's/mariadb-init-complete/startup-init-complete/g' /lagoon/entrypoints/9999-mariadb-init.bash
+
 USER mysql
 
 ENV MARIADB_DATABASE=infrastructure \
