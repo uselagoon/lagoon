@@ -73,6 +73,9 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       sourceUser: string;
       sourceType: string;
     }) => {
+      if (sourceType) {
+        sourceType.toLocaleLowerCase();
+      }
       const { insertId } = await query(
         sqlClientPool,
         Sql.insertTask({
