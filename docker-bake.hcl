@@ -15,6 +15,14 @@ variable "UPSTREAM_REPO" {
   default = "uselagoon"
 }
 
+variable "DATABASE_DOCKERFILE" {
+  default = "Dockerfile"
+}
+
+variable "DATABASE_VENDOR" {
+  default = "mariadb"
+}
+
 variable "UPSTREAM_TAG" {
   default = "latest"
 }
@@ -39,6 +47,7 @@ target "default"{
     LAGOON_VERSION = "${LAGOON_VERSION}"
     UPSTREAM_REPO = "${UPSTREAM_REPO}"
     UPSTREAM_TAG = "${UPSTREAM_TAG}"
+    DATABASE_VENDOR = "${DATABASE_VENDOR}"
   }
 }
 
@@ -131,6 +140,7 @@ target "api" {
 target "api-db" {
   inherits = ["default"]
   context = "services/api-db"
+  dockerfile = "${DATABASE_DOCKERFILE}"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api-db - the MariaDB database service for Lagoon API"
   }
@@ -206,6 +216,7 @@ target "keycloak" {
 target "keycloak-db" {
   inherits = ["default"]
   context = "services/keycloak-db"
+  dockerfile = "${DATABASE_DOCKERFILE}"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/keycloak-db - the MariaDB database service for Lagoon Keycloak"
   }

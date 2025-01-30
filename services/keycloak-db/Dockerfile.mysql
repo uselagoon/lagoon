@@ -1,0 +1,19 @@
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/mysql-8.0:${UPSTREAM_TAG:-latest}
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
+ENV MYSQL_DATABASE=keycloak \
+    MYSQL_USER=keycloak \
+    MYSQL_PASSWORD=keycloak
+    # are these needed??
+    # MYSQL_CHARSET=utf8 \
+    # MYSQL_COLLATION=utf8_general_ci
+
+# not used in mysql8
+# COPY my_query-cache.cnf /etc/mysql/conf.d/my_query-cache.cnf
+# USER root
+# RUN fix-permissions /etc/mysql/conf.d/
+# USER mysql
