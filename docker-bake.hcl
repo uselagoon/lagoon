@@ -4,7 +4,7 @@ variable "IMAGE_REPO" {
 }
 
 variable "TAG" {
-  default = "latest"
+  default = "gh_action"
 }
 
 variable "LAGOON_VERSION" {
