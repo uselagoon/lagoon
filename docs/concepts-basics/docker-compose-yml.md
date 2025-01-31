@@ -428,3 +428,4 @@ The corrected version combines both aliases into a single mapping key - you'll n
 These settings have been deprecated and should be removed from use in your `docker-compose.yml`.
 
 * `services.[name].labels.lagoon.rollout`
+* `services.[name].labels.lagoon.template`
