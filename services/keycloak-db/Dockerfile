@@ -13,5 +13,7 @@ ENV MARIADB_DATABASE=keycloak \
 
 COPY my_query-cache.cnf /etc/mysql/conf.d/my_query-cache.cnf
 USER root
+# replace the generate-env script with our password, since generate-env only adds a domain which isnt valid in this image
+COPY password-entrypoint.bash /lagoon/entrypoints/55-generate-env.sh
 RUN fix-permissions /etc/mysql/conf.d/
 USER mysql

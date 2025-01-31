@@ -98,13 +98,21 @@ KUBECTL = $(realpath ./local-dev/kubectl)
 JQ = $(realpath ./local-dev/jq)
 K3D = $(realpath ./local-dev/k3d)
 
+# which database vendor type to use, can be mariadb (default) or mysql
+DATABASE_VENDOR = mariadb
+# DATABASE_VENDOR = mysql
+DATABASE_DOCKERFILE = Dockerfile
+ifeq ($(DATABASE_VENDOR), mysql)
+DATABASE_DOCKERFILE = Dockerfile.mysql
+endif
+
 #######
 ####### Functions
 #######
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -190,13 +198,13 @@ $(build-services):
 
 # Dependencies of Service Images
 build/auth-server build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
-build/api-db: services/api-db/Dockerfile
+build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/backup-handler: services/backup-handler/Dockerfile
 build/broker: services/broker/Dockerfile
 build/api-sidecar-handler: services/api-sidecar-handler/Dockerfile
-build/keycloak-db: services/keycloak-db/Dockerfile
+build/keycloak-db: services/keycloak-db/$(DATABASE_DOCKERFILE)
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
 build/tests: tests/Dockerfile
@@ -309,14 +317,14 @@ webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test
 
 .PHONY: publish-testlagoon-images
 publish-testlagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
 
 .PHONY: publish-uselagoon-images
 publish-uselagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 .PHONY: clean
 clean:
@@ -723,6 +731,7 @@ endif
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
+		CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
 		LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 		USE_CALICO_CNI=false \
 		LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
@@ -794,7 +803,6 @@ k3d/local-dev-logging:
 		&& echo -e '\n\nInteract with the OpenDistro cluster at http://0.0.0.0:5601 using the default `admin/admin` credentials\n' \
 		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
 		&& echo -e 'with a default `container-logs-*` pattern'
-
 
 
 # k3d/push-images pushes locally build images into the k3d cluster registry.
@@ -930,6 +938,7 @@ k3d/retest:
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
 			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 			SKIP_ALL_DEPS=true \
+			CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
 			USE_CALICO_CNI=false \
 			LAGOON_SSH_PORTAL_LOADBALANCER=$(LAGOON_SSH_PORTAL_LOADBALANCER) \
