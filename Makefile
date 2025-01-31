@@ -52,6 +52,26 @@ UPSTREAM_TAG ?= latest
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= edge
 
+# UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
+# only works for installations where INSTALL_STABLE_CORE=false
+# UI_IMAGE_REPO = uselagoon/ui
+UI_IMAGE_TAG = pr-307
+
+# SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
+# only works for installations where INSTALL_STABLE_CORE=false
+SSHPORTALAPI_IMAGE_REPO = ghcr.io/uselagoon/lagoon-ssh-portal/ssh-portal-api
+SSHPORTALAPI_IMAGE_TAG = pr-497
+
+# SSHTOKEN_IMAGE_REPO and SSHTOKEN_IMAGE_TAG are an easy way to override the ssh token image used in the local stack lagoon-core
+# only works for installations where INSTALL_STABLE_CORE=false
+SSHTOKEN_IMAGE_REPO = ghcr.io/uselagoon/lagoon-ssh-portal/ssh-token
+SSHTOKEN_IMAGE_TAG = pr-497
+
+# SSHPORTAL_IMAGE_REPO and SSHPORTAL_IMAGE_TAG are an easy way to override the ssh portal image used in the local stack lagoon-remote
+# only works for installations where INSTALL_STABLE_REMOTE=false
+# SSHPORTAL_IMAGE_REPO =
+# SSHPORTAL_IMAGE_TAG =
+
 # OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular build image if required, defaults to nothing to consume what the chart provides
 OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
@@ -346,11 +366,14 @@ logs:
 # Start all Lagoon Services
 up:
 ifeq ($(ARCH), darwin)
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 else
 	# once this docker issue is fixed we may be able to do away with this
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
+		UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 endif
@@ -380,21 +403,28 @@ local-dev-yarn-stop:
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: api-development
 api-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
+		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
 
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
+	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) \
+		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
 
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
-	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
+	IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) \
+		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="" $(MAKE) compose-api-logs-development
 
 # compose-api-logs-development can be consumed by other repositories to start a local api
 # supported make variable passthrough are
@@ -404,7 +434,9 @@ api-logs-development: build-ui-logs-development
 # ADDITIONAL_SERVICES - a way to pass through additional services ("ui", "ui ssh", etc..)
 .PHONY: compose-api-logs-development
 compose-api-logs-development:
-	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) --compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
+	docker compose -p $(COMPOSE_STACK_NAME) $(ADDITIONAL_FLAGS) \
+		--compatibility up -d $(ADDITIONAL_SERVICES) api api-db api-sidecar-handler actions-handler \
+		local-api-data-watcher-pusher keycloak keycloak-db broker api-redis logs2notifications local-minio mailhog
 	$(MAKE) CI_BUILD_TAG=$(COMPOSE_STACK_NAME) wait-for-keycloak
 
 ## CI targets
@@ -417,7 +449,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = keycloak-tls-updates
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
@@ -439,6 +471,15 @@ STABLE_CORE_CHART_APP_VERSION =
 STABLE_CORE_CHART_VERSION =
 STABLE_REMOTE_CHART_VERSION =
 STABLE_STABLE_BUILDDEPLOY_CHART_VERSION =
+
+# older versions of lagoon core allowed insecure connections via http during testing
+# keycloak 26 has required secure connections unless on localhost, which this local stack does not use
+# https://www.keycloak.org/docs/latest/upgrading/#a-secure-context-is-now-required
+# this means that we have to enable connections between api/keycloak/ui with https
+# a new `make k3d/generate-ca` exists to facilitate the creation of a CA certificate to be used for generating ingress certificates
+# once created, the certificate will exist in `local-dev/certificates` and can be installed in your browsers trusted authorities if you wish
+# or used with curl `--cacert/--capath` for example
+LAGOON_CORE_USE_HTTPS = true
 
 # install mailpit for lagoon local development
 INSTALL_MAILPIT = true
@@ -473,6 +514,15 @@ ifeq ($(ARCH), darwin)
 endif
 ifeq ($(MACHINE), arm64)
 	INSTALL_UNAUTHENTICATED_REGISTRY = true
+endif
+
+# if this is a stable version of lagoon that is older than the release version that keycloak 26 is used in
+# then use http connections
+ifeq ($(INSTALL_STABLE_CORE),true)
+ifeq (,$(subst ",,$(STABLE_CORE_CHART_APP_VERSION)))
+	STABLE_CORE_CHART_APP_VERSION = $(shell $(HELM) search repo lagoon/lagoon-core -o json | $(JQ) -r '.[]|.app_version')
+endif
+	LAGOON_CORE_USE_HTTPS = $(shell if ! printf 'v2.23.0\n%s\n' "$(STABLE_CORE_CHART_APP_VERSION)" | sort -V -C; then echo false; else echo true; fi)
 endif
 
 # the name of the docker network to create
@@ -688,13 +738,17 @@ k3d/dev: k3d/checkout-charts k3d/install-lagoon
 
 # this is used to checkout the chart repo/branch again if required. otherwise will use the symbolic link
 # that is created for subsequent commands
+# it will also copy the certs generated for this local k3d into the checked out charts repo for re-use by the charts installer
 .PHONY: k3d/checkout-charts
-k3d/checkout-charts:
+k3d/checkout-charts: k3d/generate-ca
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone $(CHARTS_REPOSITORY) "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
-		&& git checkout $(CHARTS_TREEISH)
+		&& git checkout $(CHARTS_TREEISH) \
+		&& mkdir -p certs \
+		&& cp ../local-dev/certificates/* certs/.
+
 
 # this just installs lagoon-core, lagoon-remote, and lagoon-build-deploy
 # doing this allows for lagoon to be installed with a known stable chart version with the INSTALL_STABLE_X overrides
@@ -717,6 +771,11 @@ endif
 		INSTALL_LAGOON_DEPENDENCIES=false DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
+		UI_IMAGE_REPO=$(UI_IMAGE_REPO) UI_IMAGE_TAG=$(UI_IMAGE_TAG) \
+		LAGOON_CORE_USE_HTTPS=$(LAGOON_CORE_USE_HTTPS) \
+		SSHPORTALAPI_IMAGE_REPO=$(SSHPORTALAPI_IMAGE_REPO) SSHPORTALAPI_IMAGE_TAG=$(SSHPORTALAPI_IMAGE_TAG) \
+		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
+		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=uselagoon/build-deploy-image:${BUILD_DEPLOY_IMAGE_TAG} \
 		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
 		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
@@ -739,6 +798,9 @@ endif
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
+ifneq ($(SKIP_DETAILS),true)
+	$(MAKE) k3d/get-lagoon-details
+endif
 
 # k3d/stable-install-lagoon is the same as k3d/install-lagoon except that it starts it with the latest stable chart versions
 .PHONY: k3d/stable-install-lagoon
@@ -748,7 +810,10 @@ k3d/stable-install-lagoon:
 # k3d/local-stack will deploy and seed a lagoon-core with a lagoon-remote and all basic services to get you going
 # and will provide some initial seed data for a user to jump right in and start using lagoon
 .PHONY: k3d/local-stack
-k3d/local-stack: k3d/setup k3d/install-lagoon k3d/seed-data k3d/get-lagoon-details
+k3d/local-stack: k3d/setup
+	$(MAKE) k3d/install-lagoon SKIP_DETAILS=true
+	$(MAKE) k3d/seed-data
+	$(MAKE) k3d/get-lagoon-details
 
 # k3d/stable-local-stack is the same as k3d/local-stack except that it starts it with the latest stable chart versions
 # a helper without having to remember to specify the stable option to the target
@@ -814,8 +879,8 @@ k3d/push-images:
 k3d/get-lagoon-details:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	echo "===============================" && \
-	echo "Lagoon UI URL: http://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo "Lagoon API URL: http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
+	echo "Lagoon UI URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
+	&& echo "Lagoon API URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
 	&& echo "Lagoon API admin legacy token: $$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
 		-e JWTAUDIENCE=api.dev \
@@ -826,12 +891,25 @@ k3d/get-lagoon-details:
 	&& echo "SSH Core Service: lagoon-ssh.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.spec.ports[0].port}')" \
 	&& echo "SSH Portal Service: lagoon-ssh-portal.$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" \
 	&& echo "SSH Token Service: lagoon-token.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "Keycloak admin URL: http://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
+	&& echo "Keycloak admin URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
 	&& echo "Keycloak admin password: $$($(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)" \
 	&& echo "MailPit (email catching service): http://mailpit.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
 	&& echo "" \
-	&& echo "You can run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli" \
-	&& echo "" \
+	&& echo "You can run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli"
+ifeq ($(LAGOON_CORE_USE_HTTPS),true)
+	@echo "" \
+		&& echo "===============================" \
+		&& echo "IMPORTANT" \
+		&& echo "Access to the UI is only valid over HTTPS." \
+		&& echo "You will need to accept the invalid certificates for the following services by visiting the URLS for each in your browser" \
+		&& echo "otherwise the UI will report strange errors." \
+		&& echo "* Lagoon UI" \
+		&& echo "* Lagoon API" \
+		&& echo "* Lagoon Keycloak" \
+		&& echo "alternatively import the generated certificate './local-dev/certificates/lagoontest.crt' into trusted authorities for websites in your browser" \
+		&& echo "==============================="
+endif
+	@echo ""
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-cli-details
@@ -855,9 +933,6 @@ k3d/get-lagoon-cli-details:
 # it is also called as part of k3d/local-stack though so should not need to be called directly.
 .PHONY: k3d/seed-data
 k3d/seed-data:
-ifeq (,$(subst ",,$(STABLE_CORE_CHART_APP_VERSION)))
-	$(eval STABLE_CORE_CHART_APP_VERSION = $(shell $(HELM) search repo lagoon/lagoon-core -o json | $(JQ) -r '.[]|.app_version'))
-endif
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	export LAGOON_LEGACY_ADMIN=$$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
@@ -875,7 +950,7 @@ endif
 		envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
 	fi) && \
 	export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
-    wget --quiet --header "Content-Type: application/json" --header "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" --post-data "$$SEED_DATA_JSON" --content-on-error -O - && \
+	curl -ks -XPOST -H 'Content-Type: application/json' -H "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "$$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" -d "$$SEED_DATA_JSON" && \
 	echo "Loading API seed users" && \
 	if [ $(INSTALL_STABLE_CORE) = true ]; then \
 		cat <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/seed-users.sh) \
@@ -941,6 +1016,17 @@ k3d/retest:
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install --helm-extra-args "--timeout 60m"
+
+# k3d/generate-ca will generate a CA certificate that will be used to issue certificates within the local-stack
+# this CA certificate can be loaded into a web browser so that certificates don't present warnings
+.PHONY: k3d/generate-ca
+k3d/generate-ca:
+	@ mkdir -p local-dev/certificates && \
+	openssl x509 -enddate -noout -in local-dev/certificates/lagoontest.crt > /dev/null 2>&1 || \
+	(openssl genrsa -out local-dev/certificates/lagoontest.key 2048 && \
+	openssl req -x509 -new -nodes -key local-dev/certificates/lagoontest.key \
+		-sha256 -days 3560 -out local-dev/certificates/lagoontest.crt -addext keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign \
+		-subj '/CN=lagoon.test')
 
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d
