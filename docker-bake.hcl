@@ -75,6 +75,40 @@ group "default" {
   ]
 }
 
+group "go-services" {
+  targets = [
+    "actions-handler",
+    "backup-handler",
+    "api-sidecar-handler",
+    "logs2notifications",
+    "task-activestandby",
+    "workflows"
+  ]
+}
+
+group "js-services" {
+  targets = [
+    "api",
+    "auth-server",
+    "webhook-handler",
+    "webhooks2tasks",
+  ]
+}
+
+group "other" {
+  targets = [
+    "api-db",
+    "api-redis",
+    "broker",
+    "keycloak-db",
+    "keycloak",
+    "ssh",
+    "local-api-data-watcher-pusher",
+    "local-git",
+    "tests",
+  ]
+}
+
 group "ui-logs-development" {
   targets = [
     "actions-handler",
