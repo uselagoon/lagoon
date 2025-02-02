@@ -63,10 +63,13 @@ pipeline {
       }
       steps {
         sh script: "make -j$NPROC -O build", label: "Building images"
+        sh script: 'make go/test'
+        retry(3) {
+          sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+        }
         retry(3) {
           sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
           sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built amd64 images to testlagoon/*"
-          sh script: 'make go/test'
         }
       }
     }
