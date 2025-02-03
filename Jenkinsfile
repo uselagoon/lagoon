@@ -65,7 +65,9 @@ pipeline {
         sh script: "make -j$NPROC -O build", label: "Building images"
         sh script: 'make go/test'
         retry(3) {
-          sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+          timeout(time: 15, unit: 'MINUTES') {
+            sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+          }
         }
         retry(3) {
           sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
