@@ -818,10 +818,13 @@ k3d/stable-install-lagoon:
 
 # k3d/local-stack will deploy and seed a lagoon-core with a lagoon-remote and all basic services to get you going
 # and will provide some initial seed data for a user to jump right in and start using lagoon
+INSTALL_SEED_DATA = true
 .PHONY: k3d/local-stack
 k3d/local-stack: k3d/setup
 	$(MAKE) k3d/install-lagoon SKIP_DETAILS=true
+ifeq ($(INSTALL_SEED_DATA),true)
 	$(MAKE) k3d/seed-data
+endif
 	$(MAKE) k3d/get-lagoon-details
 
 # k3d/stable-local-stack is the same as k3d/local-stack except that it starts it with the latest stable chart versions
@@ -946,6 +949,8 @@ k3d/seed-data:
 	echo "Loading API seed data" && \
 	export SSH_PORTAL_HOST="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
 	export SSH_PORTAL_PORT="$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" && \
+	export TOKEN="$$($(KUBECTL) -n lagoon get secret lagoon-remote-ssh-core-token -o json | $(JQ) -r '.data.token | @base64d')" && \
+	export CONSOLE_URL="https://kubernetes.default.svc/" && \
 	export ROUTER_PATTERN="\$${project}.\$${environment}.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && \
 	export SEED_DATA=$$(if [ $(INSTALL_STABLE_CORE) = true ]; then \
 		envsubst < <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/00-populate-kubernetes.gql) | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
@@ -997,8 +1002,10 @@ k3d/port-forwards:
 .PHONY: k3d/retest
 k3d/retest:
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
+		&& $(MAKE) build/local-git \
+		&& $(MAKE) build/local-api-data-watcher-pusher \
 		&& $(MAKE) build/tests \
-		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests" \
+		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher" \
 		&& cd lagoon-charts.k3d.lagoon \
 		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
