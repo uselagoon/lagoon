@@ -886,7 +886,7 @@ k3d/push-images:
 .PHONY: k3d/get-lagoon-details
 k3d/get-lagoon-details:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	echo "===============================" && \
+	echo "===========DETAILS=============" && \
 	echo "Lagoon UI URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
 	&& echo "Lagoon API URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
 	&& echo "Lagoon API admin legacy token: $$(docker run \
@@ -902,28 +902,23 @@ k3d/get-lagoon-details:
 	&& echo "Keycloak admin URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
 	&& echo "Keycloak admin password: $$($(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)" \
 	&& echo "MailPit (email catching service): http://mailpit.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo "" \
-	&& echo "You can run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli"
+	&& echo ""
 ifeq ($(LAGOON_CORE_USE_HTTPS),true)
-	@echo "" \
-		&& echo "===============================" \
-		&& echo "IMPORTANT" \
+	@echo "==========IMPORTANT============" \
 		&& echo "Access to the UI is only valid over HTTPS." \
 		&& echo "You will need to accept the invalid certificates for the following services by visiting the URLS for each in your browser" \
-		&& echo "otherwise the UI will report strange errors." \
-		&& echo "* Lagoon UI" \
-		&& echo "* Lagoon API" \
-		&& echo "* Lagoon Keycloak" \
-		&& echo "alternatively import the generated certificate './local-dev/certificates/lagoontest.crt' into trusted authorities for websites in your browser" \
-		&& echo "==============================="
+		&& echo "* Lagoon UI, API, Keycloak" \
+		&& echo "Alternatively import the generated certificate './local-dev/certificates/rootCA.pem' into trusted authorities for websites in your browser" \
+		&& echo "If you have mkcert installed, you can use 'make install-ca' to install the generated certificate into your trust store."
 endif
-	@echo ""
+	@ echo "Run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli" && \
+		echo ""
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-cli-details
 k3d/get-lagoon-cli-details:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	echo "===============================" && \
+	echo "=========CLI DETAILS===========" && \
 	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql \\" \
 	&& echo "--token $$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
@@ -1030,12 +1025,39 @@ k3d/retest:
 # this CA certificate can be loaded into a web browser so that certificates don't present warnings
 .PHONY: k3d/generate-ca
 k3d/generate-ca:
-	@ mkdir -p local-dev/certificates && \
-	openssl x509 -enddate -noout -in local-dev/certificates/lagoontest.crt > /dev/null 2>&1 || \
-	(openssl genrsa -out local-dev/certificates/lagoontest.key 2048 && \
-	openssl req -x509 -new -nodes -key local-dev/certificates/lagoontest.key \
-		-sha256 -days 3560 -out local-dev/certificates/lagoontest.crt -addext keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign \
-		-subj '/CN=lagoon.test')
+	@mkdir -p local-dev/certificates
+	openssl x509 -enddate -noout -in local-dev/certificates/rootCA.pem > /dev/null 2>&1 || \
+	(openssl genpkey -out local-dev/certificates/rootCA-key.pem -algorithm RSA -pkeyopt rsa_keygen_bits:3072 && \
+	openssl req -x509 -new -nodes -key local-dev/certificates/rootCA-key.pem \
+		-sha256 -days 3560 -out local-dev/certificates/rootCA.pem -addext keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign \
+		-subj '/CN=lagoon.test/O=lagoon.test/OU=lagoon.test')
+
+.PHONY: k3d/regenerate-ca
+k3d/regenerate-ca:
+	@mkdir -p local-dev/certificates
+	@rm local-dev/certificates/rootCA.pem || true && \
+	rm local-dev/certificates/rootCA-key.pem || true && \
+	$(MAKE) k3d/generate-ca
+
+# will use mkcert if it is available
+.PHONY: install-ca
+install-ca:
+ifeq ($(shell command -v mkcert > /dev/null && echo 1 || echo 0), 1)
+	@export CAROOT=local-dev/certificates && \
+	mkcert -install
+else
+	@echo "mkcert not installed, please install mkcert. See https://github.com/FiloSottile/mkcert#installation"
+endif
+
+# will use mkcert if it is available
+.PHONY: uninstall-ca
+uninstall-ca:
+ifeq ($(shell command -v mkcert > /dev/null && echo 1 || echo 0), 1)
+	@export CAROOT=local-dev/certificates && \
+	mkcert -uninstall
+else
+	@echo "mkcert not installed, please install mkcert. See https://github.com/FiloSottile/mkcert#installation"
+endif
 
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d

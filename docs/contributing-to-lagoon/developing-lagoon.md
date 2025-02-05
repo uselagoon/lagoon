@@ -87,6 +87,24 @@ At the end of the process, the command will provide some useful information that
 !!! warning
     This can take some time to complete as it will install a lot of components necessary to make Lagoon work. This includes things like ingress-nginx, harbor, and all the additional services to make exploring Lagoon easy.
 
+### Local development certificates
+
+The local stack deploys with a locally generated CA certificate. This certificate is used by the local stack to provision certificates for services deployed in the local stack.
+
+The certificate `local-dev/certificates/rootCA.pem` is generated automatically when starting the local stack, along with the key. These are stored locally, and ignored by git. Don't share them!
+
+When accessing components of the stack (ui, api, keycloak, anything deployed), you may be presented with certificate warnings. If you have `mkcert` installed, you can use the following target to install the generated certificate into your computers trust store.
+
+```
+make install-ca
+
+# uninstall if required
+make uninstall-ca
+```
+
+For information on `mkcert`, see https://github.com/FiloSottile/mkcert#installation.
+
+Alternatively, you can manually add the generated certificate into your browsers website trusts. You can use your favorite search engine for how to do this, each browser is a little bit different.
 
 ### Local stack setup options
 
