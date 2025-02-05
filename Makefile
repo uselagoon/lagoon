@@ -59,13 +59,13 @@ UI_IMAGE_TAG = pr-307
 
 # SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
-SSHPORTALAPI_IMAGE_REPO = ghcr.io/uselagoon/lagoon-ssh-portal/ssh-portal-api
-SSHPORTALAPI_IMAGE_TAG = pr-497
+SSHPORTALAPI_IMAGE_REPO =
+SSHPORTALAPI_IMAGE_TAG =
 
 # SSHTOKEN_IMAGE_REPO and SSHTOKEN_IMAGE_TAG are an easy way to override the ssh token image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
-SSHTOKEN_IMAGE_REPO = ghcr.io/uselagoon/lagoon-ssh-portal/ssh-token
-SSHTOKEN_IMAGE_TAG = pr-497
+SSHTOKEN_IMAGE_REPO =
+SSHTOKEN_IMAGE_TAG =
 
 # SSHPORTAL_IMAGE_REPO and SSHPORTAL_IMAGE_TAG are an easy way to override the ssh portal image used in the local stack lagoon-remote
 # only works for installations where INSTALL_STABLE_REMOTE=false
