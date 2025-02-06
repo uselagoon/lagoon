@@ -1046,6 +1046,11 @@ export async function getOrganizationById(id: number): Promise<any> {
         quotaGroup
         quotaRoute
         quotaNotification
+        envVariables {
+          name
+          value
+          scope
+        }
       }
     }
   `);
