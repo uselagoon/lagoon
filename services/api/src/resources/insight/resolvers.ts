@@ -1,12 +1,4 @@
-import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { ResolverFn } from '..';
-import {
-  pubSub,
-  createEnvironmentFilteredSubscriber
-} from '../../clients/pubSub';
-import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-
 import { getEnvironmentName, convertBytesToHumanFileSize } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';

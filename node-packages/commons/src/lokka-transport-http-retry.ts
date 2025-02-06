@@ -11,16 +11,16 @@ const generateToken = () => {
       'Unable to create api token due to missing `JWTSECRET`/`JWTAUDIENCE` environment variables'
     );
   } else {
-    const apiAdminToken = createJWTWithoutUserId({
-      payload: {
+    const apiAdminToken = createJWTWithoutUserId(
+      {
         role: 'admin',
         iss: 'lagoon-internal',
         aud: getConfigFromEnv('JWTAUDIENCE'),
         // set a 60s expiry on the token
         exp: Math.floor(Date.now() / 1000) + 60
       },
-      jwtSecret: getConfigFromEnv('JWTSECRET')
-    });
+      getConfigFromEnv('JWTSECRET')
+    );
 
     return `Bearer ${apiAdminToken}`;
   }

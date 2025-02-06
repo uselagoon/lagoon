@@ -1,9 +1,10 @@
 import R from 'ramda';
+import { DeployData, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
-import { WebhookRequestData, deployData, Project } from '../types';
+import { WebhookRequestData, Project } from '../types';
 
 export async function gitlabPush(webhook: WebhookRequestData, project: Project) {
 
@@ -49,14 +50,14 @@ export async function gitlabPush(webhook: WebhookRequestData, project: Project) 
     if (body.user_username) {
       sourceUser = body.user_username
     }
-    const data: deployData = {
+    const data: DeployData = {
       projectName: project.name,
-      type: 'branch',
+      type: DeployType.BRANCH,
       branchName: branchName,
       sha: sha,
       buildName: buildName,
       sourceUser: sourceUser,
-      sourceType: "WEBHOOK",
+      sourceType: DeploymentSourceType.WEBHOOK,
       bulkId: webhook.bulkId,
       bulkName: webhook.bulkName,
     }

@@ -12,16 +12,21 @@ export const isNotNil = complement(isNil);
 export const isNotEmpty = complement(isEmpty);
 
 export const asyncPipe =
-  (...functions) =>
-  (input) =>
+  (...functions: any[]) =>
+  (input: any) =>
     functions.reduce((chain, func) => chain.then(func), Promise.resolve(input));
 
-export const jsonMerge = function (a, b, prop) {
+export const jsonMerge = <T extends Record<string, any>>(
+  a: T[],
+  b: T[],
+  prop: string,
+) => {
   var reduced = a.filter(function (aitem) {
     return !b.find(function (bitem) {
       return aitem[prop] === bitem[prop];
     });
   });
+
   return reduced.concat(b);
 };
 
@@ -32,6 +37,18 @@ export const jsonMerge = function (a, b, prop) {
 // arrayDiff(a1,a2) = [4]
 export const arrayDiff = (a: Array<any>, b: Array<any>) =>
   a.filter((e) => !b.includes(e));
+
+export const encodeBase64 = (data: string): string =>
+  Buffer.from(data, 'utf8').toString('base64');
+
+export const decodeBase64 = (data: string): string =>
+  Buffer.from(data, 'base64').toString('utf8');
+
+export const encodeJSONBase64 = (data: any): string =>
+  encodeBase64(JSON.stringify(data));
+
+export const decodeJSONBase64 = (data: string): any =>
+  JSON.parse(decodeBase64(data));
 
 interface PublicKeyResponse {
   error?: string;
@@ -66,7 +83,7 @@ export async function validateKey(
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({ key: key }).toString(),
+      body: new URLSearchParams({ key: encodeBase64(key) }).toString(),
     },
   );
 

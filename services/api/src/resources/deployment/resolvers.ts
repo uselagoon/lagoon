@@ -28,6 +28,7 @@ import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData } from '@lagoon/commons/dist/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -337,15 +338,10 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
-  if (!sourceUser) {
-      sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  }
-  if (!sourceType) {
-    sourceType = "API"
-  }
-  if (sourceType) {
-    sourceType.toLocaleLowerCase();
-  }
+
+  sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  sourceType ??= DeploymentSourceType.API
+
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({
@@ -648,13 +644,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   if (
-    environment.deployType === 'branch' ||
-    environment.deployType === 'promote'
+    environment.deployType === DeployType.BRANCH ||
+    environment.deployType === DeployType.PROMOTE
   ) {
     if (!environment.deployBaseRef) {
       throw new Error('Cannot deploy: deployBaseRef is empty');
     }
-  } else if (environment.deployType === 'pullrequest') {
+  } else if (environment.deployType === DeployType.PULLREQUEST) {
     if (
       !environment.deployBaseRef &&
       !environment.deployHeadRef &&
@@ -668,19 +664,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
   let buildName = generateBuildId();
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  let deployData: {
-    [key: string]: any;
-  } = {
-    projectName: project.name,
-    type: environment.deployType,
-    buildName: buildName,
-    buildPriority: priority,
-    bulkId: bulkId,
-    bulkName: bulkName,
-    buildVariables: buildVariables,
-    sourceType: "API",
-    sourceUser: sourceUser
-  };
+  let deployData: DeployData;
   let meta: {
     [key: string]: any;
   } = {
@@ -688,9 +672,17 @@ export const deployEnvironmentLatest: ResolverFn = async (
   };
   let taskFunction;
   switch (environment.deployType) {
-    case 'branch':
+    case DeployType.BRANCH:
       deployData = {
-        ...deployData,
+        projectName: project.name,
+        type: environment.deployType,
+        buildName: buildName,
+        buildPriority: priority,
+        bulkId: bulkId,
+        bulkName: bulkName,
+        buildVariables: buildVariables,
+        sourceType: DeploymentSourceType.API,
+        sourceUser: sourceUser,
         branchName: environment.deployBaseRef
       };
       meta = {
@@ -700,9 +692,17 @@ export const deployEnvironmentLatest: ResolverFn = async (
       taskFunction = createDeployTask;
       break;
 
-    case 'pullrequest':
+    case DeployType.PULLREQUEST:
       deployData = {
-        ...deployData,
+        projectName: project.name,
+        type: environment.deployType,
+        buildName: buildName,
+        buildPriority: priority,
+        bulkId: bulkId,
+        bulkName: bulkName,
+        buildVariables: buildVariables,
+        sourceType: DeploymentSourceType.API,
+        sourceUser: sourceUser,
         pullrequestTitle: environment.deployTitle,
         pullrequestNumber: environment.name.replace('pr-', ''),
         headBranchName: environment.deployHeadRef,
@@ -724,9 +724,17 @@ export const deployEnvironmentLatest: ResolverFn = async (
       taskFunction = createDeployTask;
       break;
 
-    case 'promote':
+    case DeployType.PROMOTE:
       deployData = {
-        ...deployData,
+        projectName: project.name,
+        type: environment.deployType,
+        buildName: buildName,
+        buildPriority: priority,
+        bulkId: bulkId,
+        bulkName: bulkName,
+        buildVariables: buildVariables,
+        sourceType: DeploymentSourceType.API,
+        sourceUser: sourceUser,
         branchName: environment.name,
         promoteSourceEnvironment: environment.deployBaseRef
       };
@@ -826,7 +834,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
   const deployData = {
-    type: 'branch',
+    type: DeployType.BRANCH,
     projectName: project.name,
     branchName,
     sha: branchRef,
@@ -835,7 +843,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
-    sourceType: "API",
+    sourceType: DeploymentSourceType.API,
     sourceUser: sourceUser
   };
 
@@ -934,7 +942,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
-    type: 'pullrequest',
+    type: DeployType.PULLREQUEST,
     projectName: project.name,
     pullrequestTitle: title,
     pullrequestNumber: number,
@@ -948,7 +956,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
-    sourceType: "API",
+    sourceType: DeploymentSourceType.API,
     sourceUser: sourceUser
   };
 
@@ -1062,7 +1070,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
-    type: 'promote',
+    type: DeployType.PROMOTE,
     projectName: destProject.name,
     branchName: destinationEnvironment,
     promoteSourceEnvironment: sourceEnvironment.name,
@@ -1071,7 +1079,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
-    sourceType: "API",
+    sourceType: DeploymentSourceType.API,
     sourceUser: sourceUser
   };
 
@@ -1235,14 +1243,13 @@ export const switchActiveStandby: ResolverFn = async (
 
   // try it now
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const sourceType = "API"
   try {
     // add a task into the environment
     var date = new Date();
     var created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
-      'NEW',
+      TaskStatusType.NEW,
       created,
       environmentStandbyId,
       null,
@@ -1253,7 +1260,7 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       false,
       sourceUser,
-      sourceType,
+      TaskSourceType.API,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
 

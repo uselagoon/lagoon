@@ -10,20 +10,16 @@ import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import {
   TaskRegistration,
-  newTaskRegistrationFromObject,
   AdvancedTaskDefinitionInterface,
   AdvancedTaskDefinitionType,
   isAdvancedTaskDefinitionSystemLevelTask,
   getAdvancedTaskDefinitionType
 } from './models/taskRegistration';
 import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
-import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
-import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
-import { Environment } from '../../resolvers';
+import { KeycloakUnauthorizedError } from '../../util/auth';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
-import { logger } from '../../loggers/logger';
-import sql from '../workflow/sql';
+import { TaskSourceType } from '@lagoon/commons/dist/types';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -609,9 +605,7 @@ export const invokeRegisteredTask = async (
         }
 
         taskCommand += `${task.command}`;
-        if (!sourceType) {
-          sourceType = "API"
-        }
+        sourceType ??= TaskSourceType.API
         const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
         const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
           name: task.name,

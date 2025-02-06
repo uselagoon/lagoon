@@ -1,9 +1,10 @@
 import R from 'ramda';
+import { DeployData, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
-import { WebhookRequestData, deployData, Project } from '../types';
+import { WebhookRequestData, Project } from '../types';
 
 const isEditAction = R.propEq('action', 'edited');
 
@@ -72,14 +73,14 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
     if (body.sender.login) {
       sourceUser = body.sender.login
     }
-    const data: deployData = {
+    const data: DeployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
       pullrequestUrl: body.pull_request.html_url,
       pullrequestTitle: body.pull_request.title,
       pullrequestNumber: body.number,
       projectName: project.name,
-      type: 'pullrequest',
+      type: DeployType.PULLREQUEST,
       headBranchName: headBranchName,
       headSha: headSha,
       baseBranchName: baseBranchName,
@@ -87,7 +88,7 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
       branchName: `pr-${body.number}`,
       buildName: buildName,
       sourceUser: sourceUser,
-      sourceType: "WEBHOOK",
+      sourceType: DeploymentSourceType.WEBHOOK,
       bulkId: webhook.bulkId,
       bulkName: webhook.bulkName,
     }

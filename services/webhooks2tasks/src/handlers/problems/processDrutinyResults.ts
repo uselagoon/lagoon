@@ -105,11 +105,7 @@ export async function processDrutinyResultset(
                 description: element.description,
                 data: JSON.stringify(element),
                 service: DRUTINY_SERVICE_NAME,
-                severityScore: null,
                 associatedPackage: 'Drupal',
-                version: null,
-                fixedVersion: null,
-                links: null,
               })
                 .then(() => {
                     sendToLagoonLogs(

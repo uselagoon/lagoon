@@ -81,10 +81,7 @@ interface GitlabProject {
     if (R.prop('privateKey', project)) {
       let keyPair = {} as any;
       try {
-        const privkey = new Buffer(R.prop('privateKey', project)).toString(
-          'base64',
-        );
-        const publickey = await validateKey(privkey, 'private');
+        const publickey = await validateKey(R.prop('privateKey', project), 'private');
         keyPair = {
           ...keyPair,
           private: R.replace(

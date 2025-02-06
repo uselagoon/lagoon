@@ -1,13 +1,14 @@
 import { has } from 'ramda';
-import { connect } from 'amqp-connection-manager';
+import { ChannelWrapper, connect } from 'amqp-connection-manager';
 import { logger } from './local-logger';
 import { levels } from './';
+import { ConfirmChannel } from 'amqplib';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
-let channelWrapperLogs;
+let channelWrapperLogs: ChannelWrapper;
 
 export function initSendToLagoonLogs() {
   const connection = connect(
@@ -32,7 +33,7 @@ export function initSendToLagoonLogs() {
 
   // Cast any to ChannelWrapper to get type-safetiness through our own code
   channelWrapperLogs = connection.createChannel({
-    setup: channel =>
+    setup: (channel: ConfirmChannel) =>
       Promise.all([
         channel.assertExchange('lagoon-logs', 'direct', { durable: true })
       ])
