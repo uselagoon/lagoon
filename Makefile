@@ -55,17 +55,17 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 # UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
 # only works for installations where INSTALL_STABLE_CORE=false
 # UI_IMAGE_REPO = uselagoon/ui
-UI_IMAGE_TAG = pr-307
+# UI_IMAGE_TAG =
 
 # SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
-SSHPORTALAPI_IMAGE_REPO =
-SSHPORTALAPI_IMAGE_TAG =
+# SSHPORTALAPI_IMAGE_REPO =
+# SSHPORTALAPI_IMAGE_TAG =
 
 # SSHTOKEN_IMAGE_REPO and SSHTOKEN_IMAGE_TAG are an easy way to override the ssh token image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
-SSHTOKEN_IMAGE_REPO =
-SSHTOKEN_IMAGE_TAG =
+# SSHTOKEN_IMAGE_REPO =
+# SSHTOKEN_IMAGE_TAG =
 
 # SSHPORTAL_IMAGE_REPO and SSHPORTAL_IMAGE_TAG are an easy way to override the ssh portal image used in the local stack lagoon-remote
 # only works for installations where INSTALL_STABLE_REMOTE=false
@@ -457,7 +457,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = keycloak-tls-updates
+CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
