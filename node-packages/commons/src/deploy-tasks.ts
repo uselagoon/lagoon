@@ -334,7 +334,6 @@ export const deployTargetPromote = async function(
     const projectOpenshift = await getOpenShiftInfoForProject(deployData.projectName)
     deployTarget = {
         openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
-        branches: projectOpenshift.project.branches,
         openshift: projectOpenshift.project.openshift
     }
     const deployTargetConfigs = await getDeployTargetConfigsForProject(projectId)
@@ -343,7 +342,6 @@ export const deployTargetPromote = async function(
       if (promoteSourceEnvOpenshift) {
         deployTarget = {
             openshiftProjectPattern: promoteSourceEnvOpenshift.environment.openshiftProjectPattern,
-            branches: promoteSourceEnvOpenshift.environment.branches,
             openshift: promoteSourceEnvOpenshift.environment.openshift
         }
       } else {
