@@ -3715,6 +3715,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#local-development-certificates" class="md-nav__link">
+    Local development certificates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#local-stack-setup-options" class="md-nav__link">
     Local stack setup options
   </a>
@@ -5034,6 +5041,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#local-development-certificates" class="md-nav__link">
+    Local development certificates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#local-stack-setup-options" class="md-nav__link">
     Local stack setup options
   </a>
@@ -5381,21 +5395,32 @@
 <p class="admonition-title">Warning</p>
 <p>This can take some time to complete as it will install a lot of components necessary to make Lagoon work. This includes things like ingress-nginx, harbor, and all the additional services to make exploring Lagoon easy.</p>
 </div>
+<h3 id="local-development-certificates">Local development certificates<a class="headerlink" href="#local-development-certificates" title="Permanent link">#</a></h3>
+<p>The local stack deploys with a locally generated CA certificate. This certificate is used by the local stack to provision certificates for services deployed in the local stack.</p>
+<p>The certificate <code>local-dev/certificates/rootCA.pem</code> is generated automatically when starting the local stack, along with the key. These are stored locally, and ignored by git. Don't share them!</p>
+<p>When accessing components of the stack (ui, api, keycloak, anything deployed), you may be presented with certificate warnings. If you have <code>mkcert</code> installed, you can use the following target to install the generated certificate into your computers trust store.</p>
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>make install-ca
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a># uninstall if required
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>make uninstall-ca
+</span></code></pre></div>
+<p>For information on <code>mkcert</code>, see https://github.com/FiloSottile/mkcert#installation.</p>
+<p>Alternatively, you can manually add the generated certificate into your browsers website trusts. You can use your favorite search engine for how to do this, each browser is a little bit different.</p>
 <h3 id="local-stack-setup-options">Local stack setup options<a class="headerlink" href="#local-stack-setup-options" title="Permanent link">#</a></h3>
 <p>There are a number of variables that can be used with <code>make k3d/local-stack</code> that can enable or disable certain options when setting up the initial cluster.</p>
 <h4 id="dbaas-providers">DBaaS providers<a class="headerlink" href="#dbaas-providers" title="Permanent link">#</a></h4>
 <p>There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatability reasons, you can disable them individually.</p>
-<div class="language-bash highlight"><span class="filename">Deploy local stack without specific provider</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># disable all of them</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_DBAAS_PROVIDERS</span><span class="o">=</span><span class="nb">false</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># just disable mongodb</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_MONGODB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># just disable mariadb</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_MARIADB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># just disable postgres</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_POSTGRES_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># other combinations as needed</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_POSTGRES_PROVIDER</span><span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="nv">INSTALL_MONGODB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
+<div class="language-bash highlight"><span class="filename">Deploy local stack without specific provider</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># disable all of them</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_DBAAS_PROVIDERS</span><span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># just disable mongodb</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_MONGODB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># just disable mariadb</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_MARIADB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># just disable postgres</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_POSTGRES_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># other combinations as needed</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_POSTGRES_PROVIDER</span><span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="nv">INSTALL_MONGODB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
 </span></code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
@@ -5407,36 +5432,36 @@
 <p>Using this feature also allows for upgrading from a stable chart version to a feature chart.</p>
 <h5 id="all-stable-components">All stable components<a class="headerlink" href="#all-stable-components" title="Permanent link">#</a></h5>
 <p>This will install lagoon-core, lagoon-remote, and lagoon-build-deploy charts with their current stable versions</p>
-<div class="language-bash highlight"><span class="filename">Deploy local stack with stable core, remote, build-deploy</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>make<span class="w"> </span>k3d/stable-local-stack
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># which is a shorter target for</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
+<div class="language-bash highlight"><span class="filename">Deploy local stack with stable core, remote, build-deploy</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>make<span class="w"> </span>k3d/stable-local-stack
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># which is a shorter target for</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>
 <h5 id="specific-stable-components">Specific stable components<a class="headerlink" href="#specific-stable-components" title="Permanent link">#</a></h5>
 <p>It's also possible to selectively install certain components with a stable version. Anything not set to <code>true</code> will install the version from the charts repository.</p>
-<div class="language-bash highlight"><span class="filename">Deploy local stack with stable versions</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_CORE</span><span class="o">=</span><span class="nb">true</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_REMOTE</span><span class="o">=</span><span class="nb">true</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_BUILDDEPLOY</span><span class="o">=</span><span class="nb">true</span>
+<div class="language-bash highlight"><span class="filename">Deploy local stack with stable versions</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_CORE</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_REMOTE</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_BUILDDEPLOY</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>
 <h3 id="upgrading-lagoon-components-only">Upgrading Lagoon components only<a class="headerlink" href="#upgrading-lagoon-components-only" title="Permanent link">#</a></h3>
 <p>Once you have a <code>k3d/local-stack</code> running, if you need to re-run the Lagoon installation to test an upgrade you can use the following target.</p>
-<div class="language-bash highlight"><span class="filename">Install or upgrade all Lagoon components</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>make<span class="w"> </span>k3d/install-lagoon
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># or shortcut to a stable lagoon</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>make<span class="w"> </span>k3d/stable-install-lagoon
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># which is a shorter target for</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>make<span class="w"> </span>k3d/install-lagoon<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
+<div class="language-bash highlight"><span class="filename">Install or upgrade all Lagoon components</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>make<span class="w"> </span>k3d/install-lagoon
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># or shortcut to a stable lagoon</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>make<span class="w"> </span>k3d/stable-install-lagoon
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># which is a shorter target for</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>make<span class="w"> </span>k3d/install-lagoon<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>
 <p>This can be used if you started an initial <code>local-stack</code> with stable chart versions. Running this without any of the <code>INSTALL_STABLE_X</code> flags, will build and install Lagoon with the versions of images in the current <code>uselagoon/lagoon</code> branch, and install using the charts from the repository listed under <code>CHARTS_REPOSITORY</code> and <code>CHARTS_TREEISH</code>.</p>
 <p>You can also retain any stable versions of other components if you wish, for example only installing the bleeding edge lagoon-core. This can be used to verify an upgrade path from a stable chart</p>
-<div class="language-bash highlight"><span class="filename">Install all stable then upgrade Lagoon core only</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># install a local stack with all stable components</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># optionally checkout a new version of the charts branch if there are changes made</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>make<span class="w"> </span>k3d/checkout-charts
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># make changes to a lagoon service or the lagoon-core charts and re-install lagoon</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>make<span class="w"> </span>k3d/install-lagoon<span class="w"> </span><span class="nv">INSTALL_STABLE_REMOTE</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="nv">INSTALL_STABLE_BUILDDEPLOY</span><span class="o">=</span><span class="nb">true</span>
+<div class="language-bash highlight"><span class="filename">Install all stable then upgrade Lagoon core only</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># install a local stack with all stable components</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_STABLE_LAGOON</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># optionally checkout a new version of the charts branch if there are changes made</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>make<span class="w"> </span>k3d/checkout-charts
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># make changes to a lagoon service or the lagoon-core charts and re-install lagoon</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>make<span class="w"> </span>k3d/install-lagoon<span class="w"> </span><span class="nv">INSTALL_STABLE_REMOTE</span><span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="nv">INSTALL_STABLE_BUILDDEPLOY</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -5452,35 +5477,35 @@ If you make changes to the charts branch, you can use <code>make k3d/dev</code> 
 <p>If you want to skip installing Harbor entirely, even if your system is not arm based, you can use the following</p>
 <p>```bash title="Harbor disabled
 INSTALL_UNAUTHENTICATED_REGISTRY=true
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>!!! info
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    There are [open issues](https://github.com/goharbor/harbor/issues/20074) in the harbor repository with people requesting support for arm, and even a [harbor-arm repository](https://github.com/goharbor/harbor-arm), which appears to be abandoned.
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>#### Backups / K8up
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>It is possible to start the local-stack with k8up support for `backup.appuio.ch/v1alpha`(v1) and `k8up.io/v1`(v2) for testing and validating that backups work, or verifying changes to backup functionality.
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>There are 2 make variables you can set, by default k8up is not installed.
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>If you wish to install k8up, you can change the following in the Makefile (or use it on every make command you run). This will install both versions of k8up into the local-stack in separate namespaces. The version that `lagoon-remote` will use is defined with a separate variable
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>```bash title=&quot;K8up enabled
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>INSTALL_K8UP=true
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>!!! info
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    There are [open issues](https://github.com/goharbor/harbor/issues/20074) in the harbor repository with people requesting support for arm, and even a [harbor-arm repository](https://github.com/goharbor/harbor-arm), which appears to be abandoned.
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>#### Backups / K8up
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>It is possible to start the local-stack with k8up support for `backup.appuio.ch/v1alpha`(v1) and `k8up.io/v1`(v2) for testing and validating that backups work, or verifying changes to backup functionality.
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>There are 2 make variables you can set, by default k8up is not installed.
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>If you wish to install k8up, you can change the following in the Makefile (or use it on every make command you run). This will install both versions of k8up into the local-stack in separate namespaces. The version that `lagoon-remote` will use is defined with a separate variable
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>```bash title=&quot;K8up enabled
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>INSTALL_K8UP=true
 </span></code></pre></div></p>
 <p>If k8up is installed, the default version that will be supported by <code>lagoon-remote</code> will be <code>k8up.io/v1</code>(v2) of k8up. This means any builds will create resources with this CRD version. You can change the version that <code>lagoon-remote</code> uses by specifying <code>v1</code> or <code>v2</code>.</p>
 <p>```bash title="K8up version
 BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Installing k8up will also configure `lagoon-core` to start the `backup-handler` service so that the entire system works locally.
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>### Run the Lagoon test-suite
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>If you&#39;re developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options.
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>```bash title=&quot;Start tests&quot;
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>make k3d/test
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a># or use retest if you already have a local stack running
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>make k3d/retest
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Installing k8up will also configure `lagoon-core` to start the `backup-handler` service so that the entire system works locally.
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>### Run the Lagoon test-suite
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>If you&#39;re developing new functionality in Lagoon and want to make sure the tests complete, you can run the entire test suite using the following options.
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>```bash title=&quot;Start tests&quot;
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>make k3d/test
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a># or use retest if you already have a local stack running
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>make k3d/retest
 </span></code></pre></div></p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -5508,34 +5533,34 @@ BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
 <h3 id="view-the-test-progress-and-your-local-cluster">View the test progress and your local cluster<a class="headerlink" href="#view-the-test-progress-and-your-local-cluster" title="Permanent link">#</a></h3>
 <p>The test routine creates a local Kubeconfig file (called <code>kubeconfig.k3d.lagoon</code> in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like <a href="https://k8slens.dev/">Lens</a>, <a href="https://octant.dev/">Octant</a>, <a href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/">kubectl</a> or <a href="https://www.portainer.io/">Portainer</a> in our workflows. Lagoon Core and the tests build in the <code>lagoon-core</code> namespace, Remote is installed in the <code>Lagoon</code> namespace. Each lagoon test environment creates its own namespace to run, so make sure to use the correct context when inspecting.</p>
 <p>In order to use kubectl with the local cluster, you will need to use the correct Kubeconfig. This can be done for every command or it can be added to your preferred tool:</p>
-<div class="language-bash highlight"><span class="filename">kubeconfig.k3d.lagoon</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">KUBECONFIG</span><span class="o">=</span>./kubeconfig.k3d.lagoon<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>lagoon
+<div class="language-bash highlight"><span class="filename">kubeconfig.k3d.lagoon</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nv">KUBECONFIG</span><span class="o">=</span>./kubeconfig.k3d.lagoon<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>lagoon
 </span></code></pre></div>
 <p>The Helm charts used to build the local Lagoon are cloned into a local folder and symlinked to <code>lagoon-charts.k3d.lagoon</code> where you can see the configuration. We'll cover how to make easy modifications later in this documentation.</p>
 <h3 id="interact-with-your-local-lagoon-cluster">Interact with your local Lagoon cluster<a class="headerlink" href="#interact-with-your-local-lagoon-cluster" title="Permanent link">#</a></h3>
 <p>The Makefile includes a few simple routines that will make interacting with the installed Lagoon simpler:</p>
 <h4 id="port-forwarding">Port forwarding<a class="headerlink" href="#port-forwarding" title="Permanent link">#</a></h4>
 <p>Clusters deployed by this makefile will provide loadbalancers and individual IPs, but if you choose to you can port-forward some services using the following</p>
-<div class="language-bash highlight"><span class="filename">Create local ports</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>make<span class="w"> </span>k3d/port-forwards
+<div class="language-bash highlight"><span class="filename">Create local ports</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>make<span class="w"> </span>k3d/port-forwards
 </span></code></pre></div>
 <p>This will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to <code>stdout</code>, so it should be performed in a secondary terminal/window.</p>
 <h4 id="lagoon-credentialsinformation">Lagoon credentials/information<a class="headerlink" href="#lagoon-credentialsinformation" title="Permanent link">#</a></h4>
 <p>This will retrieve the necessary credentials to interact with the Lagoon.</p>
-<div class="language-bash highlight"><span class="filename">Retrieve admin creds</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>make<span class="w"> </span>k3d/get-lagoon-details
+<div class="language-bash highlight"><span class="filename">Retrieve admin creds</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>make<span class="w"> </span>k3d/get-lagoon-details
 </span></code></pre></div>
 <ul>
 <li>The JWT is an admin-scoped token for use as a bearer token with your local GraphQL client. <a href="../../interacting/graphql/">See more in our GraphQL documentation</a>.</li>
 <li>There is a token for use with the "admin" user in Keycloak, who can access all users, groups, roles, etc.</li>
 </ul>
 <p>It is also possible to get the command snippet to add the configuration for the local-stack to your lagoon-cli.</p>
-<div class="language-bash highlight"><span class="filename">Retrieve admin creds</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>make<span class="w"> </span>k3d/get-lagoon-cli-details
+<div class="language-bash highlight"><span class="filename">Retrieve admin creds</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>make<span class="w"> </span>k3d/get-lagoon-cli-details
 </span></code></pre></div>
 <h4 id="rebuild-lagoon-core-and-push-images">Rebuild Lagoon core and push images<a class="headerlink" href="#rebuild-lagoon-core-and-push-images" title="Permanent link">#</a></h4>
 <p>This will checkout <code>CHARTS_REPOSITORY</code> and <code>CHARTS_TREEISH</code> again, then build and re-push the images listed in <code>KIND_SERVICES</code> with the correct tag, and redeploy the lagoon charts. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g <code>rm build/api &amp;&amp; make build/api</code>.</p>
-<div class="language-bash highlight"><span class="filename">Re-push images</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>make<span class="w"> </span>k3d/dev
+<div class="language-bash highlight"><span class="filename">Re-push images</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>make<span class="w"> </span>k3d/dev
 </span></code></pre></div>
 <h4 id="patch-with-local-nodejs">Patch with local node.js<a class="headerlink" href="#patch-with-local-nodejs" title="Permanent link">#</a></h4>
 <p>This will build the typescript services, using your locally installed Node.js (it should be &gt;16.0). It will then:</p>
-<div class="language-bash highlight"><span class="filename">Build typescript services</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>make<span class="w"> </span>k3d/local-dev-patch
+<div class="language-bash highlight"><span class="filename">Build typescript services</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>make<span class="w"> </span>k3d/local-dev-patch
 </span></code></pre></div>
 <ul>
 <li>Mount the "dist" folders from the Lagoon services into the correct lagoon-core pods in Kubernetes</li>
@@ -5545,35 +5570,35 @@ BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
 </ul>
 <h4 id="install-simple-logging-support">Install simple Logging support<a class="headerlink" href="#install-simple-logging-support" title="Permanent link">#</a></h4>
 <p>This will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs (Lagoon and project) to it, using the configuration in <a href="https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging">lagoon-logging</a>.</p>
-<div class="language-bash highlight"><span class="filename">Initiate logging</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>make<span class="w"> </span>k3d/local-dev-logging
+<div class="language-bash highlight"><span class="filename">Initiate logging</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>make<span class="w"> </span>k3d/local-dev-logging
 </span></code></pre></div>
 <h4 id="re-run-specific-tests">Re run specific tests<a class="headerlink" href="#re-run-specific-tests" title="Permanent link">#</a></h4>
 <p>This will re-run a suite of tests (defined in the <code>TESTS</code> variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). You can specify tests to run by passing the TESTS variable inline.</p>
-<div class="language-bash highlight"><span class="filename">Re-run tests.</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>make<span class="w"> </span>k3d/retest
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="c1"># OR</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>make<span class="w"> </span>k3d/retest<span class="w"> </span><span class="nv">TESTS</span><span class="o">=</span><span class="s1">&#39;[features-kubernetes]&#39;</span>
+<div class="language-bash highlight"><span class="filename">Re-run tests.</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>make<span class="w"> </span>k3d/retest
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># OR</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>make<span class="w"> </span>k3d/retest<span class="w"> </span><span class="nv">TESTS</span><span class="o">=</span><span class="s1">&#39;[features-kubernetes]&#39;</span>
 </span></code></pre></div>
 <p>If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g <code>rm build/tests &amp;&amp; make build/tests &amp;&amp; make k3d/push-images IMAGES='tests' &amp;&amp; make k3d/retest TESTS='[api]'</code></p>
 <h4 id="push-images">Push images<a class="headerlink" href="#push-images" title="Permanent link">#</a></h4>
 <p>This will push all the images up to the image registry. Specifying <code>IMAGES</code> will tag and push specific images.</p>
-<div class="language-bash highlight"><span class="filename">Push all images</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>make<span class="w"> </span>k3d/push-images
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># OR</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>make<span class="w"> </span>k3d/push-images<span class="w"> </span><span class="nv">IMAGES</span><span class="o">=</span><span class="s1">&#39;tests local-git&#39;</span>
+<div class="language-bash highlight"><span class="filename">Push all images</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>make<span class="w"> </span>k3d/push-images
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># OR</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>make<span class="w"> </span>k3d/push-images<span class="w"> </span><span class="nv">IMAGES</span><span class="o">=</span><span class="s1">&#39;tests local-git&#39;</span>
 </span></code></pre></div>
 <h4 id="tear-down">Tear down<a class="headerlink" href="#tear-down" title="Permanent link">#</a></h4>
 <p>This will remove the K3D Lagoon cluster from your local Docker.</p>
-<div class="language-bash highlight"><span class="filename">Remove cluster</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>make<span class="w"> </span>k3d/clean
+<div class="language-bash highlight"><span class="filename">Remove cluster</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>make<span class="w"> </span>k3d/clean
 </span></code></pre></div>
 <h5 id="additional-cleanup-commands">Additional cleanup commands<a class="headerlink" href="#additional-cleanup-commands" title="Permanent link">#</a></h5>
 <p>There could be a number of old resources hanging around after you've run the stack a few times, you can use the following to clean up further.</p>
-<div class="language-bash highlight"><span class="filename">Cleanup commands</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># remove any unused generated kubeconfigs</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>make<span class="w"> </span>k3d/clean-k3dconfigs
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># remove any unused cloned chart directories</span>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>make<span class="w"> </span>k3d/clean-charts
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># combination of tear down, remove any unused cloned chart directories, and unused generated kubeconfigs</span>
-</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>make<span class="w"> </span>k3d/clean-all
+<div class="language-bash highlight"><span class="filename">Cleanup commands</span><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># remove any unused generated kubeconfigs</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>make<span class="w"> </span>k3d/clean-k3dconfigs
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># remove any unused cloned chart directories</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>make<span class="w"> </span>k3d/clean-charts
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># combination of tear down, remove any unused cloned chart directories, and unused generated kubeconfigs</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>make<span class="w"> </span>k3d/clean-all
 </span></code></pre></div>
 <h3 id="ansible">Ansible<a class="headerlink" href="#ansible" title="Permanent link">#</a></h3>
 <p>The Lagoon test uses Ansible to run the test suite. Each range of tests for a specific function has been split into its own routine. If you are performing development work locally, select which tests to run, and update the <code>$TESTS</code> variable in the Makefile to reduce the concurrent tests running.</p>
@@ -5605,27 +5630,27 @@ BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="i-cant-build-a-docker-image-for-any-nodejs-based-service">I can't build a Docker image for any Node.js based service<a class="headerlink" href="#i-cant-build-a-docker-image-for-any-nodejs-based-service" title="Permanent link">#</a></h3>
 <p>Rebuild the images via:</p>
-<div class="language-bash highlight"><span class="filename">Rebuild images</span><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="w">    </span>make<span class="w"> </span>clean
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">    </span>make<span class="w"> </span>build
+<div class="language-bash highlight"><span class="filename">Rebuild images</span><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="w">    </span>make<span class="w"> </span>clean
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">    </span>make<span class="w"> </span>build
 </span></code></pre></div>
 <h3 id="i-get-errors-about-missing-node_modules-content-when-i-try-to-build-run-a-nodejs-based-image">I get errors about missing <code>node_modules</code> content when I try to build / run a Node.js based image<a class="headerlink" href="#i-get-errors-about-missing-node_modules-content-when-i-try-to-build-run-a-nodejs-based-image" title="Permanent link">#</a></h3>
 <p>Make sure to run <code>yarn</code> in Lagoon's root directory, since some services have common dependencies managed by <code>yarn</code> workspaces.</p>
 <h3 id="i-get-an-error-resolving-the-nipio-domains">I get an error resolving the <code>nip.io</code> domains<a class="headerlink" href="#i-get-an-error-resolving-the-nipio-domains" title="Permanent link">#</a></h3>
-<div class="language-text highlight"><span class="filename">Error</span><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Error response from daemon: Get https://registry.172.18.0.2.nip.io/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
+<div class="language-text highlight"><span class="filename">Error</span><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Error response from daemon: Get https://registry.172.18.0.2.nip.io/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
 </span></code></pre></div>
 <p>This can happen if your local resolver filters private IPs from results. You can work around this by editing <code>/etc/resolv.conf</code> and adding a line like <code>nameserver 8.8.8.8</code> at the top to use a public resolver that doesn't filter results.</p>
 <h3 id="i-want-to-be-able-to-test-email-in-a-demo-environment-using-the-lagoon-built-in-ssmtp-configuration-entrypoints">I want to be able to test email in a demo environment using the lagoon built in ssmtp configuration entrypoints<a class="headerlink" href="#i-want-to-be-able-to-test-email-in-a-demo-environment-using-the-lagoon-built-in-ssmtp-configuration-entrypoints" title="Permanent link">#</a></h3>
 <p>This k3d cluster installs a mail catching service that is available at <code>mxout.lagoon.svc:25</code> within the cluster (it also has a web interface <code>make k3d/get-lagoon-details</code> for details). Some images in lagoon support <code>SSMTP_MAILHUB</code> variable, which can be added to a project using the lagoon-cli, or the following graphql via the API.</p>
-<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>addOrUpdateEnvVariableByName(
-</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>    input: {
-</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>        project: &quot;lagoon-demo&quot;
-</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>        scope: RUNTIME
-</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>        name: &quot;SSMTP_MAILHUB&quot;
-</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>        value: &quot;mxout.lagoon.svc:25&quot;
-</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    }
-</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>) {
-</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>    id
-</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>}
+<div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>addOrUpdateEnvVariableByName(
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>    input: {
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>        project: &quot;lagoon-demo&quot;
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>        scope: RUNTIME
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>        name: &quot;SSMTP_MAILHUB&quot;
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>        value: &quot;mxout.lagoon.svc:25&quot;
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>    }
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>) {
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    id
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a>}
 </span></code></pre></div>
 <h2 id="example-workflows">Example workflows<a class="headerlink" href="#example-workflows" title="Permanent link">#</a></h2>
 <p>Here are some development scenarios and useful workflows for getting things done.</p>
@@ -5634,33 +5659,33 @@ BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=v2
 <ol>
 <li>Deploy the lagoon and run the test you're modifying.</li>
 </ol>
-<div class="language-bash highlight"><span class="filename">Deploy Lagoon</span><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>make<span class="w"> </span>k3d/test<span class="w"> </span><span class="nv">TESTS</span><span class="o">=[</span>features-variables<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">Deploy Lagoon</span><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>make<span class="w"> </span>k3d/test<span class="w"> </span><span class="nv">TESTS</span><span class="o">=[</span>features-variables<span class="o">]</span>
 </span></code></pre></div>
 <ol>
 <li>Edit <code>tests/tests/features-variables.yaml</code> and add a test case.</li>
 <li>Rebuild the <code>tests</code> image.</li>
 </ol>
-<div class="language-bash highlight"><span class="filename">Build tests</span><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>rm<span class="w"> </span>build/tests
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>make<span class="w"> </span>-j8<span class="w"> </span>build/tests
+<div class="language-bash highlight"><span class="filename">Build tests</span><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>rm<span class="w"> </span>build/tests
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>make<span class="w"> </span>-j8<span class="w"> </span>build/tests
 </span></code></pre></div>
 <ol>
 <li>Push the new <code>tests</code> image into the cluster registry.</li>
 </ol>
-<div class="language-bash highlight"><span class="filename">Push test image</span><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>make<span class="w"> </span>k3d/push-images<span class="w"> </span><span class="nv">IMAGES</span><span class="o">=</span>tests
+<div class="language-bash highlight"><span class="filename">Push test image</span><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>make<span class="w"> </span>k3d/push-images<span class="w"> </span><span class="nv">IMAGES</span><span class="o">=</span>tests
 </span></code></pre></div>
 <ol>
 <li>Rerun the tests.</li>
 </ol>
-<div class="language-bash highlight"><span class="filename">Re-run tests</span><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>make<span class="w"> </span>k3d/retest<span class="w"> </span><span class="nv">TESTS</span><span class="o">=[</span>features-variables<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">Re-run tests</span><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>make<span class="w"> </span>k3d/retest<span class="w"> </span><span class="nv">TESTS</span><span class="o">=[</span>features-variables<span class="o">]</span>
 </span></code></pre></div>
 <h3 id="k3d-internal-dns-cluster-service-resolution-issues">k3d internal DNS cluster service resolution issues<a class="headerlink" href="#k3d-internal-dns-cluster-service-resolution-issues" title="Permanent link">#</a></h3>
 <p>If you encounter an issue whe running a local-stack that seems to indicate that the cluster can't resolve an internal service within the cluster, you may need to run
-<div class="language-bash highlight"><span class="filename">br_netfilter</span><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>sudo<span class="w"> </span>modprobe<span class="w"> </span>br_netfilter
+<div class="language-bash highlight"><span class="filename">br_netfilter</span><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>sudo<span class="w"> </span>modprobe<span class="w"> </span>br_netfilter
 </span></code></pre></div></p>
 <h3 id="k3d-containers-reporting-too-many-open-files">k3d containers reporting too many open files<a class="headerlink" href="#k3d-containers-reporting-too-many-open-files" title="Permanent link">#</a></h3>
 <p>You may need to bump <code>fs.inotify.max_user_instances</code> and <code>fs.inotify.max_user_watches</code></p>
-<div class="language-bash highlight"><span class="filename">sysctl</span><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>sudo<span class="w"> </span>sysctl<span class="w"> </span>fs.inotify.max_user_instances<span class="o">=</span><span class="m">8192</span>
-</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>sudo<span class="w"> </span>sysctl<span class="w"> </span>fs.inotify.max_user_watches<span class="o">=</span><span class="m">524288</span>
+<div class="language-bash highlight"><span class="filename">sysctl</span><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>sudo<span class="w"> </span>sysctl<span class="w"> </span>fs.inotify.max_user_instances<span class="o">=</span><span class="m">8192</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>sudo<span class="w"> </span>sysctl<span class="w"> </span>fs.inotify.max_user_watches<span class="o">=</span><span class="m">524288</span>
 </span></code></pre></div>
 
 
