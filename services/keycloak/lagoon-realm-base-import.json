@@ -1291,6 +1291,15 @@
               },
               {
                 "name": "addGroup"
+              },
+              {
+                "name": "addEnvVar"
+              },
+              {
+                "name": "deleteEnvVar"
+              },
+              {
+                "name": "viewEnvVar"
               }
             ]
           },
@@ -1805,8 +1814,19 @@
             "decisionStrategy": "AFFIRMATIVE",
             "config": {
               "resources": "[\"organization\"]",
-              "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\"]",
+              "scopes": "[\"view\",\"viewProject\",\"viewGroup\",\"viewNotification\",\"viewUser\",\"viewUsers\",\"viewEnvVar\"]",
               "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\",\"[Lagoon] User is viewer of organization\"]"
+            }
+          },
+          {
+            "name": "Manage Organization Environmnet Variables",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"addEnvVar\",\"deleteEnvVar\",\"viewEnvVar\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
           {
@@ -2903,6 +2923,15 @@
           },
           {
             "name": "addNoExec"
+          },
+          {
+            "name": "addEnvVar"
+          },
+          {
+            "name": "deleteEnvVar"
+          },
+          {
+            "name": "viewEnvVar"
           }
         ],
         "decisionStrategy": "UNANIMOUS"
