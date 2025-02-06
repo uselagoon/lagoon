@@ -109,21 +109,23 @@ Please note that service names adhere to the [RFC 1035](https://tools.ietf.org/h
 
 #### `build`
 
-If you want Lagoon to build a Dockerfile for your service during every deployment, you can define it here:
+If you want Lagoon to build an image for your service during every deployment, you can define it here:
 
 `build`
 
-* `context`
-  * The build context path that should be passed on into the `docker build` command.
-* `dockerfile:`
-  * Location and name of the Dockerfile that should be built.
+* `context`: The build context path that should be passed on into the `docker build` command.
+* `dockerfile`: Location and name of the Dockerfile that should be built.
 
 !!! warning
     Lagoon does NOT support the short version of `build: <Dockerfile>` and will fail if it finds such a definition.
 
+If you're building a derived image and need to ensure the base image is always updated, add the
+base image as a label for the service: `lagoon.base.image: container.reg/my/baseimage:latest`. The
+value supports environment variable replacement, for example `baseimage:${MY_BASEIMAGE_TAG:-latest}`.
+
 #### `image`
 
-If you don't need to build a Dockerfile and just want to use an existing Dockerfile, define it via `image`.
+If you want to use an existing image, instead of building one, define it via `image`.
 
 ### Types
 
