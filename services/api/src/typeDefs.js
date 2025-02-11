@@ -1350,7 +1350,7 @@ const typeDefs = gql`
     deploymentByRemoteId(id: String): Deployment
     deploymentByName(input: DeploymentByNameInput): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
-    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType], month: Date, includeDeleted: Boolean): [Deployment]
+    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType], startDate: Date, endDate: Date, includeDeleted: Boolean): [Deployment]
     taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task

@@ -151,7 +151,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"], month, includeDeleted } = input;
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"], startDate, endDate, includeDeleted } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -181,14 +181,13 @@ export const getDeploymentsByFilter: ResolverFn = async (
       queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
   }
 
-  // collect builds for a specific year/month
-  if (month) {
-    queryBuilder = queryBuilder.andWhere(
-      knex.raw(`YEAR(deployment.created) = YEAR(STR_TO_DATE(?, '%Y-%m'))`, month),
-    )
-    .andWhere(
-      knex.raw(`MONTH(deployment.created) = MONTH(STR_TO_DATE(?, '%Y-%m'))`, month),
-    );
+  // collect builds for a specific date range
+  if (startDate) {
+    queryBuilder = queryBuilder.where('deployment.created', '>=', input.startDate);
+  }
+
+  if (endDate) {
+    queryBuilder = queryBuilder.where('deployment.created', '<=', input.endDate);
   }
 
   if(openshifts) {
