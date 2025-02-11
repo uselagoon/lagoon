@@ -2,24 +2,24 @@
 
 CONFIG_PATH=/tmp/kcadm.config
 
-function auth {
 # login to keycloak
-if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
-then
-   if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
-   then
-   echo "Unable to log in to keycloak with client admin-api or username and password"
-   echo "If you have rotated the admin-api secret, you will need to log in and update it manually"
-   exit 1
-   fi
-fi
+function auth {
+  if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
+  then
+    if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    then
+      echo "Unable to log in to keycloak with client admin-api or username and password"
+      echo "If you have rotated the admin-api secret, you will need to log in and update it manually"
+      exit 1
+    fi
+  fi
 }
 
 auth
 
 if /opt/keycloak/bin/kcadm.sh get realms/sso --config $CONFIG_PATH > /dev/null; then
-    echo "Realm sso is already created, skipping"
-    exit 0
+  echo "Realm sso is already created, skipping"
+  exit 0
 fi
 
 # create the SSO realm
@@ -33,20 +33,20 @@ auth
 
 echo "Creating user and configuring password for user@sso.example.com"
 /opt/keycloak/bin/kcadm.sh create users -r sso \
-   -s email=user@sso.example.com \
-   -s firstName=sso \
-   -s lastName=user \
-   -s username=sso-user \
-   -s enabled=true \
-   -o --fields id,username \
-   --config $CONFIG_PATH
+  -s email=user@sso.example.com \
+  -s firstName=sso \
+  -s lastName=user \
+  -s username=sso-user \
+  -s enabled=true \
+  -o --fields id,username \
+  --config $CONFIG_PATH
 
 # Set the password for the SSO user
 /opt/keycloak/bin/kcadm.sh set-password \
-   --config $CONFIG_PATH \
-   --username sso-user \
-   -p user@sso.example.com \
-   --target-realm sso
+  --config $CONFIG_PATH \
+  --username sso-user \
+  -p user@sso.example.com \
+  --target-realm sso
 
 # create the SSO realm OIDC client
 echo "Creating example client in sso realm"
@@ -82,9 +82,9 @@ echo "Creating ssorealm identity provider in lagoon realm"
 # create a role mapper that grants any users from the SSO realm as platform-owner
 echo "Configuring ssorealm identity provider with platform-owner role mapping"
 /opt/keycloak/bin/kcadm.sh create identity-provider/instances/ssorealm/mappers \
-   -s name=platform-owner \
-   -s identityProviderMapper=oidc-hardcoded-role-idp-mapper  \
-   -s identityProviderAlias=ssorealm \
-   -s config.syncMode=FORCE \
-   -s config.role=platform-owner \
-    --config $CONFIG_PATH -r lagoon
+  -s name=platform-owner \
+  -s identityProviderMapper=oidc-hardcoded-role-idp-mapper  \
+  -s identityProviderAlias=ssorealm \
+  -s config.syncMode=FORCE \
+  -s config.role=platform-owner \
+  --config $CONFIG_PATH -r lagoon
