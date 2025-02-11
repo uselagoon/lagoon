@@ -67,7 +67,10 @@ echo "Creating ssorealm identity provider in lagoon realm"
   -s config.logoutUrl=${KEYCLOAK_FRONTEND_URL%/}/realms/sso/protocol/openid-connect/logout \
   -s config.userInfoUrl=http://localhost:8080/auth/realms/sso/protocol/openid-connect/userinfo \
   -s config.issuer=${KEYCLOAK_FRONTEND_URL%/}/realms/sso \
+  -s config.loginHint=true \
   -s config.validateSignature=true \
+  -s 'config."home.idp.discovery.domains"=sso.example.com' \
+  -s 'config."home.idp.discovery.matchSubdomains"=true' \
   -s config.pkceEnabled=false \
   -s config.clientAuthMethod=client_secret_post \
   -s config.clientId=sso-oidc-client \
