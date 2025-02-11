@@ -2,6 +2,7 @@
 
 CONFIG_PATH=/tmp/kcadm.config
 
+function auth {
 # login to keycloak
 if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
 then
@@ -12,6 +13,9 @@ then
    exit 1
    fi
 fi
+}
+
+auth
 
 if /opt/keycloak/bin/kcadm.sh get realms/sso --config $CONFIG_PATH > /dev/null; then
     echo "Realm sso is already created, skipping"
@@ -21,6 +25,9 @@ fi
 # create the SSO realm
 echo "Creating new sso realm"
 /opt/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -s realm=sso -s enabled=true
+
+# must reauth to get permissions for new realm
+auth
 
 # Create a user in the SSO realm
 
