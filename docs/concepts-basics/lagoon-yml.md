@@ -242,7 +242,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `when`
   * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](../concepts-advanced/environment-variables.md)\).
+Note: If you would like to disable pre/post-rollout tasks during a deployment, you can set either of the following as [buildtime env vars](../concepts-advanced/environment-variables.md#buildtime).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
