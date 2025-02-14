@@ -35,6 +35,11 @@ export const Sql = {
       .select('d.*')
       .where('deploy_target', '=', id)
       .toString(),
+  deleteDeployTargetConfigById: (id: number) =>
+    knex('deploy_target_config')
+      .where('id', id)
+      .del()
+      .toString(),
   insertDeployTargetConfig: ({
     id,
     project,
