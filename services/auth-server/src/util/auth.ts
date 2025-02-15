@@ -40,8 +40,8 @@ export const validateToken = async (
   try {
     const decoded = JWT.verify(token, JWTSECRET);
 
-    if (decoded == null) {
-      throw new Error('Decoding token resulted in "null" or "undefined".');
+    if (decoded == null || typeof decoded === 'string') {
+      throw new Error('Decoding token resulted in wrong format.');
     }
 
     const { aud } = decoded;

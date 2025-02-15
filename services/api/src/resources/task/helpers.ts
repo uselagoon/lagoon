@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { asyncPipe } from '@lagoon/commons/dist/util/func';
+import { asyncPipe, encodeJSONBase64 } from '@lagoon/commons/dist/util/func';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createTaskTask, createMiscTask } from '@lagoon/commons/dist/tasks';
 import { knex, query } from '../../util/db';
@@ -9,7 +9,7 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
-import { logger } from '../../loggers/logger';
+import { TaskSourceType } from '@lagoon/commons/dist/types';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
   const getTaskById = async (TaskID: number) => {
@@ -71,11 +71,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       adminOnlyView: boolean;
       execute: boolean;
       sourceUser: string;
-      sourceType: string;
+      sourceType: TaskSourceType;
     }) => {
-      if (sourceType) {
-        sourceType.toLocaleLowerCase();
-      }
       const { insertId } = await query(
         sqlClientPool,
         Sql.insertTask({
@@ -227,7 +224,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
         environment: environmentData,
         advancedTask: {
           RunnerImage: image,
-          JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64'),
+          JSONPayload: encodeJSONBase64(payload),
           deployerToken: deployTokenInjection, //an admintask will have a deployer token and ssh key injected into it
           sshKey: projectKeyInjection,
         }

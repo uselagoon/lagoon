@@ -1,13 +1,9 @@
 import axios from 'axios';
-import { pathOr, propOr } from 'ramda';
+import { getConfigFromEnv } from '../util/config';
 import { User, Key } from './types';
 
-const API_HOST = propOr('http://gitlab', 'GITLAB_API_HOST', process.env);
-const API_TOKEN = propOr(
-  'personal access token',
-  'GITLAB_API_TOKEN',
-  process.env
-);
+const API_HOST = getConfigFromEnv('GITLAB_API_HOST', 'http://gitlab');
+const API_TOKEN = getConfigFromEnv('GITLAB_API_TOKEN', 'personal access token');
 
 const options = {
   baseURL: `${API_HOST}/api/v4/`,
@@ -57,21 +53,21 @@ const getRequest = async (url: string): Promise<any> => {
   try {
     const response = await gitlabapi.get(url);
     return response.data;
-  } catch (error) {
-    if (error.response) {
-      const errorMessage = pathOr(
-        error.message,
-        ['data', 'message'],
-        error.response
-      );
-      const errorString =
-        typeof errorMessage === 'string'
-          ? errorMessage
-          : JSON.stringify(errorMessage);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage = error.response?.data?.message ?? error.message;
+        const errorString =
+          typeof errorMessage === 'string'
+            ? errorMessage
+            : JSON.stringify(errorMessage);
 
-      throw new APIError(errorString);
-    } else if (error.request) {
-      throw new NetworkError(error.message);
+        throw new APIError(errorString);
+      } else if (error.request) {
+        throw new NetworkError(error.message);
+      } else {
+        throw error;
+      }
     } else {
       throw error;
     }
@@ -82,21 +78,21 @@ const postRequest = async (url: string, body: any): Promise<any> => {
   try {
     const response = await gitlabapi.post(url, body);
     return response.data;
-  } catch (error) {
-    if (error.response) {
-      const errorMessage = pathOr(
-        error.message,
-        ['data', 'message'],
-        error.response
-      );
-      const errorString =
-        typeof errorMessage === 'string'
-          ? errorMessage
-          : JSON.stringify(errorMessage);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage = error.response?.data?.message ?? error.message;
+        const errorString =
+          typeof errorMessage === 'string'
+            ? errorMessage
+            : JSON.stringify(errorMessage);
 
-      throw new APIError(errorString);
-    } else if (error.request) {
-      throw new NetworkError(error.message);
+        throw new APIError(errorString);
+      } else if (error.request) {
+        throw new NetworkError(error.message);
+      } else {
+        throw error;
+      }
     } else {
       throw error;
     }
@@ -106,7 +102,7 @@ const postRequest = async (url: string, body: any): Promise<any> => {
 const getAllPagesRequest = async <Type>(url: string): Promise<Type[]> => {
   let page = 1;
   let moreResults = true;
-  let results = [];
+  let results: any[] = [];
 
   do {
     try {
@@ -123,21 +119,21 @@ const getAllPagesRequest = async <Type>(url: string): Promise<Type[]> => {
         page++;
         results = [...results, ...response.data];
       }
-    } catch (error) {
-      if (error.response) {
-        const errorMessage = pathOr(
-          error.message,
-          ['data', 'message'],
-          error.response
-        );
-        const errorString =
-          typeof errorMessage === 'string'
-            ? errorMessage
-            : JSON.stringify(errorMessage);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const errorMessage = error.response?.data?.message ?? error.message;
+          const errorString =
+            typeof errorMessage === 'string'
+              ? errorMessage
+              : JSON.stringify(errorMessage);
 
-        throw new APIError(errorString);
-      } else if (error.request) {
-        throw new NetworkError(error.message);
+          throw new APIError(errorString);
+        } else if (error.request) {
+          throw new NetworkError(error.message);
+        } else {
+          throw error;
+        }
       } else {
         throw error;
       }
@@ -160,21 +156,21 @@ export const getUserByUsername = async (username: string): Promise<User> => {
     }
 
     return response.data[0];
-  } catch (error) {
-    if (error.response) {
-      const errorMessage = pathOr(
-        error.message,
-        ['data', 'message'],
-        error.response
-      );
-      const errorString =
-        typeof errorMessage === 'string'
-          ? errorMessage
-          : JSON.stringify(errorMessage);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const errorMessage = error.response?.data?.message ?? error.message;
+        const errorString =
+          typeof errorMessage === 'string'
+            ? errorMessage
+            : JSON.stringify(errorMessage);
 
-      throw new APIError(errorString);
-    } else if (error.request) {
-      throw new NetworkError(error.message);
+        throw new APIError(errorString);
+      } else if (error.request) {
+        throw new NetworkError(error.message);
+      } else {
+        throw error;
+      }
     } else {
       throw error;
     }

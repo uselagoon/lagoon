@@ -13,8 +13,11 @@ export const isNetworkError = (
     status: number;
   };
 } => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
   return (
-    typeof error === 'object' &&
     'response' in error &&
     typeof error.response === 'object'
   );
@@ -33,10 +36,10 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
     async getAccessToken() {
 
       if (keycloakAdminClient.accessToken) {
-        const token = decode(keycloakAdminClient.accessToken);
+        const token = decode(keycloakAdminClient.accessToken, { json: true });
         const now = Math.floor(Date.now() / 1000);
 
-        if (token.exp - 30 > now) {
+        if (token?.exp && token.exp - 30 > now) {
           return keycloakAdminClient.accessToken;
         }
 

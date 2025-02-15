@@ -27,15 +27,23 @@ export const logger = createLogger({
     format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     format.printf(
-      ({ timestamp, level, message }) => `[${timestamp}] [${level}]: ${message}`
-    )
+      ({
+        timestamp,
+        level,
+        message,
+      }: {
+        timestamp: string;
+        level: string;
+        message: string;
+      }) => `[${timestamp}] [${level}]: ${message}`,
+    ),
   ),
   transports: [
     new transports.Console({
       level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'info'),
       colorize: true,
       timestamp: true,
-      handleExceptions: true
-    })
-  ]
+      handleExceptions: true,
+    }),
+  ],
 });

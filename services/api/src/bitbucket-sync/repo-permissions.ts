@@ -17,17 +17,8 @@ var crypto = require('crypto');
 
 
 // The lagoon group that has all of the projects needing to be synced
-const LAGOON_SYNC_GROUP = R.propOr(
-  'bitbucket-sync',
-  'BITBUCKET_SYNC_LAGOON_GROUP',
-  process.env
-);
-
-const LIMIT_SYNCING_PROJECTS = parseInt(R.propOr(
-  '10',
-  'LIMIT_SYNCING_PROJECTS',
-  process.env
-));
+const LAGOON_SYNC_GROUP = getConfigFromEnv('BITBUCKET_SYNC_LAGOON_GROUP', 'bitbucket-sync');
+const LIMIT_SYNCING_PROJECTS = parseInt(getConfigFromEnv('LIMIT_SYNCING_PROJECTS', '10'));
 
 interface BitbucketUser {
   name: string;
@@ -84,7 +75,7 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
 
 const syncUsersForProjects = async (redis, projects) => {
   // Keep track of users we know exist to avoid API calls
-  let existingUsers = [];
+  let existingUsers: string[] = [];
 
   logger.info(`Syncing users for ${projects.length} project(s)`);
   while (projects.length > 0) {
@@ -106,14 +97,13 @@ const syncUsersForProjects = async (redis, projects) => {
             return;
           }
 
-          const bbProject = R.path(['project', 'key'], repo);
-          const bbRepo = R.prop('slug', repo);
+          const bbProject = repo?.project?.key;
+          const bbRepo = repo?.slug;
           logger.debug(
             `Processing project "${projectName}", bitbucket "${bbRepo}"`
           );
 
-          let userPermissions = [];
-
+          let userPermissions: bitbucketApi.ApiUserPermission[] = [];
 
           try {
             const permissions = await bitbucketApi.getRepoUsers(
@@ -123,14 +113,10 @@ const syncUsersForProjects = async (redis, projects) => {
 
             // Users w/o an email address were deleted/deactivated, but somehow
             // still returned in the API
-            // @ts-ignore
-            userPermissions = R.filter(
-              R.propSatisfies(R.has('emailAddress'), 'user'),
-              permissions
-            );
+            userPermissions = permissions.filter(perm => perm.user?.emailAddress);
           } catch (e) {
             logger.warn(
-              `Could not load users for repo ${R.prop('slug', repo)}: ${
+              `Could not load users for repo ${bbRepo}: ${
                 e.message
               }`
             );
@@ -159,7 +145,11 @@ const syncUsersForProjects = async (redis, projects) => {
             const bbPerm = userPermission.permission;
 
             try {
-              const email = bbUser.emailAddress.toLowerCase();
+              const email = bbUser.emailAddress?.toLowerCase();
+
+              if (!email) {
+                continue;
+              }
 
               const userExistsInGroupAlready = R.contains(
                 email,
@@ -232,7 +222,7 @@ const syncUsersForProjects = async (redis, projects) => {
   }
 };
 
-function userPermissionsToCacheHash(userPermissions: any[]) {
+function userPermissionsToCacheHash(userPermissions: bitbucketApi.ApiUserPermission[]): string {
   let sortfunc = R.sortBy(R.compose(R.toLower, R.prop('emailAddress')));
   let userPermissionCacheData = sortfunc(userPermissions.map((e) => { return { emailAddress: e.user.emailAddress, permission: e.permission }; }));
   let userPermissionCache = crypto.createHash('md5').update(JSON.stringify(userPermissionCacheData)).digest('hex');

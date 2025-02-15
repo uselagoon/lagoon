@@ -8,7 +8,7 @@ export class LagoonLogsTransport extends Transport {
     }
 
     private parseLagoonLogsPayload = (info) => {
-      let message: string;
+      let message: string = '';
       if (info.message !== undefined) {
         message = info.message;
       }
