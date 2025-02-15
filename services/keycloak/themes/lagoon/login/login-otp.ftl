@@ -1,8 +1,8 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayMessage=!messagesPerField.existsError('totp'); section>
-
-    <#if section = "form">
-        <h1>${msg("doLogIn")}</h1>
+    <#if section="header">
+        ${msg("doLogIn")}
+    <#elseif section="form">
         <form id="kc-otp-login-form" class="${properties.kcFormClass!}" action="${url.loginAction}"
             method="post">
             <#if otpLogin.userOtpCredentials?size gt 1>
