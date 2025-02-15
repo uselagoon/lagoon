@@ -90,10 +90,6 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       webhooktype = 'resticbackup';
       event = 'restore:finished';
       uuid = uuid4();
-    } else if (bodyObj.lagoonInfo) {
-      webhooktype = 'problems';
-      event = 'drutiny:resultset';
-      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }
