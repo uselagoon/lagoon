@@ -5,7 +5,7 @@ mutation PopulateApi {
     input: {
       id: 2001
       name: "ci-local-control-k8s"
-      consoleUrl: "https://localhost:8443/"
+      consoleUrl: "${CONSOLE_URL}"
       routerPattern: "${ROUTER_PATTERN}.nip.io"
       sshHost: "${SSH_PORTAL_HOST}"
       sshPort: "${SSH_PORTAL_PORT}"

@@ -131,6 +131,26 @@ make k3d/local-stack INSTALL_POSTGRES_PROVIDER=false  INSTALL_MONGODB_PROVIDER=f
 !!! info
     If you're using an arm64 based operating system (MacOS M* for example), then `INSTALL_MONGODB_PROVIDER` will always be set to `false`, this is because there are some issues due to MongoDB not working properly.
 
+#### Build-deploy-image version
+
+By default, the image used will be `uselagoon/build-deploy-image:edge`. This image will be pulled, and then re-tagged and pushed into the registry that is deployed as part of the local-stack.
+
+If you want to run a custom version of the [build-deploy-tool](https://github.com/uselagoon/build-deploy-tool) in a local-stack, you can checkout the build-deploy-tool repo, work on your changes and use `make docker-build` in that repository to build the image. Then in the local-stack repository use `make k3d/push-local-build-image` to push it to the local-stack registry.
+
+```bash title="Change build-deploy-image to a working local version"
+# in `uselagoon/build-deploy-tool` branch
+make docker-build
+
+# in `uselagoon/lagoon` branch
+make k3d/push-local-build-image
+```
+
+To change back to the default image you can use `make k3d/push-stable-build-image`. This target also supports using `BUILD_DEPLOY_IMAGE_REPO` and `BUILD_DEPLOY_IMAGE_TAG` variables, allowing you to push any other image from other repositories and tags.
+
+```bash title="Change build-deploy-image to a specific tag"
+make k3d/push-stable-build-image BUILD_DEPLOY_IMAGE_TAG=pr-123
+```
+
 #### Stable chart installation and upgrading chart versions
 
 It is possible to run the local-stack as it would be directly from a stable chart version.
