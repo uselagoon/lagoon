@@ -1,11 +1,11 @@
 # Feature flags
 
 Some Lagoon features can be controlled by setting feature flags.
-This is designed to assist users and administrators to roll out new platform features in a controlled manner.
+This is designed to assist users and administrators in rolling out new platform features in a controlled manner.
 
 ## Environment variables
 
-The following environment variables can be set on an environment or project to toggle feature flags.
+The following can be set as [API env vars](./environment-variables.md#environment-variables-lagoon-api)  to toggle feature flags.
 
 | Environment Variable Name                      | Active scope | Version introduced | Version removed | Default Value | Description                                                                                                                                                                                                                                                                                                                                                                                    |
 | ---                                            | ---          | ---                | ---             | ---           | ---                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -17,5 +17,5 @@ The following environment variables can be set on an environment or project to t
 Feature flags may also be controlled at the cluster level. There is support for this in the [`lagoon-build-deploy` chart](https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-build-deploy/values.yaml).
 For each feature flag there are two flavours of values which can be set: `default` and `force`.
 
-* `default` controls the default policy for environments deployed to the cluster, but can be overridden at the project or environment level by the environment variables documented above.
+* `default` controls the default policy for environments deployed to the cluster, but can be overridden at the organization, project, or environment level by the environment variables documented above.
 * `force` also controls the policy for environments deployed to the cluster, but _cannot be overridden_ by the environment variables documented above.
