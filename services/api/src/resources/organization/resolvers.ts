@@ -46,6 +46,11 @@ export const addOrganization: ResolverFn = async (
         payload: {
           data: {
             input
+          },
+          resource: {
+            id: insertId,
+            type: "organization",
+            details: R.prop(0, rows).name,
           }
         }
       });
@@ -96,6 +101,15 @@ export const addDeployTargetToOrganization: ResolverFn = async (
     payload: {
       data: {
         input
+      },
+      resource: {
+        id: R.prop(0, org).id,
+        type: "organization",
+        details: R.prop(0, org).name,
+      },
+      linkedResource: {
+        id: input.deployTarget,
+        type: "deploytarget",
       }
     }
   });
@@ -130,6 +144,15 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     payload: {
       data: {
         input
+      },
+      resource: {
+        id: R.prop(0, org).id,
+        type: "organization",
+        details: R.prop(0, org).name,
+      },
+      linkedResource: {
+        id: input.deployTarget,
+        type: "deploytarget",
       }
     }
   });
@@ -216,6 +239,11 @@ export const updateOrganization: ResolverFn = async (
       payload: {
         data: {
           input
+        },
+        resource: {
+          id: R.prop(0, rows).id,
+          type: "organization",
+          details: R.prop(0, rows).name,
         }
       }
     });
@@ -700,6 +728,16 @@ export const removeProjectFromOrganization: ResolverFn = async (
     payload: {
       data: {
         input
+      },
+      resource: {
+        id: R.prop(0, org).id,
+        type: "organization",
+        details: R.prop(0, org).name,
+      },
+      linkedResource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
       }
     }
   });
@@ -718,6 +756,9 @@ export const addExistingProjectToOrganization: ResolverFn = async (
 
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
+
+  const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+  const orgResult = rows[0];
 
   let pid = input.project;
   let oid = input.organization;
@@ -789,6 +830,16 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       payload: {
         data: {
           updatedGroup
+        },
+        resource: {
+          id: orgResult.id,
+          type: "organization",
+          name: orgResult.name,
+        },
+        linkedResource: {
+          id: group.id,
+          type: "group",
+          details: group.name,
         }
       }
     });
@@ -818,6 +869,16 @@ export const addExistingProjectToOrganization: ResolverFn = async (
         patch:{
           organization: oid,
         }
+      },
+      resource: {
+        id: orgResult.id,
+        type: "organization",
+        details: orgResult.name,
+      },
+      linkedResource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
       }
     }
   });
@@ -927,6 +988,16 @@ export const addExistingGroupToOrganization: ResolverFn = async (
     payload: {
       data: {
         updatedGroup
+      },
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name,
+      },
+      linkedResource: {
+        id: group.id,
+        type: "group",
+        details: group.name,
       }
     }
   });
@@ -986,7 +1057,16 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
       input: {
         user: userInput, organization: organizationInput
       },
-      data: groupsRemoved
+      data: groupsRemoved,
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name,
+      },
+      linkedResource: {
+        type: "group",
+        details: "multiple groups",
+      }
     }
   });
 
@@ -1060,7 +1140,12 @@ export const deleteOrganization: ResolverFn = async (
     payload: {
       input: {
         orgResult
-      }
+      },
+      resource: {
+        id: orgResult.id,
+        type: "organization",
+        details: orgResult.name,
+      },
     }
   });
   return 'success';
@@ -1199,6 +1284,9 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
+  const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
+  const orgResult = rows[0];
+
   const projectsToMove = []
   const groupsToMove = []
   const projectsInOtherOrgs = []
@@ -1245,6 +1333,16 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             data: {
               group: group.name,
               organization: oid
+            },
+            resource: {
+              id: orgResult.id,
+              type: "organization",
+              name: orgResult.name,
+            },
+            linkedResource: {
+              id: group.id,
+              type: "group",
+              details: group.name,
             }
           }
         });
@@ -1267,6 +1365,15 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
                   project: project.id,
                   patch:{
                     organization: oid,
+                  },
+                  resource: {
+                    id: orgResult.id,
+                    type: "organization",
+                    name: orgResult.name,
+                  },
+                  linkedResource: {
+                    type: "notification",
+                    details: "multiple notifications",
                   }
                 }
               }
@@ -1300,6 +1407,16 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
               project: project.id,
               patch:{
                 organization: oid,
+              },
+              resource: {
+                id: orgResult.id,
+                type: "organization",
+                name: orgResult.name,
+              },
+              linkedResource: {
+                id: project.id,
+                type: "project",
+                details: project.name,
               }
             }
           }

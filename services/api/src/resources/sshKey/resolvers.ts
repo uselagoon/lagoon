@@ -95,6 +95,11 @@ export const addSshKey: ResolverFn = async (
       data: {
         sshKeyId: insertId,
         user
+      },
+      resource: {
+        id: id,
+        type: "sshkey",
+        details: vkey['sha256fingerprint']
       }
     }
   });
@@ -174,7 +179,12 @@ export const updateSshKey: ResolverFn = async (
     project: '',
     event: 'api:updateSshKey',
     payload: {
-      patch
+      patch,
+      resource: {
+        id: id,
+        type: "sshkey",
+        details: vkey['sha256fingerprint']
+      }
     }
   });
 
@@ -235,6 +245,10 @@ export const deleteSshKey: ResolverFn = async (
         ssh_key_name: name,
         ssh_key_id: skid,
         user: userIds
+      },
+      resource: {
+        id: skid,
+        type: "sshkey"
       }
     }
   });
@@ -275,6 +289,10 @@ export const deleteSshKeyById: ResolverFn = async (
       data: {
         ssh_key_id: id,
         user: userIds
+      },
+      resource: {
+        id: id,
+        type: "sshkey"
       }
     }
   });

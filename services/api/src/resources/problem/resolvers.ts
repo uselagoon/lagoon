@@ -3,6 +3,7 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
 
@@ -197,6 +198,8 @@ export const addProblem: ResolverFn = async (
     Sql.selectProblemByDatabaseId(insertId)
   );
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   userActivityLogger(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:addProblem',
@@ -215,6 +218,16 @@ export const addProblem: ResolverFn = async (
         links: links,
         data: JSON.stringify(data),
         created,
+      },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
       }
     }
   });
@@ -238,13 +251,25 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
   userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:deleteProblem',
     payload: {
-      input: { environment, identifier }
+      input: { environment, identifier },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 
@@ -264,6 +289,8 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(
     sqlClientPool,
     Sql.deleteProblemsFromSource(environmentId, source, service)
@@ -273,7 +300,17 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: '',
     event: 'api:deleteProblemsFromSource',
     payload: {
-      input: { environment, source, service }
+      input: { environment, source, service },
+      resource: {
+        id: project.id,
+        type: "project",
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: "environment",
+        details: environment.name,
+      }
     }
   });
 

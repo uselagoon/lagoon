@@ -141,7 +141,7 @@ export const getUserByEmail: ResolverFn = async (
 export const addUser: ResolverFn = async (
   _root,
   { input },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'add');
 
@@ -153,6 +153,22 @@ export const addUser: ResolverFn = async (
     comment: input.comment,
     gitlabId: input.gitlabId,
   }, input.resetPassword);
+
+  userActivityLogger(`User added a user '${input.email}'`, {
+    project: '',
+    event: 'api:addUser',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      resource: {
+        id: user.id,
+        type: "user",
+        details: input.email
+      },
+    }
+  });
 
   return user;
 };
@@ -191,7 +207,7 @@ export const updateUser: ResolverFn = async (
 export const resetUserPassword: ResolverFn = async (
   _root,
   { input: { user: userInput } },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
@@ -205,13 +221,29 @@ export const resetUserPassword: ResolverFn = async (
 
   await models.UserModel.resetUserPassword(user.id);
 
+  userActivityLogger(`User requested password reset '${user.email}'`, {
+    project: '',
+    event: 'api:resetUserPassword',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      resource: {
+        id: user.id,
+        type: "user",
+        details: user.email
+      },
+    }
+  });
+
   return 'success';
 };
 
 export const deleteUser: ResolverFn = async (
   _root,
   { input: { user: userInput } },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
@@ -223,6 +255,22 @@ export const deleteUser: ResolverFn = async (
   });
 
   await models.UserModel.deleteUser(user.id);
+
+  userActivityLogger(`User deleted a user '${user.email}'`, {
+    project: '',
+    event: 'api:deleteUser',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      resource: {
+        id: user.id,
+        type: "user",
+        details: user.email
+      },
+    }
+  });
 
   return 'success';
 };
@@ -288,6 +336,16 @@ export const addUserToOrganization: ResolverFn = async (
         admin: admin,
         owner: owner,
       },
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name,
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`
+      }
     }
   });
 
@@ -324,12 +382,22 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
     project: '',
-    event: 'api:addUserToOrganization',
+    event: 'api:removeUserFromOrganization',
     payload: {
       user: {
         id: user.id,
         organization: organization,
       },
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: user.email
+      }
     }
   });
 
@@ -398,6 +466,16 @@ export const addAdminToOrganization: ResolverFn = async (
         organization: organizationData.id,
         role: role,
       },
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name,
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: `${user.email} role ${role}`
+      }
     }
   });
 
@@ -444,6 +522,16 @@ export const removeAdminFromOrganization: ResolverFn = async (
         id: user.id,
         organization: organizationData.id,
       },
+      resource: {
+        id: organizationData.id,
+        type: "organization",
+        details: organizationData.name,
+      },
+      linkedResource: {
+        id: user.id,
+        type: "user",
+        details: user.email
+      }
     }
   });
 
@@ -520,6 +608,11 @@ export const addPlatformRoleToUser: ResolverFn = async (
           email: user.email,
           role: role,
         },
+        resource: {
+          id: user.id,
+          type: "user",
+          details: `${user.email} role: ${role}`
+        },
       }
     });
     return filteredByEmail[0];
@@ -555,6 +648,11 @@ export const removePlatformRoleFromUser: ResolverFn = async (
           id: user.id,
           email: user.email,
           role: role,
+        },
+        resource: {
+          id: user.id,
+          type: "user",
+          details: `${user.email} role: ${role}`
         },
       }
     });
