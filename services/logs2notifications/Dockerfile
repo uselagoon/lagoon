@@ -1,7 +1,7 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:1.23-alpine3.20 AS builder
+FROM golang:1.23-alpine3.21 AS builder
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
