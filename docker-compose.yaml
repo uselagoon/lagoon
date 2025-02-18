@@ -115,7 +115,7 @@ services:
   ui:
     # no reason to have this UI run in development mode, so just consume the upstream built image and runtime
     # can now override just the image for the UI and its tag using envvars
-    image: ${UI_IMAGE_REPO:-uselagoon}/ui:${UI_IMAGE_TAG:-main}
+    image: ${UI_IMAGE_REPO:-uselagoon/ui}:${UI_IMAGE_TAG:-main}
     # always pull the image to prevent stale images locally
     pull_policy: always
     environment:
