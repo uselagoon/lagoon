@@ -642,19 +642,9 @@ export const removeProjectFromOrganization: ResolverFn = async (
       if (projectGroups[g].attributes["type"] == "project-default-group") {
         // remove all users from the project default group except the `default-user@project`
         await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name)
-        // update group
-        await models.GroupModel.updateGroup({
-          id: projectGroups[g].id,
-          name: projectGroups[g].name,
-          attributes: {
-            ...projectGroups[g].attributes,
-            // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
-            "lagoon-organization": [""]
-          }
-        });
         // remove the default project group from the group_organization association table
         // when the project is removed from the organization
-        await groupHelpers(sqlClientPool).removeGroupFromOrganization(projectGroups[g].id)
+        await models.GroupModel.removeGroupFromOrganization(projectGroups[g].id);
       } else {
         removeGroups.push(projectGroups[g])
       }
