@@ -1064,7 +1064,7 @@ const restoreConfig = (name: string, backupId: string, backupS3Config: any, rest
   return config;
 };
 
-export const getTaskProjectEnvironmentVariables = async (projectName: string, environmentId: number): Promise<[string, string]> => {
+export const getTaskProjectEnvironmentVariables = async (projectName: string, environmentId: number): Promise<{projectVars: string, envVars: string}> => {
   // inject variables into tasks the same way it is in builds
   // this makes variables available to tasks the same way for consumption
   // this will make it possible to handle variable updates in the future without
@@ -1083,7 +1083,7 @@ export const getTaskProjectEnvironmentVariables = async (projectName: string, en
     environment.environmentById.openshift,
     null, null, priority, [], bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
   )
-  return [projectVars, envVars]
+  return { projectVars, envVars }
 }
 
 export const getBaasBucketName = async (
@@ -1112,7 +1112,7 @@ export const createTaskTask = async function(taskData: any) {
   const { project } = taskData;
 
   // inject variables into tasks the same way it is in builds
-  const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+  const { envVars, projectVars } = await getTaskProjectEnvironmentVariables(
     project.name,
     taskData.environment.id
   )
@@ -1259,7 +1259,7 @@ export const createMiscTask = async function(taskData: any) {
       break;
     case 'deploytarget:task:advanced':
       // inject variables into advanced tasks the same way it is in builds and standard tasks
-      const [_, envVars, projectVars] = await getTaskProjectEnvironmentVariables(
+      const { envVars, projectVars } = await getTaskProjectEnvironmentVariables(
         taskData.data.project.name,
         taskData.data.environment.id
       )
