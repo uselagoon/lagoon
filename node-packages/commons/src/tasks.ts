@@ -668,10 +668,13 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
     scope: EnvVariableScope | InternalEnvVariableScope;
   }
 
+  // Single list of env vars that apply to an environment. Env vars from multiple
+  // sources (organization, project, enviornment, build vars, etc) are
+  // consolidated based on precedence.
   let appliedEnvVars: EnvKeyValueInternal[] = [];
 
-  // Adds newVar only if it's unique (by name).
-  const addApplied = (newVar: EnvKeyValueInternal): void => {
+  // Appends newVar to appliedEnvVars only if newVar is unique by name.
+  const applyIfNotExists = (newVar: EnvKeyValueInternal): void => {
     const index = appliedEnvVars.findIndex((searchVar) => searchVar.name === newVar.name)
 
     if (index === -1) {
@@ -698,15 +701,18 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
 
   /*
    * Internal scoped env vars.
+   *
+   * Uses the env vars system to send data to lagoon-remote but should not be
+   * overrideable by Lagoon API env vars.
    */
 
-  addApplied({
+  applyIfNotExists({
     name: "LAGOON_SYSTEM_CORE_VERSION",
     value: getConfigFromEnv('LAGOON_VERSION', 'unknown'),
     scope: InternalEnvVariableScope.INTERNAL_SYSTEM
   });
 
-  addApplied({
+  applyIfNotExists({
     name: 'LAGOON_SYSTEM_ROUTER_PATTERN',
     value: routerPattern,
     scope: InternalEnvVariableScope.INTERNAL_SYSTEM
@@ -714,7 +720,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
 
   const [bucketName, isSharedBucket] = await getBaasBucketName(project, deployTarget)
   if (isSharedBucket) {
-    addApplied({
+    applyIfNotExists({
       name: "LAGOON_SYSTEM_PROJECT_SHARED_BUCKET",
       value: bucketName,
       scope: InternalEnvVariableScope.INTERNAL_SYSTEM
@@ -722,7 +728,7 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
   }
 
   if (org) {
-    addApplied({
+    applyIfNotExists({
       name: "LAGOON_ROUTE_QUOTA",
       value: `${org.quotaRoute}`,
       scope: InternalEnvVariableScope.INTERNAL_SYSTEM
@@ -731,11 +737,13 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
 
   /*
    * Normally scoped env vars.
+   *
+   * Env vars that are set by users, or derived from them.
    */
 
   // Build env vars passed to the API.
   for (const buildVar of buildVariables) {
-    addApplied({
+    applyIfNotExists({
       name: buildVar.name,
       value: buildVar.value,
       scope: EnvVariableScope.BUILD
@@ -744,26 +752,26 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
 
   // Bulk deployment env vars.
   if (bulkTask === bulkType.Deploy) {
-    addApplied({
+    applyIfNotExists({
       name: "LAGOON_BUILD_PRIORITY",
       value: buildPriority.toString(),
       scope: EnvVariableScope.BUILD
     });
 
     if (bulkId) {
-      addApplied({
+      applyIfNotExists({
         name: "LAGOON_BULK_DEPLOY",
         value: "true",
         scope: EnvVariableScope.BUILD
       });
-      addApplied({
+      applyIfNotExists({
         name: "LAGOON_BULK_DEPLOY_ID",
         value: bulkId,
         scope: EnvVariableScope.BUILD
       });
 
       if (bulkName) {
-        addApplied({
+        applyIfNotExists({
           name: "LAGOON_BULK_DEPLOY_NAME",
           value: bulkName,
           scope: EnvVariableScope.BUILD
@@ -771,26 +779,26 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
       }
     }
   } else if (bulkTask === bulkType.Task) {
-    addApplied({
+    applyIfNotExists({
       name: "LAGOON_TASK_PRIORITY",
       value: buildPriority.toString(),
       scope: EnvVariableScope.BUILD
     })
 
     if (bulkId) {
-      addApplied({
+      applyIfNotExists({
         name: "LAGOON_BULK_TASK",
         value: "true",
         scope: EnvVariableScope.BUILD
       });
-      addApplied({
+      applyIfNotExists({
         name: "LAGOON_BULK_TASK_ID",
         value: bulkId,
         scope: EnvVariableScope.BUILD
       });
 
       if (bulkName) {
-        addApplied({
+        applyIfNotExists({
           name: "LAGOON_BULK_TASK_NAME",
           value: bulkName,
           scope: EnvVariableScope.BUILD
@@ -801,18 +809,18 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
 
   // Environment env vars.
   for (const envVar of environment.envVariables) {
-    addApplied(envVar)
+    applyIfNotExists(envVar)
   }
 
   // Project env vars.
   for (const projVar of project.envVariables) {
-    addApplied(projVar)
+    applyIfNotExists(projVar)
   }
 
   if (org) {
     // Organization env vars.
     for (const orgVar of org.envVariables) {
-      addApplied(orgVar)
+      applyIfNotExists(orgVar)
     }
   }
 
