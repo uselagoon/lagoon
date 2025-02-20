@@ -18,6 +18,7 @@ import sha1 from 'sha1';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
+import { TaskSourceType } from '@lagoon/commons/dist/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -267,12 +268,8 @@ export const addTask: ResolverFn = async (
 
   let taskName = generateTaskName()
 
-  if (!sourceUser) {
-    sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  }
-  if (!sourceType) {
-    sourceType = "API"
-  }
+  sourceUser ??= await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  sourceType ??= TaskSourceType.API
 
   userActivityLogger(`User added task '${name}'`, {
     project: '',
@@ -539,7 +536,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -591,7 +588,7 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -645,7 +642,7 @@ export const taskDrushCacheClear: ResolverFn = async (
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -688,7 +685,7 @@ export const taskDrushCron: ResolverFn = async (
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -763,7 +760,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -838,7 +835,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 
@@ -881,7 +878,7 @@ export const taskDrushUserLogin: ResolverFn = async (
     projectKeyInjection: false,
     adminOnlyView: false,
     execute: true,
-    sourceType: "API",
+    sourceType: TaskSourceType.API,
     sourceUser: sourceUser,
   });
 

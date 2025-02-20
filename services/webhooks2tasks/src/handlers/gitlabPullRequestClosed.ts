@@ -2,7 +2,8 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
-import { WebhookRequestData, removeData, Project } from '../types';
+import { WebhookRequestData, Project } from '../types';
+import { DeployType, RemoveData } from '@lagoon/commons/dist/types';
 
 export async function gitlabPullRequestClosed(webhook: WebhookRequestData, project: Project) {
 
@@ -43,13 +44,13 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
         .replace('${project}', ocsafety(project.name))
     : ocsafety(`${project.name}-${branchName}`);
 
-    const data: removeData = {
+    const data: RemoveData = {
       projectName: project.name,
       pullrequestNumber: body.object_attributes.iid,
       pullrequestTitle: body.object_attributes.title,
       branch: branchName,
       openshiftProjectName: openshiftProjectName,
-      type: 'pullrequest'
+      type: DeployType.PULLREQUEST
     }
 
     try {

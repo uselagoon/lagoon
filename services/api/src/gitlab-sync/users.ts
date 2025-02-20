@@ -17,7 +17,7 @@ const usernameExistsRegex = /Username.*?exists/;
       lastName;
     if (user.name.includes(' ')) {
       const nameParts = user.name.split(' ');
-      firstName = R.head(nameParts);
+      firstName = R.head(nameParts) as string;
       lastName = R.tail(nameParts).join(' ');
     }
 
@@ -40,7 +40,6 @@ const usernameExistsRegex = /Username.*?exists/;
               email: user.email,
               firstName,
               lastName,
-              comment: null,
               gitlabId: user.id,
             }
           );

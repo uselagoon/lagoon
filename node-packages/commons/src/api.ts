@@ -1,9 +1,9 @@
 import { Lokka } from 'lokka';
 import { Transport } from './lokka-transport-http-retry';
 import { replace, pipe, toLower } from 'ramda';
-import { createJWTWithoutUserId } from './jwt';
-import { logger } from './logs/local-logger';
-import { envHasConfig, getConfigFromEnv } from './util/config';
+import { getConfigFromEnv } from './util/config';
+
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType } from './types';
 
 export interface Project {
   autoIdle: number;
@@ -163,21 +163,21 @@ export const graphqlapi = new Lokka({ transport });
 export const lagoonApi = graphqlapi;
 
 export class ProjectNotFound extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'ProjectNotFound';
   }
 }
 
 class OrganizationNotFound extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'OrganizationNotFound';
   }
 }
 
 class EnvironmentNotFound extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'EnvironmentNotFound';
   }
@@ -273,7 +273,7 @@ export const addGroupWithParent = (
   );
 
 export const addBackup = (
-  id: number = null,
+  id: number | null = null,
   environment: number,
   source: string,
   backupId: string,
@@ -412,10 +412,10 @@ export const getUserBySshKey = (sshKey: string): Promise<any> =>
 
 export const addUser = (
   email: string,
-  firstName: string = null,
-  lastName: string = null,
-  comment: string = null,
-  gitlabId: number = null
+  firstName: string | null = null,
+  lastName: string | null = null,
+  comment: string | null = null,
+  gitlabId: number | null = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
@@ -546,7 +546,7 @@ export const removeUserFromGroup = (
   );
 
 export const addSshKey = (
-  id: number = null,
+  id: number | null = null,
   name: string,
   keyValue: string,
   keyType: string,
@@ -596,7 +596,7 @@ export const addProject = (
   gitUrl: string,
   openshift: number,
   productionenvironment: string,
-  id: number = null
+  id: number | null = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
@@ -777,14 +777,14 @@ export async function getEnvironmentByOpenshiftProjectName(
 export const addOrUpdateEnvironment = (
   name: string,
   projectId: number,
-  deployType: string,
+  deployType: DeployType,
   deployBaseRef: string,
   environmentType: string,
   openshiftProjectName: string,
   openshift: number,
   openshiftProjectPattern: string,
-  deployHeadRef: string = null,
-  deployTitle: string = null
+  deployHeadRef: string | null = null,
+  deployTitle: string | null = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
@@ -822,7 +822,7 @@ export const addOrUpdateEnvironment = (
     {
       name,
       project: projectId,
-      deployType,
+      deployType: deployType.toUpperCase(),
       deployBaseRef,
       deployHeadRef,
       deployTitle,
@@ -919,7 +919,21 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
     }
 `);
 
-export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any> =>
+interface GetOpenShiftInfoForEnvironmentEnvironmentResult {
+  id: number
+  name: string
+  openshiftProjectPattern: string
+  openshift: DeployTargetMinimalFragment
+  project: Pick<Project, 'sharedBaasBucket' | 'buildImage'> & {
+    envVariables: Pick<EnvKeyValue, 'name' | 'scope' | 'value'>[]
+  }
+}
+
+export interface GetOpenShiftInfoForEnvironmentResult {
+  environment: GetOpenShiftInfoForEnvironmentEnvironmentResult
+}
+
+export const getOpenShiftInfoForEnvironment = (environment: number): Promise<GetOpenShiftInfoForEnvironmentResult> =>
   graphqlapi.query(`
     {
       environment:environmentById(id: ${environment}){
@@ -1087,15 +1101,15 @@ export const addDeployment = (
   status: string,
   created: string,
   environment: number,
-  remoteId: string = null,
-  id: number = null,
-  started: string = null,
-  completed: string = null,
-  priority: number = null,
-  bulkId: string = null,
-  bulkName: string = null,
-  sourceUser = null,
-  sourceType = null,
+  remoteId: string | null = null,
+  id: number | null = null,
+  started: string | null = null,
+  completed: string | null = null,
+  priority: number,
+  bulkId: string | null = null,
+  bulkName: string | null = null,
+  sourceUser: string | null = null,
+  sourceType: DeploymentSourceType,
 ): Promise<any> =>
   graphqlapi.mutate(
     `
@@ -1134,65 +1148,65 @@ export const addDeployment = (
       bulkId,
       bulkName,
       sourceUser,
-      sourceType,
+      sourceType: sourceType.toUpperCase(),
     }
   );
 
-  export const addTask = (
-    name,
-    status,
-    created,
-    environment,
-    remoteId = null,
-    id = null,
-    started = null,
-    completed = null,
-    service = null,
-    command = null,
-    execute = false,
-    sourceUser = null,
-    sourceType = null,
-  ) =>
-    graphqlapi.mutate(
-      `
-    ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
-      $started: String, $completed: String, $service: String, $command: String, $execute: Boolean,
-      $sourceUser: String, $sourceType: TaskSourceType) {
-      addTask(input: {
-          name: $name
-          status: $status
-          created: $created
-          environment: $environment
-          id: $id
-          remoteId: $remoteId
-          started: $started
-          completed: $completed
-          service: $service
-          command: $command
-          execute: $execute
-          sourceUser: $sourceUser
-          sourceType: $sourceType
-      }) {
-        ...${taskFragment}
-      }
+export const addTask = (
+  name: string,
+  status: TaskStatusType,
+  created: string,
+  environment: number,
+  remoteId = null,
+  id: number | null = null,
+  started: string | null = null,
+  completed: string | null = null,
+  service: string | null = null,
+  command: string | null = null,
+  execute: boolean = false,
+  sourceUser: string | null = null,
+  sourceType: TaskSourceType,
+) =>
+  graphqlapi.mutate(
+    `
+  ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
+    $started: String, $completed: String, $service: String, $command: String, $execute: Boolean,
+    $sourceUser: String, $sourceType: TaskSourceType) {
+    addTask(input: {
+        name: $name
+        status: $status
+        created: $created
+        environment: $environment
+        id: $id
+        remoteId: $remoteId
+        started: $started
+        completed: $completed
+        service: $service
+        command: $command
+        execute: $execute
+        sourceUser: $sourceUser
+        sourceType: $sourceType
+    }) {
+      ...${taskFragment}
     }
-  `,
-      {
-        name,
-        status,
-        created,
-        environment,
-        id,
-        remoteId,
-        started,
-        completed,
-        service,
-        command,
-        execute,
-        sourceUser,
-        sourceType,
-      },
-    );
+  }
+`,
+    {
+      name,
+      status: status.toUpperCase(),
+      created,
+      environment,
+      id,
+      remoteId,
+      started,
+      completed,
+      service,
+      command,
+      execute,
+      sourceUser,
+      sourceType: sourceType.toUpperCase(),
+    },
+  );
 
 const taskFragment = graphqlapi.createFragment(`
 fragment on Task {
@@ -1218,7 +1232,7 @@ export const sanitizeProjectName = pipe(
   toLower
 );
 
-export const getProjectsByGroupName = groupName =>
+export const getProjectsByGroupName = (groupName: string) =>
   graphqlapi.query(
     `query groupByName($name: String!) {
     groupByName(name: $name) {
@@ -1234,7 +1248,7 @@ export const getProjectsByGroupName = groupName =>
     { name: groupName }
   );
 
-export const getGroupMembersByGroupName = groupName =>
+export const getGroupMembersByGroupName = (groupName: string) =>
   graphqlapi.query(
     `query groupByName($name: String!) {
     groupByName(name: $name) {
@@ -1252,8 +1266,24 @@ export const getGroupMembersByGroupName = groupName =>
   { name: groupName }
 );
 
+interface AddProblemInput {
+  environment: number,
+  identifier: string,
+  severity: string,
+  source: string,
+  data: string,
+  id?: number,
+  severityScore?: number,
+  service?: string,
+  associatedPackage?: string,
+  description?: string,
+  version?: string,
+  fixedVersion?: string,
+  links?: string
+}
+
 export const addProblem = ({
-  id = null,
+  id,
   environment,
   identifier,
   severity,
@@ -1266,7 +1296,7 @@ export const addProblem = ({
   version,
   fixedVersion,
   links
-}) => {
+}: AddProblemInput) => {
   return graphqlapi.mutate(
   `($id: Int,
     $environment: Int!,
@@ -1330,9 +1360,9 @@ export const addProblem = ({
 )};
 
 export const deleteProblemsFromSource = (
-  environment,
-  source,
-  service
+  environment: number,
+  source: string,
+  service: string
 ) => {
   return graphqlapi.mutate(
     `($environment: Int!, $source: String!, $service: String!) {
@@ -1366,8 +1396,8 @@ fragment on Problem {
 `);
 
 export const getProblemsforProjectEnvironment = async (
-  environmentName,
-  project
+  environmentName: string,
+  project: number
 ) => {
   const response = await graphqlapi.query(
     `query getProject($environmentName: String!, $project: Int!) {

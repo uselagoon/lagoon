@@ -3,12 +3,13 @@ import { Pool } from 'mariadb';
 import { query, knex } from '../util/db';
 import { logger } from '../loggers/logger';
 import { esClient } from '../clients/esClient';
+import { DeployType } from '@lagoon/commons/dist/types';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
   name?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   project?: Number; // int(11) DEFAULT NULL,
-  deployType?: string; // enum('branch','pullrequest','promote') COLLATE utf8_bin DEFAULT NULL,
+  deployType?: DeployType;
   environmentType?: string; //  enum('production','development') COLLATE utf8_bin NOT NULL,
   openshiftProjectName?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   updated?: string; // timestamp NOT NULL DEFAULT current_timestamp(),

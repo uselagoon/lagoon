@@ -56,8 +56,11 @@ const syncProject = async (project) => {
   }
 
   try {
-    const privkey = new Buffer((R.prop('privateKey', lagoonProject))).toString('base64')
-    const publickey = await validateKey(privkey, "private")
+    const publickey = await validateKey(R.prop('privateKey', lagoonProject), "private")
+
+    if (!publickey?.publickey) {
+      throw new Error('Could not validate key');
+    }
 
     await gitlabApi.addDeployKeyToProject(id, publickey['publickey']);
   } catch (err) {
@@ -86,7 +89,7 @@ const syncProject = async (project) => {
   logger.info(`Syncing ${allProjects.length} projects`);
 
   while (projectsQueue.length > 0) {
-    const { project, retries } = projectsQueue.shift();
+    const { project, retries } = projectsQueue.shift()!;
     try {
       await syncProject(project);
     } catch (err) {

@@ -1,9 +1,10 @@
 import R from 'ramda';
+import { DeployData, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
-import { WebhookRequestData, deployData, Project } from '../types';
+import { WebhookRequestData, Project } from '../types';
 
 export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, project: Project) {
 
@@ -53,14 +54,14 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
     if (body.pullrequest.author.username) {
       sourceUser = body.pullrequest.author.username
     }
-    const data: deployData = {
+    const data: DeployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.links.html.href,
       pullrequestUrl: body.pullrequest.links.html.href,
       pullrequestTitle: body.pullrequest.title,
       pullrequestNumber: body.pullrequest.id,
       projectName: project.name,
-      type: 'pullrequest',
+      type: DeployType.PULLREQUEST,
       headBranchName: headBranchName,
       headSha: headSha,
       baseBranchName: baseBranchName,
@@ -68,7 +69,7 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       branchName: `pr-${body.pullrequest.id}`,
       buildName: buildName,
       sourceUser: sourceUser,
-      sourceType: "WEBHOOK",
+      sourceType: DeploymentSourceType.WEBHOOK,
       bulkId: webhook.bulkId,
       bulkName: webhook.bulkName,
     }

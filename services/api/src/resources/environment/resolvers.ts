@@ -13,6 +13,7 @@ import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
+import { RemoveData, DeployType } from '@lagoon/commons/dist/types';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -540,9 +541,7 @@ export const deleteEnvironment: ResolverFn = async (
     canDeleteProduction = false;
   }
 
-  let data: {
-    [key: string]: any;
-  } = {
+  let data: RemoveData = {
     projectName: project.name,
     type: environment.deployType,
     openshiftProjectName: environment.openshiftProjectName,
@@ -557,15 +556,15 @@ export const deleteEnvironment: ResolverFn = async (
   };
 
   switch (environment.deployType) {
-    case 'branch':
-    case 'promote':
+    case DeployType.BRANCH:
+    case DeployType.PROMOTE:
       data = {
         ...data,
         branch: name
       };
       break;
 
-    case 'pullrequest':
+    case DeployType.PULLREQUEST:
       data = {
         ...data,
         pullrequestNumber: environment.name.replace('pr-', '')

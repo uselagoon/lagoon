@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`createJWT should create token properly 1`] = `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjAsInBlcm1pc3Npb25zIjp7InByb2plY3RzIjpbXSwiY3VzdG9tZXJzIjpbXX0sInJvbGUiOiJhZG1pbiIsImlhdCI6MTUwMzAxNDQwMDAwMCwiaXNzIjoiamVzdCJ9.22DgaCLyG2IsbMmD9hkP1S_zWIh_XH8IJCIIHGpoLx0"`;
+exports[`createJWT should create token properly 1`] = `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1MDMwMTQ0MDAwMDAsImV4cCI6MTUwMzAxNDQwMDAwMCwiaXNzIjoiamVzdCJ9.LBa6msnHJEDbv26ynE_Q07E8ZSJH7PuOIjqUhBSPhQI"`;

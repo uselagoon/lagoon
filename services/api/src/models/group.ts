@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { asyncPipe } from '@lagoon/commons/dist/util/func';
+import { asyncPipe, decodeJSONBase64, encodeJSONBase64 } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { toNumber } from '../util/func';
 import { logger } from '../loggers/logger';
@@ -582,9 +582,7 @@ export const Group = (clients: {
     try {
       let data = await get(membersCacheKey);
       if (data) {
-        let buff = Buffer.from(data, 'base64');
-        // set membership to cached data
-        membership = JSON.parse(buff.toString('utf-8'));
+        membership = decodeJSONBase64(data);
       }
     } catch(err) {
       logger.warn(`Error reading redis ${membersCacheKey}, falling back to direct lookup: ${err.message}`);
@@ -612,7 +610,7 @@ export const Group = (clients: {
         membership = [...membership, ...members];
       }
       // save latest members cache
-      const data = Buffer.from(JSON.stringify(membership)).toString('base64')
+      const data = encodeJSONBase64(membership);
       try {
         await redisClient.multi()
         .set(membersCacheKey, data)
@@ -1080,7 +1078,7 @@ export const Group = (clients: {
     const nameCacheKey = `cache:keycloak:group-id:${group.name}`;
 
     try {
-      const data = Buffer.from(JSON.stringify(group)).toString('base64');
+      const data = encodeJSONBase64(group)
       await redisClient
         .multi()
         .set(nameCacheKey, group.id)
@@ -1122,8 +1120,7 @@ export const Group = (clients: {
         return null;
       }
 
-      let buff = Buffer.from(data, 'base64');
-      return JSON.parse(buff.toString('utf-8'));
+      return decodeJSONBase64(data);
     } catch (err: unknown) {
       if (err instanceof Error) {
         throw new RedisCacheLoadError(`Error loading group cache by id: ${err.message}`);
