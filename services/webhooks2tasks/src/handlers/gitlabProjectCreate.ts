@@ -40,8 +40,7 @@ export async function gitlabProjectCreate(webhook: WebhookRequestData) {
     const lagoonProject = await addProject(projectName, gitUrl, openshift, productionenvironment);
 
     try {
-      const privkey = new Buffer((R.prop('privateKey', lagoonProject))).toString('base64')
-      const publickey = await validateKey(privkey, "private")
+      const publickey = await validateKey(R.prop('privateKey', lagoonProject), "private")
 
       await addDeployKeyToProject(id, publickey['publickey']);
     } catch (err) {

@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
+import { toNumber } from '../../util/func';
 import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import { Sql } from './sql';
 
@@ -96,6 +97,27 @@ export const Helpers = (sqlClientPool: Pool) => {
           }
         ]
       ])(organizationInput);
+    },
+    getOrganizationIdByName: async (name: string): Promise<number> => {
+      const idResult = await query(
+        sqlClientPool,
+        Sql.selectOrganizationByName(name)
+      );
+
+      const amount = R.length(idResult);
+      if (amount > 1) {
+        throw new Error(
+          `Multiple organization candidates for '${name}' (${amount} found). Do nothing.`
+        );
+      }
+
+      if (amount === 0) {
+        throw new Error(`Not found: '${name}'`);
+      }
+
+      const id = R.path(['0', 'id'], idResult) as string;
+
+      return toNumber(id);
     },
   }
 };

@@ -1105,6 +1105,7 @@ const typeDefs = gql`
     owners: [OrgUser]
     notifications(type: NotificationType): [Notification]
     created: String
+    envVariables: [EnvKeyValue]
   }
 
   input AddOrganizationInput {
@@ -2194,17 +2195,19 @@ const typeDefs = gql`
   }
 
   input DeleteEnvVariableByNameInput {
-    environment: String
-    project: String!
     name: String!
+    organization: String
+    project: String
+    environment: String
   }
 
   input EnvVariableByNameInput {
-    environment: String
-    project: String!
-    scope: EnvVariableScope
     name: String!
     value: String!
+    scope: EnvVariableScope
+    organization: String
+    project: String
+    environment: String
   }
 
   input SetEnvironmentServicesInput {

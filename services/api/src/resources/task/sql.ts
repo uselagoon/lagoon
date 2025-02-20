@@ -1,3 +1,4 @@
+import { TaskSourceType } from '@lagoon/commons/dist/types';
 import { knex } from '../../util/db';
 
 export const Sql = {
@@ -25,11 +26,11 @@ export const Sql = {
     deployTokenInjection,
     projectKeyInjection,
     adminOnlyView,
-    type = null,
-    advanced_image = null,
-    advanced_payload = null,
-    sourceUser = null,
-    sourceType = null,
+    type,
+    advanced_image,
+    advanced_payload,
+    sourceUser,
+    sourceType,
   }: {
     id: number;
     name: string;
@@ -49,7 +50,7 @@ export const Sql = {
     advanced_image?: string;
     advanced_payload?: string;
     sourceUser?: string;
-    sourceType?: string;
+    sourceType?: TaskSourceType;
   }) =>
     knex('task')
       .insert({
@@ -67,11 +68,11 @@ export const Sql = {
         projectKeyInjection,
         adminOnlyView,
         remoteId,
-        type,
-        advanced_image,
-        advanced_payload,
-        sourceUser,
-        sourceType,
+        type: type ?? null,
+        advanced_image: advanced_image ?? null,
+        advanced_payload: advanced_payload ?? null,
+        sourceUser: sourceUser ?? null,
+        sourceType: sourceType ?? null,
       })
       .toString(),
   deleteTask: (id: number) =>

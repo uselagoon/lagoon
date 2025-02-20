@@ -38,8 +38,7 @@ export const addSshKey: ResolverFn = async (
     keyFormatted = publicKey
   }
 
-  const pkey = new Buffer(keyFormatted).toString('base64')
-  const vkey = await validateKey(pkey, "public")
+  const vkey = await validateKey(keyFormatted, "public")
   if (!vkey['sha256fingerprint']) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
@@ -137,8 +136,7 @@ export const updateSshKey: ResolverFn = async (
     keyFormatted = publicKey
   }
 
-  const pkey = new Buffer(keyFormatted).toString('base64')
-  const vkey = await validateKey(pkey, "public")
+  const vkey = await validateKey(keyFormatted, "public")
   if (!vkey['sha256fingerprint']) {
     throw new Error(
       'Invalid SSH key format! Please verify keyType + keyValue'

@@ -46,11 +46,10 @@ export const getPrivateKey: ResolverFn = async (
 export const getProjectDeployKey: ResolverFn = async (
   project,
   _args,
-  { hasPermission }
+  _
 ) => {
   try {
-    const privkey = new Buffer((R.prop('privateKey', project))).toString('base64')
-    const publickey = await validateKey(privkey, "private")
+    const publickey = await validateKey(R.prop('privateKey', project), "private")
 
     return publickey['publickey']
   } catch (err) {
@@ -312,8 +311,7 @@ export const addProject = async (
   let keyPair: any = {};
   try {
     if (R.prop('privateKey', input)) {
-      const privkey = new Buffer((R.prop('privateKey', input))).toString('base64')
-      const publickey = await validateKey(privkey, "private")
+      const publickey = await validateKey(R.prop('privateKey', input), "private")
       if (!publickey['sha256fingerprint']) {
         throw new Error('private key failed validation');
       }
@@ -715,8 +713,7 @@ export const updateProject: ResolverFn = async (
     let keyPair: any = {};
     try {
 
-      const privkey = new Buffer((R.prop('privateKey', patch))).toString('base64')
-      const publickey = await validateKey(privkey, "private")
+      const publickey = await validateKey(R.prop('privateKey', patch), "private")
       if (!publickey['sha256fingerprint']) {
         throw new Error('new private key failed validation');
       }
@@ -749,8 +746,7 @@ export const updateProject: ResolverFn = async (
         );
 
         // remove the old public key from the default user
-        const oldprivkey = new Buffer((R.prop('privateKey', oldProject))).toString('base64')
-        const oldKey = await validateKey(oldprivkey, "private")
+        const oldKey = await validateKey(R.prop('privateKey', oldProject), "private")
         if (!oldKey['sha256fingerprint']) {
           throw new Error('old private key failed validation');
         }

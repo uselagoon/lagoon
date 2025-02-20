@@ -2,19 +2,20 @@ import * as R from 'ramda';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
-import { isNotNil } from './func';
+import { encodeJSONBase64, isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { Group } from '../models/group';
 import { User } from '../models/user';
 
-interface ILegacyToken {
-  iat: string;
-  exp: string;
+export interface LegacyToken {
+  iat: number;
+  exp: number;
   iss: string;
   sub: string;
   aud: string;
   role: string;
+  permissions: {};
 }
 
 export interface IKeycloakAuthAttributes {
@@ -90,17 +91,16 @@ const getHighestRole = (roles) => {
 export const isLegacyToken = R.pathSatisfies(isNotNil, ['payload', 'role']);
 export const isKeycloakToken = R.pathSatisfies(isNotNil, ['payload', 'typ']);
 
-export const getGrantForKeycloakToken = async token =>
+export const getGrantForKeycloakToken = async (token: string) =>
   keycloakGrantManager.createGrant({
     access_token: token
   });
 
-export const getCredentialsForLegacyToken = async token => {
-  let decoded: ILegacyToken;
-  decoded = verify(token, getConfigFromEnv('JWTSECRET'));
+export const getCredentialsForLegacyToken = async (token: string): Promise<LegacyToken> => {
+  const decoded = verify(token, getConfigFromEnv('JWTSECRET'));
 
-  if (decoded == null) {
-    throw new Error('Decoding token resulted in "null" or "undefined".');
+  if (decoded == null || typeof decoded === 'string') {
+    throw new Error('Decoding token resulted in wrong format.');
   }
 
   const { role = 'none', aud, sub, iss, iat, exp } = decoded;
@@ -108,9 +108,9 @@ export const getCredentialsForLegacyToken = async token => {
   // check the expiration on legacy tokens, reject them if necessary
   const maxExpiry = getConfigFromEnv('LEGACY_EXPIRY_MAX', '3600') // 1hour default
   const rejectLegacyExpiry = getConfigFromEnv('LEGACY_EXPIRY_REJECT', 'false') // don't reject intially, just log
-  if (exp) {
-    if ((parseInt(exp)-parseInt(iat)) > parseInt(maxExpiry)) {
-      const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(parseInt(exp)-parseInt(iat))} is greater than ${parseInt(maxExpiry)}`
+  if (exp && iat) {
+    if ((exp-iat) > parseInt(maxExpiry)) {
+      const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(exp-iat)} is greater than ${parseInt(maxExpiry)}`
       logger.warn(msg);
       if (rejectLegacyExpiry == "true") {
         throw new Error(msg);
@@ -134,6 +134,7 @@ export const getCredentialsForLegacyToken = async token => {
 
   return {
     iat,
+    exp,
     sub,
     iss,
     aud,
@@ -160,7 +161,7 @@ export const legacyHasPermission = legacyCredentials => {
 };
 
 export class KeycloakUnauthorizedError extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'KeycloakUnauthorizedError';
   }
@@ -330,7 +331,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, service
       authzRequest = {
         ...authzRequest,
         claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
-        claim_token: Buffer.from(JSON.stringify(claims)).toString('base64')
+        claim_token: encodeJSONBase64(claims)
       };
     }
 

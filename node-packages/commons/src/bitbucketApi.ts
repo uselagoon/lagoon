@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { find, pathOr, propEq, propOr } from 'ramda';
+import { getConfigFromEnv } from './util/config';
 
 interface ApiResourceLink {
   href: string;
@@ -29,17 +29,32 @@ interface ApiRepo {
   };
 }
 
-const API_HOST = propOr(
-  'https://bitbucket.org',
-  'BITBUCKET_API_HOST',
-  process.env
-);
+// https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8297382224
+interface ApiUser {
+  name: string;
+  emailAddress: string;
+  id: number;
+  displayName: string;
+  active: boolean;
+  slug: string;
+  type: string;
+}
 
-const API_TOKEN = propOr(
-  'personal access token',
-  'BITBUCKET_API_TOKEN',
-  process.env
-);
+// https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8297382224
+enum ApiPermssion {
+  REPO_ADMIN = 'REPO_ADMIN',
+  REPO_READ = 'REPO_READ',
+  REPO_WRITE = 'REPO_WRITE',
+}
+
+// https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8297382224
+export interface ApiUserPermission {
+  user: ApiUser;
+  permission: ApiPermssion;
+}
+
+const API_HOST = getConfigFromEnv('BITBUCKET_API_HOST', 'https://bitbucket.org');
+const API_TOKEN = getConfigFromEnv('BITBUCKET_API_TOKEN', 'personal access token');
 
 const options = {
   baseURL: `${API_HOST}/rest/api/1.0/`,
@@ -52,48 +67,23 @@ const options = {
 const bitbucketapi = axios.create(options);
 
 class NetworkError extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'NetworkError';
   }
 }
 
 class APIError extends Error {
-  constructor(message) {
+  constructor(message?: string) {
     super(message);
     this.name = 'BitbucketAPIError';
   }
 }
 
-const getRequest = async url => {
-  try {
-    const response = await bitbucketapi.get(url);
-    return response.data;
-  } catch (error) {
-    if (error.response) {
-      const errorMessage = pathOr(
-        error.message,
-        ['data', 'errors'],
-        error.response
-      );
-      const errorString =
-        typeof errorMessage === 'string'
-          ? errorMessage
-          : JSON.stringify(errorMessage);
-
-      throw new APIError(errorString);
-    } else if (error.request) {
-      throw new NetworkError(error.message);
-    } else {
-      throw error;
-    }
-  }
-};
-
-const getAllPagesRequest = async url => {
+const getAllPagesRequest = async <T>(url: string): Promise<T[]> => {
   let start = 0;
   let moreResults = true;
-  let results = [];
+  let results: T[] = [];
 
   do {
     try {
@@ -110,22 +100,22 @@ const getAllPagesRequest = async url => {
         start = response.data.nextPageStart;
       }
 
-      results = [...results, ...response.data.values];
-    } catch (error) {
-      if (error.response) {
-        const errorMessage = pathOr(
-          error.message,
-          ['data', 'errors'],
-          error.response
-        );
-        const errorString =
-          typeof errorMessage === 'string'
-            ? errorMessage
-            : JSON.stringify(errorMessage);
+      results = [...results, ...response.data.values as T[]];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const errorMessage = error.response?.data?.errors ?? error.message;
+          const errorString =
+            typeof errorMessage === 'string'
+              ? errorMessage
+              : JSON.stringify(errorMessage);
 
-        throw new APIError(errorString);
-      } else if (error.request) {
-        throw new NetworkError(error.message);
+          throw new APIError(errorString);
+        } else if (error.request) {
+          throw new NetworkError(error.message);
+        } else {
+          throw error;
+        }
       } else {
         throw error;
       }
@@ -135,16 +125,17 @@ const getAllPagesRequest = async url => {
   return results;
 };
 
-export const searchReposByName = async (name: string): Promise<ApiRepo> => {
+export const searchReposByName = async (name: string): Promise<ApiRepo | undefined> => {
   try {
-    const repos = await getAllPagesRequest(
+    const repos = await getAllPagesRequest<ApiRepo>(
       `repos?name=${name}&permission=REPO_READ`
     );
-    return find(propEq('slug', name), repos);
+
+    return repos.find(repo => repo.slug === name);
   } catch (e) {
     throw e;
   }
 };
 
-export const getRepoUsers = async (project, repo) =>
-  getAllPagesRequest(`projects/${project}/repos/${repo}/permissions/users`);
+export const getRepoUsers = async (project: string, repo: string): Promise<ApiUserPermission[]> =>
+  getAllPagesRequest<ApiUserPermission>(`projects/${project}/repos/${repo}/permissions/users`);

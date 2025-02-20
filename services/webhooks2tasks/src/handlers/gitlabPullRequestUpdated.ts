@@ -1,9 +1,10 @@
 import R from 'ramda';
+import { DeployData, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 
-import { WebhookRequestData, deployData, Project } from '../types';
+import { WebhookRequestData, Project } from '../types';
 
 export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, project: Project) {
 
@@ -54,14 +55,14 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
     if (body.user.username) {
       sourceUser = body.user.username
     }
-    const data: deployData = {
+    const data: DeployData = {
       repoUrl: body.object_attributes.target.web_url,
       repoName: body.object_attributes.target.name,
       pullrequestUrl: body.object_attributes.url,
       pullrequestTitle: body.object_attributes.title,
       pullrequestNumber: body.object_attributes.iid,
       projectName: project.name,
-      type: 'pullrequest',
+      type: DeployType.PULLREQUEST,
       headBranchName: headBranchName,
       headSha: headSha,
       baseBranchName: baseBranchName,
@@ -69,7 +70,7 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
       branchName: `pr-${body.object_attributes.iid}`,
       buildName: buildName,
       sourceUser: sourceUser,
-      sourceType: "WEBHOOK",
+      sourceType: DeploymentSourceType.WEBHOOK,
       bulkId: webhook.bulkId,
       bulkName: webhook.bulkName,
     }
