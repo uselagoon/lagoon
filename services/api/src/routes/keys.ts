@@ -9,8 +9,7 @@ import { validateKey } from '../util/func';
 
 const toFingerprint = async (sshKey) => {
   try {
-    const pkey = new Buffer(sshKey).toString('base64')
-    const pubkey = await validateKey(pkey, "public")
+    const pubkey = await validateKey(sshKey, "public")
     if (pubkey['sha256fingerprint']) {
       return pubkey['sha256fingerprint']
     } else {

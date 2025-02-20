@@ -4,15 +4,17 @@ import {
     getOpenShiftInfoForEnvironment,
     getDeployTargetConfigsForProject,
     getEnvironmentByName,
-    getEnvironmentsForProject
+    getEnvironmentsForProject,
+    GetOpenShiftInfoForEnvironmentResult
 } from './api';
 import {
     getControllerBuildData,
     sendToLagoonTasks
 } from './tasks';
+import { DeployData } from './types';
 
 class NoNeedToDeployBranch extends Error {
-    constructor(message) {
+    constructor(message?: string) {
         super(message);
         this.name = 'NoNeedToDeployBranch';
     }
@@ -21,16 +23,14 @@ class NoNeedToDeployBranch extends Error {
 /*
   this function handles deploying a branch
 */
-const deployBranch = async function(data: any) {
-    const {
-        projectId,
+const deployBranch = async function(
+    deployTarget: any,
+    deployData: DeployData
+) {
+    let {
         projectName,
         branchName,
-        project,
-        deployData,
-        deployTarget,
-    } = data;
-
+    } = deployData
     let branchesRegex = deployTarget.branches
     switch (branchesRegex) {
         case undefined:
@@ -39,8 +39,7 @@ const deployBranch = async function(data: any) {
             logger.debug(
                 `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
             );
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
+            const buildDeployData = await getControllerBuildData(deployTarget, deployData);
             await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
             return true
         case 'false':
@@ -58,8 +57,7 @@ const deployBranch = async function(data: any) {
                 `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} matched branchname, starting deploy`
                 );
                 // controllers uses a different message than the other services, so we need to source it here
-                deployData.deployTarget = deployTarget
-                const buildDeployData = await getControllerBuildData(deployData);
+                const buildDeployData = await getControllerBuildData(deployTarget, deployData);
                 await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 return true
             }
@@ -74,17 +72,15 @@ const deployBranch = async function(data: any) {
 /*
 this function handles deploying a pullrequest
 */
-const deployPullrequest = async function(data: any) {
-    const {
-        projectId,
+const deployPullrequest = async function(
+    deployTarget: any,
+    deployData: DeployData
+) {
+    let {
         projectName,
         branchName,
-        project,
-        deployData,
-        pullrequestTitle,
-        deployTarget,
-    } = data;
-
+    } = deployData
+    let pullrequestTitle = deployData.pullrequestTitle || ""
     let pullrequestRegex = deployTarget.pullrequests
     switch (pullrequestRegex) {
         case undefined:
@@ -93,8 +89,7 @@ const deployPullrequest = async function(data: any) {
             logger.debug(
                 `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
             );
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
+            const buildDeployData = await getControllerBuildData(deployTarget, deployData);
             await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
             return true
         case 'false':
@@ -112,8 +107,7 @@ const deployPullrequest = async function(data: any) {
                 `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex} matched PR title '${pullrequestTitle}', starting deploy`
                 );
                 // controllers uses a different message than the other services, so we need to source it here
-                deployData.deployTarget = deployTarget
-                const buildDeployData = await getControllerBuildData(deployData);
+                const buildDeployData = await getControllerBuildData(deployTarget, deployData);
                 await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 return true
             }
@@ -131,15 +125,14 @@ it will check if the environment is already deployed, and if so will consume the
 otherwise it will check if there are deploytargetconfigs defined and use those (and only those)
 if there are no deploytargetconfigs defined, then it will use what is defined in the project
 */
-export const deployTargetBranches = async function(data: any) {
-    const {
-        projectId,
+export const deployTargetBranches = async function(
+    projectId: number,
+    deployData: DeployData
+) {
+    let {
         projectName,
         branchName,
-        project,
-        deployData
-    } = data;
-
+    } = deployData
     let deployTarget
 
     // see if the environment has already been created/deployed and get the openshift and projectpattern out of it
@@ -156,7 +149,7 @@ export const deployTargetBranches = async function(data: any) {
         //do nothing if there is an error, likely means that the environment hasn't been deployed before
     }
     // check if this is an active/standby deployment
-    const activeStandby = await checkActiveStandbyDeployTarget(data)
+    const activeStandby = await checkActiveStandbyDeployTarget(projectName, branchName)
     if (deployTarget && activeStandby) {
         if (deployTarget.openshift.id === activeStandby.environment.openshift.id) {
             // if the deployed environment matches the opposite active/standby environment target
@@ -174,8 +167,7 @@ export const deployTargetBranches = async function(data: any) {
 
     // if there is an openshift attached to the environment, then deploy deploy the environment using this deploytarget
     if (deployTarget) {
-        data.deployTarget = deployTarget
-        let deploy = await deployBranch(data)
+        let deploy = await deployBranch(deployTarget, deployData)
         // EXISTING DEPLOY VIA ENVIRONMENT KUBERNETES
         return deploy
     }
@@ -193,9 +185,8 @@ export const deployTargetBranches = async function(data: any) {
                 // since deploytarget configs reference a deploytarget instead of an openshift, convert that here to be what it needs to be
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
-            data.deployTarget = deployTarget
             // NEW DEPLOY VIA DEPLOYTARGETCONFIG KUBERNETES
-            deploy = await deployBranch(data)
+            deploy = await deployBranch(deployTarget, deployData)
             if (deploy) {
                 // if the deploy is successful, then return
                 return deploy
@@ -219,8 +210,7 @@ export const deployTargetBranches = async function(data: any) {
         } catch (err) {
         //do nothing if there is an error, likely means that the environment hasn't been deployed before
         }
-        data.deployTarget = deployTarget
-        let deploy = await deployBranch(data)
+        let deploy = await deployBranch(deployTarget, deployData)
         // NEW DEPLOY VIA PROJECT KUBERNETES
         if (deploy) {
             // if the deploy is successful, then return
@@ -243,15 +233,14 @@ it will check if the environment is already deployed, and if so will consume the
 otherwise it will check if there are deploytargetconfigs defined and use those (and only those)
 if there are no deploytargetconfigs defined, then it will use what is defined in the project
 */
-export const deployTargetPullrequest = async function(data: any) {
-    const {
-        projectId,
+export const deployTargetPullrequest = async function(
+    projectId: number,
+    deployData: DeployData
+) {
+    let {
         projectName,
         branchName,
-        project,
-        deployData
-    } = data;
-
+    } = deployData
     let deployTarget
     // see if the environment has already been created/deployed and get the openshift and projectpattern out of it
     try {
@@ -274,8 +263,7 @@ export const deployTargetPullrequest = async function(data: any) {
     }
     // if there is an openshift attached to the environment, then deploy deploy the environment using this deploytarget
     if (deployTarget) {
-        data.deployTarget = deployTarget
-        let deploy = await deployPullrequest(data)
+        let deploy = await deployPullrequest(deployTarget, deployData)
         // EXISTING DEPLOY VIA ENVIRONMENT KUBERNETES
         return deploy
     }
@@ -293,9 +281,8 @@ export const deployTargetPullrequest = async function(data: any) {
                 // since deploytarget configs reference a deploytarget instead of an openshift, convert that here to be what it needs to be
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
-            data.deployTarget = deployTarget
             // NEW DEPLOY VIA DEPLOYTARGETCONFIG KUBERNETES
-            deploy = await deployPullrequest(data)
+            deploy = await deployPullrequest(deployTarget, deployData)
             if (deploy) {
                 // if the deploy is successful, then return
                 return deploy
@@ -319,8 +306,7 @@ export const deployTargetPullrequest = async function(data: any) {
         } catch (err) {
         //do nothing if there is an error, likely means that the environment hasn't been deployed before
         }
-        data.deployTarget = deployTarget
-        let deploy = await deployPullrequest(data)
+        let deploy = await deployPullrequest(deployTarget, deployData)
         // NEW DEPLOY VIA PROJECT KUBERNETES
         if (deploy) {
             // if the deploy is successful, then return
@@ -340,26 +326,22 @@ export const deployTargetPullrequest = async function(data: any) {
 /*
 this is the primary function that handles checking the existing `openshift` configured for a deployed promote
 */
-export const deployTargetPromote = async function(data: any) {
-    const {
-        projectId,
-        promoteData
-    } = data;
-
+export const deployTargetPromote = async function(
+    projectId: number,
+    deployData: DeployData
+) {
     let deployTarget
-    const projectOpenshift = await getOpenShiftInfoForProject(promoteData.projectName)
+    const projectOpenshift = await getOpenShiftInfoForProject(deployData.projectName)
     deployTarget = {
         openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
-        branches: projectOpenshift.project.branches,
         openshift: projectOpenshift.project.openshift
     }
     const deployTargetConfigs = await getDeployTargetConfigsForProject(projectId)
     if (deployTargetConfigs.targets.length > 0) {
-      const promoteSourceEnvOpenshift = await checkPromoteEnvironment(promoteData)
+      const promoteSourceEnvOpenshift = await checkPromoteEnvironment(deployData)
       if (promoteSourceEnvOpenshift) {
         deployTarget = {
             openshiftProjectPattern: promoteSourceEnvOpenshift.environment.openshiftProjectPattern,
-            branches: promoteSourceEnvOpenshift.environment.branches,
             openshift: promoteSourceEnvOpenshift.environment.openshift
         }
       } else {
@@ -368,8 +350,7 @@ export const deployTargetPromote = async function(data: any) {
         );
       }
     }
-    promoteData.deployTarget = deployTarget
-    const buildDeployData = await getControllerBuildData(promoteData);
+    const buildDeployData = await getControllerBuildData(deployTarget, deployData);
     const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
     return true
 }
@@ -381,14 +362,10 @@ environments
 this information is used in the `deployTargetBranches` function to return an error to the user if they attempt to deploy either the production or standbyproduction
 environment to different clusters than each other
 */
-export const checkActiveStandbyDeployTarget = async function(data: any) {
-    const {
-        projectId,
-        projectName,
-        branchName,
-        project,
-        deployData
-    } = data;
+export const checkActiveStandbyDeployTarget = async function (
+    projectName: string,
+    branchName: string,
+) {
     let result
     const environments = await getEnvironmentsForProject(projectName);
     logger.info(`FOUND ${environments.project.standbyProductionEnvironment} ${branchName}`)
@@ -443,26 +420,18 @@ export const checkActiveStandbyDeployTarget = async function(data: any) {
 this is the primary function that handles checking the existing `openshift` configured for a promoted environment
 currently promoted environments can only be promoted on the same cluster as the environment it is being promoted from
 */
-export const checkPromoteEnvironment = async function(data: any) {
-    const {
-        projectId,
-        projectName,
-        branchName,
-        project,
-        promoteSourceEnvironment,
-        deployData
-    } = data;
-    let result
-    const environments = await getEnvironmentsForProject(projectName);
-    logger.info(`PROMOTE SOURCE ${promoteSourceEnvironment}`)
+export const checkPromoteEnvironment = async (
+    data: DeployData,
+): Promise<GetOpenShiftInfoForEnvironmentResult | undefined> => {
+    const { projectName, promoteSourceEnvironment } = data;
+
+    const result = await getEnvironmentsForProject(projectName);
+
     // check the sourceenvironment exists and get the openshift info for it
     let environmentId = 0;
     let foundEnvironment = false;
-    environments.project.environments.forEach(function(
-        environment,
-        index
-    ) {
-        // check that the production environment exists
+    result.project.environments.forEach((environment) => {
+        // check that the promote environment exists
         if (environment.name === promoteSourceEnvironment) {
             foundEnvironment = true;
             environmentId = environment.id;
@@ -470,9 +439,9 @@ export const checkPromoteEnvironment = async function(data: any) {
     });
 
     if (foundEnvironment) {
-        logger.info(`FOUND ${environmentId}`)
-        // if the production environment exists, then check which openshift it has been deployed to
-        result = await getOpenShiftInfoForEnvironment(environmentId);
+        // if the promote environment exists, then check which openshift it has been deployed to
+        return await getOpenShiftInfoForEnvironment(environmentId);
     }
-    return result
-}
+
+    return undefined;
+  };

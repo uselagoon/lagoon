@@ -101,7 +101,7 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
     });
     try {
       const data = await Promise.resolve(restoreLoc.promise());
-      restoreSize = data.ContentLength
+      restoreSize = data.ContentLength ?? restoreSize
       const restLoc = await s3Client.getSignedUrl('getObject', {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),

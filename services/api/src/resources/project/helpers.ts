@@ -78,7 +78,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
   const getProjectByEnvironmentId = async (
     environmentId: number,
-    environmentType = null
+    environmentType = []
   ) => {
     const rows = await query(
       sqlClientPool,

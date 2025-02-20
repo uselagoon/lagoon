@@ -1,3 +1,4 @@
+import { DeploymentSourceType } from '@lagoon/commons/dist/types';
 import { knex } from '../../util/db';
 
 export const Sql = {
@@ -38,8 +39,8 @@ export const Sql = {
     bulkId: string,
     bulkName: string,
     buildStep: string,
-    sourceType?: string,
-    sourceUser?: string,
+    sourceType: DeploymentSourceType,
+    sourceUser: string,
   }) =>
     knex('deployment')
       .insert({
