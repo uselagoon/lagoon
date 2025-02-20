@@ -573,7 +573,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
   }
 
   // encode some values so they get sent to the controllers nicely
-  const [routerPattern, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+  const { routerPattern, appliedEnvVars: envVars } = await getEnvironmentsRouterPatternAndVariables(
     lagoonProjectData,
     environment.addOrUpdateEnvironment,
     deployTarget.openshift,
@@ -635,7 +635,6 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
           statuspageID: uptimeRobotStatusPageIds.join('-'),
         },
         variables: {
-          project: projectVars,
           environment: envVars,
         },
       },
@@ -664,148 +663,160 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
   buildPriority: number,
   buildVariables: Array<{name: string, value: string}>,
   bulkTask: bulkType
-): Promise<[string, string, string]> {
-  let projectVars: Array<Pick<EnvKeyValue, 'name' | 'value'> & {
+): Promise<{ routerPattern: string, appliedEnvVars: string }> {
+  type EnvKeyValueInternal = Pick<EnvKeyValue, 'name' | 'value'> & {
     scope: EnvVariableScope | InternalEnvVariableScope;
-  }> = [...project.envVariables];
+  }
 
-    // set routerpattern to the routerpattern of what is defined in the project scope openshift
-  var routerPattern = project.openshift.routerPattern
+  let appliedEnvVars: EnvKeyValueInternal[] = [];
+
+  // Adds newVar only if it's unique (by name).
+  const addApplied = (newVar: EnvKeyValueInternal): void => {
+    const index = appliedEnvVars.findIndex((searchVar) => searchVar.name === newVar.name)
+
+    if (index === -1) {
+      appliedEnvVars.push(newVar)
+    }
+  }
+
+  // Get the router pattern from the project or deploy target.
+  let routerPattern = project.openshift.routerPattern
+  // deployTarget.routerPattern allows null.
   if (typeof deployTarget.routerPattern !== 'undefined') {
-    // if deploytargets are being provided, then use what is defined in the deploytarget
-    // null is a valid value for routerPatterns here...
     routerPattern = deployTarget.routerPattern
   }
-  // but if the project itself has a routerpattern defined, then this should be used
+  // project.routerPattern does now allow null.
   if (project.routerPattern) {
-    // if a project has a routerpattern defined, use it. `null` is not valid here
     routerPattern = project.routerPattern
   }
 
-  projectVars = [
-    ...projectVars,
-    // append the routerpattern to the projects variables
-    // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
-    // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
-    // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
-    {
-      name: 'LAGOON_SYSTEM_ROUTER_PATTERN',
-      value: routerPattern,
-      scope: InternalEnvVariableScope.INTERNAL_SYSTEM
-    },
-    // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
-    // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
-    // builds that are not of a supported version of lagoon
-    {
-      name: "LAGOON_SYSTEM_CORE_VERSION",
-      value: getConfigFromEnv('LAGOON_VERSION', 'unknown'),
-      scope: InternalEnvVariableScope.INTERNAL_SYSTEM
-    }
-  ];
-
-
-  // if the project is configured with a shared baas bucket
-  if (project.sharedBaasBucket) {
-    // we only want the shared baas bucket here if one is defined
-    let [sharedBaasBucket, shared] = await getBaasBucketName(project, deployTarget)
-    if (shared) {
-      projectVars = [
-        ...projectVars,
-        {
-          name: "LAGOON_SYSTEM_PROJECT_SHARED_BUCKET",
-          value: sharedBaasBucket,
-          scope: InternalEnvVariableScope.INTERNAL_SYSTEM
-        }
-      ];
-    }
-  }
-
+  // Load organization if project is in one.
+  let org;
   if (project.organization) {
-    // check the environment quota, this prevents environments being deployed by the api or webhooks
-    const curOrg = await getOrganizationById(project.organization);
-    projectVars = [
-      ...projectVars,
-      {
-        name: "LAGOON_ROUTE_QUOTA",
-        value: `${curOrg.quotaRoute}`,
-        scope: InternalEnvVariableScope.INTERNAL_SYSTEM
-      }
-    ];
+    org = await getOrganizationById(project.organization);
   }
 
-  // handle any bulk deploy related injections here
-  let varPrefix = "LAGOON_BULK_DEPLOY"
-  switch (bulkTask) {
-    case bulkType.Task:
-      varPrefix = "LAGOON_BULK_TASK"
-      if (buildPriority != null) {
-        projectVars = [
-          ...projectVars,
-          {
-            name: "LAGOON_TASK_PRIORITY",
-            value: buildPriority.toString(),
-            scope: EnvVariableScope.BUILD
-          }
-        ];
-      }
-      break;
-    default:
-      if (buildPriority != null) {
-        projectVars = [
-          ...projectVars,
-          {
-            name: "LAGOON_BUILD_PRIORITY",
-            value: buildPriority.toString(),
-            scope: EnvVariableScope.BUILD
-          }
-        ];
-      }
-      break;
+  /*
+   * Internal scoped env vars.
+   */
+
+  addApplied({
+    name: "LAGOON_SYSTEM_CORE_VERSION",
+    value: getConfigFromEnv('LAGOON_VERSION', 'unknown'),
+    scope: InternalEnvVariableScope.INTERNAL_SYSTEM
+  });
+
+  addApplied({
+    name: 'LAGOON_SYSTEM_ROUTER_PATTERN',
+    value: routerPattern,
+    scope: InternalEnvVariableScope.INTERNAL_SYSTEM
+  });
+
+  const [bucketName, isSharedBucket] = await getBaasBucketName(project, deployTarget)
+  if (isSharedBucket) {
+    addApplied({
+      name: "LAGOON_SYSTEM_PROJECT_SHARED_BUCKET",
+      value: bucketName,
+      scope: InternalEnvVariableScope.INTERNAL_SYSTEM
+    });
   }
-  if (bulkId != "" && bulkId != null) {
-    // if this is a bulk deploy, add the associated bulk deploy build scope variables
-    projectVars = [
-      ...projectVars,
-      {
-        name: varPrefix,
+
+  if (org) {
+    addApplied({
+      name: "LAGOON_ROUTE_QUOTA",
+      value: `${org.quotaRoute}`,
+      scope: InternalEnvVariableScope.INTERNAL_SYSTEM
+    });
+  }
+
+  /*
+   * Normally scoped env vars.
+   */
+
+  // Build env vars passed to the API.
+  for (const buildVar of buildVariables) {
+    addApplied({
+      name: buildVar.name,
+      value: buildVar.value,
+      scope: EnvVariableScope.BUILD
+    })
+  }
+
+  // Bulk deployment env vars.
+  if (bulkTask === bulkType.Deploy) {
+    addApplied({
+      name: "LAGOON_BUILD_PRIORITY",
+      value: buildPriority.toString(),
+      scope: EnvVariableScope.BUILD
+    });
+
+    if (bulkId) {
+      addApplied({
+        name: "LAGOON_BULK_DEPLOY",
         value: "true",
         scope: EnvVariableScope.BUILD
-      },
-      {
-        name: `${varPrefix}_ID`,
+      });
+      addApplied({
+        name: "LAGOON_BULK_DEPLOY_ID",
         value: bulkId,
         scope: EnvVariableScope.BUILD
+      });
+
+      if (bulkName) {
+        addApplied({
+          name: "LAGOON_BULK_DEPLOY_NAME",
+          value: bulkName,
+          scope: EnvVariableScope.BUILD
+        });
       }
-    ];
-  }
-  if (bulkName != "" && bulkName != null) {
-    projectVars = [
-      ...projectVars,
-      {
-        name: `${varPrefix}_NAME`,
-        value: bulkName,
+    }
+  } else if (bulkTask === bulkType.Task) {
+    addApplied({
+      name: "LAGOON_TASK_PRIORITY",
+      value: buildPriority.toString(),
+      scope: EnvVariableScope.BUILD
+    })
+
+    if (bulkId) {
+      addApplied({
+        name: "LAGOON_BULK_TASK",
+        value: "true",
         scope: EnvVariableScope.BUILD
+      });
+      addApplied({
+        name: "LAGOON_BULK_TASK_ID",
+        value: bulkId,
+        scope: EnvVariableScope.BUILD
+      });
+
+      if (bulkName) {
+        addApplied({
+          name: "LAGOON_BULK_TASK_NAME",
+          value: bulkName,
+          scope: EnvVariableScope.BUILD
+        });
       }
-    ];
-  }
-  // end bulk related injections
-
-  let lagoonEnvironmentVariables = environment.envVariables || []
-  if (buildVariables != null ) {
-    // add the build `scope` to all the incoming build variables for a specific build
-    const scopedBuildVariables = buildVariables.map(v => ({...v, scope: EnvVariableScope.BUILD}))
-    // check for buildvariables being passed in
-    // these need to be merged on top of environment level variables
-    // handle that here
-    lagoonEnvironmentVariables = jsonMerge(environment.envVariables, scopedBuildVariables, "name")
+    }
   }
 
+  // Environment env vars.
+  for (const envVar of environment.envVariables) {
+    addApplied(envVar)
+  }
 
-  // encode some values so they get sent to the controllers nicely
-  const envVarsEncoded = encodeJSONBase64(lagoonEnvironmentVariables)
-  const projectVarsEncoded = encodeJSONBase64(projectVars)
+  // Project env vars.
+  for (const projVar of project.envVariables) {
+    addApplied(projVar)
+  }
 
-  return [routerPattern, envVarsEncoded, projectVarsEncoded]
+  if (org) {
+    // Organization env vars.
+    for (const orgVar of org.envVariables) {
+      addApplied(orgVar)
+    }
+  }
+
+  return { routerPattern, appliedEnvVars: encodeJSONBase64(appliedEnvVars) }
 }
 
 /*
@@ -1064,7 +1075,7 @@ const restoreConfig = (name: string, backupId: string, backupS3Config: any, rest
   return config;
 };
 
-export const getTaskProjectEnvironmentVariables = async (projectName: string, environmentId: number): Promise<{projectVars: string, envVars: string}> => {
+export const getTaskProjectEnvironmentVariables = async (projectName: string, environmentId: number): Promise<string> => {
   // inject variables into tasks the same way it is in builds
   // this makes variables available to tasks the same way for consumption
   // this will make it possible to handle variable updates in the future without
@@ -1077,13 +1088,13 @@ export const getTaskProjectEnvironmentVariables = async (projectName: string, en
     priority = result.project.productionBuildPriority || 6
   }
 
-  const [_, envVars, projectVars] = await getEnvironmentsRouterPatternAndVariables(
+  const { appliedEnvVars } = await getEnvironmentsRouterPatternAndVariables(
     result.project,
     environment.environmentById,
     environment.environmentById.openshift,
     null, null, priority, [], bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
   )
-  return { projectVars, envVars }
+  return appliedEnvVars
 }
 
 export const getBaasBucketName = async (
@@ -1112,12 +1123,11 @@ export const createTaskTask = async function(taskData: any) {
   const { project } = taskData;
 
   // inject variables into tasks the same way it is in builds
-  const { envVars, projectVars } = await getTaskProjectEnvironmentVariables(
+  const envVars = await getTaskProjectEnvironmentVariables(
     project.name,
     taskData.environment.id
   )
   taskData.project.variables = {
-    project: projectVars,
     environment: envVars,
   }
 
@@ -1259,12 +1269,11 @@ export const createMiscTask = async function(taskData: any) {
       break;
     case 'deploytarget:task:advanced':
       // inject variables into advanced tasks the same way it is in builds and standard tasks
-      const { envVars, projectVars } = await getTaskProjectEnvironmentVariables(
+      const envVars = await getTaskProjectEnvironmentVariables(
         taskData.data.project.name,
         taskData.data.environment.id
       )
       miscTaskData.project.variables = {
-        project: projectVars,
         environment: envVars,
       }
       miscTaskData.advancedTask = taskData.data.advancedTask
