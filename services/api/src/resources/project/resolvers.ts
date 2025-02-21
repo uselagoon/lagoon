@@ -14,7 +14,9 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
+import { AuditType } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
+import { AuditLog, AuditResource } from '../audit/types';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -483,12 +485,20 @@ export const addProject = async (
     }
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User added a project '${project.name}'`, {
     project: '',
     event: 'api:addProject',
     payload: {
       input,
-      data: project
+      data: project,
+      ...auditLog,
     }
   });
 
@@ -591,13 +601,21 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: '',
     event: 'api:deleteProject',
     payload: {
       input: {
         project
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -900,6 +918,13 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: oldProject.id,
+      type: AuditType.PROJECT,
+      details: oldProject.name,
+    },
+  };
   userActivityLogger(`User updated project '${oldProject.name}'`, {
     project: '',
     event: 'api:updateProject',
@@ -931,7 +956,8 @@ export const updateProject: ResolverFn = async (
         organization,
         buildImage,
         sharedBaasBucket
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -959,6 +985,8 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     }
   }
 
+  const project = await Helpers(sqlClientPool).getProjectById(id);
+
   await query(
     sqlClientPool,
     `UPDATE project
@@ -967,6 +995,13 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     { id, meta_key: `$.${key}` }
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User removed project metadata key '${key}'`, {
     project: '',
     event: 'api:removeProjectMetadataByKey',
@@ -974,7 +1009,8 @@ export const removeProjectMetadataByKey: ResolverFn = async (
       input: {
         id,
         key
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -1012,6 +1048,8 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   }
 
+  const project = await Helpers(sqlClientPool).getProjectById(id);
+
   await query(
     sqlClientPool,
     `UPDATE project
@@ -1024,6 +1062,13 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
   userActivityLogger(`User updated project metadata`, {
     project: '',
     event: 'api:updateProjectMetadata',
@@ -1032,7 +1077,8 @@ export const updateProjectMetadata: ResolverFn = async (
         project: id,
         key,
         value
-      }
+      },
+      ...auditLog,
     }
   });
 

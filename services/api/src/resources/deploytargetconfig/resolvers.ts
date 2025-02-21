@@ -8,6 +8,8 @@ import { Sql } from './sql';
 import { Sql as EnvironmentSql } from '../environment/sql'
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as organizationHelpers } from '../organization/helpers';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getDeployTargetConfigById = async (
   root,
@@ -82,6 +84,7 @@ const checkProjectDeployTargetByOrg = async (projectId: number, deployTargetId: 
       throw new Error('The provided deploytarget is not valid for this organization');
     }
   }
+  return projectdata
 }
 
 export const updateEnvironmentDeployTarget: ResolverFn = async (
@@ -102,7 +105,7 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
   });
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
+  const projectData = await checkProjectDeployTargetByOrg(environmentObj.project, deployTarget, sqlClientPool)
 
   const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
 
@@ -153,11 +156,23 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
     sqlClientPool
   ).getProjectByEnvironmentId(environment);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environmentObj.id,
+      type: AuditType.ENVIRONMENT,
+      details: environmentObj.name,
+    },
+    linkedResource: {
+      id: deployTarget,
+      type: AuditType.DEPLOYTARGET,
+    },
+  }
   userActivityLogger(`User changed DeployTarget for environment`, {
     project: '',
     event: 'api:updateEnvironmentDeployTarget',
     payload: {
-      ...input
+      ...input,
+      ...auditLog,
     }
   });
 
@@ -192,7 +207,7 @@ export const addDeployTargetConfig: ResolverFn = async (
   await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
 
   // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-  await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
+  const projectData = await checkProjectDeployTargetByOrg(project, deployTarget, sqlClientPool)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -214,11 +229,30 @@ export const addDeployTargetConfig: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(insertId));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id,
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: insertId,
+      type: AuditType.DEPLOYTARGETCONFIG,
+      details: `${JSON.stringify({
+        weight,
+        branches,
+        pullrequests,
+        deployTarget,
+        deployTargetProjectPattern,
+      })}`
+    },
+  }
   userActivityLogger(`User added DeployTargetConfig`, {
     project: '',
     event: 'api:addDeployTargetConfig',
     payload: {
-      ...input
+      ...input,
+      ...auditLog,
     }
   });
 
@@ -238,22 +272,34 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   // are updateable by the same permissions at the project scope
   // deleting a deploytargetconfig from a project is classed as updating the project
   await projectHelpers(sqlClientPool).checkOrgProjectUpdatePermission(hasPermission, project)
+  const projectData = await projectHelpers(
+    sqlClientPool
+  ).getProjectById(project);
 
   try {
-    await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE id = :id', {
-      id,
-      project
-    });
+    await query(sqlClientPool,  Sql.deleteDeployTargetConfigById(id));
   } catch (err) {
      // Not allowed to stop execution.
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id,
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.DEPLOYTARGETCONFIG,
+    },
+  }
   userActivityLogger(`User deleted DeployTargetConfig'`, {
     project: '',
     event: 'api:deleteDeployTargetConfig',
     payload: {
       id,
       project,
+      ...auditLog,
     }
   });
 
@@ -310,14 +356,8 @@ export const updateDeployTargetConfig: ResolverFn = async (
     deployTargetConfig.project,
   );
 
-  if (deployTarget) {
-    // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
-    await checkProjectDeployTargetByOrg(
-      deployTargetConfig.project,
-      deployTarget,
-      sqlClientPool,
-    );
-  }
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  const projectData = await checkProjectDeployTargetByOrg(deployTargetConfig.project, deployTarget, sqlClientPool)
 
   await query(
     sqlClientPool,
@@ -336,11 +376,30 @@ export const updateDeployTargetConfig: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id,
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: id.toString(),
+      type: AuditType.DEPLOYTARGETCONFIG,
+      details: `${JSON.stringify({
+        weight,
+        branches,
+        pullrequests,
+        deployTarget,
+        deployTargetProjectPattern,
+      })}`
+    },
+  }
   userActivityLogger(`User updated DeployTargetConfig`, {
     event: 'api:updateDeployTargetConfig',
     payload: {
       data: withK8s,
-    },
+      ...auditLog,
+    }
   });
 
   return R.prop(0, withK8s);

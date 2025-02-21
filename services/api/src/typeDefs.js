@@ -1192,6 +1192,66 @@ const typeDefs = gql`
     deployTargetProjectPattern: String
   }
 
+  type AuditLog {
+    id: Int
+    usid: String
+    emailAddress: String
+    resourceId: String
+    resourceType: AuditType
+    resourceDetails: String
+    linkedResourceId: String
+    linkedResourceType: AuditType
+    linkedResourceDetails: String
+    auditEvent: String
+    impersonatorId: String
+    impersonatorUsername: String
+    ipAddress: String
+    source: AuditSource
+    created: String
+  }
+
+  enum AuditSource {
+    API
+    CLI
+    UI
+  }
+
+  enum AuditType {
+    BACKUP
+    BULKDEPLOYMENT
+    DEPLOYMENT
+    DEPLOYTARGET
+    DEPLOYTARGETCONFIG
+    ENVIRONMENT
+    GROUP
+    NOTIFICATION
+    ORGANIZATION
+    PROJECT
+    SSHKEY
+    TASK
+    USER
+    VARIABLE
+    WORKFLOW
+  }
+
+  input AuditLogInput {
+    startDate: String
+    endDate: String
+    userId: String
+    emailAddress: String
+    impersonatorId: String
+    impersonatorUsername: String
+    resourceType: AuditType
+    resourceDetails: String
+    resourceId: String
+    linkedResourceType: AuditType
+    linkedResourceId: String
+    linkedResourceDetails: String
+    auditEvent: String
+    ipAddress: String
+    source: AuditSource
+  }
+
   input AddDeployTargetConfigInput {
     id: Int
     project: Int!
@@ -1449,6 +1509,7 @@ const typeDefs = gql`
     getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
     checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
     allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
+    getAuditLogs(input: AuditLogInput): [AuditLog]
   }
 
   type ProjectGroupsToOrganization {

@@ -924,6 +924,48 @@ EOF
 EOF
 }
 
+function add_lagoon-ui_impersonator_mappers {
+    local lagoon_ui_client=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["protocolMappers"] | map(select(.name=="Impersonator User ID")) // false')
+    if [ "$lagoon_ui_client" != "[]" ]; then
+        echo "lagoon-ui impersonator mappers already exist"
+        return 0
+    fi
+    local lagoon_ui_clientid=$( /opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"] // false')
+    /opt/keycloak/bin/kcadm.sh create clients/${lagoon_ui_clientid}/protocol-mappers/models -r lagoon \
+      -s name="Impersonator User ID" \
+      -s protocol="openid-connect" \
+      -s protocolMapper="oidc-usersessionmodel-note-mapper" \
+      -s config='{"user.session.note":"IMPERSONATOR_ID","introspection.token.claim":"true","id.token.claim":"true","access.token.claim":"true","claim.name":"impersonator.id","jsonType.label":"String"}' \
+       --config $CONFIG_PATH
+    /opt/keycloak/bin/kcadm.sh create clients/${lagoon_ui_clientid}/protocol-mappers/models -r lagoon \
+      -s name="Impersonator Username" \
+      -s protocol="openid-connect" \
+      -s protocolMapper="oidc-usersessionmodel-note-mapper" \
+      -s config='{"user.session.note":"IMPERSONATOR_USERNAME","introspection.token.claim":"true","id.token.claim":"true","access.token.claim":"true","claim.name":"impersonator.username","jsonType.label":"String"}' \
+       --config $CONFIG_PATH
+}
+
+function add_lagoon-ui-oidc_impersonator_mappers {
+    local lagoon_ui_oidc_client=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui-oidc --config $CONFIG_PATH | jq -r '.[0]["protocolMappers"] | map(select(.name=="Impersonator User ID")) // false')
+    if [ "$lagoon_ui_oidc_client" != "[]" ]; then
+        echo "lagoon-ui-oidc impersonator mappers already exist"
+        return 0
+    fi
+    local lagoon_ui_oidc_clientid=$( /opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui-oidc --config $CONFIG_PATH | jq -r '.[0]["id"] // false')
+    /opt/keycloak/bin/kcadm.sh create clients/${lagoon_ui_oidc_clientid}/protocol-mappers/models -r lagoon \
+      -s name="Impersonator User ID" \
+      -s protocol="openid-connect" \
+      -s protocolMapper="oidc-usersessionmodel-note-mapper" \
+      -s config='{"user.session.note":"IMPERSONATOR_ID","introspection.token.claim":"true","id.token.claim":"true","access.token.claim":"true","claim.name":"impersonator.id","jsonType.label":"String"}' \
+       --config $CONFIG_PATH
+    /opt/keycloak/bin/kcadm.sh create clients/${lagoon_ui_oidc_clientid}/protocol-mappers/models -r lagoon \
+      -s name="Impersonator Username" \
+      -s protocol="openid-connect" \
+      -s protocolMapper="oidc-usersessionmodel-note-mapper" \
+      -s config='{"user.session.note":"IMPERSONATOR_USERNAME","introspection.token.claim":"true","id.token.claim":"true","access.token.claim":"true","claim.name":"impersonator.username","jsonType.label":"String"}' \
+       --config $CONFIG_PATH
+}
+
 ##################
 # Initialization #
 ##################
@@ -978,6 +1020,8 @@ function configure_keycloak {
     add_update_platform_organization_permissions
     lagoon-opensearch-sync_add_view-users_permission
     add_org_env_vars
+    add_lagoon-ui_impersonator_mappers
+    add_lagoon-ui-oidc_impersonator_mappers
 
     # always run last
     sync_client_secrets

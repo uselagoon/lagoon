@@ -3,6 +3,8 @@ import Sql from "./sql";
 import { query, isPatchEmpty } from '../../util/db';
 import { ResolverFn } from '../';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog, AuditResource } from "../audit/types";
 
 // Here we abstract permissions in case we want to change the underlying functionality later
 // TODO: Question - do we want to handle the failure of perms checks _any other way_
@@ -51,6 +53,36 @@ export const addWorkflow: ResolverFn = async (
     Sql.selectWorkflowById(insertId)
   );
 
+  let linkedResource: AuditResource;
+  if (input.project && input.advancedTaskDefinition) {
+    linkedResource = {
+      id: input.project,
+      type: AuditType.PROJECT,
+      details: `task: '${input.advancedTaskDefinition}'`
+    };
+  } else {
+    if (input.project) {
+      linkedResource = {
+        id: input.project,
+        type: AuditType.PROJECT,
+      };
+    }
+    if (input.advancedTaskDefinition) {
+      linkedResource = {
+        id: input.project,
+        type: AuditType.TASK,
+        details: `task: '${input.advancedTaskDefinition}'`
+      };
+    }
+  }
+  const auditLog: AuditLog = {
+    resource: {
+      id: insertId,
+      type: AuditType.WORKFLOW,
+      details: input.name,
+    },
+    linkedResource: linkedResource,
+  };
   userActivityLogger(`User added a workflow '${insertId}'`, {
     project: '',
     event: 'api:addWorkflow',
@@ -59,7 +91,8 @@ export const addWorkflow: ResolverFn = async (
         name: input.name,
         event: input.event,
         project: input.project,
-        advanced_task_definition: input.advancedTaskDefinition
+        advanced_task_definition: input.advancedTaskDefinition,
+        ...auditLog,
       }
     }
   });
@@ -108,6 +141,12 @@ export const updateWorkflow: ResolverFn = async (
       Sql.selectWorkflowById(id)
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: id.toString(),
+      type: AuditType.WORKFLOW,
+    },
+  };
   userActivityLogger(`User updated a workflow '${id}'`, {
     project: '',
     event: 'api:updateWorkflow',
@@ -118,7 +157,8 @@ export const updateWorkflow: ResolverFn = async (
         event,
         project,
         advanced_task_definition: advancedTaskDefinition
-      }
+      },
+      ...auditLog,
     }
   });
 

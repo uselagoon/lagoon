@@ -15,11 +15,12 @@ import {
   notificationContentTypeToInt
 } from '@lagoon/commons/dist/notificationCommons';
 import { sqlClientPool } from '../../clients/sqlClient';
-import { logger } from '../../loggers/logger';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog, AuditResource } from '../audit/types';
 
 const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT || "false"
 
-const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
+const addNotificationGeneric = async (sqlClientPool, userActivityLogger, notificationTable, type, input) => {
   const createSql = knex(notificationTable).insert(input).toString();
 
   let insertId: number;
@@ -34,6 +35,29 @@ const addNotificationGeneric = async (sqlClientPool, notificationTable, input) =
       throw new Error(error.message);
     }
   };
+
+  const notificationResource: AuditResource = {
+    id: insertId.toString(),
+    type: AuditType.NOTIFICATION,
+    details: input.name,
+  };
+  const auditLog: AuditLog = {
+    resource: notificationResource,
+  };
+  if (input.organization) {
+    auditLog.resource = {
+      id: input.organization,
+      type: AuditType.ORGANIZATION,
+    };
+    auditLog.linkedResource = notificationResource;
+  }
+  userActivityLogger(`User added a ${type} notification`, {
+    project: '',
+    event: `api:addNotification${type}`,
+    payload: {
+      ...auditLog
+    }
+  });
 
   return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
 }
@@ -69,42 +93,42 @@ const checkOrgNotificationPermission = async (hasPermission, input, adminScopes)
 export const addNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, adminScopes}
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger}
 ) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
-  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_microsoftteams', input));
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_microsoftteams', 'MicrosoftTeams', input));
 };
 
 export const addNotificationEmail: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, adminScopes}
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger}
 ) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
-  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_email', input));
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_email', 'Email', input));
 };
 
 export const addNotificationRocketChat: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger}
 ) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
-  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_rocketchat', 'RocketChat', input));
 };
 
 export const addNotificationSlack: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, adminScopes}
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger}
 ) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
-  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_slack', 'Slack', input));
 };
 
-export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission, adminScopes}) => {
+export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission, adminScopes, userActivityLogger}) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
-  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_webhook', 'Webhook', input));
 };
 
 
@@ -127,6 +151,7 @@ export const addNotificationToProject: ResolverFn = async (
   const pid = await projectHelpers(sqlClientPool).getProjectIdByName(
     input.project
   );
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(pid)
 
   const rows = await query(
     sqlClientPool,
@@ -160,12 +185,23 @@ export const addNotificationToProject: ResolverFn = async (
   projectNotification.notificationSeverityThreshold =
     input.notificationSeverityThreshold || NOTIFICATION_SEVERITY_THRESHOLD;
 
-
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id,
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: projectNotification.id,
+      type: AuditType.NOTIFICATION,
+    },
+  };
   userActivityLogger(`User added a notification to project '${pid}'`, {
     project: '',
     event: 'api:addNotificationToProject',
     payload: {
-     projectNotification
+      projectNotification,
+      ...auditLog,
     }
   });
 

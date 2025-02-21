@@ -3,8 +3,11 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getAllProblems: ResolverFn = async (
   root,
@@ -197,6 +200,20 @@ export const addProblem: ResolverFn = async (
     Sql.selectProblemByDatabaseId(insertId)
   );
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:addProblem',
@@ -215,7 +232,8 @@ export const addProblem: ResolverFn = async (
         links: links,
         data: JSON.stringify(data),
         created,
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -238,13 +256,28 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:deleteProblem',
     payload: {
-      input: { environment, identifier }
+      input: { environment, identifier },
+      ...auditLog,
     }
   });
 
@@ -264,16 +297,31 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(
     sqlClientPool,
     Sql.deleteProblemsFromSource(environmentId, source, service)
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
     project: '',
     event: 'api:deleteProblemsFromSource',
     payload: {
-      input: { environment, source, service }
+      input: { environment, source, service },
+      ...auditLog,
     }
   });
 

@@ -90,6 +90,10 @@ export const Sql = {
         .where('env_vars.environment', '=', environmentId)
         .orderBy('env_vars.name', 'asc')
         .toString(),
+  selectEnvVarById: (id: number) =>
+      knex('env_vars')
+        .where('id', '=', id)
+        .toString(),
   selectPermsForEnvVariable: (id: number) =>
     knex('env_vars')
       .select({ pid: 'project.id' })
