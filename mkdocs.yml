@@ -23,6 +23,7 @@ nav:
 - Advanced Lagoon Concepts:
   - Overview: concepts-advanced/index.md
   - Service Types: concepts-advanced/service-types.md
+  - Storage Types: concepts-advanced/storage-types.md
   - Environment Types: concepts-advanced/environment-types.md
   - Environment Variables: concepts-advanced/environment-variables.md
   - Environment Idling: concepts-advanced/environment-idling.md
