@@ -1250,6 +1250,10 @@ const typeDefs = gql`
     auditEvent: String
     ipAddress: String
     source: AuditSource
+    """
+    Limit number of events returned. Defaults to 100 unless start and end date are defined
+    """
+    limit: Int
   }
 
   input AddDeployTargetConfigInput {
