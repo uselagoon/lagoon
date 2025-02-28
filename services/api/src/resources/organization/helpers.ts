@@ -10,6 +10,10 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectOrganization(id));
     return R.prop(0, rows);
   };
+  const getOrganizationByName = async (name: string) => {
+    const rows = await query(sqlClientPool, Sql.selectOrganizationByName(name));
+    return R.prop(0, rows);
+  };
   const getProjectsByOrganizationId = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationProjects(id));
     return rows;
@@ -67,6 +71,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     getNotificationsForOrganizationId,
     getNotificationsByTypeForOrganizationId,
     getEnvironmentsByOrganizationId,
+    getOrganizationByName,
     getOrganizationByOrganizationInput: async (organizationInput, scope: string, resource: string) => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));

@@ -34,6 +34,30 @@ export enum TaskSourceType {
   API = 'api'
 }
 
+export enum AuditSourceType {
+  API = 'api',
+  CLI = 'cli',
+  UI = 'ui'
+}
+
+export enum AuditType {
+  BACKUP = 'backup',
+  BULKDEPLOYMENT = 'bulkdeployment',
+  DEPLOYMENT = 'deployment',
+  DEPLOYTARGET = 'deploytarget',
+  DEPLOYTARGETCONFIG = 'deploytargetconfig',
+  ENVIRONMENT = 'environment',
+  GROUP = 'group',
+  NOTIFICATION = 'notification',
+  ORGANIZATION = 'organization',
+  PROJECT = 'project',
+  SSHKEY = 'sshkey',
+  TASK = 'task',
+  USER = 'user',
+  VARIABLE = 'variable',
+  WORKFLOW = 'workflow',
+}
+
 export interface DeployData {
   baseBranchName?: string,
   baseSha?: string,

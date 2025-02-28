@@ -10,6 +10,8 @@ import { KeycloakUnauthorizedError } from '../../util/auth';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers } from './helpers';
 import { sqlClientPool } from '../../clients/sqlClient';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog, AuditResource } from '../audit/types';
 
 const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
 
@@ -324,6 +326,7 @@ export const addGroup: ResolverFn = async (
   let attributes = null;
   // check if this is a group being added in an organization
   // if so, check the user adding the group has permission to do so, and that the organization exists
+  let resource: AuditResource;
   if (input.organization != null) {
     const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     if (organizationData === undefined) {
@@ -333,6 +336,10 @@ export const addGroup: ResolverFn = async (
     await hasPermission('organization', 'addGroup', {
       organization: input.organization
     });
+    resource = {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION
+    }
 
     const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, input.organization)
     let groupCount = 0
@@ -413,13 +420,28 @@ export const addGroup: ResolverFn = async (
     ''
   );
 
+  const groupResource: AuditResource =  {
+    id: group.id,
+    type: AuditType.GROUP,
+    details: group.name
+  }
+  const auditLog: AuditLog = {
+    resource: resource,
+  };
+  if (resource) {
+    auditLog.linkedResource = groupResource
+  } else {
+    auditLog.resource = groupResource
+  }
+
   userActivityLogger(`User added a group`, {
     project: '',
     event: 'api:addGroup',
     payload: {
       data: {
         group
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -435,11 +457,16 @@ export const updateGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  let resource: AuditResource;
   if (org) {
     // if this is a group in an organization, check that the user updating it has permission to do so before deleting the group
     await hasPermission('organization', 'addGroup', {
       organization: org
     });
+    resource = {
+      id: org,
+      type: AuditType.ORGANIZATION
+    }
   } else {
     await hasPermission('group', 'update', {
       group: group.id
@@ -463,6 +490,20 @@ export const updateGroup: ResolverFn = async (
     name: patch.name
   });
 
+  const groupResource: AuditResource =  {
+    id: group.id,
+    type: AuditType.GROUP,
+    details: group.name
+  }
+  const auditLog: AuditLog = {
+    resource: resource,
+  };
+  if (resource) {
+    auditLog.linkedResource = groupResource
+  } else {
+    auditLog.resource = groupResource
+  }
+
   userActivityLogger(`User updated a group`, {
     project: '',
     event: 'api:updateGroup',
@@ -470,7 +511,8 @@ export const updateGroup: ResolverFn = async (
       data: {
         patch,
         updatedGroup
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -484,11 +526,16 @@ export const deleteGroup: ResolverFn = async (
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+  let resource: AuditResource;
   if (org) {
     // if this is a group in an organization, check that the user deleting it has permission to do so before deleting the group
     await hasPermission('organization', 'removeGroup', {
       organization: org
     });
+    resource = {
+      id: org,
+      type: AuditType.ORGANIZATION
+    }
   } else {
     await hasPermission('group', 'delete', {
       group: group.id
@@ -500,13 +547,29 @@ export const deleteGroup: ResolverFn = async (
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
     group.name
   );
+
+  const groupResource: AuditResource =  {
+    id: group.id,
+    type: AuditType.GROUP,
+    details: group.name
+  }
+  const auditLog: AuditLog = {
+    resource: resource,
+  };
+  if (resource) {
+    auditLog.linkedResource = groupResource
+  } else {
+    auditLog.resource = groupResource
+  }
+
   userActivityLogger(`User deleted a group`, {
     project: '',
     event: 'api:deleteGroup',
     payload: {
       data: {
         group
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -592,6 +655,18 @@ export const addUserToGroup: ResolverFn = async (
     role
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: group.id,
+      type: AuditType.GROUP,
+      details: group.name,
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: `${user.email}, role: ${role}`,
+    },
+  };
   userActivityLogger(`User added a user to a group`, {
     project: '',
     event: 'api:addUserToGroup',
@@ -599,7 +674,8 @@ export const addUserToGroup: ResolverFn = async (
       input: {
         user: userInput, group: groupInput, role
       },
-      data: updatedGroup
+      data: updatedGroup,
+      ...auditLog,
     }
   });
 
@@ -639,6 +715,18 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: group.id,
+      type: AuditType.GROUP,
+      details: group.name,
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email,
+    },
+  };
   userActivityLogger(`User removed a user from a group`, {
     project: '',
     event: 'api:removeUserFromGroup',
@@ -646,7 +734,8 @@ export const removeUserFromGroup: ResolverFn = async (
       input: {
         user: userInput, group: groupInput
       },
-      data: updatedGroup
+      data: updatedGroup,
+      ...auditLog,
     }
   });
 
@@ -723,13 +812,25 @@ export const addGroupsToProject: ResolverFn = async (
     );
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      type: AuditType.GROUP,
+      details: `multiple groups`,
+    },
+  };
   userActivityLogger(`User synced groups to a project`, {
     project: '',
     event: 'api:addGroupsToProject',
     payload: {
       input: {
         project: projectInput, groups: groupsInput
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -826,7 +927,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -887,6 +988,28 @@ export const removeGroupsFromProject: ResolverFn = async (
       `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      type: AuditType.GROUP,
+      details: `multiple groups`,
+    },
+  };
+  userActivityLogger(`User synced groups to a project`, {
+    project: '',
+    event: 'api:removeGroupsFromProject',
+    payload: {
+      input: {
+        project: projectInput, groups: groupsInput
+      },
+      ...auditLog,
+    }
+  });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

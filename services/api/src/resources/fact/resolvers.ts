@@ -8,6 +8,8 @@ import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -280,6 +282,20 @@ export const addFact: ResolverFn = async (
     Sql.selectFactByDatabaseId(insertId)
   );
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User added a fact to environment '${environment.name}'`, {
     project: '',
     event: 'api:addFact',
@@ -291,8 +307,9 @@ export const addFact: ResolverFn = async (
         source,
         description,
         service
-      }
-      }
+      },
+      ...auditLog,
+    }
   });
 
   return R.prop(0, rows);
@@ -305,15 +322,31 @@ export const addFacts: ResolverFn = async (
 ) => {
   const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
-  userActivityLogger(`User added facts to environment'`, {
-    project: '',
-    event: 'api:addFacts',
-    payload: {
-      data: {
-        returnFacts
+  // log an event for each unique environment only
+  const uniqueEnvs = [...new Set(returnFacts.map(item => item.environment))];
+  for (const env of uniqueEnvs) {
+    const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(env);
+    const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(env);
+    const auditLog: AuditLog = {
+      resource: {
+        id: project.id,
+        type: AuditType.PROJECT,
+        details: project.name,
+      },
+      linkedResource: {
+        id: environment.id,
+        type: AuditType.ENVIRONMENT,
+        details: environment.name,
+      },
+    };
+    userActivityLogger(`User added facts to environment'`, {
+      project: '',
+      event: 'api:addFacts',
+      payload: {
+        ...auditLog,
       }
-    }
-  });
+    });
+  }
 
   return returnFacts;
 };
@@ -356,6 +389,18 @@ export const addFactsByName: ResolverFn = async (
     adminScopes,
   );
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User added facts to '${project}:${environment}'`, {
     project: project,
     environment: environment,
@@ -363,7 +408,8 @@ export const addFactsByName: ResolverFn = async (
     payload: {
       data: {
         returnFacts
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -383,8 +429,22 @@ export const deleteFact: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted a fact`, {
     project: '',
     event: 'api:deleteFact',
@@ -392,7 +452,8 @@ export const deleteFact: ResolverFn = async (
       data: {
         environment: environmentId,
         name
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -416,8 +477,22 @@ export const deleteFactsFromSource: ResolverFn = async (
     project: environment.project
   });
 
+  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
   userActivityLogger(`User deleted facts`, {
     project: '',
     event: 'api:deleteFactsFromSource',
@@ -426,7 +501,8 @@ export const deleteFactsFromSource: ResolverFn = async (
         environment: environmentId,
         source,
         service
-      }
+      },
+      ...auditLog,
     }
   });
 

@@ -28,7 +28,8 @@ import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -379,6 +380,26 @@ export const addDeployment: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = R.prop(0, rows);
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.DEPLOYMENT,
+      details: deployment.name,
+    },
+  };
+  userActivityLogger(`User added deployment '${id}'`, {
+    project: '',
+    event: 'api:addDeployment',
+    payload: {
+      deployment: id,
+      ...auditLog,
+    }
+  });
 
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
@@ -395,13 +416,30 @@ export const deleteDeployment: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
+  const rows = await query(sqlClientPool, Sql.selectDeployment(id));
+  const deployment = R.prop(0, rows);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    deployment.environment
+  );
   await query(sqlClientPool, Sql.deleteDeployment(id));
-
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.DEPLOYMENT,
+      details: deployment.name,
+    },
+  };
   userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
     payload: {
-      deployment: id
+      deployment: id,
+      ...auditLog
     }
   });
 
@@ -480,6 +518,18 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: id,
+      type: AuditType.DEPLOYMENT,
+      details: deployment.name,
+    },
+  };
   userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
     event: 'api:updateDeployment',
@@ -498,7 +548,8 @@ export const updateDeployment: ResolverFn = async (
         bulkId,
         bulkName,
         buildStep
-      }
+      },
+      ...auditLog,
     }
   });
 
@@ -530,12 +581,25 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    linkedResource: {
+      id: deployment.id,
+      type: AuditType.DEPLOYMENT,
+      details: deployment.name,
+    },
+  };
   userActivityLogger(`User cancelled deployment for '${deployment.environment}'`, {
     project: '',
     event: 'api:cancelDeployment',
     payload: {
       deploymentInput,
-      data: data.build
+      data: data.build,
+      ...auditLog,
     }
   });
 
@@ -765,11 +829,24 @@ export const deployEnvironmentLatest: ResolverFn = async (
       throw new Error(`Error: Unknown deploy type ${environment.deployType}`);
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id,
+      type: AuditType.ENVIRONMENT,
+      details: `${environment.name}`,
+    },
+  };
   userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
     project: '',
     event: 'api:deployEnvironmentLatest',
     payload: {
-      deployData
+      deployData,
+      ...auditLog,
     }
   });
 
@@ -867,11 +944,23 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      type: AuditType.ENVIRONMENT,
+      details: `branch name ${deployData.branchName}`,
+    },
+  };
   userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     project: '',
     event: 'api:deployEnvironmentBranch',
     payload: {
-      deployData
+      deployData,
+      ...auditLog,
     }
   });
 
@@ -980,11 +1069,23 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id,
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      type: AuditType.ENVIRONMENT,
+      details: `pull request ${deployData.pullrequestNumber}`,
+    },
+  };
   userActivityLogger(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     project: '',
     event: 'api:deployEnvironmentPullrequest',
     payload: {
-      deployData
+      deployData,
+      ...auditLog
     }
   });
 
@@ -1104,12 +1205,24 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: destProject.id,
+      type: AuditType.PROJECT,
+      details: destProject.name,
+    },
+    linkedResource: {
+      type: AuditType.ENVIRONMENT,
+      details: `promote ${deployData.promoteSourceEnvironment} to ${deployData.branchName}`,
+    },
+  };
   userActivityLogger(`User promoted the environment on '${deployData.projectName}'
     from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
     project: '',
     event: 'api:deployEnvironmentPromote',
     payload: {
-      deployData
+      deployData,
+      ...auditLog,
     }
   });
 
@@ -1159,7 +1272,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes }
+  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1278,6 +1391,25 @@ export const switchActiveStandby: ResolverFn = async (
       TaskSourceType.API,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: project.id,
+        type: AuditType.PROJECT,
+        details: project.name,
+      },
+      linkedResource: {
+        type: AuditType.ENVIRONMENT,
+        details: `switch ${environmentProd.name} with ${environmentStandby.name}`,
+      },
+    };
+    userActivityLogger(`User triggered active/standby on '${project.name}' switching '${environmentProd.name}' with '${environmentStandby.name}'`, {
+      project: '',
+      event: 'api:switchActiveStandby',
+      payload: {
+        ...auditLog,
+      }
+    });
 
     // queue the task to trigger the migration
     await createMiscTask({ key: 'task:activestandby', data });
@@ -1411,10 +1543,18 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     sendToLagoonActions("deployEnvironmentLatest", actionData)
   }
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: bulkId,
+      type: AuditType.BULKDEPLOYMENT,
+      details: bulkName,
+    },
+  };
   userActivityLogger(`User performed a bulk deployment`, {
     payload: {
       bulkId: bulkId,
-      bulkName: bulkName
+      bulkName: bulkName,
+      ...auditLog,
     }
   });
 

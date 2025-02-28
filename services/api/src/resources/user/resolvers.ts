@@ -3,6 +3,8 @@ import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
+import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditLog } from '../audit/types';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -141,7 +143,7 @@ export const getUserByEmail: ResolverFn = async (
 export const addUser: ResolverFn = async (
   _root,
   { input },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('user', 'add');
 
@@ -153,6 +155,25 @@ export const addUser: ResolverFn = async (
     comment: input.comment,
     gitlabId: input.gitlabId,
   }, input.resetPassword);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: input.email
+    },
+  };
+  userActivityLogger(`User added a user '${input.email}'`, {
+    project: '',
+    event: 'api:addUser',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      ...auditLog,
+    }
+  });
 
   return user;
 };
@@ -191,7 +212,7 @@ export const updateUser: ResolverFn = async (
 export const resetUserPassword: ResolverFn = async (
   _root,
   { input: { user: userInput } },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
@@ -205,13 +226,32 @@ export const resetUserPassword: ResolverFn = async (
 
   await models.UserModel.resetUserPassword(user.id);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email
+    },
+  };
+  userActivityLogger(`User requested password reset '${user.email}'`, {
+    project: '',
+    event: 'api:resetUserPassword',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      ...auditLog,
+    }
+  });
+
   return 'success';
 };
 
 export const deleteUser: ResolverFn = async (
   _root,
   { input: { user: userInput } },
-  { models, hasPermission },
+  { models, hasPermission, userActivityLogger },
 ) => {
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
@@ -223,6 +263,25 @@ export const deleteUser: ResolverFn = async (
   });
 
   await models.UserModel.deleteUser(user.id);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email
+    },
+  };
+  userActivityLogger(`User deleted a user '${user.email}'`, {
+    project: '',
+    event: 'api:deleteUser',
+    payload: {
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      ...auditLog,
+    }
+  });
 
   return 'success';
 };
@@ -277,6 +336,18 @@ export const addUserToOrganization: ResolverFn = async (
   }
   await models.UserModel.updateUser(updateUser);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name,
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`,
+    },
+  };
   userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
     project: '',
     event: 'api:addUserToOrganization',
@@ -288,6 +359,7 @@ export const addUserToOrganization: ResolverFn = async (
         admin: admin,
         owner: owner,
       },
+      ...auditLog,
     }
   });
 
@@ -322,14 +394,27 @@ export const removeUserFromOrganization: ResolverFn = async (
     remove: true,
   });
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email
+    },
+  };
   userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
     project: '',
-    event: 'api:addUserToOrganization',
+    event: 'api:removeUserFromOrganization',
     payload: {
       user: {
         id: user.id,
         organization: organization,
       },
+      ...auditLog,
     }
   });
 
@@ -388,6 +473,18 @@ export const addAdminToOrganization: ResolverFn = async (
 
   await models.UserModel.updateUser(updateUser);
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name,
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: `${user.email} role ${role}`,
+    },
+  };
   userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
     project: '',
     event: 'api:addAdminToOrganization',
@@ -398,6 +495,7 @@ export const addAdminToOrganization: ResolverFn = async (
         organization: organizationData.id,
         role: role,
       },
+      ...auditLog,
     }
   });
 
@@ -436,6 +534,18 @@ export const removeAdminFromOrganization: ResolverFn = async (
     remove: true,
   });
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: organizationData.id,
+      type: AuditType.ORGANIZATION,
+      details: organizationData.name
+    },
+    linkedResource: {
+      id: user.id,
+      type: AuditType.USER,
+      details: user.email
+    },
+  };
   userActivityLogger(`User removed an administrator from organization '${organizationData.name}'`, {
     project: '',
     event: 'api:removeAdminFromOrganization',
@@ -444,6 +554,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
         id: user.id,
         organization: organizationData.id,
       },
+      ...auditLog,
     }
   });
 
@@ -511,6 +622,14 @@ export const addPlatformRoleToUser: ResolverFn = async (
     const filteredByEmail = users.filter(function (item) {
       return item.email === user.email;
     });
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: user.id,
+        type: AuditType.USER,
+        details: `${user.email} role: ${role}`
+      },
+    };
     userActivityLogger(`User added a platform role to user '${user.email}'`, {
       project: '',
       event: 'api:addPlatformRoleToUser',
@@ -520,6 +639,7 @@ export const addPlatformRoleToUser: ResolverFn = async (
           email: user.email,
           role: role,
         },
+        ...auditLog,
       }
     });
     return filteredByEmail[0];
@@ -547,6 +667,14 @@ export const removePlatformRoleFromUser: ResolverFn = async (
     const filteredByEmail = users.filter(function (item) {
       return item.email === user.email;
     });
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: user.id,
+        type: AuditType.USER,
+        details: `${user.email} role: ${role}`
+      },
+    };
     userActivityLogger(`User removed platform role from user '${user.email}'`, {
       project: '',
       event: 'api:removePlatformRoleFromUser',
@@ -556,6 +684,7 @@ export const removePlatformRoleFromUser: ResolverFn = async (
           email: user.email,
           role: role,
         },
+        ...auditLog,
       }
     });
     if (filteredByEmail[0]) {
