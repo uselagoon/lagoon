@@ -1,8 +1,8 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=true displayMessage=!messagesPerField.existsError('username'); section>
-
-    <#if section = "form">
-        <h1>${msg("emailForgotTitle")}</h1>
+    <#if section = "header">
+        ${msg("emailForgotTitle")}
+    <#elseif section = "form">
         <form id="kc-reset-password-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">
