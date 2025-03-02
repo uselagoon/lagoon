@@ -140,6 +140,7 @@ export interface GroupModel {
   addGroup: (groupInput: Group, projectId?: number, organizationId?: number) => Promise<Group>
   updateGroup: (groupInput: GroupEdit) => Promise<Group>
   deleteGroup: (id: string) => Promise<void>
+  removeGroupFromOrganization: (id: string) => Promise<void>
   addUserToGroup: (user: User, groupInput: GroupInput, roleName: string) => Promise<Group>
   removeUserFromGroup: (user: User, group: Group ) => Promise<Group>
   removeUserFromGroups: (user: User,groups: Group[]) => Promise<void>
@@ -797,6 +798,32 @@ export const Group = (clients: {
     }
   };
 
+  const removeGroupFromOrganization = async (id: string): Promise<void> => {
+    try {
+      // loadSparseGroupByIdOrName doesn't load the attributes, should it?
+      const group = await loadGroupById(id);
+      await updateGroup({
+        id: group.id,
+        name: group.name,
+        attributes: {
+          ...group.attributes,
+          // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
+          "lagoon-organization": [""]
+        }
+      });
+      await groupHelpers(sqlClientPool).removeGroupFromOrganization(id);
+      await purgeGroupCache(group);
+    } catch (err: unknown) {
+      if (err instanceof GroupNotFoundError) {
+        throw err;
+      } else if (err instanceof Error) {
+        throw new Error(`Error removing group ${id} from organization: ${err.message}`);
+      } else {
+        throw err;
+      }
+    }
+  };
+
   const addUserToGroup = async (
     user: User,
     groupInput: GroupInput,
@@ -1146,6 +1173,7 @@ export const Group = (clients: {
     addGroup,
     updateGroup,
     deleteGroup,
+    removeGroupFromOrganization,
     addUserToGroup,
     removeUserFromGroup,
     removeUserFromGroups,
