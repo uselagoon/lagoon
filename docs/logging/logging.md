@@ -26,10 +26,11 @@ Lagoon provides access to the following logs:
 * Application logs:
   * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
   * For Laravel: install the [Lagoon Logs for Laravel](https://github.com/amazeeio/laravel_lagoon_logs) package.
+  * For Ruby: see our [Ruby logging example](../applications/ruby.md#logging).
   * For other workloads:
     * Send logs to `udp://application-logs.lagoon.svc:5140`
     * Ensure logs are structured as JSON encoded objects.
-    * Ensure the `type` field contains the name of the Kubernetes namespace (`$LAGOON_PROJECT-$LAGOON_ENVIRONMENT`).
-
-
-
+    * Send the required fields
+      * `type`: the name of the Kubernetes namespace (`$LAGOON_PROJECT-$LAGOON_ENVIRONMENT`)
+      * `host`: the name of the pod (`$HOSTNAME`)
+      * `@timestamp`: the timestamp of the log
