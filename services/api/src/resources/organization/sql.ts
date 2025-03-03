@@ -5,7 +5,7 @@ export const Sql = {
     id,
     name,
     friendlyName = name, // default to name if not provided
-    description,
+    description = "",
     quotaProject,
     quotaGroup,
     quotaNotification,
