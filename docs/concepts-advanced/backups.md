@@ -16,7 +16,7 @@ list backups --help`).
 
 !!! note "Lagoon administrators"
     Automated backups are reliant on the [installation of
-    K8up](/installing-lagoon/requirements/#k8up-for-backups). Default settings
+    K8up](../installing-lagoon/requirements.md#k8up-for-backups). Default settings
     can be [configured](https://github.com/uselagoon/build-deploy-tool/blob/main/docs/buildrequirements.md#backup-related-variables)
     per Lagoon remote.
 
@@ -31,7 +31,7 @@ Click the `Download` button in the UI or run `lagoon get backup --help`.
 
 Automated backups can be disabled by setting the `LAGOON_BACKUPS_DISABLED=true`
 [environment
-variable](/concepts-advanced/environment-variables/#build-time-environment-variables-lagoon-api).
+variable](./environment-variables.md#buildtime).
 
 The storage bucket name can be changed by setting the `LAGOON_BAAS_BUCKET_NAME`
 environment variable. **Do not change this unless asked by your Lagoon
@@ -87,7 +87,7 @@ Backups will be held according to the following retention policy by default:
 
 Production environments can set a different retention policy by changing
 `backup-retention` in the
-[.lagoon.yml](http://localhost:8000/concepts-basics/lagoon-yml/#backup-retention)
+[.lagoon.yml](../concepts-basics/lagoon-yml.md#backup-retention)
 file.
 
 !!! warning
@@ -194,7 +194,7 @@ from one environment to another, or by running custom commands in containers.
 ### Tasks
 
 For Drupal projects, there are tasks available that will run drush backups. For
-non-Drupal projects, a [custom task](/using-lagoon-advanced/custom-tasks/) can
+non-Drupal projects, a [custom task](../using-lagoon-advanced/custom-tasks.md) can
 be created to take a backup.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw"
@@ -218,5 +218,5 @@ backups.
 ## Restoring Backups
 
 Lagoon cannot automatically restore backups. After downloading the backups,
-users can restore them manually by [copying](/interacting/ssh/#copying-files)
+users can restore them manually by [copying](../interacting/ssh.md#copying-files)
 them to the desired environment.

@@ -204,6 +204,7 @@ theme:
     - content.action.edit
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link
 
 extra:
   analytics:
