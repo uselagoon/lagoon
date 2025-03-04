@@ -144,50 +144,25 @@ export const getGroupRolesByUserId: ResolverFn =async (
 export const getMembersByGroupId: ResolverFn = async (
   { id },
   _input,
-  { hasPermission, models, keycloakGrant }
+  { models }
 ) => {
-  try {
-    // members resolver is only called by group, no need to check the permissions on the group
-    // as the group resolver will have already checked permission
-    const group = await models.GroupModel.loadGroupById(id);
-    const members = await models.GroupModel.getGroupMembership(group);
-    return members;
-  } catch (err) {
-    if (err instanceof KeycloakUnauthorizedError) {
-      if (!keycloakGrant) {
-        logger.debug('No grant available for getGroupByName');
-        throw new GroupNotFoundError(`Group not found: ${id}`);
-      }
-    }
-
-    logger.warn(`getGroupByName failed unexpectedly: ${err.message} ${id}`);
-    throw err;
-  }
+  // getMembersByGroupId is a field resolver that can't be queried directly,
+  // permissions MUST be checked in a parent resolver.
+  const group = await models.GroupModel.loadGroupById(id);
+  const members = await models.GroupModel.getGroupMembership(group);
+  return members;
 }
 
-// resolver to simply retrieve how many members are in a group
 export const getMemberCountByGroupId: ResolverFn = async (
   { id },
   _input,
-  { hasPermission, models, keycloakGrant }
+  { models }
 ) => {
-  try {
-    // members resolver is only called by group, no need to check the permissions on the group
-    // as the group resolver will have already checked permission
-    const group = await models.GroupModel.loadGroupById(id);
-    const members = await models.GroupModel.getGroupMemberCount(group);
-    return members;
-  } catch (err) {
-    if (err instanceof KeycloakUnauthorizedError) {
-      if (!keycloakGrant) {
-        logger.debug('No grant available for getGroupByName');
-        throw new GroupNotFoundError(`Group not found: ${id}`);
-      }
-    }
-
-    logger.warn(`getGroupByName failed unexpectedly: ${err.message} ${id}`);
-    throw err;
-  }
+  // getMemberCountByGroupId is a field resolver that can't be queried directly,
+  // permissions MUST be checked in a parent resolver.
+  const group = await models.GroupModel.loadGroupById(id);
+  const memberCount = await models.GroupModel.getGroupMemberCount(group);
+  return memberCount;
 }
 
 export const getGroupsByProjectId: ResolverFn = async (
@@ -713,7 +688,8 @@ export const removeUserFromGroup: ResolverFn = async (
     });
   }
 
-  const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
+  await models.GroupModel.removeUserFromGroup(user, group);
+  const updatedGroup = models.GroupModel.loadGroupById(group.id)
 
   const auditLog: AuditLog = {
     resource: {

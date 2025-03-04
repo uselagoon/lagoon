@@ -1,13 +1,24 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { asyncPipe, decodeJSONBase64, encodeJSONBase64 } from '@lagoon/commons/dist/util/func';
+import {
+  asyncPipe,
+  decodeJSONBase64,
+  encodeJSONBase64,
+} from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { toNumber } from '../util/func';
+import { getConfigFromEnv } from '../util/config';
 import { logger } from '../loggers/logger';
 import type { GroupRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
 import { isNetworkError } from '../clients/keycloak-admin';
 import { User } from './user';
-import { groupCacheExpiry, get, del, redisClient, RedisCacheLoadError, RedisCacheSaveError } from '../clients/redisClient';
+import {
+  get,
+  del,
+  redisClient,
+  RedisCacheLoadError,
+  RedisCacheSaveError,
+} from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { sqlClientPool } from '../clients/sqlClient';
@@ -126,6 +137,10 @@ const parseGroupType = (type: string): GroupType | null => {
   return null;
 };
 
+const cacheGroupExpiresSeconds = toNumber(
+  getConfigFromEnv('REDIS_GROUP_CACHE_EXPIRY', '172800'), // 2 Days
+);
+
 export interface GroupModel {
   loadAllGroups: () => Promise<KeycloakLagoonGroup[]>
   loadGroupById: (id: string) => Promise<Group>
@@ -142,7 +157,7 @@ export interface GroupModel {
   deleteGroup: (id: string) => Promise<void>
   removeGroupFromOrganization: (id: string) => Promise<void>
   addUserToGroup: (user: User, groupInput: GroupInput, roleName: string) => Promise<Group>
-  removeUserFromGroup: (user: User, group: Group ) => Promise<Group>
+  removeUserFromGroup: (user: User, group: Group ) => Promise<void>
   removeUserFromGroups: (user: User,groups: Group[]) => Promise<void>
   addProjectToGroup: (projectId: number, groupInput: any) => Promise<void>
   removeProjectFromGroup: (projectId: number, group: Group) => Promise<void>
@@ -185,9 +200,6 @@ export const Group = (clients: {
         groups: R.isEmpty(subGroups)
           ? []
           : await transformKeycloakGroups(subGroups),
-        // retrieving members is a heavy operation
-        // this is now its own resolver
-        // members: await getGroupMembership(group)
       });
     }
 
@@ -573,22 +585,25 @@ export const Group = (clients: {
   };
 
   const getGroupMembership = async (
-    group: Group
+    group: Group,
+    useCache: boolean = true,
   ): Promise<GroupMembership[]> => {
-    const UserModel = User(clients);
-    const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
-    let membership = [];
-    // check for members cache
-    const membersCacheKey = `cache:keycloak:group-members:${group.id}`;
+    let membership: GroupMembership[] = [];
+
     try {
-      let data = await get(membersCacheKey);
-      if (data) {
-        membership = decodeJSONBase64(data);
+      membership = await getGroupMembershipCache(group.id);
+    } catch (err: unknown) {
+      if (err instanceof RedisCacheLoadError) {
+        logger.info(err.message);
+      } else {
+        throw err;
       }
-    } catch(err) {
-      logger.warn(`Error reading redis ${membersCacheKey}, falling back to direct lookup: ${err.message}`);
     }
-    if (membership.length == 0) {
+
+    if (membership.length == 0 || useCache == false) {
+      const UserModel = User(clients);
+      const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
+
       for (const roleSubgroup of roleSubgroups) {
         const keycloakUsers = await keycloakAdminClient.groups.listMembers({
           id: roleSubgroup.id,
@@ -599,11 +614,10 @@ export const Group = (clients: {
         let members = [];
         for (const keycloakUser of keycloakUsers) {
           const users = await UserModel.transformKeycloakUsers([keycloakUser]);
-          const fullUser = users[0]
           const member = {
-            user: fullUser,
+            user: users[0],
             role: roleSubgroup.realmRoles[0],
-            roleSubgroupId: roleSubgroup.id
+            roleSubgroupId: roleSubgroup.id,
           };
 
           members = [...members, member];
@@ -611,15 +625,15 @@ export const Group = (clients: {
 
         membership = [...membership, ...members];
       }
-      // save latest members cache
-      const data = encodeJSONBase64(membership);
+
       try {
-        await redisClient.multi()
-        .set(membersCacheKey, data)
-        .expire(membersCacheKey, groupCacheExpiry) // 48 hours
-        .exec();
-      } catch (err) {
-        logger.info (`Error saving redis ${membersCacheKey}: ${err.message}`)
+        await saveGroupMembershipCache(group.id, membership);
+      } catch (err: unknown) {
+        if (err instanceof RedisCacheSaveError) {
+          logger.info(err.message);
+        } else {
+          throw err;
+        }
       }
     }
 
@@ -883,11 +897,11 @@ export const Group = (clients: {
   const removeUserFromGroup = async (
     user: User,
     group: Group,
-  ): Promise<Group> => {
-    // purge the caches to ensure current data
-    await purgeGroupCache(group, true);
-    const members = await getGroupMembership(group);
-    const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
+  ): Promise<void> => {
+    const groupMembers = await getGroupMembership(group, false);
+    const userMembership = groupMembers.find(
+      (membership: GroupMembership) => membership.user.id == user.id,
+    );
 
     if (userMembership) {
       // Remove user from the role subgroup.
@@ -905,10 +919,9 @@ export const Group = (clients: {
           throw err;
         }
       }
-      // purge after removing the user to ensure current data
+
       await purgeGroupCache(group);
     }
-    return await loadGroupByIdOrName(group);
   };
 
   const addProjectToGroup = async (
@@ -1002,76 +1015,38 @@ export const Group = (clients: {
     }
   };
 
-  // helper to remove project from groups
   const removeProjectFromGroups = async (
     projectId: number,
-    groups: Group[]
+    groups: Group[],
   ): Promise<void> => {
-    for (const g in groups) {
-      try {
-        await removeProjectFromGroup(projectId, groups[g])
-      } catch (err) {
-        throw new Error(
-          `Error setting projects for group ${groups[g].name}: ${err.message}`
-        );
-      }
+    for (const group of groups) {
+      await removeProjectFromGroup(projectId, group);
     }
   };
 
-  // helper to remove user from groups
   const removeUserFromGroups = async (
     user: User,
-    groups: Group[]
+    groups: Group[],
   ): Promise<void> => {
-    for (const g in groups) {
-      const group = groups[g]
-      // purge the caches to ensure current data
-      await purgeGroupCache(group, true)
-      const members = await getGroupMembership(group);
-      const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
-
-      if (userMembership) {
-        try {
-          await keycloakAdminClient.users.delFromGroup({
-            // @ts-ignore
-            id: userMembership.user.id,
-            // @ts-ignore
-            groupId: userMembership.roleSubgroupId
-          });
-        } catch (err) {
-          throw new Error(`Could not remove user from group: ${err.message}`);
-        }
-      }
-      // purge the caches to ensure current data
-      await purgeGroupCache(group)
+    for (const group of groups) {
+      await removeUserFromGroup(user, group);
     }
   };
 
-  // helper to remove all non default-users from project
   const removeNonProjectDefaultUsersFromGroup = async (
     group: Group,
     project: String,
   ): Promise<Group> => {
-    // purge the caches to ensure current data
-    await purgeGroupCache(group, true)
-    const members = await getGroupMembership(group);
+    const groupMembers = await getGroupMembership(group, false);
+    const nonDefaultMembers = groupMembers.filter(
+      (member: GroupMembership) =>
+        member.user.email != `default-user@${project}`,
+    );
 
-    for (const u in members) {
-      if (members[u].user.email != "default-user@"+project) {
-        try {
-          await keycloakAdminClient.users.delFromGroup({
-            // @ts-ignore
-            id: members[u].user.id,
-            // @ts-ignore
-            groupId: members[u].roleSubgroupId
-          });
-        } catch (err) {
-          throw new Error(`Could not remove user from group: ${err.message}`);
-        }
-      }
+    for (const member of nonDefaultMembers) {
+      await removeUserFromGroup(member.user, group);
     }
-    // purge the caches to ensure current data
-    await purgeGroupCache(group)
+
     return await loadGroupById(group.id);
   };
 
@@ -1110,9 +1085,9 @@ export const Group = (clients: {
       await redisClient
         .multi()
         .set(nameCacheKey, group.id)
-        .expire(nameCacheKey, groupCacheExpiry) // 48 hours
+        .expire(nameCacheKey, cacheGroupExpiresSeconds)
         .set(idCacheKey, data)
-        .expire(idCacheKey, groupCacheExpiry) // 48 hours
+        .expire(idCacheKey, cacheGroupExpiresSeconds)
         .exec();
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -1158,6 +1133,54 @@ export const Group = (clients: {
     }
 
     return null;
+  };
+
+  const saveGroupMembershipCache = async (
+    groupId: string,
+    members: GroupMembership[],
+  ): Promise<void> => {
+    const membersCacheKey = `cache:keycloak:group-members:${groupId}`;
+
+    try {
+      const data = encodeJSONBase64(members);
+      await redisClient
+        .multi()
+        .set(membersCacheKey, data)
+        .expire(membersCacheKey, cacheGroupExpiresSeconds)
+        .exec();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        throw new RedisCacheSaveError(
+          `Error saving group members cache: ${err.message}`,
+        );
+      } else {
+        throw err;
+      }
+    }
+  };
+
+  const getGroupMembershipCache = async (
+    groupId: string,
+  ): Promise<GroupMembership[]> => {
+    try {
+      let data = await get(`cache:keycloak:group-members:${groupId}`);
+
+      if (!data) {
+        return [];
+      }
+
+      return decodeJSONBase64(data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        throw new RedisCacheLoadError(
+          `Error loading group members cache: ${err.message}`,
+        );
+      } else {
+        throw err;
+      }
+    }
+
+    return [];
   };
 
   return {

@@ -40,9 +40,5 @@ redisClient.on('error', function (error) {
   console.error(error);
 });
 
-export const groupCacheExpiry = toNumber(
-  getConfigFromEnv('REDIS_GROUP_CACHE_EXPIRY', '172800'),
-);
-
 export const get = promisify(redisClient.get).bind(redisClient);
 export const del = promisify(redisClient.del).bind(redisClient);
