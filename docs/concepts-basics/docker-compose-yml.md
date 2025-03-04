@@ -171,6 +171,8 @@ volumes:
 
 This volume can then be referenced in each service that requires it, along with the path.
 
+Currently, only [bulk](../concepts-advanced/storage-types.md#bulk) storage types are supported for additional volumes. To find out which service types support additional volumes, see [Service Types](../concepts-advanced/service-types.md)
+
 ### Add additional volumes to an existing non `-persistent` service type
 
 If you have a `basic` or other supported standalone service type and you want to add volumes, you can use the additional volumes to do this without chaning the service type to a `-persistent` type.
