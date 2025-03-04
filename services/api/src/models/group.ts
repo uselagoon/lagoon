@@ -593,6 +593,7 @@ export const Group = (clients: {
         const keycloakUsers = await keycloakAdminClient.groups.listMembers({
           id: roleSubgroup.id,
           briefRepresentation: false,
+          max: -1,
         });
 
         let members = [];
