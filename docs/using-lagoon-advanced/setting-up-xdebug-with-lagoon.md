@@ -14,7 +14,7 @@ reasons, the extension is not loaded by default. To enable the extension, the
       environment variables.
 - **Remotely** (dev/prod)
   1.  You can
-      [use the Lagoon API to add the environment variable to a running environment](../concepts-advanced/environment-variables.md#runtime-environment-variables-lagoon-api).
+      [use the Lagoon API to add the environment variable to a running environment](../concepts-advanced/environment-variables.md#runtime).
   2.  Make sure to redeploy the environment after changing this any
       environment variables.
 
