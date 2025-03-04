@@ -398,7 +398,7 @@ kill:
 .PHONY: local-dev-yarn
 local-dev-yarn:
 	$(MAKE) local-dev-yarn-stop
-	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-20-builder
+	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-22-builder
 	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
 	docker exec local-dev-yarn bash -c "cd /app/node-packages/commons && yarn build"
 	echo -e "use 'yarn workspace api add package@version' to update a package in workspace api"
