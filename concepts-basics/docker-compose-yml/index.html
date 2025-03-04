@@ -972,6 +972,26 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concepts-advanced/storage-types/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Storage Types
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../concepts-advanced/environment-types/" class="md-nav__link">
         
   
@@ -5203,6 +5223,7 @@ value supports environment variable replacement, for example <code>baseimage:${M
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">persistent</span>
 </span></code></pre></div>
 <p>This volume can then be referenced in each service that requires it, along with the path.</p>
+<p>Currently, only <a href="../../concepts-advanced/storage-types/#bulk">bulk</a> storage types are supported for additional volumes. To find out which service types support additional volumes, see <a href="../../concepts-advanced/service-types/">Service Types</a></p>
 <h3 id="add-additional-volumes-to-an-existing-non-persistent-service-type">Add additional volumes to an existing non <code>-persistent</code> service type<a class="headerlink" href="#add-additional-volumes-to-an-existing-non-persistent-service-type" title="Permanent link">#</a></h3>
 <p>If you have a <code>basic</code> or other supported standalone service type and you want to add volumes, you can use the additional volumes to do this without chaning the service type to a <code>-persistent</code> type.</p>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml volume usage snippet</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">services</span><span class="p">:</span>

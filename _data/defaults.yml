@@ -6,6 +6,15 @@ apiaddress: api.example.com
 helpstring: your Lagoon administrator
 helpstring_ja: Lagoonの管理者
 
+## these can be used to inject custom information to possibly link to other documentation to describe more
+# storage_info_link: "For more information, see [other docs](https://some.other.docs/page)."
+storage_info_link: ""
+storage_info_link_ja: ""
+bulk_storage_info_link: ""
+bulk_storage_info_link_ja: ""
+block_storage_info_link: ""
+block_storage_info_link_ja: ""
+
 ## Comment out any of the above, and uncomment the corresponding below to see the variables in action
 # name: amazee.io
 # webhookhandler: webhook.amazeeio.cloud
