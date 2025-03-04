@@ -109,21 +109,23 @@ Please note that service names adhere to the [RFC 1035](https://tools.ietf.org/h
 
 #### `build`
 
-If you want Lagoon to build a Dockerfile for your service during every deployment, you can define it here:
+If you want Lagoon to build an image for your service during every deployment, you can define it here:
 
 `build`
 
-* `context`
-  * The build context path that should be passed on into the `docker build` command.
-* `dockerfile:`
-  * Location and name of the Dockerfile that should be built.
+* `context`: The build context path that should be passed on into the `docker build` command.
+* `dockerfile`: Location and name of the Dockerfile that should be built.
 
 !!! warning
     Lagoon does NOT support the short version of `build: <Dockerfile>` and will fail if it finds such a definition.
 
+If you're building a derived image and need to ensure the base image is always updated, add the
+base image as a label for the service: `lagoon.base.image: container.reg/my/baseimage:latest`. The
+value supports environment variable replacement, for example `baseimage:${MY_BASEIMAGE_TAG:-latest}`.
+
 #### `image`
 
-If you don't need to build a Dockerfile and just want to use an existing Dockerfile, define it via `image`.
+If you want to use an existing image, instead of building one, define it via `image`.
 
 ### Types
 
@@ -352,21 +354,6 @@ In the example above, the services are named `nginx` and `php` (but you can call
 
 In order for Lagoon to realize which one is the `nginx` and which one is the `php` service, we define it via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`.
 
-## Helm Templates (Kubernetes only)
-
-Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts) are included with the `build-deploy-tool` image.
-
-## Custom Rollout Monitor Types
-
-By default, Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Kubernetes or Openshift. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
-
-* `deploymentconfig` - This is the default. Expects a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object in the template for the service.
-* `statefulset` - Expects a [`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) object in the template for the service.
-* `daemonset` - Expects a [`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) object in the template for the service.
-* `false` - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.
-
-You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnamerollouts).
-
 ## Docker Compose v2 compatibility
 
 !!! bug
@@ -435,3 +422,10 @@ The corrected version combines both aliases into a single mapping key - you'll n
     << : [*default-volumes, *default-user]
 ...
 ```
+
+## Deprecated
+
+These settings have been deprecated and should be removed from use in your `docker-compose.yml`.
+
+* `services.[name].labels.lagoon.rollout`
+* `services.[name].labels.lagoon.template`
