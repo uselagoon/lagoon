@@ -483,16 +483,6 @@ export const updateDeployment: ResolverFn = async (
     project: R.path(['0', 'pid'], permsDeployment)
   });
 
-  if (environment) {
-    const permsEnv = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environment
-    );
-    // Check access to modify deployment as it will be updated
-    await hasPermission('environment', 'view', {
-      project: permsEnv.project
-    });
-  }
-
   await query(
     sqlClientPool,
     Sql.updateDeployment({
@@ -518,11 +508,15 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    deployment.environment
+  );
+
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: env.id,
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: env.name,
     },
     linkedResource: {
       id: id,
