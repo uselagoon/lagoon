@@ -4683,9 +4683,9 @@
 
 <h1 id="feature-flags">Feature flags<a class="headerlink" href="#feature-flags" title="Permanent link">#</a></h1>
 <p>Some Lagoon features can be controlled by setting feature flags.
-This is designed to assist users and administrators to roll out new platform features in a controlled manner.</p>
+This is designed to assist users and administrators in rolling out new platform features in a controlled manner.</p>
 <h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">#</a></h2>
-<p>The following environment variables can be set on an environment or project to toggle feature flags.</p>
+<p>The following can be set as <a href="../environment-variables/#environment-variables-lagoon-api">API env vars</a>  to toggle feature flags.</p>
 <table>
 <thead>
 <tr>
@@ -4720,7 +4720,7 @@ This is designed to assist users and administrators to roll out new platform fea
 <p>Feature flags may also be controlled at the cluster level. There is support for this in the <a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-build-deploy/values.yaml"><code>lagoon-build-deploy</code> chart</a>.
 For each feature flag there are two flavours of values which can be set: <code>default</code> and <code>force</code>.</p>
 <ul>
-<li><code>default</code> controls the default policy for environments deployed to the cluster, but can be overridden at the project or environment level by the environment variables documented above.</li>
+<li><code>default</code> controls the default policy for environments deployed to the cluster, but can be overridden at the organization, project, or environment level by the environment variables documented above.</li>
 <li><code>force</code> also controls the policy for environments deployed to the cluster, but <em>cannot be overridden</em> by the environment variables documented above.</li>
 </ul>
 
@@ -4735,6 +4735,8 @@ For each feature flag there are two flavours of values which can be set: <code>d
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
         
       </main>
@@ -4762,7 +4764,7 @@ For each feature flag there are two flavours of values which can be set: <code>d
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>

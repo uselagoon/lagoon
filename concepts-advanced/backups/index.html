@@ -4870,7 +4870,7 @@ six weeks.</p>
 list backups --help</code>).</p>
 <div class="admonition note">
 <p class="admonition-title">Lagoon administrators</p>
-<p>Automated backups are reliant on the <a href="/installing-lagoon/requirements/#k8up-for-backups">installation of
+<p>Automated backups are reliant on the <a href="../../installing-lagoon/requirements/#k8up-for-backups">installation of
 K8up</a>. Default settings
 can be <a href="https://github.com/uselagoon/build-deploy-tool/blob/main/docs/buildrequirements.md#backup-related-variables">configured</a>
 per Lagoon remote.</p>
@@ -4882,7 +4882,7 @@ the <code>Retrieve</code> button in the UI or run <code>lagoon retrieve --help</
 Click the <code>Download</code> button in the UI or run <code>lagoon get backup --help</code>.</p>
 <h3 id="configuring">Configuring<a class="headerlink" href="#configuring" title="Permanent link">#</a></h3>
 <p>Automated backups can be disabled by setting the <code>LAGOON_BACKUPS_DISABLED=true</code>
-<a href="/concepts-advanced/environment-variables/#build-time-environment-variables-lagoon-api">environment
+<a href="../environment-variables/#buildtime">environment
 variable</a>.</p>
 <p>The storage bucket name can be changed by setting the <code>LAGOON_BAAS_BUCKET_NAME</code>
 environment variable. <strong>Do not change this unless asked by your Lagoon
@@ -4968,7 +4968,7 @@ balancing, and must be set, any other value will cause build failures.</p>
 </ul>
 <p>Production environments can set a different retention policy by changing
 <code>backup-retention</code> in the
-<a href="http://localhost:8000/concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a>
+<a href="../../concepts-basics/lagoon-yml/#backup-retention">.lagoon.yml</a>
 file.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -5100,7 +5100,7 @@ restored snapshots as needed.</p>
 from one environment to another, or by running custom commands in containers.</p>
 <h3 id="tasks">Tasks<a class="headerlink" href="#tasks" title="Permanent link">#</a></h3>
 <p>For Drupal projects, there are tasks available that will run drush backups. For
-non-Drupal projects, a <a href="/using-lagoon-advanced/custom-tasks/">custom task</a> can
+non-Drupal projects, a <a href="../../using-lagoon-advanced/custom-tasks/">custom task</a> can
 be created to take a backup.</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw"
 title="YouTube video player" frameborder="0"
@@ -5118,7 +5118,7 @@ transfer files. A user familiar with <code>mysqldump</code> and <code>rsync</cod
 backups.</p>
 <h2 id="restoring-backups">Restoring Backups<a class="headerlink" href="#restoring-backups" title="Permanent link">#</a></h2>
 <p>Lagoon cannot automatically restore backups. After downloading the backups,
-users can restore them manually by <a href="/interacting/ssh/#copying-files">copying</a>
+users can restore them manually by <a href="../../interacting/ssh/#copying-files">copying</a>
 them to the desired environment.</p>
 
 
@@ -5132,6 +5132,8 @@ them to the desired environment.</p>
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
         
       </main>
@@ -5159,7 +5161,7 @@ them to the desired environment.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>

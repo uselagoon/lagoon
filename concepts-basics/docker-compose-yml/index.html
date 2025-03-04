@@ -627,20 +627,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#helm-templates-kubernetes-only" class="md-nav__link">
-    Helm Templates (Kubernetes only)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-rollout-monitor-types" class="md-nav__link">
-    Custom Rollout Monitor Types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose-v2-compatibility" class="md-nav__link">
     Docker Compose v2 compatibility
   </a>
@@ -678,6 +664,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
   
 </li>
       
@@ -5000,20 +4993,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#helm-templates-kubernetes-only" class="md-nav__link">
-    Helm Templates (Kubernetes only)
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-rollout-monitor-types" class="md-nav__link">
-    Custom Rollout Monitor Types
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose-v2-compatibility" class="md-nav__link">
     Docker Compose v2 compatibility
   </a>
@@ -5051,6 +5030,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    Deprecated
+  </a>
   
 </li>
       
@@ -5173,24 +5159,21 @@
 </div>
 <h3 id="docker-images">Docker Images<a class="headerlink" href="#docker-images" title="Permanent link">#</a></h3>
 <h4 id="build"><code>build</code><a class="headerlink" href="#build" title="Permanent link">#</a></h4>
-<p>If you want Lagoon to build a Dockerfile for your service during every deployment, you can define it here:</p>
+<p>If you want Lagoon to build an image for your service during every deployment, you can define it here:</p>
 <p><code>build</code></p>
 <ul>
-<li><code>context</code><ul>
-<li>The build context path that should be passed on into the <code>docker build</code> command.</li>
-</ul>
-</li>
-<li><code>dockerfile:</code><ul>
-<li>Location and name of the Dockerfile that should be built.</li>
-</ul>
-</li>
+<li><code>context</code>: The build context path that should be passed on into the <code>docker build</code> command.</li>
+<li><code>dockerfile</code>: Location and name of the Dockerfile that should be built.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Lagoon does NOT support the short version of <code>build: &lt;Dockerfile&gt;</code> and will fail if it finds such a definition.</p>
 </div>
+<p>If you're building a derived image and need to ensure the base image is always updated, add the
+base image as a label for the service: <code>lagoon.base.image: container.reg/my/baseimage:latest</code>. The
+value supports environment variable replacement, for example <code>baseimage:${MY_BASEIMAGE_TAG:-latest}</code>.</p>
 <h4 id="image"><code>image</code><a class="headerlink" href="#image" title="Permanent link">#</a></h4>
-<p>If you don't need to build a Dockerfile and just want to use an existing Dockerfile, define it via <code>image</code>.</p>
+<p>If you want to use an existing image, instead of building one, define it via <code>image</code>.</p>
 <h3 id="types">Types<a class="headerlink" href="#types" title="Permanent link">#</a></h3>
 <p>Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes or OpenShift objects.</p>
 <p>This is done via the <code>lagoon.type</code> label. There are many different types to choose from. Check <a href="../../concepts-advanced/service-types/">Service Types</a> to see all of them and their additional configuration possibilities.</p>
@@ -5382,17 +5365,6 @@ An example <code>.lagoon.yml</code> is show how this looks the same as any other
 </span></code></pre></div>
 <p>In the example above, the services are named <code>nginx</code> and <code>php</code> (but you can call them whatever you want). The <code>lagoon.name</code> tells Lagoon which services go together - all of the services with the same name go together.</p>
 <p>In order for Lagoon to realize which one is the <code>nginx</code> and which one is the <code>php</code> service, we define it via <code>lagoon.deployment.servicetype: nginx</code> and <code>lagoon.deployment.servicetype: php</code>.</p>
-<h2 id="helm-templates-kubernetes-only">Helm Templates (Kubernetes only)<a class="headerlink" href="#helm-templates-kubernetes-only" title="Permanent link">#</a></h2>
-<p>Lagoon uses <a href="https://helm.sh/">Helm</a> for templating on Kubernetes. To do this, a series of <a href="https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts">Charts</a> are included with the <code>build-deploy-tool</code> image.</p>
-<h2 id="custom-rollout-monitor-types">Custom Rollout Monitor Types<a class="headerlink" href="#custom-rollout-monitor-types" title="Permanent link">#</a></h2>
-<p>By default, Lagoon expects that services from custom templates are rolled out via a <a href="https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are"><code>DeploymentConfig</code></a> object within Kubernetes or Openshift. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via <code>lagoon.rollout</code>:</p>
-<ul>
-<li><code>deploymentconfig</code> - This is the default. Expects a <a href="https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are"><code>DeploymentConfig</code></a> object in the template for the service.</li>
-<li><code>statefulset</code> - Expects a <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/"><code>Statefulset</code></a> object in the template for the service.</li>
-<li><code>daemonset</code> - Expects a <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/"><code>Daemonset</code></a> object in the template for the service.</li>
-<li><code>false</code> - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.</li>
-</ul>
-<p>You can also overwrite the rollout for just one specific environment. This is done in <a href="../lagoon-yml/#environmentsnamerollouts"><code>.lagoon.yml</code></a>.</p>
 <h2 id="docker-compose-v2-compatibility">Docker Compose v2 compatibility<a class="headerlink" href="#docker-compose-v2-compatibility" title="Permanent link">#</a></h2>
 <div class="admonition bug">
 <p class="admonition-title">Bug</p>
@@ -5441,6 +5413,12 @@ An example <code>.lagoon.yml</code> is show how this looks the same as any other
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nn">...</span>
 </span></code></pre></div>
+<h2 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h2>
+<p>These settings have been deprecated and should be removed from use in your <code>docker-compose.yml</code>.</p>
+<ul>
+<li><code>services.[name].labels.lagoon.rollout</code></li>
+<li><code>services.[name].labels.lagoon.template</code></li>
+</ul>
 
 
   
@@ -5453,6 +5431,8 @@ An example <code>.lagoon.yml</code> is show how this looks the same as any other
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
         
       </main>
@@ -5480,7 +5460,7 @@ An example <code>.lagoon.yml</code> is show how this looks the same as any other
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
