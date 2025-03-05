@@ -82,6 +82,8 @@ ENV TMPDIR=/tmp \
 
 VOLUME /opt/keycloak/data
 
+RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.0.1/keycloak-home-idp-discovery.jar
+
 COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
