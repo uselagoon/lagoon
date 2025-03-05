@@ -183,6 +183,7 @@ theme:
       toggle:
         icon: material/white-balance-sunny
         name: Switch to light mode
+  custom_dir: docs/overrides
 
   favicon: images/lagoon-icon.png
   logo: images/lagoon-icon-bw.png
