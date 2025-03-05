@@ -4670,10 +4670,16 @@
 <li>Application logs:<ul>
 <li>For Drupal: install the <a href="https://www.drupal.org/project/lagoon_logs">Lagoon Logs</a> module in order to receive logs from Drupal Watchdog.</li>
 <li>For Laravel: install the <a href="https://github.com/amazeeio/laravel_lagoon_logs">Lagoon Logs for Laravel</a> package.</li>
+<li>For Ruby: see our <a href="../../applications/ruby/#logging">Ruby logging example</a>.</li>
 <li>For other workloads:<ul>
 <li>Send logs to <code>udp://application-logs.lagoon.svc:5140</code></li>
 <li>Ensure logs are structured as JSON encoded objects.</li>
-<li>Ensure the <code>type</code> field contains the name of the Kubernetes namespace (<code>$LAGOON_PROJECT-$LAGOON_ENVIRONMENT</code>).</li>
+<li>Send the required fields<ul>
+<li><code>type</code>: the name of the Kubernetes namespace (<code>$LAGOON_PROJECT-$LAGOON_ENVIRONMENT</code>)</li>
+<li><code>host</code>: the name of the pod (<code>$HOSTNAME</code>)</li>
+<li><code>@timestamp</code>: the timestamp of the log</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
