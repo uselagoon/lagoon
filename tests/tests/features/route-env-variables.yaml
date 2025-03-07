@@ -33,7 +33,6 @@
   vars:
     url: "{{ check_url }}"
     expected_content: "LAGOON_ROUTES=https://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }},https://customdomain-will-be-main-domain.com,https://customdomain-will-be-not-be-main-domain.com"
-    expected_content_alt: "LAGOON_ROUTES=https://customdomain-will-be-main-domain.com,https://customdomain-will-be-not-be-main-domain.com,https://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
