@@ -5,7 +5,7 @@
     return_content: yes
     validate_certs: no
   register: result
-  until: result.content is search(expected_content)
+  until: result.content is search(expected_content) or result.content is search(expected_content_alt | default(''))
   retries: 90
   delay: 20
 - name: "{{ testname }} - Check if URL {{ url }} contains content {{ expected_content }}"
