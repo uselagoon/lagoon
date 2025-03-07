@@ -1,17 +1,17 @@
 mutation deployEnvironmentPromote {
-
-CiDeployEnvironmentPromote: deployEnvironmentPromote(
-  input:{
-    destinationEnvironment:"{{ promote_environment }}",
-    project:{
-      name:"{{ project }}"
-    },
-    sourceEnvironment:{
-      name:"{{ source_environment }}",
+  deployEnvironmentPromote(
+    input:{
+      destinationEnvironment:"{{ promote_environment }}",
       project:{
         name:"{{ project }}"
-      }
+      },
+      sourceEnvironment:{
+        name:"{{ source_environment }}",
+        project:{
+          name:"{{ project }}"
+        }
+      },
+      returnData: true
     }
-  }
-)
+  )
 }

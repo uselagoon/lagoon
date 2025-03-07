@@ -15,3 +15,29 @@
     - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
+    - name: Print apiresponse
+      ansible.builtin.debug:
+        msg: "api response: {{ apiresponse }}"
+    - fail:
+        msg: "unsuccessful deploy"
+      when: apiresponse.json.data.deployEnvironmentPromote is not match("lagoon-build")
+    - name: Wait until the build pod is completed
+      kubernetes.core.k8s_info:
+        kind: Pod
+        wait: yes
+        name: "{{ apiresponse.json.data.deployEnvironmentPromote }}"
+        namespace: "{{ project }}-{{ promote_environment }}"
+        label_selectors:
+          - lagoon.sh/jobType = build
+        field_selectors:
+          - status.phase=Succeeded
+        wait_condition:
+          type: Ready
+          reason: PodCompleted
+          status: "False"
+        wait_sleep: 10
+        wait_timeout: 600
+      register: build_complete
+    - name: Print build_complete
+      ansible.builtin.debug:
+        msg: "build_complete: {{ build_complete.resources[0].metadata.name }} {{ build_complete.resources[0].status.phase }}"
