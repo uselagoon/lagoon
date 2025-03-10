@@ -448,7 +448,7 @@ export const updateAdvancedTaskDefinition = async (
   // we will merge the patch into the advanced task to double check that the final data is still valid
   task = {...task, ...patch};
 
-  validateAdvancedTaskDefinitionData(task, image, command, type);
+  validateAdvancedTaskDefinitionData(task, task.image, task.command, task.type);
 
   //We actually don't want them to be able to update group, project, environment - so those aren't
   await query(
