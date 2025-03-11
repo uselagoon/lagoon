@@ -8,7 +8,7 @@ Watch the video below for a walk-through of the deployment process.
 
 ## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
-First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and is correctly set up. It will make sure that we have the needed service accounts, create secrets, and will configure environment variables into a ConfigMap `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
+First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given environment exists and is correctly set up. It will make sure that we have the needed service accounts, create secrets, and will configure environment variables into a Secret named `lagoon-env` which is filled with information like the environment type and name, the Lagoon project name, and so on.
 
 ## 2. Git Checkout & Merge
 
