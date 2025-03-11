@@ -4901,7 +4901,7 @@
 <iframe width="560" height="315" src="https://www.youtube.com/embed/XiaH7gqUXWc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h2 id="1-openshiftkubernetes">1. 環境のためのOpenShiftプロジェクト/Kubernetesネームスペースの設定<a class="headerlink" href="#1-openshiftkubernetes" title="Permanent link">#</a></h2>
-<p>まず、Lagoonは指定された環境のOpenShiftプロジェクト/Kubernetesネームスペースが存在して正しく設定されているかどうかを確認します。必要なサービスアカウントがあることを確認し、シークレットを作成し、環境変数を<code>lagoon-env</code>というConfigMapに設定します。これは、環境のタイプや名前、Lagoonプロジェクトの名前などの情報で満たされます。</p>
+<p>まず、Lagoonは指定された環境のOpenShiftプロジェクト/Kubernetesネームスペースが存在して正しく設定されているかどうかを確認します。必要なサービスアカウントがあることを確認し、シークレットを作成し、環境変数を<code>lagoon-env</code>というSecretに設定します。これは、環境のタイプや名前、Lagoonプロジェクトの名前などの情報で満たされます。</p>
 <h2 id="2-git">2. Gitのチェックアウトとマージ<a class="headerlink" href="#2-git" title="Permanent link">#</a></h2>
 <p>次に、LagoonはGitからコードをチェックアウトします。<code>.lagoon.yml</code>、<code>docker-compose.yml</code>、および<code>.env</code>を読み取るためだけでなく、Dockerイメージをビルドするためにもこれが必要です。</p>
 <p>注意点として、Lagoonはブランチ/PRがLagoonで設定されたブランチの正規表現と一致する場合にのみ、これらのアクションを処理します。デプロイメントがどのようにトリガーされたかに基づいて、異なることが起こります。</p>
