@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    return knex.schema.dropTable('problem_harbor_scan_matcher');
+    return knex.schema.dropTable('workflow');
 };
 
 /**
