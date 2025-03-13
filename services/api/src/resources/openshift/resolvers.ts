@@ -177,16 +177,19 @@ export const getOpenshiftByProjectId: ResolverFn = async (
 export const getOpenshiftByDeployTargetId: ResolverFn = async (
   { id: did },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   // get the project id for the deploytarget
   const projectrows = await query(sqlClientPool, Sql.selectProjectIdByDeployTargetId(did)
   );
 
-  // check permissions on the project
-  await hasPermission('openshift', 'view', {
-    project: projectrows[0].project
-  });
+
+  // if the user is not a platform owner or viewer, then perform normal permission check
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('openshift', 'view', {
+      project: projectrows[0].project
+    });
+  }
 
   const rows = await query(sqlClientPool, Sql.selectOpenshiftByDeployTargetId(did));
 
