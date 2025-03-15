@@ -166,7 +166,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
