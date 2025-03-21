@@ -6,18 +6,16 @@ import {
   encodeJSONBase64,
 } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
-import { toNumber } from '../util/func';
+import { toNumber, getErrorMessage } from '../util/func';
 import { getConfigFromEnv } from '../util/config';
 import { logger } from '../loggers/logger';
-import type { GroupRepresentation } from '@s3pweb/keycloak-admin-client-cjs';
+import type { GroupRepresentation, KeycloakAdminClient } from '@s3pweb/keycloak-admin-client-cjs';
 import { isNetworkError } from '../clients/keycloak-admin';
 import { User } from './user';
 import {
   get,
   del,
   redisClient,
-  RedisCacheLoadError,
-  RedisCacheSaveError,
 } from '../clients/redisClient';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
@@ -169,7 +167,7 @@ export interface GroupModel {
 }
 
 export const Group = (clients: {
-  keycloakAdminClient: any;
+  keycloakAdminClient: KeycloakAdminClient;
   sqlClientPool: Pool;
   esClient: any;
 }): GroupModel => {
@@ -250,17 +248,7 @@ export const Group = (clients: {
    * @deprecated Use `loadSparseGroupById` instead.
    */
   const loadGroupById = async (id: string): Promise<Group> => {
-    let fullGroup: Group | null = null;
-
-    try {
-      fullGroup = await getGroupCacheById(id);
-    } catch (err: unknown) {
-      if (err instanceof RedisCacheLoadError) {
-        logger.info(err.message);
-      } else {
-        throw err;
-      }
-    }
+    let fullGroup = await getGroupCacheById(id);
 
     if (!fullGroup) {
       const keycloakGroup = (await keycloakAdminClient.groups.findOne({
@@ -275,15 +263,7 @@ export const Group = (clients: {
       const groups = await transformKeycloakGroups([groupWithSubgroups]);
       fullGroup = groups[0];
 
-      try {
-        await saveGroupCache(fullGroup);
-      } catch (err: unknown) {
-        if (err instanceof RedisCacheSaveError) {
-          logger.info(err.message);
-        } else {
-          throw err;
-        }
-      }
+      await saveGroupCache(fullGroup);
     }
 
     return fullGroup;
@@ -321,17 +301,7 @@ export const Group = (clients: {
    * @deprecated Use `loadSparseGroupByName` instead.
    */
   const loadGroupByName = async (name: string): Promise<Group> => {
-    let fullGroup: Group | null = null;
-
-    try {
-      fullGroup = await getGroupCacheByName(name);
-    } catch (err: unknown) {
-      if (err instanceof RedisCacheLoadError) {
-        logger.info(err.message);
-      } else {
-        throw err;
-      }
-    }
+    let fullGroup = await getGroupCacheByName(name);
 
     if (!fullGroup) {
       const keycloakGroups = (await keycloakAdminClient.groups.find({
@@ -356,15 +326,7 @@ export const Group = (clients: {
       const groups = await transformKeycloakGroups([groupWithSubgroups]);
       fullGroup = groups[0];
 
-      try {
-        await saveGroupCache(fullGroup);
-      } catch (err: unknown) {
-        if (err instanceof RedisCacheSaveError) {
-          logger.info(err.message);
-        } else {
-          throw err;
-        }
-      }
+      await saveGroupCache(fullGroup);
     }
 
     return fullGroup;
@@ -590,17 +552,11 @@ export const Group = (clients: {
   ): Promise<GroupMembership[]> => {
     let membership: GroupMembership[] = [];
 
-    try {
+    if (useCache) {
       membership = await getGroupMembershipCache(group.id);
-    } catch (err: unknown) {
-      if (err instanceof RedisCacheLoadError) {
-        logger.info(err.message);
-      } else {
-        throw err;
-      }
     }
 
-    if (membership.length == 0 || useCache == false) {
+    if (membership.length == 0) {
       const UserModel = User(clients);
       const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
 
@@ -626,15 +582,7 @@ export const Group = (clients: {
         membership = [...membership, ...members];
       }
 
-      try {
-        await saveGroupMembershipCache(group.id, membership);
-      } catch (err: unknown) {
-        if (err instanceof RedisCacheSaveError) {
-          logger.info(err.message);
-        } else {
-          throw err;
-        }
-      }
+      await saveGroupMembershipCache(group.id, membership);
     }
 
     return membership;
@@ -1064,17 +1012,14 @@ export const Group = (clients: {
       // @ts-ignore
       await del(`cache:keycloak:group-members:${group.id}`);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new RedisCacheSaveError(`Error deleting group cache: ${err.message}`);
-      } else {
-        throw err;
-      }
+      logger.warn(`Error deleting group cache: ${getErrorMessage(err)}`);
     }
   };
 
   const saveGroupCache = async (group: Group): Promise<void> => {
     if (!group.id) {
-      throw new RedisCacheSaveError('Error saving group cache: Missing group ID');
+      logger.info('Error saving group cache: Missing group ID');
+      return;
     }
 
     const idCacheKey = `cache:keycloak:group:${group.id}`;
@@ -1090,11 +1035,7 @@ export const Group = (clients: {
         .expire(idCacheKey, cacheGroupExpiresSeconds)
         .exec();
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new RedisCacheSaveError(`Error saving group cache: ${err.message}`);
-      } else {
-        throw err;
-      }
+      logger.info(`Error saving group cache: ${getErrorMessage(err)}`);
     }
   };
 
@@ -1103,16 +1044,10 @@ export const Group = (clients: {
       const groupId = await get(`cache:keycloak:group-id:${name}`);
       return groupId ? await getGroupCacheById(groupId) : null;
     } catch (err: unknown) {
-      if (err instanceof RedisCacheLoadError) {
-        throw err;
-      } else if (err instanceof Error) {
-        throw new RedisCacheLoadError(`Error loading group cache by name: ${err.message}`);
-      } else {
-        throw err;
-      }
-    }
+      logger.info(`Error loading group cache by name: ${getErrorMessage(err)}`);
 
-    return null;
+      return null;
+    }
   };
 
   const getGroupCacheById = async (groupId: string): Promise<Group | null> => {
@@ -1125,14 +1060,10 @@ export const Group = (clients: {
 
       return decodeJSONBase64(data);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new RedisCacheLoadError(`Error loading group cache by id: ${err.message}`);
-      } else {
-        throw err;
-      }
-    }
+      logger.info(`Error loading group cache by id: ${getErrorMessage(err)}`);
 
-    return null;
+      return null;
+    }
   };
 
   const saveGroupMembershipCache = async (
@@ -1149,13 +1080,7 @@ export const Group = (clients: {
         .expire(membersCacheKey, cacheGroupExpiresSeconds)
         .exec();
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new RedisCacheSaveError(
-          `Error saving group members cache: ${err.message}`,
-        );
-      } else {
-        throw err;
-      }
+      logger.info(`Error saving group members cache: ${getErrorMessage(err)}`);
     }
   };
 
@@ -1171,16 +1096,10 @@ export const Group = (clients: {
 
       return decodeJSONBase64(data);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        throw new RedisCacheLoadError(
-          `Error loading group members cache: ${err.message}`,
-        );
-      } else {
-        throw err;
-      }
-    }
+      logger.info(`Error loading group members cache: ${getErrorMessage(err)}`);
 
-    return [];
+      return [];
+    }
   };
 
   return {
