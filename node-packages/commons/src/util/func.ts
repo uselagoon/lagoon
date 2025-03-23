@@ -50,6 +50,18 @@ export const encodeJSONBase64 = (data: any): string =>
 export const decodeJSONBase64 = (data: string): any =>
   JSON.parse(decodeBase64(data));
 
+export const getErrorMessage = (err: unknown): string => {
+  let msg = `unknown error (${typeof err})`;
+
+  if (err instanceof Error) {
+    msg = err.message;
+  } else if (typeof err === 'string') {
+    msg = err;
+  }
+
+  return msg;
+}
+
 interface PublicKeyResponse {
   error?: string;
   publickey?: string;
