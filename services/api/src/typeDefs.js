@@ -913,6 +913,10 @@ const typeDefs = gql`
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
     workflows: [Workflow]
+    """
+    Is the environment currently idled
+    """
+    idled: Boolean
   }
 
   type EnvironmentHitsMonth {
@@ -2625,6 +2629,7 @@ const typeDefs = gql`
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
     addPlatformRoleToUser(user: UserInput!, role: PlatformRole!): User
     removePlatformRoleFromUser(user: UserInput!, role: PlatformRole!): User
+    environmentIdling(id: Int!, idle: Boolean!, disableAutomaticUnidling: Boolean): String
   }
 
   type Subscription {
