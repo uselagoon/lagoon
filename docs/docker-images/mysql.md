@@ -49,11 +49,11 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 		ports:
 			# exposes the port 3306 with a random local port, find it with `docker compose port mariadb 3306`
 			- "3306"
-    environment:
+		environment:
 			# These override the default credentials to match what Drupal is hardwired to expect in Lagoon
-      - MYSQL_DATABASE=drupal
-      - MYSQL_USER=drupal
-      - MYSQL_PASSWORD=drupal
+			- MYSQL_DATABASE=drupal
+			- MYSQL_USER=drupal
+			- MYSQL_PASSWORD=drupal
 		volumes:
 			# mounts a named volume at the default path for MariaDB
 			- db:/var/lib/mysql
