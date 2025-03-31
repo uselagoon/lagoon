@@ -15,7 +15,7 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       body,
     } = webhook;
 
-    const branchName = body.push.changes[0].new.name.toLowerCase()
+    const branchName = body.push.changes[0].new.name
     const sha = body.push.changes[0].commits[0].hash
     var skip_deploy = false
 

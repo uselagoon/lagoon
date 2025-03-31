@@ -16,7 +16,7 @@ export async function gitlabPush(webhook: WebhookRequestData, project: Project) 
       body,
     } = webhook;
 
-    const branchName = body.ref.toLowerCase().replace('refs/heads/','')
+    const branchName = body.ref.replace('refs/heads/','')
     const sha = body.after
 
     // @ts-ignore
