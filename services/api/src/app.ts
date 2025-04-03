@@ -3,7 +3,6 @@ import morgan from 'morgan';
 import compression from 'compression';
 import cors from 'cors';
 import { json } from 'body-parser';
-import { graphqlUploadExpress } from 'graphql-upload';
 import { logger } from './loggers/logger';
 import { createRouter } from './routes';
 import { authMiddleware } from './authMiddleware';
@@ -47,6 +46,16 @@ app.use(authMiddleware);
 // Add routes.
 app.use('/', createRouter());
 
-app.use(graphqlUploadExpress());
+// app.use(graphqlUploadExpress());
+async function setupGraphQLUpload() {
+  try {
+    const { graphqlUploadExpress } = (await import("graphql-upload")) as any;
+    app.use(graphqlUploadExpress());
+  } catch (error) {
+    console.error("Failed to load graphql-upload:", error);
+  }
+}
+
+setupGraphQLUpload();
 
 apolloServer.applyMiddleware({ app });

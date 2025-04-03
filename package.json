@@ -17,5 +17,6 @@
   },
   "scripts": {
     "glow": "glow check"
-  }
+  },
+  "dependencies": {}
 }
