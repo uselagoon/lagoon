@@ -12,7 +12,23 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
+      - name: Create main.html with tracking pixel
+        env:
+          SCARF_TRACKING_PIXEL: ${{ secrets.SCARF_TRACKING_PIXEL }}
+        if: |
+          github.repository_owner == 'uselagoon' &&
+          env.SCARF_TRACKING_PIXEL != null
+        run: |
+          yq eval '.theme.custom_dir = "docs/overrides"' -i ./mkdocs.yml
+          mkdir -p $GITHUB_WORKSPACE/docs/overrides
+          cat << 'EOF' > $GITHUB_WORKSPACE/docs/overrides/main.html
+          {% extends "base.html" %}
 
+          {% block content %}
+          {{ super() }}
+            <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=${{ env.SCARF_TRACKING_PIXEL }}" />
+          {% endblock %}
+          EOF
       # - name: Deploy docs
       #   uses: mhausenblas/mkdocs-deploy-gh-pages@master
       #   # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
