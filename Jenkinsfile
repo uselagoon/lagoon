@@ -97,7 +97,7 @@ pipeline {
             sh script: "make local-dev-tools", label: "Configure k3d"
             sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
             sh script: "make k3d/stable-local-stack INSTALL_SEED_DATA=false BRANCH_NAME=${SAFEBRANCH_NAME} LAGOON_CORE_USE_HTTPS=false INSTALL_PROMETHEUS=false", label: "Setup stable cluster"
-            sh script: "make k3d/retest TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Run nginx smoketest"
+            sh script: "make k3d/retest TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME} USE_STABLE_TESTS=true", label: "Run nginx smoketest"
             sh script: "make k3d/install-lagoon BRANCH_NAME=${SAFEBRANCH_NAME} INSTALL_PROMETHEUS=false", label: "Run lagoon upgrade"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
             // script {

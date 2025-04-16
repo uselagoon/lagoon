@@ -1024,21 +1024,28 @@ k3d/port-forwards:
 
 # k3d/retest re-runs tests in the local cluster. It preserves the last build
 # lagoon core & remote setup, reducing rebuild time.
+USE_STABLE_TESTS = false
+
 .PHONY: k3d/retest
 k3d/retest:
+ifneq ($(USE_STABLE_TESTS),true)
+	$(eval TEST_IMAGE_TAG = $(SAFE_BRANCH_NAME))
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+	 	$(MAKE) build/local-git && \
+	 	$(MAKE) build/local-api-data-watcher-pusher && \
+	 	$(MAKE) build/tests && \
+	 	$(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher"
+else
+	$(eval TEST_IMAGE_TAG = $(shell $(HELM) search repo lagoon/lagoon-core -o json | $(JQ) -r '.[]|.app_version'))
+endif
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& $(MAKE) build/local-git \
-		&& $(MAKE) build/local-api-data-watcher-pusher \
-		&& $(MAKE) build/tests \
-		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher" \
 		&& cd lagoon-charts.k3d.lagoon \
-		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(TEST_IMAGE_TAG) DISABLE_CORE_HARBOR=true \
 			HELM=$(HELM) KUBECTL=$(KUBECTL) \
 			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
-			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+			IMAGE_REGISTRY=$$(if [ $(USE_STABLE_TESTS) = true ]; then echo 'uselagoon'; else echo "registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"; fi) \
 			SKIP_ALL_DEPS=true \
 			CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \

@@ -383,7 +383,7 @@ export const addDeployment: ResolverFn = async (
       sourceUser,
     })
   );
-  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(insertId);
 
   const auditLog: AuditLog = {
     resource: {
