@@ -1,5 +1,5 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask } from '@lagoon/commons/dist/tasks';
+import { createRemoveTask, makeSafe } from '@lagoon/commons/dist/tasks';
 import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData, Project } from '../types';
@@ -31,14 +31,7 @@ export async function bitbucketBranchDeleted(webhook: WebhookRequestData, projec
     const result = await getOpenShiftInfoForProject(project.name);
     const projectOpenShift = result.project;
 
-    const ocsafety = string =>
-    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
-
-    let openshiftProjectName = projectOpenShift.openshiftProjectPattern
-    ? projectOpenShift.openshiftProjectPattern
-        .replace('${branch}', ocsafety(meta.branch))
-        .replace('${project}', ocsafety(project.name))
-    : ocsafety(`${project.name}-${meta.branch}`);
+    let openshiftProjectName = makeSafe(`${project.name}-${meta.branch}`);
 
     const data: RemoveData = {
       projectName: project.name,

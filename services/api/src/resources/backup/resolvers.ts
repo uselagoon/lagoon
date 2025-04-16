@@ -261,10 +261,16 @@ export const deleteBackup: ResolverFn = async (
 export const addRestore: ResolverFn = async (
   root,
   { input: { id, backupId, status, restoreLocation, created, execute } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
+  if (restoreLocation) {
+    if (!adminScopes.platformOwner) {
+      // throw unauthorized if not platform
+      throw new Error('Unauthorized');
+    }
+  }
   await hasPermission('restore', 'add', {
     project: R.path(['0', 'pid'], perms)
   });
@@ -379,7 +385,7 @@ export const updateRestore: ResolverFn = async (
       patch: { status, created, restoreLocation }
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -389,18 +395,16 @@ export const updateRestore: ResolverFn = async (
     sqlClientPool,
     Sql.selectPermsForRestore(backupId)
   );
-  const permsBackup = await query(
-    sqlClientPool,
-    Sql.selectPermsForBackup(backupId)
-  );
 
+  if (restoreLocation) {
+    if (!adminScopes.platformOwner) {
+      // throw unauthorized if not platform
+      throw new Error('Unauthorized');
+    }
+  }
   // Check access to modify restore as it currently stands
   await hasPermission('restore', 'update', {
     project: R.path(['0', 'pid'], permsRestore)
-  });
-  // Check access to modify restore as it will be updated
-  await hasPermission('backup', 'view', {
-    project: R.path(['0', 'pid'], permsBackup)
   });
 
   await query(

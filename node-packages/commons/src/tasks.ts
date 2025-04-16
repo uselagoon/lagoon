@@ -341,6 +341,24 @@ export const createTaskMonitor = async function(task: string, payload: any) {
 export const makeSafe = (string: string): string =>
   string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
+// function to truncate the environment name as required to fit within kubernetes namespace limits
+export const truncateEnvironmentName = (projectName: string, environmentName: string): string => {
+  var envName = makeSafe(environmentName)
+  var overlength = 58 - projectName.length;
+  if ( envName.length > overlength ) {
+    var hash = sha1(envName).substring(0,4)
+    envName = envName.substring(0, overlength-5)
+    envName = envName.concat('-' + hash)
+  }
+  return envName;
+}
+
+// function to seed the initial namespace for use in
+export const seedNamespace = (projectName: string, environmentName: string): string => {
+  var envName = truncateEnvironmentName(projectName, environmentName)
+  return makeSafe(`${projectName}-${envName}`)
+}
+
 // @TODO: make sure if it fails, it does so properly
 export const getControllerBuildData = async function(deployTarget: any, deployData: DeployData) {
   const {
@@ -364,17 +382,10 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
   const buildVariables = deployData.buildVariables || [];
   const sourceUser = deployData.sourceUser || 'unknown';
 
-  var environmentName = makeSafe(branchName)
+  var environmentName = truncateEnvironmentName(projectName, branchName)
 
   const result = await getOpenShiftInfoForProject(projectName);
   const lagoonProjectData = result.project
-
-  var overlength = 58 - projectName.length;
-  if ( environmentName.length > overlength ) {
-    var hash = sha1(environmentName).substring(0,4)
-    environmentName = environmentName.substring(0, overlength-5)
-    environmentName = environmentName.concat('-' + hash)
-  }
 
   var environmentType = 'development'
   if (
@@ -405,7 +416,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
   var prPullrequestTitle = pullrequestTitle || ""
   var prPullrequestNumber = branchName.replace('pr-','')
   var graphqlEnvironmentType = environmentType.toUpperCase()
-  var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${makeSafe(promoteSourceEnvironment)}` : ""
+  var sourceProjectNamespace = promoteSourceEnvironment ? `${projectName}-${makeSafe(promoteSourceEnvironment)}` : ""
   // A secret seed which is the same across all Environments of this Lagoon Project
   var projectSeedVal = projectSeedString || jwtSecretString
   var projectSecret = crypto.createHash('sha256').update(`${projectName}-${projectSeedVal}`).digest('hex');
@@ -448,17 +459,13 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
       promoteData = {
         promote: {
           sourceEnvironment: promoteSourceEnvironment,
-          sourceProject: openshiftPromoteSourceProject,
+          sourceProject: sourceProjectNamespace,
         }
       };
       break;
   }
 
   // Get the target information
-  // get the projectpattern and id from the target
-  // this is only used on the initial deployment
-
-  var openshiftProjectPattern = deployTarget.openshiftProjectPattern;
   // check if this environment already exists in the API so we can get the openshift target it is using
   // this is even valid for promotes if it isn't the first time time it is being deployed
   try {
@@ -466,19 +473,17 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
     let envId = apiEnvironment.environmentByName.id
     const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
     deployTarget.openshift = environmentOpenshift.environment.openshift
-    openshiftProjectPattern = environmentOpenshift.environment.openshiftProjectPattern
   } catch (err) {
     //do nothing
   }
   // end working out the target information
-  let openshiftId = deployTarget.openshift.id;
+  let deploytargetId = deployTarget.openshift.id;
 
   if (deployTarget.openshift.disabled) {
     logger.error(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
     throw new DeployTargetDisabled(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
   }
 
-  var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
@@ -531,7 +536,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
   // if no build image is determined, the `remote-controller` defined default image will be used
   // once it reaches the remote cluster.
 
-  // @TODO: openshiftProject here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for openshiftProject to be optional
+  // @TODO: envNamespaceName here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for envNamespaceName to be optional
   // maybe need to have this generate a random uid initially?
   let environment;
   try {
@@ -540,12 +545,10 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
       type,
       deployBaseRef,
       graphqlEnvironmentType,
-      openshiftProject,
-      openshiftId,
-      openshiftProjectPattern,
+      deploytargetId,
       deployHeadRef,
       deployTitle)
-    logger.info(`${openshiftProject}: Created/Updated Environment in API`)
+    logger.info(`${makeSafe(`${projectName}-${environmentName}`)}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(`Couldn't addOrUpdateEnvironment: ${err.message}`)
     throw new Error

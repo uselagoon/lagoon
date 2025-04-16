@@ -22,13 +22,11 @@ export interface Project {
   // groups: ;
   id: number;
   kubernetes: Kubernetes;
-  kubernetesNamespacePattern: string;
   // metadata: ;
   name: string;
   // notifications: ;
   openshift: Kubernetes;
   openshiftProjectName: string;
-  openshiftProjectPattern: string;
   organization: number;
   privateKey: string;
   problemsUI: string;
@@ -728,7 +726,6 @@ export async function getEnvironmentByIdWithVariables(
         deployType
         environmentType
         openshiftProjectName
-        openshiftProjectPattern
         openshift {
           ...${deployTargetMinimalFragment}
         }
@@ -780,15 +777,13 @@ export const addOrUpdateEnvironment = (
   deployType: DeployType,
   deployBaseRef: string,
   environmentType: string,
-  openshiftProjectName: string,
   openshift: number,
-  openshiftProjectPattern: string,
   deployHeadRef: string | null = null,
   deployTitle: string | null = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
-($name: String!, $project: Int!, $openshift: Int, $openshiftProjectPattern: String, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
+($name: String!, $project: Int!, $openshift: Int, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!) {
   addOrUpdateEnvironment(input: {
     name: $name,
     project: $project,
@@ -798,8 +793,6 @@ export const addOrUpdateEnvironment = (
     deployHeadRef: $deployHeadRef,
     deployTitle: $deployTitle,
     environmentType: $environmentType,
-    openshiftProjectName: $openshiftProjectName
-    openshiftProjectPattern: $openshiftProjectPattern
   }) {
     id
     name
@@ -810,7 +803,6 @@ export const addOrUpdateEnvironment = (
     deployType
     environmentType
     openshiftProjectName
-    openshiftProjectPattern
     envVariables {
       name
       value
@@ -827,9 +819,7 @@ export const addOrUpdateEnvironment = (
       deployHeadRef,
       deployTitle,
       environmentType,
-      openshiftProjectName,
-      openshift,
-      openshiftProjectPattern
+      openshift
     }
   );
 
@@ -843,7 +833,6 @@ interface GetOpenshiftInfoForProjectResult {
     | 'developmentBuildPriority'
     | 'gitUrl'
     | 'id'
-    | 'openshiftProjectPattern'
     | 'organization'
     | 'privateKey'
     | 'productionAlias'
@@ -883,7 +872,6 @@ export const getOpenShiftInfoForProject = (project: string): Promise<GetOpenshif
         openshift  {
           ...${deployTargetMinimalFragment}
         }
-        openshiftProjectPattern
         organization
         privateKey
         productionAlias
@@ -922,7 +910,6 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
 interface GetOpenShiftInfoForEnvironmentEnvironmentResult {
   id: number
   name: string
-  openshiftProjectPattern: string
   openshift: DeployTargetMinimalFragment
   project: Pick<Project, 'sharedBaasBucket' | 'buildImage'> & {
     envVariables: Pick<EnvKeyValue, 'name' | 'scope' | 'value'>[]
@@ -939,7 +926,6 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<Get
       environment:environmentById(id: ${environment}){
         id
         name
-        openshiftProjectPattern
         openshift  {
           ...${deployTargetMinimalFragment}
         }
@@ -960,7 +946,6 @@ interface GetEnvironentsForProjectEnvironmentResult {
   name: string;
   id: number;
   environmentType: EnvType;
-  openshiftProjectPattern: string;
   openshift: any;
 }
 
@@ -991,7 +976,6 @@ export const getEnvironmentsForProject = (
         id
         environmentType
         autoIdle
-        openshiftProjectPattern
         openshift{
           ...${deployTargetMinimalFragment}
         }
