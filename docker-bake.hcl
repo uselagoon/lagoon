@@ -70,8 +70,7 @@ group "default" {
     "task-activestandby",
     "tests",
     "webhook-handler",
-    "webhooks2tasks",
-    "workflows"
+    "webhooks2tasks"
   ]
 }
 
@@ -81,8 +80,7 @@ group "go-services" {
     "backup-handler",
     "api-sidecar-handler",
     "logs2notifications",
-    "task-activestandby",
-    "workflows"
+    "task-activestandby"
   ]
 }
 
@@ -148,8 +146,7 @@ group "prod-images" {
     "task-activestandby",
     "tests",
     "webhook-handler",
-    "webhooks2tasks",
-    "workflows"
+    "webhooks2tasks"
   ]
 }
 
@@ -307,15 +304,6 @@ target "webhooks2tasks" {
     "org.opencontainers.image.title": "lagoon-core/webhooks2tasks - the webhooks2tasks service for Lagoon"
   }
   tags = ["${IMAGE_REPO}/webhooks2tasks:${TAG}"]
-}
-
-target "workflows" {
-  inherits = ["default"]
-  context = "services/workflows"
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/workflows - the workflows service for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/workflows:${TAG}"]
 }
 
 target "task-activestandby" {
