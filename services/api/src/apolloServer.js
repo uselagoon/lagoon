@@ -152,15 +152,17 @@ const apolloServer = new ApolloServer({
         }
       }
 
+      const hasPermission = grant
+        ? keycloakHasPermission(grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+        : legacyHasPermission(legacyCredentials)
+
       return {
         keycloakAdminClient,
         sqlClientPool,
-        hasPermission: grant
-          ? keycloakHasPermission(grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
-          : legacyHasPermission(legacyCredentials),
+        hasPermission,
         keycloakGrant,
-        legacyGrant,
         requestCache,
+        legacyGrant,
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
@@ -237,11 +239,6 @@ const apolloServer = new ApolloServer({
         }
       }
 
-      // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
-      // this reduces the number of `viewAll` permission look ups that could potentially occur during subfield resolvers for non admin users
-      // every `hasPermission` check adds a delay, and if you're a member of a group that has a lot of projects and environments, hasPermissions is costly when we perform
-      // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
-      // this eliminates a huge number of these by making it available in the apollo context
       const hasPermission = req.kauth
           ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
           : legacyHasPermission(req.legacyCredentials)

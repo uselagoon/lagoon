@@ -61,14 +61,6 @@ export let sendToLagoonTasks = function(
   return payload && undefined;
 };
 
-export let sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
-  task: string,
-  payload?: any
-) {
-  // TODO: Actually do something here?
-  return payload && undefined;
-};
-
 export let sendToLagoonActions = function(
   task: string,
   payload?: any
@@ -81,26 +73,28 @@ export let sendToLagoonActions = function(
 // a better way to type this?
 const defaultConnection: AmqpConnectionManager = {
   // Default function for Event
-  removeListener: (() => {}) as any,
-  off: (() => {}) as any,
-  removeAllListeners: (() => {}) as any,
-  setMaxListeners: (() => {}) as any,
-  getMaxListeners: (() => {}) as any,
-  listeners: (() => {}) as any,
-  rawListeners: (() => {}) as any,
-  emit: (() => {}) as any,
-  eventNames: (() => {}) as any,
-  listenerCount: (() => {}) as any,
+  removeListener: (() => { }) as any,
+  listeners: (() => { }) as any,
 
   // Default functions for AmqpConnectionManager
-  addListener: (() => {}) as any,
-  on: (() => {}) as any,
-  once: (() => {}) as any,
-  prependListener: (() => {}) as any,
-  prependOnceListener: (() => {}) as any,
-  createChannel: (() => {}) as any,
-  isConnected: (() => {}) as any,
-  close: (() => {}) as any
+  addListener: (() => { }) as any,
+  on: (() => { }) as any,
+  once: (() => { }) as any,
+  prependListener: (() => { }) as any,
+  prependOnceListener: (() => { }) as any,
+  createChannel: (() => { }) as any,
+  isConnected: (() => { }) as any,
+  close: (() => { }) as any,
+  heartbeatIntervalInSeconds: 0,
+  reconnectTimeInSeconds: 0,
+  connect: function (options?: { timeout?: number; }): Promise<void> {
+    throw new Error('Function not implemented.');
+  },
+  reconnect: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  connection: undefined,
+  channelCount: 0
 };
 
 export let connection: AmqpConnectionManager = defaultConnection;
@@ -109,7 +103,6 @@ const rabbitmqUsername = getConfigFromEnv('RABBITMQ_USERNAME', 'guest');
 const rabbitmqPassword = getConfigFromEnv('RABBITMQ_PASSWORD', 'guest');
 
 const taskPrefetch = toNumber(getConfigFromEnv('TASK_PREFETCH_COUNT', '2'));
-const taskMonitorPrefetch = toNumber(getConfigFromEnv('TASKMONITOR_PREFETCH_COUNT', '1'));
 
 // these are required for the builddeploydata creation
 // they match what are used in the kubernetesbuilddeploy service
@@ -259,22 +252,6 @@ export const initSendToLagoonTasks = function() {
           arguments: { 'x-delayed-type': 'fanout' }
         }),
         channel.bindExchange('lagoon-tasks', 'lagoon-tasks-delay', ''),
-
-        // Exchange for task monitoring
-        channel.assertExchange('lagoon-tasks-monitor', 'direct', {
-          durable: true
-        }),
-
-        channel.assertExchange(
-          'lagoon-tasks-monitor-delay',
-          'x-delayed-message',
-          { durable: true, arguments: { 'x-delayed-type': 'fanout' } }
-        ),
-        channel.bindExchange(
-          'lagoon-tasks-monitor',
-          'lagoon-tasks-monitor-delay',
-          ''
-        )
       ]);
     }
   });
@@ -303,38 +280,6 @@ export const initSendToLagoonTasks = function() {
       throw error;
     }
   };
-
-  sendToLagoonTasksMonitor = async (
-    task: string,
-    payload: any
-  ): Promise<string> => {
-    try {
-      const buffer = Buffer.from(JSON.stringify(payload));
-      await channelWrapperTasks.publish('lagoon-tasks-monitor', task, buffer, {
-        persistent: true
-      });
-      logger.debug(
-        `lagoon-tasks-monitor: Successfully created monitor '${task}'`,
-        payload
-      );
-      return `lagoon-tasks-monitor: Successfully created task monitor '${task}': ${JSON.stringify(
-        payload
-      )}`;
-    } catch (error) {
-      logger.error(
-        'lagoon-tasks-monitor: Error send to lagoon-tasks-monitor exchange',
-        {
-          payload,
-          error
-        }
-      );
-      throw error;
-    }
-  };
-}
-
-export const createTaskMonitor = async function(task: string, payload: any) {
-  return sendToLagoonTasksMonitor(task, payload);
 }
 
 // makes strings "safe" if it is to be used in something dns related
@@ -1388,88 +1333,6 @@ export const consumeTasks = async function(
         channel.consume(`lagoon-tasks:${taskQueueName}`, onMessage, {
           noAck: false
         })
-      ]);
-    }
-  });
-}
-
-export const consumeTaskMonitor = async function(
-  taskMonitorQueueName: string,
-  messageConsumer: MessageConsumer,
-  deathHandler: DeathHandler
-) {
-  const onMessage = async (msg: ConsumeMessage) => {
-    try {
-      await messageConsumer(msg);
-      channelWrapperTaskMonitor.ack(msg);
-    } catch (error) {
-      // We land here if the messageConsumer has an error that it did not itslef handle.
-      // This is how the consumer informs us that we it would like to retry the message in a couple of seconds
-
-      const headers = msg.properties.headers || {'x-retry': 1}
-      const retryCount = headers['x-retry']
-        ? headers['x-retry'] + 1
-        : 1;
-
-      if (retryCount > 750) {
-        channelWrapperTaskMonitor.ack(msg);
-        deathHandler(msg, error);
-        return;
-      }
-
-      let retryDelaySecs = 5;
-
-      if (error.delayFn) {
-        retryDelaySecs = error.delayFn(retryCount);
-      }
-
-      const retryDelayMilisecs = retryDelaySecs * 1000;
-
-      // copying options from the original message
-      const retryMsgOptions = {
-        appId: msg.properties.appId,
-        timestamp: msg.properties.timestamp,
-        contentType: msg.properties.contentType,
-        deliveryMode: msg.properties.deliveryMode,
-        headers: {
-          ...msg.properties.headers,
-          'x-delay': retryDelayMilisecs,
-          'x-retry': retryCount
-        },
-        persistent: true
-      };
-
-      // publishing a new message with the same content as the original message but into the `lagoon-tasks-delay` exchange,
-      // which will send the message into the original exchange `lagoon-tasks` after waiting the x-delay time.
-      channelWrapperTaskMonitor.publish(
-        'lagoon-tasks-monitor-delay',
-        msg.fields.routingKey,
-        msg.content,
-        retryMsgOptions
-      );
-
-      // acknologing the existing message, we cloned it and is not necessary anymore
-      channelWrapperTaskMonitor.ack(msg);
-    }
-  };
-
-  const channelWrapperTaskMonitor = connection.createChannel({
-    setup(channel: ConfirmChannel) {
-      return Promise.all([
-        channel.assertQueue(`lagoon-tasks-monitor:${taskMonitorQueueName}`, {
-          durable: true
-        }),
-        channel.bindQueue(
-          `lagoon-tasks-monitor:${taskMonitorQueueName}`,
-          'lagoon-tasks-monitor',
-          taskMonitorQueueName
-        ),
-        channel.prefetch(taskMonitorPrefetch),
-        channel.consume(
-          `lagoon-tasks-monitor:${taskMonitorQueueName}`,
-          onMessage,
-          { noAck: false }
-        )
       ]);
     }
   });
