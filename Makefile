@@ -203,8 +203,7 @@ services :=	api \
 			keycloak-db \
 			logs2notifications \
 			webhook-handler \
-			webhooks2tasks \
-			workflows
+			webhooks2tasks
 
 service-images += $(services)
 
@@ -239,7 +238,6 @@ service-images += ssh
 
 build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
-build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
@@ -457,7 +455,7 @@ GOJQ_VERSION = v0.12.16
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
-TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
 CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
@@ -699,7 +697,7 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/workflows services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
 .PHONY: go/test
 go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
@@ -712,7 +710,7 @@ go/test: local-dev/go
 		&& cd ../..; \
 	done
 
-K3D_SERVICES = api api-db api-redis auth-server backup-handler actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
+K3D_SERVICES = api api-db api-redis auth-server backup-handler actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests $(TASK_IMAGES)
 K3D_TESTS = local-api-data-watcher-pusher local-git tests
 K3D_TOOLS = k3d helm kubectl jq stern
 
