@@ -7,9 +7,9 @@ exports.up = function(knex) {
         .raw(`DELETE FROM audit_log
             WHERE resource_type = 'workflow' OR linked_resource_type = 'workflow'`)
         .raw(`ALTER TABLE audit_log
-            MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable') NOT NULL;`)
+            MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable');`)
         .raw(`ALTER TABLE audit_log
-            MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable') NOT NULL;`)
+            MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable');`)
         .dropTable('workflow');
 };
 
@@ -20,9 +20,9 @@ exports.up = function(knex) {
 exports.down = function(knex) {
     return knex.schema
     .raw(`ALTER TABLE audit_log
-        MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow') NOT NULL;`)
+        MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow');`)
     .raw(`ALTER TABLE audit_log
-        MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow') NOT NULL;`)
+        MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow');`)
     .createTable('workflow', function (table) {
         table.increments('id').notNullable().primary();
         table.string('name', 50).notNullable();
