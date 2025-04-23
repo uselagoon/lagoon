@@ -1197,7 +1197,6 @@ const typeDefs = gql`
     TASK
     USER
     VARIABLE
-    WORKFLOW
   }
 
   input AuditLogInput {

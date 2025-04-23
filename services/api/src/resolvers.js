@@ -310,7 +310,6 @@ const resolvers = {
     TASK: 'task',
     USER: 'user',
     VARIABLE: 'variable',
-    WORKFLOW: 'workflow',
   },
   AuditSource: {
     API: 'api',
