@@ -100,15 +100,15 @@ Uses a shared MariaDB server via the DBaaS Operator.
 | :--- | :--- | :--- | :--- | :--- |
 | Not Needed | `3306` | No | - | - |
 
-## `mongo`
+## `mongodb`
 
-A meta-service which will tell Lagoon to automatically decide between `mongo-single` and `mongo-dbaas`.
+A meta-service which will tell Lagoon to automatically decide between `mongodb-single` and `mongodb-dbaas`.
 
 | Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Docker compose labels |
 | :--- | :--- | :--- | :--- | :--- |
 | - | - | - | - | - |
 
-## `mongo-single`
+## `mongodb-single`
 
 MongoDB container, will generate persistent storage of min 1GB mounted at `/data/db`.
 
@@ -116,7 +116,7 @@ MongoDB container, will generate persistent storage of min 1GB mounted at `/data
 | :--- | :--- | :--- | :--- | :--- |
 | TCP connection on `27017` | `27017` | No | [Block](./storage-types.md#block) | `lagoon.persistent.size` |
 
-## `mongo-dbaas`
+## `mongodb-dbaas`
 
 Uses a shared MongoDB server via the DBaaS Operator.
 

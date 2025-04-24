@@ -85,15 +85,15 @@ DBaaSオペレーターを介した共有MariaDBサーバーを使用します�
 | :--- | :--- | :--- | :--- | :--- |
 | 不要 | `3306` | なし | - | - |
 
-## `mongo`
+## `mongodb`
 
-Lagoonに`mongo-single`と`mongo-dbaas`のどちらかを自動的に決定させるメタサービス。
+Lagoonに`mongodb-single`と`mongodb-dbaas`のどちらかを自動的に決定させるメタサービス。
 
 | ヘルスチェック | 公開ポート | 自動生成ルート | ストレージ | 追加のカスタマイズパラメータ |
 | :--- | :--- | :--- | :--- | :--- |
 | - | - | - | - | - |
 
-## `mongo-single`
+## `mongodb-single`
 
 MongoDBコンテナ、`/data/db`にマウントされた最小1GBの永続ストレージを生成します。
 
@@ -101,7 +101,7 @@ MongoDBコンテナ、`/data/db`にマウントされた最小1GBの永続スト
 | :--- | :--- | :--- | :--- | :--- |
 | `27017`でTCP接続 | `27017` | なし | はい | `lagoon.persistent.size` |
 
-## `mongo-dbaas`
+## `mongodb-dbaas`
 
 DBaaSオペレーターを介した共有MongoDBサーバーを使用します。
 
