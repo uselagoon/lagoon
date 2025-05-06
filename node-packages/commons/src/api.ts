@@ -899,7 +899,6 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
         branches
         pullrequests
         weight
-        deployTargetProjectPattern
         deployTarget{
           ...${deployTargetMinimalFragment}
         }

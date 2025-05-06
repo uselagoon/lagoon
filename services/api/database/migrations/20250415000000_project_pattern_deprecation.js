@@ -9,6 +9,9 @@ exports.up = function(knex) {
   })
   .alterTable('environment', (table) => {
     table.dropColumn('openshift_project_pattern');
+  })
+  .alterTable('deploy_target_config', (table) => {
+    table.dropColumn('deploy_target_project_pattern');
   });
 };
 
@@ -23,5 +26,8 @@ exports.down = function(knex) {
   })
   .alterTable('environment', (table) => {
     table.string('openshift_project_pattern', 300);
+  })
+  .alterTable('deploy_target_config', (table) => {
+    table.string('deploy_target_project_pattern', 300);
   });
 };

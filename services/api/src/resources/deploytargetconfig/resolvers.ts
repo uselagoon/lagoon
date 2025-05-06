@@ -192,8 +192,6 @@ export const addDeployTargetConfig: ResolverFn = async (
   if (!deployTarget) {
     throw new Error('Must provide deployTarget field');
   }
-  const deployTargetProjectPattern = input.deployTargetProjectPattern;
-
 
   let id = input.id
   let project = input.project
@@ -216,7 +214,6 @@ export const addDeployTargetConfig: ResolverFn = async (
       project,
       weight,
       deployTarget,
-      deployTargetProjectPattern,
       branches,
       pullrequests
     })
@@ -243,7 +240,6 @@ export const addDeployTargetConfig: ResolverFn = async (
         branches,
         pullrequests,
         deployTarget,
-        deployTargetProjectPattern,
       })}`
     },
   }
@@ -309,7 +305,6 @@ export const deleteDeployTargetConfig: ResolverFn = async (
 interface UpdateDeployTargetConfigPatchInput {
   branches?: string;
   deployTarget?: number;
-  deployTargetProjectPattern?: string;
   pullrequests?: string;
   weight?: number;
 }
@@ -335,7 +330,6 @@ export const updateDeployTargetConfig: ResolverFn = async (
   const {
     branches,
     deployTarget,
-    deployTargetProjectPattern,
     pullrequests,
     weight,
   } = patch;
@@ -368,7 +362,6 @@ export const updateDeployTargetConfig: ResolverFn = async (
         branches,
         pullrequests,
         deployTarget,
-        deployTargetProjectPattern,
       },
     }),
   );
@@ -390,7 +383,6 @@ export const updateDeployTargetConfig: ResolverFn = async (
         branches,
         pullrequests,
         deployTarget,
-        deployTargetProjectPattern,
       })}`
     },
   }

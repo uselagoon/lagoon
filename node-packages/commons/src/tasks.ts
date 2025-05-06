@@ -536,7 +536,6 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
   // if no build image is determined, the `remote-controller` defined default image will be used
   // once it reaches the remote cluster.
 
-  // @TODO: envNamespaceName here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for envNamespaceName to be optional
   // maybe need to have this generate a random uid initially?
   let environment;
   try {

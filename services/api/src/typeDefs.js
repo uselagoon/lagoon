@@ -1155,7 +1155,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     deployTarget: Openshift
-    deployTargetProjectPattern: String
+    deployTargetProjectPattern: String @deprecated(reason: "No longer in use")
   }
 
   type AuditLog {

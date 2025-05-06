@@ -46,6 +46,7 @@ jobs:
           make up
       -
         name: Show initial migration logs
+        if: success() || failure()
         run: |
           docker compose -p lagoon logs api-db-init
       -
