@@ -23,5 +23,13 @@ for feature in $(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" 
   echo " - enabling ${feature}"
   curl -X PUT --header "Content-Type: application/json" -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" -d '{"name":"'${feature}'"}' "http://${SERVICE_NAME}:15672/api/feature-flags/${feature}/enable"
 done
-
 echo all feature flags enabled
+
+echo removing legacy lagoon-ha policy
+if [[ ! "$(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/policies/%2F/lagoon-ha")" =~ "Object Not Found" ]]
+then
+  echo " - removing lagoon-ha policy"
+  curl -X DELETE -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/policies/%2F/lagoon-ha"
+else
+  echo " - lagoon-ha policy already removed"
+fi
