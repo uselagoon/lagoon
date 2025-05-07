@@ -5,8 +5,7 @@ mutation addOrUpdateEnvironment {
       project: {{ project_id }}
       deployType: {{ deployType }}
       deployBaseRef: "{{ deployBaseRef }}"
-      environmentType: {{ environmentType }},
-      openshiftProjectName: "{{ project }}-{{ name }}"
+      environmentType: {{ environmentType }}
     }
   ) {
     id,

@@ -45,7 +45,6 @@ export const Sql = {
     project,
     weight,
     deployTarget,
-    deployTargetProjectPattern,
     branches,
     pullrequests
   }: {
@@ -53,7 +52,6 @@ export const Sql = {
     project: number,
     weight: number,
     deployTarget: number,
-    deployTargetProjectPattern: number,
     branches: number,
     pullrequests: string
   }) =>
@@ -63,7 +61,6 @@ export const Sql = {
         project,
         weight,
         deployTarget,
-        deployTargetProjectPattern,
         branches,
         pullrequests
       })

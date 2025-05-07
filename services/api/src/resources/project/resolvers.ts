@@ -338,9 +338,6 @@ export const addProject = async (
     throw new Error(`There was an error with the privateKey: ${err.message}`);
   }
 
-  const openshiftProjectPattern =
-    input.kubernetesNamespacePattern || input.openshiftProjectPattern;
-
   if (input.deploymentsDisabled && !adminScopes.platformOwner) {
     // only platform owner can set this, it won't return an error, just ignores the value
     delete input.deploymentsDisabled
@@ -379,7 +376,6 @@ export const addProject = async (
     Sql.createProject({
     ...input,
     openshift,
-    openshiftProjectPattern,
     privateKey: keyPair.private
   }));
 
@@ -721,8 +717,6 @@ export const updateProject: ResolverFn = async (
   }
 
   const openshift = patch.kubernetes || patch.openshift;
-  const openshiftProjectPattern =
-    patch.kubernetesNamespacePattern || patch.openshiftProjectPattern;
 
   const oldProject = await Helpers(sqlClientPool).getProjectById(id);
 
@@ -845,7 +839,6 @@ export const updateProject: ResolverFn = async (
         deploymentsDisabled,
         pullrequests,
         openshift,
-        openshiftProjectPattern,
         developmentEnvironmentsLimit,
         organization,
         buildImage,

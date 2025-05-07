@@ -723,7 +723,7 @@ const typeDefs = gql`
     """
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    openshiftProjectPattern: String
+    openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     """
     Reference to Kubernetes Object this Project should be deployed to
     """
@@ -731,7 +731,7 @@ const typeDefs = gql`
     """
     Pattern of Kubernetes Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    kubernetesNamespacePattern: String
+    kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
     """
     How many environments can be deployed at one timeout
     """
@@ -876,9 +876,9 @@ const typeDefs = gql`
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
-    openshiftProjectPattern: String
+    openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     kubernetes: Kubernetes
-    kubernetesNamespacePattern: String
+    kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
   }
 
   type EnvironmentHitsMonth {
@@ -1155,7 +1155,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     deployTarget: Openshift
-    deployTargetProjectPattern: String
+    deployTargetProjectPattern: String @deprecated(reason: "No longer in use")
   }
 
   type AuditLog {

@@ -24,7 +24,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue *m
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to generate token: %v", prefix, err))
+			log.Printf("%sERROR: unable to generate token: %v", prefix, err)
 		}
 		return nil
 	}
@@ -39,7 +39,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue *m
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to deploy latest: %v", prefix, err))
+			log.Printf("%sERROR: unable to deploy latest: %v", prefix, err)
 		}
 		return err
 	}
@@ -51,7 +51,7 @@ func (m *Messenger) handleDeployEnvironment(ctx context.Context, messageQueue *m
 		"message":  fmt.Sprintf("deployed latest environment: %s", deployment.DeployEnvironmentLatest),
 	})
 	if m.EnableDebug {
-		log.Println(fmt.Sprintf("%sdeployed latest environment: %s", prefix, deployment.DeployEnvironmentLatest))
+		log.Printf("%sdeployed latest environment: %s", prefix, deployment.DeployEnvironmentLatest)
 	}
 	return nil
 }

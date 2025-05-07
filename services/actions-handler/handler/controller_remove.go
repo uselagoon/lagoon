@@ -15,13 +15,13 @@ import (
 
 func (m *Messenger) handleRemoval(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, message.Namespace)
-	log.Println(fmt.Sprintf("%sreceived remove environment status update", prefix))
+	log.Printf("%sreceived remove environment status update", prefix)
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("ERROR: unable to generate token: %v", err))
+			log.Printf("ERROR: unable to generate token: %v", err)
 		}
 		return nil
 	}
@@ -42,10 +42,10 @@ func (m *Messenger) handleRemoval(ctx context.Context, messageQueue *mq.MessageQ
 			"message": err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to delete environment: %v", prefix, err))
+			log.Printf("%sERROR: unable to delete environment: %v", prefix, err)
 		}
 		return err
 	}
-	log.Println(fmt.Sprintf("%sdeleted environment: %v", prefix, deletedEnvironment.DeleteEnvironment))
+	log.Printf("%sdeleted environment: %v", prefix, deletedEnvironment.DeleteEnvironment)
 	return nil
 }

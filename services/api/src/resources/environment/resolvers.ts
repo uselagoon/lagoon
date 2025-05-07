@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask } from '@lagoon/commons/dist/tasks';
+import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
@@ -323,21 +323,29 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
 
   const pid = input.project.toString();
-  const openshiftProjectName =
-    input.kubernetesNamespaceName || input.openshiftProjectName;
-  if (!openshiftProjectName) {
-    throw new Error(
-      'Must provide kubernetesNamespaceName or openshiftProjectName'
-    );
-  }
 
   await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
     project: pid
   });
+
+  // get the project information
+  const project = await projectHelpers(sqlClientPool).getProjectById(input.project);
+
+  // pre-configure the namespace with the seed the same way that a build would as a fall back for environments
+  // that are created manually via this endpoint
+  // it will be changed by a build as necessary, and shouldn't need to be adjusted by a user
+  // @TODO: this should be removed at some point. unfortunately the UI still renders everything using the namespace name
+  // this means if an environment is seeded with an empty namespace setup, the UI will not be able to access the environment
+  // the UI really should be updated to NOT use the namespace name to load the environment, and instead use the name combined with the project
+  // both of which are known
+  // until that is changed, we have to seed the environment this way :(
+  // additional changes to support in the actions handler services/actions-handler/handler/controller_builds.go see @TODO.
+  let envNamespaceName = seedNamespace(project.name, input.name);
+  // let envNamespaceName = null; // @TODO: this should be used when the UI is adjusted
 
   /*
     check if an openshift is provided (this should be provided by any functions that call this within lagoon)
@@ -345,29 +353,34 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     (should also check if one already exists from the environment and use that as a first preference)
   */
   let openshift = input.kubernetes || input.openshift;
-  let openshiftProjectPattern = input.kubernetesNamespacePattern || input.openshiftProjectPattern;
 
   try {
     const curEnv = await Helpers(sqlClientPool).getEnvironmentById(input.id);
     openshift = curEnv.openshift
-    openshiftProjectPattern = curEnv.openshiftProjectPattern
+    // set the namespace to whatever the current environment is to ensure it remains unchanged
+    envNamespaceName = curEnv.openshiftProjectName
   } catch (err) {
     // do nothing
   }
-  const projectOpenshift = await projectHelpers(sqlClientPool).getProjectById(input.project);
   if (!openshift) {
-    openshift = projectOpenshift.openshift
-  }
-  if (!openshiftProjectPattern) {
-    openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
+    openshift = project.openshift
   }
 
-  if (projectOpenshift.organization) {
+  // only allow administrators to change the namespace name
+  // in most cases, this will just be the build status updates that will provide this information
+  // ensuring that the namespace name always reflects what is deployed
+  if (input.openshiftProjectName || input.kubernetesNamespaceName) {
+    if (adminScopes.platformOwner) {
+      envNamespaceName = input.kubernetesNamespaceName || input.openshiftProjectName;
+    }
+  }
+
+  if (project.organization) {
     // if this would be a new environment, check it against the quota
-    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(projectOpenshift.organization)
+    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(project.organization)
     if (!curEnvs.map(e => e.name).find(i => i === input.name)) {
       // check the environment quota, this prevents environments being added directly via the api
-      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(projectOpenshift.organization)
+      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization)
       if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
         throw new Error(
           `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
@@ -409,8 +422,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       ...inputDefaults,
       ...insertData,
       openshift,
-      openshiftProjectName,
-      openshiftProjectPattern
+      openshiftProjectName: envNamespaceName,
     })
     .onConflict('id')
     .merge({
@@ -430,9 +442,9 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: projectOpenshift.id,
+      id: project.id,
       type: AuditType.PROJECT,
-      details: projectOpenshift.name,
+      details: project.name,
     },
     linkedResource: {
       id: environment.id,
@@ -685,7 +697,7 @@ export const deleteEnvironment: ResolverFn = async (
 export const updateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -693,12 +705,18 @@ export const updateEnvironment: ResolverFn = async (
 
   const id = input.id;
   const curEnv = await Helpers(sqlClientPool).getEnvironmentById(id);
-  const openshiftProjectName =
-    input.patch.kubernetesNamespaceName || input.patch.openshiftProjectName;
 
   await hasPermission('environment', `update:${curEnv.environmentType}`, {
     project: curEnv.project
   });
+
+  if (input.patch.openshiftProjectName || input.patch.kubernetesNamespaceName) {
+    if (!adminScopes.platformOwner) {
+      throw new Error('Setting namespace is only available to administrators.');
+    }
+  }
+  const openshiftProjectName =
+    input.patch.kubernetesNamespaceName || input.patch.openshiftProjectName;
 
   const newType = R.pathOr(
     curEnv.environmentType,
