@@ -1,12 +1,13 @@
 import { path } from 'ramda';
 import { withFilter } from 'graphql-subscriptions';
-import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { ForbiddenError } from 'apollo-server-express';
 import { logger } from '../loggers/logger';
-import { getConfigFromEnv } from '../util/config';
 import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
+import { config } from './redisClient';
+import Redis from 'ioredis';
 
 export const EVENTS = {
   DEPLOYMENT: 'api.subscription.deployment',
@@ -14,19 +15,26 @@ export const EVENTS = {
   TASK: 'api.subscription.task'
 };
 
-export const config = {
-  host: getConfigFromEnv('RABBITMQ_HOST', 'broker'),
-  user: getConfigFromEnv('RABBITMQ_USERNAME', 'guest'),
-  pass: getConfigFromEnv('RABBITMQ_PASSWORD', 'guest'),
-  get connectionUrl() {
-    return `amqp://${this.user}:${this.pass}@${this.host}`;
+const options = {
+  host: config.hostname,
+  port: config.port,
+  password: config.pass,
+  retryStrategy: times => {
+    // reconnect after
+    return Math.min(times * 50, 2000);
   }
 };
 
-export const pubSub = new AmqpPubSub({
-  config: config.connectionUrl,
-  // @ts-ignore
-  logger
+export const pubSub = new RedisPubSub({
+  publisher: new Redis(options),
+  subscriber: new Redis(options),
+  connectionListener: (err) => {
+    if (err) {
+        logger.info("Pubsub: error connecting to redis", err);
+    } else {
+      logger.info("Pubsub: Successfuly connected to redis");
+    }
+},
 });
 
 const createSubscribe = (events): ResolverFn => async (
