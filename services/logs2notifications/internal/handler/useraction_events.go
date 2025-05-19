@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"text/template"
 )
 
@@ -25,8 +26,9 @@ type addAdminToOrganizationResource struct {
 type addAdminToOrganization struct {
 	Meta struct {
 		Payload struct {
-			User     addAdmintoOrganizationUser     `json:"user"`
-			Resource addAdminToOrganizationResource `json:"resource"`
+			AddAdminToOrganizationEmail bool                           `json:"addAdminToOrganizationEmail"`
+			User                        addAdmintoOrganizationUser     `json:"user"`
+			Resource                    addAdminToOrganizationResource `json:"resource"`
 		} `json:"payload"`
 	} `json:"meta"`
 }
@@ -80,6 +82,18 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 		return err
 	}
 
+	// let's check if we need to send an email
+	if !payload.Meta.Payload.AddAdminToOrganizationEmail {
+		if h.EnableDebug {
+			log.Printf("Skipping email for addAdminToOrganization event user:%s\n", payload.Meta.Payload.User.Email)
+		}
+		return nil
+	} else {
+		if h.EnableDebug {
+			log.Printf("Sending email for addAdminToOrganization event user:%s\n", payload.Meta.Payload.User.Email)
+		}
+	}
+
 	// let's grab ourselves the mailer templates
 	emoji, color, subject, mainHTML, plainText, err := h.useractionEmailTemplate(&UseractionEmailDetails{
 		Name:  payload.Meta.Payload.User.Email,
@@ -93,6 +107,5 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 
 	// now we can send the email
 	h.sendEmailMessage(emoji, color, subject, notification.Meta.Event, notification.Project, payload.Meta.Payload.User.Email, mainHTML, plainText)
-
 	return nil
 }
