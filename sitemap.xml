@@ -2,2224 +2,2224 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://docs.lagoon.sh/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/code-of-conduct/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/code-of-conduct/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/laravel/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/laravel/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/laravel/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/node/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/node/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/node/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/options/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/options/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/options/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/other/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/other/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/other/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/php/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/php/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/php/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/python/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/python/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/python/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/ruby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/ruby/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/ruby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/wordpress/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/wordpress/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/wordpress/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/automatic-updates/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/automatic-updates/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/automatic-updates/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/drush-9/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/drush-9/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/drush-9/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/first-deployment-of-drupal/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/first-deployment-of-drupal/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/first-deployment-of-drupal/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/integrate-drupal-and-fastly/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/integrate-drupal-and-fastly/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/integrate-drupal-and-fastly/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/phpunit-and-phpstorm/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/phpunit-and-phpstorm/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/phpunit-and-phpstorm/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/subfolders/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/subfolders/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/subfolders/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/mariadb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/mariadb/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/mariadb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/nginx/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/nginx/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/nginx/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/php-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/php-cli/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/php-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/redis/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/redis/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/redis/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/solr/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/solr/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/solr/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/applications/drupal/services/varnish/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/varnish/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/varnish/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/community/discord/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/discord/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/discord/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/community/moderation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/moderation/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/moderation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/community/participation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/participation/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/participation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/backups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/backups/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/backups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/base-images/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/base-images/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/base-images/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/environment-idling/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-idling/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-idling/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/environment-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-types/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/environment-variables/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-variables/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-variables/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/feature-flags/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/feature-flags/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/feature-flags/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/service-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/service-types/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/service-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/storage-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/storage-types/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/storage-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/workflows/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/workflows/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/workflows/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/build-and-deploy-process/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/build-and-deploy-process/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/build-and-deploy-process/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/docker-compose-yml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/docker-compose-yml/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/docker-compose-yml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/lagoon-yml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/lagoon-yml/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/lagoon-yml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/deploy-targets/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/deploy-targets/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/deploy-targets/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/groups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/groups/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/groups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/notifications/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/notifications/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/notifications/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/organizations/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/organizations/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/organizations/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/projects/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/projects/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/projects/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/roles/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/roles/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/roles/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-basics/building-blocks/users/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/users/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/users/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing-to-lagoon/api-debugging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/api-debugging/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/api-debugging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing-to-lagoon/developing-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/developing-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/developing-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing-to-lagoon/documentation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/documentation/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/documentation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing-to-lagoon/releasing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/releasing/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/releasing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/contributing-to-lagoon/tests/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/tests/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/tests/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/commons/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/commons/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/commons/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/deprecated-images/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/deprecated-images/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/deprecated-images/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/mariadb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mariadb/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mariadb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/mongodb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mongodb/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mongodb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/mysql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mysql/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mysql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/nginx/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/nginx/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/nginx/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/nodejs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/nodejs/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/nodejs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/opensearch/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/opensearch/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/opensearch/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/php-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/php-cli/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/php-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/php-fpm/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/php-fpm/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/php-fpm/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/postgres/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/postgres/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/postgres/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/python/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/python/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/python/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/rabbitmq/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/rabbitmq/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/rabbitmq/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/redis/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/redis/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/redis/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/ruby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/ruby/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/ruby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/solr/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/solr/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/solr/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/docker-images/varnish/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/varnish/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/varnish/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/add-group/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/add-group/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/add-group/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/add-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/add-project/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/add-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/bulk-storage-provisioner/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/bulk-storage-provisioner/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/bulk-storage-provisioner/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/create-user/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/create-user/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/create-user/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/deploy-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/deploy-project/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/deploy-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/gitlab/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/gitlab/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/gitlab/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/install-harbor/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/install-harbor/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/install-harbor/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/install-lagoon-remote/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/install-lagoon-remote/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/install-lagoon-remote/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/lagoon-backups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-backups/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-backups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/lagoon-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-cli/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/lagoon-core/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-core/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-core/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/lagoon-files/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-files/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-files/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/lagoon-logging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-logging/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-logging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/logs-concentrator/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/logs-concentrator/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/logs-concentrator/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/opendistro/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/opendistro/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/opendistro/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/querying-graphql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/querying-graphql/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/querying-graphql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/requirements/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/requirements/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/requirements/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/installing-lagoon/update-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/update-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/update-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/graphql-queries/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/graphql-queries/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/graphql-queries/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/graphql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/graphql/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/graphql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/lagoon-ui/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/lagoon-ui/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/lagoon-ui/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/organizations/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/organizations/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/organizations/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/rbac/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/rbac/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/rbac/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/interacting/ssh/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/ssh/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/ssh/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/lagoonizing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/lagoonizing/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/lagoonizing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/logging/logging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/logging/logging/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/logging/logging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/other-tools/client-libraries/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/other-tools/client-libraries/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/other-tools/client-libraries/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/other-tools/sail/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/other-tools/sail/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/other-tools/sail/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.10.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.10.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.10.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.11.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.11.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.11.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.12.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.12.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.12.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.13.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.13.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.13.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.14.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.14.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.1/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.14.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.2/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.15.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.15.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.1/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.15.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.2/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.15.3/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.3/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.3/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.15.4/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.4/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.4/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.16.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.16.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.16.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.17.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.17.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.17.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.18.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.18.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.1/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.18.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.2/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.19.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.19.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.19.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.20.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.20.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.1/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.21.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.21.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.21.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.22.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.22.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.22.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.23.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.23.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.23.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.24.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.24.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.24.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.24.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.24.1/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.24.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/2.25.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.25.0/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.25.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/releases/policy/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/policy/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/policy/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/resources/faq/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/faq/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/faq/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/resources/glossary/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/glossary/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/glossary/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/resources/tutorials-and-webinars/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/tutorials-and-webinars/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/tutorials-and-webinars/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/active-standby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/active-standby/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/active-standby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/blackfire/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/blackfire/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/blackfire/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/custom-tasks/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/deploytarget-configs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/deploytarget-configs/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/deploytarget-configs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/nodejs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/nodejs/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/nodejs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/private-repositories/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/private-repositories/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/private-repositories/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/project-default-users-keys/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/project-default-users-keys/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/project-default-users-keys/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/setting-up-xdebug-with-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/setting-up-xdebug-with-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/setting-up-xdebug-with-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/simplesaml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/simplesaml/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/simplesaml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/triggering-deployments/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/triggering-deployments/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/triggering-deployments/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/configure-webhooks/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/configure-webhooks/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/configure-webhooks/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/first-deployment/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/first-deployment/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/first-deployment/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/going-live/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/going-live/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/going-live/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/lagoon-build-errors-and-warnings/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/lagoon-build-errors-and-warnings/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/lagoon-build-errors-and-warnings/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/local-development-environments/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/local-development-environments/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/local-development-environments/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/setup-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/setup-project/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/setup-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/code-of-conduct/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/code-of-conduct/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/code-of-conduct/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/laravel/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/laravel/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/laravel/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/node/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/node/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/node/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/options/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/options/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/options/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/other/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/other/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/other/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/php/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/php/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/php/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/python/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/python/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/python/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/ruby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/ruby/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/ruby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/wordpress/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/wordpress/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/wordpress/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/automatic-updates/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/automatic-updates/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/automatic-updates/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/drush-9/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/drush-9/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/drush-9/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/first-deployment-of-drupal/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/first-deployment-of-drupal/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/first-deployment-of-drupal/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/integrate-drupal-and-fastly/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/integrate-drupal-and-fastly/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/integrate-drupal-and-fastly/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/phpunit-and-phpstorm/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/phpunit-and-phpstorm/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/phpunit-and-phpstorm/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/subfolders/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/subfolders/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/subfolders/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/mariadb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/mariadb/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/mariadb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/nginx/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/nginx/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/nginx/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/php-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/php-cli/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/php-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/redis/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/redis/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/redis/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/solr/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/solr/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/solr/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/applications/drupal/services/varnish/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/applications/drupal/services/varnish/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/applications/drupal/services/varnish/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/community/discord/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/discord/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/discord/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/community/moderation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/moderation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/moderation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/community/participation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/participation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/participation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/backups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/backups/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/backups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/base-images/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/base-images/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/base-images/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/environment-idling/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-idling/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-idling/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/environment-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-types/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/environment-variables/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/environment-variables/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/environment-variables/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/feature-flags/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/feature-flags/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/feature-flags/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/service-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/service-types/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/service-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/storage-types/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/storage-types/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/storage-types/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/workflows/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-advanced/workflows/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-advanced/workflows/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/build-and-deploy-process/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/build-and-deploy-process/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/build-and-deploy-process/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/docker-compose-yml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/docker-compose-yml/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/docker-compose-yml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/lagoon-yml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/lagoon-yml/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/lagoon-yml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/deploy-targets/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/deploy-targets/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/deploy-targets/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/groups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/groups/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/groups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/notifications/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/notifications/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/notifications/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/organizations/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/organizations/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/organizations/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/projects/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/projects/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/projects/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/roles/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/roles/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/roles/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-basics/building-blocks/users/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/concepts-basics/building-blocks/users/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/concepts-basics/building-blocks/users/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing-to-lagoon/api-debugging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/api-debugging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/api-debugging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing-to-lagoon/developing-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/developing-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/developing-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing-to-lagoon/documentation/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/documentation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/documentation/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing-to-lagoon/releasing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/releasing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/releasing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/contributing-to-lagoon/tests/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/contributing-to-lagoon/tests/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/contributing-to-lagoon/tests/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/commons/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/commons/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/commons/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/deprecated-images/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/deprecated-images/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/deprecated-images/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/mariadb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mariadb/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mariadb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/mongodb/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mongodb/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mongodb/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/mysql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/mysql/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/mysql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/nginx/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/nginx/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/nginx/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/nodejs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/nodejs/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/nodejs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/opensearch/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/opensearch/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/opensearch/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/php-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/php-cli/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/php-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/php-fpm/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/php-fpm/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/php-fpm/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/postgres/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/postgres/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/postgres/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/python/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/python/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/python/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/rabbitmq/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/rabbitmq/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/rabbitmq/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/redis/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/redis/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/redis/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/ruby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/ruby/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/ruby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/solr/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/solr/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/solr/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/docker-images/varnish/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/docker-images/varnish/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/docker-images/varnish/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/add-group/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/add-group/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/add-group/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/add-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/add-project/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/add-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/bulk-storage-provisioner/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/bulk-storage-provisioner/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/bulk-storage-provisioner/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/create-user/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/create-user/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/create-user/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/deploy-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/deploy-project/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/deploy-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/gitlab/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/gitlab/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/gitlab/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/install-harbor/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/install-harbor/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/install-harbor/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/install-lagoon-remote/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/install-lagoon-remote/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/install-lagoon-remote/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/lagoon-backups/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-backups/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-backups/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/lagoon-cli/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-cli/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-cli/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/lagoon-core/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-core/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-core/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/lagoon-files/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-files/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-files/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/lagoon-logging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/lagoon-logging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/lagoon-logging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/logs-concentrator/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/logs-concentrator/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/logs-concentrator/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/opendistro/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/opendistro/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/opendistro/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/querying-graphql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/querying-graphql/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/querying-graphql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/requirements/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/requirements/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/requirements/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/update-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/update-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/installing-lagoon/update-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/graphql-queries/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/graphql-queries/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/graphql-queries/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/graphql/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/graphql/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/graphql/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/lagoon-ui/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/lagoon-ui/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/lagoon-ui/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/organizations/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/organizations/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/organizations/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/rbac/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/rbac/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/rbac/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/interacting/ssh/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/interacting/ssh/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/interacting/ssh/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/installing-lagoon/efs-provisioner/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/installing-lagoon/efs-provisioner/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/lagoonizing/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/lagoonizing/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/lagoonizing/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/logging/kibana-examples/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/logging/kibana-examples/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/logging/logging/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/logging/logging/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/logging/logging/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/other-tools/client-libraries/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/other-tools/client-libraries/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/other-tools/client-libraries/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/resources/faq/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/faq/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/faq/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/resources/glossary/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/glossary/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/glossary/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/resources/tutorials-and-webinars/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/resources/tutorials-and-webinars/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/resources/tutorials-and-webinars/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/active-standby/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/active-standby/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/active-standby/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/blackfire/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/blackfire/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/blackfire/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/custom-tasks/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/custom-tasks/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/custom-tasks/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/deploytarget-configs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/deploytarget-configs/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/deploytarget-configs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/nodejs/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/nodejs/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/nodejs/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/private-repositories/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/private-repositories/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/private-repositories/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/project-default-users-keys/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/project-default-users-keys/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/project-default-users-keys/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/setting-up-xdebug-with-lagoon/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/setting-up-xdebug-with-lagoon/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/setting-up-xdebug-with-lagoon/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/simplesaml/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/simplesaml/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/simplesaml/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/triggering-deployments/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/triggering-deployments/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/triggering-deployments/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/configure-webhooks/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/configure-webhooks/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/configure-webhooks/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/first-deployment/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/first-deployment/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/first-deployment/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/going-live/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/going-live/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/going-live/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/lagoon-build-errors-and-warnings/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/lagoon-build-errors-and-warnings/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/lagoon-build-errors-and-warnings/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/local-development-environments/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/local-development-environments/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/local-development-environments/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/setup-project/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-the-basics/setup-project/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-the-basics/setup-project/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/other-tools/sail/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/other-tools/sail/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/other-tools/sail/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.10.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.10.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.10.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.11.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.11.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.11.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.12.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.12.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.12.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.13.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.13.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.13.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.14.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.14.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.14.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.14.2/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.14.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.15.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.15.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.15.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.2/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.15.3/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.3/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.3/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.15.4/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.15.4/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.15.4/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.16.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.16.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.16.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.17.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.17.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.17.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.18.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.18.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.18.2/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.18.2/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.18.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.19.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.19.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.19.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.20.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.20.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.20.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.20.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.21.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.21.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.21.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.22.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.22.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.22.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.23.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.23.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.23.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.24.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.24.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.24.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.24.1/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.24.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.24.1/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/2.25.0/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.25.0/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.25.0/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/policy/</loc>
-        <lastmod>2025-05-08</lastmod>
+        <lastmod>2025-05-20</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/policy/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/policy/"/>
