@@ -198,10 +198,10 @@ Kubernetesに関連する個々のルーチンは次のとおりです:
 
 一部のサービスが`yarn`ワークスペースによって管理されている共通の依存関係を持っているため、Lagoonのルートディレクトリで`yarn`を実行してください。
 
-### `nip.io`ドメインの解決でエラーが出る
+### `sslip.io`ドメインの解決でエラーが出る
 
 ```text title="エラー"
-Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
+Error response from daemon: Get https://registry.172.18.0.2.sslip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.sslip.io: no such host
 ```
 
 これは、ローカルのリゾルバが結果からプライベートIPをフィルタリングする場合に発生することがあります。これを回避するために、`/etc/resolv.conf`を編集して、結果をフィルタリングしない公開リゾルバを使用するように、上部に`nameserver 8.8.8.8`のような行を追加できます。

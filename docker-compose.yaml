@@ -91,7 +91,7 @@ services:
       - OPENSEARCH_INTEGRATION_ENABLED=false
       - DISABLE_CORE_HARBOR=true
       - CI=${CI:-true}
-      - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - REGISTRY=harbor.172.17.0.1.sslip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - S3_FILES_HOST=http://172.17.0.1:9000
       - S3_BAAS_ACCESS_KEY_ID=minio
       - S3_BAAS_SECRET_ACCESS_KEY=minio123
@@ -172,9 +172,9 @@ services:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
       - WEBHOOK_PROTOCOL=http
-      - ROUTE_SUFFIX_HTTP=172.17.0.1.nip.io
+      - ROUTE_SUFFIX_HTTP=172.17.0.1.sslip.io
       - ROUTE_SUFFIX_HTTP_PORT=18080
-      - ROUTE_SUFFIX_HTTPS=172.17.0.1.nip.io
+      - ROUTE_SUFFIX_HTTPS=172.17.0.1.sslip.io
       - ROUTE_SUFFIX_HTTPS_PORT=18443
       - WEBHOOK_REPO_PREFIX=ssh://git@172.17.0.1:2222/git/
       - GIT_REPO_PREFIX=git@local-git:/git/

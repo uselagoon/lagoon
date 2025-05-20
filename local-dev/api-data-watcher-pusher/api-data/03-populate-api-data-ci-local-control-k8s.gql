@@ -98,7 +98,7 @@ mutation PopulateApi {
       id: 2001
       name: "ci-local-control-k8s"
       consoleUrl: "${CONSOLE_URL}" # make-host-docker-internal
-      routerPattern: "${project}.${environment}.${INGRESS_IP}.nip.io"
+      routerPattern: "${project}.${environment}.${INGRESS_IP}.sslip.io"
       sshHost: "lagoon-remote-ssh-portal.lagoon.svc"
       sshPort: "2222"
       token: "${TOKEN}" # make-kubernetes-token

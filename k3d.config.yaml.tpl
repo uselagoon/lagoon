@@ -16,11 +16,11 @@ registries:
       - /var/run/docker.sock:/var/run/docker.sock
   config: |
     mirrors:
-      "registry.${LAGOON_K3D_NETWORK}.nip.io":
+      "registry.${LAGOON_K3D_NETWORK}.sslip.io":
         endpoint:
-          - https://registry.${LAGOON_K3D_NETWORK}.nip.io
+          - https://registry.${LAGOON_K3D_NETWORK}.sslip.io
     configs:
-        "registry.${LAGOON_K3D_NETWORK}.nip.io":
+        "registry.${LAGOON_K3D_NETWORK}.sslip.io":
             tls:
               insecure_skip_verify: true
 options:

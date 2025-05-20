@@ -53,18 +53,18 @@ Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../d
     mariadbProviders:
       production:
         environment: production
-        hostname: 172.17.0.1.nip.io
+        hostname: 172.17.0.1.sslip.io
         readReplicaHostnames:
-        - 172.17.0.1.nip.io
+        - 172.17.0.1.sslip.io
         password: password
         port: '3306'
         user: root
 
       development:
         environment: development
-        hostname: 172.17.0.1.nip.io
+        hostname: 172.17.0.1.sslip.io
         readReplicaHostnames:
-        - 172.17.0.1.nip.io
+        - 172.17.0.1.sslip.io
         password: password
         port: '3306'
         user: root

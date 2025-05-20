@@ -105,7 +105,7 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&s3FilesRegion, "s3-files-region", "auto",
 		"The jwt audience.")
-	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.nip.io:9000",
+	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.sslip.io:9000",
 		"The jwt audience.")
 	flag.BoolVar(&s3isGCS, "s3-google-cloud", false,
 		"If the storage backend is google cloud.")

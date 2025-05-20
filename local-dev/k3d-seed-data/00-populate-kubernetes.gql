@@ -6,7 +6,7 @@ mutation PopulateApi {
       id: 2001
       name: "ci-local-control-k8s"
       consoleUrl: "${CONSOLE_URL}"
-      routerPattern: "${ROUTER_PATTERN}.nip.io"
+      routerPattern: "${ROUTER_PATTERN}.sslip.io"
       sshHost: "${SSH_PORTAL_HOST}"
       sshPort: "${SSH_PORTAL_PORT}"
       token: "${TOKEN}"

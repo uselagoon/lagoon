@@ -14,11 +14,11 @@ registries:
       docker.io:
         endpoint:
         - "https://imagecache.amazeeio.cloud"
-      "registry.${LAGOON_K3D_NETWORK}.nip.io":
+      "registry.${LAGOON_K3D_NETWORK}.sslip.io":
         endpoint:
-          - https://registry.${LAGOON_K3D_NETWORK}.nip.io
+          - https://registry.${LAGOON_K3D_NETWORK}.sslip.io
     configs:
-      "registry.${LAGOON_K3D_NETWORK}.nip.io":
+      "registry.${LAGOON_K3D_NETWORK}.sslip.io":
         tls:
           insecure_skip_verify: true
 options:

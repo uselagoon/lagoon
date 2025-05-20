@@ -450,10 +450,10 @@ Rebuild the images via:
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
-### I get an error resolving the `nip.io` domains
+### I get an error resolving the `sslip.io` domains
 
 ```text title="Error"
-Error response from daemon: Get https://registry.172.18.0.2.nip.io/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
+Error response from daemon: Get https://registry.172.18.0.2.sslip.io/v2/: dial tcp: lookup registry.172.18.0.2.sslip.io: no such host
 ```
 
 This can happen if your local resolver filters private IPs from results. You can work around this by editing `/etc/resolv.conf` and adding a line like `nameserver 8.8.8.8` at the top to use a public resolver that doesn't filter results.
