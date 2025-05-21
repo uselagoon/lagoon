@@ -32,6 +32,3 @@ options:
       - arg: --disable=servicelb
         nodeFilters:
           - server:*
-      - arg: --disable-network-policy
-        nodeFilters:
-          - server:*
