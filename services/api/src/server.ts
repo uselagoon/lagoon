@@ -3,12 +3,26 @@ import util from 'util';
 import { logger } from './loggers/logger';
 import { toNumber } from './util/func';
 import { getConfigFromEnv } from './util/config';
-import { app } from './app';
+import { app, configureApp } from './app';
 import { execute, subscribe } from "graphql";
-
+import { getSchema, getGrantOrLegacyCredsFromToken } from './apolloServer';
+import { getKeycloakAdminClient } from './clients/keycloak-admin';
+import NodeCache from 'node-cache';
+import { sqlClientPool } from './clients/sqlClient';
+import { esClient } from './clients/esClient';
+import { User } from './models/user';
+import { Group } from './models/group';
+import { Environment } from './models/environment';
+import { keycloakGrantManager } from './clients/keycloakClient';
+import { keycloakHasPermission, legacyHasPermission } from './util/auth';
+import R from 'ramda';
+import { AuthenticationError } from 'apollo-server-express';
+const { useServer } = require('graphql-ws/use/ws');
 
 export const createServer = async () => {
   logger.verbose('Starting the api...');
+
+  await configureApp();
 
   const port = toNumber(getConfigFromEnv('PORT', '3000'));
   const server = http.createServer(app);
@@ -18,33 +32,114 @@ export const createServer = async () => {
 
   async function setupGraphQLModules() {
     try {
-      const { useServer } = require('graphql-ws/dist/use/ws').default;
-
-      const { loadSchemaSync } = require("@graphql-tools/load").default;
-
-      const { GraphQLFileLoader } = require("@graphql-tools/graphql-file-loader").default;
-
       const WebSocket = (await import("ws")).default;
-
-      const schema = loadSchemaSync(
-        "/home/chris/lagoon/services/workflows/internal/lagoonclient/schema.graphql",
-        { loaders: [new GraphQLFileLoader()] }
-      );
+      const schema = await getSchema();
 
       const wsServer = new WebSocket.Server({
         server,
         path: "/graphql",
       });
 
-      useServer({ schema, execute, subscribe }, wsServer);
+      useServer(
+        {
+          schema: schema,
+          execute,
+          subscribe,
+          context: async (ctx, msg, args) => {
+            return {
+                ...(ctx.extra || {}),
+            };
+          },
+          onConnect: async (ctx) => {
+            const token = R.prop('authToken', ctx.connectionParams);
+
+            if (!token) {
+              throw new AuthenticationError('Auth token missing.');
+            }
+
+            try {
+              const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(token);
+              const keycloakAdminClient = await getKeycloakAdminClient();
+              const requestCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
+              const modelClients = { sqlClientPool, keycloakAdminClient, esClient };
+
+              let currentUser: any = {};
+              let serviceAccount = {};
+              let keycloakUsersGroups = [];
+              let groupRoleProjectIds: any[] = [];
+              const keycloakGrant = grant;
+              let legacyGrant = legacyCredentials ? legacyCredentials : null;
+              let platformOwner = false;
+              let platformViewer = false;
+
+              if (keycloakGrant) {
+                try {
+                  keycloakUsersGroups = await User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
+                  serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
+                  currentUser = await User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
+                  const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
+                  for (const role of userRoleMapping) {
+                    if (role.name == "platform-owner") {
+                      platformOwner = true
+                    }
+                    if (role.name == "platform-viewer") {
+                      platformViewer = true
+                    }
+                  }
+                  groupRoleProjectIds = await User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
+                } catch (err) {
+                  logger.error('WebSocket onConnect: Error loading user context.', { error: err.message, userId: keycloakGrant.access_token.content.sub });
+                  return false;
+                }
+              }
+              if (legacyGrant) {
+                const { role } = legacyGrant;
+                if (role == 'admin') {
+                  platformOwner = true
+                }
+              }
+
+              return {
+                keycloakAdminClient,
+                sqlClientPool,
+                hasPermission: grant
+                  ? keycloakHasPermission(grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+                  : legacyHasPermission(legacyCredentials),
+                keycloakGrant,
+                legacyGrant,
+                requestCache,
+                models: {
+                  UserModel: User(modelClients),
+                  GroupModel: Group(modelClients),
+                  EnvironmentModel: Environment(modelClients)
+                },
+                keycloakUsersGroups,
+                adminScopes: { platformOwner, platformViewer },
+              };
+            } catch (err) {
+              logger.error('WebSocket onConnect: Authentication error.', { error: err.message });
+              return false;
+            }
+          },
+          onDisconnect: (ctx: any, code, reason) => {
+            if (ctx.extra && ctx.extra.requestCache) {
+              ctx.extra.requestCache.flushAll();
+              ctx.extra.requestCache.close();
+            }
+            logger.verbose('WebSocket disconnected', { code, reason });
+          },
+        },
+        wsServer
+      );
+      logger.info(`Subscription endpoint ready at ws://localhost:${port}/graphql`);
 
     } catch (error) {
-      console.error("Failed to load GraphQL modules:", error);
+      logger.error("Failed to load GraphQL modules:", error);
+      throw error;
     }
   }
 
-  setupGraphQLModules();
-
+  await setupGraphQLModules();
 
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);

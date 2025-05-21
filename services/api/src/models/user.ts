@@ -52,7 +52,7 @@ export interface UserModel {
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
   getAllOrganizationIdsForUser: (userInput: UserEdit) => Promise<number[]>;
   getAllGroupsForUser: (userId: string, organization?: number) => Promise<Group[]>;
-  getAllProjectsIdsForUser: (userId: string, groups?: Group[]) => Promise<{}>;
+  getAllProjectsIdsForUser: (userId: string, groups?: Group[]) => Promise<any[]>;
   getUserRolesForProject: (
     userInput: User,
     projectId: number,
@@ -483,51 +483,61 @@ export const User = (clients: {
     return Object.values(userGroups);
   };
 
-  const getAllProjectsIdsForUser = async (
-    userId: string,
-    groups?: Group[]
-    ): Promise<{}> => {
-    const GroupModel = Group(clients);
-    let userGroups = [];
-    if (!groups) {
-      groups = await keycloakAdminClient.users.listGroups({
-        id: userId,
-        briefRepresentation: false
-      });
-    }
+const getAllProjectsIdsForUser = async (
+  userId: string,
+  groups?: Group[]
+): Promise<any[]> => {
+  const GroupModel = Group(clients);
+  let userGroups = [];
+  if (!groups) {
+    groups = await keycloakAdminClient.users.listGroups({
+      id: userId,
+      briefRepresentation: false
+    });
+  }
 
-    const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
-    for (const ug of groups) {
-      // push the group ids into an array of group ids only for sql lookups
-      let index = userGroups.findIndex((item) => item.name === ug.name.replace(regexp, ""));
-      if (index === -1) {
-        const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ""))
-        userGroups.push(parentGroup);
-      }
+  const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
+  for (const ug of groups) {
+    // push the group ids into an array of group ids only for sql lookups
+    let index = userGroups.findIndex((item: any) => item.name === ug.name.replace(regexp, ""));
+    if (index === -1) {
+      const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ""))
+      userGroups.push(parentGroup);
     }
-    let roleProjectIds = {};
-    for (const roleSubgroup of userGroups) {
-      for (const fullSubgroup of groups) {
-        for (const group of fullSubgroup.subGroups) {
-          // filter out the users roles subgroup from the main group so the correct roles are attached to the project ids
-          if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
-            // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
-            // getProjectsFromGroupAndSubgroups already covers this fix
-            const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
-              roleSubgroup
-            );
-            if (!roleProjectIds[group.realmRoles[0]]) {
-              roleProjectIds[group.realmRoles[0]] = []
-            }
-            projectIds.forEach(pid => {
-              roleProjectIds[group.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[group.realmRoles[0]].push(pid) : ""
-            })
+  }
+  let roleProjectIds: any = {};
+  for (const roleSubgroup of userGroups as Group[]) {
+    for (const fullSubgroup of groups as Group[]) {
+      for (const group of fullSubgroup.subGroups) {
+        // filter out the users roles subgroup from the main group so the correct roles are attached to the project ids
+        if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
+          // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+          // getProjectsFromGroupAndSubgroups already covers this fix
+          const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
+            roleSubgroup
+          );
+          if (!roleProjectIds[group.realmRoles[0]]) {
+            roleProjectIds[group.realmRoles[0]] = []
           }
+          projectIds.forEach((pid: any) => {
+            roleProjectIds[group.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[group.realmRoles[0]].push(pid) : ""
+          })
         }
       }
     }
-    return roleProjectIds;
-  };
+  }
+
+  const allPidsSet = new Set();
+  for (const roleKey in roleProjectIds) {
+    if (Object.prototype.hasOwnProperty.call(roleProjectIds, roleKey)) {
+      const pidsForRole = roleProjectIds[roleKey];
+      if (Array.isArray(pidsForRole)) {
+        pidsForRole.forEach(pid => allPidsSet.add(pid));
+      }
+    }
+  }
+  return Array.from(allPidsSet);
+};
 
   const getUserRolesForProject = async (
     userInput: User,

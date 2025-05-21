@@ -1,4 +1,3 @@
-import { KnownDirectives } from 'graphql/validation/rules/KnownDirectives';
 import { knex } from '../../util/db';
 
 const standardFactReturn = {

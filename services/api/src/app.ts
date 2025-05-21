@@ -7,7 +7,7 @@ import { logger } from './loggers/logger';
 import { createRouter } from './routes';
 import { authMiddleware } from './authMiddleware';
 import { requestMiddleware } from './requestMiddleware';
-import apolloServer from './apolloServer';
+import { getApolloServer } from './apolloServer';
 
 export const app = express();
 
@@ -47,15 +47,25 @@ app.use(authMiddleware);
 app.use('/', createRouter());
 
 // app.use(graphqlUploadExpress());
-async function setupGraphQLUpload() {
-  try {
-    const { graphqlUploadExpress } = (await import("graphql-upload")) as any;
-    app.use(graphqlUploadExpress());
-  } catch (error) {
-    console.error("Failed to load graphql-upload:", error);
+export async function configureApp() {
+  async function setupGraphQLUpload() {
+    try {
+      const { default: graphqlUploadExpress } = await import("graphql-upload/graphqlUploadExpress.mjs");
+      app.use(graphqlUploadExpress({}) as unknown as express.RequestHandler);
+    } catch (error) {
+      logger.error("Failed to load or setup graphql-upload:", error);
+      throw error;
+    }
   }
+  await setupGraphQLUpload();
+
+  try {
+    const apolloServer = await getApolloServer();
+    await apolloServer.start();
+    apolloServer.applyMiddleware({ app });
+  } catch (error) {
+    logger.error("Failed to start or apply Apollo Server middleware:", error);
+    throw error;
+  }
+
 }
-
-setupGraphQLUpload();
-
-apolloServer.applyMiddleware({ app });
