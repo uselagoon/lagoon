@@ -30,6 +30,13 @@ var (
 	controllerExchange           string
 	jwtSubject                   string
 	jwtIssuer                    string
+
+	s3FilesAccessKeyID     string
+	s3FilesSecretAccessKey string
+	s3FilesBucket          string
+	s3FilesRegion          string
+	s3FilesOrigin          string
+	s3isGCS                bool
 )
 
 func main() {
@@ -69,6 +76,21 @@ func main() {
 		"The name of the queue in rabbitmq to use.")
 	flag.StringVar(&controllerExchange, "controller-exchange", "lagoon-tasks",
 		"The name of the exchange in rabbitmq to use.")
+
+	// S3 configuration
+	flag.StringVar(&s3FilesAccessKeyID, "s3-files-access-key", "minio",
+		"The S3 files access key.")
+	flag.StringVar(&s3FilesSecretAccessKey, "s3-files-secret-access-key", "minio123",
+		"The S3 files secret access key.")
+	flag.StringVar(&s3FilesBucket, "s3-files-bucket", "lagoon-files",
+		"The S3 files bucket.")
+	flag.StringVar(&s3FilesRegion, "s3-files-region", "auto",
+		"The S3 files region.")
+	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.nip.io:9000",
+		"The S3 files origin.")
+	flag.BoolVar(&s3isGCS, "s3-google-cloud", false,
+		"If the storage backend is google cloud.")
+
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -87,6 +109,13 @@ func main() {
 	controllerQueueName = variables.GetEnv("CONTROLLER_QUEUE_NAME", controllerQueueName)
 	controllerExchange = variables.GetEnv("CONTROLLER_EXCHANGE", controllerExchange)
 
+	s3FilesAccessKeyID = variables.GetEnv("S3_FILES_ACCESS_KEY_ID", s3FilesAccessKeyID)
+	s3FilesSecretAccessKey = variables.GetEnv("S3_FILES_SECRET_ACCESS_KEY", s3FilesSecretAccessKey)
+	s3FilesBucket = variables.GetEnv("S3_FILES_BUCKET", s3FilesBucket)
+	s3FilesRegion = variables.GetEnv("S3_FILES_REGION", s3FilesRegion)
+	s3FilesOrigin = variables.GetEnv("S3_FILES_HOST", s3FilesOrigin)
+	s3isGCS = variables.GetEnvBool("S3_FILES_GCS", s3isGCS)
+
 	enableDebug := true
 
 	graphQLConfig := handler.LagoonAPI{
@@ -96,6 +125,15 @@ func main() {
 		JWTSubject:      jwtSubject,
 		JWTIssuer:       jwtIssuer,
 		Version:         lagoonAPIVersion,
+	}
+
+	s3Config := handler.S3Configuration{
+		S3FilesAccessKeyID:     s3FilesAccessKeyID,
+		S3FilesSecretAccessKey: s3FilesSecretAccessKey,
+		S3FilesBucket:          s3FilesBucket,
+		S3FilesRegion:          s3FilesRegion,
+		S3FilesOrigin:          s3FilesOrigin,
+		S3IsGCS:                s3isGCS,
 	}
 
 	log.Println("actions-handler running")
@@ -206,6 +244,7 @@ func main() {
 
 	messenger := handler.New(config,
 		graphQLConfig,
+		s3Config,
 		startupConnectionAttempts,
 		startupConnectionInterval,
 		actionsQueueName,
