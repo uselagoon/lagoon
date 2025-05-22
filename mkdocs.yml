@@ -49,6 +49,7 @@ nav:
       - Ruby: docker-images/ruby.md
       - Solr: docker-images/solr.md
       - Redis: docker-images/redis.md
+      - Valkey: docker-images/valkey.md
       - Varnish: docker-images/varnish.md
       - Deprecated Images: docker-images/deprecated-images.md
     - Configuring Applications:
