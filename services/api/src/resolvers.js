@@ -304,15 +304,19 @@ const {
 async function getResolvers() {
   let graphqlUpload;
   try {
-    const gqlUpload = await import("graphql-upload/GraphQLUpload.mjs");
-    const graphqlUpload = gqlUpload.default;
+    const { default: GraphQLUpload } = await import("graphql-upload/GraphQLUpload.mjs");
+    graphqlUpload = {
+      ...GraphQLUpload,
+      parseLiteral: (ast) => {
+        return null; // Allow literals but treats them as null - issue with graphql-upload & apollo-server3
+      }
+    };
 
-    if (graphqlUpload === undefined) {
-      throw new Error("Failed to load GraphQLUpload");
+    if (!graphqlUpload) {
+      throw new Error("Failed to load GraphQLUpload from 'graphql-upload'");
     }
-
   } catch (error) {
-    console.error("Failed to load GraphQLUpload");
+    console.error("Failed to load GraphQLUpload:", error);
     throw error;
   }
 

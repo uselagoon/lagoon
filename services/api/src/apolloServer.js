@@ -95,13 +95,29 @@ async function initCheck() {
   }
 
   const resolvers = await getResolvers();
-  schema = makeExecutableSchema({ typeDefs, resolvers: resolvers });
+  // Fixes schema creation to allow undefined in resolve
+  schema = makeExecutableSchema({
+    typeDefs,
+    resolvers: resolvers,
+    allowUndefinedInResolve: true,
+    resolverValidationOptions: {
+      requireResolversForArgs: false,
+      requireResolversForNonScalar: false,
+      requireResolversForAllFields: false,
+    }
+  });
 
   apolloServer = new ApolloServer({
     schema: schema,
     debug: getConfigFromEnv('NODE_ENV') === 'development',
     introspection: true,
-    uploads: false, // Disable built in support for file uploads and configure it manually
+    csrfPrevention: {
+      requestHeaders: ['x-apollo-operation-name', 'apollo-require-preflight', 'content-type']
+    },
+    cache: 'bounded',
+    parseOptions: {
+      maxTokens: 50000
+    },
     context: async ({ req, connection }) => {
       // Websocket requests
       if (connection) {
