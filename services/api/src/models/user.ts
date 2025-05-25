@@ -66,6 +66,7 @@ export interface UserModel {
   resetUserPassword: (id: string) => Promise<void>;
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
+  getFullUserDetails: (userInput: User) => Promise<Object>;
 }
 
 // these match the names of the roles created in keycloak
@@ -660,6 +661,17 @@ export const User = (clients: {
     return true
   };
 
+  const getFullUserDetails = async (userInput: User): Promise<Object> => {
+    // get the local DB user details
+    const user = await query(
+      sqlClientPool,
+      Sql.selectUserById(userInput.id)
+    );
+    return {
+      ...user[0],
+    }
+  }
+
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
@@ -826,6 +838,7 @@ export const User = (clients: {
     userLastAccessed,
     deleteUser,
     resetUserPassword,
-    transformKeycloakUsers
+    transformKeycloakUsers,
+    getFullUserDetails
   };
 };

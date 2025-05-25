@@ -1,6 +1,11 @@
 import { knex } from '../../util/db';
 
 export const Sql = {
+  selectUserById: (id: string) =>
+    knex('user')
+      .select('usid', 'org_email_optin', 'last_accessed')
+      .where('usid', id)
+      .toString(),
   selectUserIdBySshKey: ({
     keyValue,
     keyType,

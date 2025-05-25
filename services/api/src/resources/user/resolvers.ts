@@ -5,6 +5,7 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { get } from 'http';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -485,10 +486,23 @@ export const addAdminToOrganization: ResolverFn = async (
       details: `${user.email} role ${role}`,
     },
   };
+
+  var addAdminToOrganizationEmail = true;
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    console.log("dbUserDetails", dbUserDetails);
+    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == false) {
+      addAdminToOrganizationEmail = false;
+    }
+  } catch (e) {
+    console.log("Error while trying to get user details", e);
+  }
+
   userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
     project: '',
     event: 'api:addAdminToOrganization',
     payload: {
+      addAdminToOrganizationEmail: addAdminToOrganizationEmail, // This is a flag to indicate that an email should be sent
       user: {
         id: user.id,
         email: user.email,
