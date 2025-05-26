@@ -45,15 +45,13 @@ export const createServer = async () => {
           schema: schema,
           execute,
           subscribe,
-          context: async (ctx, msg, args) => {
-            return {
-                ...(ctx.extra || {}),
-            };
+          context: async (ctx) => {
+            return ctx.connectionParams ? ctx.extra : ctx;
           },
           onConnect: async (ctx) => {
             const token = R.prop('authToken', ctx.connectionParams);
-
             if (!token) {
+              logger.error('WebSocket onConnect: No auth token found in connection parameters');
               throw new AuthenticationError('Auth token missing.');
             }
 
@@ -89,7 +87,7 @@ export const createServer = async () => {
                   groupRoleProjectIds = await User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
                 } catch (err) {
                   logger.error('WebSocket onConnect: Error loading user context.', { error: err.message, userId: keycloakGrant.access_token.content.sub });
-                  return false;
+                  throw err;
                 }
               }
               if (legacyGrant) {
@@ -99,7 +97,7 @@ export const createServer = async () => {
                 }
               }
 
-              return {
+              const context = {
                 keycloakAdminClient,
                 sqlClientPool,
                 hasPermission: grant
@@ -116,17 +114,37 @@ export const createServer = async () => {
                 keycloakUsersGroups,
                 adminScopes: { platformOwner, platformViewer },
               };
+
+              logger.debug('WebSocket onConnect: Created context', {
+                hasKeycloakGrant: !!context.keycloakGrant,
+                hasLegacyGrant: !!context.legacyGrant,
+                platformOwner: context.adminScopes.platformOwner,
+                platformViewer: context.adminScopes.platformViewer
+              });
+
+              return context;
             } catch (err) {
-              logger.error('WebSocket onConnect: Authentication error.', { error: err.message });
-              return false;
+              logger.error('WebSocket onConnect: Authentication error.', { error: err.message, stack: err.stack });
+              throw err;
             }
+          },
+          onSubscribe: async (ctx, msg) => {
+            logger.debug('WebSocket onSubscribe', { messageType: msg.type, payload: msg.payload });
+            return undefined;
+          },
+          onNext: (ctx, msg, args, result) => {
+            logger.debug('WebSocket onNext', { hasResult: !!result });
+            return result;
+          },
+          onError: (ctx, msg, errors) => {
+            logger.error('WebSocket onError', { errors });
           },
           onDisconnect: (ctx: any, code, reason) => {
             if (ctx.extra && ctx.extra.requestCache) {
               ctx.extra.requestCache.flushAll();
               ctx.extra.requestCache.close();
             }
-            logger.verbose('WebSocket disconnected', { code, reason });
+            logger.verbose('WebSocket disconnected');
           },
         },
         wsServer
