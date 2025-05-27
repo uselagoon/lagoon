@@ -205,6 +205,7 @@ export const updateUser: ResolverFn = async (
     lastName: patch.lastName,
     comment: patch.comment,
     gitlabId: patch.gitlabId,
+    emailOptIn: patch.emailOptIn,
   });
 
   return updatedUser;
