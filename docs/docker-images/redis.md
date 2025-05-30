@@ -11,6 +11,9 @@ This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ 
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7` or `uselagoon/redis-7-persistent`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/8.Dockerfile) - `uselagoon/redis-8`
 
+!!! Tip
+    We stop updating and publishing EOL Redis images usually with the Lagoon release that comes after the officially communicated EOL date: [https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/](https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/). Previous published versions will remain available.
+
 ## Usage
 
 There are 2 different flavors of Redis: **Ephemeral** and **Persistent**.
