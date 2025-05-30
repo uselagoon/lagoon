@@ -46,7 +46,7 @@ export const createServer = async () => {
           execute,
           subscribe,
           context: async (ctx) => {
-            return ctx.connectionParams ? ctx.extra : ctx;
+            return ctx.extra;
           },
           onConnect: async (ctx) => {
             const token = R.prop('authToken', ctx.connectionParams);

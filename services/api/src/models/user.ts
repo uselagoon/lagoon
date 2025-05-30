@@ -536,7 +536,7 @@ const getAllProjectsIdsForUser = async (
       }
     }
   }
-  return Array.from(allPidsSet);
+  return roleProjectIds;
 };
 
   const getUserRolesForProject = async (

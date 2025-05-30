@@ -38,7 +38,12 @@ app.use(
 );
 
 // TODO: Restrict requests to lagoon domains?
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:8888',
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'apollo-require-preflight']
+}));
 
 app.use(requestMiddleware);
 app.use(authMiddleware);
@@ -62,7 +67,10 @@ export async function configureApp() {
   try {
     const apolloServer = await getApolloServer();
     await apolloServer.start();
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({
+      app,
+      cors: false
+    });
   } catch (error) {
     logger.error("Failed to start or apply Apollo Server middleware:", error);
     throw error;
