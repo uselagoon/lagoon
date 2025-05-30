@@ -13,6 +13,9 @@ This Dockerfile is intended to be used to set up a standalone Solr server with a
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile) - `uselagoon/solr-8`
 * 9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/9.Dockerfile) - `uselagoon/solr-9`
 
+!!! Tip
+    We stop updating and publishing EOL Solr images usually with the Lagoon release that comes after the officially communicated EOL date: [https://solr.apache.org/downloads.html](https://solr.apache.org/downloads.html). Previous versions will remain available.
+
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:

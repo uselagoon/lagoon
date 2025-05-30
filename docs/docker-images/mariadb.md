@@ -2,17 +2,23 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile). Based on the official packages [`mariadb`](https://pkgs.alpinelinux.org/packages?name=mariadb&branch=edge) and [`mariadb-client`](https://pkgs.alpinelinux.org/packages?name=mariadb-client&branch=edge) provided by the the upstream Alpine image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile).
+
+10.6 and 10.11 images are based on the official packages [`mariadb`](https://pkgs.alpinelinux.org/packages?name=mariadb&branch=edge) and [`mariadb-client`](https://pkgs.alpinelinux.org/packages?name=mariadb-client&branch=edge) provided by the the upstream Alpine image.
+
+11.4 onwards LTS images are based on the official upstream docker image [`mariadb`](https://hub.docker.com/_/mariadb) (ubi9 variant).
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
 * 10.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/mariadb-10.4`
-* 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 Support until May 2023) - `uselagoon/mariadb-10.5`
+* 10.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/mariadb-10.5`
 * 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 Support until May 2024) - `uselagoon/mariadb-10.6`
 * 10.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile) (Alpine 3.18 Support until May 2025) - `uselagoon/mariadb-10.11`
+* 11.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/11.4.Dockerfile) (MariaDB 11.4 Support until May 2029) - `uselagoon/mariadb-10.11`
 
 !!! Info
-    As these images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/) for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
+    As the 10.6 and 10.11 images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/) for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
+    From 11.4 onwards, we stop updating EOL images usually with the Lagoon release that comes after the officially communicated EOL date: [https://mariadb.com/kb/en/mariadb-server-release-dates/](https://mariadb.com/kb/en/mariadb-server-release-dates/).
 
 ## Lagoon adaptions
 
@@ -29,7 +35,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ```yaml title="docker-compose.yml"
 	mariadb:
-		image: uselagoon/mariadb-10.6-drupal:latest
+		image: uselagoon/mariadb-10.6:latest
 		labels:
 		# tells Lagoon this is a MariaDB database
 			lagoon.type: mariadb
@@ -76,3 +82,24 @@ variables](../concepts-advanced/environment-variables.md).
 If the `LAGOON_ENVIRONMENT_TYPE` variable is set to `production`, performances
 are set accordingly by using `MARIADB_INNODB_BUFFER_POOL_SIZE=1024` and
 `MARIADB_INNODB_LOG_FILE_SIZE=256`.
+
+## `docker-compose.yml` snippet for Drupal projects built on MariaDB 11.4
+
+For 11.4 onwards no drupal-specific variant has been published. To ensure backward compatibility, you will need to manually set the environment variables in your docker-compose.yml
+```yaml title="docker-compose.yml"
+	mariadb:
+		image: uselagoon/mariadb-11.4:latest
+		labels:
+		# tells Lagoon this is a MariaDB database
+			lagoon.type: mariadb
+		ports:
+			# exposes the port 3306 with a random local port, find it with `docker compose port mariadb 3306`
+			- "3306"
+    environment:
+      MARIADB_DATABASE: drupal # the name of the database to create
+      MARIADB_USER: drupal # the user to create
+      MARIADB_PASSWORD: drupal # the password for the user
+		volumes:
+			# mounts a named volume at the default path for MariaDB
+			- db:/var/lib/mysql
+```

@@ -252,6 +252,22 @@ Solr container with auto-generated persistent storage mounted under `/var/solr`.
 | :--- | :--- | :--- | :--- | :--- |
 | TCP connection on `8983` | `8983` | No | [Block](./storage-types.md#block) | `lagoon.persistent.size` |
 
+## `valkey`
+
+Valkey container.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Docker compose labels |
+| :--- | :--- | :--- | :--- | :--- |
+| TCP connection on `6379` | `6379` | No | No | - |
+
+## `valkey-persistent`
+
+Valkey container with auto-generated persistent storage mounted under `/data`.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Docker compose labels |
+| :--- | :--- | :--- | :--- | :--- |
+| TCP connection on `6379` | `6379` | No | [Block](./storage-types.md#block) | `lagoon.persistent.size` |
+
 ## `varnish`
 
 Varnish container.

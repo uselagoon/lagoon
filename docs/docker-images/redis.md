@@ -9,20 +9,24 @@ This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ 
 * 5 \(available for compatibility only, no longer officially supported\) - `uselagoon/redis-5` or `uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6` or `uselagoon/redis-6-persistent`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7` or `uselagoon/redis-7-persistent`
+* 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/8.Dockerfile) - `uselagoon/redis-8`
+
+!!! Tip
+    We stop updating and publishing EOL Redis images usually with the Lagoon release that comes after the officially communicated EOL date: [https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/](https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/). Previous published versions will remain available.
 
 ## Usage
 
-There are 2 different flavors of Redis Images: **Ephemeral** and **Persistent**.
+There are 2 different flavors of Redis: **Ephemeral** and **Persistent**.
 
 ### Ephemeral
 
-The ephemeral image is intended to be used as an in-memory cache for applications and will not retain data across container restarts.
+The ephemeral flavor is intended to be used as an in-memory cache for applications and will not retain data across container restarts.
 
 When being used as an in-memory (RAM) cache, the first thing you might want to tune if you have large caches is to adapt the `MAXMEMORY` variable. This variable controls the maximum amount of memory (RAM) which redis will use to store cached items.
 
 ### Persistent
 
-The persistent Redis image will persist data across container restarts and can be used for queues or application data that will need persistence.
+The persistent Redis flavor will persist data across container restarts and can be used for queues or application data that will need persistence.
 
 We don't typically suggest using a persistent Redis for in-memory cache scenarios as this might have unintended side-effects on your application while a Redis container is restarting and loading data from disk.
 
@@ -48,6 +52,7 @@ variables](../concepts-advanced/environment-variables.md).
 | LOGLEVEL             | notice      | Define the level of logs.                                                                  |
 | MAXMEMORY            | 100mb       | Maximum amount of memory.                                                                  |
 | MAXMEMORYPOLICY      | allkeys-lru | The policy to use when evicting keys if Redis reaches its maximum memory usage.            |
+| REDIS_FLAVOR         | ephemeral   | The Redis configuration flavor to load. Can be `ephemeral` or `persistent`. |
 | REDIS_PASSWORD       | disabled    | Enables [authentication feature](https://redis.io/topics/security#authentication-feature). |
 
 ## Custom configuration
@@ -55,11 +60,17 @@ variables](../concepts-advanced/environment-variables.md).
 By building on the base image you can include custom configuration.
 See [https://github.com/redis/redis/blob/7.2.5/redis.conf](https://github.com/redis/redis/blob/7.2.5/redis.conf) for full documentation of the Redis configuration file.
 
-## Redis-persistent
+## Persistent storage
 
-Based on the [Lagoon `redis` image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile), the [Lagoon `redis-persistent` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile) is intended for use when the Redis service must be utilized in `persistent` mode \(ie. with a persistent volume where keys will be saved to disk\).
+### Redis <= 7
+
+The [Lagoon `redis-persistent` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile) is intended for use when the Redis service must be utilized in `persistent` mode \(ie. with a persistent volume where keys will be saved to disk\). It is based on the [Lagoon `redis` image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile).
 
 It differs from `redis` only with the `FLAVOR` environment variable, which will use the [respective Redis configuration](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf) according to the version of redis in use.
+
+### Redis >= 8
+
+The [Lagoon `redis` image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) will check which flavor of Redis to use by inspecting the `REDIS_FLAVOR` env var. When set to `persistent`, the persistent configuration will be loaded.
 
 ## Troubleshooting
 
@@ -71,7 +82,7 @@ By default, the Lagoon `redis` images are set to use the `allkeys-lru` policy. T
 
 For typical installations, this is the ideal configuration, as Drupal may not set a `TTL` value for each key cached in Redis. If the `maxmemory-policy` is set to something like `volatile-lru` and Drupal doesn't provide these `TTL` tags, this would result in the Redis container filling up, being totally unable to evict **ANY** keys, and ceasing to accept new cache keys at all.
 
-More information on Redis' maxmemory policies can be found in Redis' [official documentation](https://redis.io/docs/manual/eviction/#eviction-policies).
+More information on Redis' maxmemory policies can be found in Redis' [official documentation](https://redis.io/docs/latest/operate/rs/databases/memory-performance/eviction-policy/).
 
 !!! danger "Proceed with Caution"
     Changing this setting can lead to Redis becoming completely full and cause outages as a result.
