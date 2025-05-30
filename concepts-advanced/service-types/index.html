@@ -1040,6 +1040,24 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#valkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      valkey
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#valkey-persistent" class="md-nav__link">
+    <span class="md-ellipsis">
+      valkey-persistent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#varnish" class="md-nav__link">
     <span class="md-ellipsis">
       varnish
@@ -1656,6 +1674,27 @@
   
   <span class="md-ellipsis">
     Redis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-images/valkey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Valkey
   </span>
   
 
@@ -5475,6 +5514,24 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#valkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      valkey
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#valkey-persistent" class="md-nav__link">
+    <span class="md-ellipsis">
+      valkey-persistent
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#varnish" class="md-nav__link">
     <span class="md-ellipsis">
       varnish
@@ -6149,6 +6206,50 @@ The php service should be defined <em>after</em> the nginx service</p>
 <tr>
 <td style="text-align: left;">TCP connection on <code>8983</code></td>
 <td style="text-align: left;"><code>8983</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;"><a href="../storage-types/#block">Block</a></td>
+<td style="text-align: left;"><code>lagoon.persistent.size</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="valkey"><code>valkey</code><a class="headerlink" href="#valkey" title="Permanent link">#</a></h2>
+<p>Valkey container.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Healthcheck</th>
+<th style="text-align: left;">Exposed Ports</th>
+<th style="text-align: left;">Auto Generated Routes</th>
+<th style="text-align: left;">Storage</th>
+<th style="text-align: left;">Docker compose labels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">TCP connection on <code>6379</code></td>
+<td style="text-align: left;"><code>6379</code></td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">No</td>
+<td style="text-align: left;">-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="valkey-persistent"><code>valkey-persistent</code><a class="headerlink" href="#valkey-persistent" title="Permanent link">#</a></h2>
+<p>Valkey container with auto-generated persistent storage mounted under <code>/data</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Healthcheck</th>
+<th style="text-align: left;">Exposed Ports</th>
+<th style="text-align: left;">Auto Generated Routes</th>
+<th style="text-align: left;">Storage</th>
+<th style="text-align: left;">Docker compose labels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">TCP connection on <code>6379</code></td>
+<td style="text-align: left;"><code>6379</code></td>
 <td style="text-align: left;">No</td>
 <td style="text-align: left;"><a href="../storage-types/#block">Block</a></td>
 <td style="text-align: left;"><code>lagoon.persistent.size</code></td>

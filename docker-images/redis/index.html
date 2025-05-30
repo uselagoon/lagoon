@@ -16,7 +16,7 @@
         <link rel="prev" href="../solr/">
       
       
-        <link rel="next" href="../varnish/">
+        <link rel="next" href="../valkey/">
       
       
       <link rel="icon" href="../../images/lagoon-icon.png">
@@ -1437,11 +1437,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-persistent" class="md-nav__link">
+  <a href="#persistent-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Redis-persistent
+      Persistent storage
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Persistent storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redis-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis &lt;= 7
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis &gt;= 8
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1491,6 +1515,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../valkey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Valkey
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -5120,11 +5165,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-persistent" class="md-nav__link">
+  <a href="#persistent-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Redis-persistent
+      Persistent storage
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Persistent storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#redis-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis &lt;= 7
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis &gt;= 8
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -5202,14 +5271,19 @@
 <li>5 (available for compatibility only, no longer officially supported) - <code>uselagoon/redis-5</code> or <code>uselagoon/redis-5-persistent</code></li>
 <li>6 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Dockerfile</a> - <code>uselagoon/redis-6</code> or <code>uselagoon/redis-6-persistent</code></li>
 <li>7 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile">Dockerfile</a> - <code>uselagoon/redis-7</code> or <code>uselagoon/redis-7-persistent</code></li>
+<li>8 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/8.Dockerfile">Dockerfile</a> - <code>uselagoon/redis-8</code></li>
 </ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>We stop updating and publishing EOL Redis images usually with the Lagoon release that comes after the officially communicated EOL date: <a href="https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/">https://redis.io/docs/latest/operate/rs/installing-upgrading/product-lifecycle/</a>. Previous published versions will remain available.</p>
+</div>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>There are 2 different flavors of Redis Images: <strong>Ephemeral</strong> and <strong>Persistent</strong>.</p>
+<p>There are 2 different flavors of Redis: <strong>Ephemeral</strong> and <strong>Persistent</strong>.</p>
 <h3 id="ephemeral">Ephemeral<a class="headerlink" href="#ephemeral" title="Permanent link">#</a></h3>
-<p>The ephemeral image is intended to be used as an in-memory cache for applications and will not retain data across container restarts.</p>
+<p>The ephemeral flavor is intended to be used as an in-memory cache for applications and will not retain data across container restarts.</p>
 <p>When being used as an in-memory (RAM) cache, the first thing you might want to tune if you have large caches is to adapt the <code>MAXMEMORY</code> variable. This variable controls the maximum amount of memory (RAM) which redis will use to store cached items.</p>
 <h3 id="persistent">Persistent<a class="headerlink" href="#persistent" title="Permanent link">#</a></h3>
-<p>The persistent Redis image will persist data across container restarts and can be used for queues or application data that will need persistence.</p>
+<p>The persistent Redis flavor will persist data across container restarts and can be used for queues or application data that will need persistence.</p>
 <p>We don't typically suggest using a persistent Redis for in-memory cache scenarios as this might have unintended side-effects on your application while a Redis container is restarting and loading data from disk.</p>
 <h2 id="lagoon-adaptions">Lagoon adaptions<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
 <p>This image is prepared to be used on Lagoon. There are therefore some things already done:</p>
@@ -5252,6 +5326,11 @@ variables</a>.</p>
 <td style="text-align: left;">The policy to use when evicting keys if Redis reaches its maximum memory usage.</td>
 </tr>
 <tr>
+<td style="text-align: left;">REDIS_FLAVOR</td>
+<td style="text-align: left;">ephemeral</td>
+<td style="text-align: left;">The Redis configuration flavor to load. Can be <code>ephemeral</code> or <code>persistent</code>.</td>
+</tr>
+<tr>
 <td style="text-align: left;">REDIS_PASSWORD</td>
 <td style="text-align: left;">disabled</td>
 <td style="text-align: left;">Enables <a href="https://redis.io/topics/security#authentication-feature">authentication feature</a>.</td>
@@ -5261,15 +5340,18 @@ variables</a>.</p>
 <h2 id="custom-configuration">Custom configuration<a class="headerlink" href="#custom-configuration" title="Permanent link">#</a></h2>
 <p>By building on the base image you can include custom configuration.
 See <a href="https://github.com/redis/redis/blob/7.2.5/redis.conf">https://github.com/redis/redis/blob/7.2.5/redis.conf</a> for full documentation of the Redis configuration file.</p>
-<h2 id="redis-persistent">Redis-persistent<a class="headerlink" href="#redis-persistent" title="Permanent link">#</a></h2>
-<p>Based on the <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Lagoon <code>redis</code> image</a>, the <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile">Lagoon <code>redis-persistent</code> Docker image</a> is intended for use when the Redis service must be utilized in <code>persistent</code> mode (ie. with a persistent volume where keys will be saved to disk).</p>
+<h2 id="persistent-storage">Persistent storage<a class="headerlink" href="#persistent-storage" title="Permanent link">#</a></h2>
+<h3 id="redis-7">Redis &lt;= 7<a class="headerlink" href="#redis-7" title="Permanent link">#</a></h3>
+<p>The <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile">Lagoon <code>redis-persistent</code> Docker image</a> is intended for use when the Redis service must be utilized in <code>persistent</code> mode (ie. with a persistent volume where keys will be saved to disk). It is based on the <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Lagoon <code>redis</code> image</a>.</p>
 <p>It differs from <code>redis</code> only with the <code>FLAVOR</code> environment variable, which will use the <a href="https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf">respective Redis configuration</a> according to the version of redis in use.</p>
+<h3 id="redis-8">Redis &gt;= 8<a class="headerlink" href="#redis-8" title="Permanent link">#</a></h3>
+<p>The <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile">Lagoon <code>redis</code> image</a> will check which flavor of Redis to use by inspecting the <code>REDIS_FLAVOR</code> env var. When set to <code>persistent</code>, the persistent configuration will be loaded.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <p>The Lagoon Redis images all come pre-loaded with the <code>redis-cli</code> command, which allows for querying the Redis service for information and setting config values dynamically. To use this utility, you can simply SSH into your Redis pod by using the instructions <a href="../../interacting/ssh/">here</a> with <code>redis</code> as the <code>pod</code> value then run it from the terminal once you've connected.</p>
 <h3 id="maximum-memory-policy">Maximum Memory Policy<a class="headerlink" href="#maximum-memory-policy" title="Permanent link">#</a></h3>
 <p>By default, the Lagoon <code>redis</code> images are set to use the <code>allkeys-lru</code> policy. This policy will alow <strong>ANY</strong> keys stored in Redis to be evicted if/when the Redis service hits its <code>maxmemory</code> limit according to when the key was least recently used.</p>
 <p>For typical installations, this is the ideal configuration, as Drupal may not set a <code>TTL</code> value for each key cached in Redis. If the <code>maxmemory-policy</code> is set to something like <code>volatile-lru</code> and Drupal doesn't provide these <code>TTL</code> tags, this would result in the Redis container filling up, being totally unable to evict <strong>ANY</strong> keys, and ceasing to accept new cache keys at all.</p>
-<p>More information on Redis' maxmemory policies can be found in Redis' <a href="https://redis.io/docs/manual/eviction/#eviction-policies">official documentation</a>.</p>
+<p>More information on Redis' maxmemory policies can be found in Redis' <a href="https://redis.io/docs/latest/operate/rs/databases/memory-performance/eviction-policy/">official documentation</a>.</p>
 <div class="admonition danger">
 <p class="admonition-title">Proceed with Caution</p>
 <p>Changing this setting can lead to Redis becoming completely full and cause outages as a result.</p>

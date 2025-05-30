@@ -1124,6 +1124,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#docker-composeyml-snippet-for-drupal-projects-built-on-mariadb-114" class="md-nav__link">
+    <span class="md-ellipsis">
+      docker-compose.yml snippet for Drupal projects built on MariaDB 11.4
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1397,6 +1406,27 @@
   
   <span class="md-ellipsis">
     Redis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../valkey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Valkey
   </span>
   
 
@@ -4990,6 +5020,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#docker-composeyml-snippet-for-drupal-projects-built-on-mariadb-114" class="md-nav__link">
+    <span class="md-ellipsis">
+      docker-compose.yml snippet for Drupal projects built on MariaDB 11.4
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5016,17 +5055,21 @@
 
 <h1 id="mariadb">MariaDB<a class="headerlink" href="#mariadb" title="Permanent link">#</a></h1>
 <p>MariaDB is the open source successor to MySQL.</p>
-<p>The <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile">Lagoon <code>MariaDB</code> image Dockerfile</a>. Based on the official packages <a href="https://pkgs.alpinelinux.org/packages?name=mariadb&amp;branch=edge"><code>mariadb</code></a> and <a href="https://pkgs.alpinelinux.org/packages?name=mariadb-client&amp;branch=edge"><code>mariadb-client</code></a> provided by the the upstream Alpine image.</p>
+<p>The <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile">Lagoon <code>MariaDB</code> image Dockerfile</a>.</p>
+<p>10.6 and 10.11 images are based on the official packages <a href="https://pkgs.alpinelinux.org/packages?name=mariadb&amp;branch=edge"><code>mariadb</code></a> and <a href="https://pkgs.alpinelinux.org/packages?name=mariadb-client&amp;branch=edge"><code>mariadb-client</code></a> provided by the the upstream Alpine image.</p>
+<p>11.4 onwards LTS images are based on the official upstream docker image <a href="https://hub.docker.com/_/mariadb"><code>mariadb</code></a> (ubi9 variant).</p>
 <p>This Dockerfile is intended to be used to set up a standalone MariaDB database server.</p>
 <ul>
 <li>10.4 (available for compatibility only, no longer officially supported) - <code>uselagoon/mariadb-10.4</code></li>
-<li>10.5 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile">Dockerfile</a> (Alpine 3.14 Support until May 2023) - <code>uselagoon/mariadb-10.5</code></li>
+<li>10.4 (available for compatibility only, no longer officially supported) - <code>uselagoon/mariadb-10.5</code></li>
 <li>10.6 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile">Dockerfile</a> (Alpine 3.16 Support until May 2024) - <code>uselagoon/mariadb-10.6</code></li>
 <li>10.11 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.11.Dockerfile">Dockerfile</a> (Alpine 3.18 Support until May 2025) - <code>uselagoon/mariadb-10.11</code></li>
+<li>11.4 <a href="https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/11.4.Dockerfile">Dockerfile</a> (MariaDB 11.4 Support until May 2029) - <code>uselagoon/mariadb-10.11</code></li>
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>As these images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see <a href="https://alpinelinux.org/releases/">https://alpinelinux.org/releases/</a> for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator</p>
+<p>As the 10.6 and 10.11 images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see <a href="https://alpinelinux.org/releases/">https://alpinelinux.org/releases/</a> for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
+From 11.4 onwards, we stop updating EOL images usually with the Lagoon release that comes after the officially communicated EOL date: <a href="https://mariadb.com/kb/en/mariadb-server-release-dates/">https://mariadb.com/kb/en/mariadb-server-release-dates/</a>.</p>
 </div>
 <h2 id="lagoon-adaptions">Lagoon adaptions<a class="headerlink" href="#lagoon-adaptions" title="Permanent link">#</a></h2>
 <p>The default exposed port of MariaDB containers is port <code>3306</code>.</p>
@@ -5038,7 +5081,7 @@
 </ul>
 <h2 id="docker-composeyml-snippet"><code>docker-compose.yml</code> snippet<a class="headerlink" href="#docker-composeyml-snippet" title="Permanent link">#</a></h2>
 <div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="w">    </span><span class="nt">mariadb</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/mariadb-10.6-drupal:latest</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/mariadb-10.6:latest</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="nt">labels</span><span class="p">:</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">        </span><span class="c1"># tells Lagoon this is a MariaDB database</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">            </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
@@ -5149,6 +5192,24 @@ variables</a>.</p>
 <p>If the <code>LAGOON_ENVIRONMENT_TYPE</code> variable is set to <code>production</code>, performances
 are set accordingly by using <code>MARIADB_INNODB_BUFFER_POOL_SIZE=1024</code> and
 <code>MARIADB_INNODB_LOG_FILE_SIZE=256</code>.</p>
+<h2 id="docker-composeyml-snippet-for-drupal-projects-built-on-mariadb-114"><code>docker-compose.yml</code> snippet for Drupal projects built on MariaDB 11.4<a class="headerlink" href="#docker-composeyml-snippet-for-drupal-projects-built-on-mariadb-114" title="Permanent link">#</a></h2>
+<p>For 11.4 onwards no drupal-specific variant has been published. To ensure backward compatibility, you will need to manually set the environment variables in your docker-compose.yml
+<div class="language-yaml highlight"><span class="filename">docker-compose.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="w">    </span><span class="nt">mariadb</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uselagoon/mariadb-11.4:latest</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="c1"># tells Lagoon this is a MariaDB database</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">            </span><span class="nt">lagoon.type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">            </span><span class="c1"># exposes the port 3306 with a random local port, find it with `docker compose port mariadb 3306`</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3306&quot;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">MARIADB_DATABASE</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal</span><span class="w"> </span><span class="c1"># the name of the database to create</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">MARIADB_USER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal</span><span class="w"> </span><span class="c1"># the user to create</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">MARIADB_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drupal</span><span class="w"> </span><span class="c1"># the password for the user</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">            </span><span class="c1"># mounts a named volume at the default path for MariaDB</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">db:/var/lib/mysql</span>
+</span></code></pre></div></p>
 
 
 
