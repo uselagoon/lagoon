@@ -33,6 +33,3 @@ options:
       - arg: --flannel-backend=none
         nodeFilters:
           - server:*
-      - arg: --disable-network-policy
-        nodeFilters:
-          - server:*
