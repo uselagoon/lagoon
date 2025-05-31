@@ -128,6 +128,7 @@ const {
   getEnvironmentByServiceId,
   getServiceContainersByServiceId,
   deleteEnvironmentService,
+  environmentIdling,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -728,6 +729,7 @@ const resolvers = {
     deleteEnvironmentService,
     addPlatformRoleToUser,
     removePlatformRoleFromUser,
+    environmentIdling,
   },
   Subscription: {
     backupChanged: backupSubscriber,
