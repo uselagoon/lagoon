@@ -283,6 +283,22 @@ const {
 } = require('./resources/backup/resolvers');
 
 const {
+  createHarborRetentionPolicy,
+  updateHarborRetentionPolicy,
+  createHistoryRetentionPolicy,
+  updateHistoryRetentionPolicy,
+  deleteHarborRetentionPolicy,
+  deleteHistoryRetentionPolicy,
+  getRetentionPoliciesByProjectId,
+  getRetentionPoliciesByOrganizationId,
+  listAllRetentionPolicies,
+  addHarborRetentionPolicyLink,
+  addHistoryRetentionPolicyLink,
+  removeHarborRetentionPolicyLink,
+  removeHistoryRetentionPolicyLink,
+} = require('./resources/retentionpolicy/resolvers');
+
+const {
   getEnvVarsByOrganizationId,
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
@@ -401,6 +417,24 @@ const resolvers = {
     OWNER: 'platform-owner',
     ORGANIZATION_OWNER: 'platform-organization-owner',
   },
+  RetentionPolicyType: {
+    HARBOR: 'harbor',
+    HISTORY: 'history',
+  },
+  RetentionPolicyScope: {
+    GLOBAL: 'global',
+    ORGANIZATION: 'organization',
+    PROJECT: 'project',
+  },
+  HistoryRetentionType: {
+    COUNT: 'count',
+    DAYS: 'days',
+    MONTHS: 'months',
+  },
+  RetentionPolicyType: {
+    HARBOR: 'harbor',
+    HISTORY: 'history',
+  },
   Openshift: {
     projectUser: getProjectUser,
     token: getToken,
@@ -423,6 +457,7 @@ const resolvers = {
     groups: getGroupsByProjectId,
     privateKey: getPrivateKey,
     publicKey: getProjectDeployKey,
+    retentionPolicies: getRetentionPoliciesByProjectId,
   },
   GroupInterface: {
     __resolveType(group) {
@@ -474,11 +509,13 @@ const resolvers = {
     deployTargets: getDeployTargetsByOrganizationId,
     notifications: getNotificationsByOrganizationId,
     envVariables: getEnvVarsByOrganizationId,
+    retentionPolicies: getRetentionPoliciesByOrganizationId,
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
     groupCount: getGroupCountByOrganizationProject,
     notifications: getNotificationsForOrganizationProjectId,
+    retentionPolicies: getRetentionPoliciesByProjectId,
   },
   OrgEnvironment: {
     project: getProjectById,
@@ -521,6 +558,18 @@ const resolvers = {
           return 'NotificationEmail';
         case 'webhook':
           return 'NotificationWebhook';
+        default:
+          return null;
+      }
+    }
+  },
+  RetentionPolicy: {
+    __resolveType(obj) {
+      switch (obj.type) {
+        case 'harbor':
+          return 'HarborRetentionPolicy';
+        case 'history':
+          return 'HistoryRetentionPolicy';
         default:
           return null;
       }
@@ -605,6 +654,7 @@ const resolvers = {
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
     getAuditLogs,
+    listAllRetentionPolicies
   },
   Mutation: {
     addProblem,
@@ -728,6 +778,16 @@ const resolvers = {
     deleteEnvironmentService,
     addPlatformRoleToUser,
     removePlatformRoleFromUser,
+    createHarborRetentionPolicy,
+    updateHarborRetentionPolicy,
+    deleteHarborRetentionPolicy,
+    addHarborRetentionPolicyLink,
+    removeHarborRetentionPolicyLink,
+    createHistoryRetentionPolicy,
+    updateHistoryRetentionPolicy,
+    deleteHistoryRetentionPolicy,
+    addHistoryRetentionPolicyLink,
+    removeHistoryRetentionPolicyLink,
   },
   Subscription: {
     backupChanged: backupSubscriber,
