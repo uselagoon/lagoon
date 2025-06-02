@@ -624,7 +624,7 @@ export const User = (clients: {
       sqlClientPool,
           Sql.updateUserDBTable(
             user.id,
-            {emailOptId: Boolean(R.prop('emailOptIn', userInput) || false)},
+            {orgEmailOptin: Boolean(R.prop('emailOptIn', userInput) || true)},
           ),
       );
     } catch (err) {
