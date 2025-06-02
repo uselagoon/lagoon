@@ -7,6 +7,7 @@
 ## Supported versions
 
 * 2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch/2.Dockerfile) - `uselagoon/opensearch-2`
+* 3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/opensearch/3.Dockerfile) - `uselagoon/opensearch-3`
 
 ## Environment Variables
 

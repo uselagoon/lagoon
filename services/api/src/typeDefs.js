@@ -223,39 +223,6 @@ const typeDefs = gql`
     deleted: String
   }
 
-
-  type Workflow {
-    id: Int
-    name: String
-    event: String
-    project: Int
-    advancedTaskDefinition: AdvancedTaskDefinition
-  }
-
-  input AddWorkflowInput {
-    name: String
-    event: String
-    project: Int
-    advancedTaskDefinition: Int
-  }
-
-  input DeleteWorkflowInput {
-    id: Int!
-  }
-
-  input UpdateWorkflowPatchInput {
-    name: String
-    event: String
-    project: Int
-    advancedTaskDefinition: Int
-  }
-
-  input UpdateWorkflowInput {
-    id: Int!
-    patch: UpdateWorkflowPatchInput!
-  }
-
-
   type Problem {
     id: Int
     environment: Environment
@@ -756,7 +723,7 @@ const typeDefs = gql`
     """
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    openshiftProjectPattern: String
+    openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     """
     Reference to Kubernetes Object this Project should be deployed to
     """
@@ -764,7 +731,7 @@ const typeDefs = gql`
     """
     Pattern of Kubernetes Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
-    kubernetesNamespacePattern: String
+    kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
     """
     How many environments can be deployed at one timeout
     """
@@ -909,10 +876,9 @@ const typeDefs = gql`
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
-    openshiftProjectPattern: String
+    openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     kubernetes: Kubernetes
-    kubernetesNamespacePattern: String
-    workflows: [Workflow]
+    kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
   }
 
   type EnvironmentHitsMonth {
@@ -1189,7 +1155,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     deployTarget: Openshift
-    deployTargetProjectPattern: String
+    deployTargetProjectPattern: String @deprecated(reason: "No longer in use")
   }
 
   type AuditLog {
@@ -1231,7 +1197,6 @@ const typeDefs = gql`
     TASK
     USER
     VARIABLE
-    WORKFLOW
   }
 
   input AuditLogInput {
@@ -1476,11 +1441,6 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
-
-    """
-    Returns all Workflows for an environment
-    """
-    workflowsForEnvironment(environment: Int!) : [Workflow]
 
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
@@ -2533,9 +2493,6 @@ const typeDefs = gql`
     updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
-    addWorkflow(input: AddWorkflowInput!): Workflow
-    updateWorkflow(input: UpdateWorkflowInput): Workflow
-    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushSqlDump(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")
     taskDrushCacheClear(environment: Int!): Task @deprecated(reason: "This task will be removed in a future release. See https://github.com/uselagoon/lagoon/blob/main/DEPRECATIONS.md for alternatives if you use it")

@@ -247,7 +247,6 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     problemsUi: 1,
     factsUi: 1,
     openshift: mocks.Openshift(),
-    openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
     environments: [],
     created: mocks.Date(),

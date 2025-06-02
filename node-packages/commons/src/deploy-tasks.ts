@@ -141,7 +141,6 @@ export const deployTargetBranches = async function(
         let envId = apiEnvironment.environmentByName.id
         const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
         deployTarget = {
-            openshiftProjectPattern: environmentOpenshift.environment.openshiftProjectPattern,
             branches: branchName,
             openshift: environmentOpenshift.environment.openshift
         }
@@ -180,7 +179,6 @@ export const deployTargetBranches = async function(
         // if there are any deploytarget configs, check through them
         for (let i = 0; i < deployTargetConfigs.targets.length; i++) {
             deployTarget = {
-                openshiftProjectPattern: deployTargetConfigs.targets[i].deployTargetProjectPattern,
                 branches: deployTargetConfigs.targets[i].branches,
                 // since deploytarget configs reference a deploytarget instead of an openshift, convert that here to be what it needs to be
                 openshift: deployTargetConfigs.targets[i].deployTarget
@@ -203,7 +201,6 @@ export const deployTargetBranches = async function(
         try {
             const projectOpenshift = await getOpenShiftInfoForProject(projectName);
             deployTarget = {
-                openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
                 branches: projectOpenshift.project.branches,
                 openshift: projectOpenshift.project.openshift
             }
@@ -248,7 +245,6 @@ export const deployTargetPullrequest = async function(
         let envId = apiEnvironment.environmentByName.id
         const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
         deployTarget = {
-            openshiftProjectPattern: environmentOpenshift.environment.openshiftProjectPattern,
             /*
             this `pullrequests: branchName,` breaks deploying an existing environment as it makes the pullrequest
             attempt to do a regex check that fails. so just don't do it, the environment already exists so
@@ -276,7 +272,6 @@ export const deployTargetPullrequest = async function(
         // if there are any deploytarget configs, check through them
         for (let i = 0; i < deployTargetConfigs.targets.length; i++) {
             deployTarget = {
-                openshiftProjectPattern: deployTargetConfigs.targets[i].deployTargetProjectPattern,
                 pullrequests: deployTargetConfigs.targets[i].pullrequests,
                 // since deploytarget configs reference a deploytarget instead of an openshift, convert that here to be what it needs to be
                 openshift: deployTargetConfigs.targets[i].deployTarget
@@ -299,7 +294,6 @@ export const deployTargetPullrequest = async function(
         try {
             const projectOpenshift = await getOpenShiftInfoForProject(projectName);
             deployTarget = {
-                openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
                 pullrequests: projectOpenshift.project.pullrequests,
                 openshift: projectOpenshift.project.openshift
             }
@@ -333,7 +327,6 @@ export const deployTargetPromote = async function(
     let deployTarget
     const projectOpenshift = await getOpenShiftInfoForProject(deployData.projectName)
     deployTarget = {
-        openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
         openshift: projectOpenshift.project.openshift
     }
     const deployTargetConfigs = await getDeployTargetConfigsForProject(projectId)
@@ -341,7 +334,6 @@ export const deployTargetPromote = async function(
       const promoteSourceEnvOpenshift = await checkPromoteEnvironment(deployData)
       if (promoteSourceEnvOpenshift) {
         deployTarget = {
-            openshiftProjectPattern: promoteSourceEnvOpenshift.environment.openshiftProjectPattern,
             openshift: promoteSourceEnvOpenshift.environment.openshift
         }
       } else {

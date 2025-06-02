@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -13,7 +12,6 @@ import (
 )
 
 var (
-	httpListenPort               = os.Getenv("HTTP_LISTEN_PORT")
 	mqUser                       string
 	mqPass                       string
 	mqHost                       string

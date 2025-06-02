@@ -6,7 +6,9 @@
 		"buildPhase": "cancelled",
 		"endTime": "2022-10-28 09:50:42",
 		"environment": "main",
+		"environmentId": 5,
 		"project": "example-com",
+		"projectId": 18,
 		"startTime": "2022-10-28 09:50:42"
 	}
 }

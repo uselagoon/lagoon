@@ -60,7 +60,6 @@ export const Helpers = (sqlClientPool: Pool) => {
       return {
         ...project,
         kubernetes: project.openshift,
-        kubernetesNamespacePattern: project.openshiftProjectPattern
       };
     });
   };

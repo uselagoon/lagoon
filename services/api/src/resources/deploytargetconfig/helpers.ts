@@ -8,7 +8,6 @@ export const Helpers = (sqlClientPool: Pool) => {
     return deploytargetConfigs.map(deploytargetConfigs => {
       return {
         ...deploytargetConfigs,
-        kubernetesNamespaceName: deploytargetConfigs.deployTargetProjectPattern
       };
     });
   };

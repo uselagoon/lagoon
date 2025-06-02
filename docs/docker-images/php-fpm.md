@@ -16,9 +16,11 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 * 7.3 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-7.3-fpm`
 * 7.4 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-7.4-fpm`
 * 8.0 \(available for compatibility only, no longer officially supported\) - `uselagoon/php-8.0-fpm`
-* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (Security Support until November 2024) - `uselagoon/php-8.1-fpm`
-* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.2.Dockerfile) (Security Support until December 2025) - `uselagoon/php-8.2-fpm`
-* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.3.Dockerfile) (Security Support until December 2026) - `uselagoon/php-8.3-fpm`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (Security Support until December 2025) - `uselagoon/php-8.1-fpm`
+* 8.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.2.Dockerfile) (Security Support until December 2026) - `uselagoon/php-8.2-fpm`
+* 8.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.3.Dockerfile) (Security Support until December 2027) - `uselagoon/php-8.3-fpm`
+* 8.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.4.Dockerfile) (Security Support until December 2028) - `uselagoon/php-8.4-fpm`
+
 
 All PHP versions use their own Dockerfiles.
 
