@@ -35,9 +35,10 @@ type addAdminToOrganization struct {
 
 // These are the basic details that should be piped to the email template
 type UseractionEmailDetails struct {
-	Name  string
-	Email string
-	Role  string
+	Name    string
+	Email   string
+	Role    string
+	Orgname string
 }
 
 // SendToEmail .
@@ -48,10 +49,13 @@ func (h *Messaging) useractionEmailTemplate(details *UseractionEmailDetails) (st
 
 	var mainHTML, plainText, subject, plainTextTpl, mainHTMLTpl string
 
-	subject = fmt.Sprintf("User %s granted role %s", details.Name, details.Role)
+	subject = fmt.Sprintf("User %s role updated for Organization: %v", details.Name, details.Orgname)
 
-	mainHTMLTpl = `{{.Name}} granted role {{.Role}}`
-	plainTextTpl = `{{.Name}} granted role {{.Role}}`
+	// let's load the email templates from dist
+	// load the file from disk
+
+	mainHTMLTpl = userinteractionEventsTemplate
+	plainTextTpl = `{{.Name}} granted role {{.Role}} on organization {{.Orgname}}`
 
 	var body bytes.Buffer
 	t, _ := template.New("email").Parse(mainHTMLTpl)
@@ -95,10 +99,11 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	}
 
 	// let's grab ourselves the mailer templates
-	emoji, color, subject, mainHTML, plainText, err := h.useractionEmailTemplate(&UseractionEmailDetails{
-		Name:  payload.Meta.Payload.User.Email,
-		Email: payload.Meta.Payload.User.Email,
-		Role:  payload.Meta.Payload.User.Role,
+	_, _, subject, mainHTML, plainText, err := h.useractionEmailTemplate(&UseractionEmailDetails{
+		Name:    payload.Meta.Payload.User.Email,
+		Email:   payload.Meta.Payload.User.Email,
+		Role:    payload.Meta.Payload.User.Role,
+		Orgname: payload.Meta.Payload.Resource.Details,
 	})
 
 	if err != nil {
@@ -106,6 +111,11 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	}
 
 	// now we can send the email
-	h.sendEmailMessage(emoji, color, subject, notification.Meta.Event, notification.Project, payload.Meta.Payload.User.Email, mainHTML, plainText)
+	mainHTMLBuffer := bytes.Buffer{}
+	mainHTMLBuffer.WriteString(mainHTML)
+	err = h.deliverEmail(payload.Meta.Payload.User.Email, subject, plainText, mainHTMLBuffer)
+	if err != nil {
+		return fmt.Errorf("error sending email for addAdminToOrganization event %s and project %s: %v", payload.Meta.Payload.User.Email, payload.Meta.Payload.User.Role, err)
+	}
 	return nil
 }

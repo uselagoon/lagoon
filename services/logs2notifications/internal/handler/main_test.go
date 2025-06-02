@@ -30,6 +30,7 @@ func TestProcessing(t *testing.T) {
 		false,
 		false,
 		"emailSender",
+		"emailUsername",
 		"emailSenderPassword",
 		"emailHost",
 		"emailPort",
