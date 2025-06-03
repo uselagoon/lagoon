@@ -496,7 +496,6 @@ export const addAdminToOrganization: ResolverFn = async (
       addAdminToOrganizationEmail = true;
     }
   } catch (e) {
-    // console.log("Error while trying to get user details", e);
     sendToLagoonLogs(
       'error',
       '',
