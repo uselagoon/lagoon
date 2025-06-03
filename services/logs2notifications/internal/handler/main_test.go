@@ -36,6 +36,7 @@ func TestProcessing(t *testing.T) {
 		"emailPort",
 		true,
 		true,
+		"", //Empty logo - default
 		"s3FilesAccessKeyID",
 		"s3FilesSecretAccessKey",
 		"s3FilesBucket",

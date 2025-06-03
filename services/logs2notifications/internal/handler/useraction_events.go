@@ -54,12 +54,28 @@ func (h *Messaging) useractionEmailTemplate(details *UseractionEmailDetails) (st
 	// let's load the email templates from dist
 	// load the file from disk
 
-	mainHTMLTpl = userinteractionEventsTemplate
+	content := `
+<p>Hello,</p>
+
+<p>
+  You (<strong>{{.Name}}</strong>) have been assigned the role of 
+  <strong>{{.Role}}</strong> in the organization <strong>{{.Orgname}}</strong>.
+</p>
+
+<p>
+  If you have any questions or need assistance, please contact your organization manager.
+</p>
+`
+
+	mainHTMLTpl, err := templateGenerator(content, h.EmailBase64Logo)
+	if err != nil {
+		return "", "", "", "", "", fmt.Errorf("error generating email template for addAdminToOrganization event %s and project %s: %v", details.Name, details.Email, err)
+	}
 	plainTextTpl = `{{.Name}} granted role {{.Role}} on organization {{.Orgname}}`
 
 	var body bytes.Buffer
 	t, _ := template.New("email").Parse(mainHTMLTpl)
-	err := t.Execute(&body, details)
+	err = t.Execute(&body, details)
 	if err != nil {
 		return "", "", "", "", "", fmt.Errorf("error generating email template for addAdminToOrganization event %s and project %s: %v", details.Name, details.Email, err)
 	}

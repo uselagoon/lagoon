@@ -51,6 +51,7 @@ var (
 	emailPort               string
 	emailSSL                bool
 	emailInsecureSkipVerify bool
+	emailBase64Logo         string
 )
 
 func main() {
@@ -126,6 +127,8 @@ func main() {
 		"The port for the email server.")
 	flag.BoolVar(&emailInsecureSkipVerify, "email-tls-insecure-skip-verify", true,
 		"Use TLS verification when talking to the email server.")
+	flag.StringVar(&emailBase64Logo, "email-logo", "",
+		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -156,6 +159,7 @@ func main() {
 	emailHost = getEnv("EMAIL_HOST", emailHost)
 	emailPort = getEnv("EMAIL_PORT", emailPort)
 	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
+	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo)
 
 	enableDebug := true
 
@@ -249,6 +253,7 @@ func main() {
 		emailPort,
 		emailSSL,
 		emailInsecureSkipVerify,
+		emailBase64Logo,
 		s3FilesAccessKeyID,
 		s3FilesSecretAccessKey,
 		s3FilesBucket,
