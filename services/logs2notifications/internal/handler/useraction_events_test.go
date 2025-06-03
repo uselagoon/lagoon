@@ -58,14 +58,15 @@ func TestMessaging_useractionEmailTemplate(t *testing.T) {
 			name: "Test useractionEmailTemplate",
 			args: args{
 				details: &UseractionEmailDetails{
-					Name:  "test",
-					Role:  "Admin",
-					Email: "test@example.com",
+					Name:    "test",
+					Role:    "Admin",
+					Email:   "test@example.com",
+					Orgname: "TestOrg",
 				},
 			},
 			emoji:   infoEmoji,
 			color:   "#E8E8E8",
-			subject: "User test granted role Admin",
+			subject: "User test role updated for Organization: TestOrg",
 		},
 	}
 	for _, tt := range tests {
