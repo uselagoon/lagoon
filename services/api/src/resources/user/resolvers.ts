@@ -6,6 +6,7 @@ import { Sql } from './sql';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 import { get } from 'http';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -488,15 +489,22 @@ export const addAdminToOrganization: ResolverFn = async (
     },
   };
 
-  var addAdminToOrganizationEmail = true;
+  var addAdminToOrganizationEmail = false;
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    console.log("dbUserDetails", dbUserDetails);
-    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == false) {
-      addAdminToOrganizationEmail = false;
+    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+      addAdminToOrganizationEmail = true;
     }
   } catch (e) {
-    console.log("Error while trying to get user details", e);
+    // console.log("Error while trying to get user details", e);
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      'api:addAdminToOrganization',
+      {organization: organizationData.id, role: role},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) in organization (id|name) (${organizationData.id}|${organizationData.name}) with role ${role} : error: ${e.message}`,
+    );
   }
 
   userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
