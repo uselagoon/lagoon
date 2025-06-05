@@ -292,15 +292,6 @@ const {
   getEnvVariablesByProjectEnvironmentName,
 } = require('./resources/env-variables/resolvers');
 
-const {
-  addWorkflow,
-  updateWorkflow,
-  deleteWorkflow,
-  resolveWorkflowsForEnvironment,
-  getWorkflowsByEnvironmentId,
-  resolveAdvancedTaskDefinitionsForWorkflow,
-} = require("./resources/workflow/resolvers");
-
 async function getResolvers() {
   let graphqlUpload;
   try {
@@ -337,7 +328,6 @@ async function getResolvers() {
       TASK: 'task',
       USER: 'user',
       VARIABLE: 'variable',
-      WORKFLOW: 'workflow',
     },
     AuditSource: {
       API: 'api',
@@ -493,7 +483,6 @@ async function getResolvers() {
       facts: getFactsByEnvironmentId,
       openshift: getOpenshiftByEnvironmentId,
       kubernetes: getOpenshiftByEnvironmentId,
-      workflows: getWorkflowsByEnvironmentId,
     },
     Organization: {
       groups: getGroupsByOrganizationId,
@@ -579,9 +568,6 @@ async function getResolvers() {
       restore: getRestoreByBackupId,
       environment: getEnvironmentByBackupId
     },
-    Workflow: {
-      advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
-    },
     Query: {
       me: getMe,
       lagoonVersion: getLagoonVersion,
@@ -625,7 +611,6 @@ async function getResolvers() {
       userByEmail: getUserByEmail,
       projectsByMetadata: getProjectsByMetadata,
       projectsByFactSearch: getProjectsByFactSearch,
-      workflowsForEnvironment: resolveWorkflowsForEnvironment,
       deployTargetConfigById: getDeployTargetConfigById,
       deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
       deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
@@ -742,9 +727,6 @@ async function getResolvers() {
       removeUserFromGroup,
       addGroupsToProject,
       removeGroupsFromProject,
-      addWorkflow,
-      updateWorkflow,
-      deleteWorkflow,
       addDeployTargetConfig,
       deleteDeployTargetConfig,
       updateDeployTargetConfig,
