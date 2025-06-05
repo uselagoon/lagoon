@@ -45,11 +45,13 @@ var (
 	disableS3             bool
 
 	emailSender             string
+	emailUsername           string
 	emailSenderPassword     string
 	emailHost               string
 	emailPort               string
 	emailSSL                bool
 	emailInsecureSkipVerify bool
+	emailBase64Logo         string
 )
 
 func main() {
@@ -115,6 +117,8 @@ func main() {
 		"Disable the logs2email feature.")
 	flag.StringVar(&emailSender, "email-sender-address", "notifications@lagoon.sh",
 		"The email address to send notifications as.")
+	flag.StringVar(&emailUsername, "email-username", "",
+		"The username (if required) for the sending email address. Will fall back to the email-sender-address if not set.")
 	flag.StringVar(&emailSenderPassword, "email-sender-password", "",
 		"The password (if required) for the sending email address.")
 	flag.StringVar(&emailHost, "email-host", "localhost",
@@ -123,6 +127,8 @@ func main() {
 		"The port for the email server.")
 	flag.BoolVar(&emailInsecureSkipVerify, "email-tls-insecure-skip-verify", true,
 		"Use TLS verification when talking to the email server.")
+	flag.StringVar(&emailBase64Logo, "email-logo", "",
+		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -145,9 +151,15 @@ func main() {
 
 	emailSender = getEnv("EMAIL_SENDER_ADDRESS", emailSender)
 	emailSenderPassword = getEnv("EMAIL_SENDER_PASSWORD", emailSenderPassword)
+	emailUsername = getEnv("EMAIL_USERNAME", emailUsername)
+	if emailUsername == "" {
+		emailUsername = emailSender // fallback to the sender address if no username is set
+	}
+
 	emailHost = getEnv("EMAIL_HOST", emailHost)
 	emailPort = getEnv("EMAIL_PORT", emailPort)
 	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
+	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo)
 
 	enableDebug := true
 
@@ -235,11 +247,13 @@ func main() {
 		disableWebhooks,
 		disableS3,
 		emailSender,
+		emailUsername,
 		emailSenderPassword,
 		emailHost,
 		emailPort,
 		emailSSL,
 		emailInsecureSkipVerify,
+		emailBase64Logo,
 		s3FilesAccessKeyID,
 		s3FilesSecretAccessKey,
 		s3FilesBucket,

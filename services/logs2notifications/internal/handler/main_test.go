@@ -30,11 +30,13 @@ func TestProcessing(t *testing.T) {
 		false,
 		false,
 		"emailSender",
+		"emailUsername",
 		"emailSenderPassword",
 		"emailHost",
 		"emailPort",
 		true,
 		true,
+		"", //Empty logo - default
 		"s3FilesAccessKeyID",
 		"s3FilesSecretAccessKey",
 		"s3FilesBucket",

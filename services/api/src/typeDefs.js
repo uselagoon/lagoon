@@ -429,6 +429,7 @@ const typeDefs = gql`
     platformRoles: [PlatformRole]
     created: String
     lastAccessed: String
+    emailOptIn: Boolean
   }
 
   enum PlatformRole {
@@ -1951,6 +1952,7 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     resetPassword: Boolean
+    emailOptIn: Boolean
   }
 
   input UpdateUserPatchInput {
@@ -1959,6 +1961,7 @@ const typeDefs = gql`
     lastName: String
     comment: String
     gitlabId: Int
+    emailOptIn: Boolean
   }
 
   input UpdateUserInput {

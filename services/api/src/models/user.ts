@@ -29,6 +29,7 @@ export interface User {
   admin?: boolean;
   organizationRole?: string;
   platformRoles?: [string];
+  emailOptIn?: boolean;
 }
 
 interface UserEdit {
@@ -41,6 +42,7 @@ interface UserEdit {
   gitlabId?: string;
   organization?: number;
   remove?: boolean;
+  emailOptIn?: boolean;
 }
 
 export interface UserModel {
@@ -66,6 +68,7 @@ export interface UserModel {
   resetUserPassword: (id: string) => Promise<void>;
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
+  getFullUserDetails: (userInput: User) => Promise<Object>;
 }
 
 // these match the names of the roles created in keycloak
@@ -256,6 +259,24 @@ export const User = (clients: {
     if (R.isNil(keycloakUser)) {
       throw new UserNotFoundError(`User not found a: ${id}`);
     }
+
+    // fetch the user's optin-in preference for organization emails
+    try {
+      const userOptIn = await query(
+        sqlClientPool,
+        Sql.selectUserById(id)
+      );
+
+      if (userOptIn.length) {
+        keycloakUser.emailOptIn = userOptIn[0].orgEmailOptin;
+      } else {
+        keycloakUser.emailOptIn = false;
+      }
+    } catch (err) {
+      logger.warn(`Failed to fetch email opt-in for user ${id}: ${err.message}`);
+      keycloakUser.emailOptIn = false;
+    }
+
     return keycloakUser;
   };
 
@@ -597,6 +618,19 @@ export const User = (clients: {
       });
     }
 
+    // Set the user's organization email opt-in preference in the database
+    try {
+      await query(
+      sqlClientPool,
+          Sql.updateUserDBTable(
+            user.id,
+            {orgEmailOptin: Boolean(R.prop('emailOptIn', userInput) || true)},
+          ),
+      );
+    } catch (err) {
+      logger.warn(`Failed to update email opt-in for user ${user.id}: ${err.message}`);
+    }
+
     return {
       ...user,
       gitlabId: R.prop('gitlabId', userInput)
@@ -659,6 +693,17 @@ export const User = (clients: {
     }
     return true
   };
+
+  const getFullUserDetails = async (userInput: User): Promise<Object> => {
+    // get the local DB user details
+    const user = await query(
+      sqlClientPool,
+      Sql.selectUserById(userInput.id)
+    );
+    return {
+      ...user[0],
+    }
+  }
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
@@ -743,9 +788,29 @@ export const User = (clients: {
       await linkUserToGitlab(user, R.prop('gitlabId', userInput));
     }
 
+    // Set the user's organization email opt-in preference in the database
+    // TODO - this is probably a good place to put the updates generally
+    try {
+      if (R.has('emailOptIn', userInput)) {
+        // If emailOptIn is not provided, do not update it
+        await query(
+          sqlClientPool,
+          Sql.updateOrgEmailOptin(
+            user.id,
+            Boolean(R.prop('emailOptIn', userInput)),
+          ),
+        );
+      }
+    } catch (err) {
+      logger.warn(
+        `Failed to update email opt-in for user ${user.id}: ${err.message}`,
+      );
+    }
+
     return {
       ...user,
-      gitlabId: R.prop('gitlabId', userInput)
+      gitlabId: R.prop('gitlabId', userInput),
+      emailOptIn: R.prop('emailOptIn', userInput) || user.emailOptIn
     };
   };
 
@@ -826,6 +891,7 @@ export const User = (clients: {
     userLastAccessed,
     deleteUser,
     resetUserPassword,
-    transformKeycloakUsers
+    transformKeycloakUsers,
+    getFullUserDetails
   };
 };

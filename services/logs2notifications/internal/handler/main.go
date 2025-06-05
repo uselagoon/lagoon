@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	mq "github.com/cheshir/go-mq/v2"
+	"github.com/cheshir/go-mq/v2"
 	"github.com/matryer/try"
 
 	"github.com/uselagoon/machinery/api/lagoon"
@@ -57,11 +57,13 @@ type Messaging struct {
 	DisableWebhooks         bool
 	DisableS3               bool
 	EmailSender             string
+	EmailUsername           string
 	EmailSenderPassword     string
 	EmailHost               string
 	EmailPort               string
 	EmailSSL                bool
 	EmailInsecureSkipVerify bool
+	EmailBase64Logo         string
 	S3FilesAccessKeyID      string
 	S3FilesSecretAccessKey  string
 	S3FilesBucket           string
@@ -137,10 +139,10 @@ type EventMap struct {
 }
 
 var (
-	warningEmoji string = "⚠️"
-	infoEmoji    string = "ℹ️"
-	successEmoji string = "✅"
-	failEmoji    string = "🛑"
+	warningEmoji = "⚠️"
+	infoEmoji    = "ℹ️"
+	successEmoji = "✅"
+	failEmoji    = "🛑"
 )
 
 // NewMessaging returns a messaging with config
@@ -151,7 +153,7 @@ func NewMessaging(config mq.Config,
 	enableDebug bool,
 	appID string,
 	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool,
-	emailSender, emailSenderPassword, emailHost, emailPort string, emailSSL, emailInsecureSkipVerify bool,
+	emailSender, emailusername, emailSenderPassword, emailHost, emailPort string, emailSSL, emailInsecureSkipVerify bool, emailBase64Logo string,
 	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string, s3isGCS bool) *Messaging {
 	return &Messaging{
 		Config:                  config,
@@ -167,11 +169,13 @@ func NewMessaging(config mq.Config,
 		DisableWebhooks:         disableWebhooks,
 		DisableS3:               disableS3,
 		EmailSender:             emailSender,
+		EmailUsername:           emailusername,
 		EmailSenderPassword:     emailSenderPassword,
 		EmailHost:               emailHost,
 		EmailPort:               emailPort,
 		EmailSSL:                emailSSL,
 		EmailInsecureSkipVerify: emailInsecureSkipVerify,
+		EmailBase64Logo:         emailBase64Logo,
 		S3FilesAccessKeyID:      s3FilesAccessKeyID,
 		S3FilesSecretAccessKey:  s3FilesSecretAccessKey,
 		S3FilesBucket:           s3FilesBucket,
@@ -284,6 +288,18 @@ func (h *Messaging) processMessage(message []byte) {
 				}
 			}
 		}
+
+		// Here we deal explicitly with a class of 'user_action' events
+		if notification.Meta.Level == "user_action" {
+			//if notification.Meta.Event == "api:addAdminToOrganization" {
+			err := h.handleUserActionToEmail(notification, message)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+			//}
+		}
+
 	}
 }
 
