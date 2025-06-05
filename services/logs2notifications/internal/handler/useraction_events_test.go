@@ -63,7 +63,7 @@ func TestMessaging_handleUserActionToEmail(t *testing.T) {
 //					Name:    "test",
 //					Role:    "Admin",
 //					Email:   "test@example.com",
-//					Orgname: "TestOrg",
+//					OrganizationName: "TestOrg",
 //				},
 //			},
 //			emoji:   infoEmoji,

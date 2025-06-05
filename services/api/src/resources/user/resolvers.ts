@@ -7,6 +7,7 @@ import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 import { get } from 'http';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { send } from 'process';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -489,11 +490,19 @@ export const addAdminToOrganization: ResolverFn = async (
     },
   };
 
-  var addAdminToOrganizationEmail = false;
+
+  var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
     if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
-      addAdminToOrganizationEmail = true;
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          OrganizationName: organizationData.name,
+          Role: role,
+        },
+      }
     }
   } catch (e) {
     sendToLagoonLogs(
@@ -510,7 +519,6 @@ export const addAdminToOrganization: ResolverFn = async (
     project: '',
     event: 'api:addAdminToOrganization',
     payload: {
-      addAdminToOrganizationEmail: addAdminToOrganizationEmail, // This is a flag to indicate that an email should be sent
       user: {
         id: user.id,
         email: user.email,
@@ -518,6 +526,7 @@ export const addAdminToOrganization: ResolverFn = async (
         role: role,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -568,6 +577,47 @@ export const removeAdminFromOrganization: ResolverFn = async (
       details: user.email
     },
   };
+
+    var sendUserEmail = false;
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+      sendUserEmail = true;
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      'api:removeAdminFromOrganization',
+      {organization: organizationData.name},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) removing from ${organizationData.name} : error: ${e.message}`,
+    );
+  }
+
+  var emailDetails = {};
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          OrganizationName: organizationData.name,
+        },
+      }
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      'api:removeAdminFromOrganization',
+      {organization: organizationData.id},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) in organization (id|name) (${organizationData.id}|${organizationData.name}) : error: ${e.message}`,
+    );
+  }
+
   userActivityLogger(`User removed an administrator from organization '${organizationData.name}'`, {
     project: '',
     event: 'api:removeAdminFromOrganization',
@@ -575,8 +625,10 @@ export const removeAdminFromOrganization: ResolverFn = async (
       user: {
         id: user.id,
         organization: organizationData.id,
+        email: user.email,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -652,6 +704,32 @@ export const addPlatformRoleToUser: ResolverFn = async (
         details: `${user.email} role: ${role}`
       },
     };
+
+
+  var emailDetails = {};
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          Role: role,
+        },
+      }
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      'api:addPlatformRoleToUser',
+      {role: role},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) while adding to platform role ${role} : error: ${e.message}`,
+    );
+  }
+
+
     userActivityLogger(`User added a platform role to user '${user.email}'`, {
       project: '',
       event: 'api:addPlatformRoleToUser',
@@ -662,6 +740,7 @@ export const addPlatformRoleToUser: ResolverFn = async (
           role: role,
         },
         ...auditLog,
+        ...emailDetails,
       }
     });
     return filteredByEmail[0];
@@ -697,6 +776,30 @@ export const removePlatformRoleFromUser: ResolverFn = async (
         details: `${user.email} role: ${role}`
       },
     };
+
+    var emailDetails = {};
+    try {
+      let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+      if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+        emailDetails = {
+          userActionEmailDetails: {
+            Name: user.email,
+            Email: user.email,
+            Role: role,
+          },
+        }
+      }
+    } catch (e) {
+      sendToLagoonLogs(
+        'error',
+        '',
+        user.id,
+        'api:removePlatformRoleFromUser',
+        {role: role},
+        `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) while removing platform role ${role} : error: ${e.message}`,
+      );
+    }
+
     userActivityLogger(`User removed platform role from user '${user.email}'`, {
       project: '',
       event: 'api:removePlatformRoleFromUser',
@@ -707,6 +810,7 @@ export const removePlatformRoleFromUser: ResolverFn = async (
           role: role,
         },
         ...auditLog,
+        ...emailDetails,
       }
     });
     if (filteredByEmail[0]) {
@@ -719,3 +823,5 @@ export const removePlatformRoleFromUser: ResolverFn = async (
     );
   }
 };
+
+
