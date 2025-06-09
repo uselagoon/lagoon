@@ -20,7 +20,7 @@ COPY javascript /tmp/lagoon-scripts
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
 # Stage: Build the keycloak image
-FROM quay.io/keycloak/keycloak:26.1.5
+FROM quay.io/keycloak/keycloak:26.2.5
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
