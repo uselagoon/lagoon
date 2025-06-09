@@ -579,23 +579,6 @@ export const removeAdminFromOrganization: ResolverFn = async (
     },
   };
 
-    var sendUserEmail = false;
-  try {
-    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
-      sendUserEmail = true;
-    }
-  } catch (e) {
-    sendToLagoonLogs(
-      'error',
-      '',
-      user.id,
-      'api:removeAdminFromOrganization',
-      {organization: organizationData.name},
-      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}) removing from ${organizationData.name} : error: ${e.message}`,
-    );
-  }
-
   var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);

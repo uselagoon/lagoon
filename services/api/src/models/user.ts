@@ -36,7 +36,6 @@ export interface User {
   admin?: boolean;
   organizationRole?: string;
   platformRoles?: [string];
-  emailOptIn?: boolean;
   emailNotifications?: IEmailNotifications;
 }
 
@@ -280,7 +279,6 @@ export const User = (clients: {
         Sql.selectUserById(id)
       );
       if (userOptIn.length) {
-        // keycloakUser.emailOptIn = userOptIn[0].orgEmailOptin;
         emailOptions = {
           organizationRoleChanges: userOptIn[0].optEmailOrgRole,
           sshKeyChanges: userOptIn[0].optEmailSshkey,
@@ -644,7 +642,7 @@ export const User = (clients: {
         if (userInput.emailNotifications.groupRoleChanges !== undefined) {
       emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
     }
-    var successfulEmailAdd = {};
+
     try {
       if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
         await query(
@@ -655,7 +653,6 @@ export const User = (clients: {
           ),
         );
       }
-      successfulEmailAdd = userInput.emailNotifications;
     } catch (err) {
       logger.warn(
         `Failed to update email opt-in for user ${user.id}: ${err.message}`,
@@ -665,7 +662,7 @@ export const User = (clients: {
     return {
       ...user,
       gitlabId: R.prop('gitlabId', userInput),
-      emailNotifications: {...user.emailNotifications, ...successfulEmailAdd},
+      emailNotifications: {...user.emailNotifications},
     };
   };
 
