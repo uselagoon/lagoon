@@ -495,7 +495,7 @@ export const addAdminToOrganization: ResolverFn = async (
   var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+    if( dbUserDetails && dbUserDetails['optEmailOrgRole'] == true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
@@ -599,7 +599,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
   var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+    if( dbUserDetails && dbUserDetails['optEmailOrgRole'] == true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
@@ -710,7 +710,7 @@ export const addPlatformRoleToUser: ResolverFn = async (
   var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+    if( dbUserDetails && dbUserDetails['optEmailGroupRole'] == true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
@@ -781,7 +781,7 @@ export const removePlatformRoleFromUser: ResolverFn = async (
     var emailDetails = {};
     try {
       let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-      if( dbUserDetails && dbUserDetails['orgEmailOptin'] == true) {
+      if( dbUserDetails && dbUserDetails['optEmailGroupRole'] == true) {
         emailDetails = {
           userActionEmailDetails: {
             Name: user.email,
