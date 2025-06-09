@@ -91,10 +91,21 @@ const getHighestRole = (roles) => {
 export const isLegacyToken = R.pathSatisfies(isNotNil, ['payload', 'role']);
 export const isKeycloakToken = R.pathSatisfies(isNotNil, ['payload', 'typ']);
 
-export const getGrantForKeycloakToken = async (token: string) =>
-  keycloakGrantManager.createGrant({
+export const getGrantForKeycloakToken = async (token: string) => {
+  // Create grant, validating token is signed/fresh.
+  const grant = await keycloakGrantManager.createGrant({
     access_token: token
   });
+
+  // Validates token has a live session.
+  const valid = await keycloakGrantManager.validateAccessToken(grant.access_token, undefined);
+
+  if (!valid) {
+    throw new Error('session signed out')
+  }
+
+  return grant
+}
 
 export const getCredentialsForLegacyToken = async (token: string): Promise<LegacyToken> => {
   const decoded = verify(token, getConfigFromEnv('JWTSECRET'));
