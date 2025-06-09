@@ -4,7 +4,7 @@ import { knex } from '../../util/db';
 export const Sql = {
   selectUserById: (id: string) =>
     knex('user')
-      .select('usid', 'org_email_optin', 'last_accessed')
+      .select('usid', 'opt_email_org_role', 'opt_email_sshkey', 'opt_email_group_role', 'last_accessed')
       .where('usid', id)
       .toString(),
   selectUserIdBySshKey: ({
@@ -52,17 +52,6 @@ export const Sql = {
       })
       .onConflict('usid')
       .merge()
-      .toString(),
-  updateOrgEmailOptin: (id: string, optin: boolean) =>
-    knex('user')
-      .insert({
-        usid: id,
-        org_email_optin: optin,
-      })
-      .onConflict('usid')
-      .merge({
-        org_email_optin: optin,
-      })
       .toString(),
   updateUserDBTable: (id: string, data: Record<string, any>) =>
     knex('user')

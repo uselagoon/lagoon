@@ -157,6 +157,7 @@ export const addUser: ResolverFn = async (
     lastName: input.lastName,
     comment: input.comment,
     gitlabId: input.gitlabId,
+    emailNotifications: input.emailNotifications,
   }, input.resetPassword);
 
   const auditLog: AuditLog = {
@@ -207,7 +208,7 @@ export const updateUser: ResolverFn = async (
     lastName: patch.lastName,
     comment: patch.comment,
     gitlabId: patch.gitlabId,
-    emailOptIn: patch.emailOptIn,
+    emailNotifications: patch.emailNotifications,
   });
 
   return updatedUser;

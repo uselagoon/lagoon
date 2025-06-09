@@ -14,6 +14,13 @@ interface IUserAttributes {
   comment?: [string];
   [propName: string]: any;
 }
+
+interface IEmailNotifications {
+  organizationRoleChanges?: boolean;
+  sshKeyChanges?: boolean;
+  groupRoleChanges?: boolean;
+}
+
 export interface User {
   email: string;
   username: string;
@@ -30,6 +37,7 @@ export interface User {
   organizationRole?: string;
   platformRoles?: [string];
   emailOptIn?: boolean;
+  emailNotifications?: IEmailNotifications;
 }
 
 interface UserEdit {
@@ -42,7 +50,7 @@ interface UserEdit {
   gitlabId?: string;
   organization?: number;
   remove?: boolean;
-  emailOptIn?: boolean;
+  emailNotifications?: IEmailNotifications;
 }
 
 export interface UserModel {
@@ -261,21 +269,28 @@ export const User = (clients: {
     }
 
     // fetch the user's optin-in preference for organization emails
+    var emailOptions = {
+      organizationRoleChanges: false,
+      sshKeyChanges: false,
+      groupRoleChanges: false
+    };
     try {
       const userOptIn = await query(
         sqlClientPool,
         Sql.selectUserById(id)
       );
-
       if (userOptIn.length) {
-        keycloakUser.emailOptIn = userOptIn[0].orgEmailOptin;
-      } else {
-        keycloakUser.emailOptIn = false;
+        // keycloakUser.emailOptIn = userOptIn[0].orgEmailOptin;
+        emailOptions = {
+          organizationRoleChanges: userOptIn[0].optEmailOrgRole,
+          sshKeyChanges: userOptIn[0].optEmailSshkey,
+          groupRoleChanges: userOptIn[0].optEmailGroupRole,
+        };
       }
     } catch (err) {
       logger.warn(`Failed to fetch email opt-in for user ${id}: ${err.message}`);
-      keycloakUser.emailOptIn = false;
     }
+    keycloakUser.emailNotifications = emailOptions;
 
     return keycloakUser;
   };
@@ -618,22 +633,39 @@ export const User = (clients: {
       });
     }
 
-    // Set the user's organization email opt-in preference in the database
+    // we need to build the update query - it'll consist of three different items
+    var emailOptinUpdates = {};
+    if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+      emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+    }
+        if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+      emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+    }
+        if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+      emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+    }
+    var successfulEmailAdd = {};
     try {
-      await query(
-      sqlClientPool,
+      if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
+        await query(
+          sqlClientPool,
           Sql.updateUserDBTable(
             user.id,
-            {orgEmailOptin: Boolean(R.prop('emailOptIn', userInput) || true)},
+            emailOptinUpdates,
           ),
-      );
+        );
+      }
+      successfulEmailAdd = userInput.emailNotifications;
     } catch (err) {
-      logger.warn(`Failed to update email opt-in for user ${user.id}: ${err.message}`);
+      logger.warn(
+        `Failed to update email opt-in for user ${user.id}: ${err.message}`,
+      );
     }
 
     return {
       ...user,
-      gitlabId: R.prop('gitlabId', userInput)
+      gitlabId: R.prop('gitlabId', userInput),
+      emailNotifications: {...user.emailNotifications, ...successfulEmailAdd},
     };
   };
 
@@ -790,17 +822,30 @@ export const User = (clients: {
 
     // Set the user's organization email opt-in preference in the database
     // TODO - this is probably a good place to put the updates generally
+
+    // we need to build the update query - it'll consist of three different items
+    var emailOptinUpdates = {};
+    if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+      emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+    }
+        if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+      emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+    }
+        if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+      emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+    }
+    var successfulEmailPatch = {};
     try {
-      if (R.has('emailOptIn', userInput)) {
-        // If emailOptIn is not provided, do not update it
+      if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
         await query(
           sqlClientPool,
-          Sql.updateOrgEmailOptin(
+          Sql.updateUserDBTable(
             user.id,
-            Boolean(R.prop('emailOptIn', userInput)),
+            emailOptinUpdates,
           ),
         );
       }
+      successfulEmailPatch = userInput.emailNotifications;
     } catch (err) {
       logger.warn(
         `Failed to update email opt-in for user ${user.id}: ${err.message}`,
@@ -810,7 +855,7 @@ export const User = (clients: {
     return {
       ...user,
       gitlabId: R.prop('gitlabId', userInput),
-      emailOptIn: R.prop('emailOptIn', userInput) || user.emailOptIn
+      emailNotifications: {...user.emailNotifications, ...successfulEmailPatch},
     };
   };
 
