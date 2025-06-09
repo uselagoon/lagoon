@@ -1,12 +1,14 @@
+# Stage: Build the custom token mapper
 FROM maven:3.9.9-eclipse-temurin-21-alpine as builder
-# build the custom token mapper in builder
 COPY custom-mapper/. .
 RUN mvn clean compile package
 
+# Stage: Install package dependencies
 FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
 RUN mkdir -p /mnt/rootfs
 RUN dnf install --installroot /mnt/rootfs nc jq openssl curl unzip --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
 
+# Stage: Package custom script providers
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} AS commons
@@ -17,7 +19,8 @@ COPY javascript /tmp/lagoon-scripts
 
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
-FROM quay.io/keycloak/keycloak:26.0.7
+# Stage: Build the keycloak image
+FROM quay.io/keycloak/keycloak:26.1.5
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
@@ -82,7 +85,7 @@ ENV TMPDIR=/tmp \
 
 VOLUME /opt/keycloak/data
 
-RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.0.1/keycloak-home-idp-discovery.jar
+RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.1.1/keycloak-home-idp-discovery.jar
 
 COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
