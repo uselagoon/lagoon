@@ -37,6 +37,7 @@ type UseractionEmailDetails struct {
 	Email            string `json:"email,omitempty"`
 	Role             string `json:"role,omitempty"`
 	OrganizationName string `json:"organizationName,omitempty"`
+	Keyname          string `json:"keyname,omitempty"` // for ssh keys
 }
 
 func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPayload []byte) error {
@@ -47,12 +48,12 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	// let's check if we need to send an email
 	if payload.Meta.Payload.UserActionEmailDetails == nil {
 		if h.EnableDebug {
-			log.Printf("Skipping email for '%v' event, user:%s\n", notification.Meta.Event, payload.Meta.Payload.User.Email)
+			log.Printf("Skipping email for '%v' event - payload: %v\n", notification.Meta.Event, payload.Meta.Payload.User.Email, payload.Meta.Payload)
 		}
 		return nil
 	} else {
 		if h.EnableDebug {
-			log.Printf("Sending email for '%v' event, user:%s\n", notification.Meta.Event, payload.Meta.Payload.User.Email)
+			log.Printf("Sending email for '%v' event, user:%s\n", notification.Meta.Event, payload.Meta.Payload.UserActionEmailDetails.Email)
 		}
 	}
 
@@ -67,8 +68,54 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 		return h.addPlatformRoleToUser(useractionEmailDetails)
 	case "api:removePlatformRoleFromUser":
 		return h.removePlatformRoleFromUser(useractionEmailDetails)
+	case "api:deleteSshKey", "api:deleteSshKeyById":
+		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "deleted")
+	case "api:updateSshKey":
+		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "updated")
+	case "api:addSshKey":
+		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "added")
 	}
 	return errors.New(fmt.Sprintf("Unable to match incoming notification: %v", notification))
+}
+
+func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmailDetails, event, action string) error {
+
+	content := `
+<p>Hello,</p>
+
+<p>
+  You (<strong>{{.Name}}</strong>) have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
+</p>
+
+<p>
+  If you have any questions or need assistance, please contact your organization manager.
+</p>
+`
+
+	mainHTML, err := templateGenerator(content, struct {
+		Name    string
+		Action  string
+		Keyname string
+	}{
+		Name:    valuesStruct.Name,
+		Action:  action,
+		Keyname: valuesStruct.Keyname,
+	}, h.EmailBase64Logo)
+
+	if err != nil {
+		return err
+	}
+	plainText := fmt.Sprintf("%v %v ssh key", valuesStruct.Name, action)
+	subject := fmt.Sprintf("User %s has %v an ssh key", valuesStruct.Name, action)
+	if err != nil {
+		return fmt.Errorf("error generating email template for %s event %s and project %s: %v", event, valuesStruct.Email, valuesStruct.Role, err)
+	}
+
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
+	if err != nil {
+		return fmt.Errorf("error sending email for %s event %s and project %s: %v", event, valuesStruct.Email, valuesStruct.Role, err)
+	}
+	return nil
 }
 
 func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) error {
