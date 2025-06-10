@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -41,59 +44,80 @@ func TestMessaging_handleUserActionToEmail(t *testing.T) {
 	}
 }
 
-//func TestMessaging_useractionEmailTemplate(t *testing.T) {
-//
-//	type args struct {
-//		details *UseractionEmailDetails
-//	}
-//	tests := []struct {
-//		name    string
-//		args    args
-//		emoji   string
-//		color   string
-//		subject string
-//		//mainHTML  string
-//		//plainText string
-//		wantErr bool
-//	}{
-//		{
-//			name: "Test useractionEmailTemplate",
-//			args: args{
-//				details: &UseractionEmailDetails{
-//					Name:    "test",
-//					Role:    "Admin",
-//					Email:   "test@example.com",
-//					OrganizationName: "TestOrg",
-//				},
-//			},
-//			emoji:   infoEmoji,
-//			color:   "#E8E8E8",
-//			subject: "User test role updated for Organization: TestOrg",
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			h := &Messaging{}
-//			got, got1, got2, got3, got4, err := h.useractionEmailTemplate(tt.args.details)
-//			if (err != nil) != tt.wantErr {
-//				t.Errorf("useractionEmailTemplate() error = %v, wantErr %v", err, tt.wantErr)
-//				return
-//			}
-//			if got != tt.emoji {
-//				t.Errorf("useractionEmailTemplate() got = %v, want %v", got, tt.emoji)
-//			}
-//			if got1 != tt.color {
-//				t.Errorf("useractionEmailTemplate() got1 = %v, want %v", got1, tt.color)
-//			}
-//			if got2 != tt.subject {
-//				t.Errorf("useractionEmailTemplate() got2 = %v, want %v", got2, tt.subject)
-//			}
-//			if !strings.Contains(got3, tt.args.details.Name) {
-//				t.Errorf("useractionEmailTemplate() got3 = %v, wanted to see their name %v", got3, tt.args.details.Name)
-//			}
-//			if !strings.Contains(got4, tt.args.details.Role) {
-//				t.Errorf("useractionEmailTemplate() got4 = %v, wanted to see %v", got4, tt.args.details.Role)
-//			}
-//		})
-//	}
-//}
+func TestMessaging_handleUserActionToEmail1(t *testing.T) {
+	type constructNotification func() *Notification
+	type args struct {
+		payloadConstructor      func() []byte
+		notificationConstructor constructNotification
+	}
+	type want struct {
+		subjectSentFragment   string
+		plaintextSentFragment string
+		htmlSentFragment      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    want
+		wantErr bool
+	}{
+		{
+			name: "Test handleUserActionToEmail with email delivery",
+			want: want{
+				subjectSentFragment:   "User test user role updated",
+				plaintextSentFragment: "test user granted role TESTROLE for organization test-organization",
+				htmlSentFragment:      "You (<strong>test user</strong>) have been assigned the role of",
+			},
+			args: args{
+				payloadConstructor: func() []byte {
+					useraction := &handleUserActionPayload{}
+					useraction.Meta.Payload.UserActionEmailDetails = &UseractionEmailDetails{
+						Name:             "test user",
+						OrganizationName: "test-organization",
+						Email:            "test@example.com",
+						Role:             "TESTROLE",
+					}
+					ret, _ := json.Marshal(useraction)
+					return ret
+				},
+				notificationConstructor: func() *Notification {
+					n := &Notification{}
+					n.Project = "test-project"
+					n.Meta.Event = "api:addAdminToOrganization"
+					n.Event = "api:addAdminToOrganization"
+					return n
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+
+		// let's create a mock EmailDeliveryFunction
+		var subjectSent, plaintextSent, htmlSent string
+		var emailDeliveryFunction DeliverEmailType
+		emailDeliveryFunction = func(h *Messaging, emailAddress string, subject string, plainText string, htmlMessage bytes.Buffer) error {
+			subjectSent = subject
+			plaintextSent = plainText
+			htmlSent = htmlMessage.String()
+			return nil
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Messaging{
+				EmailDeliveryFunction: emailDeliveryFunction,
+			}
+			if err := h.handleUserActionToEmail(tt.args.notificationConstructor(), tt.args.payloadConstructor()); (err != nil) != tt.wantErr {
+
+				if !strings.Contains(subjectSent, tt.want.subjectSentFragment) {
+					t.Errorf("handleUserActionToEmail() subject = %v, want %v", subjectSent, tt.want.subjectSentFragment)
+				}
+				if !strings.Contains(plaintextSent, tt.want.plaintextSentFragment) {
+					t.Errorf("handleUserActionToEmail() plaintext = %v, want %v", plaintextSent, tt.want.plaintextSentFragment)
+				}
+				if !strings.Contains(htmlSent, tt.want.htmlSentFragment) {
+					t.Errorf("handleUserActionToEmail() html = %v, want %v", htmlSent, tt.want.htmlSentFragment)
+				}
+			}
+		})
+	}
+}

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -96,7 +95,7 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 		return fmt.Errorf("error generating email template for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
 
-	err = h.sendmail(valuesStruct.Email, subject, mainHTML, plainText)
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
 		return fmt.Errorf("error sending email for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
@@ -127,7 +126,7 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 		return fmt.Errorf("error generating email template for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
 
-	err = h.sendmail(valuesStruct.Email, subject, mainHTML, plainText)
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
 		return fmt.Errorf("error sending email for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
@@ -157,7 +156,7 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
 		return fmt.Errorf("error generating email template for addAdminToOrganization event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
 
-	err = h.sendmail(valuesStruct.Email, subject, mainHTML, plainText)
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
 		return fmt.Errorf("error sending email for addAdminToOrganization event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
@@ -187,20 +186,9 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 		return fmt.Errorf("error generating email template for removing user %s and from organization %s: %v", valuesStruct.Email, valuesStruct.OrganizationName, err)
 	}
 
-	err = h.sendmail(valuesStruct.Email, subject, mainHTML, plainText)
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
 		return fmt.Errorf("error sending email when removing user %s and from organization %s: %v", valuesStruct.Email, valuesStruct.OrganizationName, err)
-	}
-	return nil
-}
-
-func (h *Messaging) sendmail(emailAddr, subject, mainHTML, plainText string) error {
-	// now we can send the email
-	mainHTMLBuffer := bytes.Buffer{}
-	mainHTMLBuffer.WriteString(mainHTML)
-	err := h.deliverEmail(emailAddr, subject, plainText, mainHTMLBuffer)
-	if err != nil {
-		return err
 	}
 	return nil
 }

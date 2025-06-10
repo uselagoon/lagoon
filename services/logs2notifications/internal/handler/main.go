@@ -62,6 +62,7 @@ type Messaging struct {
 	EmailHost               string
 	EmailPort               string
 	EmailSSL                bool
+	EmailDeliveryFunction   DeliverEmailType
 	EmailInsecureSkipVerify bool
 	EmailBase64Logo         string
 	S3FilesAccessKeyID      string
@@ -176,6 +177,7 @@ func NewMessaging(config mq.Config,
 		EmailSSL:                emailSSL,
 		EmailInsecureSkipVerify: emailInsecureSkipVerify,
 		EmailBase64Logo:         emailBase64Logo,
+		EmailDeliveryFunction:   deliverEmailDefault,
 		S3FilesAccessKeyID:      s3FilesAccessKeyID,
 		S3FilesSecretAccessKey:  s3FilesSecretAccessKey,
 		S3FilesBucket:           s3FilesBucket,

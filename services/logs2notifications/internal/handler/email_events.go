@@ -2,15 +2,11 @@ package handler
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 	"text/template"
-
-	gomail "gopkg.in/mail.v2"
 )
 
 var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -203,32 +199,6 @@ func (h *Messaging) prepareAndSendEmail(emoji, color, subject, event, project, e
 
 	log.Printf("Sent %s message to email for project %s", event, project)
 
-}
-
-// deliverEmail sends an email using the gomail package without adding any additional formatting
-func (h *Messaging) deliverEmail(emailAddress string, subject string, plainText string, htmlMessage bytes.Buffer) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", h.EmailSender)
-	m.SetHeader("To", emailAddress)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/plain", plainText)
-	m.AddAlternative("text/html", htmlMessage.String())
-	sPort, _ := strconv.Atoi(h.EmailPort)
-	if h.EmailSenderPassword != "" {
-		d := gomail.NewDialer(h.EmailHost, sPort, h.EmailUsername, h.EmailSenderPassword)
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-		if err := d.DialAndSend(m); err != nil {
-			return err
-		}
-	} else {
-		d := gomail.Dialer{Host: h.EmailHost, Port: sPort, SSL: h.EmailSSL}
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-		if err := d.DialAndSend(m); err != nil {
-			return err
-		}
-
-	}
-	return nil
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {
