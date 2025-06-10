@@ -37,12 +37,13 @@ var (
 	s3FilesOrigin          string
 	s3isGCS                bool
 
-	disableSlack          bool
-	disableRocketChat     bool
-	disableMicrosoftTeams bool
-	disableEmail          bool
-	disableWebhooks       bool
-	disableS3             bool
+	disableSlack           bool
+	disableRocketChat      bool
+	disableMicrosoftTeams  bool
+	disableEmail           bool
+	disableUserActionEmail bool
+	disableWebhooks        bool
+	disableS3              bool
 
 	emailSender             string
 	emailUsername           string
@@ -115,6 +116,8 @@ func main() {
 	// Email sending configuration
 	flag.BoolVar(&disableEmail, "disable-email", false,
 		"Disable the logs2email feature.")
+	flag.BoolVar(&disableUserActionEmail, "disable-user-action-email", false,
+		"Disable the user action email feature - email notifications are unaffected by this.")
 	flag.StringVar(&emailSender, "email-sender-address", "notifications@lagoon.sh",
 		"The email address to send notifications as.")
 	flag.StringVar(&emailUsername, "email-username", "",
@@ -244,6 +247,7 @@ func main() {
 		disableRocketChat,
 		disableMicrosoftTeams,
 		disableEmail,
+		disableUserActionEmail,
 		disableWebhooks,
 		disableS3,
 		emailSender,

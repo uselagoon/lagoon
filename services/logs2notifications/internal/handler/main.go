@@ -54,6 +54,7 @@ type Messaging struct {
 	DisableRocketChat       bool
 	DisableMicrosoftTeams   bool
 	DisableEmail            bool
+	DisableUserActionEmail  bool
 	DisableWebhooks         bool
 	DisableS3               bool
 	EmailSender             string
@@ -153,7 +154,7 @@ func NewMessaging(config mq.Config,
 	startupInterval int,
 	enableDebug bool,
 	appID string,
-	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool,
+	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableUserActionEmail, disableWebhooks, disableS3 bool,
 	emailSender, emailusername, emailSenderPassword, emailHost, emailPort string, emailSSL, emailInsecureSkipVerify bool, emailBase64Logo string,
 	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string, s3isGCS bool) *Messaging {
 	return &Messaging{
@@ -167,6 +168,7 @@ func NewMessaging(config mq.Config,
 		DisableRocketChat:       disableRocketChat,
 		DisableMicrosoftTeams:   disableMicrosoftTeams,
 		DisableEmail:            disableEmail,
+		DisableUserActionEmail:  disableUserActionEmail,
 		DisableWebhooks:         disableWebhooks,
 		DisableS3:               disableS3,
 		EmailSender:             emailSender,
@@ -292,14 +294,12 @@ func (h *Messaging) processMessage(message []byte) {
 		}
 
 		// Here we deal explicitly with a class of 'user_action' events
-		if notification.Meta.Level == "user_action" {
-			//if notification.Meta.Event == "api:addAdminToOrganization" {
+		if notification.Meta.Level == "user_action" && !h.DisableUserActionEmail && !h.DisableEmail {
 			err := h.handleUserActionToEmail(notification, message)
 			if err != nil {
 				log.Println(err)
 				break
 			}
-			//}
 		}
 
 	}

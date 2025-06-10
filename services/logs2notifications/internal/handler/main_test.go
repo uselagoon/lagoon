@@ -29,6 +29,7 @@ func TestProcessing(t *testing.T) {
 		false,
 		false,
 		false,
+		false,
 		"emailSender",
 		"emailUsername",
 		"emailSenderPassword",
