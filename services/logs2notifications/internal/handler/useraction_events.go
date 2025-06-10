@@ -48,7 +48,7 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	// let's check if we need to send an email
 	if payload.Meta.Payload.UserActionEmailDetails == nil {
 		if h.EnableDebug {
-			log.Printf("Skipping email for '%v' event - payload: %v\n", notification.Meta.Event, payload.Meta.Payload.User.Email, payload.Meta.Payload)
+			log.Printf("Skipping email for '%v' event - payload: %v\n", notification.Meta.Event, payload.Meta.Payload)
 		}
 		return nil
 	} else {
