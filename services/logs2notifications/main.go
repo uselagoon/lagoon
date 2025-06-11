@@ -44,6 +44,7 @@ var (
 	disableUserActionEmail bool
 	disableWebhooks        bool
 	disableS3              bool
+	enableDebug            bool
 
 	emailSender             string
 	emailUsername           string
@@ -132,6 +133,10 @@ func main() {
 		"Use TLS verification when talking to the email server.")
 	flag.StringVar(&emailBase64Logo, "email-logo", "",
 		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
+
+	// debug config
+	flag.BoolVar(&enableDebug, "enable-debug", false, "Enable debug logging for verbose output.")
+
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -164,7 +169,7 @@ func main() {
 	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
 	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo)
 
-	enableDebug := true
+	enableDebug := getEnvBool("ENABLE_DEBUG", enableDebug)
 
 	// configure the backup handler settings
 	broker := handler.RabbitBroker{
