@@ -632,21 +632,24 @@ export const User = (clients: {
       });
     }
 
-    // we need to build the update query - it'll consist of three different items
-    var emailOptinUpdates = {};
+    // Let's start with the email opt-in preference defaults
+    var emailOptinUpdates = {
+      opt_email_org_role: true,
+      opt_email_sshkey: true,
+      opt_email_group_role: false,
+    };
 
     if (userInput.emailNotifications !== undefined) {
       if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
-        emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+        emailOptinUpdates.opt_email_org_role = userInput.emailNotifications.organizationRoleChanges;
       }
           if (userInput.emailNotifications.sshKeyChanges !== undefined) {
-        emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+        emailOptinUpdates.opt_email_sshkey = userInput.emailNotifications.sshKeyChanges;
       }
           if (userInput.emailNotifications.groupRoleChanges !== undefined) {
-        emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+        emailOptinUpdates.opt_email_group_role = userInput.emailNotifications.groupRoleChanges;
       }
     }
-
 
     try {
       if (emailOptinUpdates) {
@@ -667,7 +670,11 @@ export const User = (clients: {
     return {
       ...user,
       gitlabId: R.prop('gitlabId', userInput),
-      emailNotifications: {...user.emailNotifications},
+      emailNotifications: {
+        organizationRoleChanges: emailOptinUpdates.opt_email_org_role,
+        sshKeyChanges: emailOptinUpdates.opt_email_sshkey,
+        groupRoleChanges: emailOptinUpdates.opt_email_group_role,
+      },
     };
   };
 
