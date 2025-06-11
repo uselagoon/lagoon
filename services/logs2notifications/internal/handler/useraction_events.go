@@ -37,7 +37,8 @@ type UseractionEmailDetails struct {
 	Email            string `json:"email,omitempty"`
 	Role             string `json:"role,omitempty"`
 	OrganizationName string `json:"organizationName,omitempty"`
-	Keyname          string `json:"keyname,omitempty"` // for ssh keys
+	Keyname          string `json:"keyname,omitempty"`   // for ssh keys
+	Groupname        string `json:"groupname,omitempty"` // for groups
 }
 
 func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPayload []byte) error {
@@ -48,7 +49,7 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	// let's check if we need to send an email
 	if payload.Meta.Payload.UserActionEmailDetails == nil {
 		if h.EnableDebug {
-			log.Printf("Skipping email for '%v' event - payload: %v\n", notification.Meta.Event, payload.Meta.Payload)
+			log.Printf("Skipping email for '%v' event - payload: %v\n", notification.Meta.Event, string(rawPayload))
 		}
 		return nil
 	} else {
@@ -74,8 +75,54 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "updated")
 	case "api:addSshKey":
 		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "added")
+	case "api:removeUserFromGroup", "api:addUserToGroup":
+		return h.groupAddRemoveEmailMessage(useractionEmailDetails, notification.Meta.Event)
 	}
 	return errors.New(fmt.Sprintf("Unable to match incoming notification: %v", notification))
+}
+
+func (h *Messaging) groupAddRemoveEmailMessage(valuesStruct UseractionEmailDetails, event string) error {
+
+	content := `
+<p>Hello,</p>
+
+<p>
+  You (<strong>{{.Name}}</strong>) have been {{.Action}} the group "{{.Groupname}}" in your Lagoon account.
+</p>
+
+<p>
+  If you have any questions or need assistance, please contact your organization manager.
+</p>
+`
+	action := "added to"
+	if event == "api:removeUserFromGroup" {
+		action = "removed from"
+	}
+
+	mainHTML, err := templateGenerator(content, struct {
+		Name      string
+		Action    string
+		Groupname string
+	}{
+		Name:      valuesStruct.Name,
+		Action:    action,
+		Groupname: valuesStruct.Groupname,
+	}, h.EmailBase64Logo)
+
+	if err != nil {
+		return err
+	}
+	plainText := fmt.Sprintf("%v %v group %v", valuesStruct.Name, action, valuesStruct.Groupname)
+	subject := fmt.Sprintf("User %s has been %v a group", valuesStruct.Name, action)
+	if err != nil {
+		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
+	}
+
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
+	if err != nil {
+		return fmt.Errorf("error sending email for %s event %s: %v", valuesStruct.Email, event, err)
+	}
+	return nil
 }
 
 func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmailDetails, event, action string) error {
