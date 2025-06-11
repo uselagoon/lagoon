@@ -61,9 +61,9 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	useractionEmailDetails := *payload.Meta.Payload.UserActionEmailDetails
 
 	switch notification.Meta.Event {
-	case "api:addAdminToOrganization":
+	case "api:addUserToOrganization", "api:addAdminToOrganization":
 		return h.addAdminToOrganization(useractionEmailDetails)
-	case "api:removeAdminFromOrganization":
+	case "api:removeUserFromOrganization", "api:removeAdminFromOrganization":
 		return h.removeAdminFromOrganization(useractionEmailDetails)
 	case "api:addPlatformRoleToUser":
 		return h.addPlatformRoleToUser(useractionEmailDetails)
