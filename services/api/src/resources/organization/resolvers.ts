@@ -358,6 +358,20 @@ export const getProjectsByOrganizationId: ResolverFn = async (
   return rows;
 };
 
+export const getMinimalOrganizationByProject: ResolverFn = async (
+  project,
+  args,
+  { sqlClientPool }
+) => {
+
+  if (!project || !project.organization) {
+    return null
+  }
+
+  const organisationData = await query(sqlClientPool, Sql.selectOrganizationMetaData(project.organization));
+  return organisationData[0];
+};
+
 // get notifications by organization id and project id, used by organization resolver to list projects notifications
 // this resolver is only ever called by an organization top resolver for notifications, so the permission has already been checked at the organization level
 // no need to performpermission checks for this sub resolver

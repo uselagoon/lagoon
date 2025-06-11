@@ -268,7 +268,8 @@ const {
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
   checkBulkImportProjectsAndGroupsToOrganization,
-  bulkImportProjectsAndGroupsToOrganization
+  bulkImportProjectsAndGroupsToOrganization,
+  getMinimalOrganizationByProject
 } = require('./resources/organization/resolvers');
 
 const {
@@ -423,6 +424,7 @@ const resolvers = {
     groups: getGroupsByProjectId,
     privateKey: getPrivateKey,
     publicKey: getProjectDeployKey,
+    organizationMetaData: getMinimalOrganizationByProject,
   },
   GroupInterface: {
     __resolveType(group) {
