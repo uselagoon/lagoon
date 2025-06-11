@@ -352,6 +352,7 @@ export const deleteSshKeyById: ResolverFn = async (
         user: userIds
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
