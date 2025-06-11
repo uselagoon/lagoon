@@ -9,6 +9,7 @@ import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { logger } from '../loggers/logger';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 
 interface IUserAttributes {
   comment?: [string];
@@ -633,18 +634,22 @@ export const User = (clients: {
 
     // we need to build the update query - it'll consist of three different items
     var emailOptinUpdates = {};
-    if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
-      emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
-    }
-        if (userInput.emailNotifications.sshKeyChanges !== undefined) {
-      emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
-    }
-        if (userInput.emailNotifications.groupRoleChanges !== undefined) {
-      emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+
+    if (userInput.emailNotifications !== undefined) {
+      if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+        emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+      }
     }
 
+
     try {
-      if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
+      if (emailOptinUpdates) {
         await query(
           sqlClientPool,
           Sql.updateUserDBTable(
@@ -822,15 +827,18 @@ export const User = (clients: {
 
     // we need to build the update query - it'll consist of three different items
     var emailOptinUpdates = {};
-    if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
-      emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+    if (userInput.emailNotifications !== undefined) {
+      if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+        emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+      }
     }
-        if (userInput.emailNotifications.sshKeyChanges !== undefined) {
-      emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
-    }
-        if (userInput.emailNotifications.groupRoleChanges !== undefined) {
-      emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
-    }
+
     var successfulEmailPatch = {};
     try {
       if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
@@ -842,7 +850,7 @@ export const User = (clients: {
           ),
         );
       }
-      successfulEmailPatch = userInput.emailNotifications;
+      successfulEmailPatch = userInput.emailNotifications || {};
     } catch (err) {
       logger.warn(
         `Failed to update email opt-in for user ${user.id}: ${err.message}`,
