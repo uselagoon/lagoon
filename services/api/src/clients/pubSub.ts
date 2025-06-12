@@ -28,13 +28,6 @@ const options = {
 export const pubSub = new RedisPubSub({
   publisher: new Redis(options),
   subscriber: new Redis(options),
-  connectionListener: (err) => {
-    if (err) {
-        logger.info("Pubsub: error connecting to redis", err);
-    } else {
-      logger.info("Pubsub: Successfuly connected to redis");
-    }
-},
 });
 
 const createSubscribe = (events): ResolverFn => async (
