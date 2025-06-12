@@ -24,8 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "amqp-connection-manager": "^1.4.2",
-    "amqplib": "^0.7.1",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.7",
     "async-retry": "^1.2.3",
     "ramda": "0.25.0"
   },
