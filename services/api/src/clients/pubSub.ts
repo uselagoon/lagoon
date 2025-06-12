@@ -2,12 +2,10 @@ import { path } from 'ramda';
 import { withFilter } from 'graphql-subscriptions';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { ForbiddenError } from 'apollo-server-express';
-import { logger } from '../loggers/logger';
 import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
 import { config } from './redisClient';
-import Redis from 'ioredis';
 
 export const EVENTS = {
   DEPLOYMENT: 'api.subscription.deployment',
@@ -15,19 +13,10 @@ export const EVENTS = {
   TASK: 'api.subscription.task'
 };
 
-const options = {
-  host: config.hostname,
-  port: config.port,
-  password: config.pass,
-  retryStrategy: times => {
-    // reconnect after
-    return Math.min(times * 50, 2000);
-  }
-};
+const endpoint = `redis://:${config.pass}@${config.hostname}:${config.port}`;
 
 export const pubSub = new RedisPubSub({
-  publisher: new Redis(options),
-  subscriber: new Redis(options),
+  connection: endpoint
 });
 
 const createSubscribe = (events): ResolverFn => async (
