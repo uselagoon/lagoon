@@ -606,6 +606,10 @@ const typeDefs = gql`
     """
     organization: Int
     """
+    Details of an organization
+    """
+    organizationDetails: Organization
+    """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@172.17.0.1/project1.git
     - ssh://git@172.17.0.1:2222/project1.git
