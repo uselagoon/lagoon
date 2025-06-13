@@ -5,7 +5,7 @@ import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers} from './helpers';
 import { Sql } from './sql';
-import { arrayDiff, toNumber } from '../../util/func';
+import { arrayDiff, toNumber, requestsExtraFields } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
@@ -358,18 +358,31 @@ export const getProjectsByOrganizationId: ResolverFn = async (
   return rows;
 };
 
-export const getMinimalOrganizationByProject: ResolverFn = async (
+export const getOrganizationByProject: ResolverFn = async (
   project,
   args,
-  { sqlClientPool }
+  { sqlClientPool, hasPermission },
+  info
 ) => {
 
   if (!project || !project.organization) {
     return null
   }
 
-  const organisationData = await query(sqlClientPool, Sql.selectOrganizationMetaData(project.organization));
-  return organisationData[0];
+  const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName', 'description']);
+
+  let orgQuery = Sql.selectOrganizationDetails(project.organization);
+
+  if (extraFields) {
+    await hasPermission('organization', 'view', {
+      organization: project.organization,
+    });
+    orgQuery = Sql.selectOrganization(project.organization);
+  }
+
+  const organizationData = await query(sqlClientPool, orgQuery);
+
+  return organizationData[0];
 };
 
 // get notifications by organization id and project id, used by organization resolver to list projects notifications

@@ -137,9 +137,9 @@ export const Sql = {
       .andWhere('dtid', '=', dtid)
       .delete()
       .toString(),
-  selectOrganizationMetaData: (id: number) =>
+  selectOrganizationDetails: (id: number) =>
     knex('organization')
-      .select('name', 'friendlyName', 'description')
+      .select('id', 'name', 'friendlyName', 'description')
       .where('id', '=', id)
       .toString(),
 };

@@ -606,9 +606,9 @@ const typeDefs = gql`
     """
     organization: Int
     """
-    MetaData of organization
+    Details of an organization
     """
-    organizationMetaData: OrganizationMetaData
+    organizationDetails: Organization
     """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@172.17.0.1/project1.git
@@ -1076,12 +1076,6 @@ const typeDefs = gql`
     notifications(type: NotificationType): [Notification]
     created: String
     envVariables: [EnvKeyValue]
-  }
-
-  type OrganizationMetaData {
-    name: String
-    friendlyName: String
-    description: String
   }
 
   input AddOrganizationInput {
