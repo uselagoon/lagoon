@@ -137,9 +137,4 @@ export const Sql = {
       .andWhere('dtid', '=', dtid)
       .delete()
       .toString(),
-  selectOrganizationDetails: (id: number) =>
-    knex('organization')
-      .select('id', 'name', 'friendlyName', 'description')
-      .where('id', '=', id)
-      .toString(),
 };

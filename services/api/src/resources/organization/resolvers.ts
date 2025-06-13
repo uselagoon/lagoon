@@ -369,18 +369,15 @@ export const getOrganizationByProject: ResolverFn = async (
     return null
   }
 
-  const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName', 'description']);
-
-  let orgQuery = Sql.selectOrganizationDetails(project.organization);
+  const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName']);
 
   if (extraFields) {
     await hasPermission('organization', 'view', {
       organization: project.organization,
     });
-    orgQuery = Sql.selectOrganization(project.organization);
   }
 
-  const organizationData = await query(sqlClientPool, orgQuery);
+  const organizationData = await query(sqlClientPool, Sql.selectOrganization(project.organization));
 
   return organizationData[0];
 };
