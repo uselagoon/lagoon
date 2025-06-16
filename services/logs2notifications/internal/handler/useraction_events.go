@@ -129,7 +129,7 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
+  You (<strong>{{.Name}}</strong>) have {{.Action}} an SSH key {{if .Keyname}} <strong>{{.Keyname}}</strong> {{end}}
 </p>
 `
 
