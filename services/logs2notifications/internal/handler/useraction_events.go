@@ -85,7 +85,7 @@ func (h *Messaging) groupAddRemoveEmailMessage(valuesStruct UseractionEmailDetai
 <p>Hello,</p>
 
 <p>
-  You have been {{.Action}} the group "{{.Groupname}}" in your Lagoon account.
+  You have been {{.Action}} the group <strong>{{.Groupname}}</strong>.
 </p>
 
 <p>
@@ -129,7 +129,7 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 <p>Hello,</p>
 
 <p>
-  You have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
+  You have {{.Action}} an SSH key {{if .Keyname}} <strong>{{.Keyname}}</strong> {{end}}
 </p>
 `
 
