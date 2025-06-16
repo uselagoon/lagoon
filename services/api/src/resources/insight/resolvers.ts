@@ -3,7 +3,8 @@ import { getEnvironmentName, convertBytesToHumanFileSize } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 
-import S3 from 'aws-sdk/clients/s3';
+const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -20,14 +21,13 @@ const config = {
   bucket: bucket
 };
 
-const s3Client = new S3({
+const s3Client = new S3Client({
   endpoint: config.origin,
-  accessKeyId: config.accessKeyId,
-  secretAccessKey: config.secretAccessKey,
-  region: config.region,
-  params: {
-    Bucket: config.bucket
+  credentials: {
+    accessKeyId: config.accessKeyId,
+    secretAccessKey: config.secretAccessKey,
   },
+  region: config.region,
   s3ForcePathStyle: true,
   signatureVersion: 'v4'
 });
@@ -35,13 +35,7 @@ const s3Client = new S3({
 // Get insights files directly from the bucket
 export const getInsightsBucketFiles = async ({ prefix }) => {
 	try {
-    const data = await s3Client.listObjects({ Bucket: bucket, Prefix: prefix }, function(err, data) {
-      if (err) {
-        throw new Error(`Failed to get items: ${err}`);
-      } else {
-         return data;
-      }
-    }).promise();
+    const data = await s3Client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }));
 
     if (!data) {
       return null;
@@ -50,7 +44,7 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
     return await JSON.parse(JSON.stringify(data.Contents));
 	}
   catch (e) {
-    throw new Error(`Error retrieving bucket items - ${e.Error}`)
+    throw new Error(`Error retrieving bucket items - ${e.message}`)
 	}
 }
 
@@ -72,9 +66,11 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
 
-    return s3Client.getSignedUrl('getObject', {Bucket: bucket, Key: s3Key, Expires: 600});
+    const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
+
+    return await getSignedUrl(s3Client, command, { expiresIn: 600 });
 	} catch (e) {
-   return `Error while creating download link - ${e.Error}`
+    return `Error while creating download link - ${e.message}`;
 	}
 }
 
@@ -98,13 +94,16 @@ export const getInsightsFileData: ResolverFn = async (
 
   try {
     let insightsFile = 'insights/'+projectData.name+'/'+environmentName+'/'+file
-    const data = await s3Client.getObject({Bucket: bucket, Key: insightsFile}).promise();
+    const data = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: insightsFile }));
+
 
     if (!data) {
       return null;
     }
 
-    return JSON.parse(JSON.stringify(data.Body));
+    const dataBytes = await data.Body.transformToByteArray();
+
+    return JSON.parse(JSON.stringify(dataBytes));
   } catch (e) {
     return `There was an error loading insights data: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
   }
