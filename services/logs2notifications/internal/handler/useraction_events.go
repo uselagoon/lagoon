@@ -85,7 +85,7 @@ func (h *Messaging) groupAddRemoveEmailMessage(valuesStruct UseractionEmailDetai
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been {{.Action}} the group "{{.Groupname}}" in your Lagoon account.
+  You (<strong>{{.Name}}</strong>) have been {{.Action}} the group <strong>{{.Groupname}}</strong>.
 </p>
 
 <p>
