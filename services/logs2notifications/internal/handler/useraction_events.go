@@ -85,7 +85,7 @@ func (h *Messaging) groupAddRemoveEmailMessage(valuesStruct UseractionEmailDetai
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been {{.Action}} the group "{{.Groupname}}" in your Lagoon account.
+  You have been {{.Action}} the group "{{.Groupname}}" in your Lagoon account.
 </p>
 
 <p>
@@ -129,7 +129,7 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
+  You have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
 </p>
 `
 
@@ -165,7 +165,7 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been assigned the platform role of <strong>{{.Role}}</strong>.
+  You have been assigned the platform role of <strong>{{.Role}}</strong>.
 </p>
 `
 
@@ -192,7 +192,7 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been removed from the platform role of <strong>{{.Role}}</strong>.
+  You have been removed from the platform role of <strong>{{.Role}}</strong>.
 </p>
 `
 
@@ -218,8 +218,7 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been assigned the role of 
-  <strong>{{.Role}}</strong> in the organization <strong>{{.OrganizationName}}</strong>.
+  You have been assigned the role of <strong>{{.Role}}</strong> in the organization <strong>{{.OrganizationName}}</strong>.
 </p>
 
 <p>
@@ -248,7 +247,7 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 <p>Hello,</p>
 
 <p>
-  You (<strong>{{.Name}}</strong>) have been removed from the organization <strong>{{.OrganizationName}}</strong>.
+  You have been removed from the organization <strong>{{.OrganizationName}}</strong>.
 </p>
 
 <p>
