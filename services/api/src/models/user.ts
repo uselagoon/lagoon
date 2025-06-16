@@ -9,7 +9,6 @@ import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { logger } from '../loggers/logger';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 
 interface IUserAttributes {
   comment?: [string];

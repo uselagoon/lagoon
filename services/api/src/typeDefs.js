@@ -1967,7 +1967,6 @@ const typeDefs = gql`
     emailNotifications: UserEmailOptionInput
   }
 
-
   input UpdateUserPatchInput {
     email: String
     firstName: String

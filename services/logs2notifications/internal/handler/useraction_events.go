@@ -53,9 +53,7 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 		}
 		return nil
 	} else {
-		if h.EnableDebug {
-			log.Printf("Sending email for '%v' event, user:%s\n", notification.Meta.Event, payload.Meta.Payload.UserActionEmailDetails.Email)
-		}
+		log.Printf("Sending email for '%v' event, user:%s\n", notification.Meta.Event, payload.Meta.Payload.UserActionEmailDetails.Email)
 	}
 
 	useractionEmailDetails := *payload.Meta.Payload.UserActionEmailDetails
@@ -133,10 +131,6 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 <p>
   You (<strong>{{.Name}}</strong>) have {{.Action}} an SSH key {{if .Keyname}} ({{.Keyname}}) {{end}} in your Lagoon account.
 </p>
-
-<p>
-  If you have any questions or need assistance, please contact your organization manager.
-</p>
 `
 
 	mainHTML, err := templateGenerator(content, struct {
@@ -173,10 +167,6 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 <p>
   You (<strong>{{.Name}}</strong>) have been assigned the platform role of <strong>{{.Role}}</strong>.
 </p>
-
-<p>
-  If you have any questions or need assistance, please contact your organization manager.
-</p>
 `
 
 	mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
@@ -203,10 +193,6 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 
 <p>
   You (<strong>{{.Name}}</strong>) have been removed from the platform role of <strong>{{.Role}}</strong>.
-</p>
-
-<p>
-  If you have any questions or need assistance, please contact your organization manager.
 </p>
 `
 
