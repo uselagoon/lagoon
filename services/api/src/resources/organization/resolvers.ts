@@ -358,6 +358,8 @@ export const getProjectsByOrganizationId: ResolverFn = async (
   return rows;
 };
 
+// get organization details by project
+// this should only ever be called by another resolver that has already checked permissions on the provided project
 export const getOrganizationByProject: ResolverFn = async (
   project,
   args,
