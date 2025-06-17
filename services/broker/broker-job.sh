@@ -2,6 +2,7 @@
 
 # This script needs to be run after a minor version update (or prior to one)
 # to ensure that any disabled feature_flags are correctly enabled.
+# it is run within a helm job when installed via helm
 
 function is_broker_running {
   local http_code=$(curl -s -o /dev/null -w "%{http_code}" -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/health/checks/virtual-hosts/")

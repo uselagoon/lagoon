@@ -34,7 +34,7 @@ services:
       - broker:/var/lib/rabbitmq
   broker-ff-enable:
     image: ${IMAGE_REPO:-lagoon}/broker:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
-    entrypoint: /enable-feature-flags.sh
+    entrypoint: /broker-job.sh
     environment:
       - SERVICE_NAME=broker
     depends_on:
