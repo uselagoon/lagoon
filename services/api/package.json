@@ -26,6 +26,8 @@
     "@lagoon/commons": "4.0.0",
     "@s3pweb/keycloak-admin-client-cjs": "26.2.4",
     "@supercharge/request-ip": "^1.1.2",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.7",
     "apollo-server-express": "^2.14.2",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
