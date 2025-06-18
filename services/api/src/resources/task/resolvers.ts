@@ -24,7 +24,7 @@ import { AuditLog } from '../audit/types';
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-const region = process.env.S3_FILES_REGION
+const region = process.env.S3_FILES_REGION || 'eu-central-1' // TODO: Determine default region
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
