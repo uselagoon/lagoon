@@ -73,45 +73,81 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "updated")
 	case "api:addSshKey":
 		return h.addEditRemoveSshKeyEmailMessage(useractionEmailDetails, notification.Meta.Event, "added")
-	case "api:removeUserFromGroup", "api:addUserToGroup":
-		return h.groupAddRemoveEmailMessage(useractionEmailDetails, notification.Meta.Event)
+	case "api:addUserToGroup":
+		return h.groupAddEmailMessage(useractionEmailDetails, notification.Meta.Event)
+	case "api:removeUserFromGroup":
+		return h.groupRemoveEmailMessage(useractionEmailDetails, notification.Meta.Event)
 	}
 	return errors.New(fmt.Sprintf("Unable to match incoming notification: %v", notification))
 }
 
-func (h *Messaging) groupAddRemoveEmailMessage(valuesStruct UseractionEmailDetails, event string) error {
+func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, event string) error {
 
 	content := `
 <p>Hello,</p>
 
 <p>
-  You have been {{.Action}} the group <strong>{{.Groupname}}</strong>.
+  You have been added to the group <strong>{{.Groupname}}</strong> with the role <strong>{{.Role}}</strong>.
 </p>
 
 <p>
   If you have any questions or need assistance, please contact your organization manager.
 </p>
 `
-	action := "added to"
-	if event == "api:removeUserFromGroup" {
-		action = "removed from"
-	}
 
 	mainHTML, err := templateGenerator(content, struct {
 		Name      string
-		Action    string
+		Groupname string
+		Role      string
+	}{
+		Name:      valuesStruct.Name,
+		Groupname: valuesStruct.Groupname,
+		Role:      valuesStruct.Role,
+	}, h.EmailBase64Logo)
+
+	if err != nil {
+		return err
+	}
+	plainText := fmt.Sprintf("%v added to group %v with the role %v", valuesStruct.Name, valuesStruct.Groupname, valuesStruct.Role)
+	subject := fmt.Sprintf("User %s has been added to a group", valuesStruct.Name)
+	if err != nil {
+		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
+	}
+
+	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
+	if err != nil {
+		return fmt.Errorf("error sending email for %s event %s: %v", valuesStruct.Email, event, err)
+	}
+	return nil
+}
+
+func (h *Messaging) groupRemoveEmailMessage(valuesStruct UseractionEmailDetails, event string) error {
+
+	content := `
+<p>Hello,</p>
+
+<p>
+  You have been removed from the group <strong>{{.Groupname}}</strong>.
+</p>
+
+<p>
+  If you have any questions or need assistance, please contact your organization manager.
+</p>
+`
+
+	mainHTML, err := templateGenerator(content, struct {
+		Name      string
 		Groupname string
 	}{
 		Name:      valuesStruct.Name,
-		Action:    action,
 		Groupname: valuesStruct.Groupname,
 	}, h.EmailBase64Logo)
 
 	if err != nil {
 		return err
 	}
-	plainText := fmt.Sprintf("%v %v group %v", valuesStruct.Name, action, valuesStruct.Groupname)
-	subject := fmt.Sprintf("User %s has been %v a group", valuesStruct.Name, action)
+	plainText := fmt.Sprintf("%v removed from group %v", valuesStruct.Name, valuesStruct.Groupname)
+	subject := fmt.Sprintf("User %s has been removed from a group", valuesStruct.Name)
 	if err != nil {
 		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
 	}

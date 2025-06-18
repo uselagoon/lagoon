@@ -644,7 +644,7 @@ export const addUserToGroup: ResolverFn = async (
       details: `${user.email}, role: ${role}`,
     },
   };
-  var emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user);
+  var emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user, {"Role": role});
   userActivityLogger(`User added a user to a group`, {
     project: '',
     event: 'api:addUserToGroup',
@@ -1001,7 +1001,7 @@ export const removeGroupsFromProject: ResolverFn = async (
 
 // This function retrieves email details for SSH key actions based on user preferences
 // it's really a convenience function to avoid code duplication
-async function getGroupEmailDetails(action, groupname, models: { UserModel: UserModel;}, user: User) {
+async function getGroupEmailDetails(action, groupname, models: { UserModel: UserModel;}, user: User, additionalDetails = {}) {
   var emailDetails = {};
   try {
     let dbUserDetails = await models.UserModel.getFullUserDetails(user);
@@ -1011,6 +1011,7 @@ async function getGroupEmailDetails(action, groupname, models: { UserModel: User
           Name: user.email,
           Email: user.email,
           GroupName: groupname,
+          ...additionalDetails
         },
       };
     }
