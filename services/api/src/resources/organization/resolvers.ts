@@ -5,7 +5,7 @@ import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers} from './helpers';
 import { Sql } from './sql';
-import { arrayDiff, toNumber } from '../../util/func';
+import { arrayDiff, toNumber, requestsExtraFields } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
@@ -356,6 +356,32 @@ export const getProjectsByOrganizationId: ResolverFn = async (
     Sql.selectOrganizationProjects(oid)
   );
   return rows;
+};
+
+// get organization details by project
+// this should only ever be called by another resolver that has already checked permissions on the provided project
+export const getOrganizationByProject: ResolverFn = async (
+  project,
+  args,
+  { sqlClientPool, hasPermission },
+  info
+) => {
+
+  if (!project || !project.organization) {
+    return null
+  }
+
+  const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName']);
+
+  if (extraFields) {
+    await hasPermission('organization', 'view', {
+      organization: project.organization,
+    });
+  }
+
+  const organizationData = await query(sqlClientPool, Sql.selectOrganization(project.organization));
+
+  return organizationData[0];
 };
 
 // get notifications by organization id and project id, used by organization resolver to list projects notifications
