@@ -77,33 +77,7 @@ export let sendToLagoonActions = function(
   return payload && undefined;
 };
 
-// TODO: This is weird, why do we need an empty default connection? Or is there
-// a better way to type this?
-const defaultConnection: AmqpConnectionManager = {
-  // Default function for Event
-  removeListener: (() => {}) as any,
-  off: (() => {}) as any,
-  removeAllListeners: (() => {}) as any,
-  setMaxListeners: (() => {}) as any,
-  getMaxListeners: (() => {}) as any,
-  listeners: (() => {}) as any,
-  rawListeners: (() => {}) as any,
-  emit: (() => {}) as any,
-  eventNames: (() => {}) as any,
-  listenerCount: (() => {}) as any,
-
-  // Default functions for AmqpConnectionManager
-  addListener: (() => {}) as any,
-  on: (() => {}) as any,
-  once: (() => {}) as any,
-  prependListener: (() => {}) as any,
-  prependOnceListener: (() => {}) as any,
-  createChannel: (() => {}) as any,
-  isConnected: (() => {}) as any,
-  close: (() => {}) as any
-};
-
-export let connection: AmqpConnectionManager = defaultConnection;
+export let connection: AmqpConnectionManager;
 const rabbitmqHost = getConfigFromEnv('RABBITMQ_HOST', 'broker');
 const rabbitmqUsername = getConfigFromEnv('RABBITMQ_USERNAME', 'guest');
 const rabbitmqPassword = getConfigFromEnv('RABBITMQ_PASSWORD', 'guest');
