@@ -888,6 +888,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Can I disable / prevent the Idler from idling my environment?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-idling-truth-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment idling truth table
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -4996,6 +5011,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Can I disable / prevent the Idler from idling my environment?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-idling-truth-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment idling truth table
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -5045,6 +5075,39 @@
 <h3 id="can-i-disable-prevent-the-idler-from-idling-my-environment">Can I disable / prevent the Idler from idling my environment?<a class="headerlink" href="#can-i-disable-prevent-the-idler-from-idling-my-environment" title="Permanent link">#</a></h3>
 <p>The field <code>autoIdle</code> can be set at the project level (impacts all environments) or for a single environment (target just one environment), as to whether idling is allowed to take place. A value of <code>1</code> indicates the project/environment is eligible for idling. If the project is set to <code>0</code>, then all environments will never be idled. The default value is <code>1</code> (idling is enabled).</p>
 <p>Contact your Lagoon administrator if you are unsure how to set these project/environment fields.</p>
+<h4 id="environment-idling-truth-table">Environment idling truth table<a class="headerlink" href="#environment-idling-truth-table" title="Permanent link">#</a></h4>
+<p>The idling behaviour is a logical AND between the Project and Environment <code>autoIdle</code> values.</p>
+<table>
+<thead>
+<tr>
+<th>Project <code>autoIdle</code> value</th>
+<th>Environment <code>autoIdle</code> value</th>
+<th>Environment will idle?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>false</code></td>
+<td><code>false</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>false</code></td>
+<td><code>true</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>true</code></td>
+<td><code>false</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
 
 
 
