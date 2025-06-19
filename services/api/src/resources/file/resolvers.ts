@@ -5,15 +5,23 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 import { s3Config } from '../../util/config';
+import { AuditLog } from '../audit/types';
+import { AuditType } from '@lagoon/commons/src/types';
 
 // if this is google cloud storage or not
 const isGCS = process.env.S3_FILES_GCS || 'false'
 
 export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
+  const auditLog: AuditLog = {
+    resource: {
+      type: AuditType.FILE,
+    },
+  }
   userActivityLogger(`User requested a download link`, {
-    event: 'api:getSignedUrl',
+    event: 'api:getSignedTaskUrl',
     payload: {
       Key: s3Key,
+      ...auditLog
     }
   });
   return s3Client.getSignedUrl('getObject', {

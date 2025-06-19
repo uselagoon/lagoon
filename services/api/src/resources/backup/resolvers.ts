@@ -108,11 +108,18 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
         Expires: s3Config.signedLinkExpiration
       })
 
+      const auditLog: AuditLog = {
+        resource: {
+          type: AuditType.FILE,
+        },
+      };
+
       userActivityLogger(`User requested a download link`, {
-        event: 'api:getSignedUrl',
+        event: 'api:getSignedBackupUrl',
         payload: {
           Bucket: R.prop(2, s3Parts),
           Key: R.prop(3, s3Parts),
+          ...auditLog,
         }
       })
 
