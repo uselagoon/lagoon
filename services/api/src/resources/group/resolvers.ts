@@ -12,6 +12,8 @@ import { Helpers } from './helpers';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog, AuditResource } from '../audit/types';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { User, UserModel } from '../../models/user';
 
 const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
 
@@ -642,6 +644,7 @@ export const addUserToGroup: ResolverFn = async (
       details: `${user.email}, role: ${role}`,
     },
   };
+  var emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user, {"Role": role});
   userActivityLogger(`User added a user to a group`, {
     project: '',
     event: 'api:addUserToGroup',
@@ -651,6 +654,7 @@ export const addUserToGroup: ResolverFn = async (
       },
       data: updatedGroup,
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -703,6 +707,9 @@ export const removeUserFromGroup: ResolverFn = async (
       details: user.email,
     },
   };
+
+  var emailDetails = await getGroupEmailDetails('api:removeUserFromGroup', group.name, models, user);
+
   userActivityLogger(`User removed a user from a group`, {
     project: '',
     event: 'api:removeUserFromGroup',
@@ -712,6 +719,7 @@ export const removeUserFromGroup: ResolverFn = async (
       },
       data: updatedGroup,
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -989,3 +997,33 @@ export const removeGroupsFromProject: ResolverFn = async (
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };
+
+
+// This function retrieves email details for SSH key actions based on user preferences
+// it's really a convenience function to avoid code duplication
+async function getGroupEmailDetails(action, groupname, models: { UserModel: UserModel;}, user: User, additionalDetails = {}) {
+  var emailDetails = {};
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if (dbUserDetails && dbUserDetails['optEmailGroupRole'] == true) {
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          GroupName: groupname,
+          ...additionalDetails
+        },
+      };
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      action,
+      {},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+    );
+  }
+  return emailDetails;
+}

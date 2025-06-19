@@ -14,6 +14,13 @@ interface IUserAttributes {
   comment?: [string];
   [propName: string]: any;
 }
+
+interface IEmailNotifications {
+  organizationRoleChanges?: boolean;
+  sshKeyChanges?: boolean;
+  groupRoleChanges?: boolean;
+}
+
 export interface User {
   email: string;
   username: string;
@@ -29,6 +36,7 @@ export interface User {
   admin?: boolean;
   organizationRole?: string;
   platformRoles?: [string];
+  emailNotifications?: IEmailNotifications;
 }
 
 interface UserEdit {
@@ -41,6 +49,7 @@ interface UserEdit {
   gitlabId?: string;
   organization?: number;
   remove?: boolean;
+  emailNotifications?: IEmailNotifications;
 }
 
 export interface UserModel {
@@ -66,6 +75,7 @@ export interface UserModel {
   resetUserPassword: (id: string) => Promise<void>;
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
+  getFullUserDetails: (userInput: User) => Promise<Object>;
 }
 
 // these match the names of the roles created in keycloak
@@ -256,6 +266,30 @@ export const User = (clients: {
     if (R.isNil(keycloakUser)) {
       throw new UserNotFoundError(`User not found a: ${id}`);
     }
+
+    // fetch the user's optin-in preference for organization emails
+    var emailOptions = {
+      organizationRoleChanges: false,
+      sshKeyChanges: false,
+      groupRoleChanges: false
+    };
+    try {
+      const userOptIn = await query(
+        sqlClientPool,
+        Sql.selectUserById(id)
+      );
+      if (userOptIn.length) {
+        emailOptions = {
+          organizationRoleChanges: userOptIn[0].optEmailOrgRole,
+          sshKeyChanges: userOptIn[0].optEmailSshkey,
+          groupRoleChanges: userOptIn[0].optEmailGroupRole,
+        };
+      }
+    } catch (err) {
+      logger.warn(`Failed to fetch email opt-in for user ${id}: ${err.message}`);
+    }
+    keycloakUser.emailNotifications = emailOptions;
+
     return keycloakUser;
   };
 
@@ -597,9 +631,49 @@ export const User = (clients: {
       });
     }
 
+    // Let's start with the email opt-in preference defaults
+    var emailOptinUpdates = {
+      opt_email_org_role: true,
+      opt_email_sshkey: true,
+      opt_email_group_role: false,
+    };
+
+    if (userInput.emailNotifications !== undefined) {
+      if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+        emailOptinUpdates.opt_email_org_role = userInput.emailNotifications.organizationRoleChanges;
+      }
+          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+        emailOptinUpdates.opt_email_sshkey = userInput.emailNotifications.sshKeyChanges;
+      }
+          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+        emailOptinUpdates.opt_email_group_role = userInput.emailNotifications.groupRoleChanges;
+      }
+    }
+
+    try {
+      if (emailOptinUpdates) {
+        await query(
+          sqlClientPool,
+          Sql.updateUserDBTable(
+            user.id,
+            emailOptinUpdates,
+          ),
+        );
+      }
+    } catch (err) {
+      logger.warn(
+        `Failed to update email opt-in for user ${user.id}: ${err.message}`,
+      );
+    }
+
     return {
       ...user,
-      gitlabId: R.prop('gitlabId', userInput)
+      gitlabId: R.prop('gitlabId', userInput),
+      emailNotifications: {
+        organizationRoleChanges: emailOptinUpdates.opt_email_org_role,
+        sshKeyChanges: emailOptinUpdates.opt_email_sshkey,
+        groupRoleChanges: emailOptinUpdates.opt_email_group_role,
+      },
     };
   };
 
@@ -659,6 +733,17 @@ export const User = (clients: {
     }
     return true
   };
+
+  const getFullUserDetails = async (userInput: User): Promise<Object> => {
+    // get the local DB user details
+    const user = await query(
+      sqlClientPool,
+      Sql.selectUserById(userInput.id)
+    );
+    return {
+      ...user[0],
+    }
+  }
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
@@ -743,9 +828,45 @@ export const User = (clients: {
       await linkUserToGitlab(user, R.prop('gitlabId', userInput));
     }
 
+    // Set the user's organization email opt-in preference in the database
+    // TODO - this is probably a good place to put the updates generally
+
+    // we need to build the update query - it'll consist of three different items
+    var emailOptinUpdates = {};
+    if (userInput.emailNotifications !== undefined) {
+      if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+        emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+      }
+          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+        emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+      }
+    }
+
+    var successfulEmailPatch = {};
+    try {
+      if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
+        await query(
+          sqlClientPool,
+          Sql.updateUserDBTable(
+            user.id,
+            emailOptinUpdates,
+          ),
+        );
+      }
+      successfulEmailPatch = userInput.emailNotifications || {};
+    } catch (err) {
+      logger.warn(
+        `Failed to update email opt-in for user ${user.id}: ${err.message}`,
+      );
+    }
+
     return {
       ...user,
-      gitlabId: R.prop('gitlabId', userInput)
+      gitlabId: R.prop('gitlabId', userInput),
+      emailNotifications: {...user.emailNotifications, ...successfulEmailPatch},
     };
   };
 
@@ -826,6 +947,7 @@ export const User = (clients: {
     userLastAccessed,
     deleteUser,
     resetUserPassword,
-    transformKeycloakUsers
+    transformKeycloakUsers,
+    getFullUserDetails
   };
 };

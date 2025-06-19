@@ -414,6 +414,12 @@ const typeDefs = gql`
     lastUsed: String
   }
 
+  type UserEmailNotification {
+    organizationRoleChanges: Boolean
+    sshKeyChanges: Boolean
+    groupRoleChanges: Boolean
+  }
+
   type User {
     id: String
     email: String
@@ -429,6 +435,7 @@ const typeDefs = gql`
     platformRoles: [PlatformRole]
     created: String
     lastAccessed: String
+    emailNotifications: UserEmailNotification
   }
 
   enum PlatformRole {
@@ -1948,6 +1955,12 @@ const typeDefs = gql`
     notificationName: String!
   }
 
+  input UserEmailOptionInput {
+    organizationRoleChanges: Boolean
+    sshKeyChanges: Boolean
+    groupRoleChanges: Boolean
+  }
+
   input AddUserInput {
     email: String!
     firstName: String
@@ -1955,6 +1968,7 @@ const typeDefs = gql`
     comment: String
     gitlabId: Int
     resetPassword: Boolean
+    emailNotifications: UserEmailOptionInput
   }
 
   input UpdateUserPatchInput {
@@ -1963,6 +1977,7 @@ const typeDefs = gql`
     lastName: String
     comment: String
     gitlabId: Int
+    emailNotifications: UserEmailOptionInput
   }
 
   input UpdateUserInput {
