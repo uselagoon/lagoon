@@ -1201,6 +1201,7 @@ const typeDefs = gql`
     TASK
     USER
     VARIABLE
+    FILE
   }
 
   input AuditLogInput {

@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { getConfigFromEnv } from '../../util/config';
+import { getConfigFromEnv, s3Config } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
@@ -18,7 +18,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
-const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
@@ -105,8 +105,24 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
       const restLoc = await s3Client.getSignedUrl('getObject', {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
-        Expires: 300 // 5 minutes
+        Expires: s3Config.signedLinkExpiration
       })
+
+      const auditLog: AuditLog = {
+        resource: {
+          type: AuditType.FILE,
+        },
+      };
+
+      userActivityLogger(`User requested a download link`, {
+        event: 'api:getSignedBackupUrl',
+        payload: {
+          Bucket: R.prop(2, s3Parts),
+          Key: R.prop(3, s3Parts),
+          ...auditLog,
+        }
+      })
+
       return [restLoc, restoreSize];
     } catch(err) {
       await query(
@@ -458,7 +474,7 @@ export const updateRestore: ResolverFn = async (
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
   const rows = await query(
     sqlClientPool,
@@ -467,7 +483,7 @@ export const getRestoreByBackupId: ResolverFn = async (
   const row = R.prop(0, rows)
   if (row && row.restoreLocation != null) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
-    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
+    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
     return {...row, restoreLocation: restLoc, restoreSize: restSize};
   }
   return row;

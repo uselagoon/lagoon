@@ -55,6 +55,7 @@ export enum AuditType {
   TASK = 'task',
   USER = 'user',
   VARIABLE = 'variable',
+  FILE = 'file',
 }
 
 export interface DeployData {
