@@ -5,6 +5,10 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { get } from 'http';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { send } from 'process';
+import { UserModel, User } from '../../models/user';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -154,6 +158,7 @@ export const addUser: ResolverFn = async (
     lastName: input.lastName,
     comment: input.comment,
     gitlabId: input.gitlabId,
+    emailNotifications: input.emailNotifications,
   }, input.resetPassword);
 
   const auditLog: AuditLog = {
@@ -204,6 +209,7 @@ export const updateUser: ResolverFn = async (
     lastName: patch.lastName,
     comment: patch.comment,
     gitlabId: patch.gitlabId,
+    emailNotifications: patch.emailNotifications,
   });
 
   return updatedUser;
@@ -348,6 +354,14 @@ export const addUserToOrganization: ResolverFn = async (
       details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`,
     },
   };
+
+  var emailDetails = await getUserOrgEmailDetails('api:addUserToOrganization', models, user, {
+    Name: user.email,
+    Email: user.email,
+    OrganizationName: organizationData.name,
+    Role: `${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`
+  });
+
   userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
     project: '',
     event: 'api:addUserToOrganization',
@@ -360,6 +374,7 @@ export const addUserToOrganization: ResolverFn = async (
         owner: owner,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -406,6 +421,14 @@ export const removeUserFromOrganization: ResolverFn = async (
       details: user.email
     },
   };
+
+    var emailDetails = await getUserOrgEmailDetails('api:removeUserFromOrganization', models, user, {
+      Name: user.email,
+      Email: user.email,
+      OrganizationName: organizationData.name,
+    });
+
+
   userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
     project: '',
     event: 'api:removeUserFromOrganization',
@@ -415,6 +438,7 @@ export const removeUserFromOrganization: ResolverFn = async (
         organization: organization,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -485,6 +509,16 @@ export const addAdminToOrganization: ResolverFn = async (
       details: `${user.email} role ${role}`,
     },
   };
+
+
+  // var emailDetails = await getUserOrgEmailDetails(models, user, organizationData, role);
+  var emailDetails = await getUserOrgEmailDetails('api:addAdminToOrganization', models, user, {
+      Name: user.email,
+      Email: user.email,
+      OrganizationName: organizationData.name,
+      Role: role,
+    });
+
   userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
     project: '',
     event: 'api:addAdminToOrganization',
@@ -496,6 +530,7 @@ export const addAdminToOrganization: ResolverFn = async (
         role: role,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -546,6 +581,13 @@ export const removeAdminFromOrganization: ResolverFn = async (
       details: user.email
     },
   };
+
+  var emailDetails = await getUserOrgEmailDetails('api:removeAdminFromOrganization', models, user, {
+      Name: user.email,
+      Email: user.email,
+      OrganizationName: organizationData.name,
+    });
+
   userActivityLogger(`User removed an administrator from organization '${organizationData.name}'`, {
     project: '',
     event: 'api:removeAdminFromOrganization',
@@ -553,8 +595,10 @@ export const removeAdminFromOrganization: ResolverFn = async (
       user: {
         id: user.id,
         organization: organizationData.id,
+        email: user.email,
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -630,6 +674,14 @@ export const addPlatformRoleToUser: ResolverFn = async (
         details: `${user.email} role: ${role}`
       },
     };
+
+
+    var emailDetails = await getUserOrgEmailDetails('api:addPlatformRoleToUser', models, user, {
+      Name: user.email,
+      Email: user.email,
+      Role: role,
+    });
+
     userActivityLogger(`User added a platform role to user '${user.email}'`, {
       project: '',
       event: 'api:addPlatformRoleToUser',
@@ -640,6 +692,7 @@ export const addPlatformRoleToUser: ResolverFn = async (
           role: role,
         },
         ...auditLog,
+        ...emailDetails,
       }
     });
     return filteredByEmail[0];
@@ -675,6 +728,13 @@ export const removePlatformRoleFromUser: ResolverFn = async (
         details: `${user.email} role: ${role}`
       },
     };
+
+    var emailDetails = await getUserOrgEmailDetails('api:removePlatformRoleFromUser', models, user, {
+      Name: user.email,
+      Email: user.email,
+      Role: role,
+    });
+
     userActivityLogger(`User removed platform role from user '${user.email}'`, {
       project: '',
       event: 'api:removePlatformRoleFromUser',
@@ -685,6 +745,7 @@ export const removePlatformRoleFromUser: ResolverFn = async (
           role: role,
         },
         ...auditLog,
+        ...emailDetails,
       }
     });
     if (filteredByEmail[0]) {
@@ -697,3 +758,31 @@ export const removePlatformRoleFromUser: ResolverFn = async (
     );
   }
 };
+
+
+async function getUserOrgEmailDetails(action, models: { UserModel: UserModel; }, user: User, payloadData) {
+  var emailDetails = {};
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if (dbUserDetails && dbUserDetails['optEmailOrgRole'] == true) {
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          ...payloadData
+        },
+      };
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      action,
+      payloadData,
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+    );
+  }
+  return emailDetails;
+}
+
