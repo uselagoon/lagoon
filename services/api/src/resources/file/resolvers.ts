@@ -6,7 +6,7 @@ import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
-import { AuditType } from '@lagoon/commons/src/types';
+import { AuditType } from '@lagoon/commons/dist/types';
 
 // if this is google cloud storage or not
 const isGCS = process.env.S3_FILES_GCS || 'false'

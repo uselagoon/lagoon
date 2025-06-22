@@ -6,7 +6,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import S3 from 'aws-sdk/clients/s3';
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
-import { AuditType } from '@lagoon/commons/src/types';
+import { AuditType } from '@lagoon/commons/dist/types';
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
