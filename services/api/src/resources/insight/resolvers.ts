@@ -103,7 +103,7 @@ export const getInsightsFileData: ResolverFn = async (
 
     const dataBytes = await data.Body.transformToByteArray();
 
-    return JSON.parse(JSON.stringify(dataBytes));
+    return dataBytes;
   } catch (e) {
     return `There was an error loading insights data: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
   }
