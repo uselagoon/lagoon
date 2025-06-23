@@ -93,7 +93,7 @@ export const getInsightsDownloadUrl: ResolverFn = async (
       Key: s3Key,
       Expires: s3Config.signedLinkExpiration});
 	} catch (e) {
-   return `Error while creating download link - ${e.Error}`
+   return `Error while creating download link - ${e.Error || 'Unknown error'}`
 	}
 }
 
