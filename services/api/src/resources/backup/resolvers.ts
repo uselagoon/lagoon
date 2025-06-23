@@ -18,7 +18,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
-const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, restoreSizeOnly = false) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
@@ -102,6 +102,9 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
     try {
       const data = await Promise.resolve(restoreLoc.promise());
       restoreSize = data.ContentLength ?? restoreSize
+      if (restoreSizeOnly) {
+        return ["", restoreSize];
+      }
       const restLoc = await s3Client.getSignedUrl('getObject', {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
@@ -458,19 +461,32 @@ export const updateRestore: ResolverFn = async (
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
-  { sqlClientPool }
+  { sqlClientPool },
+  info
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );
   const row = R.prop(0, rows)
-  if (row && row.restoreLocation != null) {
+
+  if (!row || row.restoreLocation == null) {
+    return row;
+  }
+
+  const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "restoreLocation");
+  if (restoreLocationRequested) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
     const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
+    console.log("with restorelocation")
     return {...row, restoreLocation: restLoc, restoreSize: restSize};
+  } else {
+    // if the restore does not have a location, return the row as is with restoreSize
+    const [, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, true);
+    console.log("without restorelocation")
+
+    return {...row, restoreSize: restSize};
   }
-  return row;
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
