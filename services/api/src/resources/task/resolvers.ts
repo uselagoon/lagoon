@@ -42,8 +42,7 @@ const s3Client = new S3Client({
     secretAccessKey: config.secretAccessKey,
   },
   region: config.region,
-  s3ForcePathStyle: true,
-  signatureVersion: 'v4'
+  forcePathStyle: true
 });
 
 export const getTaskLog: ResolverFn = async (
