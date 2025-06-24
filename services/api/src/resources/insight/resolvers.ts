@@ -81,14 +81,17 @@ export const getInsightsDownloadUrl: ResolverFn = async (
     },
   };
 
+  if(userActivityLogger != undefined) {
     userActivityLogger(`User requested a download link`, {
-    event: 'api:getSignedInsightsUrl',
-    payload: {
-      Bucket: bucket,
-      Key: s3Key,
-      ...auditLog,
-    }
-  });
+        event: 'api:getSignedInsightsUrl',
+        payload: {
+          Bucket: bucket,
+          Key: s3Key,
+          ...auditLog,
+        }
+      });
+  }
+
     return s3Client.getSignedUrl('getObject', {Bucket: bucket,
       Key: s3Key,
       Expires: s3Config.signedLinkExpiration});

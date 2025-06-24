@@ -15,15 +15,19 @@ export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivi
   const auditLog: AuditLog = {
     resource: {
       type: AuditType.FILE,
+      details: s3Key
     },
   }
-  userActivityLogger(`User requested a download link`, {
-    event: 'api:getSignedTaskUrl',
-    payload: {
-      Key: s3Key,
-      ...auditLog
-    }
-  });
+  if(userActivityLogger != undefined) {
+    userActivityLogger(`User requested a download link`, {
+        event: 'api:getSignedTaskUrl',
+        payload: {
+          Key: s3Key,
+          ...auditLog
+        }
+      });
+  }
+
   return s3Client.getSignedUrl('getObject', {
       Key: s3Key,
       Expires: s3Config.signedLinkExpiration,

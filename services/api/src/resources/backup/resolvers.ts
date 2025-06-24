@@ -17,6 +17,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import e from 'express';
 
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger) => {
   let restoreSize = 0;
@@ -114,7 +115,8 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
         },
       };
 
-      userActivityLogger(`User requested a download link`, {
+      if( userActivityLogger != undefined) {
+        userActivityLogger(`User requested a download link`, {
         event: 'api:getSignedBackupUrl',
         payload: {
           Bucket: R.prop(2, s3Parts),
@@ -122,6 +124,8 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
           ...auditLog,
         }
       })
+      }
+
 
       return [restLoc, restoreSize];
     } catch(err) {
@@ -457,7 +461,8 @@ export const updateRestore: ResolverFn = async (
       details: `${backupData.source} - ${backupId}`,
     },
   };
-  userActivityLogger(`User updated restore '${backupId}'`, {
+  if (userActivityLogger != undefined) {
+    userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
     event: 'api:updateRestore',
     payload: {
@@ -467,6 +472,7 @@ export const updateRestore: ResolverFn = async (
       ...auditLog,
     }
   });
+  }
 
   return restoreData;
 };
