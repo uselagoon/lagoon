@@ -2,15 +2,11 @@ package handler
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 	"text/template"
-
-	gomail "gopkg.in/mail.v2"
 )
 
 var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -51,7 +47,7 @@ func (h *Messaging) SendToEmail(notification *Notification, emailAddress string)
 	if err != nil {
 		return
 	}
-	h.sendEmailMessage(emoji, color, subject, notification.Event, notification.Meta.ProjectName, emailAddress, mainHTML, plainText)
+	h.prepareAndSendEmail(emoji, color, subject, notification.Event, notification.Meta.ProjectName, emailAddress, mainHTML, plainText)
 }
 
 // SendToEmail .
@@ -174,7 +170,7 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	return emoji, color, subject, mainHTML, plainText, nil
 }
 
-func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emailAddress, mainHTML, plainText string) {
+func (h *Messaging) prepareAndSendEmail(emoji, color, subject, event, project, emailAddress, mainHTML, plainText string) {
 	var body bytes.Buffer
 
 	// mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
@@ -195,30 +191,14 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 		MainHTML:    mainHTML,
 	})
 
-	m := gomail.NewMessage()
-	m.SetHeader("From", h.EmailSender)
-	m.SetHeader("To", emailAddress)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/plain", plainText)
-	m.AddAlternative("text/html", body.String())
-	sPort, _ := strconv.Atoi(h.EmailPort)
-	if h.EmailSenderPassword != "" {
-		d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, h.EmailSenderPassword)
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-		if err := d.DialAndSend(m); err != nil {
-			log.Printf("Error sending email for project %s: %v", project, err)
-			return
-		}
-	} else {
-		d := gomail.Dialer{Host: h.EmailHost, Port: sPort, SSL: h.EmailSSL}
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-		if err := d.DialAndSend(m); err != nil {
-			log.Printf("Error sending email for project %s: %v", project, err)
-			return
-		}
-
+	err := h.deliverEmail(emailAddress, subject, plainText, body)
+	if err != nil {
+		log.Printf("Error sending email for project %s: %v", project, err)
+		return
 	}
+
 	log.Printf("Sent %s message to email for project %s", event, project)
+
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {

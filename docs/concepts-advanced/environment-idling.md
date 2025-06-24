@@ -25,3 +25,14 @@ The un-idling will take a couple of seconds, as the Kubernetes cluster needs to 
 The field `autoIdle` can be set at the project level \(impacts all environments\) or for a single environment \(target just one environment\), as to whether idling is allowed to take place. A value of `1` indicates the project/environment is eligible for idling. If the project is set to `0`, then all environments will never be idled. The default value is `1` \(idling is enabled\).
 
 Contact {{ defaults.helpstring }} if you are unsure how to set these project/environment fields.
+
+#### Environment idling truth table
+
+The idling behaviour is a logical AND between the Project and Environment `autoIdle` values.
+
+| Project `autoIdle` value | Environment `autoIdle` value | Environment will idle? |
+| ---                      | ---                          | ---                    |
+| `false`                  | `false`                      | `false`                |
+| `false`                  | `true`                       | `false`                |
+| `true`                   | `false`                      | `false`                |
+| `true`                   | `true`                       | `true`                 |

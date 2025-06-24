@@ -1,6 +1,12 @@
+import { update } from 'ramda';
 import { knex } from '../../util/db';
 
 export const Sql = {
+  selectUserById: (id: string) =>
+    knex('user')
+      .select('usid', 'opt_email_org_role', 'opt_email_sshkey', 'opt_email_group_role', 'last_accessed')
+      .where('usid', id)
+      .toString(),
   selectUserIdBySshKey: ({
     keyValue,
     keyType,
@@ -46,6 +52,12 @@ export const Sql = {
       })
       .onConflict('usid')
       .merge()
+      .toString(),
+  updateUserDBTable: (id: string, data: Record<string, any>) =>
+    knex('user')
+      .insert({usid: id, ...data})
+      .onConflict('usid')
+      .merge({...data})
       .toString(),
   selectLastAccessed: (id: string) =>
     knex('user')

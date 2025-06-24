@@ -2,6 +2,7 @@
 
 # This script needs to be run after a minor version update (or prior to one)
 # to ensure that any disabled feature_flags are correctly enabled.
+# it is run within a helm job when installed via helm
 
 function is_broker_running {
   local http_code=$(curl -s -o /dev/null -w "%{http_code}" -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/health/checks/virtual-hosts/")
@@ -33,3 +34,14 @@ then
 else
   echo " - lagoon-ha policy already removed"
 fi
+
+echo removing unused lagoon-logs queues
+for queue in "workflows" "slack" "rocketchat" "microsoftTeams" "email" "webhook" "s3"; do
+if [[ ! "$(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/queues/%2F/lagoon-logs%3A${queue}")" =~ "Object Not Found" ]]
+  then
+    echo " - removing lagoon-logs:${queue} queue"
+    curl -X DELETE -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/queues/%2F/lagoon-logs%3A${queue}"
+  else
+    echo " - lagoon-logs:${queue} queue already removed"
+  fi
+done

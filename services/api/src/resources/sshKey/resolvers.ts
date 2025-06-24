@@ -5,6 +5,10 @@ import { Sql } from './sql';
 import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { EnvironmentModel } from '../../models/environment';
+import { GroupModel } from '../../models/group';
+import { UserModel, User } from '../../models/user';
 
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
@@ -94,6 +98,9 @@ export const addSshKey: ResolverFn = async (
       details: vkey['sha256fingerprint']
     },
   };
+
+  var emailDetails = await getSshEmailDetails('api:addSshKey', name, models, user);
+
   userActivityLogger(`User added ssh key '${name}'`, {
     project: '',
     event: 'api:addSshKey',
@@ -110,6 +117,7 @@ export const addSshKey: ResolverFn = async (
         user
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -199,12 +207,15 @@ export const updateSshKey: ResolverFn = async (
       details: vkey['sha256fingerprint']
     },
   };
+
+  var emailDetails = await getSshEmailDetails('api:updateSshKey', name, models, user);
   userActivityLogger(`User updated ssh key '${id}'`, {
     project: '',
     event: 'api:updateSshKey',
     payload: {
       patch,
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -269,6 +280,7 @@ export const deleteSshKey: ResolverFn = async (
       type: AuditType.SSHKEY,
     },
   };
+  var emailDetails = await getSshEmailDetails('api:deleteSshKey', "", models, user);
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
     event: 'api:deleteSshKey',
@@ -282,6 +294,7 @@ export const deleteSshKey: ResolverFn = async (
         user: userIds
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
@@ -326,6 +339,7 @@ export const deleteSshKeyById: ResolverFn = async (
       type: AuditType.SSHKEY,
     },
   };
+  var emailDetails = await getSshEmailDetails('api:deleteSshKeyById', "", models, user);
   userActivityLogger(`User deleted ssh key with id '${id}'`, {
     project: '',
     event: 'api:deleteSshKeyById',
@@ -338,8 +352,38 @@ export const deleteSshKeyById: ResolverFn = async (
         user: userIds
       },
       ...auditLog,
+      ...emailDetails,
     }
   });
 
   return 'success';
 };
+
+// This function retrieves email details for SSH key actions based on user preferences
+// it's really a convenience function to avoid code duplication
+async function getSshEmailDetails(action, keyname, models: { UserModel: UserModel; GroupModel: GroupModel; EnvironmentModel: EnvironmentModel; }, user: User) {
+  var emailDetails = {};
+  try {
+    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
+    if (dbUserDetails && dbUserDetails['optEmailSshkey'] == true) {
+      emailDetails = {
+        userActionEmailDetails: {
+          Name: user.email,
+          Email: user.email,
+          Keyname: keyname,
+        },
+      };
+    }
+  } catch (e) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      user.id,
+      action,
+      {},
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+    );
+  }
+  return emailDetails;
+}
+

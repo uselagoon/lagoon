@@ -29,8 +29,10 @@ RUN chmod 0777 /var/lib/rabbitmq /etc/rabbitmq /etc/rabbitmq/conf.d /tmp/rabbitm
 COPY definitions.json enabled_plugins rabbitmq.conf /etc/rabbitmq/
 RUN fix-permissions /etc/rabbitmq
 
-COPY start-rabbit.sh enable-feature-flags.sh /
-RUN fix-permissions start-rabbit.sh enable-feature-flags.sh && chmod +x /start-rabbit.sh /enable-feature-flags.sh
+COPY start-rabbit.sh broker-job.sh /
+RUN fix-permissions start-rabbit.sh broker-job.sh && chmod +x /start-rabbit.sh  /broker-job.sh
+# backwards compatible copy to old filename
+RUN cp /broker-job.sh /enable-feature-flags.sh
 
 # Copy the new entrypoint for b/c reasons
 COPY /start-rabbit.sh /cluster-rabbit.sh
