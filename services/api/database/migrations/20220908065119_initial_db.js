@@ -174,6 +174,11 @@
                 table.string('webhook', 300);
                 table.string('channel', 300);
             })
+            .createTable('notification_discord', function (table) {
+                table.increments('id').notNullable().primary();
+                table.string('name', 50).unique({indexName: 'name'});
+                table.string('webhook', 2000);
+            })
             .createTable('notification_webhook', function (table) {
                 table.increments('id').notNullable().primary();
                 table.string('name', 50).unique({indexName: 'name'});
@@ -241,7 +246,7 @@
             .createTable('project_notification', function (table) {
                 table.integer('nid');
                 table.integer('pid');
-                table.enu('type', ['slack','rocketchat','microsoftteams','email', 'webhook']).notNullable();
+                table.enu('type', ['slack', 'discord','rocketchat','microsoftteams','email', 'webhook']).notNullable();
                 table.enu('content_type', ['deployment', 'problem']).notNullable();
                 table.integer('notification_severity_threshold').notNullable().defaultTo(0);
                 table.primary(['nid', 'pid', 'type']);

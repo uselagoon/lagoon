@@ -136,6 +136,14 @@ export const Sql = {
       .update(patch)
       .toString();
   },
+  updateNotificationDiscord: (input) => {
+    const { name, patch } = input;
+
+    return knex('notification_discord')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   updateNotificationWebhook: (input) => {
     const { name, patch } = input;
 
@@ -200,6 +208,10 @@ export const Sql = {
     knex('notification_slack')
       .where('name', '=', name)
       .toString(),
+  selectNotificationDiscordByName: (name: string) =>
+    knex('notification_discord')
+      .where('name', '=', name)
+      .toString(),
   selectNotificationEmailByName: (name: string) =>
     knex('notification_email')
       .where('name', '=', name)
@@ -210,6 +222,10 @@ export const Sql = {
         .toString(),
   truncateNotificationSlack: () =>
     knex('notification_slack')
+      .truncate()
+      .toString(),
+  truncateNotificationDiscord: () =>
+    knex('notification_discord')
       .truncate()
       .toString(),
   truncateNotificationEmail: () =>

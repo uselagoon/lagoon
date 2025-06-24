@@ -32,6 +32,7 @@ const typeDefs = gql`
 
   enum NotificationType {
     SLACK
+    DISCORD
     ROCKETCHAT
     MICROSOFTTEAMS
     EMAIL
@@ -568,6 +569,15 @@ const typeDefs = gql`
     organization: Int
   }
 
+  type NotificationDiscord {
+    id: Int
+    name: String
+    webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
+    organization: Int
+  }
+
   type NotificationEmail {
     id: Int
     name: String
@@ -594,7 +604,7 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail | NotificationWebhook
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationDiscord | NotificationMicrosoftTeams | NotificationEmail | NotificationWebhook
 
   """
   Lagoon Project (like a git repository)
@@ -1922,6 +1932,12 @@ const typeDefs = gql`
     organization: Int
   }
 
+  input AddNotificationDiscordInput {
+    name: String!
+    webhook: String!
+    organization: Int
+  }
+
   input DeleteNotificationMicrosoftTeamsInput {
     name: String!
   }
@@ -1934,6 +1950,10 @@ const typeDefs = gql`
   }
 
   input DeleteNotificationSlackInput {
+    name: String!
+  }
+
+  input DeleteNotificationDiscordInput {
     name: String!
   }
 
@@ -2147,6 +2167,11 @@ const typeDefs = gql`
     channel: String
   }
 
+  input UpdateNotificationDiscordPatchInput {
+    name: String
+    webhook: String
+  }
+
   input UpdateNotificationWebhookPatchInput {
     name: String
     webhook: String
@@ -2169,6 +2194,11 @@ const typeDefs = gql`
   input UpdateNotificationSlackInput {
     name: String!
     patch: UpdateNotificationSlackPatchInput
+  }
+
+  input UpdateNotificationDiscordInput {
+    name: String!
+    patch: UpdateNotificationDiscordPatchInput
   }
 
   input UpdateNotificationWebhookInput {
@@ -2407,6 +2437,11 @@ const typeDefs = gql`
       input: UpdateNotificationSlackInput!
     ): NotificationSlack
     deleteNotificationSlack(input: DeleteNotificationSlackInput!): String
+    addNotificationDiscord(input: AddNotificationDiscordInput!): NotificationDiscord
+    updateNotificationDiscord(
+      input: UpdateNotificationDiscordInput!
+    ): NotificationDiscord
+    deleteNotificationDiscord(input: DeleteNotificationDiscordInput!): String
     addNotificationRocketChat(
       input: AddNotificationRocketChatInput!
     ): NotificationRocketChat

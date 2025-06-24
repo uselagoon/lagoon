@@ -1,0 +1,103 @@
+Name:                   lagoon-core-oauth2proxy
+Namespace:              lagoon-core
+CreationTimestamp:      Thu, 22 May 2025 11:15:16 +1000
+Labels:                 app.kubernetes.io/component=lagoon-core-oauth2proxy
+                        app.kubernetes.io/instance=lagoon-core
+                        app.kubernetes.io/managed-by=Helm
+                        app.kubernetes.io/name=lagoon-core
+                        app.kubernetes.io/version=v2.25.0
+                        helm.sh/chart=lagoon-core-1.53.0
+Annotations:            deployment.kubernetes.io/revision: 60
+                        meta.helm.sh/release-name: lagoon-core
+                        meta.helm.sh/release-namespace: lagoon-core
+Selector:               app.kubernetes.io/component=lagoon-core-oauth2proxy,app.kubernetes.io/instance=lagoon-core,app.kubernetes.io/name=lagoon-core
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:       app.kubernetes.io/component=lagoon-core-oauth2proxy
+                app.kubernetes.io/instance=lagoon-core
+                app.kubernetes.io/name=lagoon-core
+  Annotations:  kubectl.kubernetes.io/restartedAt: 2025-05-29T16:49:45+10:00
+  Containers:
+   nginx:
+    Image:      nginx:1.15.9-alpine
+    Port:       80/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:        200m
+      memory:     512Mi
+    Environment:  <none>
+    Mounts:
+      /etc/nginx/ from nginx (ro)
+      /var/cache/nginx from nginx-cache (rw)
+   oauth2proxy:
+    Image:      registry.172.18.0.240.nip.io/library/oauth2-proxy:main
+    Port:       4180/TCP
+    Host Port:  0/TCP
+    Requests:
+      cpu:      10m
+      memory:   8Mi
+    Liveness:   http-get http://:http-4180/ping delay=0s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:http-4180/ping delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      OAUTH2_PROXY_INSECURE_OIDC_SKIP_ISSUER_VERIFICATION:  true
+      OAUTH2_PROXY_CLIENT_ID:                               <set to the key 'OAUTH2_PROXY_CLIENT_ID' in secret 'lagoon-core-oauth2proxy'>      Optional: false
+      OAUTH2_PROXY_CLIENT_SECRET:                           <set to the key 'OAUTH2_PROXY_CLIENT_SECRET' in secret 'lagoon-core-oauth2proxy'>  Optional: false
+      OAUTH2_PROXY_COOKIE_SECRET:                           <set to the key 'OAUTH2_PROXY_COOKIE_SECRET' in secret 'lagoon-core-oauth2proxy'>  Optional: false
+      OAUTH2_PROXY_PROVIDER:                                oidc
+      OAUTH2_PROXY_REDIRECT_URL:                            https://lagoon-oauth2proxy.172.18.0.240.nip.io
+      OAUTH2_PROXY_HTTP_ADDRESS:                            0.0.0.0:4180
+      OAUTH2_PROXY_OIDC_ISSUER_URL:                         https://lagoon-keycloak.172.18.0.240.nip.io/auth/realms/lagoon
+      OAUTH2_PROXY_EMAIL_DOMAINS:                           *
+      OAUTH2_PROXY_COOKIE_SECURE:                           false
+      OAUTH2_PROXY_COOKIE_DOMAINS:                          .nip.io
+      OAUTH2_PROXY_WHITELIST_DOMAINS:                       .nip.io
+      OAUTH2_PROXY_SCOPE:                                   openid profile email
+      OAUTH2_PROXY_CODE_CHALLENGE_METHOD:                   S256
+      OAUTH2_PROXY_REVERSE_PROXY:                           false
+      OAUTH2_PROXY_PROVIDER_CA_FILE:                        /etc/ssl/certs/keycloak-ca.crt
+      OAUTH2_PROXY_PING_PATH:                               /ping
+      OAUTH2_PROXY_LOG_LEVEL:                               debug
+    Mounts:
+      /etc/nginx/ from nginx (ro)
+      /etc/ssl/certs/keycloak from keycloak-ca-volume (ro)
+      /etc/ssl/certs/keycloak-ca.crt from keycloak-ca-volume (ro,path="ca.crt")
+  Volumes:
+   nginx-cache:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+   nginx:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      oauth2-proxy-nginx
+    Optional:  false
+   keycloak-ca-volume:
+    Type:          Secret (a volume populated by a Secret)
+    SecretName:    keycloak-tls
+    Optional:      false
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  lagoon-core-oauth2proxy-545df695 (0/0 replicas created), lagoon-core-oauth2proxy-85b589f58 (0/0 replicas created), lagoon-core-oauth2proxy-867c74bb59 (0/0 replicas created), lagoon-core-oauth2proxy-6575bcf947 (0/0 replicas created), lagoon-core-oauth2proxy-65b6bc45f4 (0/0 replicas created), lagoon-core-oauth2proxy-f4598b54f (0/0 replicas created), lagoon-core-oauth2proxy-5659847b46 (0/0 replicas created), lagoon-core-oauth2proxy-9cc8cf99d (0/0 replicas created), lagoon-core-oauth2proxy-796d5c99cf (0/0 replicas created), lagoon-core-oauth2proxy-6785c5d75d (0/0 replicas created)
+NewReplicaSet:   lagoon-core-oauth2proxy-57c7d797fc (2/2 replicas created)
+Events:
+  Type    Reason             Age                    From                   Message
+  ----    ------             ----                   ----                   -------
+  Normal  ScalingReplicaSet  59m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-867c74bb59 to 1
+  Normal  ScalingReplicaSet  59m                    deployment-controller  Scaled down replica set lagoon-core-oauth2proxy-85b589f58 to 1 from 2
+  Normal  ScalingReplicaSet  59m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-867c74bb59 to 2 from 1
+  Normal  ScalingReplicaSet  59m                    deployment-controller  Scaled down replica set lagoon-core-oauth2proxy-85b589f58 to 0 from 1
+  Normal  ScalingReplicaSet  40m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-6575bcf947 to 1
+  Normal  ScalingReplicaSet  40m                    deployment-controller  Scaled down replica set lagoon-core-oauth2proxy-867c74bb59 to 1 from 2
+  Normal  ScalingReplicaSet  40m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-6575bcf947 to 2 from 1
+  Normal  ScalingReplicaSet  40m                    deployment-controller  Scaled down replica set lagoon-core-oauth2proxy-867c74bb59 to 0 from 1
+  Normal  ScalingReplicaSet  36m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-65b6bc45f4 to 1
+  Normal  ScalingReplicaSet  36m                    deployment-controller  Scaled down replica set lagoon-core-oauth2proxy-6575bcf947 to 1 from 2
+  Normal  ScalingReplicaSet  31m                    deployment-controller  Scaled up replica set lagoon-core-oauth2proxy-f4598b54f to 1
+  Normal  ScalingReplicaSet  8m35s (x51 over 6h9m)  deployment-controller  (combined from similar events): Scaled down replica set lagoon-core-oauth2proxy-796d5c99cf to 1 from 2
