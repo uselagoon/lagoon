@@ -38,6 +38,7 @@ var (
 	s3isGCS                bool
 
 	disableSlack           bool
+	disableDiscord         bool
 	disableRocketChat      bool
 	disableMicrosoftTeams  bool
 	disableEmail           bool
@@ -91,6 +92,8 @@ func main() {
 	// Other notifications configuration
 	flag.BoolVar(&disableSlack, "disable-slack", false,
 		"Disable the logs2slack feature.")
+	flag.BoolVar(&disableDiscord, "disable-discord", false,
+		"Disable the logs2discord feature.")
 	flag.BoolVar(&disableRocketChat, "disable-rocketchat", false,
 		"Disable the logs2rocketchat feature.")
 	flag.BoolVar(&disableMicrosoftTeams, "disable-microsoft-teams", false,
@@ -249,6 +252,7 @@ func main() {
 		enableDebug,
 		lagoonAppID,
 		disableSlack,
+		disableDiscord,
 		disableRocketChat,
 		disableMicrosoftTeams,
 		disableEmail,
