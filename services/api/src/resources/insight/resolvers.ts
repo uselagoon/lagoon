@@ -75,14 +75,13 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
 
-  const auditLog: AuditLog = {
-    resource: {
-      type: AuditType.FILE,
-    },
-  };
-
-  if(userActivityLogger != undefined) {
-    userActivityLogger(`User requested a download link`, {
+    if (typeof userActivityLogger === 'function') {
+      const auditLog: AuditLog = {
+        resource: {
+          type: AuditType.FILE,
+        },
+      };
+      userActivityLogger(`User requested a download link`, {
         event: 'api:getSignedInsightsUrl',
         payload: {
           Bucket: bucket,
@@ -90,7 +89,7 @@ export const getInsightsDownloadUrl: ResolverFn = async (
           ...auditLog,
         }
       });
-  }
+    }
 
     return s3Client.getSignedUrl('getObject', {Bucket: bucket,
       Key: s3Key,

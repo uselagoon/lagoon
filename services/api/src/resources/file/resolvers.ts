@@ -12,20 +12,23 @@ import { AuditType } from '@lagoon/commons/dist/types';
 const isGCS = process.env.S3_FILES_GCS || 'false'
 
 export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
-  const auditLog: AuditLog = {
-    resource: {
-      type: AuditType.FILE,
-      details: s3Key
-    },
-  }
-  if(userActivityLogger != undefined) {
+
+  if (typeof userActivityLogger === 'function') {
+
+    const auditLog: AuditLog = {
+      resource: {
+        type: AuditType.FILE,
+        details: s3Key
+      },
+    };
+
     userActivityLogger(`User requested a download link`, {
-        event: 'api:getSignedTaskUrl',
-        payload: {
-          Key: s3Key,
-          ...auditLog
-        }
-      });
+      event: 'api:getSignedTaskUrl',
+      payload: {
+        Key: s3Key,
+        ...auditLog
+      }
+    });
   }
 
   return s3Client.getSignedUrl('getObject', {
