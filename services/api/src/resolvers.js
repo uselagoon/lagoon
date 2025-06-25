@@ -311,6 +311,7 @@ const resolvers = {
     TASK: 'task',
     USER: 'user',
     VARIABLE: 'variable',
+    FILE: 'file',
   },
   AuditSource: {
     API: 'api',
