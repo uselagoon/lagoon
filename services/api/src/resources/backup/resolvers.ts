@@ -113,6 +113,7 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
         const auditLog: AuditLog = {
           resource: {
             type: AuditType.FILE,
+            details: R.prop(3, s3Parts),
           },
         };
         userActivityLogger(`User requested a download link`, {
