@@ -21,7 +21,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
-import S3 from 'aws-sdk/clients/s3';
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
@@ -34,7 +34,7 @@ import { AuditLog } from '../audit/types';
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-const region = process.env.S3_FILES_REGION
+const region = process.env.S3_FILES_REGION || 'eu-central-1' // TODO: Determine default region
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
@@ -45,14 +45,13 @@ const config = {
   bucket: bucket
 };
 
-const s3Client = new S3({
+const s3Client = new S3Client({
   endpoint: config.origin,
-  accessKeyId: config.accessKeyId,
-  secretAccessKey: config.secretAccessKey,
-  region: config.region,
-  params: {
-    Bucket: config.bucket
+  credentials: {
+    accessKeyId: config.accessKeyId,
+    secretAccessKey: config.secretAccessKey,
   },
+  region: config.region,
   s3ForcePathStyle: true,
   signatureVersion: 'v4'
 });
@@ -88,13 +87,14 @@ export const getBuildLog: ResolverFn = async (
   try {
     // where it should be, check `buildlogs/projectName/environmentName/buildName-remoteId.txt`
     let buildLog = 'buildlogs/'+projectData.name+'/'+environmentName+'/'+name+'-'+remoteId+'.txt'
-    const data = await s3Client.getObject({Bucket: bucket, Key: buildLog}).promise();
+    const response = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: buildLog }));
+    const data = await response.Body.transformToString('utf-8');
 
     if (!data) {
       return null;
     }
-    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
-    return logMsg;
+
+    return data;
   } catch (e) {
     // there is no fallback location for build logs, so there is no log to show the user
     return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
