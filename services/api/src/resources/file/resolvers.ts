@@ -4,15 +4,25 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
+const { GetObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { Upload } = require('@aws-sdk/lib-storage');
 
 // if this is google cloud storage or not
 const isGCS = process.env.S3_FILES_GCS || 'false'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
 
-export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
-  s3Client.getSignedUrl('getObject', {
+
+export const getDownloadLink: ResolverFn = async ({ s3Key }) => {
+  const command = new GetObjectCommand({
+    Bucket: bucket,
     Key: s3Key,
-    Expires: 300 // 5 minutes
   });
+
+  return getSignedUrl(s3Client, command, {
+    expiresIn: 300, // 5 minutes
+  });
+};
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
@@ -37,13 +47,18 @@ export const uploadFilesForTask: ResolverFn = async (
   const resolvedFiles = await Promise.all(files);
   const uploadAndTrackFiles = resolvedFiles.map(async (newFile: any) => {
     const s3_key = `tasks/${task}/${newFile.filename}`;
-    const params = {
-      Key: s3_key,
-      Body: newFile.createReadStream(),
-      ...(isGCS == 'false' && {ACL: 'private'}),
-    };
-    // @ts-ignore
-    await s3Client.upload(params).promise();
+
+    const parallelUploads3 = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: bucket,
+        Key: s3_key,
+        Body: newFile.createReadStream(),
+        ...(isGCS == 'false' && { ACL: 'private' }),
+      },
+    });
+
+    await parallelUploads3.done();
 
     const { insertId } = await query(
       sqlClientPool,
@@ -98,14 +113,15 @@ export const deleteFilesForTask: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectTaskFiles(id));
   const deleteObjects = R.map((file: any) => ({ Key: file.s3Key }), rows);
 
-  const params = {
+  const command = new DeleteObjectsCommand({
+    Bucket: process.env.S3_BUCKET,
     Delete: {
       Objects: deleteObjects,
       Quiet: false
     }
-  };
-  // @ts-ignore
-  await s3Client.deleteObjects(params).promise();
+  });
+
+  await s3Client.send(command);
 
   await query(sqlClientPool, Sql.deleteFileTask(id));
 
