@@ -4,6 +4,9 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 import S3 from 'aws-sdk/clients/s3';
+import { s3Config } from '../../util/config';
+import { AuditLog } from '../audit/types';
+import { AuditType } from '@lagoon/commons/dist/types';
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -57,7 +60,7 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
 export const getInsightsDownloadUrl: ResolverFn = async (
   { fileId, environment, file },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
 
   const environmentData = await environmentHelpers(
@@ -72,9 +75,27 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
 
-    return s3Client.getSignedUrl('getObject', {Bucket: bucket, Key: s3Key, Expires: 600});
+    if (typeof userActivityLogger === 'function') {
+      const auditLog: AuditLog = {
+        resource: {
+          type: AuditType.FILE,
+        },
+      };
+      userActivityLogger(`User requested a download link`, {
+        event: 'api:getSignedInsightsUrl',
+        payload: {
+          Bucket: bucket,
+          Key: s3Key,
+          ...auditLog,
+        }
+      });
+    }
+
+    return s3Client.getSignedUrl('getObject', {Bucket: bucket,
+      Key: s3Key,
+      Expires: s3Config.signedLinkExpiration});
 	} catch (e) {
-   return `Error while creating download link - ${e.Error}`
+   return `Error while creating download link - ${e.Error || 'Unknown error'}`
 	}
 }
 

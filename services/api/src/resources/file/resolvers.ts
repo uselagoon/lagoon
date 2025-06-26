@@ -4,15 +4,39 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
+import { s3Config } from '../../util/config';
+import { AuditLog } from '../audit/types';
+import { AuditType } from '@lagoon/commons/dist/types';
 
 // if this is google cloud storage or not
 const isGCS = process.env.S3_FILES_GCS || 'false'
 
-export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
-  s3Client.getSignedUrl('getObject', {
-    Key: s3Key,
-    Expires: 300 // 5 minutes
-  });
+export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
+
+  if (typeof userActivityLogger === 'function') {
+
+    const auditLog: AuditLog = {
+      resource: {
+        type: AuditType.FILE,
+        details: s3Key
+      },
+    };
+
+    userActivityLogger(`User requested a download link`, {
+      event: 'api:getSignedTaskUrl',
+      payload: {
+        Key: s3Key,
+        ...auditLog
+      }
+    });
+  }
+
+  return s3Client.getSignedUrl('getObject', {
+      Key: s3Key,
+      Expires: s3Config.signedLinkExpiration,
+    });
+}
+
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
