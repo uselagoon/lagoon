@@ -478,13 +478,10 @@ export const getRestoreByBackupId: ResolverFn = async (
   if (restoreLocationRequested) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
     const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
-    console.log("with restorelocation")
     return {...row, restoreLocation: restLoc, restoreSize: restSize};
   } else {
     // if the restore does not have a location, return the row as is with restoreSize
     const [, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, true);
-    console.log("without restorelocation")
-
     return {...row, restoreSize: restSize};
   }
 };
