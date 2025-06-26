@@ -34,6 +34,9 @@ exports.up = async function(knex) {
         .alterTable('notification_slack', function (table) {
             table.integer('organization');
         })
+        .alterTable('notification_discord', function (table) {
+            table.integer('organization');
+        })
         .alterTable('notification_webhook', function (table) {
             table.integer('organization');
         })
