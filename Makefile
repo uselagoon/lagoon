@@ -1036,7 +1036,11 @@ ifneq ($(USE_STABLE_TESTS),true)
 	 	$(MAKE) build/tests && \
 	 	$(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher"
 else
-	$(eval TEST_IMAGE_TAG = $(shell $(HELM) search repo lagoon/lagoon-core -o json | $(JQ) -r '.[]|.app_version'))
+	$(eval TEST_IMAGE_TAG = latest)
+	@for testimage in tests local-git local-api-data-watcher-pusher; do \
+		echo pulling uselagoon/$$testimage:$(TEST_IMAGE_TAG) ; \
+		docker pull uselagoon/$$testimage:$(TEST_IMAGE_TAG); \
+	done
 endif
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& cd lagoon-charts.k3d.lagoon \
