@@ -793,6 +793,11 @@ const typeDefs = gql`
     """
     buildImage: String
     sharedBaasBucket: Boolean
+    """
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
+    if the project is associated to an organization, and the organization has any retention policies
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1083,6 +1088,10 @@ const typeDefs = gql`
     notifications(type: NotificationType): [Notification]
     created: String
     envVariables: [EnvKeyValue]
+    """
+    retentionPolicies are the available retention policies to an organization
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   input AddOrganizationInput {
@@ -1128,6 +1137,11 @@ const typeDefs = gql`
     groups: [OrgGroupInterface]
     groupCount: Int
     notifications: [OrganizationNotification]
+    """
+    retentionPolicies are the available retention policies to a project, this will also include inherited policies from an organization
+    if the project is associated to an organization, and the organization has any retention policies
+    """
+    retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
   }
 
   """
@@ -1486,6 +1500,7 @@ const typeDefs = gql`
     checkBulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput!): ProjectGroupsToOrganization
     allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
     getAuditLogs(input: AuditLogInput): [AuditLog]
+    listAllRetentionPolicies(name: String, type: RetentionPolicyType): [RetentionPolicy]
   }
 
   type ProjectGroupsToOrganization {
@@ -2387,6 +2402,194 @@ const typeDefs = gql`
     name: String
   }
 
+  """
+  HarborRetentionPolicyConfiguration is the type for harbor retention policies configuration
+  """
+  type HarborRetentionPolicyConfiguration {
+    enabled: Boolean
+    rules: [HarborRetentionRule]
+    schedule: String
+  }
+
+  type HarborRetentionRule {
+    name: String
+    """
+    Pattern is based on doublestar path pattern matching and globbing (harbor uses this)
+    Example, '[^pr\\-]*/*' to exclude pullrequests in a pattern, and 'pr-*' to only match pullrequest environments
+    https://github.com/bmatcuk/doublestar#patterns
+    """
+    pattern: String
+    latestPulled: Int
+  }
+
+  """
+  HistoryRetentionPolicyConfiguration is the type for history retention policies configuration
+  """
+  type HistoryRetentionPolicyConfiguration {
+    enabled: Boolean
+    deploymentHistory: Int
+    """
+    HistoryRetentionType to use
+    COUNT to retain up to X number items of history
+    DAYS to retain up to X number of days of history
+    MONTHS to retain up to X number of months of history
+    """
+    deploymentType: HistoryRetentionType
+    taskHistory: Int
+    """
+    HistoryRetentionType to use
+    COUNT to retain up to X number items of history
+    DAYS to retain up to X number of days of history
+    MONTHS to retain up to X number of months of history
+    """
+    taskType: HistoryRetentionType
+  }
+
+  """
+  HistoryRetentionType is the types of retention policies supported in Lagoon
+  """
+  enum HistoryRetentionType {
+    COUNT
+    DAYS
+    MONTHS
+  }
+
+  """
+  HarborRetentionPolicy is the return type for harbor retention policies in Lagoon
+  """
+  type HarborRetentionPolicy {
+    id: Int
+    name: String
+    configuration: HarborRetentionPolicyConfiguration
+    created: String
+    updated: String
+    """
+    source is where the retention policy source is coming from, this field is only populated when a project or organization
+    lists the available retention polices, and is used to indicate if a project is consuiming a retention policy from the project directly
+    or from an organization itself
+    """
+    source: String
+  }
+
+  """
+  HistoryRetentionPolicy is the return type for history retention policies in Lagoon
+  """
+  type HistoryRetentionPolicy {
+    id: Int
+    name: String
+    configuration: HistoryRetentionPolicyConfiguration
+    created: String
+    updated: String
+    """
+    source is where the retention policy source is coming from, this field is only populated when a project or organization
+    lists the available retention polices, and is used to indicate if a project is consuiming a retention policy from the project directly
+    or from an organization itself
+    """
+    source: String
+  }
+
+  union RetentionPolicy = HarborRetentionPolicy | HistoryRetentionPolicy
+
+  enum RetentionPolicyType {
+    HARBOR
+    HISTORY
+  }
+
+  """
+  AddHarborRetentionPolicyInput is used as the input for creating a harbor retention policy
+  """
+  input AddHarborRetentionPolicyInput {
+    id: Int
+    name: String!
+    enabled: Boolean!
+    rules: [HarborRetentionRuleInput!]
+    schedule: String!
+  }
+
+  input HarborRetentionRuleInput {
+    name: String!
+    pattern: String!
+    latestPulled: Int!
+  }
+
+  """
+  AddHistoryRetentionPolicyInput is used as the input for creating a history retention policy
+  """
+  input AddHistoryRetentionPolicyInput {
+    id: Int
+    name: String!
+    enabled: Boolean!
+    deploymentHistory: Int!
+    deploymentType: HistoryRetentionType!
+    taskHistory: Int!
+    taskType: HistoryRetentionType!
+  }
+
+  """
+  UpdateHarborRetentionPolicyInput is used as the input for updating a harbor retention policy
+  """
+  input UpdateHarborRetentionPolicyInput {
+    name: String!
+    patch: UpdateHarborRetentionPolicyPatchInput
+  }
+
+  """
+  UpdateHarborRetentionPolicyPatchInput is used as the patch for updating a harbor retention policy
+  """
+  input UpdateHarborRetentionPolicyPatchInput {
+    name: String
+    enabled: Boolean!
+    rules: [HarborRetentionRuleInput!]
+    schedule: String!
+  }
+
+  """
+  UpdateHistoryRetentionPolicyInput is used as the input for updating a history retention policy
+  """
+  input UpdateHistoryRetentionPolicyInput {
+    name: String!
+    patch: UpdateHistoryRetentionPolicyPatchInput
+  }
+
+  """
+  UpdateHistoryRetentionPolicyPatchInput is used as the patch for updating a history retention policy
+  """
+  input UpdateHistoryRetentionPolicyPatchInput {
+    name: String
+    enabled: Boolean!
+    deploymentHistory: Int!
+    deploymentType: HistoryRetentionType!
+    taskHistory: Int!
+    taskType: HistoryRetentionType!
+  }
+
+  """
+  AddRetentionPolicyLinkInput is used as the input for associating a retention policy with a scope
+  """
+  input AddRetentionPolicyLinkInput {
+    name: String!
+    scope: RetentionPolicyScope!
+    scopeName: String
+  }
+
+  """
+  RemoveRetentionPolicyLinkInput is used as the input for removing a harbor retention policy with a scope
+  """
+  input RemoveRetentionPolicyLinkInput {
+    name: String!
+    scope: RetentionPolicyScope!
+    scopeName: String
+  }
+
+  """
+  RetentionPolicyScope is the types of retention policies scopes in Lagoon
+  """
+  enum RetentionPolicyScope {
+    GLOBAL
+    ORGANIZATION
+    PROJECT
+  }
+
   type Mutation {
     """
     Add Environment or update if it is already existing
@@ -2602,6 +2805,47 @@ const typeDefs = gql`
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
     addPlatformRoleToUser(user: UserInput!, role: PlatformRole!): User
     removePlatformRoleFromUser(user: UserInput!, role: PlatformRole!): User
+    """
+    Create a harbor retention policy
+    """
+    createHarborRetentionPolicy(input: AddHarborRetentionPolicyInput!): HarborRetentionPolicy
+    """
+    Update a harbor retention policy
+    """
+    updateHarborRetentionPolicy(input: UpdateHarborRetentionPolicyInput!): HarborRetentionPolicy
+    """
+    Delete a harbor retention policy
+    """
+    deleteHarborRetentionPolicy(name: String!): String
+    """
+    Add an existing harbor retention policy to a resource type
+    """
+    addHarborRetentionPolicyLink(input: AddRetentionPolicyLinkInput!): HarborRetentionPolicy
+    """
+    Remove an existing harbor retention policy from a resource type
+    """
+    removeHarborRetentionPolicyLink(input: RemoveRetentionPolicyLinkInput!): String
+
+    """
+    Create an environment history retention policy
+    """
+    createHistoryRetentionPolicy(input: AddHistoryRetentionPolicyInput!): HistoryRetentionPolicy
+    """
+    Update an environment history retention policy
+    """
+    updateHistoryRetentionPolicy(input: UpdateHistoryRetentionPolicyInput!): HistoryRetentionPolicy
+    """
+    Delete an environment history retention policy
+    """
+    deleteHistoryRetentionPolicy(name: String!): String
+    """
+    Add an existing retention policy to a resource type
+    """
+    addHistoryRetentionPolicyLink(input: AddRetentionPolicyLinkInput!): HistoryRetentionPolicy
+    """
+    Remove an existing history retention policy from a resource type
+    """
+    removeHistoryRetentionPolicyLink(input: RemoveRetentionPolicyLinkInput!): String
   }
 
   type Subscription {
