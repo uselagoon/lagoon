@@ -53,9 +53,10 @@ export const uploadFilesForTask: ResolverFn = async (
     sqlClientPool,
     taskSql.selectPermsForTask(task)
   );
+  const projectId = R.path(['0', 'pid'], rowsPerms);
 
   await hasPermission('task', 'update', {
-    project: R.path(['0', 'pid'], rowsPerms)
+    project: projectId
   });
 
   const resolvedFiles = await Promise.all(files);
@@ -90,22 +91,19 @@ export const uploadFilesForTask: ResolverFn = async (
   await Promise.all(uploadAndTrackFiles);
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
+  task = R.prop(0, rows);
 
-  userActivityLogger(`User uploaded files for task '${task}' on project
-      '${R.path(
-      ['0', 'pid'],
-      rowsPerms
-    )}'`,
+  userActivityLogger(`User uploaded files for task '${task.id}' on project '${projectId}'`,
     {
       project: '',
       event: 'api:uploadFilesForTask',
-      data: {
-        rows
+      payload: {
+        task
       }
     }
   );
 
-  return R.prop(0, rows);
+  return task;
 };
 
 export const deleteFilesForTask: ResolverFn = async (
@@ -136,7 +134,7 @@ export const deleteFilesForTask: ResolverFn = async (
   userActivityLogger(`User deleted files for task '${id}'`, {
     project: '',
     event: 'api:deleteFilesForTask',
-    data: {
+    payload: {
       id
     }
   });
