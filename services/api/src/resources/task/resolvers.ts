@@ -466,15 +466,16 @@ export const updateTask: ResolverFn = async (
     project: R.path(['0', 'pid'], curPerms)
   });
 
-  if (environment) {
-    // Check access to modify task as it will be updated
-    const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environment
-    );
-    await hasPermission('task', 'update', {
-      project: envPerm.project
-    });
-  }
+  const task = await query(sqlClientPool, Sql.selectTask(id));
+  environment = task[0].environment;
+
+  // Check access to modify task as it will be updated
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environment
+  );
+  await hasPermission('task', 'update', {
+    project: envPerm.project
+  });
 
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -506,9 +507,9 @@ export const updateTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: envPerm.id,
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: envPerm.name,
     },
     linkedResource: {
       id: taskData.id,
