@@ -95,7 +95,8 @@ func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, ev
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, struct {
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(struct {
 		Name      string
 		Groupname string
 		Role      string
@@ -103,7 +104,8 @@ func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, ev
 		Name:      valuesStruct.Name,
 		Groupname: valuesStruct.Groupname,
 		Role:      valuesStruct.Role,
-	}, h.EmailBase64Logo)
+	})
+	//mainHTML, err := templateGenerator(content, , h.EmailBase64Logo)
 
 	if err != nil {
 		return err
@@ -135,13 +137,14 @@ func (h *Messaging) groupRemoveEmailMessage(valuesStruct UseractionEmailDetails,
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, struct {
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(struct {
 		Name      string
 		Groupname string
 	}{
 		Name:      valuesStruct.Name,
 		Groupname: valuesStruct.Groupname,
-	}, h.EmailBase64Logo)
+	})
 
 	if err != nil {
 		return err
@@ -169,7 +172,8 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, struct {
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(struct {
 		Name    string
 		Action  string
 		Keyname string
@@ -177,7 +181,8 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 		Name:    valuesStruct.Name,
 		Action:  action,
 		Keyname: valuesStruct.Keyname,
-	}, h.EmailBase64Logo)
+	})
+	//mainHTML, err := templateGenerator(content,  h.EmailBase64Logo)
 
 	if err != nil {
 		return err
@@ -205,7 +210,9 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
 	}
@@ -232,7 +239,9 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
 	}
@@ -261,7 +270,8 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
   If you have any questions or need assistance, please contact your organization manager.
 </p>
 `
-	mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(valuesStruct) //templateGenerator(content, valuesStruct, h.EmailBase64Logo)
 	if err != nil {
 		return err
 	}
@@ -291,7 +301,9 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 </p>
 `
 
-	mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
 	}
