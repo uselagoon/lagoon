@@ -107,7 +107,7 @@ export const HistoryRetentionEnforcer = () => {
             const c = retpol[0].configuration
             if (c.enabled) {
                 let historyToDelete = []
-                switch (c.taskType) {
+                switch (c.deploymentType) {
                     case "count":
                         historyToDelete = await query(sqlClientPool, deploymentSql.selectDeploymentHistoryRetention(environmentData.id, c.deploymentHistory));
                         break;
@@ -135,7 +135,7 @@ export const HistoryRetentionEnforcer = () => {
                     sendToLagoonActions("retentionCleanup", actionData)
                 }
                 if (historyToDelete.length != 0) {
-                    switch (c.taskType) {
+                    switch (c.deploymentType) {
                         case "count":
                             await query(sqlClientPool, deploymentSql.deleteDeploymentHistory(environmentData.id, c.deploymentHistory));
                             break;

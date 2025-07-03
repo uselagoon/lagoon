@@ -303,7 +303,7 @@ export const Sql = {
       .select('id','name','remote_id')
       .where('environment', environment)
       .where('admin_only_view', 0)
-      .where(knex.raw('created >= NOW() - interval ' + retain + 'DAY'))
+      .where(knex.raw('created <= NOW() - INTERVAL ' + retain + ' DAY'))
       .toString(),
   // this selects all tasks for the environment and returns everything outside of the requested retain months value
   selectTaskHistoryRetentionMonths: (environment: number, retain: number) =>
@@ -311,7 +311,7 @@ export const Sql = {
       .select('id','name','remote_id')
       .where('environment', environment)
       .where('admin_only_view', 0)
-      .where(knex.raw('created >= NOW() - interval ' + retain + 'MONTH'))
+      .where(knex.raw('created <= NOW() - INTERVAL ' + retain + ' MONTH'))
       .toString(),
   // this selects all tasks for the environment and returns everything
   selectTaskHistoryForEnvironment: (environment: number) =>
@@ -344,7 +344,7 @@ export const Sql = {
       .select('id','name','remote_id')
       .where('environment', environment)
       .where('admin_only_view', 0)
-      .where(knex.raw('created >= NOW() - interval ' + retain + 'DAY'))
+      .where(knex.raw('created <= NOW() - INTERVAL ' + retain + ' DAY'))
       .delete()
       .toString(),
   // same as select, except it deletes all tasks for the environment outside of the requested retain value
@@ -353,7 +353,7 @@ export const Sql = {
       .select('id','name','remote_id')
       .where('environment', environment)
       .where('admin_only_view', 0)
-      .where(knex.raw('created >= NOW() - interval ' + retain + 'MONTH'))
+      .where(knex.raw('created <= NOW() - INTERVAL ' + retain + ' MONTH'))
       .delete()
       .toString(),
   // same as select, except it deletes all tasks for the environment outside of the requested retain value
