@@ -35,7 +35,7 @@ export const HarborRetentionEnforcer = () => {
                                     id: project[0].id,
                                     name: project[0].name,
                                 },
-                                policy: retpol.configuration
+                                policy: JSON.parse(retpol.configuration)
                             }
                         }
                         const data = {
