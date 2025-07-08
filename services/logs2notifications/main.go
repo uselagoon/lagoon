@@ -54,6 +54,7 @@ var (
 	emailSSL                bool
 	emailInsecureSkipVerify bool
 	emailBase64Logo         string
+	emailTemplateFile       string
 )
 
 func main() {
@@ -133,6 +134,8 @@ func main() {
 		"Use TLS verification when talking to the email server.")
 	flag.StringVar(&emailBase64Logo, "email-logo", "",
 		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
+	flag.StringVar(&emailTemplateFile, "email-template-file", "",
+		"Set to a path to a custom email template file, if you would like to override the default email template. ")
 
 	// debug config
 	flag.BoolVar(&enableDebug, "enable-debug", false, "Enable debug logging for verbose output.")
@@ -168,6 +171,20 @@ func main() {
 	emailPort = getEnv("EMAIL_PORT", emailPort)
 	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
 	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo)
+	emailTemplateFile = getEnv("EMAIL_TEMPLATE_FILE", emailTemplateFile)
+
+	emailTemplate := ""
+	if emailTemplateFile != "" {
+		// first check it exists
+		if _, err := os.Stat(emailTemplateFile); os.IsNotExist(err) {
+			log.Fatalf("Email template file %s does not exist", emailTemplateFile)
+		}
+		emailTemplateBytes, err := os.ReadFile(emailTemplateFile)
+		if err != nil {
+			log.Fatalf("Error reading email template file %s: %v", emailTemplateFile, err)
+		}
+		emailTemplate = string(emailTemplateBytes)
+	}
 
 	enableDebug := getEnvBool("ENABLE_DEBUG", enableDebug)
 
@@ -263,6 +280,7 @@ func main() {
 		emailSSL,
 		emailInsecureSkipVerify,
 		emailBase64Logo,
+		emailTemplate,
 		s3FilesAccessKeyID,
 		s3FilesSecretAccessKey,
 		s3FilesBucket,

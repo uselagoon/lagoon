@@ -17,6 +17,11 @@ type TemplateDataGenerator struct {
 }
 
 func NewTemplateDataGenerator(contentTemplate, mailTemplate, image string) *TemplateDataGenerator {
+
+	if mailTemplate == "" {
+		mailTemplate = userInteractionEventsTemplateDisk
+	}
+
 	return &TemplateDataGenerator{
 		ContentTemplate: contentTemplate,
 		MailTemplate:    mailTemplate,

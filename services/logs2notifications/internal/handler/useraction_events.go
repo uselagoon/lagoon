@@ -95,7 +95,7 @@ func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, ev
 </p>
 `
 
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(struct {
 		Name      string
 		Groupname string
@@ -137,7 +137,7 @@ func (h *Messaging) groupRemoveEmailMessage(valuesStruct UseractionEmailDetails,
 </p>
 `
 
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(struct {
 		Name      string
 		Groupname string
@@ -172,7 +172,7 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 </p>
 `
 
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(struct {
 		Name    string
 		Action  string
@@ -211,7 +211,7 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 `
 
 	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 `
 
 	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
