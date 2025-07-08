@@ -30,10 +30,10 @@ func NewTemplateDataGenerator(contentTemplate, mailTemplate, image string) *Temp
 }
 
 func (templateData *TemplateDataGenerator) Generate(contentValues interface{}) (string, error) {
-	return templateGenerator(templateData.ContentTemplate, contentValues, templateData.Image)
+	return templateGenerator(templateData.MailTemplate, templateData.ContentTemplate, contentValues, templateData.Image)
 }
 
-func templateGenerator(contentTemplate string, contentValues interface{}, image string) (string, error) {
+func templateGenerator(mailTemplate, contentTemplate string, contentValues interface{}, image string) (string, error) {
 
 	if contentTemplate == "" {
 		return "", fmt.Errorf("content cannot be empty")
@@ -43,7 +43,7 @@ func templateGenerator(contentTemplate string, contentValues interface{}, image 
 	if image != "" {
 		logoImage = image
 	}
-	t, err := template.New("email").Parse(userInteractionEventsTemplateDisk)
+	t, err := template.New("email").Parse(mailTemplate)
 	if err != nil {
 		return "", err
 	}

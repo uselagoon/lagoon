@@ -7,6 +7,7 @@ import (
 
 func Test_templateGenerator(t *testing.T) {
 	type args struct {
+		mailTemplate    string
 		contentTemplate string
 		contentValues   interface{}
 		image           string
@@ -20,6 +21,7 @@ func Test_templateGenerator(t *testing.T) {
 		{
 			name: "Valid template with values",
 			args: args{
+				mailTemplate:    "Subject: Test Email\n\n{{.Content}}\n\nBest regards,\nLagoon Team",
 				contentTemplate: `Hello, {{.Name}}! Your image is {{.Image}}.`,
 				contentValues: map[string]string{
 					"Name": "World",
@@ -31,6 +33,7 @@ func Test_templateGenerator(t *testing.T) {
 		{
 			name: "Check basic image exists",
 			args: args{
+				mailTemplate:    "Subject: Test Email\n\n{{.Content}}\n\nBest regards,\nLagoon Team",
 				contentTemplate: `Hello, {{.Name}}! Your image is {{.Image}}.`,
 				contentValues: map[string]string{
 					"Name": "World",
@@ -42,7 +45,7 @@ func Test_templateGenerator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := templateGenerator(tt.args.contentTemplate, tt.args.contentValues, tt.args.image)
+			got, err := templateGenerator(tt.args.mailTemplate, tt.args.contentTemplate, tt.args.contentValues, tt.args.image)
 			//fmt.Print("Generated Template: ", got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("templateGenerator() error = %v, wantErr %v", err, tt.wantErr)

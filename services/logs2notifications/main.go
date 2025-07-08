@@ -184,6 +184,7 @@ func main() {
 			log.Fatalf("Error reading email template file %s: %v", emailTemplateFile, err)
 		}
 		emailTemplate = string(emailTemplateBytes)
+		log.Printf("Using custom email template from %s", emailTemplateFile)
 	}
 
 	enableDebug := getEnvBool("ENABLE_DEBUG", enableDebug)
