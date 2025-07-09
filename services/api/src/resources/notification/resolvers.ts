@@ -126,6 +126,15 @@ export const addNotificationSlack: ResolverFn = async (
   return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_slack', 'Slack', input));
 };
 
+export const addNotificationDiscord: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, adminScopes, userActivityLogger}
+) => {
+  await checkOrgNotificationPermission(hasPermission, input, adminScopes)
+  return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_discord', 'Discord', input));
+};
+
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission, adminScopes, userActivityLogger}) => {
   await checkOrgNotificationPermission(hasPermission, input, adminScopes)
   return R.path([0], await addNotificationGeneric(sqlClientPool, userActivityLogger, 'notification_webhook', 'Webhook', input));
@@ -346,6 +355,32 @@ export const deleteNotificationSlack: ResolverFn = async (
   return 'success';
 };
 
+export const deleteNotificationDiscord: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission }
+) => {
+  const { name } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationSlackByName(name)
+  );
+  await checkNotificationRemovePermissions(check, hasPermission)
+
+  const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
+    name,
+    type: 'discord'
+  });
+
+  if (R.length(nids) > 0) {
+    throw new Error("Can't delete notification linked to projects");
+  }
+
+  await deleteNotificationGeneric(sqlClientPool, "notification_discord", "discord", name);
+
+  // TODO: maybe check rows for changed result
+  return 'success';
+};
 
 export const deleteNotificationWebhook: ResolverFn = async (
   root,
@@ -408,7 +443,7 @@ export const removeNotificationFromProject: ResolverFn = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email', 'webhook'];
+const NOTIFICATION_TYPES = ['slack', 'discord', 'rocketchat', 'microsoftteams', 'email', 'webhook'];
 
 export const getNotificationsByProjectId: ResolverFn = async (
   { id: pid },
@@ -727,6 +762,44 @@ export const updateNotificationSlack: ResolverFn = async (
   const rows = await query(
     sqlClientPool,
     Sql.selectNotificationSlackByName(newName ? newName : name)
+  );
+
+  return R.prop(0, rows);
+};
+
+export const updateNotificationDiscord: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission }
+) => {
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
+  const { name, patch: {name: newName = ''} } = input;
+  const check = await query(
+    sqlClientPool,
+    Sql.selectNotificationDiscordByName(name)
+  );
+
+  checkNotificationExists(name, check)
+
+  await checkNotificationUpdatePermissions(check, hasPermission)
+
+  try {
+    await query(sqlClientPool, Sql.updateNotificationDiscord(input));
+  } catch(error) {
+    if(error.text.includes("Duplicate entry")){
+      throw new Error(
+        `Error renaming notification ${input.name}. Notification ${input.patch.name} already exists`
+      )
+    } else {
+      throw new Error(error.message);
+    }
+  };
+
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectNotificationDiscordByName(newName ? newName : name)
   );
 
   return R.prop(0, rows);

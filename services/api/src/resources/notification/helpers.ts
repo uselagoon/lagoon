@@ -23,6 +23,11 @@ export const Helpers = (sqlClientPool: Pool) => ({
       sqlClientPool,
       Sql.selectNotificationsByTypeByProjectId(input)
     );
+    input.type = "discord"
+    const discords = await query(
+      sqlClientPool,
+      Sql.selectNotificationsByTypeByProjectId(input)
+    );
     input.type = "rocketchat"
     const rcs = await query(
       sqlClientPool,
@@ -43,7 +48,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       sqlClientPool,
       Sql.selectNotificationsByTypeByProjectId(input)
     );
-    let result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
+    let result = [...slacks, ...discords, ...rcs, ...teams, ...email, ...webhook]
 
     return result
   },
@@ -51,6 +56,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     { project }: { project: number },
   ) => {
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "slack"));
+    await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "discord"));
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "rocketchat"));
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "microsoftteams"));
     await query(sqlClientPool, Sql.deleteProjectNotificationByProjectId(project, "email"));
@@ -60,6 +66,11 @@ export const Helpers = (sqlClientPool: Pool) => ({
     let type = "slack"
     // get all notifications
     const slacks = await query(
+      sqlClientPool,
+      Sql.selectAllNotifications(type)
+    );
+    type = "discord"
+    const discords = await query(
       sqlClientPool,
       Sql.selectAllNotifications(type)
     );
@@ -83,7 +94,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       sqlClientPool,
       Sql.selectAllNotifications(type)
     );
-    let result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
+    let result = [...slacks, ...discords, ...rcs, ...teams, ...email, ...webhook]
 
     return result
   },
