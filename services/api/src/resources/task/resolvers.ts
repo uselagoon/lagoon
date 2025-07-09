@@ -466,6 +466,11 @@ export const updateTask: ResolverFn = async (
     project: R.path(['0', 'pid'], curPerms)
   });
 
+  const task = await query(sqlClientPool, Sql.selectTask(id));
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    task[0].environment
+  );
+
   if (environment) {
     // Check access to modify task as it will be updated
     const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -506,9 +511,9 @@ export const updateTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: env.id,
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: env.name,
     },
     linkedResource: {
       id: taskData.id,

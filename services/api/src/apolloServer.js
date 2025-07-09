@@ -3,7 +3,6 @@ const {
   ApolloServer,
   AuthenticationError,
 } = require('apollo-server-express');
-const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
 const { decode } = require('jsonwebtoken');

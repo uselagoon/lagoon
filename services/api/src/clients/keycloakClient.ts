@@ -44,10 +44,23 @@ keycloakGrantManager.validateToken = function validateToken(
     } else if (token.content.typ !== expectedType) {
       reject(new Error('invalid token (wrong type)'));
     } else if (token.content.iat < this.notBefore) {
-      reject(new Error('invalid token (future dated)'));
+      reject(new Error('invalid token (stale token)'));
     } else if (!token.content.iss.includes('auth/realms/lagoon')) {
       reject(new Error('invalid token (wrong ISS)'));
     } else {
+      const audienceData = Array.isArray(token.content.aud) ? token.content.aud : [token.content.aud]
+      if (expectedType === 'ID') {
+        if (!audienceData.includes(this.clientId)) {
+          reject(new Error('invalid token (wrong audience)'))
+        }
+        if (token.content.azp && token.content.azp !== this.clientId) {
+          reject(new Error('invalid token (authorized party should match client id)'))
+        }
+      } else if (this.verifyTokenAudience) {
+        if (!audienceData.includes(this.clientId)) {
+          reject(new Error('invalid token (wrong audience)'))
+        }
+      }
       const verify = crypto.createVerify('RSA-SHA256');
       // if public key has been supplied use it to validate token
       if (this.publicKey) {
@@ -78,11 +91,7 @@ keycloakGrantManager.validateToken = function validateToken(
             }
           })
           .catch(err => {
-            reject(
-              new Error(
-                `failed to load public key to verify token. Reason: ${err.message}`
-              )
-            );
+            reject(new Error('failed to load public key to verify token. Reason: ' + err.message));
           });
       }
     }

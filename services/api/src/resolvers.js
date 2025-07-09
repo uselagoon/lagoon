@@ -267,7 +267,8 @@ const {
   getEnvironmentsByOrganizationId,
   removeUserFromOrganizationGroups,
   checkBulkImportProjectsAndGroupsToOrganization,
-  bulkImportProjectsAndGroupsToOrganization
+  bulkImportProjectsAndGroupsToOrganization,
+  getOrganizationByProject
 } = require('./resources/organization/resolvers');
 
 const {
@@ -328,6 +329,7 @@ async function getResolvers() {
       TASK: 'task',
       USER: 'user',
       VARIABLE: 'variable',
+      FILE: 'file',
     },
     AuditSource: {
       API: 'api',
@@ -441,6 +443,7 @@ async function getResolvers() {
       groups: getGroupsByProjectId,
       privateKey: getPrivateKey,
       publicKey: getProjectDeployKey,
+      organizationDetails: getOrganizationByProject,
     },
     GroupInterface: {
       __resolveType(group) {
@@ -527,20 +530,20 @@ async function getResolvers() {
       download: getDownloadLink
     },
     Notification: {
-      __resolveType(obj) {
-        switch (obj.type) {
-          case 'slack':
-            return 'NotificationSlack';
-          case 'rocketchat':
-            return 'NotificationRocketChat';
-          case 'microsoftteams':
-            return 'NotificationMicrosoftTeams';
-          case 'email':
-            return 'NotificationEmail';
-          case 'webhook':
-            return 'NotificationWebhook';
-          default:
-            return null;
+    __resolveType(obj) {
+      switch (obj.type) {
+        case 'slack':
+          return 'NotificationSlack';
+        case 'rocketchat':
+          return 'NotificationRocketChat';
+        case 'microsoftteams':
+          return 'NotificationMicrosoftTeams';
+        case 'email':
+          return 'NotificationEmail';
+        case 'webhook':
+          return 'NotificationWebhook';
+        default:
+          return null;
         }
       }
     },
