@@ -38,6 +38,7 @@ func TestProcessing(t *testing.T) {
 		true,
 		true,
 		"", //Empty logo - default
+		"",
 		"s3FilesAccessKeyID",
 		"s3FilesSecretAccessKey",
 		"s3FilesBucket",
