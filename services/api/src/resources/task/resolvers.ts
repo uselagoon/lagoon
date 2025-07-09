@@ -13,7 +13,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
-import S3 from 'aws-sdk/clients/s3';
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
@@ -24,7 +24,7 @@ import { AuditLog } from '../audit/types';
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-const region = process.env.S3_FILES_REGION
+const region = process.env.S3_FILES_REGION || 'eu-central-1' // TODO: Determine default region
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
@@ -35,16 +35,14 @@ const config = {
   bucket: bucket
 };
 
-const s3Client = new S3({
+const s3Client = new S3Client({
   endpoint: config.origin,
-  accessKeyId: config.accessKeyId,
-  secretAccessKey: config.secretAccessKey,
-  region: config.region,
-  params: {
-    Bucket: config.bucket
+  credentials: {
+    accessKeyId: config.accessKeyId,
+    secretAccessKey: config.secretAccessKey,
   },
-  s3ForcePathStyle: true,
-  signatureVersion: 'v4'
+  region: config.region,
+  forcePathStyle: true
 });
 
 export const getTaskLog: ResolverFn = async (
@@ -76,25 +74,27 @@ export const getTaskLog: ResolverFn = async (
 
   try {
     // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
-  let taskLog = 'tasklogs/'+projectData.name+'/'+environmentName+'/'+id+'-'+remoteId+'.txt'
-    const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
+    let taskLog = 'tasklogs/'+projectData.name+'/'+environmentName+'/'+id+'-'+remoteId+'.txt'
+    const response = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: taskLog }));
+    const data = await response.Body.transformToString('utf-8');
 
     if (!data) {
       return null;
     }
-    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
-    return logMsg;
+
+    return data;
   } catch (e) {
     // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
     try {
       let taskLog = 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'
-      const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
+      const response = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: taskLog }));
+      const data = await response.Body.transformToString('utf-8');
 
       if (!data) {
         return null;
       }
-      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('utf-8');
-      return logMsg;
+
+      return data;
     } catch (e) {
       // otherwise there is no log to show the user
       return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
