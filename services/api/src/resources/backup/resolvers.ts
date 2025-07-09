@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { getConfigFromEnv } from '../../util/config';
+import { getConfigFromEnv, s3Config } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
@@ -16,11 +16,12 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import e from 'express';
 
 const { S3Client, HeadObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
@@ -108,8 +109,25 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
       }), {
-        expiresIn: 300
+        expiresIn: s3Config.signedLinkExpiration
       });
+
+      if (typeof userActivityLogger === 'function') {
+        const auditLog: AuditLog = {
+          resource: {
+            type: AuditType.FILE,
+            details: R.prop(3, s3Parts),
+          },
+        };
+        userActivityLogger(`User requested a download link`, {
+          event: 'api:getSignedBackupUrl',
+          payload: {
+            Bucket: R.prop(2, s3Parts),
+            Key: R.prop(3, s3Parts),
+            ...auditLog,
+          }
+        });
+      }
 
       return [restLoc, restoreSize];
     } catch(err) {
@@ -445,7 +463,8 @@ export const updateRestore: ResolverFn = async (
       details: `${backupData.source} - ${backupId}`,
     },
   };
-  userActivityLogger(`User updated restore '${backupId}'`, {
+  if (userActivityLogger != undefined) {
+    userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
     event: 'api:updateRestore',
     payload: {
@@ -455,6 +474,7 @@ export const updateRestore: ResolverFn = async (
       ...auditLog,
     }
   });
+  }
 
   return restoreData;
 };
@@ -462,19 +482,29 @@ export const updateRestore: ResolverFn = async (
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger },
+  info
 ) => {
   const rows = await query(
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );
   const row = R.prop(0, rows)
-  if (row && row.restoreLocation != null) {
-    // if the restore has a location, determine the signed url and the reported size of the object in Bytes
-    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool);
-    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+
+  if (!row || row.restoreLocation == null) {
+    return row;
   }
-  return row;
+
+  const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "restoreLocation");
+  if (restoreLocationRequested) {
+    // if the restore has a location, determine the signed url and the reported size of the object in Bytes
+    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
+    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+  } else {
+    // if the restore does not have a location, return the row as is with restoreSize
+    const [, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, true);
+    return {...row, restoreSize: restSize};
+  }
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([

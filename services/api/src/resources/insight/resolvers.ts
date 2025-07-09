@@ -5,6 +5,9 @@ import { Helpers as projectHelpers } from '../project/helpers';
 
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+import { s3Config } from '../../util/config';
+import { AuditLog } from '../audit/types';
+import { AuditType } from '@lagoon/commons/dist/types';
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -51,7 +54,7 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
 export const getInsightsDownloadUrl: ResolverFn = async (
   { fileId, environment, file },
   _args,
-  { sqlClientPool }
+  { sqlClientPool, userActivityLogger }
 ) => {
 
   const environmentData = await environmentHelpers(
@@ -66,11 +69,27 @@ export const getInsightsDownloadUrl: ResolverFn = async (
 	try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
 
+    if (typeof userActivityLogger === 'function') {
+      const auditLog: AuditLog = {
+        resource: {
+          type: AuditType.FILE,
+        },
+      };
+      userActivityLogger(`User requested a download link`, {
+        event: 'api:getSignedInsightsUrl',
+        payload: {
+          Bucket: bucket,
+          Key: s3Key,
+          ...auditLog,
+        }
+      });
+    }
+
     const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
 
-    return await getSignedUrl(s3Client, command, { expiresIn: 600 });
+    return await getSignedUrl(s3Client, command, { expiresIn: s3Config.signedLinkExpiration });
 	} catch (e) {
-    return `Error while creating download link - ${e.message}`;
+   return `Error while creating download link - ${e.Error || 'Unknown error'}`
 	}
 }
 
@@ -95,7 +114,6 @@ export const getInsightsFileData: ResolverFn = async (
   try {
     let insightsFile = 'insights/'+projectData.name+'/'+environmentName+'/'+file
     const data = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: insightsFile }));
-
 
     if (!data) {
       return null;

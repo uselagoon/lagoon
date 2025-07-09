@@ -44,7 +44,7 @@ export class LagoonLogsTransport extends Transport {
       // saving internal tokens to the event log would result in massive amounts of logged data
       // ideally LEGACY_EXPIRY_MAX and LEGACY_EXPIRY_REJECT are tuned to ensure use of legacy tokens is useless outside
       // of internal systems
-      if (info.event && info.event != "api:unknownEvent" && info.payload.resource && info.user.access_token) {
+      if (info.event && info.event != "api:unknownEvent" && info.payload?.resource && info.user?.access_token) {
         // try and determine the user request from headers, fall back to api
         const requestSource = info.headers['referer'] ? AuditSourceType.UI : info.headers['user-agent'].includes("lagoon-client") ? AuditSourceType.CLI : AuditSourceType.API
         const aLog = {

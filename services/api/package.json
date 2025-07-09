@@ -30,6 +30,7 @@
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
     "apollo-server-express": "^2.14.2",
+    "aws-sdk": "^2.378.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
     "compression": "^1.7.1",

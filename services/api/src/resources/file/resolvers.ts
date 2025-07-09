@@ -4,6 +4,10 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
+import { s3Config } from '../../util/config';
+import { AuditLog } from '../audit/types';
+import { AuditType } from '@lagoon/commons/dist/types';
+
 const { GetObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { Upload } = require('@aws-sdk/lib-storage');
@@ -13,14 +17,32 @@ const isGCS = process.env.S3_FILES_GCS || 'false'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
 
 
-export const getDownloadLink: ResolverFn = async ({ s3Key }) => {
+export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
   const command = new GetObjectCommand({
     Bucket: bucket,
     Key: s3Key,
   });
 
+  if (typeof userActivityLogger === 'function') {
+
+    const auditLog: AuditLog = {
+      resource: {
+        type: AuditType.FILE,
+        details: s3Key
+      },
+    };
+
+    userActivityLogger(`User requested a download link`, {
+      event: 'api:getSignedTaskUrl',
+      payload: {
+        Key: s3Key,
+        ...auditLog
+      }
+    });
+  }
+
   return getSignedUrl(s3Client, command, {
-    expiresIn: 300, // 5 minutes
+    expiresIn: s3Config.signedLinkExpiration,
   });
 };
 
@@ -39,9 +61,10 @@ export const uploadFilesForTask: ResolverFn = async (
     sqlClientPool,
     taskSql.selectPermsForTask(task)
   );
+  const projectId = R.path(['0', 'pid'], rowsPerms);
 
   await hasPermission('task', 'update', {
-    project: R.path(['0', 'pid'], rowsPerms)
+    project: projectId
   });
 
   const resolvedFiles = await Promise.all(files);
@@ -81,22 +104,19 @@ export const uploadFilesForTask: ResolverFn = async (
   await Promise.all(uploadAndTrackFiles);
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
+  task = R.prop(0, rows);
 
-  userActivityLogger(`User uploaded files for task '${task}' on project
-      '${R.path(
-      ['0', 'pid'],
-      rowsPerms
-    )}'`,
+  userActivityLogger(`User uploaded files for task '${task.id}' on project '${projectId}'`,
     {
       project: '',
       event: 'api:uploadFilesForTask',
-      data: {
-        rows
+      payload: {
+        task
       }
     }
   );
 
-  return R.prop(0, rows);
+  return task;
 };
 
 export const deleteFilesForTask: ResolverFn = async (
@@ -128,7 +148,7 @@ export const deleteFilesForTask: ResolverFn = async (
   userActivityLogger(`User deleted files for task '${id}'`, {
     project: '',
     event: 'api:deleteFilesForTask',
-    data: {
+    payload: {
       id
     }
   });
