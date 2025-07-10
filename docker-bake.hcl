@@ -70,7 +70,8 @@ group "default" {
     "task-activestandby",
     "tests",
     "webhook-handler",
-    "webhooks2tasks"
+    "webhooks2tasks",
+    "webhooks"
   ]
 }
 
@@ -80,7 +81,8 @@ group "go-services" {
     "backup-handler",
     "api-sidecar-handler",
     "logs2notifications",
-    "task-activestandby"
+    "task-activestandby",
+    "webhooks",
   ]
 }
 
@@ -146,7 +148,8 @@ group "prod-images" {
     "task-activestandby",
     "tests",
     "webhook-handler",
-    "webhooks2tasks"
+    "webhooks2tasks",
+    "webhooks",
   ]
 }
 
@@ -292,6 +295,18 @@ target "webhook-handler" {
     "org.opencontainers.image.title": "lagoon-core/webhook-handler - the webhook-handler service for Lagoon"
   }
   tags = ["${IMAGE_REPO}/webhook-handler:${TAG}"]
+}
+
+target "webhooks" {
+  inherits = ["default"]
+  context = "services/webhooks"
+  contexts = {
+    "lagoon/yarn-workspace-builder": "target:yarn-workspace-builder"
+  }
+  labels = {
+    "org.opencontainers.image.title": "lagoon-core/webhooks - the webhooks service for Lagoon"
+  }
+  tags = ["${IMAGE_REPO}/webhooks:${TAG}"]
 }
 
 target "webhooks2tasks" {

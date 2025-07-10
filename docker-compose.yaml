@@ -24,6 +24,13 @@ services:
       - '7778:3000'
     depends_on:
       - broker
+  webhooks:
+    image: ${IMAGE_REPO:-lagoon}/webhooks:${IMAGE_REPO_BACKUP_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
+    restart: on-failure
+    ports:
+      - '7779:3000'
+    depends_on:
+      - broker
   broker:
     image: ${IMAGE_REPO:-lagoon}/broker:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
     ports:
