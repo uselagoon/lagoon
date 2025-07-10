@@ -3,6 +3,7 @@ const {
   ApolloServer,
   AuthenticationError,
 } = require('apollo-server-express');
+const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
 const { decode } = require('jsonwebtoken');
@@ -23,7 +24,6 @@ const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const getResolvers = require('./resolvers');
 const { keycloakGrantManager } = require('./clients/keycloakClient');
-
 const User = require('./models/user');
 const Group = require('./models/group');
 const Environment = require('./models/environment');

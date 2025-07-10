@@ -73,7 +73,7 @@ export const createServer = async () => {
               if (keycloakGrant) {
                 try {
                   keycloakUsersGroups = await User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
-                  serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
+                  serviceAccount = await keycloakGrantManager.obtainFromClientCredentials(undefined, undefined);
                   currentUser = await User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
                   const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
                   for (const role of userRoleMapping) {

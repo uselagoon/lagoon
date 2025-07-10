@@ -178,7 +178,7 @@ export class KeycloakUnauthorizedError extends Error {
   }
 }
 
-export const keycloakHasPermission = (grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
+export const keycloakHasPermission = (grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
   const GroupModel = Group(modelClients);
   const UserModel = User(modelClients);
 
