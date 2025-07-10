@@ -209,7 +209,8 @@ services :=	api \
 			keycloak-db \
 			logs2notifications \
 			webhook-handler \
-			webhooks2tasks
+			webhooks2tasks \
+			webhooks
 
 service-images += $(services)
 
@@ -233,6 +234,7 @@ build/api-sidecar-handler: services/api-sidecar-handler/Dockerfile
 build/keycloak-db: services/keycloak-db/$(DATABASE_DOCKERFILE)
 build/keycloak: services/keycloak/Dockerfile
 build/logs2notifications: services/logs2notifications/Dockerfile
+build/webhooks: services/webhooks/Dockerfile
 build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
@@ -318,7 +320,7 @@ compose/configure-webauthn:
 main-test-services = actions-handler broker api-sidecar-handler logs2notifications api api-db api-redis api-sidecar-handler keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
-webhooks-test-services = webhook-handler webhooks2tasks backup-handler
+webhooks-test-services = webhook-handler webhooks2tasks backup-handler webhooks
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -753,7 +755,7 @@ K3D_TOOLS = k3d helm kubectl jq stern
 .PHONY: k3d/test
 k3d/test: k3d/setup k3d/install-lagoon k3d/retest
 
-LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler webhooks2tasks webhooks
 
 # install lagoon dependencies in a k3d cluster
 .PHONY: k3d/setup
