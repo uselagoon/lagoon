@@ -7,7 +7,6 @@ import { app, configureApp } from './app';
 import { execute, subscribe } from "graphql";
 import { getSchema, getGrantOrLegacyCredsFromToken } from './apolloServer';
 import { getKeycloakAdminClient } from './clients/keycloak-admin';
-import NodeCache from 'node-cache';
 import { sqlClientPool } from './clients/sqlClient';
 import { esClient } from './clients/esClient';
 import { User } from './models/user';
@@ -58,7 +57,7 @@ export const createServer = async () => {
             try {
               const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(token);
               const keycloakAdminClient = await getKeycloakAdminClient();
-              const requestCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
+              // const requestCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
               const modelClients = { sqlClientPool, keycloakAdminClient, esClient };
 
               let currentUser: any = {};
@@ -101,11 +100,10 @@ export const createServer = async () => {
                 keycloakAdminClient,
                 sqlClientPool,
                 hasPermission: grant
-                  ? keycloakHasPermission(grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+                  ? keycloakHasPermission(grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
                   : legacyHasPermission(legacyCredentials),
                 keycloakGrant,
                 legacyGrant,
-                requestCache,
                 models: {
                   UserModel: User(modelClients),
                   GroupModel: Group(modelClients),
@@ -140,10 +138,6 @@ export const createServer = async () => {
             logger.error('WebSocket onError', { errors });
           },
           onDisconnect: (ctx: any, code, reason) => {
-            if (ctx.extra && ctx.extra.requestCache) {
-              ctx.extra.requestCache.flushAll();
-              ctx.extra.requestCache.close();
-            }
             logger.verbose('WebSocket disconnected');
           },
         },

@@ -3,7 +3,6 @@ const {
   ApolloServer,
   AuthenticationError,
 } = require('apollo-server-express');
-const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
 const { decode } = require('jsonwebtoken');
@@ -129,10 +128,6 @@ async function initCheck() {
       // HTTP requests
       if (!connection) {
       const keycloakAdminClient = await getKeycloakAdminClient();
-        const requestCache = new NodeCache({
-          stdTTL: 0,
-          checkperiod: 0
-        });
 
         const modelClients = {
           sqlClientPool,
@@ -185,7 +180,7 @@ async function initCheck() {
         // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
         // this eliminates a huge number of these by making it available in the apollo context
         const hasPermission = req.kauth
-            ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+            ? keycloakHasPermission(req.kauth.grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
             : legacyHasPermission(req.legacyCredentials)
 
         return {
@@ -193,7 +188,6 @@ async function initCheck() {
           sqlClientPool,
           hasPermission,
           keycloakGrant,
-          requestCache,
           legacyGrant,
           userActivityLogger: (message, meta) => {
             let defaultMeta = {
@@ -234,16 +228,6 @@ async function initCheck() {
       };
     },
     plugins: [
-      {
-        requestDidStart: () => ({
-          willSendResponse: response => {
-            if (response.context.requestCache) {
-              response.context.requestCache.flushAll();
-              response.context.requestCache.close();
-            }
-          }
-        })
-      },
       // newrelic instrumentation plugin. Based heavily on https://github.com/essaji/apollo-newrelic-extension-plus
       {
         requestDidStart({ request }) {

@@ -58,7 +58,6 @@
     "morgan": "^1.9.0",
     "mysql": "^2.18.1",
     "newrelic": "^12.5.0",
-    "node-cache": "^5.1.2",
     "ramda": "0.25.0",
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
