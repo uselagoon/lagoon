@@ -52,7 +52,7 @@ const s3Client = new S3Client({
     secretAccessKey: config.secretAccessKey,
   },
   region: config.region,
-  s3ForcePathStyle: true,
+  forcePathStyle: true,
   signatureVersion: 'v4'
 });
 
