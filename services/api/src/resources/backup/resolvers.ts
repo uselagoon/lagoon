@@ -95,7 +95,7 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
       endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
-      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'eu-central-1'
+      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
     });
 
     try {
