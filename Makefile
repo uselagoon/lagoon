@@ -456,7 +456,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = aergia
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
@@ -493,6 +493,9 @@ INSTALL_MAILPIT = true
 
 # install prometheus for logoon local development
 INSTALL_PROMETHEUS = true
+
+# install aergia in local development
+INSTALL_AERGIA = true
 
 # optionally install k8up for lagoon local development testing
 INSTALL_K8UP = false
@@ -739,7 +742,8 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) k3d/check
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
-		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
+		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
+		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)')
 
 # k3d/dev can only be run once a cluster is up and running (run k3d/test or k3d/local-stack first) - it doesn't rebuild the cluster at all
 # just checks out the repository and rebuilds and pushes the built images
@@ -812,7 +816,8 @@ endif
 		REMOTE_CONTROLLER_K8UP_VERSION=$(REMOTE_CONTROLLER_K8UP_VERSION) \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
-		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
+		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
+		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)')
 	$(MAKE) k3d/push-stable-build-image
 ifneq ($(SKIP_DETAILS),true)
 	$(MAKE) k3d/get-lagoon-details
