@@ -105,7 +105,6 @@ func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, ev
 		Groupname: valuesStruct.Groupname,
 		Role:      valuesStruct.Role,
 	})
-	//mainHTML, err := templateGenerator(content, , h.EmailBase64Logo)
 
 	if err != nil {
 		return err
@@ -182,7 +181,6 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 		Action:  action,
 		Keyname: valuesStruct.Keyname,
 	})
-	//mainHTML, err := templateGenerator(content,  h.EmailBase64Logo)
 
 	if err != nil {
 		return err
@@ -239,7 +237,6 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 </p>
 `
 
-	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
@@ -270,7 +267,7 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
   If you have any questions or need assistance, please contact your organization manager.
 </p>
 `
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct) //templateGenerator(content, valuesStruct, h.EmailBase64Logo)
 	if err != nil {
 		return err
@@ -301,8 +298,7 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 </p>
 `
 
-	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
-	templateGenerator := NewTemplateDataGenerator(content, userInteractionEventsTemplateDisk, h.EmailBase64Logo)
+	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
