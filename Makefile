@@ -73,10 +73,10 @@ UI_IMAGE_TAG = main
 # SSHPORTAL_IMAGE_REPO =
 # SSHPORTAL_IMAGE_TAG =
 
-# OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
-# set this to a particular build image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
+# OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
+# set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=
+OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -493,7 +493,7 @@ INSTALL_MAILPIT = true
 
 # optionally install k8up for lagoon local development testing
 INSTALL_K8UP = false
-BUILD_DEPLOY_CONTROLLER_K8UP_VERSION = v2
+REMOTE_CONTROLLER_K8UP_VERSION = v2
 
 # the following can be used to selectively leave out the installation of certain
 # dbaas provider types
@@ -785,8 +785,8 @@ endif
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
 		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
-		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
-		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
+		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
+		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
@@ -803,7 +803,7 @@ endif
 		$$([ $(STABLE_BUILDDEPLOY_CHART_VERSION) ] && echo 'STABLE_BUILDDEPLOY_CHART_VERSION=$(STABLE_BUILDDEPLOY_CHART_VERSION)') \
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
-		BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=$(BUILD_DEPLOY_CONTROLLER_K8UP_VERSION) \
+		REMOTE_CONTROLLER_K8UP_VERSION=$(REMOTE_CONTROLLER_K8UP_VERSION) \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
