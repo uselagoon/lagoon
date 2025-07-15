@@ -9,7 +9,6 @@ import {
   createEnvironmentFilteredSubscriber,
   EVENTS
 } from '../../clients/pubSub';
-import S3 from 'aws-sdk/clients/s3';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
@@ -18,6 +17,9 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 import e from 'express';
+
+const { S3Client, HeadObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
   let restoreSize = 0;
@@ -85,32 +87,30 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
     // from the s3 url.
     const URL = require('url').URL;
     const restoreLocationURL = new URL(restoreLocation);
-    const s3Client = new S3({
-      accessKeyId,
-      secretAccessKey,
-      s3ForcePathStyle: true,
+    const s3Client = new S3Client({
+      credentials: {
+        accessKeyId,
+        secretAccessKey
+      },
+      forcePathStyle: true,
       signatureVersion: 'v4',
       endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
-      region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
+      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
     });
 
-
-    // before generating the signed url, check the object exists
-    const restoreLoc = await s3Client.headObject({
-      Bucket: R.prop(2, s3Parts),
-      Key: R.prop(3, s3Parts)
-    });
     try {
-      const data = await Promise.resolve(restoreLoc.promise());
-      restoreSize = data.ContentLength ?? restoreSize
-      if (restoreSizeOnly) {
-        return ["", restoreSize];
-      }
-      const restLoc = await s3Client.getSignedUrl('getObject', {
+      const headObjectResponse = await s3Client.send(new HeadObjectCommand({
+        Bucket: R.prop(2, s3Parts),
+        Key: R.prop(3, s3Parts)
+      }));
+      restoreSize = headObjectResponse.ContentLength ?? restoreSize;
+
+      const restLoc = await getSignedUrl(s3Client, new GetObjectCommand({
         Bucket: R.prop(2, s3Parts),
         Key: R.prop(3, s3Parts),
-        Expires: s3Config.signedLinkExpiration
-      })
+      }), {
+        expiresIn: s3Config.signedLinkExpiration
+      });
 
       if (typeof userActivityLogger === 'function') {
         const auditLog: AuditLog = {
