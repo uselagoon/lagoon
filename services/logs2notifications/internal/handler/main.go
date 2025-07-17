@@ -51,6 +51,7 @@ type Messaging struct {
 	EnableDebug             bool
 	LagoonAppID             string
 	DisableSlack            bool
+	DisableDiscord          bool
 	DisableRocketChat       bool
 	DisableMicrosoftTeams   bool
 	DisableEmail            bool
@@ -154,7 +155,7 @@ func NewMessaging(config mq.Config,
 	startupInterval int,
 	enableDebug bool,
 	appID string,
-	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableUserActionEmail, disableWebhooks, disableS3 bool,
+	disableSlack, disableDiscord, disableRocketChat, disableMicrosoftTeams, disableEmail, disableUserActionEmail, disableWebhooks, disableS3 bool,
 	emailSender, emailusername, emailSenderPassword, emailHost, emailPort string, emailSSL, emailInsecureSkipVerify bool, emailBase64Logo string,
 	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string, s3isGCS bool) *Messaging {
 	return &Messaging{
@@ -165,6 +166,7 @@ func NewMessaging(config mq.Config,
 		EnableDebug:             enableDebug,
 		LagoonAppID:             appID,
 		DisableSlack:            disableSlack,
+		DisableDiscord:          disableDiscord,
 		DisableRocketChat:       disableRocketChat,
 		DisableMicrosoftTeams:   disableMicrosoftTeams,
 		DisableEmail:            disableEmail,
@@ -285,6 +287,11 @@ func (h *Messaging) processMessage(message []byte) {
 						h.SendToMicrosoftTeams(notification, teams.Webhook)
 					}
 				}
+				if len(projectNotifications.Notifications.Discord) > 0 && !h.DisableDiscord {
+					for _, hook := range projectNotifications.Notifications.Discord {
+						h.SendToDiscord(notification, hook)
+					}
+				}
 				if len(projectNotifications.Notifications.Webhook) > 0 && !h.DisableWebhooks {
 					for _, hook := range projectNotifications.Notifications.Webhook {
 						h.SendToWebhook(notification, hook)
@@ -321,5 +328,7 @@ func (h *Messaging) getProjectNotifictions(ctx context.Context, projectName stri
 		log.Println(err)
 		return nil, err
 	}
+	log.Printf("Project Notifications:\n%+v\n", projectNotifications.Notifications)
+
 	return projectNotifications, nil
 }

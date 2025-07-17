@@ -36,7 +36,7 @@ else
 fi
 
 echo removing unused lagoon-logs queues
-for queue in "workflows" "slack" "rocketchat" "microsoftTeams" "email" "webhook" "s3"; do
+for queue in "workflows" "slack" "discord" "rocketchat" "microsoftTeams" "email" "webhook" "s3"; do
 if [[ ! "$(curl -s -u "${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}" "http://${SERVICE_NAME}:15672/api/queues/%2F/lagoon-logs%3A${queue}")" =~ "Object Not Found" ]]
   then
     echo " - removing lagoon-logs:${queue} queue"

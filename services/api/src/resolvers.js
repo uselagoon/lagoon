@@ -144,11 +144,13 @@ const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationDiscord,
   addNotificationWebhook,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationDiscord,
   deleteNotificationWebhook,
   getAllNotifications,
   getNotificationsByProjectId,
@@ -157,6 +159,7 @@ const {
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationDiscord,
   updateNotificationWebhook,
   addNotificationEmail,
   updateNotificationEmail,
@@ -377,6 +380,7 @@ const resolvers = {
   },
   NotificationType: {
     SLACK: 'slack',
+    DISCORD: 'discord',
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
@@ -516,6 +520,8 @@ const resolvers = {
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
+        case 'discord':
+          return 'NotificationDiscord';
         case 'rocketchat':
           return 'NotificationRocketChat';
         case 'microsoftteams':
@@ -629,6 +635,9 @@ const resolvers = {
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
+    addNotificationDiscord,
+    updateNotificationDiscord,
+    deleteNotificationDiscord,
     addNotificationWebhook,
     updateNotificationWebhook,
     deleteNotificationWebhook,
