@@ -164,6 +164,7 @@ export interface GroupModel {
   getGroupMembership: (group: Group) => Promise<GroupMembership[]>
   getGroupMemberCount: (group: Group) => Promise<number>
   removeNonProjectDefaultUsersFromGroup: (group: Group, project: String) => Promise<Group>
+  purgeGroupCache: (group: Pick<Group, 'name' | 'id'>, membersOnly: Boolean) => Promise<void>
 }
 
 export const Group = (clients: {
@@ -1126,6 +1127,7 @@ export const Group = (clients: {
     transformKeycloakGroups,
     getGroupMembership,
     getGroupMemberCount,
-    removeNonProjectDefaultUsersFromGroup
+    removeNonProjectDefaultUsersFromGroup,
+    purgeGroupCache
   };
 };
