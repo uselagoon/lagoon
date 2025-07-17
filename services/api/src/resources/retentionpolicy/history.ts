@@ -211,6 +211,7 @@ export const HistoryRetentionEnforcer = () => {
             const deploymentHistory = await query(sqlClientPool, deploymentSql.selectDeploymentHistoryForEnvironment(environmentData.id));
             const backupHistory = await query(sqlClientPool, backupSql.selectBackupsByEnvironmentId(environmentData.id));
             const environmentStorage = await query(sqlClientPool, environmentSql.selectEnvironmentStorageByEnvironmentId(environmentData.id));
+            delete projectData["privateKey"] // remove the privatekey from the project payload before saving the history
             const actionData = {
                 type: "retentionHistory",
                 eventType: "saveHistory",
