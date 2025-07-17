@@ -102,15 +102,15 @@ func main() {
 	flag.BoolVar(&disableS3, "disable-s3", false,
 		"Disable the logs2s3 feature.")
 	flag.StringVar(&s3FilesAccessKeyID, "s3-files-access-key", "minio",
-		"The jwt audience.")
+		"The S3 files access key.")
 	flag.StringVar(&s3FilesSecretAccessKey, "s3-files-secret-access-key", "minio123",
-		"The jwt audience.")
+		"The S3 files secret access key.")
 	flag.StringVar(&s3FilesBucket, "s3-files-bucket", "lagoon-files",
-		"The jwt audience.")
+		"The S3 files bucket.")
 	flag.StringVar(&s3FilesRegion, "s3-files-region", "auto",
-		"The jwt audience.")
+		"The S3 files region.")
 	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.nip.io:9000",
-		"The jwt audience.")
+		"The S3 files origin.")
 	flag.BoolVar(&s3isGCS, "s3-google-cloud", false,
 		"If the storage backend is google cloud.")
 

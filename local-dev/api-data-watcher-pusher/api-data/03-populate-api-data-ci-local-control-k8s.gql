@@ -128,4 +128,80 @@ mutation PopulateApi {
     id
   }
 
+  RetPol1: createHarborRetentionPolicy(input:{
+    name: "harbor-policy"
+    enabled: true
+    rules: [
+      {
+        name: "all branches, excluding pullrequests"
+        pattern: "[^pr-]*/*"
+        latestPulled: 3
+      },
+      {
+        name: "pullrequests"
+        pattern: "pr-*"
+        latestPulled: 1
+      }
+    ]
+    schedule: "3 * * * *"
+  }) {
+    id
+    name
+    configuration {
+      enabled
+      rules {
+        name
+        pattern
+        latestPulled
+      }
+      schedule
+    }
+    created
+    updated
+  }
+
+  RetPol2: createHistoryRetentionPolicy(input:{
+    name: "history-policy"
+    enabled: true
+    deploymentHistory: 5
+    deploymentType: COUNT
+    taskHistory: 10
+    taskType: COUNT
+  }) {
+    id
+    name
+    configuration {
+      enabled
+      deploymentHistory
+      deploymentType
+      taskHistory
+      taskType
+    }
+    created
+    updated
+  }
+
+  RetPolLink1: addHarborRetentionPolicyLink(input:{
+    name: "harbor-policy"
+    scope: GLOBAL
+    scopeName: "global",
+  }) {
+    id
+    name
+    source
+    created
+    updated
+  }
+
+  RetPolLink2: addHistoryRetentionPolicyLink(input:{
+    name: "history-policy"
+    scope: GLOBAL
+    scopeName: "global",
+  }) {
+    id
+    name
+    source
+    created
+    updated
+  }
 }
