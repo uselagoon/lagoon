@@ -2,6 +2,7 @@ $brand: #4578E6;
 $white: #ffffff;
 $black: #000000;
 
+@import "_login";
 
 body, html {
   display: flex;
@@ -21,7 +22,7 @@ body {
   margin: 0;
 }
 
-header.header{
+nav.header{
   background: linear-gradient(to right, rgba(36, 174, 196, 1) 0%, rgba(42, 109, 254, 1) 25%);
   display: flex;
   justify-content: space-between;
@@ -63,31 +64,26 @@ header.header{
   z-index: 0;
 }
 
-.kc-content {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.kc {
+  left: 50%;
+  top: 25%;
+  transform: translate(-50%);
+  height: auto;
+  width: 440px;
+  background-color: #ffffff;
+  box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
+  position: relative;
+  padding: 32px;
+  z-index: 1;
 
-  .kc-content-wrapper{
-    background-size:cover;
-    background-position:center;;
-    display:flex;
-    justify-content:center;
-    flex-direction:column;
-    width: 440px;
-    background-color: #ffffff;
-    box-shadow: 4px 8px 13px 0px rgba(0, 0, 0, 0.03);
-    position: relative;
-    padding: 32px;
-    z-index: 1;
+  h1{
+    color: $brand;
+    font-size: 24px;
+  }
 
-    h1{
-      color: $brand;
-      font-size: 24px;
-    }
+
+
+  .kc-wrapper{
 
     form{
       margin: 24px 0 0;
@@ -99,7 +95,8 @@ header.header{
 
       label{
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 2px;
+        margin-top: 16px;
 
         .required{
           color: #b8082a;
@@ -108,7 +105,7 @@ header.header{
 
       input{
         width: 360px;
-        height: 24px;
+        height: 50px;
         color: #000000;
         border: 1px solid #ccc;
         outline: none;
@@ -126,9 +123,9 @@ header.header{
         height: auto;
       }
 
-      input.saveTOTPBtn{
+      input.saveTOTPBtn, input#saveTOTPBtn, input#registerWebAuthn, input#kc-try-again{
         width: auto;
-        height: 40px;
+        height: 50px;
         padding: 12px 32px;
         background-color: $brand;
         font-family: source-sans-pro, sans-serif;
@@ -144,7 +141,7 @@ header.header{
         }
       }
 
-      button.cancelTOTPBtn{
+      button.cancelTOTPBtn, button#cancelTOTPBtn, button#cancelWebAuthnAIA {
         width: auto;
         height: 40px;
         padding: 12px 32px;
@@ -161,7 +158,6 @@ header.header{
           background-color: $white;
         }
       }
-
 
 
       .username_wapper{
@@ -204,7 +200,7 @@ header.header{
       // Buttons
       .submit_btn{
         width: auto;
-        height: 40px;
+        height: 50px;
         padding: 12px 32px;
         background-color: $brand;
         font-family: source-sans-pro, sans-serif;
@@ -223,7 +219,7 @@ header.header{
       #kc-form-buttons{
         input{
           width: auto;
-          height: 40px;
+          height: 50px;
           padding: 12px 32px;
           background-color: $brand;
           font-family: source-sans-pro, sans-serif;
@@ -255,6 +251,10 @@ header.header{
           color: $brand;
           background-color: $white;
         }
+      }
+
+      .required{
+        color: red;
       }
     }
 
@@ -318,8 +318,28 @@ header.header{
         }
       }
     }
+
+    input#registerWebAuthn, input#authenticateWebAuthnButton{
+      width: auto;
+      height: 50px;
+      padding: 12px 32px;
+      background-color: $brand;
+      font-family: source-sans-pro, sans-serif;
+      font-size: 14px;
+      text-align: center;
+      color: #ffffff;
+      margin: 24px 0 0;
+      border: 1px $brand solid;
+
+      &:hover{
+        color: $brand;
+        background-color: $white;
+      }
+    }
   }
 }
+
+
 
 
 
