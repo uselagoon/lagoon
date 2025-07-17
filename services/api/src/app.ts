@@ -39,7 +39,7 @@ app.use(
 
 // TODO: Restrict requests to lagoon domains?
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:8888',
+  origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'apollo-require-preflight']
