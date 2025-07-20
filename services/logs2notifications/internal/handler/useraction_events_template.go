@@ -3,6 +3,7 @@ package handler
 import (
 	_ "embed"
 	"fmt"
+	"log"
 	"strings"
 	"text/template"
 )
@@ -19,7 +20,7 @@ type TemplateDataGenerator struct {
 func NewTemplateDataGenerator(contentTemplate, mailTemplate, image string) *TemplateDataGenerator {
 
 	if mailTemplate == "" {
-		mailTemplate = userInteractionEventsTemplateDisk
+		log.Fatal("mail template cannot be empty")
 	}
 
 	return &TemplateDataGenerator{
@@ -73,8 +74,5 @@ func templateGenerator(mailTemplate, contentTemplate string, contentValues inter
 	return completeMail.String(), nil
 }
 
-//go:embed "templates/files/defaultTemplateImageBase64.txt"
+//go:embed "assets/defaultlogobase64.txt"
 var defaultTemplateImageBase64 string
-
-//go:embed "templates/userinteraction_event_mail.gotmpl"
-var userInteractionEventsTemplateDisk string

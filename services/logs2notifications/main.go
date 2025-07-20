@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	mq "github.com/cheshir/go-mq/v2"
+	"github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/handler"
 )
 
@@ -54,6 +54,7 @@ var (
 	emailSSL                bool
 	emailInsecureSkipVerify bool
 	emailBase64Logo         string
+	emailBase64LogoFile     string
 	emailTemplateFile       string
 )
 
@@ -134,7 +135,9 @@ func main() {
 		"Use TLS verification when talking to the email server.")
 	flag.StringVar(&emailBase64Logo, "email-logo", "",
 		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
-	flag.StringVar(&emailTemplateFile, "email-template-file", "",
+	flag.StringVar(&emailBase64LogoFile, "email-logo-file", "templates/logobase64.txt",
+		"Set to a path to a file containing a base64 encoded string if you would like to override the default (lagoon) logo. ")
+	flag.StringVar(&emailTemplateFile, "email-template-file", "templates/mail.gotmpl",
 		"Set to a path to a custom email template file, if you would like to override the default email template. ")
 
 	// debug config
@@ -170,12 +173,26 @@ func main() {
 	emailHost = getEnv("EMAIL_HOST", emailHost)
 	emailPort = getEnv("EMAIL_PORT", emailPort)
 	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
-	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo)
+
+	if emailBase64LogoFile != "" {
+		// first check it exists
+		if _, err := os.Stat(emailBase64LogoFile); os.IsNotExist(err) {
+			log.Fatalf("Email logo file %s does not exist", emailBase64LogoFile)
+		}
+		emailBase64LogoBytes, err := os.ReadFile(emailBase64LogoFile)
+		if err != nil {
+			log.Fatalf("Error reading email logo file %s: %v", emailBase64LogoFile, err)
+		}
+		emailBase64Logo = string(emailBase64LogoBytes)
+		log.Printf("Using email logo from %s", emailBase64LogoFile)
+	}
+
+	emailBase64Logo = getEnv("EMAIL_BASE64_LOGO", emailBase64Logo) // allow overriding the logo with an env var
+
 	emailTemplateFile = getEnv("EMAIL_TEMPLATE_FILE", emailTemplateFile)
 
 	emailTemplate := ""
 	if emailTemplateFile != "" {
-		// first check it exists
 		if _, err := os.Stat(emailTemplateFile); os.IsNotExist(err) {
 			log.Fatalf("Email template file %s does not exist", emailTemplateFile)
 		}
@@ -184,7 +201,16 @@ func main() {
 			log.Fatalf("Error reading email template file %s: %v", emailTemplateFile, err)
 		}
 		emailTemplate = string(emailTemplateBytes)
-		log.Printf("Using custom email template from %s", emailTemplateFile)
+		log.Printf("Using email template from %s", emailTemplateFile)
+	}
+
+	// Exit if no email template is provided and no default is bundled.
+	if emailTemplate == "" {
+		if emailTemplateFile == "" {
+			log.Fatal("No email template provided. Please provide a valid email template file or set EMAIL_TEMPLATE_FILE.")
+		} else {
+			log.Fatal("Email template is empty. Please ensure the file contains a valid template.")
+		}
 	}
 
 	enableDebug := getEnvBool("ENABLE_DEBUG", enableDebug)
