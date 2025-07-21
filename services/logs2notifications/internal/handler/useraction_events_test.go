@@ -106,6 +106,7 @@ func TestMessaging_handleUserActionToEmail1(t *testing.T) {
 			h := &Messaging{
 				EmailDeliveryFunction: emailDeliveryFunction,
 			}
+			h.EmailTemplate = "{{.Content}}"
 			if err := h.handleUserActionToEmail(tt.args.notificationConstructor(), tt.args.payloadConstructor()); (err != nil) != tt.wantErr {
 
 				if !strings.Contains(subjectSent, tt.want.subjectSentFragment) {

@@ -8,14 +8,12 @@ import (
 )
 
 type handleUserActionUser struct {
-	//Id           string `json:"id"`
 	Email        string `json:"email"`
 	Organization int    `json:"organization"`
 	Role         string `json:"role"`
 }
 
 type handleUserActionResource struct {
-	//Id      int    `json:"id"`
 	Type    string `json:"type"`
 	Details string `json:"details"` // stores the org name
 }
@@ -208,7 +206,6 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 </p>
 `
 
-	//mainHTML, err := templateGenerator(content, valuesStruct, h.EmailBase64Logo)
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
@@ -268,7 +265,7 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
 </p>
 `
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
-	mainHTML, err := templateGenerator.Generate(valuesStruct) //templateGenerator(content, valuesStruct, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(valuesStruct)
 	if err != nil {
 		return err
 	}

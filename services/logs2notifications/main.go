@@ -135,7 +135,7 @@ func main() {
 		"Use TLS verification when talking to the email server.")
 	flag.StringVar(&emailBase64Logo, "email-logo", "",
 		"Set to a base64 encoded string if you would like to override the default (lagoon) logo")
-	flag.StringVar(&emailBase64LogoFile, "email-logo-file", "templates/logobase64.txt",
+	flag.StringVar(&emailBase64LogoFile, "email-logo-file", "templates/defaultlogo.b64",
 		"Set to a path to a file containing a base64 encoded string if you would like to override the default (lagoon) logo. ")
 	flag.StringVar(&emailTemplateFile, "email-template-file", "templates/mail.gotmpl",
 		"Set to a path to a custom email template file, if you would like to override the default email template. ")
