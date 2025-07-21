@@ -10,6 +10,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { TaskSourceType } from '@lagoon/commons/dist/types';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
   const getTaskById = async (TaskID: number) => {
@@ -135,6 +136,9 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
           `*[${projectData.name}]* Task not initiated, reason: ${error}`
         );
       }
+
+      // pass to the HistoryRetentionEnforcer to clean up tasks based on any retention policies
+      await HistoryRetentionEnforcer().cleanupTasks(projectData, environmentData)
 
       return taskData;
     },

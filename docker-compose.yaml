@@ -99,6 +99,7 @@ services:
       - SIDECAR_HANDLER_HOST=apisidecarhandler
       - SSH_TOKEN_ENDPOINT=localhost
       - SSH_TOKEN_ENDPOINT_PORT=2020
+      - ENABLE_SAVED_HISTORY_EXPORT=true
     depends_on:
       api-lagoon-migrations:
         condition: service_started
@@ -126,6 +127,8 @@ services:
   actions-handler:
     image: ${IMAGE_REPO:-lagoon}/actions-handler:${IMAGE_REPO_ACTIONS_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
+    environment:
+      - S3_FILES_HOST=http://172.17.0.1:9000
     depends_on:
       - broker
   ssh:
