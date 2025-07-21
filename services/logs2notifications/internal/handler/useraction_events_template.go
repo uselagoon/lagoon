@@ -1,7 +1,6 @@
 package handler
 
 import (
-	_ "embed"
 	"fmt"
 	"log"
 	"strings"
