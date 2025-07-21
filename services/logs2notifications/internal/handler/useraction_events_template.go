@@ -40,10 +40,6 @@ func templateGenerator(mailTemplate, contentTemplate string, contentValues inter
 		return "", fmt.Errorf("content cannot be empty")
 	}
 
-	logoImage := defaultTemplateImageBase64
-	if image != "" {
-		logoImage = image
-	}
 	t, err := template.New("email").Parse(mailTemplate)
 	if err != nil {
 		return "", err
@@ -54,7 +50,7 @@ func templateGenerator(mailTemplate, contentTemplate string, contentValues inter
 		LogoImage string
 	}{
 		Content:   contentTemplate,
-		LogoImage: logoImage,
+		LogoImage: image,
 	}
 
 	var body strings.Builder
@@ -73,6 +69,3 @@ func templateGenerator(mailTemplate, contentTemplate string, contentValues inter
 	}
 	return completeMail.String(), nil
 }
-
-//go:embed "assets/defaultlogobase64.txt"
-var defaultTemplateImageBase64 string
