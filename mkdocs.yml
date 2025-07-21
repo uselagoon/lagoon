@@ -105,6 +105,7 @@ nav:
   - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
   - Custom Tasks: using-lagoon-advanced/custom-tasks.md
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
+  - Retention Policies: using-lagoon-advanced/retention-policies.md
   - Blackfire: using-lagoon-advanced/blackfire.md
   - Harbor:
     - Using Harbor: using-lagoon-advanced/using-harbor/README.md
