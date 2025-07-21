@@ -343,6 +343,16 @@ mutation PopulateApi {
     id
   }
 
+  UIProject2EmailNotifications: addNotificationToProject(
+    input: {
+      project: "lagoon-demo-org"
+      notificationType: EMAIL
+      notificationName: "email-test"
+    }
+  ) {
+    id
+  }
+
   # Add mailhub service
   UIProject2Envvar: addOrUpdateEnvVariableByName(
     input: {
