@@ -20,6 +20,7 @@ WORKDIR /app/
 
 # bring the auto-idler binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/logs2notifications/logs2notifications .
+COPY templates/ /app/templates/
 
 ENV LAGOON=logs2notifications
 # set defaults

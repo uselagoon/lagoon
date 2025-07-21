@@ -9,37 +9,13 @@ import (
 	"text/template"
 )
 
-var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <title>{{.Title}}</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0 " />
-  <style>
-	@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
-	body {
-	  font-family: 'Roboto', sans-serif;
-	}
-	.main{
-	  border-left: 10px solid {{.Color}};
-	  padding: 10px;
-	}
-	ul {
-	  margin: 2px;
-	  list-style-type:none;
-	}
-  </style>
-</head>
-<body>
-  <div class="main">
+var htmlContentTemplate = `  <div style="border-left: 10px solid {{.Color}};padding: 10px;">
 	<h2><strong>{{.Emoji}} [{{.ProjectName}}]</strong></h2>
 	<p>
 	    {{.MainHTML}}
 	</p>
   </div>
-</body>
-</html>`
+`
 
 // SendToEmail .
 func (h *Messaging) SendToEmail(notification *Notification, emailAddress string) {
@@ -171,34 +147,29 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 }
 
 func (h *Messaging) prepareAndSendEmail(emoji, color, subject, event, project, emailAddress, mainHTML, plainText string) {
-	var body bytes.Buffer
 
-	// mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	// body.Write([]byte(fmt.Sprintf("From: Lagoon Notifications<%s>\nSubject: %s \n%s\n\n", h.EmailSender, subject, mimeHeaders)))
-
-	t, _ := template.New("email").Parse(htmlTemplate)
-	t.Execute(&body, struct {
-		Color       string
+	templateGenerator := NewTemplateDataGenerator(htmlContentTemplate, h.EmailTemplate, h.EmailBase64Logo)
+	mainHTML, err := templateGenerator.Generate(struct {
 		Emoji       string
-		Title       string
 		ProjectName string
 		MainHTML    string
+		Color       string
 	}{
-		Title:       plainText,
-		Color:       color,
 		Emoji:       emoji,
 		ProjectName: project,
 		MainHTML:    mainHTML,
+		Color:       color,
 	})
-
-	err := h.deliverEmail(emailAddress, subject, plainText, body)
 	if err != nil {
-		log.Printf("Error sending email for project %s: %v", project, err)
+		log.Printf("Error generating email template for event %s and project %s: %v", event, project, err)
 		return
 	}
 
-	log.Printf("Sent %s message to email for project %s", event, project)
-
+	err = h.simpleMail(emailAddress, subject, mainHTML, plainText)
+	if err != nil {
+		log.Printf("error sending email for %s event %s: %v", emailAddress, event, err)
+	}
+	return
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {
