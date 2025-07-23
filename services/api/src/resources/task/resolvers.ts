@@ -507,7 +507,7 @@ export const updateTask: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectTask(id));
   const taskData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.TASK, taskData);
+      pubSub.publish(EVENTS.TASK, {taskChanged: taskData});
 
   const auditLog: AuditLog = {
     resource: {
@@ -1030,4 +1030,4 @@ export const taskDrushUserLogin: ResolverFn = async (
 
 export const taskSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.TASK
-]);
+], "taskChanged");

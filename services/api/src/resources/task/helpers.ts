@@ -98,7 +98,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       let rows = await query(sqlClientPool, Sql.selectTask(insertId));
       const taskData = R.prop(0, rows);
 
-      pubSub.publish(EVENTS.TASK, taskData);
+      pubSub.publish(EVENTS.TASK, {taskChanged: taskData});
 
       // Allow creating task data w/o executing the task
       if (execute === false) {

@@ -55,8 +55,74 @@ try {
           throw err;
         }
       },
-      context: async (ctx, msg, args) => {
-        return ctx;
+      context: async (ctx) => {
+        const connectionParams = ctx.connectionParams || {};
+        let keycloakGrant = null;
+        let legacyGrant = null;
+
+        try {
+          if (connectionParams.authToken) {
+            const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(
+              connectionParams.authToken,
+            );
+            keycloakGrant = grant;
+            legacyGrant = legacyCredentials;
+          }
+        } catch (e) {
+          logger.error(`WebSocket auth failed: ${e.message}`);
+        }
+
+        const keycloakAdminClient = await getKeycloakAdminClient();
+        const modelClients = { sqlClientPool, keycloakAdminClient, esClient };
+
+        let currentUser: any = { id: undefined };
+        let serviceAccount = {};
+        let keycloakUsersGroups = [];
+        let groupRoleProjectIds = [];
+        let platformOwner = false;
+        let platformViewer = false;
+
+        if (keycloakGrant) {
+          try {
+            const userId = keycloakGrant.access_token.content.sub;
+            keycloakUsersGroups = await User(modelClients).getAllGroupsForUser(userId);
+            serviceAccount = await keycloakGrantManager.obtainFromClientCredentials(undefined, undefined);
+            currentUser = await User(modelClients).loadUserById(userId);
+            const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({ id: currentUser.id });
+            platformOwner = userRoleMapping.some(role => role.name === 'platform-owner');
+            platformViewer = userRoleMapping.some(role => role.name === 'platform-viewer');
+            groupRoleProjectIds = await User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
+            await User(modelClients).userLastAccessed(currentUser);
+          } catch (e) {
+            logger.error('Error loading user details for subscription', e.message);
+          }
+        }
+
+        if (legacyGrant) {
+          const { role } = legacyGrant;
+          if (role === 'admin') {
+            platformOwner = true;
+          }
+        }
+
+        const hasPermission = keycloakGrant
+          ? keycloakHasPermission(keycloakGrant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+          : legacyHasPermission(legacyGrant);
+
+        return {
+          keycloakAdminClient,
+          sqlClientPool,
+          hasPermission,
+          keycloakGrant,
+          legacyGrant,
+          models: {
+            UserModel: User(modelClients),
+            GroupModel: Group(modelClients),
+            EnvironmentModel: Environment(modelClients)
+          },
+          keycloakUsersGroups,
+          adminScopes: { platformOwner, platformViewer },
+        };
       },
       onConnect: async (ctx) => {
         const token = R.prop('authToken', ctx.connectionParams);

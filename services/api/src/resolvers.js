@@ -760,7 +760,7 @@ async function getResolvers() {
       deploymentChanged: {
         subscribe: deploymentSubscriber,
         resolve: payload => {
-          return payload;
+          return payload.deploymentChanged;
         }
       },
       taskChanged: {

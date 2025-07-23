@@ -354,7 +354,6 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
-
   sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   sourceType ??= DeploymentSourceType.API
 
@@ -401,7 +400,7 @@ export const addDeployment: ResolverFn = async (
     }
   });
 
-  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, { deploymentChanged: deployment });
   return deployment;
 };
 
@@ -506,7 +505,7 @@ export const updateDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(id));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, { deploymentChanged: deployment });
 
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
     deployment.environment
@@ -1557,4 +1556,4 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT
-]);
+], 'deploymentChanged');
