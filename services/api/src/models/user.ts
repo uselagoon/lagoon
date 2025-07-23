@@ -804,6 +804,14 @@ const getAllProjectsIdsForUser = async (
         }
       }
 
+      // Purge the Group cache for all groups the user belongs to, 
+      // so it does not have out of date information.
+      const GroupModel = Group(clients);
+      const userGroups = await getAllGroupsForUser(userInput.id);
+      await Promise.all(
+          userGroups.map((userGroup) => GroupModel.purgeGroupCache(userGroup, true) )
+      );
+
       await keycloakAdminClient.users.update(
         {
           id: userInput.id

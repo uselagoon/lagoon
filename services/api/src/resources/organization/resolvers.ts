@@ -371,7 +371,7 @@ export const getOrganizationByProject: ResolverFn = async (
     return null
   }
 
-  const extraFields = requestsExtraFields(info, ['__typename', 'id', 'name', 'friendlyName']);
+  const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName']);
   if (extraFields) {
     await hasPermission('organization', 'view', {
       organization: project.organization,

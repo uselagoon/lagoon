@@ -73,10 +73,10 @@ UI_IMAGE_TAG = main
 # SSHPORTAL_IMAGE_REPO =
 # SSHPORTAL_IMAGE_TAG =
 
-# OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG and OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY
-# set this to a particular build image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=
-OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=
+# OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
+# set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=
+OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -491,9 +491,15 @@ LAGOON_CORE_USE_HTTPS = true
 # install mailpit for lagoon local development
 INSTALL_MAILPIT = true
 
+# install prometheus for logoon local development
+INSTALL_PROMETHEUS = true
+
+# install aergia in local development
+INSTALL_AERGIA = true
+
 # optionally install k8up for lagoon local development testing
 INSTALL_K8UP = false
-BUILD_DEPLOY_CONTROLLER_K8UP_VERSION = v2
+REMOTE_CONTROLLER_K8UP_VERSION = v2
 
 # the following can be used to selectively leave out the installation of certain
 # dbaas provider types
@@ -662,6 +668,7 @@ helm/repos: local-dev/helm
 	$(HELM) repo add twuni https://helm.twun.io
 	$(HELM) repo add k8up https://k8up-io.github.io/k8up
 	$(HELM) repo add appuio https://charts.appuio.ch
+	$(HELM) repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	$(HELM) repo update
 
 # stand up a k3d cluster configured appropriately for lagoon testing
@@ -731,10 +738,12 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) k3d/check
 			JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) \
 			USE_CALICO_CNI=false \
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
+		$$([ $(INSTALL_PROMETHEUS) ] && echo 'INSTALL_PROMETHEUS=$(INSTALL_PROMETHEUS)') \
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
-		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
+		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
+		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)')
 
 # k3d/dev can only be run once a cluster is up and running (run k3d/test or k3d/local-stack first) - it doesn't rebuild the cluster at all
 # just checks out the repository and rebuilds and pushes the built images
@@ -785,8 +794,8 @@ endif
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
 		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
-		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)') \
-		$$([ $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)') \
+		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
+		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
@@ -802,11 +811,13 @@ endif
 		$$([ $(STABLE_REMOTE_CHART_VERSION) ] && echo 'STABLE_REMOTE_CHART_VERSION=$(STABLE_REMOTE_CHART_VERSION)') \
 		$$([ $(STABLE_BUILDDEPLOY_CHART_VERSION) ] && echo 'STABLE_BUILDDEPLOY_CHART_VERSION=$(STABLE_BUILDDEPLOY_CHART_VERSION)') \
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
+		$$([ $(INSTALL_PROMETHEUS) ] && echo 'INSTALL_PROMETHEUS=$(INSTALL_PROMETHEUS)') \
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
-		BUILD_DEPLOY_CONTROLLER_K8UP_VERSION=$(BUILD_DEPLOY_CONTROLLER_K8UP_VERSION) \
+		REMOTE_CONTROLLER_K8UP_VERSION=$(REMOTE_CONTROLLER_K8UP_VERSION) \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
-		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)')
+		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
+		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)')
 	$(MAKE) k3d/push-stable-build-image
 ifneq ($(SKIP_DETAILS),true)
 	$(MAKE) k3d/get-lagoon-details
@@ -1018,21 +1029,32 @@ k3d/port-forwards:
 
 # k3d/retest re-runs tests in the local cluster. It preserves the last build
 # lagoon core & remote setup, reducing rebuild time.
+USE_STABLE_TESTS = false
+
 .PHONY: k3d/retest
 k3d/retest:
+ifneq ($(USE_STABLE_TESTS),true)
+	$(eval TEST_IMAGE_TAG = $(SAFE_BRANCH_NAME))
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+	 	$(MAKE) build/local-git && \
+	 	$(MAKE) build/local-api-data-watcher-pusher && \
+	 	$(MAKE) build/tests && \
+	 	$(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher"
+else
+	$(eval TEST_IMAGE_TAG = latest)
+	@for testimage in tests local-git local-api-data-watcher-pusher; do \
+		echo pulling uselagoon/$$testimage:$(TEST_IMAGE_TAG) ; \
+		docker pull uselagoon/$$testimage:$(TEST_IMAGE_TAG); \
+	done
+endif
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
-		&& $(MAKE) build/local-git \
-		&& $(MAKE) build/local-api-data-watcher-pusher \
-		&& $(MAKE) build/tests \
-		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL) IMAGES="tests local-git local-api-data-watcher-pusher" \
 		&& cd lagoon-charts.k3d.lagoon \
-		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(TEST_IMAGE_TAG) DISABLE_CORE_HARBOR=true \
 			HELM=$(HELM) KUBECTL=$(KUBECTL) \
 			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
-			IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+			IMAGE_REGISTRY=$$(if [ $(USE_STABLE_TESTS) = true ]; then echo 'uselagoon'; else echo "registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"; fi) \
 			SKIP_ALL_DEPS=true \
 			CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \

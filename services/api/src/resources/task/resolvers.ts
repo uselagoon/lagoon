@@ -20,6 +20,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { TaskSourceType, AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -334,14 +335,28 @@ export const addTask: ResolverFn = async (
 export const deleteTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rows)
   });
 
+  const task = await Helpers(sqlClientPool, hasPermission, adminScopes).getTaskByTaskInput({id: id})
+
+  if (!task) {
+    throw new Error(
+      `Invalid task input`
+    );
+  }
+
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(task.environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
   await query(sqlClientPool, Sql.deleteTask(id));
+
+  // pass the task to the HistoryRetentionEnforcer
+  await HistoryRetentionEnforcer().cleanupTask(projectData, environmentData, task)
 
   const auditLog: AuditLog = {
     resource: {
@@ -562,11 +577,11 @@ export const taskDrushArchiveDump: ResolverFn = async (
   );
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
+TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file; rm -rf $file;
+-F 0=@$file && rm -rf $file;
 `;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -627,11 +642,11 @@ export const taskDrushSqlDump: ResolverFn = async (
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
 if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
+TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file.gz; rm -rf $file.gz
+-F 0=@$file.gz && rm -rf $file.gz
 `;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)

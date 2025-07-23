@@ -82,6 +82,11 @@ export const Sql = {
     knex('project')
       .where('organization', '=', id)
       .toString(),
+  selectOrganizationProjectIds: (id: number) =>
+    knex('project')
+      .select(knex.raw('group_concat(id) as project_ids'))
+      .where('organization', '=', id)
+      .toString(),
   selectOrganizationEnvironments: (id: number) =>
     knex('organization')
       .select('e.*')

@@ -11,7 +11,7 @@ export function requestsExtraFields(info, minimalFields: string[]): boolean {
   }
 
   const hasNonMinimalField = fields.some(field => {
-    if (field.kind !== 'Field') {
+    if (field.kind !== 'Field' || field.name.value.startsWith('__')) {
       return false;
     }
 
