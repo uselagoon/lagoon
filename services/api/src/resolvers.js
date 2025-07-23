@@ -751,9 +751,24 @@ async function getResolvers() {
       removePlatformRoleFromUser,
     },
     Subscription: {
-      backupChanged: backupSubscriber,
-      deploymentChanged: deploymentSubscriber,
-      taskChanged: taskSubscriber
+      backupChanged: {
+        subscribe: backupSubscriber,
+        resolve: payload => {
+          return payload;
+        }
+      },
+      deploymentChanged: {
+        subscribe: deploymentSubscriber,
+        resolve: payload => {
+          return payload;
+        }
+      },
+      taskChanged: {
+        subscribe: taskSubscriber,
+        resolve: payload => {
+          return payload;
+        }
+      },
     },
     Date: GraphQLDate,
     JSON: GraphQLJSON,
