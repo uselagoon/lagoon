@@ -19,7 +19,7 @@ export const pubSub = new RedisPubSub({
   connection: endpoint
 });
 
-const createSubscribe = (events, type): ResolverFn => async (
+const createSubscribe = (events): ResolverFn => async (
   rootValue,
   args,
   context,
@@ -49,13 +49,11 @@ const createSubscribe = (events, type): ResolverFn => async (
             project
           });
         }
-        const data = payload[type];
-        if (!data || data.environment === undefined) {
-          console.log("data or environment is undefined in subscription check");
+        if (!payload || payload.environment === undefined) {
           return false;
         }
 
-        return data.environment === environmentId;
+        return payload.environment === environmentId;
       } catch (err) {
         console.error(`Subscription permission check failed: ${err.message}`);
         return false;
@@ -66,6 +64,7 @@ const createSubscribe = (events, type): ResolverFn => async (
   return filtered(rootValue, args, context, info);
 };
 
-export const createEnvironmentFilteredSubscriber = (events, type) => {
-  return createSubscribe(events, type)
-};
+export const createEnvironmentFilteredSubscriber = events => ({
+  resolve: payload => payload,
+  subscribe: createSubscribe(events)
+});

@@ -408,7 +408,7 @@ export const addDeployment: ResolverFn = async (
   // pass to the HistoryRetentionEnforcer to clean up deployments based on any retention policies
   await HistoryRetentionEnforcer().cleanupDeployments(projectData, environment)
 
-  pubSub.publish(EVENTS.DEPLOYMENT, { deploymentChanged: deployment });
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
 
@@ -529,7 +529,7 @@ export const updateDeployment: ResolverFn = async (
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
-  pubSub.publish(EVENTS.DEPLOYMENT, { deploymentChanged: deployment });
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
     deployment.environment
@@ -1587,4 +1587,4 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT
-], 'deploymentChanged');
+]);

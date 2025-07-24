@@ -811,24 +811,9 @@ async function getResolvers() {
     removeHistoryRetentionPolicyLink,
   },
   Subscription: {
-    backupChanged: {
-      subscribe: backupSubscriber,
-      resolve: payload => {
-        return payload;
-      }
-    },
-    deploymentChanged: {
-      subscribe: deploymentSubscriber,
-      resolve: payload => {
-        return payload.deploymentChanged;
-      }
-    },
-    taskChanged: {
-      subscribe: taskSubscriber,
-      resolve: payload => {
-        return payload;
-      }
-    },
+    backupChanged: backupSubscriber,
+    deploymentChanged: deploymentSubscriber,
+    taskChanged: taskSubscriber
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,

@@ -209,7 +209,7 @@ export const addBackup: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP, {backupChanged: backup});
+  pubSub.publish(EVENTS.BACKUP, backup);
 
   const auditLog: AuditLog = {
     resource: {
@@ -325,7 +325,7 @@ export const addRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP, {backupChanged: backupData});
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   // Allow creating restore data w/o executing the restore
   if (execute === false) {
@@ -449,7 +449,7 @@ export const updateRestore: ResolverFn = async (
 
   const environmentData = await environmentSql.selectEnvironmentByBackupId(backupId)
 
-  pubSub.publish(EVENTS.BACKUP, {backupChanged: backupData});
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   const auditLog: AuditLog = {
     resource: {
@@ -509,4 +509,4 @@ export const getRestoreByBackupId: ResolverFn = async (
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.BACKUP
-], "backupChanged");
+]);

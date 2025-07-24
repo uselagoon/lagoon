@@ -4,7 +4,6 @@ import { logger } from './loggers/logger';
 import { toNumber } from './util/func';
 import { getConfigFromEnv } from './util/config';
 import { app, configureApp } from './app';
-import { execute, subscribe } from "graphql";
 import { getSchema, getGrantOrLegacyCredsFromToken } from './apolloServer';
 import { getKeycloakAdminClient } from './clients/keycloak-admin';
 import { sqlClientPool } from './clients/sqlClient';
@@ -16,7 +15,7 @@ import { keycloakGrantManager } from './clients/keycloakClient';
 import { keycloakHasPermission, legacyHasPermission } from './util/auth';
 import R from 'ramda';
 import { AuthenticationError } from 'apollo-server-express';
-const { useServer } = require('graphql-ws/use/ws');
+const { useServer } = require('graphql-ws/lib/use/ws');
 
 export const createServer = async () => {
   logger.verbose('Starting the api...');
@@ -42,19 +41,6 @@ try {
   useServer(
     {
       schema: schema,
-      execute: (args) => {
-        return execute(args);
-      },
-      subscribe: async (args) => {
-        try {
-          const result = await subscribe(args);
-
-          return result;
-        } catch (err) {
-          console.log('subscribe error:', err.message);
-          throw err;
-        }
-      },
       context: async (ctx) => {
         const connectionParams = ctx.connectionParams || {};
         let keycloakGrant = null;
