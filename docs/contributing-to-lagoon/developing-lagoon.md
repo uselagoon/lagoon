@@ -79,6 +79,15 @@ Using the following make command will create a k3d cluster and install any depen
 make k3d/local-stack
 ```
 
+Additionally, if you would like an initial user or organization (or both) to be created automatically upon install, you can append the following environment variables:
+
+```bash title="Deploy local stack with seeded user and organization"
+make k3d/local-stack LAGOON_SEED_USERNAME=user@example.com LAGOON_SEED_PASSWORD=password LAGOON_SEED_ORGANIZATION=example-org
+```
+
+Seeding an intial user requires both `LAGOON_SEED_USERNAME` and `LAGOON_SEED_PASSWORD` to be set, while seeding an organization only requires `LAGOON_SEED_ORGANIZATION`.
+This feature also works with the `make k3d/install-lagoon` command discussed below.
+
 !!! warning
     Once you have a running `make k3d/local-stack` you should not run it again. There are other targets that can be run safely after the initial stack is running.
 
