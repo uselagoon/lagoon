@@ -630,11 +630,8 @@ cronjobs:
   service. For Lagoon images, this is `/app`.
 
 !!! info "Cronjob Implementation"
-    Due to performance considerations, depending on how frequently the cronjob is configured to run
-    Lagoon may decide to run it as separate pod or native job in kubernetes.
-    In short, if the cronjob run approximately every 30 minutes or less, Lagoon will run it in a pod.
-    If you need to understand the exact algorithm Lagoon uses to make this decision, you can follow
-    the discussion [here](https://github.com/uselagoon/build-deploy-tool/pull/444).
+    If a cronjob runs approximately every 30 minutes or less, Lagoon will run it in the defined service, else a kubernetes native cronjob is used.
+    Further information can be found [here](https://github.com/uselagoon/build-deploy-tool/pull/444).
 
 
 !!! warning
