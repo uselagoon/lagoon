@@ -356,7 +356,6 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
-
   sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   sourceType ??= DeploymentSourceType.API
 

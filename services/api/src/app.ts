@@ -3,12 +3,11 @@ import morgan from 'morgan';
 import compression from 'compression';
 import cors from 'cors';
 import { json } from 'body-parser';
-import { graphqlUploadExpress } from 'graphql-upload';
 import { logger } from './loggers/logger';
 import { createRouter } from './routes';
 import { authMiddleware } from './authMiddleware';
 import { requestMiddleware } from './requestMiddleware';
-import apolloServer from './apolloServer';
+import { getApolloServer } from './apolloServer';
 
 export const app = express();
 
@@ -39,7 +38,12 @@ app.use(
 );
 
 // TODO: Restrict requests to lagoon domains?
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'apollo-require-preflight']
+}));
 
 app.use(requestMiddleware);
 app.use(authMiddleware);
@@ -47,6 +51,29 @@ app.use(authMiddleware);
 // Add routes.
 app.use('/', createRouter());
 
-app.use(graphqlUploadExpress());
+// app.use(graphqlUploadExpress());
+export async function configureApp() {
+  async function setupGraphQLUpload() {
+    try {
+      const { default: graphqlUploadExpress } = await import("graphql-upload/graphqlUploadExpress.mjs");
+      app.use(graphqlUploadExpress({}) as unknown as express.RequestHandler);
+    } catch (error) {
+      logger.error("Failed to load or setup graphql-upload:", error);
+      throw error;
+    }
+  }
+  await setupGraphQLUpload();
 
-apolloServer.applyMiddleware({ app });
+  try {
+    const apolloServer = await getApolloServer();
+    await apolloServer.start();
+    apolloServer.applyMiddleware({
+      app,
+      cors: false
+    });
+  } catch (error) {
+    logger.error("Failed to start or apply Apollo Server middleware:", error);
+    throw error;
+  }
+
+}
