@@ -59,6 +59,9 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 		teamsTpl = `PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) closed in [{{.RepoName}}]({{.RepoURL}})`
 	case "deleteEnvironment":
 		teamsTpl = `Deleting environment ` + "`{{.EnvironmentName}}`"
+		if notification.Meta.BranchName != "" { // git branch deletion
+			teamsTpl = `Deleting environment ` + "`{{.BranchName}}` triggered by git"
+		}
 	case "repoPushHandled":
 		teamsTpl = `[{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}})`
 	case "repoPushSkipped":
