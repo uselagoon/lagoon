@@ -63,6 +63,9 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 		rcTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) closed in [{{.RepoName}}]({{.RepoURL}})`
 	case "deleteEnvironment":
 		rcTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.EnvironmentName}}`"
+		if notification.Meta.BranchName != "" { // git branch deletion
+			rcTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.BranchName}}` triggered by git"
+		}
 	case "repoPushHandled":
 		rcTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}})`
 	case "repoPushSkipped":

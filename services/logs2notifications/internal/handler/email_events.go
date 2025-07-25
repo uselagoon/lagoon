@@ -53,6 +53,10 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	case "deleteEnvironment":
 		mainHTMLTpl = `Deleted environment <code>{{.EnvironmentName}}</code>`
 		plainTextTpl = `[{{.ProjectName}}] deleted environment {{.EnvironmentName}}`
+		if notification.Meta.BranchName != "" { // git branch deletion
+			mainHTMLTpl = `Deleted environment <code>{{.BranchName}}</code> triggered by git`
+			plainTextTpl = `[{{.ProjectName}}] deleted environment {{.BranchName}} triggered by git`
+		}
 	case "repoPushHandled":
 		mainHTMLTpl = `<a href="{{.RepoURL}}/tree/{{.BranchName}}">{{.BranchName}}</a>{{ if ne .ShortSha "" }} <a href="{{.CommitURL}}">{{.ShortSha}}</a>{{end}} pushed in <a href="{{.RepoURL}}">{{.RepoFullName}}</a>`
 		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} pushed in {{.RepoFullName}}`
@@ -169,7 +173,6 @@ func (h *Messaging) prepareAndSendEmail(emoji, color, subject, event, project, e
 	if err != nil {
 		log.Printf("error sending email for %s event %s: %v", emailAddress, event, err)
 	}
-	return
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {

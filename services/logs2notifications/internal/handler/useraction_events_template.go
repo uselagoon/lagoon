@@ -61,7 +61,7 @@ func templateGenerator(mailTemplate, contentTemplate string, contentValues inter
 
 	// now let's fill in the content
 	var completeMail strings.Builder
-	t, err = template.New("emailWithContent").Parse(body.String())
+	t, _ = template.New("emailWithContent").Parse(body.String())
 	err = t.Execute(&completeMail, contentValues)
 	if err != nil {
 		return "", fmt.Errorf("error generating email template: %v", err)
