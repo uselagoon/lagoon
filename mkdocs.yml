@@ -69,7 +69,6 @@ nav:
         - First Deployment of Drupal: applications/drupal/first-deployment-of-drupal.md
         - Drush 9: applications/drupal/drush-9.md
         - Subfolders: applications/drupal/subfolders.md
-        - Integrate Drupal & Fastly: applications/drupal/integrate-drupal-and-fastly.md
         - PHPUnit and PhpStorm: applications/drupal/phpunit-and-phpstorm.md
         - Automatic Updates: applications/drupal/automatic-updates.md
       - Laravel:
@@ -409,7 +408,6 @@ plugins:
         'lagoon/docker-images/varnish/varnish-drupal.md': 'applications/drupal/services/varnish.md'
         'lagoon/drupal/drush-9.md': 'applications/drupal/drush-9.md'
         'lagoon/drupal/first-deployment-of-drupal.md': 'applications/drupal/first-deployment-of-drupal.md'
-        'lagoon/drupal/integrate-drupal-and-fastly.md': 'applications/drupal/integrate-drupal-and-fastly.md'
         'lagoon/drupal/phpunit-and-phpstorm.md': 'applications/drupal/phpunit-and-phpstorm.md'
         'lagoon/drupal/services/mariadb.md': 'applications/drupal/services/mariadb.md'
         'lagoon/drupal/services/README.md': 'applications/drupal/services/README.md'
@@ -478,7 +476,6 @@ plugins:
         'drupal/services/varnish.md': 'applications/drupal/services/varnish.md'
         'drupal/services/drush-9.md': 'applications/drupal/drush-9.md'
         'drupal/services/first-deployment-of-drupal.md': 'applications/drupal/first-deployment-of-drupal.md'
-        'drupal/services/integrate-drupal-and-fastly.md': 'applications/drupal/integrate-drupal-and-fastly.md'
         'drupal/services/phpunit-and-phpstorm.md': 'applications/drupal/phpunit-and-phpstorm.md'
         'drupal/services/README.md': 'applications/drupal/services/README.md'
         'drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'applications/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
