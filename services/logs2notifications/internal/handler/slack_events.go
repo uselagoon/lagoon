@@ -43,6 +43,9 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 		slackTpl = `*[{{.ProjectName}}]* PR <{{.PullrequestURL}}|#{{.PullrequestNumber}} ({{.PullrequestTitle}})> closed in <{{.RepoURL}}|{{.RepoName}}>`
 	case "deleteEnvironment":
 		slackTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.EnvironmentName}}`"
+		if notification.Meta.BranchName != "" { // git branch deletion
+			slackTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.BranchName}}` triggered by git"
+		}
 	case "repoPushHandled":
 		slackTpl = `*[{{.ProjectName}}]* <{{.RepoURL}}/tree/{{.BranchName}}|{{.BranchName}}>{{ if ne .ShortSha "" }} (<{{.CommitURL}}|{{.ShortSha}}>){{end}} pushed in <{{.RepoURL}}|{{.RepoFullName}}>`
 	case "repoPushSkipped":

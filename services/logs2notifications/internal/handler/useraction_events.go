@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 )
@@ -11,11 +10,6 @@ type handleUserActionUser struct {
 	Email        string `json:"email"`
 	Organization int    `json:"organization"`
 	Role         string `json:"role"`
-}
-
-type handleUserActionResource struct {
-	Type    string `json:"type"`
-	Details string `json:"details"` // stores the org name
 }
 
 // There is also a third payload struct called "linkedResource" which we could use, but it seems redundant
@@ -76,7 +70,7 @@ func (h *Messaging) handleUserActionToEmail(notification *Notification, rawPaylo
 	case "api:removeUserFromGroup":
 		return h.groupRemoveEmailMessage(useractionEmailDetails, notification.Meta.Event)
 	}
-	return errors.New(fmt.Sprintf("Unable to match incoming notification: %v", notification))
+	return fmt.Errorf("unable to match incoming notification: %v", notification)
 }
 
 func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, event string) error {
@@ -105,13 +99,10 @@ func (h *Messaging) groupAddEmailMessage(valuesStruct UseractionEmailDetails, ev
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
 	}
 	plainText := fmt.Sprintf("%v added to group %v with the role %v", valuesStruct.Name, valuesStruct.Groupname, valuesStruct.Role)
 	subject := fmt.Sprintf("User %s has been added to a group", valuesStruct.Name)
-	if err != nil {
-		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
-	}
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -144,13 +135,10 @@ func (h *Messaging) groupRemoveEmailMessage(valuesStruct UseractionEmailDetails,
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
 	}
 	plainText := fmt.Sprintf("%v removed from group %v", valuesStruct.Name, valuesStruct.Groupname)
 	subject := fmt.Sprintf("User %s has been removed from a group", valuesStruct.Name)
-	if err != nil {
-		return fmt.Errorf("error generating email template for %s event %s: %v", valuesStruct.Email, event, err)
-	}
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -181,13 +169,10 @@ func (h *Messaging) addEditRemoveSshKeyEmailMessage(valuesStruct UseractionEmail
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error generating email template for %s event %s and project %s: %v", event, valuesStruct.Email, valuesStruct.Role, err)
 	}
 	plainText := fmt.Sprintf("%v %v ssh key", valuesStruct.Name, action)
 	subject := fmt.Sprintf("User %s has %v an ssh key", valuesStruct.Name, action)
-	if err != nil {
-		return fmt.Errorf("error generating email template for %s event %s and project %s: %v", event, valuesStruct.Email, valuesStruct.Role, err)
-	}
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -208,14 +193,12 @@ func (h *Messaging) addPlatformRoleToUser(valuesStruct UseractionEmailDetails) e
 
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
-	if err != nil {
-		return err
-	}
-	plainText := fmt.Sprintf("%v granted platform role %v", valuesStruct.Name, valuesStruct.Role)
-	subject := fmt.Sprintf("User %s Lagoon platform role was updated", valuesStruct.Name)
+
 	if err != nil {
 		return fmt.Errorf("error generating email template for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
+	plainText := fmt.Sprintf("%v granted platform role %v", valuesStruct.Name, valuesStruct.Role)
+	subject := fmt.Sprintf("User %s Lagoon platform role was updated", valuesStruct.Name)
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -236,14 +219,12 @@ func (h *Messaging) removePlatformRoleFromUser(valuesStruct UseractionEmailDetai
 
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
-	if err != nil {
-		return err
-	}
-	plainText := fmt.Sprintf("%v removed from platform role %v", valuesStruct.Name, valuesStruct.Role)
-	subject := fmt.Sprintf("User %s Lagoon platform role was updated", valuesStruct.Name)
+
 	if err != nil {
 		return fmt.Errorf("error generating email template for addPlatformRoleToUser event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
+	plainText := fmt.Sprintf("%v removed from platform role %v", valuesStruct.Name, valuesStruct.Role)
+	subject := fmt.Sprintf("User %s Lagoon platform role was updated", valuesStruct.Name)
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -266,14 +247,12 @@ func (h *Messaging) addAdminToOrganization(valuesStruct UseractionEmailDetails) 
 `
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
-	if err != nil {
-		return err
-	}
-	plainText := fmt.Sprintf("%v granted role %v on organization %v", valuesStruct.Name, valuesStruct.Role, valuesStruct.OrganizationName)
-	subject := fmt.Sprintf("User %s role updated for Organization: %v", valuesStruct.Name, valuesStruct.OrganizationName)
+
 	if err != nil {
 		return fmt.Errorf("error generating email template for addAdminToOrganization event %s and project %s: %v", valuesStruct.Email, valuesStruct.Role, err)
 	}
+	plainText := fmt.Sprintf("%v granted role %v on organization %v", valuesStruct.Name, valuesStruct.Role, valuesStruct.OrganizationName)
+	subject := fmt.Sprintf("User %s role updated for Organization: %v", valuesStruct.Name, valuesStruct.OrganizationName)
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {
@@ -297,14 +276,12 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 
 	templateGenerator := NewTemplateDataGenerator(content, h.EmailTemplate, h.EmailBase64Logo)
 	mainHTML, err := templateGenerator.Generate(valuesStruct)
-	if err != nil {
-		return err
-	}
-	plainText := fmt.Sprintf("%v removed from organization %v", valuesStruct.Name, valuesStruct.OrganizationName)
-	subject := fmt.Sprintf("User %s removed from Organization: %v", valuesStruct.Name, valuesStruct.OrganizationName)
+
 	if err != nil {
 		return fmt.Errorf("error generating email template for removing user %s and from organization %s: %v", valuesStruct.Email, valuesStruct.OrganizationName, err)
 	}
+	plainText := fmt.Sprintf("%v removed from organization %v", valuesStruct.Name, valuesStruct.OrganizationName)
+	subject := fmt.Sprintf("User %s removed from Organization: %v", valuesStruct.Name, valuesStruct.OrganizationName)
 
 	err = h.simpleMail(valuesStruct.Email, subject, mainHTML, plainText)
 	if err != nil {

@@ -8,8 +8,6 @@ import (
 )
 
 func TestMessaging_handleUserActionToEmail(t *testing.T) {
-	type fields struct {
-	}
 	type args struct {
 		notification *Notification
 		event        string
@@ -94,8 +92,7 @@ func TestMessaging_handleUserActionToEmail1(t *testing.T) {
 
 		// let's create a mock EmailDeliveryFunction
 		var subjectSent, plaintextSent, htmlSent string
-		var emailDeliveryFunction DeliverEmailType
-		emailDeliveryFunction = func(h *Messaging, emailAddress string, subject string, plainText string, htmlMessage bytes.Buffer) error {
+		emailDeliveryFunction := func(h *Messaging, emailAddress string, subject string, plainText string, htmlMessage bytes.Buffer) error {
 			subjectSent = subject
 			plaintextSent = plainText
 			htmlSent = htmlMessage.String()
