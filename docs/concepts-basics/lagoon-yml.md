@@ -629,6 +629,11 @@ cronjobs:
 * `command`: The command to execute. This executes in the `WORKDIR` of the
   service. For Lagoon images, this is `/app`.
 
+!!! info "Cronjob Implementation"
+    If a cronjob runs approximately every 30 minutes or less, Lagoon will run it in the defined service, else a kubernetes native cronjob is used.
+    Further information can be found [here](https://github.com/uselagoon/build-deploy-tool/pull/444).
+
+
 !!! warning
       Cronjobs may run in-pod, via crontab, which [doesn't support multiline
       commands](https://www.man7.org/linux/man-pages/man5/crontab.5.html). If
