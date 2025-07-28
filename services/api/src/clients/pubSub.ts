@@ -25,37 +25,46 @@ const createSubscribe = (events): ResolverFn => async (
   context,
   info
 ) => {
-  const { environment } = args;
-  const { sqlClientPool, hasPermission, adminScopes } = context;
-
-  const rows = await query(
-    sqlClientPool,
-    environmentSql.selectEnvironmentById(environment)
-  );
-
-  const project = path([0, 'project'], rows);
-
-  try {
-    // if the user is not a platform owner or viewer, then perform normal permission check
-    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-      await hasPermission('environment', 'view', {
-        project
-      });
-    }
-  } catch (err) {
-    throw new ForbiddenError(err.message);
-  }
-
   const filtered = withFilter(
     () => pubSub.asyncIterator(events),
-    (payload, variables) => payload.environment === variables.environment
+
+    async (payload, variables, ctx) => {
+      const { environment: environmentId } = variables;
+      const { sqlClientPool, hasPermission, adminScopes } = ctx;
+
+      try {
+        const rows = await query(
+          sqlClientPool,
+          environmentSql.selectEnvironmentById(environmentId),
+        );
+
+        const project = path([0, 'project'], rows);
+        if (!project) {
+          return false;
+        }
+
+        // if the user is not a platform owner or viewer, then perform normal permission check
+        if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+          await hasPermission('environment', 'view', {
+            project
+          });
+        }
+        if (!payload || payload.environment === undefined) {
+          return false;
+        }
+
+        return payload.environment === environmentId;
+      } catch (err) {
+        console.error(`Subscription permission check failed: ${err.message}`);
+        return false;
+      }
+    },
   );
 
   return filtered(rootValue, args, context, info);
 };
 
 export const createEnvironmentFilteredSubscriber = events => ({
-  // Allow publish functions to pass data without knowledge of query schema.
   resolve: payload => payload,
   subscribe: createSubscribe(events)
 });

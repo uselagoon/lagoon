@@ -1,5 +1,5 @@
 import { GraphQLScalarType, GraphQLError } from 'graphql';
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Kind } from 'graphql/language';
 
 const SeverityScoreType = new GraphQLScalarType({

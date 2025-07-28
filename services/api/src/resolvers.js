@@ -1,6 +1,5 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
-const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -310,245 +309,264 @@ const {
   getEnvVariablesByProjectEnvironmentName,
 } = require('./resources/env-variables/resolvers');
 
-const resolvers = {
-  Upload: GraphQLUpload,
-  AuditType: {
-    BACKUP: 'backup',
-    BULKDEPLOYMENT: 'bulkdeployment',
-    DEPLOYMENT: 'deployment',
-    DEPLOYTARGET: 'deploytarget',
-    DEPLOYTARGETCONFIG: 'deploytargetconfig',
-    ENVIRONMENT: 'environment',
-    GROUP: 'group',
-    NOTIFICATION: 'notification',
-    ORGANIZATION: 'organization',
-    PROJECT: 'project',
-    SSHKEY: 'sshkey',
-    TASK: 'task',
-    USER: 'user',
-    VARIABLE: 'variable',
-    FILE: 'file',
-  },
-  AuditSource: {
-    API: 'api',
-    CLI: 'cli',
-    UI: 'ui',
-  },
-  GroupRole: {
-    GUEST: 'guest',
-    REPORTER: 'reporter',
-    DEVELOPER: 'developer',
-    MAINTAINER: 'maintainer',
-    OWNER: 'owner'
-  },
-  DeploymentSourceType: {
-    API: 'api',
-    WEBHOOK: 'webhook'
-  },
-  TaskSourceType: {
-    API: 'api',
-  },
-  ProjectOrderType: {
-    NAME: 'name',
-    CREATED: 'created'
-  },
-  EnvOrderType: {
-    NAME: 'name',
-    UPDATED: 'updated'
-  },
-  DeployType: {
-    BRANCH: 'branch',
-    PULLREQUEST: 'pullrequest',
-    PROMOTE: 'promote'
-  },
-  EnvType: {
-    PRODUCTION: 'production',
-    DEVELOPMENT: 'development'
-  },
-  EnvVariableType: {
-    PROJECT: 'project',
-    ENVIRONMENT: 'environment'
-  },
-  EnvVariableScope: {
-    BUILD: 'build',
-    RUNTIME: 'runtime',
-    GLOBAL: 'global',
-    CONTAINER_REGISTRY: 'container_registry',
-    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry'
-  },
-  RestoreStatusType: {
-    PENDING: 'pending',
-    SUCCESSFUL: 'successful',
-    FAILED: 'failed'
-  },
-  DeploymentStatusType: {
-    NEW: 'new',
-    PENDING: 'pending',
-    RUNNING: 'running',
-    CANCELLED: 'cancelled',
-    ERROR: 'error',
-    FAILED: 'failed',
-    COMPLETE: 'complete',
-    QUEUED: 'queued',
-  },
-  NotificationType: {
-    SLACK: 'slack',
-    ROCKETCHAT: 'rocketchat',
-    MICROSOFTTEAMS: 'microsoftteams',
-    EMAIL: 'email',
-    WEBHOOK: 'webhook',
-  },
-  NotificationContentType: {
-    DEPLOYMENT: 'deployment',
-    PROBLEM: 'problem'
-  },
-  TaskStatusType: {
-    NEW: 'new',
-    PENDING: 'pending',
-    RUNNING: 'running',
-    CANCELLED: 'cancelled',
-    ERROR: 'error',
-    FAILED: 'failed',
-    COMPLETE: 'complete',
-    QUEUED: 'queued',
-    ACTIVE: 'active',
-    SUCCEEDED: 'succeeded',
-  },
-  PlatformRole: {
-    VIEWER: 'platform-viewer',
-    OWNER: 'platform-owner',
-    ORGANIZATION_OWNER: 'platform-organization-owner',
-  },
-  RetentionPolicyType: {
-    HARBOR: 'harbor',
-    HISTORY: 'history',
-  },
-  RetentionPolicyScope: {
-    GLOBAL: 'global',
-    ORGANIZATION: 'organization',
-    PROJECT: 'project',
-  },
-  HistoryRetentionType: {
-    COUNT: 'count',
-    DAYS: 'days',
-    MONTHS: 'months',
-  },
-  RetentionPolicyType: {
-    HARBOR: 'harbor',
-    HISTORY: 'history',
-  },
-  Openshift: {
-    projectUser: getProjectUser,
-    token: getToken,
-    consoleUrl: getConsoleUrl,
-    monitoringConfig: getMonitoringConfig,
-  },
-  Kubernetes: {
-    projectUser: getProjectUser,
-    token: getToken,
-    consoleUrl: getConsoleUrl,
-    monitoringConfig: getMonitoringConfig,
-  },
-  Project: {
-    notifications: getNotificationsByProjectId,
-    openshift: getOpenshiftByProjectId,
-    kubernetes: getOpenshiftByProjectId,
-    environments: getEnvironmentsByProjectId,
-    deployTargetConfigs: getDeployTargetConfigsByProjectId,
-    envVariables: getEnvVarsByProjectId,
-    groups: getGroupsByProjectId,
-    privateKey: getPrivateKey,
-    publicKey: getProjectDeployKey,
-    organizationDetails: getOrganizationByProject,
-    retentionPolicies: getRetentionPoliciesByProjectId,
-  },
-  GroupInterface: {
-    __resolveType(group) {
-      return 'Group';
+async function getResolvers() {
+  let graphqlUpload;
+  try {
+    const { default: GraphQLUpload } = await import("graphql-upload/GraphQLUpload.mjs");
+    graphqlUpload = {
+      ...GraphQLUpload,
+      parseLiteral: (ast) => {
+        return null; // Allow literals but treats them as null - issue with graphql-upload & apollo-server3
+      }
+    };
+
+    if (!graphqlUpload) {
+      throw new Error("Failed to load GraphQLUpload from 'graphql-upload'");
+    }
+  } catch (error) {
+    console.error("Failed to load GraphQLUpload:", error);
+    throw error;
+  }
+
+  const resolvers = {
+    Upload: graphqlUpload,
+    AuditType: {
+      BACKUP: 'backup',
+      BULKDEPLOYMENT: 'bulkdeployment',
+      DEPLOYMENT: 'deployment',
+      DEPLOYTARGET: 'deploytarget',
+      DEPLOYTARGETCONFIG: 'deploytargetconfig',
+      ENVIRONMENT: 'environment',
+      GROUP: 'group',
+      NOTIFICATION: 'notification',
+      ORGANIZATION: 'organization',
+      PROJECT: 'project',
+      SSHKEY: 'sshkey',
+      TASK: 'task',
+      USER: 'user',
+      VARIABLE: 'variable',
+      FILE: 'file',
     },
-  },
-  OrgGroupInterface: {
-    __resolveType(group) {
-      return 'OrgGroup';
+    AuditSource: {
+      API: 'api',
+      CLI: 'cli',
+      UI: 'ui',
     },
-  },
-  Group: {
-    projects: getAllProjectsByGroupId,
-    members: getMembersByGroupId,
-    memberCount: getMemberCountByGroupId,
-  },
-  OrgGroup: {
-    projects: getAllProjectsByGroupId,
-    members: getMembersByGroupId,
-    memberCount: getMemberCountByGroupId,
-  },
-  DeployTargetConfig: {
-    project: getProjectById,
-    deployTarget: getOpenshiftByDeployTargetId,
-  },
-  Environment: {
-    project: getProjectByEnvironmentId,
-    deployments: getDeploymentsByEnvironmentId,
-    insights: getInsightsFilesByEnvironmentId,
-    tasks: getTasksByEnvironmentId,
-    advancedTasks: getRegisteredTasksByEnvironmentId,
-    hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
-    storages: getEnvironmentStorageByEnvironmentId,
-    storageMonth: getEnvironmentStorageMonthByEnvironmentId,
-    hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
-    backups: getBackupsByEnvironmentId,
-    envVariables: getEnvVarsByEnvironmentId,
-    services: getEnvironmentServicesByEnvironmentId,
-    problems: getProblemsByEnvironmentId,
-    facts: getFactsByEnvironmentId,
-    openshift: getOpenshiftByEnvironmentId,
-    kubernetes: getOpenshiftByEnvironmentId,
-  },
-  Organization: {
-    groups: getGroupsByOrganizationId,
-    projects: getProjectsByOrganizationId,
-    environments: getEnvironmentsByOrganizationId,
-    owners: getOwnersByOrganizationId,
-    deployTargets: getDeployTargetsByOrganizationId,
-    notifications: getNotificationsByOrganizationId,
-    envVariables: getEnvVarsByOrganizationId,
-    retentionPolicies: getRetentionPoliciesByOrganizationId,
-  },
-  OrgProject: {
-    groups: getGroupsByOrganizationsProject,
-    groupCount: getGroupCountByOrganizationProject,
-    notifications: getNotificationsForOrganizationProjectId,
-    retentionPolicies: getRetentionPoliciesByProjectId,
-  },
-  OrgEnvironment: {
-    project: getProjectById,
-    openshift: getOpenshiftByEnvironmentId,
-    kubernetes: getOpenshiftByEnvironmentId,
-  },
-  Fact: {
-    references: getFactReferencesByFactId,
-  },
-  EnvironmentService: {
-    containers: getServiceContainersByServiceId,
-  },
-  Deployment: {
-    environment: getEnvironmentByDeploymentId,
-    uiLink: getDeploymentUrl,
-    buildLog: getBuildLog,
-  },
-  Insight: {
-    data: getInsightsFileData,
-    downloadUrl: getInsightsDownloadUrl,
-  },
-  Task: {
-    environment: getEnvironmentByTaskId,
-    files: getFilesByTaskId,
-    logs: getTaskLog
-  },
-  File: {
-    download: getDownloadLink
-  },
-  Notification: {
+    GroupRole: {
+      GUEST: 'guest',
+      REPORTER: 'reporter',
+      DEVELOPER: 'developer',
+      MAINTAINER: 'maintainer',
+      OWNER: 'owner'
+    },
+    DeploymentSourceType: {
+      API: 'api',
+      WEBHOOK: 'webhook'
+    },
+    TaskSourceType: {
+      API: 'api',
+    },
+    ProjectOrderType: {
+      NAME: 'name',
+      CREATED: 'created'
+    },
+    EnvOrderType: {
+      NAME: 'name',
+      UPDATED: 'updated'
+    },
+    DeployType: {
+      BRANCH: 'branch',
+      PULLREQUEST: 'pullrequest',
+      PROMOTE: 'promote'
+    },
+    EnvType: {
+      PRODUCTION: 'production',
+      DEVELOPMENT: 'development'
+    },
+    EnvVariableType: {
+      PROJECT: 'project',
+      ENVIRONMENT: 'environment'
+    },
+    EnvVariableScope: {
+      BUILD: 'build',
+      RUNTIME: 'runtime',
+      GLOBAL: 'global',
+      CONTAINER_REGISTRY: 'container_registry',
+      INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry'
+    },
+    RestoreStatusType: {
+      PENDING: 'pending',
+      SUCCESSFUL: 'successful',
+      FAILED: 'failed'
+    },
+    DeploymentStatusType: {
+      NEW: 'new',
+      PENDING: 'pending',
+      RUNNING: 'running',
+      CANCELLED: 'cancelled',
+      ERROR: 'error',
+      FAILED: 'failed',
+      COMPLETE: 'complete',
+      QUEUED: 'queued',
+    },
+    NotificationType: {
+      SLACK: 'slack',
+      ROCKETCHAT: 'rocketchat',
+      MICROSOFTTEAMS: 'microsoftteams',
+      EMAIL: 'email',
+      WEBHOOK: 'webhook',
+    },
+    NotificationContentType: {
+      DEPLOYMENT: 'deployment',
+      PROBLEM: 'problem'
+    },
+    TaskStatusType: {
+      NEW: 'new',
+      PENDING: 'pending',
+      RUNNING: 'running',
+      CANCELLED: 'cancelled',
+      ERROR: 'error',
+      FAILED: 'failed',
+      COMPLETE: 'complete',
+      QUEUED: 'queued',
+      ACTIVE: 'active',
+      SUCCEEDED: 'succeeded',
+    },
+    PlatformRole: {
+      VIEWER: 'platform-viewer',
+      OWNER: 'platform-owner',
+      ORGANIZATION_OWNER: 'platform-organization-owner',
+    },
+    RetentionPolicyType: {
+      HARBOR: 'harbor',
+      HISTORY: 'history',
+    },
+    RetentionPolicyScope: {
+      GLOBAL: 'global',
+      ORGANIZATION: 'organization',
+      PROJECT: 'project',
+    },
+    HistoryRetentionType: {
+      COUNT: 'count',
+      DAYS: 'days',
+      MONTHS: 'months',
+    },
+    RetentionPolicyType: {
+      HARBOR: 'harbor',
+      HISTORY: 'history',
+    },
+    Openshift: {
+      projectUser: getProjectUser,
+      token: getToken,
+      consoleUrl: getConsoleUrl,
+      monitoringConfig: getMonitoringConfig,
+    },
+    Kubernetes: {
+      projectUser: getProjectUser,
+      token: getToken,
+      consoleUrl: getConsoleUrl,
+      monitoringConfig: getMonitoringConfig,
+    },
+    Project: {
+      notifications: getNotificationsByProjectId,
+      openshift: getOpenshiftByProjectId,
+      kubernetes: getOpenshiftByProjectId,
+      environments: getEnvironmentsByProjectId,
+      deployTargetConfigs: getDeployTargetConfigsByProjectId,
+      envVariables: getEnvVarsByProjectId,
+      groups: getGroupsByProjectId,
+      privateKey: getPrivateKey,
+      publicKey: getProjectDeployKey,
+      organizationDetails: getOrganizationByProject,
+      retentionPolicies: getRetentionPoliciesByProjectId,
+    },
+    GroupInterface: {
+      __resolveType(group) {
+        return 'Group';
+      },
+    },
+    OrgGroupInterface: {
+      __resolveType(group) {
+        return 'OrgGroup';
+      },
+    },
+    Group: {
+      projects: getAllProjectsByGroupId,
+      members: getMembersByGroupId,
+      memberCount: getMemberCountByGroupId,
+    },
+    OrgGroup: {
+      projects: getAllProjectsByGroupId,
+      members: getMembersByGroupId,
+      memberCount: getMemberCountByGroupId,
+    },
+    DeployTargetConfig: {
+      project: getProjectById,
+      deployTarget: getOpenshiftByDeployTargetId,
+    },
+    Environment: {
+      project: getProjectByEnvironmentId,
+      deployments: getDeploymentsByEnvironmentId,
+      insights: getInsightsFilesByEnvironmentId,
+      tasks: getTasksByEnvironmentId,
+      advancedTasks: getRegisteredTasksByEnvironmentId,
+      hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
+      storages: getEnvironmentStorageByEnvironmentId,
+      storageMonth: getEnvironmentStorageMonthByEnvironmentId,
+      hitsMonth: getEnvironmentHitsMonthByEnvironmentId,
+      backups: getBackupsByEnvironmentId,
+      envVariables: getEnvVarsByEnvironmentId,
+      services: getEnvironmentServicesByEnvironmentId,
+      problems: getProblemsByEnvironmentId,
+      facts: getFactsByEnvironmentId,
+      openshift: getOpenshiftByEnvironmentId,
+      kubernetes: getOpenshiftByEnvironmentId,
+    },
+    Organization: {
+      groups: getGroupsByOrganizationId,
+      projects: getProjectsByOrganizationId,
+      environments: getEnvironmentsByOrganizationId,
+      owners: getOwnersByOrganizationId,
+      deployTargets: getDeployTargetsByOrganizationId,
+      notifications: getNotificationsByOrganizationId,
+      envVariables: getEnvVarsByOrganizationId,
+      retentionPolicies: getRetentionPoliciesByOrganizationId,
+    },
+    OrgProject: {
+      groups: getGroupsByOrganizationsProject,
+      groupCount: getGroupCountByOrganizationProject,
+      notifications: getNotificationsForOrganizationProjectId,
+      retentionPolicies: getRetentionPoliciesByProjectId,
+    },
+    OrgEnvironment: {
+      project: getProjectById,
+      openshift: getOpenshiftByEnvironmentId,
+      kubernetes: getOpenshiftByEnvironmentId,
+    },
+    Fact: {
+      references: getFactReferencesByFactId,
+    },
+    EnvironmentService: {
+      containers: getServiceContainersByServiceId,
+    },
+    Deployment: {
+      environment: getEnvironmentByDeploymentId,
+      uiLink: getDeploymentUrl,
+      buildLog: getBuildLog,
+    },
+    Insight: {
+      data: getInsightsFileData,
+      downloadUrl: getInsightsDownloadUrl,
+    },
+    Task: {
+      environment: getEnvironmentByTaskId,
+      files: getFilesByTaskId,
+      logs: getTaskLog
+    },
+    File: {
+      download: getDownloadLink
+    },
+    Notification: {
     __resolveType(obj) {
       switch (obj.type) {
         case 'slack':
@@ -802,4 +820,6 @@ const resolvers = {
   SeverityScore: SeverityScoreType
 };
 
-module.exports = resolvers;
+  return resolvers;
+}
+module.exports = getResolvers;
