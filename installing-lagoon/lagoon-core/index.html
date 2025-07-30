@@ -5043,18 +5043,27 @@
 <h2 id="install-the-helm-chart">Install the Helm chart<a class="headerlink" href="#install-the-helm-chart" title="Permanent link">#</a></h2>
 <ol>
 <li>
-<p>Add Lagoon Charts repository to your Helm Repositories:</p>
+<p>Add the Lagoon Charts repository to your Helm repositories:</p>
 <div class="language-bash highlight"><span class="filename">Add Lagoon Charts repository</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>lagoon<span class="w"> </span>https://uselagoon.github.io/lagoon-charts/
 </span></code></pre></div>
 </li>
 <li>
 <p>Create a directory for the configuration files we will create, and make sure that it’s version controlled. Ensure that you reference this path in commands referencing your <code>values.yml</code> files.</p>
 </li>
-<li>Create <code>values.yml</code> in the directory you’ve just created. Update the endpoint URLs (change them from <code>api.lagoon.example.com</code> to your values).
-   Example: <a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml">https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml</a></li>
+<li>
+<p>Create a file named <code>values.yml</code> in this directory. In this file you declare how you would like Lagoon to be configured. There are mandatory settings and optional ones. A helpful example can be found <a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml">here</a>. Some hints: </p>
+<ol>
+<li>Update the endpoint URLs (such as <code>lagoonAPIURL</code>, <code>keycloakFrontEndURL</code>, and <code>lagoonUIURL</code>) from placeholders (e.g <code>api.example.com</code>) to your particular endpoints.</li>
+<li>Optionally, an initial user ("seed user") and/or organization ("seed organization") can be created automatically on install by setting <code>lagoonSeedUsername</code>, <code>lagoonSeedPassword</code>, and <code>lagoonSeedOrganization</code> as appropriate. For example:</li>
+</ol>
+<div class="language-yaml highlight"><span class="filename">Setting an initial user and organization</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">lagoonSeedUsername</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test@example.com</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">lagoonSeedPassword</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">lagoonSeedOrganization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example-org</span>
+</span></code></pre></div>
+</li>
 <li>
 <p>Now run <code>helm upgrade --install</code> command, pointing to <code>values.yml</code>, like so:</p>
-<div class="language-bash highlight"><span class="filename">Upgrade Helm with values.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>--create-namespace<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span>-f<span class="w"> </span>values.yml<span class="w"> </span>lagoon-core<span class="w"> </span>lagoon/lagoon-core<span class="sb">`</span>
+<div class="language-bash highlight"><span class="filename">Upgrade Helm with values.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>--create-namespace<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span>-f<span class="w"> </span>values.yml<span class="w"> </span>lagoon-core<span class="w"> </span>lagoon/lagoon-core<span class="sb">`</span>
 </span></code></pre></div>
 </li>
 <li>
@@ -5073,7 +5082,7 @@
 <li>Password: use <code>lagoon-core-keycloak</code> secret, key-value <code>KEYCLOAK_ADMIN_PASSWORD</code></li>
 <li>
 <p>Retrieve the secret like so:</p>
-<div class="language-bash highlight"><span class="filename">Retrieve secret</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>lagoon-core<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>lagoon-core-keycloak<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s2">&quot;{.data.KEYCLOAK_ADMIN_PASSWORD}&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>--decode
+<div class="language-bash highlight"><span class="filename">Retrieve secret</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>lagoon-core<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>lagoon-core-keycloak<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s2">&quot;{.data.KEYCLOAK_ADMIN_PASSWORD}&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>--decode
 </span></code></pre></div>
 </li>
 <li>
@@ -5095,14 +5104,14 @@
 </li>
 </ol>
 <h2 id="log-in-to-the-ui">Log in to the UI<a class="headerlink" href="#log-in-to-the-ui" title="Permanent link">#</a></h2>
-<p>You should now be able to visit the Lagoon UI at the URL you defined in the <code>values.yml</code> for the UI.</p>
-<ol>
-<li>Username: <code>lagoonadmin</code></li>
-<li>Secret: use <code>lagoon-core-keycloak</code> secret key-value: <code>LAGOON-CORE-KEYCLOAK</code></li>
-<li>Retrieve the secret:<div class="language-bash highlight"><span class="filename">Retrieve secret</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="w">    </span>kubectl<span class="w"> </span>-n<span class="w"> </span>lagoon-core<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>lagoon-core-keycloak<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s2">&quot;{.data.KEYCLOAK_LAGOON_ADMIN_PASSWORD}&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>--decode
+<p>You should now be able to visit the Lagoon UI at the URL you defined via <code>lagoonUIURL</code> in your <code>values.yml</code>.
+If you configured a seed user in the above steps, you can use it's credentials to log in.
+For example, if you set</p>
+<p><div class="language-yaml highlight"><span class="filename">YAML</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">lagoonSeedUsername</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test@example.com</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">lagoonSeedPassword</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
 </span></code></pre></div>
-</li>
-</ol>
+then you can log in with username "test@example.com" and password "password".
+Otherwise, users can be created via direct interaction with the <a href="/interacting/graphql-queries/">GraphQL API</a> or using the <a href="/installing-lagoon/lagoon-cli/">Lagoon CLI</a>. </p>
 
 
 
