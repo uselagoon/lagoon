@@ -86,3 +86,7 @@
 .pf-c-page{
   background-color: #4578E6;
 }
+
+.pf-c-page__header{
+  background: linear-gradient(to right, rgba(36, 174, 196, 1) 0%, rgba(42, 109, 254, 1) 25%);
+}
