@@ -127,6 +127,7 @@ const {
   getEnvironmentByServiceId,
   getServiceContainersByServiceId,
   deleteEnvironmentService,
+  environmentIdling,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -809,6 +810,7 @@ async function getResolvers() {
     deleteHistoryRetentionPolicy,
     addHistoryRetentionPolicyLink,
     removeHistoryRetentionPolicyLink,
+    environmentIdling,
   },
   Subscription: {
     backupChanged: backupSubscriber,
