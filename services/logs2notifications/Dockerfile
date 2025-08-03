@@ -16,6 +16,8 @@ FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
+ENV TESTBUILD=test
+
 WORKDIR /app/
 
 # bring the auto-idler binary from the builder
