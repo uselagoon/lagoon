@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"slices"
 
 	"github.com/drone/go-scm/scm"
@@ -17,15 +16,19 @@ import (
 	"github.com/drone/go-scm/scm/driver/gitlab"
 	"github.com/drone/go-scm/scm/driver/gogs"
 	"github.com/drone/go-scm/scm/driver/stash"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/uselagoon/lagoon-sneak/services/webhooks/internal/events"
-	syshook "github.com/uselagoon/lagoon-sneak/services/webhooks/internal/gitlab"
-	"github.com/uselagoon/lagoon-sneak/services/webhooks/internal/messaging"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/events"
+	syshook "github.com/uselagoon/lagoon/services/webhooks/internal/gitlab"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/lagoon"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/messaging"
 )
 
 type Server struct {
 	Router    *mux.Router
 	Messaging *messaging.Messenger
+	GitlabAPI syshook.GitlabAPI
+	LagoonAPI lagoon.LagoonAPI
 }
 
 func (s *Server) Initialize() {
@@ -34,7 +37,7 @@ func (s *Server) Initialize() {
 }
 
 func (s *Server) Run(addr string) {
-	log.Fatal(http.ListenAndServe(":3000", s.Router))
+	log.Fatal(http.ListenAndServe(addr, s.Router))
 }
 
 func (s *Server) initializeRoutes() {
@@ -49,25 +52,39 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var webhook scm.Webhook
 	var client *scm.Client
-	isGit := false
+	var isGit bool
+	var gitType, reqUUID, event string
+	if r.Header.Get("X-GitHub-Event") != "" {
+		client = github.NewDefault()
+		isGit = true
+		gitType = "github"
+		event = r.Header.Get("X-GitHub-Event")
+		reqUUID = r.Header.Get("X-GitHub-Delivery")
+	}
 	if r.Header.Get("X-Gitea-Event") != "" {
-		log.Println("GITEA")
 		// pass an empty url we only need the webhook parse capability
 		client, _ = gitea.New("")
 		isGit = true
+		gitType = "gitea"
+		event = r.Header.Get("X-Gitea-Event")
+		reqUUID = r.Header.Get("X-Gitea-Delivery")
 	}
 	if r.Header.Get("X-Gogs-Event") != "" {
-		log.Println("GOGS")
 		// pass an empty url we only need the webhook parse capability
 		client, _ = gogs.New("")
 		isGit = true
+		gitType = "gogs"
+		event = r.Header.Get("X-Gogs-Event")
+		reqUUID = r.Header.Get("X-Gogs-Delivery")
 	}
 	// azure might not be usable https://github.com/uselagoon/lagoon/issues/3470#issuecomment-1607066097
 	if r.Header.Get("X-Lagoon-Azure-Devops") != "" {
-		log.Println("AZURE")
 		// pass an empty url we only need the webhook parse capability
 		client, _ = azure.New("", "none", "")
 		isGit = true
+		gitType = "azure"
+		event = r.Header.Get("X-Lagoon-Azure-Devops")
+		reqUUID = uuid.New().String()
 	}
 	// check if stash or bitbucket
 	if r.Header.Get("X-Event-Key") != "" {
@@ -76,43 +93,49 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 			[]string{"repo:refs_changed", "pr:opened", "pr:from_ref_updated", "pr:modified", "pr:declined", "pr:deleted", "pr:merged"},
 			r.Header.Get("X-Event-Key"),
 		) {
-			log.Println("STASH")
 			client = stash.NewDefault()
 			isGit = true
+			gitType = "stash"
 		} else {
-			log.Println("BITBUCKET")
 			client = bitbucket.NewDefault()
 			isGit = true
+			gitType = "bitbucket"
 		}
+		event = r.Header.Get("X-Event-Key")
+		reqUUID = r.Header.Get("X-Request-UUID")
 	}
 	if r.Header.Get("X-Gitlab-Event") != "" {
 		if r.Header.Get("X-Gitlab-Event") == "System Hook" {
 			// drone scm doesn't process gitlab system hooks that we need
-			// so handle them differently
-			log.Println("GITLAB SECURE")
+			// handle them ourselves
 			// handle gitlab system hooks here
 			defer r.Body.Close()
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				http.Error(w, "Invalid Body", http.StatusBadRequest)
+				return
 			}
-			token := os.Getenv("GITLAB_SYSTEM_HOOK_TOKEN")
-			if r.Header.Get("X-Gitlab-Token") != "" && r.Header.Get("X-Gitlab-Token") != token {
+			// Ensure the system hook came from gitlab
+			if r.Header.Get("X-Gitlab-Token") == "" || r.Header.Get("X-Gitlab-Token") != s.GitlabAPI.GitlabSystemHookToken {
 				http.Error(w, "Gitlab system hook secret verification failed", http.StatusUnauthorized)
+				return
 			}
-			if err = syshook.HandleSystemHook("api", token, body); err != nil {
+			sh, err := syshook.New(s.GitlabAPI.GitlabAPIHost, s.GitlabAPI.GitlabAPIToken, s.LagoonAPI, s.Messaging)
+			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err = sh.HandleSystemHook(body); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 			return
 		}
-		log.Println("GITLAB")
 		client = gitlab.NewDefault()
 		isGit = true
-	}
-	if r.Header.Get("X-GitHub-Event") != "" {
-		log.Println("GITHUB")
-		client = github.NewDefault()
-		isGit = true
+		gitType = "gitlab"
+		event = r.Header.Get("X-Gitlab-Event")
+		reqUUID = r.Header.Get("X-Gitlab-Event-UUID")
 	}
 	if isGit {
 		webhook, err = client.Webhooks.Parse(r, secret)
@@ -120,16 +143,17 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		e := events.New(s.LagoonAPI, s.Messaging)
 		if webhook != nil {
-			switch event := webhook.(type) {
+			switch scmWebhook := webhook.(type) {
 			case *scm.PushHook:
-				events.HandlePush(event)
+				e.HandlePush(gitType, event, reqUUID, scmWebhook)
 			case *scm.BranchHook:
-				events.HandleBranch(event)
+				e.HandleBranch(gitType, event, reqUUID, scmWebhook)
+			case *scm.PullRequestHook:
+				e.HandlePull(gitType, event, reqUUID, scmWebhook)
 			case *scm.TagHook:
 				// future?
-			case *scm.PullRequestHook:
-				events.HandlePull(event)
 			}
 		}
 	}
