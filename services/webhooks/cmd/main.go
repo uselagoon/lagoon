@@ -6,22 +6,33 @@ import (
 	"time"
 
 	mq "github.com/cheshir/go-mq/v2"
-	"github.com/uselagoon/lagoon-sneak/services/webhooks/internal/messaging"
-	"github.com/uselagoon/lagoon-sneak/services/webhooks/internal/server"
+	syshook "github.com/uselagoon/lagoon/services/webhooks/internal/gitlab"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/lagoon"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/messaging"
+	"github.com/uselagoon/lagoon/services/webhooks/internal/server"
 	"github.com/uselagoon/machinery/utils/variables"
 )
 
 var (
-	mqUser              string
-	mqPass              string
-	mqHost              string
-	mqTLS               bool
-	mqVerify            bool
-	mqCACert            string
-	mqClientCert        string
-	mqClientKey         string
-	mqWorkers           int
-	rabbitRetryInterval int
+	mqUser                string
+	mqPass                string
+	mqHost                string
+	mqTLS                 bool
+	mqVerify              bool
+	mqCACert              string
+	mqClientCert          string
+	mqClientKey           string
+	mqWorkers             int
+	rabbitRetryInterval   int
+	gitlabSystemHookToken string
+	gitlabAPIToken        string
+	gitlabAPIHost         string
+	lagoonAPIHost         string
+	lagoonAPIVersion      string
+	jwtTokenSigningKey    string
+	jwtAudience           string
+	jwtSubject            string
+	jwtIssuer             string
 )
 
 func main() {
@@ -46,6 +57,19 @@ func main() {
 	flag.IntVar(&rabbitRetryInterval, "rabbitmq-retry-interval", 30,
 		"The retry interval for rabbitmq.")
 
+	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000/graphql",
+		"The host for the lagoon api.")
+	flag.StringVar(&lagoonAPIVersion, "lagoon-api-version", "2.18.0",
+		"The version for the lagoon api.")
+	flag.StringVar(&jwtTokenSigningKey, "jwt-token-signing-key", "super-secret-string",
+		"The jwt signing token key or secret.")
+	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
+		"The jwt audience.")
+	flag.StringVar(&jwtSubject, "jwt-subject", "actions-handler",
+		"The jwt audience.")
+	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
+		"The jwt audience.")
+
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -57,6 +81,18 @@ func main() {
 	mqClientCert = variables.GetEnv("RABBITMQ_CLIENTCERT", mqClientCert)
 	mqClientKey = variables.GetEnv("RABBITMQ_CLIENTKEY", mqClientKey)
 	mqVerify = variables.GetEnvBool("RABBITMQ_VERIFY", mqVerify)
+
+	// gitlab
+	gitlabSystemHookToken = variables.GetEnv("GITLAB_SYSTEM_HOOK_TOKEN", "")
+	gitlabAPIToken = variables.GetEnv("GITLAB_API_TOKEN", "")
+	gitlabAPIHost = variables.GetEnv("GITLAB_API_HOST", "")
+
+	// lagoon
+	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
+	jwtTokenSigningKey = variables.GetEnv("JWT_SECRET", jwtTokenSigningKey)
+	jwtAudience = variables.GetEnv("JWT_AUDIENCE", jwtAudience)
+	jwtSubject = variables.GetEnv("JWT_SUBJECT", jwtSubject)
+	jwtIssuer = variables.GetEnv("JWT_ISSUER", jwtIssuer)
 
 	brokerDSN := fmt.Sprintf("amqp://%s:%s@%s", mqUser, mqPass, mqHost)
 	if mqTLS {
@@ -128,8 +164,22 @@ func main() {
 
 	messaging := messaging.New(config, true)
 
-	srv := server.Server{}
-	srv.Messaging = messaging
+	srv := server.Server{
+		Messaging: messaging,
+		GitlabAPI: syshook.GitlabAPI{
+			GitlabAPIHost:         gitlabAPIHost,
+			GitlabAPIToken:        gitlabAPIToken,
+			GitlabSystemHookToken: gitlabSystemHookToken,
+		},
+		LagoonAPI: lagoon.LagoonAPI{
+			Endpoint:        lagoonAPIHost,
+			JWTAudience:     jwtAudience,
+			JWTSubject:      jwtSubject,
+			JWTIssuer:       jwtIssuer,
+			TokenSigningKey: jwtTokenSigningKey,
+			Version:         lagoonAPIVersion,
+		},
+	}
 	srv.Initialize()
 	srv.Run(":8010")
 }
