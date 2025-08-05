@@ -13,6 +13,7 @@ local-dev/k3d
 local-dev/kind
 local-dev/kubectl
 local-dev/jq
+local-dev/jwt
 local-dev/stern
 local-dev/go
 local-dev/certificates
