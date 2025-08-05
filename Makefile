@@ -117,6 +117,7 @@ LAGOON_SSH_PORTAL_LOADBALANCER ?= true
 HELM = $(realpath ./local-dev/helm)
 KUBECTL = $(realpath ./local-dev/kubectl)
 JQ = $(realpath ./local-dev/jq)
+JWT = $(realpath ./local-dev/jwt)
 K3D = $(realpath ./local-dev/k3d)
 
 # which database vendor type to use, can be mariadb (default) or mysql
@@ -452,6 +453,7 @@ KUBECTL_VERSION := v1.31.0
 HELM_VERSION := v3.16.1
 K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
+JWT_VERSION = 6.2.0
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
@@ -612,6 +614,32 @@ endif
 endif
 endif
 
+.PHONY: local-dev/jwt
+local-dev/jwt:
+ifeq ($(JWT_VERSION), $(shell jwt -v 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/v\1/p'))
+	$(info linking local jwt version $(JWT_VERSION))
+	ln -sf $(shell command -v jwt) ./local-dev/jwt
+else
+ifneq ($(JWT_VERSION), $(shell ./local-dev/jwt -v 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/v\1/p'))
+	$(info downloading jwt version $(JWT_VERSION) for $(ARCH))
+	rm -f local-dev/jwt || true
+ifeq ($(ARCH), darwin)
+	TMPDIR=$$(mktemp -d) \
+		&& curl -sSL https://github.com/mike-engel/jwt-cli/releases/download/$(JWT_VERSION)/jwt-macOS.tar.gz \
+		| tar -xzC $$TMPDIR \
+		&& mv $$TMPDIR/jwt ./local-dev/jwt \
+		&& rm -rf $$TMPDIR
+else
+	TMPDIR=$$(mktemp -d) \
+		&& curl -sSL https://github.com/mike-engel/jwt-cli/releases/download/$(JWT_VERSION)/jwt-linux.tar.gz \
+		| tar -xzC $$TMPDIR \
+		&& mv $$TMPDIR/jwt ./local-dev/jwt \
+		&& rm -rf $$TMPDIR
+endif
+	chmod a+x local-dev/jwt
+endif
+endif
+
 # Symlink the installed stern client if the correct version is already
 # installed, otherwise downloads it.
 .PHONY: local-dev/stern
@@ -649,7 +677,7 @@ endif
 endif
 
 .PHONY: local-dev-tools
-local-dev-tools: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl local-dev/stern
+local-dev-tools: local-dev/k3d local-dev/jq local-dev/jwt local-dev/helm local-dev/kubectl local-dev/stern
 
 .PHONY: helm/repos
 helm/repos: local-dev/helm
@@ -921,52 +949,58 @@ k3d/push-stable-build-image:
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-details
 k3d/get-lagoon-details:
-	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	echo "===========DETAILS=============" && \
-	echo "Lagoon UI URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-ui.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo "Lagoon API URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" \
-	&& echo "Lagoon API admin legacy token: $$(docker run \
-		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
-		-e JWTAUDIENCE=api.dev \
-		-e JWTUSER=localadmin \
-		uselagoon/tests \
-		python3 /ansible/tasks/api/admin_token.py)" \
-	&& echo "Lagoon webhook URL: http://lagoon-webhook.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo "SSH Core Service: lagoon-ssh.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "SSH Portal Service: lagoon-ssh-portal.$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "SSH Token Service: lagoon-token.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "Keycloak admin URL: $$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-keycloak.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/auth" \
-	&& echo "Keycloak admin password: $$($(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)" \
-	&& echo "MailPit (email catching service): http://mailpit.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io" \
-	&& echo ""
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))"; \
+	IP="$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"; \
+	echo "===========DETAILS============="; \
+	echo "Lagoon UI URL: $$( [ $(LAGOON_CORE_USE_HTTPS) = true ] && echo https || echo http )://lagoon-ui.$$IP.nip.io"; \
+	echo "Lagoon API URL: $$( [ $(LAGOON_CORE_USE_HTTPS) = true ] && echo https || echo http )://lagoon-api.$$IP.nip.io/graphql"; \
+	echo "Lagoon API admin legacy token: $$( \
+		JWTUSER=localadmin; \
+		JWTAUDIENCE=api.dev; \
+		JWTSECRET=$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o json | $(JQ) -r '.data.JWTSECRET | @base64d'); \
+		$(JWT) encode --alg HS256 --no-iat --payload role=admin --iss "$$JWTUSER" --aud "$$JWTAUDIENCE" --sub "$$JWTUSER" --secret "$$JWTSECRET" \
+	)"; \
+	echo "Lagoon webhook URL: http://lagoon-webhook.$$IP.nip.io"; \
+	echo "SSH Core Service: lagoon-ssh.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh -o jsonpath='{.spec.ports[0].port}')"; \
+	echo "SSH Portal Service: lagoon-ssh-portal.$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon get services lagoon-remote-ssh-portal -o jsonpath='{.spec.ports[0].port}')"; \
+	echo "SSH Token Service: lagoon-token.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io:$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')"; \
+	echo "Keycloak admin URL: $$( [ $(LAGOON_CORE_USE_HTTPS) = true ] && echo https || echo http )://lagoon-keycloak.$$IP.nip.io/auth"; \
+	echo "Keycloak admin password: $$( $(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o json | $(JQ) -r '.data.KEYCLOAK_ADMIN_PASSWORD | @base64d')"; \
+	echo "MailPit (email catching service): http://mailpit.$$IP.nip.io"; \
+	echo ""
+
 ifeq ($(LAGOON_CORE_USE_HTTPS),true)
-	@echo "==========IMPORTANT============" \
-		&& echo "Access to the UI is only valid over HTTPS." \
-		&& echo "You will need to accept the invalid certificates for the following services by visiting the URLS for each in your browser" \
-		&& echo "* Lagoon UI, API, Keycloak" \
-		&& echo "Alternatively import the generated certificate './local-dev/certificates/rootCA.pem' into trusted authorities for websites in your browser" \
-		&& echo "If you have mkcert installed, you can use 'make install-ca' to install the generated certificate into your trust store."
+	@echo "==========IMPORTANT============"; \
+	echo "Access to the UI is only valid over HTTPS."; \
+	echo "You will need to accept the invalid certificates for the following services by visiting the URLs for each in your browser:"; \
+	echo "* Lagoon UI, API, Keycloak"; \
+	echo "Alternatively import the generated certificate './local-dev/certificates/rootCA.pem' into trusted authorities for websites in your browser."; \
+	echo "If you have mkcert installed, you can use 'make install-ca' to install the generated certificate into your trust store."
 endif
-	@ echo "Run 'make k3d/get-lagoon-cli-details' to retreive the configuration command for the lagoon-cli" && \
-		echo ""
+
+	@echo "Run 'make k3d/get-lagoon-cli-details' to retrieve the configuration command for the lagoon-cli."; \
+	echo ""
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-cli-details
 k3d/get-lagoon-cli-details:
-	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	echo "=========CLI DETAILS===========" && \
-	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql \\" \
-	&& echo "--token $$(docker run \
-		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
-		-e JWTAUDIENCE=api.dev \
-		-e JWTUSER=localadmin \
-		uselagoon/tests \
-		python3 /ansible/tasks/api/admin_token.py) \\" \
-	&& echo "--hostname lagoon-token.$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io \\" \
-	&& echo "--port $$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}')" \
-	&& echo "" \
-	&& echo "When interacting with this Lagoon via the lagoon-cli, you will need to add the flag '--lagoon local-k3d' to commands" \
-	&& echo "or set it as the default using 'lagoon config default --lagoon local-k3d'"
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))"; \
+	JWTUSER=localadmin; \
+	JWTAUDIENCE=api.dev; \
+	JWTSECRET=$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o json | $(JQ) -r '.data.JWTSECRET | @base64d'); \
+	LAGOON_API_IP=$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'); \
+	SSH_TOKEN_IP=$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.status.loadBalancer.ingress[0].ip}'); \
+	SSH_TOKEN_PORT=$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}'); \
+	TOKEN=$$($(JWT) encode --alg HS256 --no-iat --payload role=admin --iss "$$JWTUSER" --aud "$$JWTAUDIENCE" --sub "$$JWTUSER" --secret "$$JWTSECRET"); \
+	echo "=========CLI DETAILS==========="; \
+	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$LAGOON_API_IP.nip.io/graphql \\"; \
+	echo "--token $$TOKEN \\"; \
+	echo "--hostname lagoon-token.$$SSH_TOKEN_IP.nip.io \\"; \
+	echo "--port $$SSH_TOKEN_PORT"; \
+	echo ""; \
+	echo "When interacting with this Lagoon via the lagoon-cli, you will need to add the flag '--lagoon local-k3d' to commands"; \
+	echo "or set it as the default using 'lagoon config default --lagoon local-k3d'"
+
 
 # k3d/seed-data is a way to seed a lagoon-core deployed via k3d/setup.
 # it is also called as part of k3d/local-stack though so should not need to be called directly.
