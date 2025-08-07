@@ -6,8 +6,8 @@ This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ 
 
 ## Supported versions
 
-* 5 \(available for compatibility only, no longer officially supported\) - `uselagoon/redis-5` or `uselagoon/redis-5-persistent`
-* 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6` or `uselagoon/redis-6-persistent`
+* 5 (available for compatibility only, no longer officially supported) - `uselagoon/redis-5` or `uselagoon/redis-5-persistent`
+* 6 (available for compatibility only, no longer officially supported) - `uselagoon/redis-6` or `uselagoon/redis-6-persistent`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7` or `uselagoon/redis-7-persistent`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/8.Dockerfile) - `uselagoon/redis-8`
 
@@ -64,7 +64,7 @@ See [https://github.com/redis/redis/blob/7.2.5/redis.conf](https://github.com/re
 
 ### Redis <= 7
 
-The [Lagoon `redis-persistent` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile) is intended for use when the Redis service must be utilized in `persistent` mode \(ie. with a persistent volume where keys will be saved to disk\). It is based on the [Lagoon `redis` image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile).
+The [Lagoon `redis-persistent` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/6.Dockerfile) is intended for use when the Redis service must be utilized in `persistent` mode (ie. with a persistent volume where keys will be saved to disk). It is based on the [Lagoon `redis` image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile).
 
 It differs from `redis` only with the `FLAVOR` environment variable, which will use the [respective Redis configuration](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf) according to the version of redis in use.
 
