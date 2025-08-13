@@ -165,16 +165,16 @@ var rocketChatEventTypeMap = map[string]EventMap{
 	"gitlab:merge_request:updated:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"},
 	"bitbucket:pullrequest:updated:opened:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
 	"bitbucket:pullrequest:updated:handled":        {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
-  "bitbucket:pr:modified:opened:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
-  "bitbucket:pr:modified:handled":                {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
-  "bitbucket:pr:from_ref_updated:opened:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
-  "bitbucket:pr:from_ref_updated:handled":        {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
+	"bitbucket:pr:modified:opened:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
+	"bitbucket:pr:modified:handled":                {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
+	"bitbucket:pr:from_ref_updated:opened:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
+	"bitbucket:pr:from_ref_updated:handled":        {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
 
 	"github:pull_request:closed:handled":      {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"bitbucket:pullrequest:fulfilled:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"bitbucket:pullrequest:rejected:handled":  {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pr:declined:handled":  {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pr:merged:handled":  {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pr:declined:handled":           {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pr:merged:handled":             {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"gitlab:merge_request:closed:handled":     {Emoji: infoEmoji, Color: "#E8E8E8", Template: "mergeRequestClosed"},
 
 	"github:delete:handled":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"},
@@ -182,10 +182,10 @@ var rocketChatEventTypeMap = map[string]EventMap{
 	"bitbucket:delete:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
 	"api:deleteEnvironment":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
 
-	"github:push:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
-	"bitbucket:repo:push:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
+	"github:push:handled":                 {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
+	"bitbucket:repo:push:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
 	"bitbucket:repo:refs_changed:handled": {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
-	"gitlab:push:handled":         {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
+	"gitlab:push:handled":                 {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushHandled"},
 
 	"github:push:skipped":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushSkipped"},
 	"gitlab:push:skipped":    {Emoji: infoEmoji, Color: "#E8E8E8", Template: "repoPushSkipped"},
@@ -207,9 +207,9 @@ var rocketChatEventTypeMap = map[string]EventMap{
 	"task:builddeploy-kubernetes:failed": {Emoji: failEmoji, Color: "red", Template: "deployError"}, //not in teams
 	"task:builddeploy-openshift:failed":  {Emoji: failEmoji, Color: "red", Template: "deployError"},
 
-	"github:pull_request:closed:CannotDeleteProductionEnvironment": {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
-	"github:push:CannotDeleteProductionEnvironment":                {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
-	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
-	"bitbucket:repo:refs_changed:CannotDeleteProductionEnvironment":        {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
-	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
+	"github:pull_request:closed:CannotDeleteProductionEnvironment":  {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
+	"github:push:CannotDeleteProductionEnvironment":                 {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
+	"bitbucket:repo:push:CannotDeleteProductionEnvironment":         {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
+	"bitbucket:repo:refs_changed:CannotDeleteProductionEnvironment": {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
+	"gitlab:push:CannotDeleteProductionEnvironment":                 {Emoji: warningEmoji, Color: "gold", Template: "notDeleted"},
 }
