@@ -4420,6 +4420,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Known Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#build-queues" class="md-nav__link">
     <span class="md-ellipsis">
       Build Queues
@@ -5138,6 +5147,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Known Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#build-queues" class="md-nav__link">
     <span class="md-ellipsis">
       Build Queues
@@ -5200,6 +5218,8 @@
 <h4 id="initial-user-and-organization">Initial User and Organization<a class="headerlink" href="#initial-user-and-organization" title="Permanent link">#</a></h4>
 <p>First time installations often find it difficult to set up an initial user or organization. This release introduces the ability to configure an initial platform-owner user, and/or an initial organization. Check out the documentation <a href="../../installing-lagoon/lagoon-core/">here</a> which mentions the values required.</p>
 <h3 id="lagoon-remote">Lagoon Remote<a class="headerlink" href="#lagoon-remote" title="Permanent link">#</a></h3>
+<h4 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">#</a></h4>
+<p>The <code>remote-controller</code> can get into a state where all deployments are put in the queue and never started. The solution is to <a href="https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-build-deploy/values.yaml#L170-L171">deploy the previous version</a>, <code>v0.24.0</code>.</p>
 <h4 id="build-queues">Build Queues<a class="headerlink" href="#build-queues" title="Permanent link">#</a></h4>
 <p>This release includes changes to the <code>remote-controller</code> that can allow for more builds to run. Once a build has completed the image build and push stage, it changes into a secondary queue which frees up a spot for a new build to start. This secondary queue has an upper limit, it defaults to the value of <code>qos-max-builds</code>. It can be increased by setting the <code>qos-total-builds</code> flag, it must be greater than the other value to be used. This feature allows builds that have slow or long running pre/post rollout tasks, or failing deployments to not prevent other builds from starting.</p>
 
