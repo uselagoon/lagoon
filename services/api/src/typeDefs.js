@@ -895,6 +895,10 @@ const typeDefs = gql`
     openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
+    """
+    Is the environment currently idled
+    """
+    idled: Boolean
   }
 
   type EnvironmentHitsMonth {
@@ -2846,6 +2850,7 @@ const typeDefs = gql`
     Remove an existing history retention policy from a resource type
     """
     removeHistoryRetentionPolicyLink(input: RemoveRetentionPolicyLinkInput!): String
+    environmentIdling(id: Int!, idle: Boolean!, disableAutomaticUnidling: Boolean): String
   }
 
   type Subscription {
