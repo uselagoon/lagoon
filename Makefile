@@ -58,6 +58,11 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
 
+# The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core 
+# only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
+#INSIGHTS_HANDLER_IMAGE_REPO = 
+#INSIGHTS_HANDLER_IMAGE_TAG = 
+
 # SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
 # SSHPORTALAPI_IMAGE_REPO =
@@ -497,6 +502,9 @@ INSTALL_PROMETHEUS = true
 # install aergia in local development
 INSTALL_AERGIA = true
 
+# enable insights in local development
+ENABLE_INSIGHTS = false
+
 # optionally install k8up for lagoon local development testing
 INSTALL_K8UP = false
 REMOTE_CONTROLLER_K8UP_VERSION = v2
@@ -793,6 +801,7 @@ endif
 		SSHPORTALAPI_IMAGE_REPO=$(SSHPORTALAPI_IMAGE_REPO) SSHPORTALAPI_IMAGE_TAG=$(SSHPORTALAPI_IMAGE_TAG) \
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
 		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
+		INSIGHTS_HANDLER_IMAGE_REPO=$(INSIGHTS_HANDLER_IMAGE_REPO) INSIGHTS_HANDLER_IMAGE_TAG=$(INSIGHTS_HANDLER_IMAGE_TAG) \
 		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
@@ -820,7 +829,8 @@ endif
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
-		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)')
+		$$([ $(INSTALL_AERGIA) ] && echo 'INSTALL_AERGIA=$(INSTALL_AERGIA)') \
+		$$([ $(ENABLE_INSIGHTS) ] && echo 'ENABLE_INSIGHTS=$(ENABLE_INSIGHTS)')
 	$(MAKE) k3d/push-stable-build-image
 ifneq ($(SKIP_DETAILS),true)
 	$(MAKE) k3d/get-lagoon-details

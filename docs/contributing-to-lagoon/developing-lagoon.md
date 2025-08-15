@@ -160,6 +160,23 @@ To change back to the default image you can use `make k3d/push-stable-build-imag
 make k3d/push-stable-build-image BUILD_DEPLOY_IMAGE_TAG=pr-123
 ```
 
+#### Lagoon Insights
+
+Lagoon provides an optional feature called 'Insights'.
+By default, this feature is disabled in the local-stack.
+You can enable it with
+
+```bash title="Enable insights with stable image"
+make k3d/local-stack ENABLE_INSIGHTS=true
+```
+
+By default, the local-stack uses the stable `uselagoon/insights-handler` image.
+To use a custom image, you can pass in the `INSIGHTS_HANDLER_IMAGE_REPO` and `INSIGHTS_HANDLER_IMAGE_TAG` variables:
+
+```bash title="Enable insights with a custom image"
+make k3d/local-stack ENABLE_INSIGHTS=true INSIGHTS_HANDLER_IMAGE_REPO=uselagoon/insights-handler INSIGHTS_HANDLER_IMAGE_TAG=local
+```
+
 #### Stable chart installation and upgrading chart versions
 
 It is possible to run the local-stack as it would be directly from a stable chart version.
