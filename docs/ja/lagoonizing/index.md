@@ -243,7 +243,8 @@ tasks:
         service: cli
 
 routes:
-  insecure: Redirect
+  autogenerate:
+    insecure: Redirect
 
 environments:
   main:
@@ -333,15 +334,11 @@ environments:
 
 `Allow`
 
-- HTTPとHTTPSの両方のルートを設定します(これがデフォルトです)。
+- HTTPとHTTPSの両方のルートを設定します。
 
 `Redirect`
 
-- すべてのHTTPリクエストをHTTPSにリダイレクトします。
-
-`None`
-
-- HTTPのルートは作成されず、リダイレクトもありません。
+- すべてのHTTPリクエストをHTTPSにリダイレクトします(これがデフォルトです)。
 
 ### 環境
 

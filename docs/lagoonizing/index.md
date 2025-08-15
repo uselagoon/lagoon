@@ -248,7 +248,8 @@ tasks:
         service: cli
 
 routes:
-  insecure: Redirect
+  autogenerate:
+    insecure: Redirect
 
 environments:
   main:
@@ -335,15 +336,11 @@ The following options are allowed:
 
 `Allow`
 
-- Sets up routes for both HTTP and HTTPS (this is the default).
+- Sets up routes for both HTTP and HTTPS.
 
 `Redirect`
 
-- Will redirect any HTTP requests to HTTPS.
-
-`None`
-
-- A route for HTTP will not be created, and no redirect.
+- Will redirect any HTTP requests to HTTPS (this is the default).
 
 ### Environments
 
