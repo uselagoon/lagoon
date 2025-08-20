@@ -61,14 +61,6 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		event = r.Header.Get("X-GitHub-Event")
 		reqUUID = r.Header.Get("X-GitHub-Delivery")
 	}
-	if r.Header.Get("X-Gitea-Event") != "" {
-		// pass an empty url we only need the webhook parse capability
-		client, _ = gitea.New("")
-		isGit = true
-		gitType = "gitea"
-		event = r.Header.Get("X-Gitea-Event")
-		reqUUID = r.Header.Get("X-Gitea-Delivery")
-	}
 	if r.Header.Get("X-Gogs-Event") != "" {
 		// pass an empty url we only need the webhook parse capability
 		client, _ = gogs.New("")
@@ -76,6 +68,14 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		gitType = "gogs"
 		event = r.Header.Get("X-Gogs-Event")
 		reqUUID = r.Header.Get("X-Gogs-Delivery")
+	}
+	if r.Header.Get("X-Gitea-Event") != "" {
+		// pass an empty url we only need the webhook parse capability
+		client, _ = gitea.New("")
+		isGit = true
+		gitType = "gitea"
+		event = r.Header.Get("X-Gitea-Event")
+		reqUUID = r.Header.Get("X-Gitea-Delivery")
 	}
 	// azure might not be usable https://github.com/uselagoon/lagoon/issues/3470#issuecomment-1607066097
 	if r.Header.Get("X-Lagoon-Azure-Devops") != "" {
@@ -112,21 +112,21 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
-				http.Error(w, "Invalid Body", http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, "invalid request body")
 				return
 			}
 			// Ensure the system hook came from gitlab
 			if r.Header.Get("X-Gitlab-Token") == "" || r.Header.Get("X-Gitlab-Token") != s.GitlabAPI.GitlabSystemHookToken {
-				http.Error(w, "Gitlab system hook secret verification failed", http.StatusUnauthorized)
+				respondWithError(w, http.StatusBadRequest, "gitlab system hook secret verification failed")
 				return
 			}
 			sh, err := syshook.New(s.GitlabAPI.GitlabAPIHost, s.GitlabAPI.GitlabAPIToken, s.LagoonAPI, s.Messaging)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, err.Error())
 				return
 			}
 			if err = sh.HandleSystemHook(body); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				respondWithError(w, http.StatusBadRequest, err.Error())
 				return
 			}
 			return
@@ -140,21 +140,31 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 	if isGit {
 		webhook, err = client.Webhooks.Parse(r, secret)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			respondWithError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 		e := events.New(s.LagoonAPI, s.Messaging)
 		if webhook != nil {
+			var response []byte
+			var err error
 			switch scmWebhook := webhook.(type) {
 			case *scm.PushHook:
-				e.HandlePush(gitType, event, reqUUID, scmWebhook)
+				response, err = e.HandlePush(gitType, event, reqUUID, scmWebhook)
 			case *scm.BranchHook:
-				e.HandleBranch(gitType, event, reqUUID, scmWebhook)
+				response, err = e.HandleBranch(gitType, event, reqUUID, scmWebhook)
 			case *scm.PullRequestHook:
-				e.HandlePull(gitType, event, reqUUID, scmWebhook)
+				response, err = e.HandlePull(gitType, event, reqUUID, scmWebhook)
 			case *scm.TagHook:
 				// future?
+				respondWithError(w, http.StatusBadRequest, "tags events are currently unsupported")
+				return
 			}
+			if err != nil {
+				respondWithError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			respondWithJSON(w, 200, map[string]string{"response": string(response)})
+			return
 		}
 	}
 }
