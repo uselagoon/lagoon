@@ -22,10 +22,10 @@ type GitlabAPI struct {
 type SystemHook struct {
 	client    *gitlab.Client
 	LagoonAPI lagoon.LagoonAPI
-	Messaging *messaging.Messenger
+	Messaging messaging.Messaging
 }
 
-func New(api, token string, lapi lagoon.LagoonAPI, m *messaging.Messenger) (SystemHook, error) {
+func New(api, token string, lapi lagoon.LagoonAPI, m messaging.Messaging) (SystemHook, error) {
 	git, err := gitlab.NewClient(token, gitlab.WithBaseURL(api))
 	if err != nil {
 		return SystemHook{}, fmt.Errorf("failed to create gitlab: %v", err)

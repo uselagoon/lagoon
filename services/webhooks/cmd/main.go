@@ -149,9 +149,8 @@ func main() {
 				},
 			},
 			{
-				Name:       "lagoon-tasks:controller",
-				Exchange:   "lagoon-tasks",
-				RoutingKey: "controller",
+				Name:     "lagoon-tasks",
+				Exchange: "lagoon-tasks",
 				Options: mq.Options{
 					"delivery_mode": "2",
 					"headers":       "",
@@ -162,10 +161,10 @@ func main() {
 		DSN: brokerDSN,
 	}
 
-	messaging := messaging.New(config, true)
+	msg := messaging.NewMessaging(config, true)
 
 	srv := server.Server{
-		Messaging: messaging,
+		Messaging: msg,
 		GitlabAPI: syshook.GitlabAPI{
 			GitlabAPIHost:         gitlabAPIHost,
 			GitlabAPIToken:        gitlabAPIToken,
