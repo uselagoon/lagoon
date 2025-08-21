@@ -1,0 +1,85 @@
+{
+    "data": {
+        "allProjects": [
+            {
+                "autoIdle": 1,
+                "branches": "true",
+                "pullrequests": "true",
+                "deployTargetConfigs": [],
+                "deploymentsDisabled": 0,
+                "developmentBuildPriority": 5,
+                "developmentEnvironmentsLimit": 5,
+                "environments": [
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 5,
+                        "name": "dev",
+                        "kubernetesNamespaceName": "demo-project3-dev",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    },
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 6,
+                        "name": "pr-175",
+                        "kubernetesNamespaceName": "demo-project3-pr-175",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    },
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 4,
+                        "name": "staging",
+                        "kubernetesNamespaceName": "demo-project3-staging",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    }
+                ],
+                "gitUrl": "https://github.com/fake/repository3.git",
+                "id": 20,
+                "name": "demo-project3",
+                "openshift": {
+                    "buildImage": null,
+                    "disabled": false,
+                    "id": 2001,
+                    "monitoringConfig": null,
+                    "name": "ci-local-control-k8s",
+                    "routerPattern": "${project}.${environment}.example.com",
+                    "sharedBaasBucketName": null
+                },
+                "organizationDetails": null,
+                "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nSNIPKEY\n-----END OPENSSH PRIVATE KEY-----\n",
+                "productionBuildPriority": 6,
+                "productionEnvironment": "main",
+                "routerPattern": null,
+                "sharedBaasBucket": true,
+                "standbyProductionEnvironment": null,
+                "storageCalc": 1
+            }
+        ]
+    }
+}
