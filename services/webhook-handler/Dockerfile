@@ -1,34 +1,32 @@
-ARG LAGOON_GIT_BRANCH
-ARG IMAGE_REPO
+# build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder AS yarn-workspace-builder
+FROM golang:1.24-alpine3.21 AS builder
+# bring in all the packages
+COPY . /go/src/github.com/uselagoon/lagoon/services/webhooks/
+WORKDIR /go/src/github.com/uselagoon/lagoon/services/webhooks/
 
-# STAGE 2: specific service Image
-FROM ${UPSTREAM_REPO:-uselagoon}/node-22:${UPSTREAM_TAG:-latest}
+# compile
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o webhooks cmd/main.go
+
+# put the binary into container
+# use the commons image to get entrypoints
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
-# Copying generated node_modules from the first stage
-COPY --from=yarn-workspace-builder /app /app
+WORKDIR /app/
 
-# Setting the workdir to the service, all following commands will run from here
-WORKDIR /app/services/webhook-handler/
+# bring the auto-idler binary from the builder
+COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/webhooks/webhooks .
 
-# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
-COPY --from=yarn-workspace-builder /app/.env.defaults .
-
-# Copying files from our service
-COPY . .
-
-# Verify that all dependencies have been installed via the yarn-workspace-builder
-RUN yarn check --verify-tree
-
-# Making sure we run in production
-ENV NODE_ENV production
-
-RUN yarn build
-
-CMD ["yarn", "start"]
+ENV LAGOON=webhooks
+# set defaults
+ENV JWT_SECRET=super-secret-string \
+    JWT_AUDIENCE=api.dev \
+    GRAPHQL_ENDPOINT="http://api:3000/graphql" \
+    RABBITMQ_HOSTNAME=broker:5672 \
+    RABBITMQ_USERNAME=guest \
+    RABBITMQ_PASSWORD=guest
+CMD ["/app/webhooks"]
