@@ -14,10 +14,10 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 	var deployTarget *schema.DeployTarget
 	var activeStanby *schema.DeployTarget
 	for _, env := range project.Environments {
-		if env.Name == deployData.UnSafeEnvironmentName {
+		if env.Name == deployData.UnsafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
-		if project.StandbyProductionEnvironment == deployData.UnSafeEnvironmentName || project.ProductionEnvironment == deployData.UnSafeEnvironmentName {
+		if project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName {
 			activeStanby = &env.DeployTarget
 		}
 	}
@@ -64,7 +64,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 				return nil, fmt.Errorf("deployments disabled for project pullrequests")
 			default:
 				re := regexp.MustCompile(dtc.Pullrequests)
-				if re.MatchString(deployData.UnSafeEnvironmentName) {
+				if re.MatchString(deployData.UnsafeEnvironmentName) {
 					deployData.DeployTarget = dtc.DeployTarget
 					buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 					if err != nil {
@@ -97,7 +97,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 			return nil, fmt.Errorf("deployments disabled for project pullrequests")
 		default:
 			re := regexp.MustCompile(project.PullRequests)
-			if re.MatchString(deployData.UnSafeEnvironmentName) {
+			if re.MatchString(deployData.UnsafeEnvironmentName) {
 				deployData.DeployTarget = *project.DeployTarget
 				buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 				if err != nil {

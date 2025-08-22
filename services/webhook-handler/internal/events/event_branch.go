@@ -1,7 +1,6 @@
 package events
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.BranchHook) ([]byte, error) {
+func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.BranchHook) ([]Response, error) {
 	// branchName := strings.ReplaceAll(scmWebhook.Ref.Name, "refs/heads/", "")
 	// log.Println(
 	// 	"branch", ":",
@@ -77,7 +76,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		} else {
 			deployData := lagoon.DeployData{
 				BuildName:             buildName,
-				UnSafeEnvironmentName: branchName,
+				UnsafeEnvironmentName: branchName,
 				SourceUser:            sourceUser,
 				Project:               project,
 				SourceType:            lagoon.SourceWebhook,
@@ -91,13 +90,12 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 			errs++
 			response.Error = err
 		}
-		response.Response = resp
+		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	respBytes, _ := json.Marshal(resps)
+	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
-		fmt.Println(resps)
-		return respBytes, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("nothing to do")
 	}
-	return respBytes, nil
+	return resps, nil
 }

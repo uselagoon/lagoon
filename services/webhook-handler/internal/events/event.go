@@ -23,9 +23,9 @@ func New(lapi lagoon.LagoonAPI, m messaging.Messaging) Events {
 }
 
 type Response struct {
-	Project  string
-	Response []byte
-	Error    error
+	Project  string `json:"project,omitempty"`
+	Response string `json:"response,omitempty"`
+	Error    error  `json:"error,omitempty"`
 }
 
 func (e *Events) findProjectsByGitURL(gitType, event, uuid, gitURL string) ([]schema.Project, string, string, error) {

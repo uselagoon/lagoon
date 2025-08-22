@@ -9,10 +9,10 @@ import (
 )
 
 func (e *Events) createDeployTask(project schema.Project, deployData lagoon.DeployData, deployType, bulkID, bulkName string) ([]byte, error) {
-	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(deployData.UnSafeEnvironmentName))
+	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(deployData.UnsafeEnvironmentName))
 	if project.OrganizationDetails != nil {
 		for _, env := range project.Environments {
-			if env.Name != deployData.UnSafeEnvironmentName {
+			if env.Name != deployData.UnsafeEnvironmentName {
 				if len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment && project.OrganizationDetails.QuotaEnvironment != -1 {
 					e.Messaging.Publish("lagoon-logs", []byte("exceed environment quota"))
 					return nil, fmt.Errorf("exceed environment quota")
@@ -22,8 +22,8 @@ func (e *Events) createDeployTask(project schema.Project, deployData lagoon.Depl
 	}
 	prodEnvLimit := 2
 	// @TODO: handle `/` and `-` branch vs lagoon "made safe" names
-	if project.ProductionEnvironment == deployData.UnSafeEnvironmentName ||
-		project.StandbyProductionEnvironment == deployData.UnSafeEnvironmentName ||
+	if project.ProductionEnvironment == deployData.UnsafeEnvironmentName ||
+		project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName ||
 		project.ProductionEnvironment == environmentName ||
 		project.StandbyProductionEnvironment == environmentName {
 		prodEnvs := []schema.EnvironmentConfig{}
@@ -35,7 +35,7 @@ func (e *Events) createDeployTask(project schema.Project, deployData lagoon.Depl
 		if len(prodEnvs) >= prodEnvLimit {
 			exists := false
 			for _, env := range prodEnvs {
-				if env.Name == deployData.UnSafeEnvironmentName || env.Name == environmentName {
+				if env.Name == deployData.UnsafeEnvironmentName || env.Name == environmentName {
 					exists = true
 				}
 			}
@@ -54,7 +54,7 @@ func (e *Events) createDeployTask(project schema.Project, deployData lagoon.Depl
 		if project.DevelopmentEnvironmentsLimit != nil && len(devEnvs) >= int(*project.DevelopmentEnvironmentsLimit) {
 			exists := false
 			for _, env := range devEnvs {
-				if env.Name == deployData.UnSafeEnvironmentName {
+				if env.Name == deployData.UnsafeEnvironmentName {
 					exists = true
 				}
 			}

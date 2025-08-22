@@ -22,7 +22,7 @@ type DeployData struct {
 	BulkType                 BulkType            `json:"bulkType"`
 	SourceUser               string              `json:"sourceUser"`
 	SourceType               SourceType          `json:"sourceType"`
-	UnSafeEnvironmentName    string              `json:"branchName"`
+	UnsafeEnvironmentName    string              `json:"unsafeEnvironmentName"`
 	Project                  schema.Project      `json:"project"`
 	DeployTarget             schema.DeployTarget `json:"deployTarget"`
 	GitSHA                   string              `json:"gitSha"`
