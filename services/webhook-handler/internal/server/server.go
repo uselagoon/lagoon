@@ -26,23 +26,19 @@ import (
 
 type Server struct {
 	Router    *mux.Router
-	Messaging *messaging.Messenger
+	Messaging messaging.Messaging
 	GitlabAPI syshook.GitlabAPI
 	LagoonAPI lagoon.LagoonAPI
 }
 
 func (s *Server) Initialize() {
 	s.Router = mux.NewRouter()
-	s.initializeRoutes()
+	s.Router.HandleFunc("/", s.handleWebhookPost).Methods("POST")
+	s.Router.HandleFunc("/", s.handleWebhookGet).Methods("GET")
 }
 
 func (s *Server) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, s.Router))
-}
-
-func (s *Server) initializeRoutes() {
-	s.Router.HandleFunc("/", s.handleWebhookPost).Methods("POST")
-	s.Router.HandleFunc("/", s.handleWebhookGet).Methods("GET")
 }
 
 func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +140,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		}
 		e := events.New(s.LagoonAPI, s.Messaging)
 		if webhook != nil {
-			var response []byte
+			var response []events.Response
 			var err error
 			switch scmWebhook := webhook.(type) {
 			case *scm.PushHook:
@@ -176,7 +172,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				respondWithError(w, http.StatusBadRequest, err.Error())
 				return
 			}
-			respondWithJSON(w, 200, map[string]string{"response": string(response)})
+			respondWithJSON(w, 200, map[string]interface{}{"response": response})
 			return
 		}
 	}
