@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/drone/go-scm/scm/driver/azure"
@@ -29,6 +30,7 @@ type Server struct {
 	Messaging messaging.Messaging
 	GitlabAPI syshook.GitlabAPI
 	LagoonAPI lagoon.LagoonAPI
+	Debug     bool
 }
 
 func (s *Server) Initialize() {
@@ -169,7 +171,18 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if err != nil {
-				respondWithError(w, http.StatusBadRequest, err.Error())
+				if len(response) > 0 {
+					var errs []string
+					for _, i := range response {
+						if i.Error != nil {
+							errs = append(errs, i.Error.Error())
+						}
+					}
+					log.Println("Errors:", strings.Join(errs, ";"))
+				} else {
+					log.Println("Error:", err)
+				}
+				respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
 				return
 			}
 			respondWithJSON(w, 200, map[string]interface{}{"response": response})
@@ -182,7 +195,7 @@ func (s *Server) handleWebhookGet(w http.ResponseWriter, r *http.Request) {
 	var p map[string]interface{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
+		respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
 		return
 	}
 	defer r.Body.Close()

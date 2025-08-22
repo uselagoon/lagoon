@@ -3,7 +3,9 @@ package events
 import (
 	"fmt"
 	"log"
-	"regexp"
+
+	// we can't use go regex as some things people do with the regex in nodejs aren't supported in golang re2 regex
+	"github.com/dlclark/regexp2"
 
 	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
@@ -63,8 +65,8 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				e.Messaging.Publish("lagoon-logs", []byte("deployments disabled for target branches"))
 				return nil, fmt.Errorf("deployments disabled for project branches")
 			default:
-				re := regexp.MustCompile(dtc.Branches)
-				if re.MatchString(deployData.UnsafeEnvironmentName) {
+				re := regexp2.MustCompile(dtc.Branches, 0)
+				if match, _ := re.MatchString(deployData.UnsafeEnvironmentName); match {
 					deployData.DeployTarget = dtc.DeployTarget
 					buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 					if err != nil {
@@ -96,8 +98,8 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 			e.Messaging.Publish("lagoon-logs", []byte("deployments disabled for project branches"))
 			return nil, fmt.Errorf("deployments disabled for project branches")
 		default:
-			re := regexp.MustCompile(project.Branches)
-			if re.MatchString(deployData.UnsafeEnvironmentName) {
+			re := regexp2.MustCompile(project.Branches, 0)
+			if match, _ := re.MatchString(deployData.UnsafeEnvironmentName); match {
 				deployData.DeployTarget = *project.DeployTarget
 				buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 				if err != nil {

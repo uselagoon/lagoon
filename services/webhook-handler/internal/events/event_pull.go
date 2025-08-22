@@ -72,7 +72,6 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
 		return resps, fmt.Errorf("nothing to do")
 	}

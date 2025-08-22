@@ -3,7 +3,6 @@ package lagoon
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/uselagoon/machinery/api/schema"
@@ -114,8 +113,8 @@ func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPri
 
 func (l *LagoonAPI) AllProjectByGitURL(gitURL string) (*[]schema.Project, error) {
 	lc, _ := GetClient(*l)
-	query := fmt.Sprintf(`query webhookProcessProjects {
-        allProjects(gitUrl: "%s") {
+	query := `query allProjects($gitUrl: String) {
+        allProjects(gitUrl: $gitUrl) {
 			id
         	name
         	deploymentsDisabled
@@ -211,8 +210,10 @@ func (l *LagoonAPI) AllProjectByGitURL(gitURL string) (*[]schema.Project, error)
 				}
 			}
         }
-    }`, gitURL)
-	result, err := lc.ProcessRaw(context.Background(), query, nil)
+    }`
+	result, err := lc.ProcessRaw(context.Background(), query, map[string]interface{}{
+		"gitUrl": gitURL,
+	})
 	if err != nil {
 		return nil, err
 	}
