@@ -2,12 +2,19 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM golang:1.24-alpine3.21 AS builder
-# bring in all the packages
-COPY . /go/src/github.com/uselagoon/lagoon/services/webhooks/
-WORKDIR /go/src/github.com/uselagoon/lagoon/services/webhooks/
+
+WORKDIR /workspace
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY cmd/ cmd/
+COPY internal/server internal/server
+COPY internal/messaging internal/messaging
+COPY internal/gitlab internal/gitlab
+COPY internal/lagoon internal/lagoon
+COPY internal/events internal/events
 
 # compile
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o webhooks cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o webhook-handler cmd/main.go
 
 # put the binary into container
 # use the commons image to get entrypoints
@@ -19,14 +26,14 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 WORKDIR /app/
 
 # bring the auto-idler binary from the builder
-COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/webhooks/webhooks .
+COPY --from=builder /workspace/webhook-handler .
 
-ENV LAGOON=webhooks
+ENV LAGOON=webhook-handler
 # set defaults
 ENV JWT_SECRET=super-secret-string \
     JWT_AUDIENCE=api.dev \
     GRAPHQL_ENDPOINT="http://api:3000/graphql" \
-    RABBITMQ_HOSTNAME=broker:5672 \
+    RABBITMQ_ADDRESS=broker:5672 \
     RABBITMQ_USERNAME=guest \
     RABBITMQ_PASSWORD=guest
-CMD ["/app/webhooks"]
+CMD ["/app/webhook-handler"]
