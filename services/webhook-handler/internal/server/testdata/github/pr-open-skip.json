@@ -1,18 +1,18 @@
 {
   "action": "opened",
-  "number": 2,
+  "number": 4,
   "pull_request": {
-    "url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2",
+    "url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4",
     "id": 2723157260,
     "node_id": "PR_kwDOHRJhlc6iUBUM",
-    "html_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/2",
-    "diff_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/2.diff",
-    "patch_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/2.patch",
-    "issue_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/2",
-    "number": 2,
+    "html_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/4",
+    "diff_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/4.diff",
+    "patch_url": "https://github.com/amazeeio/lagoon-nginx-example/pull/4.patch",
+    "issue_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/4",
+    "number": 4,
     "state": "open",
     "locked": false,
-    "title": "Testing pullrequest",
+    "title": "WIP: Testing pullrequest",
     "user": {
       "login": "amazeeio",
       "id": 9973880,
@@ -47,10 +47,10 @@
     "labels": [],
     "milestone": null,
     "draft": false,
-    "commits_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/commits",
-    "review_comments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/comments",
+    "commits_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4/commits",
+    "review_comments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4/comments",
     "review_comment_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/comments{/number}",
-    "comments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/2/comments",
+    "comments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/4/comments",
     "statuses_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/statuses/924106e9f2424c8c52f7d8c1fbb093f5539170bf",
     "head": {
       "label": "amazeeio:service-cleanup",
@@ -330,25 +330,25 @@
     },
     "_links": {
       "self": {
-        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2"
+        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4"
       },
       "html": {
-        "href": "https://github.com/amazeeio/lagoon-nginx-example/pull/2"
+        "href": "https://github.com/amazeeio/lagoon-nginx-example/pull/4"
       },
       "issue": {
-        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/2"
+        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/4"
       },
       "comments": {
-        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/2/comments"
+        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/issues/4/comments"
       },
       "review_comments": {
-        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/comments"
+        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4/comments"
       },
       "review_comment": {
         "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/comments{/number}"
       },
       "commits": {
-        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/commits"
+        "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/4/commits"
       },
       "statuses": {
         "href": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/statuses/924106e9f2424c8c52f7d8c1fbb093f5539170bf"

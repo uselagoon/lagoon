@@ -17,18 +17,20 @@ var eventUUID string = "a667f4d0-fa5c-48fa-9ef5-1ff81cfe5cbb"
 
 func TestWebhookEvents(t *testing.T) {
 	tests := []struct {
-		name     string
-		gitType  string
-		event    string
-		webhook  string
-		wantCode int
+		name        string
+		description string
+		gitType     string
+		event       string
+		webhook     string
+		wantCode    int
 	}{
 		{
-			name:     "github-push-create-environment",
-			gitType:  "github",
-			event:    "push",
-			webhook:  "github/push",
-			wantCode: 200,
+			name:        "github-push-create-environment",
+			description: "should create an environment",
+			gitType:     "github",
+			event:       "push",
+			webhook:     "github/push",
+			wantCode:    200,
 		},
 		{
 			name:     "github-push-existing-environment",
@@ -52,6 +54,13 @@ func TestWebhookEvents(t *testing.T) {
 			wantCode: 200,
 		},
 		{
+			name:     "github-push-delete-production",
+			gitType:  "github",
+			event:    "push",
+			webhook:  "github/push-delete-prod",
+			wantCode: 400,
+		},
+		{
 			name:     "github-pull-open",
 			gitType:  "github",
 			event:    "pull_request",
@@ -59,7 +68,21 @@ func TestWebhookEvents(t *testing.T) {
 			wantCode: 200,
 		},
 		{
-			name:     "github-pull-ready",
+			name:     "github-pull-open-draft",
+			gitType:  "github",
+			event:    "pull_request",
+			webhook:  "github/pr-open-draft",
+			wantCode: 200,
+		},
+		{
+			name:     "github-pull-open-skip-title",
+			gitType:  "github",
+			event:    "pull_request",
+			webhook:  "github/pr-open-skip",
+			wantCode: 400,
+		},
+		{
+			name:     "github-pull-ready-review",
 			gitType:  "github",
 			event:    "pull_request",
 			webhook:  "github/pr-ready",
@@ -95,7 +118,7 @@ func TestWebhookEvents(t *testing.T) {
 			if response.Code != tt.wantCode {
 				t.Errorf("response code is wrong, got %d want %d", response.Code, tt.wantCode)
 			}
-			a, _ := os.ReadFile(fmt.Sprintf("testdata/%s.golden.json", tt.webhook))
+			a, _ := os.ReadFile(fmt.Sprintf("testdata/%s.result.json", tt.webhook))
 			assertResponseBody(t, response.Body.String(), string(a))
 		})
 	}

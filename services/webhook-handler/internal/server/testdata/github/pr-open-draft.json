@@ -46,7 +46,7 @@
     "requested_teams": [],
     "labels": [],
     "milestone": null,
-    "draft": false,
+    "draft": true,
     "commits_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/commits",
     "review_comments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/2/comments",
     "review_comment_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/pulls/comments{/number}",

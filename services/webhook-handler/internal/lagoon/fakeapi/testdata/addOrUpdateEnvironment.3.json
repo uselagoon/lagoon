@@ -5,11 +5,11 @@
             "deployType": "pullrequest",
             "envVariables": [],
             "environmentType": "development",
-            "id": 60,
-            "name": "pr-1",
-            "openshiftProjectName": "demo-project3-pr-1",
+            "id": 11,
+            "name": "pr-2",
+            "openshiftProjectName": "demo-project1-pr-2",
             "project": {
-                "name": "demo-project3"
+                "name": "demo-project1"
             }
         }
     }
