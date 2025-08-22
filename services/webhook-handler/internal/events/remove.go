@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
@@ -16,9 +17,8 @@ func (e *Events) createRemoveTask(project schema.Project, deployType, unsafeEnvi
 		project.StandbyProductionEnvironment == environmentName {
 		prodEnvs := []schema.EnvironmentConfig{}
 		for _, env := range project.Environments {
-			if env.EnvironmentType == schema.ProductionEnv {
+			if string(env.EnvironmentType) == strings.ToLower(string(schema.ProductionEnv)) {
 				prodEnvs = append(prodEnvs, env)
-			} else {
 			}
 		}
 		exists := false

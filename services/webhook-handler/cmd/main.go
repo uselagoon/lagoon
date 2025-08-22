@@ -34,6 +34,7 @@ var (
 	jwtAudience           string
 	jwtSubject            string
 	jwtIssuer             string
+	debug                 bool
 )
 
 func main() {
@@ -72,6 +73,9 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "webhook-handler",
 		"The jwt audience.")
+
+	flag.BoolVar(&debug, "debug", false,
+		"Flag to enable debug logging.")
 
 	flag.Parse()
 
@@ -182,6 +186,7 @@ func main() {
 			TokenSigningKey: jwtTokenSigningKey,
 			Version:         lagoonAPIVersion,
 		},
+		Debug: debug,
 	}
 	srv.Initialize()
 	srv.Run(":3000")

@@ -55,6 +55,8 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 		}
 		switch deployData.GitType {
 		case "gogs":
+			// would need to verify. lagoon doesn't support gogs officially
+			// the gogs pr payloads don't contain the shas like others do
 			pullrequest.BaseSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Target)
 			pullrequest.HeadSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Source)
 		case "gitlab":
@@ -92,12 +94,18 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 	if err != nil {
 		return nil, fmt.Errorf("error creating or getting environment: %v", err)
 	}
+	if aoue.Name == "" {
+		return nil, fmt.Errorf("error creating or getting environment")
+	}
 	// fmt.Println("addOrUpdateEnvironment", aoue)
 
 	// create deployment
 	deployment, err := l.addDeployment(deployData, aoue.ID, *buildPriority)
 	if err != nil {
 		return nil, fmt.Errorf("error creating deployment: %v", err)
+	}
+	if deployment.Name == "" {
+		return nil, fmt.Errorf("error creating deployment")
 	}
 	// fmt.Println("addDeployment", deployment)
 

@@ -93,7 +93,6 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
 		return resps, fmt.Errorf("nothing to do")
 	}
