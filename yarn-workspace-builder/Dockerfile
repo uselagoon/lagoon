@@ -10,8 +10,6 @@ COPY node-packages /app/node-packages
 # subdependencies won't be installed
 COPY services/api/package.json /app/services/api/
 COPY services/auth-server/package.json /app/services/auth-server/
-COPY services/webhook-handler/package.json /app/services/webhook-handler/
-COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
 
 RUN yarn install --frozen-lockfile
 
