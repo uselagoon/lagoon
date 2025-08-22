@@ -15,7 +15,7 @@ import (
 
 func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.LagoonBuild, error) {
 	// shorten and make safe the environment name from the branch and project
-	environmentName := namespace.ShortenEnvironment(deployData.Project.Name, namespace.MakeSafe(deployData.UnSafeEnvironmentName))
+	environmentName := namespace.ShortenEnvironment(deployData.Project.Name, namespace.MakeSafe(deployData.UnsafeEnvironmentName))
 	environmentType := schema.DevelopmentEnv
 	if deployData.Project.ProductionEnvironment == environmentName || deployData.Project.StandbyProductionEnvironment == environmentName {
 		environmentType = schema.ProductionEnv
@@ -31,7 +31,7 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 
 	gitRef := deployData.GitSHA
 	if deployData.GitSHA == "" {
-		gitRef = fmt.Sprintf("origin/%s", deployData.UnSafeEnvironmentName)
+		gitRef = fmt.Sprintf("origin/%s", deployData.UnsafeEnvironmentName)
 	}
 
 	var deployBaseRef, deployHeadRef, deployTitle string
@@ -39,7 +39,7 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 	promote := &lagooncrd.Promote{}
 	switch deployData.DeployType {
 	case schema.Branch:
-		deployBaseRef = deployData.UnSafeEnvironmentName
+		deployBaseRef = deployData.UnsafeEnvironmentName
 	case schema.PullRequest:
 		gitRef = deployData.GitSHA
 		deployTitle = deployData.Pull.PullRequest.Title
@@ -111,7 +111,7 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 
 	buildPayload := lagooncrd.LagoonBuild{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      deployData.BuildName,
+			Name:      deployment.Name, // use the name from the deployment, which should match deployData.BuildName that was provided
 			Namespace: "lagoon",
 		},
 		Spec: lagooncrd.LagoonBuildSpec{
@@ -122,7 +122,7 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 				BulkID:   deployData.BulkID,
 			},
 			Branch: lagooncrd.Branch{
-				Name: deployData.UnSafeEnvironmentName,
+				Name: deployData.UnsafeEnvironmentName,
 			},
 			Pullrequest:  *pullrequest,
 			Promote:      *promote,
