@@ -27,73 +27,57 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(b, &variables)
 		}
 	}
-	for a, i := range p {
-		switch a {
+	fmt.Println(variables)
+	for t, i := range p {
+		switch t {
 		// if the request is a query, the value of the query (query and mutations) will be in `i`
 		// it is an interface in go because its graphql, and not json
 		// so you'd have to do some sort of comparison like this against known queries
 		case "query":
 			request := i.(string)
-			if strings.Contains(request, "webhookProcessProjects") {
-				switch {
-				case strings.Contains(request, "https://github.com/fake/repository.git"):
-					a, _ := f.ReadFile("testdata/allProjects.1.json")
-					fmt.Fprintf(w, "%s", a)
-				case strings.Contains(request, "https://github.com/fake/repository2.git"):
-					a, _ := f.ReadFile("testdata/allProjects.2.json")
-					fmt.Fprintf(w, "%s", a)
-				case strings.Contains(request, "https://github.com/fake/repository3.git"):
-					a, _ := f.ReadFile("testdata/allProjects.3.json")
-					fmt.Fprintf(w, "%s", a)
-				case strings.Contains(request, "git@github.com:Codertocat/Hello-World.git"):
-					a, _ := f.ReadFile("testdata/allProjects.4.json")
-					fmt.Fprintf(w, "%s", a)
-				case strings.Contains(request, "git@github.com:amazeeio/lagoon-nginx-example.git"):
-					a, _ := f.ReadFile("testdata/allProjects.5.json")
-					fmt.Fprintf(w, "%s", a)
-				default:
-					fmt.Fprintf(w, `{"data":{"allProjects":[]}}`)
+			if strings.Contains(request, "allProjects") {
+				d := false
+				if _, ok := variables["gitUrl"]; ok {
+					d = true
 				}
+				a := []byte(`{"data":{"allProjects":[]}}`)
+				switch {
+				case d && variables["gitUrl"].(string) == "git@github.com:amazeeio/lagoon-nginx-example.git":
+					a, _ = f.ReadFile("testdata/allProjects.1.json")
+				}
+				fmt.Fprintf(w, "%s", a)
 			}
 			if strings.Contains(request, "addOrUpdateEnvironment") {
 				d := false
-				if _, ok := variables["project"]; ok {
+				if _, ok := variables["name"]; ok {
 					d = true
 				}
+				a := []byte(`{"data":{}}`)
 				switch {
-				case d && variables["project"].(float64) == 18:
-					a, _ := f.ReadFile("testdata/addOrUpdateEnvironment.1.json")
-					fmt.Fprintf(w, "%s", a)
-				case d && variables["project"].(float64) == 19:
-					a, _ := f.ReadFile("testdata/addOrUpdateEnvironment.2.json")
-					fmt.Fprintf(w, "%s", a)
-				case d && variables["project"].(float64) == 20:
-					a, _ := f.ReadFile("testdata/addOrUpdateEnvironment.3.json")
-					fmt.Fprintf(w, "%s", a)
-				default:
-					fmt.Fprintf(w, `{"data":{}}`)
+				case d && variables["name"].(string) == "test-branch":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.1.json")
+				case d && variables["name"].(string) == "dev":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.2.json")
+				case d && variables["name"].(string) == "pr-2":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.3.json")
 				}
+				fmt.Fprintf(w, "%s", a)
 			}
 			if strings.Contains(request, "addDeployment") {
-				// a, _ := f.ReadFile("testdata/addDeployment.1.json")
-				// fmt.Fprintf(w, "%s", a)
 				d := false
 				if _, ok := variables["environment"]; ok {
 					d = true
 				}
+				a := []byte(`{"data":{}}`)
 				switch {
-				case d && variables["environment"].(float64) == 58:
-					a, _ := f.ReadFile("testdata/addDeployment.1.json")
-					fmt.Fprintf(w, "%s", a)
-				case d && variables["environment"].(float64) == 59:
-					a, _ := f.ReadFile("testdata/addDeployment.2.json")
-					fmt.Fprintf(w, "%s", a)
-				case d && variables["environment"].(float64) == 60:
-					a, _ := f.ReadFile("testdata/addDeployment.3.json")
-					fmt.Fprintf(w, "%s", a)
-				default:
-					fmt.Fprintf(w, `{"data":{}}`)
+				case d && variables["environment"].(float64) == 10:
+					a, _ = f.ReadFile("testdata/addDeployment.1.json")
+				case d && variables["environment"].(float64) == 5:
+					a, _ = f.ReadFile("testdata/addDeployment.2.json")
+				case d && variables["environment"].(float64) == 11:
+					a, _ = f.ReadFile("testdata/addDeployment.3.json")
 				}
+				fmt.Fprintf(w, "%s", a)
 			}
 		}
 	}

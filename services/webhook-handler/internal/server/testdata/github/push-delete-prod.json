@@ -1,7 +1,7 @@
 {
-  "ref": "refs/heads/dev",
-  "before": "4b7e5b7c02552f4e9fdc59d870a45f84be324655",
-  "after": "3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
+  "ref": "refs/heads/main",
+  "before": "3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
+  "after": "0000000000000000000000000000000000000000",
   "repository": {
     "id": 487743893,
     "node_id": "R_kgDOHRJhlQ",
@@ -73,7 +73,7 @@
     "deployments_url": "https://api.github.com/repos/amazeeio/lagoon-nginx-example/deployments",
     "created_at": 1651473961,
     "updated_at": "2025-06-16T09:54:58Z",
-    "pushed_at": 1754461206,
+    "pushed_at": 1754461267,
     "git_url": "git://github.com/amazeeio/lagoon-nginx-example.git",
     "ssh_url": "git@github.com:amazeeio/lagoon-nginx-example.git",
     "clone_url": "https://github.com/amazeeio/lagoon-nginx-example.git",
@@ -133,56 +133,10 @@
     "site_admin": false
   },
   "created": false,
-  "deleted": false,
+  "deleted": true,
   "forced": false,
   "base_ref": null,
-  "compare": "https://github.com/amazeeio/lagoon-nginx-example/compare/4b7e5b7c0255...3ac6c78a82f0",
-  "commits": [
-    {
-      "id": "3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
-      "tree_id": "a96093f316e22647634aef1273e4601642eaba4f",
-      "distinct": true,
-      "message": "chore: added a comment",
-      "timestamp": "2025-08-06T16:20:00+10:00",
-      "url": "https://github.com/amazeeio/lagoon-nginx-example/commit/3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
-      "author": {
-        "name": "amazeeio",
-        "email": "fake@email.com",
-        "username": "amazeeio"
-      },
-      "committer": {
-        "name": "amazeeio",
-        "email": "fake@email.com",
-        "username": "amazeeio"
-      },
-      "added": [],
-      "removed": [],
-      "modified": [
-        "Dockerfile"
-      ]
-    }
-  ],
-  "head_commit": {
-    "id": "3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
-    "tree_id": "a96093f316e22647634aef1273e4601642eaba4f",
-    "distinct": true,
-    "message": "chore: added a comment",
-    "timestamp": "2025-08-06T16:20:00+10:00",
-    "url": "https://github.com/amazeeio/lagoon-nginx-example/commit/3ac6c78a82f0d060b33b8dd98bf71170ca3390e6",
-    "author": {
-      "name": "amazeeio",
-      "email": "fake@email.com",
-      "username": "amazeeio"
-    },
-    "committer": {
-      "name": "amazeeio",
-      "email": "fake@email.com",
-      "username": "amazeeio"
-    },
-    "added": [],
-    "removed": [],
-    "modified": [
-      "Dockerfile"
-    ]
-  }
+  "compare": "https://github.com/amazeeio/lagoon-nginx-example/compare/3ac6c78a82f0...000000000000",
+  "commits": [],
+  "head_commit": null
 }
