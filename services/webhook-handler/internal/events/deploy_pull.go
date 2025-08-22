@@ -9,15 +9,15 @@ import (
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) deployPull(project schema.Project, unSafeEnvironmentName, buildName, sourceUser, bulkID, bulkName string) ([]byte, error) {
+func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData, bulkID, bulkName string) ([]byte, error) {
 	// get deploytargets for environment if the environment already exists
 	var deployTarget *schema.DeployTarget
 	var activeStanby *schema.DeployTarget
 	for _, env := range project.Environments {
-		if env.Name == unSafeEnvironmentName {
+		if env.Name == deployData.UnSafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
-		if project.StandbyProductionEnvironment == unSafeEnvironmentName || project.ProductionEnvironment == unSafeEnvironmentName {
+		if project.StandbyProductionEnvironment == deployData.UnSafeEnvironmentName || project.ProductionEnvironment == deployData.UnSafeEnvironmentName {
 			activeStanby = &env.DeployTarget
 		}
 	}
@@ -29,15 +29,6 @@ func (e *Events) deployPull(project schema.Project, unSafeEnvironmentName, build
 		}
 	}
 
-	deployData := lagoon.DeployData{
-		BuildName:             buildName,
-		UnSafeEnvironmentName: unSafeEnvironmentName,
-		SourceUser:            sourceUser,
-		Project:               project,
-		SourceType:            lagoon.SourceWebhook,
-		DeployType:            schema.Branch,
-		BulkType:              lagoon.BulkDeploy,
-	}
 	if bulkID != "" {
 		deployData.BulkID = bulkID
 		deployData.BulkName = bulkName
@@ -73,7 +64,7 @@ func (e *Events) deployPull(project schema.Project, unSafeEnvironmentName, build
 				return nil, fmt.Errorf("deployments disabled for project pullrequests")
 			default:
 				re := regexp.MustCompile(dtc.Pullrequests)
-				if re.MatchString(unSafeEnvironmentName) {
+				if re.MatchString(deployData.UnSafeEnvironmentName) {
 					deployData.DeployTarget = dtc.DeployTarget
 					buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 					if err != nil {
@@ -106,7 +97,7 @@ func (e *Events) deployPull(project schema.Project, unSafeEnvironmentName, build
 			return nil, fmt.Errorf("deployments disabled for project pullrequests")
 		default:
 			re := regexp.MustCompile(project.PullRequests)
-			if re.MatchString(unSafeEnvironmentName) {
+			if re.MatchString(deployData.UnSafeEnvironmentName) {
 				deployData.DeployTarget = *project.DeployTarget
 				buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 				if err != nil {

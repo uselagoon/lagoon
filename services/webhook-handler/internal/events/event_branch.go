@@ -1,8 +1,9 @@
 package events
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"strings"
 
 	"github.com/drone/go-scm/scm"
 	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
@@ -55,14 +56,48 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 			return nil, fmt.Errorf("skipped %v", err)
 		}
 	}
-	log.Println(projects, bulkID, bulkName)
 
-	if len(projects) == 0 {
-		e.Messaging.Publish("lagoon-logs", []byte("skipped"))
-		return nil, fmt.Errorf("skipped")
+	branchName := strings.ReplaceAll(scmWebhook.Ref.Name, "refs/heads/", "")
+	sourceUser := "webhook"
+	if scmWebhook.Sender.Login != "" {
+		sourceUser = scmWebhook.Sender.Login
 	}
 
-	buildID := lagoon.GenerateBuildName()
-	fmt.Println(buildID)
-	return nil, fmt.Errorf("nothing to do")
+	var resps []Response
+	errs := 0
+	for _, project := range projects {
+		response := Response{
+			Project: project.Name,
+		}
+		var resp []byte
+		var err error
+		buildName := lagoon.GenerateBuildName()
+		if scmWebhook.Action == scm.ActionDelete || scmWebhook.Action == scm.ActionClose {
+			resp, err = e.createRemoveTask(project, "push", branchName)
+		} else {
+			deployData := lagoon.DeployData{
+				BuildName:             buildName,
+				UnSafeEnvironmentName: branchName,
+				SourceUser:            sourceUser,
+				Project:               project,
+				SourceType:            lagoon.SourceWebhook,
+				DeployType:            schema.Branch,
+				BulkType:              lagoon.BulkDeploy,
+				GitSHA:                scmWebhook.Ref.Sha,
+			}
+			resp, err = e.createDeployTask(project, deployData, "push", bulkID, bulkName)
+		}
+		if err != nil {
+			errs++
+			response.Error = err
+		}
+		response.Response = resp
+		resps = append(resps, response)
+	}
+	respBytes, _ := json.Marshal(resps)
+	if errs > 0 {
+		fmt.Println(resps)
+		return respBytes, fmt.Errorf("nothing to do")
+	}
+	return respBytes, nil
 }

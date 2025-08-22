@@ -3,15 +3,16 @@ package events
 import (
 	"fmt"
 
+	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) createDeployTask(project schema.Project, deployType, unSafeEnvironmentName, buildName, sourceUser, bulkID, bulkName string) ([]byte, error) {
-	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unSafeEnvironmentName))
+func (e *Events) createDeployTask(project schema.Project, deployData lagoon.DeployData, deployType, bulkID, bulkName string) ([]byte, error) {
+	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(deployData.UnSafeEnvironmentName))
 	if project.OrganizationDetails != nil {
 		for _, env := range project.Environments {
-			if env.Name != unSafeEnvironmentName {
+			if env.Name != deployData.UnSafeEnvironmentName {
 				if len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment && project.OrganizationDetails.QuotaEnvironment != -1 {
 					e.Messaging.Publish("lagoon-logs", []byte("exceed environment quota"))
 					return nil, fmt.Errorf("exceed environment quota")
@@ -21,8 +22,8 @@ func (e *Events) createDeployTask(project schema.Project, deployType, unSafeEnvi
 	}
 	prodEnvLimit := 2
 	// @TODO: handle `/` and `-` branch vs lagoon "made safe" names
-	if project.ProductionEnvironment == unSafeEnvironmentName ||
-		project.StandbyProductionEnvironment == unSafeEnvironmentName ||
+	if project.ProductionEnvironment == deployData.UnSafeEnvironmentName ||
+		project.StandbyProductionEnvironment == deployData.UnSafeEnvironmentName ||
 		project.ProductionEnvironment == environmentName ||
 		project.StandbyProductionEnvironment == environmentName {
 		prodEnvs := []schema.EnvironmentConfig{}
@@ -34,7 +35,7 @@ func (e *Events) createDeployTask(project schema.Project, deployType, unSafeEnvi
 		if len(prodEnvs) >= prodEnvLimit {
 			exists := false
 			for _, env := range prodEnvs {
-				if env.Name == unSafeEnvironmentName || env.Name == environmentName {
+				if env.Name == deployData.UnSafeEnvironmentName || env.Name == environmentName {
 					exists = true
 				}
 			}
@@ -53,7 +54,7 @@ func (e *Events) createDeployTask(project schema.Project, deployType, unSafeEnvi
 		if project.DevelopmentEnvironmentsLimit != nil && len(devEnvs) >= int(*project.DevelopmentEnvironmentsLimit) {
 			exists := false
 			for _, env := range devEnvs {
-				if env.Name == unSafeEnvironmentName {
+				if env.Name == deployData.UnSafeEnvironmentName {
 					exists = true
 				}
 			}
@@ -66,9 +67,9 @@ func (e *Events) createDeployTask(project schema.Project, deployType, unSafeEnvi
 
 	switch deployType {
 	case "push":
-		return e.deployPush(project, unSafeEnvironmentName, buildName, sourceUser, bulkID, bulkName)
+		return e.deployPush(project, deployData, bulkID, bulkName)
 	case "pull":
-		return e.deployPull(project, unSafeEnvironmentName, buildName, sourceUser, bulkID, bulkName)
+		return e.deployPull(project, deployData, bulkID, bulkName)
 	}
 	return nil, fmt.Errorf("nothing to do")
 }

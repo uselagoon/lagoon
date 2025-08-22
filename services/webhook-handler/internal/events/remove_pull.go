@@ -8,7 +8,7 @@ import (
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) removePull(project schema.Project, environment schema.Environment, sourceUser string) ([]byte, error) {
+func (e *Events) removePull(project schema.Project, environment schema.Environment) ([]byte, error) {
 	removeData := lagoon.RemoveData{
 		ProjectName:          project.Name,
 		OpenshiftProjectName: environment.OpenshiftProjectName,
