@@ -1,7 +1,6 @@
 package events
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/drone/go-scm/scm"
@@ -9,7 +8,7 @@ import (
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullRequestHook) ([]byte, error) {
+func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullRequestHook) ([]Response, error) {
 	var projects []schema.Project
 	var bulkID, bulkName string
 	var err error
@@ -55,7 +54,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
 				BuildName:             buildName,
-				UnSafeEnvironmentName: fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number),
+				UnsafeEnvironmentName: fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number),
 				SourceUser:            sourceUser,
 				Project:               project,
 				SourceType:            lagoon.SourceWebhook,
@@ -70,12 +69,12 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 			errs++
 			response.Error = err
 		}
-		response.Response = resp
+		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	respBytes, _ := json.Marshal(resps)
+	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
-		return respBytes, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("nothing to do")
 	}
-	return respBytes, nil
+	return resps, nil
 }

@@ -7,11 +7,11 @@ import (
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvironmentName string) ([]byte, error) {
-	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unSafeEnvironmentName))
+func (e *Events) createRemoveTask(project schema.Project, deployType, unsafeEnvironmentName string) ([]byte, error) {
+	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unsafeEnvironmentName))
 	var matchEnv schema.Environment
-	if project.ProductionEnvironment == unSafeEnvironmentName ||
-		project.StandbyProductionEnvironment == unSafeEnvironmentName ||
+	if project.ProductionEnvironment == unsafeEnvironmentName ||
+		project.StandbyProductionEnvironment == unsafeEnvironmentName ||
 		project.ProductionEnvironment == environmentName ||
 		project.StandbyProductionEnvironment == environmentName {
 		prodEnvs := []schema.EnvironmentConfig{}
@@ -23,7 +23,7 @@ func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvi
 		}
 		exists := false
 		for _, env := range prodEnvs {
-			if env.Name == unSafeEnvironmentName || env.Name == environmentName {
+			if env.Name == unsafeEnvironmentName || env.Name == environmentName {
 				exists = true
 			}
 		}
@@ -33,7 +33,7 @@ func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvi
 		}
 	}
 	for _, env := range project.Environments {
-		if env.Name == environmentName || env.Name == unSafeEnvironmentName {
+		if env.Name == environmentName || env.Name == unsafeEnvironmentName {
 			matchEnv = env.Environment
 		}
 	}

@@ -40,7 +40,7 @@ func (l *LagoonAPI) addOrUpdateEnvironment(deployData DeployData, deployBaseRef,
 		}
 	}`
 	addOrUpdateEnvironment, err := lc.ProcessRaw(context.Background(), envMutation, map[string]interface{}{
-		"name":            deployData.UnSafeEnvironmentName,
+		"name":            deployData.UnsafeEnvironmentName,
 		"project":         deployData.Project.ID,
 		"deployType":      deployData.DeployType,
 		"deployBaseRef":   deployBaseRef,
