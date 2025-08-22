@@ -3,6 +3,7 @@ package lagoon
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/uselagoon/machinery/api/schema"
@@ -40,16 +41,25 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 	case schema.Branch:
 		deployBaseRef = deployData.UnSafeEnvironmentName
 	case schema.PullRequest:
-		deployBaseRef = deployData.Pull.PullRequest.Base.Name
-		deployHeadRef = deployData.Pull.PullRequest.Head.Name
+		gitRef = deployData.GitSHA
 		deployTitle = deployData.Pull.PullRequest.Title
+		deployBaseRef = deployData.Pull.PullRequest.Target
+		deployHeadRef = deployData.Pull.PullRequest.Source
 		pullrequest = &lagooncrd.Pullrequest{
-			HeadBranch: deployData.Pull.PullRequest.Head.Name,
-			HeadSha:    deployData.Pull.PullRequest.Head.Sha,
-			BaseBranch: deployData.Pull.PullRequest.Base.Name,
-			BaseSha:    deployData.Pull.PullRequest.Base.Sha,
 			Title:      deployData.Pull.PullRequest.Title,
-			Number:     fmt.Sprintf("%d", deployData.Pull.PullRequest.Number), // uugghh
+			Number:     strconv.Itoa(deployData.Pull.PullRequest.Number), // uugghh string in the crd
+			BaseBranch: deployData.Pull.PullRequest.Target,
+			BaseSha:    deployData.Pull.PullRequest.Base.Sha,
+			HeadBranch: deployData.Pull.PullRequest.Source,
+			HeadSha:    deployData.Pull.PullRequest.Sha,
+		}
+		switch deployData.GitType {
+		case "gogs":
+			pullrequest.BaseSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Target)
+			pullrequest.HeadSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Source)
+		case "gitlab":
+			// gitlab does not send us the target sha, we just use the target_branch
+			pullrequest.BaseSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Target)
 		}
 	case schema.Promote:
 		deployBaseRef = deployData.PromoteSourceEnvironment

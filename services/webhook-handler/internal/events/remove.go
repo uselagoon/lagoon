@@ -7,7 +7,7 @@ import (
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvironmentName, sourceUser string) ([]byte, error) {
+func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvironmentName string) ([]byte, error) {
 	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unSafeEnvironmentName))
 	var matchEnv schema.Environment
 	if project.ProductionEnvironment == unSafeEnvironmentName ||
@@ -43,9 +43,9 @@ func (e *Events) createRemoveTask(project schema.Project, deployType, unSafeEnvi
 	}
 	switch deployType {
 	case "push":
-		return e.removePush(project, matchEnv, sourceUser)
+		return e.removePush(project, matchEnv)
 	case "pull":
-		return e.removePull(project, matchEnv, sourceUser)
+		return e.removePull(project, matchEnv)
 	}
 	return nil, nil
 }
