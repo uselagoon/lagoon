@@ -10,25 +10,14 @@ services:
       - '3366:3306'
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler:${IMAGE_REPO_WEBHOOK_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
+    restart: on-failure
     ports:
       - '7777:3000'
-    volumes:
-      - ./services/webhook-handler/src:/app/services/webhook-handler/src
-      - ./node-packages:/app/node-packages:delegated
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
   backup-handler:
     image: ${IMAGE_REPO:-lagoon}/backup-handler:${IMAGE_REPO_BACKUP_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
     ports:
       - '7778:3000'
-    depends_on:
-      - broker
-  webhooks:
-    image: ${IMAGE_REPO:-lagoon}/webhooks:${IMAGE_REPO_BACKUP_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
-    restart: on-failure
-    ports:
-      - '7779:3000'
     depends_on:
       - broker
   broker:
@@ -62,11 +51,6 @@ services:
     platform: linux/amd64
     ports:
       - '32025:8025'
-  webhooks2tasks:
-    image: ${IMAGE_REPO:-lagoon}/webhooks2tasks:${IMAGE_REPO_WEBHOOKS2TASKS_TAG:-${IMAGE_REPO_TAG:-latest}}
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
-      - SIDECAR_HANDLER_HOST=apisidecarhandler
   api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     command: >
