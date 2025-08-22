@@ -17,6 +17,7 @@ var (
 	mqUser                string
 	mqPass                string
 	mqHost                string
+	mqPort                string
 	mqTLS                 bool
 	mqVerify              bool
 	mqCACert              string
@@ -40,8 +41,10 @@ func main() {
 		"The username of the rabbitmq user.")
 	flag.StringVar(&mqPass, "rabbitmq-password", "guest",
 		"The password for the rabbitmq user.")
-	flag.StringVar(&mqHost, "rabbitmq-hostname", "localhost:5672",
-		"The hostname:port for the rabbitmq host.")
+	flag.StringVar(&mqHost, "rabbitmq-hostname", "localhost",
+		"The hostname for the rabbitmq host.")
+	flag.StringVar(&mqPort, "rabbitmq-port", "5672",
+		"The port for the rabbitmq host.")
 	flag.BoolVar(&mqTLS, "rabbitmq-tls", false,
 		"To use amqps instead of amqp.")
 	flag.BoolVar(&mqVerify, "rabbitmq-verify", false,
@@ -75,7 +78,8 @@ func main() {
 	// get overrides from environment variables
 	mqUser = variables.GetEnv("RABBITMQ_USERNAME", mqUser)
 	mqPass = variables.GetEnv("RABBITMQ_PASSWORD", mqPass)
-	mqHost = variables.GetEnv("RABBITMQ_HOSTNAME", mqHost)
+	mqHost = variables.GetEnv("RABBITMQ_ADDRESS", mqHost)
+	mqPort = variables.GetEnv("RABBITMQ_PORT", mqPort)
 	mqTLS = variables.GetEnvBool("RABBITMQ_TLS", mqTLS)
 	mqCACert = variables.GetEnv("RABBITMQ_CACERT", mqCACert)
 	mqClientCert = variables.GetEnv("RABBITMQ_CLIENTCERT", mqClientCert)
@@ -94,13 +98,13 @@ func main() {
 	jwtSubject = variables.GetEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = variables.GetEnv("JWT_ISSUER", jwtIssuer)
 
-	brokerDSN := fmt.Sprintf("amqp://%s:%s@%s", mqUser, mqPass, mqHost)
+	brokerDSN := fmt.Sprintf("amqp://%s:%s@%s:%s", mqUser, mqPass, mqHost, mqPort)
 	if mqTLS {
 		verify := "verify_none"
 		if mqVerify {
 			verify = "verify_peer"
 		}
-		brokerDSN = fmt.Sprintf("amqps://%s:%s@%s?verify=%s", mqUser, mqPass, mqHost, verify)
+		brokerDSN = fmt.Sprintf("amqps://%s:%s@%s:%s?verify=%s", mqUser, mqPass, mqHost, mqPort, verify)
 		if mqCACert != "" {
 			brokerDSN = fmt.Sprintf("%s&cacertfile=%s", brokerDSN, mqCACert)
 		}
