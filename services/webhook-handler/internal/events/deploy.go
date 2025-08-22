@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
@@ -28,7 +29,7 @@ func (e *Events) createDeployTask(project schema.Project, deployData lagoon.Depl
 		project.StandbyProductionEnvironment == environmentName {
 		prodEnvs := []schema.EnvironmentConfig{}
 		for _, env := range project.Environments {
-			if env.EnvironmentType == schema.ProductionEnv {
+			if string(env.EnvironmentType) == strings.ToLower(string(schema.ProductionEnv)) {
 				prodEnvs = append(prodEnvs, env)
 			}
 		}

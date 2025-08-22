@@ -27,7 +27,7 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(b, &variables)
 		}
 	}
-	fmt.Println(variables)
+	// fmt.Println(variables)
 	for t, i := range p {
 		switch t {
 		// if the request is a query, the value of the query (query and mutations) will be in `i`
