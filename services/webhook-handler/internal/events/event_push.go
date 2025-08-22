@@ -15,6 +15,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	var bulkID, bulkName string
 	var err error
 	matched := false
+	fmt.Println(scmWebhook.Repo.Clone, scmWebhook.Repo.CloneSSH)
 	if scmWebhook.Repo.CloneSSH != "" {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.CloneSSH)
 		if err != nil {
@@ -31,8 +32,8 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		}
 	}
 	if len(projects) == 0 {
-		e.Messaging.Publish("lagoon-logs", []byte("skipped"))
-		return nil, fmt.Errorf("skipped")
+		// e.Messaging.Publish("lagoon-logs", []byte("skipped"))
+		return nil, fmt.Errorf("skipped no project matched")
 	}
 
 	// github deletions are via "push" events AND if configured "branch deletion" events
@@ -47,7 +48,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		deletion = true
 	}
 	if strings.Contains(scmWebhook.Ref, "refs/tags/") {
-		return nil, fmt.Errorf("skipped")
+		return nil, fmt.Errorf("skipped contains tags")
 	}
 
 	branchName := strings.ReplaceAll(scmWebhook.Ref, "refs/heads/", "")
@@ -57,8 +58,8 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	}
 	skip := skipDeploy(scmWebhook.Commit.Message)
 	if skip {
-		e.Messaging.Publish("lagoon-logs", []byte("skipped"))
-		return nil, fmt.Errorf("skipped")
+		// e.Messaging.Publish("lagoon-logs", []byte("skipped"))
+		return nil, fmt.Errorf("skipped by skip commit message")
 	}
 
 	var resps []Response
@@ -71,9 +72,21 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if deletion {
-			resp, err = e.createRemoveTask(project, "push", branchName, sourceUser)
+			resp, err = e.createRemoveTask(project, "push", branchName)
 		} else {
-			resp, err = e.createDeployTask(project, "push", branchName, buildName, sourceUser, bulkID, bulkName)
+			deployData := lagoon.DeployData{
+				GitType:               gitType,
+				BuildName:             buildName,
+				UnSafeEnvironmentName: branchName,
+				SourceUser:            sourceUser,
+				Project:               project,
+				SourceType:            lagoon.SourceWebhook,
+				DeployType:            schema.Branch,
+				BulkType:              lagoon.BulkDeploy,
+				GitSHA:                scmWebhook.After,
+				Push:                  scmWebhook,
+			}
+			resp, err = e.createDeployTask(project, deployData, "push", bulkID, bulkName)
 		}
 		if err != nil {
 			errs++

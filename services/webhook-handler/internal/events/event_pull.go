@@ -39,11 +39,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 	if scmWebhook.Sender.Login != "" {
 		sourceUser = scmWebhook.Sender.Login
 	}
-	// skip := skipDeploy(scmWebhook.Commit.Message)
-	// if skip {
-	// 	e.Messaging.Publish("lagoon-logs", []byte("skipped"))
-	// 	return nil, fmt.Errorf("skipped")
-	// }
+
 	var resps []Response
 	errs := 0
 	for _, project := range projects {
@@ -53,10 +49,22 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		var resp []byte
 		var err error
 		buildName := lagoon.GenerateBuildName()
-		if scmWebhook.PullRequest.Closed {
-			resp, err = e.createRemoveTask(project, "pull", fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number), sourceUser)
+		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
+			resp, err = e.createRemoveTask(project, "pull", fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number))
 		} else {
-			resp, err = e.createDeployTask(project, "pull", fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number), buildName, sourceUser, bulkID, bulkName)
+			deployData := lagoon.DeployData{
+				GitType:               gitType,
+				BuildName:             buildName,
+				UnSafeEnvironmentName: fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number),
+				SourceUser:            sourceUser,
+				Project:               project,
+				SourceType:            lagoon.SourceWebhook,
+				DeployType:            schema.PullRequest,
+				BulkType:              lagoon.BulkDeploy,
+				GitSHA:                "",
+				Pull:                  scmWebhook,
+			}
+			resp, err = e.createDeployTask(project, deployData, "pull", bulkID, bulkName)
 		}
 		if err != nil {
 			errs++

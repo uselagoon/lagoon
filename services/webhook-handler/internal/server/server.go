@@ -107,8 +107,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-Gitlab-Event") != "" {
 		if r.Header.Get("X-Gitlab-Event") == "System Hook" {
 			// drone scm doesn't process gitlab system hooks that we need
-			// handle them ourselves
-			// handle gitlab system hooks here
+			// handle them ourselves here
 			defer r.Body.Close()
 			body, err := io.ReadAll(r.Body)
 			if err != nil {
@@ -149,10 +148,24 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 			var err error
 			switch scmWebhook := webhook.(type) {
 			case *scm.PushHook:
+				if gitType == "bitbucket" {
+					// ugh drone replaces the clone urls https://github.com/drone/go-scm/blob/v1.40.6/scm/driver/bitbucket/webhook.go#L752-L753
+					// they leave it placed in scmWebhook.Repo.Link so we will just use that
+					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
+					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
+				}
 				response, err = e.HandlePush(gitType, event, reqUUID, scmWebhook)
 			case *scm.BranchHook:
+				if gitType == "bitbucket" {
+					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
+					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
+				}
 				response, err = e.HandleBranch(gitType, event, reqUUID, scmWebhook)
 			case *scm.PullRequestHook:
+				if gitType == "bitbucket" {
+					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
+					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
+				}
 				response, err = e.HandlePull(gitType, event, reqUUID, scmWebhook)
 			case *scm.TagHook:
 				// future?
@@ -168,6 +181,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 func (s *Server) handleWebhookGet(w http.ResponseWriter, r *http.Request) {
 	var p map[string]interface{}
 	decoder := json.NewDecoder(r.Body)

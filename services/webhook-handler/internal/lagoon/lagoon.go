@@ -10,59 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone/go-scm/scm"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/variables"
 )
-
-type EnvVar struct {
-	ID    uint   `json:"id,omitempty"`
-	Scope string `json:"scope"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type DeployData struct {
-	BuildName                string              `json:"buildName"`
-	BuildVariables           []EnvVar            `json:"buildVariables"`
-	BuildPriority            *uint               `json:"buildPriority"`
-	BulkID                   string              `json:"bulkId"`
-	BulkName                 string              `json:"bulkName"`
-	BulkType                 BulkType            `json:"bulkType"`
-	SourceUser               string              `json:"sourceUser"`
-	SourceType               SourceType          `json:"sourceType"`
-	UnSafeEnvironmentName    string              `json:"branchName"`
-	Project                  schema.Project      `json:"project"`
-	DeployTarget             schema.DeployTarget `json:"deployTarget"`
-	GitSHA                   string              `json:"gitSha"`
-	DeployType               schema.DeployType   `json:"deployType"`
-	PromoteSourceEnvironment string              `json:"promoteSourceEnvironment"`
-	Push                     *scm.PushHook
-	Pull                     *scm.PullRequestHook
-}
-
-type BulkType string
-
-const (
-	BulkDeploy BulkType = "DEPLOY"
-	BulkTask   BulkType = "TASK"
-)
-
-type SourceType string
-
-const (
-	SourceWebhook SourceType = "WEBHOOK"
-	SourceAPI     BulkType   = "API"
-)
-
-type BuildMetaData struct {
-	Name      string
-	Namespace string
-}
-
-func GenerateBuildName() string {
-	return fmt.Sprintf("lagoon-build-%s", strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63(), 36)[7:])
-}
 
 func getRouterPatternAndVariables(deployData DeployData, environment schema.Environment, buildPriority int) (string, []EnvVar) {
 	appliedEnvVars := []EnvVar{}
@@ -224,13 +174,8 @@ func projectSecret(name, seed string) string {
 	return hex.EncodeToString(hashInBytes)
 }
 
-type RemoveData struct {
-	ProjectName                      string `json:"projectName"`
-	Type                             string `json:"type"`
-	ForceDeleteProductionEnvironment bool   `json:"forceDeleteProductionEnvironment"`
-	Branch                           string `json:"branch"`
-	BranchName                       string `json:"branchName"`
-	OpenshiftProjectName             string `json:"openshiftProjectName"`
+func GenerateBuildName() string {
+	return fmt.Sprintf("lagoon-build-%s", strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63(), 36)[7:])
 }
 
 func RemoveToBytes(payload *RemoveData) []byte {
