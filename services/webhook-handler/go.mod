@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/drone/go-scm v1.40.1
+	github.com/drone/go-scm v1.40.6
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/uselagoon/machinery v0.0.35-0.20250805062131-40263f30ccc9
@@ -87,3 +87,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+// has changes for bitbucket to set the missing values
+replace github.com/drone/go-scm v1.40.6 => github.com/amazeeio/go-scm v0.0.0-20250822004951-594ffe05f7b7

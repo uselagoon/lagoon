@@ -52,3 +52,25 @@ func skipDeploy(message string) bool {
 	re := regexp.MustCompile(`(?i)\[skip deploy\]|\[deploy skip\]`)
 	return re.MatchString(message)
 }
+
+// Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
+// We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
+// this could be bitbuck.org(.com) or a private bitbucket server
+// Also the git server could be running on another port than 22, so there is a second regex match for `:[0-9]`
+func BitBucketGitURL(repositoryURL, fullName string) string {
+	// https://github.com/uselagoon/lagoon/blob/v2.27.0/services/webhook-handler/src/extractWebhookData.ts#L68-L78
+	re := regexp.MustCompile(`https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\/`)
+	matches := re.FindStringSubmatch(repositoryURL)
+	if len(matches) == 0 {
+		return ""
+	}
+	domain := matches[1]
+	port := matches[2]
+	var gitURL string
+	if port == "" {
+		gitURL = fmt.Sprintf("git@%s:%s.git", domain, fullName)
+	} else {
+		gitURL = fmt.Sprintf("ssh://git@%s%s/%s.git", domain, port, fullName)
+	}
+	return gitURL
+}
