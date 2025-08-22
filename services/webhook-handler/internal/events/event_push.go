@@ -1,7 +1,6 @@
 package events
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -10,12 +9,11 @@ import (
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHook) ([]byte, error) {
+func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHook) ([]Response, error) {
 	var projects []schema.Project
 	var bulkID, bulkName string
 	var err error
 	matched := false
-	fmt.Println(scmWebhook.Repo.Clone, scmWebhook.Repo.CloneSSH)
 	if scmWebhook.Repo.CloneSSH != "" {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.CloneSSH)
 		if err != nil {
@@ -77,7 +75,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
 				BuildName:             buildName,
-				UnSafeEnvironmentName: branchName,
+				UnsafeEnvironmentName: branchName,
 				SourceUser:            sourceUser,
 				Project:               project,
 				SourceType:            lagoon.SourceWebhook,
@@ -92,13 +90,12 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 			errs++
 			response.Error = err
 		}
-		response.Response = resp
+		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	respBytes, _ := json.Marshal(resps)
+	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
-		fmt.Println(resps)
-		return respBytes, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("nothing to do")
 	}
-	return respBytes, nil
+	return resps, nil
 }

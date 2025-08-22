@@ -45,6 +45,12 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 				case strings.Contains(request, "https://github.com/fake/repository3.git"):
 					a, _ := f.ReadFile("testdata/allProjects.3.json")
 					fmt.Fprintf(w, "%s", a)
+				case strings.Contains(request, "git@github.com:Codertocat/Hello-World.git"):
+					a, _ := f.ReadFile("testdata/allProjects.4.json")
+					fmt.Fprintf(w, "%s", a)
+				case strings.Contains(request, "git@github.com:amazeeio/lagoon-nginx-example.git"):
+					a, _ := f.ReadFile("testdata/allProjects.5.json")
+					fmt.Fprintf(w, "%s", a)
 				default:
 					fmt.Fprintf(w, `{"data":{"allProjects":[]}}`)
 				}
