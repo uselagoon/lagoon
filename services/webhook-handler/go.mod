@@ -6,6 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/cheshir/go-mq/v2 v2.0.1
+	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
