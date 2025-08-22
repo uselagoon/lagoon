@@ -4,7 +4,7 @@
             {
                 "autoIdle": 1,
                 "branches": "true",
-                "pullrequests": "true",
+                "pullrequests": "^(?!WIP:).+",
                 "deployTargetConfigs": [],
                 "deploymentsDisabled": 0,
                 "developmentBuildPriority": 5,
@@ -53,8 +53,8 @@
                         "autoIdle": 1,
                         "environmentType": "development",
                         "id": 6,
-                        "name": "pr-175",
-                        "kubernetesNamespaceName": "demo-project1-pr-175",
+                        "name": "pr-3",
+                        "kubernetesNamespaceName": "demo-project1-pr-3",
                         "openshift": {
                             "buildImage": null,
                             "disabled": false,
@@ -82,7 +82,7 @@
                         }
                     }
                 ],
-                "gitUrl": "https://github.com/fake/repository.git",
+                "gitUrl": "git@github.com:amazeeio/lagoon-nginx-example.git",
                 "id": 18,
                 "name": "demo-project1",
                 "openshift": {
