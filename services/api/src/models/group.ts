@@ -362,13 +362,32 @@ export const Group = (clients: {
     }
   };
 
+  // load all keycloak groups using pagination
+  const loadAllKeycloakGroups = async (): Promise<KeycloakLagoonGroup[]> => {
+    let groups = [];
+    let first = 0;
+    let pageSize = 200;
+    let fetchedGroups;
+    while (true) {
+      fetchedGroups = await keycloakAdminClient.groups.find({
+        briefRepresentation: false,
+        first: first,
+        max: pageSize
+      });
+      groups = groups.concat(fetchedGroups)
+      first += pageSize;
+      if (fetchedGroups.length < pageSize) {
+        break;
+      }
+    }
+    return groups;
+  };
+
   const loadAllGroups = async (): Promise<KeycloakLagoonGroup[]> => {
     // briefRepresentation pulls all the group information from keycloak
     // including the attributes this means we don't need to iterate over all the
     // groups one by one anymore to get the full group information
-    const keycloakGroups = await keycloakAdminClient.groups.find({
-      briefRepresentation: false,
-    });
+    const keycloakGroups = await loadAllKeycloakGroups();
 
     let fullGroups: KeycloakLagoonGroup[] = [];
     for (const group of keycloakGroups) {
