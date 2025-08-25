@@ -5,36 +5,31 @@ import (
 	"fmt"
 	"time"
 
-	mq "github.com/cheshir/go-mq/v2"
+	"github.com/cheshir/go-mq/v2"
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/lagoon/internal/messaging"
-	syshook "github.com/uselagoon/lagoon/services/webhook-handler/internal/gitlab"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/server"
+	"github.com/uselagoon/lagoon/services/api-sidecar-handler/internal/server"
 	"github.com/uselagoon/machinery/utils/variables"
 )
 
 var (
-	mqUser                string
-	mqPass                string
-	mqHost                string
-	mqPort                string
-	mqTLS                 bool
-	mqVerify              bool
-	mqCACert              string
-	mqClientCert          string
-	mqClientKey           string
-	mqWorkers             int
-	rabbitRetryInterval   int
-	gitlabSystemHookToken string
-	gitlabAPIToken        string
-	gitlabAPIHost         string
-	lagoonAPIHost         string
-	lagoonAPIVersion      string
-	jwtTokenSigningKey    string
-	jwtAudience           string
-	jwtSubject            string
-	jwtIssuer             string
-	debug                 bool
+	mqUser              string
+	mqPass              string
+	mqHost              string
+	mqPort              string
+	mqTLS               bool
+	mqVerify            bool
+	mqCACert            string
+	mqClientCert        string
+	mqClientKey         string
+	mqWorkers           int
+	rabbitRetryInterval int
+	lagoonAPIHost       string
+	lagoonAPIVersion    string
+	jwtTokenSigningKey  string
+	jwtAudience         string
+	jwtSubject          string
+	jwtIssuer           string
 )
 
 func main() {
@@ -69,20 +64,16 @@ func main() {
 		"The jwt signing token key or secret.")
 	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
 		"The jwt audience.")
-	flag.StringVar(&jwtSubject, "jwt-subject", "webhook-handler",
+	flag.StringVar(&jwtSubject, "jwt-subject", "api-sidecar-handler",
 		"The jwt audience.")
-	flag.StringVar(&jwtIssuer, "jwt-issuer", "webhook-handler",
+	flag.StringVar(&jwtIssuer, "jwt-issuer", "api-sidecar-handler",
 		"The jwt audience.")
-
-	flag.BoolVar(&debug, "debug", false,
-		"Flag to enable debug logging.")
 
 	flag.Parse()
-
 	// get overrides from environment variables
 	mqUser = variables.GetEnv("RABBITMQ_USERNAME", mqUser)
 	mqPass = variables.GetEnv("RABBITMQ_PASSWORD", mqPass)
-	mqHost = variables.GetEnv("RABBITMQ_ADDRESS", mqHost)
+	mqHost = variables.GetEnv("RABBITMQ_HOST", mqHost)
 	mqPort = variables.GetEnv("RABBITMQ_PORT", mqPort)
 	mqTLS = variables.GetEnvBool("RABBITMQ_TLS", mqTLS)
 	mqCACert = variables.GetEnv("RABBITMQ_CACERT", mqCACert)
@@ -90,15 +81,10 @@ func main() {
 	mqClientKey = variables.GetEnv("RABBITMQ_CLIENTKEY", mqClientKey)
 	mqVerify = variables.GetEnvBool("RABBITMQ_VERIFY", mqVerify)
 
-	// gitlab
-	gitlabSystemHookToken = variables.GetEnv("GITLAB_SYSTEM_HOOK_TOKEN", "")
-	gitlabAPIToken = variables.GetEnv("GITLAB_API_TOKEN", "")
-	gitlabAPIHost = variables.GetEnv("GITLAB_API_HOST", "")
-
 	// lagoon
 	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
-	jwtTokenSigningKey = variables.GetEnv("JWT_SECRET", jwtTokenSigningKey)
-	jwtAudience = variables.GetEnv("JWT_AUDIENCE", jwtAudience)
+	jwtTokenSigningKey = variables.GetEnv("JWTSECRET", jwtTokenSigningKey)
+	jwtAudience = variables.GetEnv("JWTAUDIENCE", jwtAudience)
 	jwtSubject = variables.GetEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = variables.GetEnv("JWT_ISSUER", jwtIssuer)
 
@@ -173,11 +159,6 @@ func main() {
 
 	srv := server.Server{
 		Messaging: msg,
-		GitlabAPI: syshook.GitlabAPI{
-			GitlabAPIHost:         gitlabAPIHost,
-			GitlabAPIToken:        gitlabAPIToken,
-			GitlabSystemHookToken: gitlabSystemHookToken,
-		},
 		LagoonAPI: lagoon.LagoonAPI{
 			Endpoint:        lagoonAPIHost,
 			JWTAudience:     jwtAudience,
@@ -186,8 +167,7 @@ func main() {
 			TokenSigningKey: jwtTokenSigningKey,
 			Version:         lagoonAPIVersion,
 		},
-		Debug: debug,
 	}
 	srv.Initialize()
-	srv.Run(":3000")
+	srv.Run(":3333")
 }

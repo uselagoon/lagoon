@@ -7,33 +7,28 @@ import (
 	// we can't use go regex as some things people do with the regex in nodejs aren't supported in golang re2 regex
 	"github.com/dlclark/regexp2"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData, bulkID, bulkName string) ([]byte, error) {
+func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData) ([]byte, error) {
 	// get deploytargets for environment if the environment already exists
 	var deployTarget *schema.DeployTarget
-	var activeStanby *schema.DeployTarget
+	var activeStandby *schema.DeployTarget
 	for _, env := range project.Environments {
 		if env.Name == deployData.UnsafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
 		if project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName {
-			activeStanby = &env.DeployTarget
+			activeStandby = &env.DeployTarget
 		}
 	}
 
-	if deployTarget != nil && activeStanby != nil {
-		if deployTarget.ID != activeStanby.ID {
+	if deployTarget != nil && activeStandby != nil {
+		if deployTarget.ID != activeStandby.ID {
 			e.Messaging.Publish("lagoon-logs", []byte("environments must be on same deploytarget"))
 			return nil, fmt.Errorf("environments must be on same deploytarget")
 		}
-	}
-
-	if bulkID != "" {
-		deployData.BulkID = bulkID
-		deployData.BulkName = bulkName
 	}
 
 	if deployTarget != nil {
@@ -66,7 +61,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 				return nil, fmt.Errorf("deployments disabled for project pullrequests")
 			default:
 				re := regexp2.MustCompile(dtc.Pullrequests, 0)
-				if match, _ := re.MatchString(deployData.Pull.PullRequest.Title); match {
+				if match, _ := re.MatchString(deployData.Pullrequest.Title); match {
 					deployData.DeployTarget = dtc.DeployTarget
 					buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 					if err != nil {
@@ -99,7 +94,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 			return nil, fmt.Errorf("deployments disabled for project pullrequests")
 		default:
 			re := regexp2.MustCompile(project.PullRequests, 0)
-			if match, _ := re.MatchString(deployData.Pull.PullRequest.Title); match {
+			if match, _ := re.MatchString(deployData.Pullrequest.Title); match {
 				deployData.DeployTarget = *project.DeployTarget
 				buildData, err := e.LagoonAPI.GetControllerBuildData(deployData)
 				if err != nil {

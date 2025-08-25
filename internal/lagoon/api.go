@@ -224,3 +224,115 @@ func (l *LagoonAPI) AllProjectByGitURL(gitURL string) (*[]schema.Project, error)
 	json.Unmarshal(rb, &projects)
 	return &projects, nil
 }
+
+func (l *LagoonAPI) ProjectByName(name string) (*schema.Project, error) {
+	lc, _ := GetClient(*l)
+	query := `query projectByName($name: String!) {
+        projectByName(name: $name) {
+			id
+        	name
+        	deploymentsDisabled
+			developmentBuildPriority
+			productionBuildPriority
+			routerPattern
+			sharedBaasBucket
+			privateKey
+			autoIdle
+			storageCalc
+			gitUrl
+			branches
+			pullrequests
+			envVariables {
+				name
+				value
+				scope
+			}
+			openshift {
+				id
+				name
+				routerPattern
+				buildImage
+				disabled
+				sharedBaasBucketName
+				monitoringConfig
+			}
+			developmentEnvironmentsLimit
+			productionEnvironment
+			standbyProductionEnvironment
+			environments(includeDeleted:false) {
+				name
+				id
+				environmentType
+				autoIdle
+				kubernetesNamespaceName
+				openshift {
+					id
+					name
+					routerPattern
+					buildImage
+					disabled
+					sharedBaasBucketName
+					monitoringConfig
+				}
+			}
+			deployTargetConfigs {
+			    id
+				weight
+				branches
+				pullrequests
+				weight
+				deployTarget {
+					id
+					name
+					routerPattern
+					buildImage
+					disabled
+					sharedBaasBucketName
+					monitoringConfig
+				}
+			}
+        	organizationDetails {
+				id
+				name
+				friendlyName
+				description
+				quotaProject
+				quotaGroup
+				quotaNotification
+				quotaEnvironment
+				quotaRoute
+				envVariables {
+					name
+					value
+					scope
+				}
+				environments {
+					name
+					id
+					environmentType
+					autoIdle
+					kubernetesNamespaceName
+					openshift {
+						id
+						name
+						routerPattern
+						buildImage
+						disabled
+						sharedBaasBucketName
+						monitoringConfig
+					}
+				}
+			}
+        }
+    }`
+	result, err := lc.ProcessRaw(context.Background(), query, map[string]interface{}{
+		"name": name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	rb, _ := json.Marshal(result.(map[string]interface{})["projectByName"])
+	project := schema.Project{}
+	json.Unmarshal(rb, &project)
+	return &project, nil
+}

@@ -42,26 +42,17 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 		deployBaseRef = deployData.UnsafeEnvironmentName
 	case schema.PullRequest:
 		gitRef = deployData.GitSHA
-		deployTitle = deployData.Pull.PullRequest.Title
-		deployBaseRef = deployData.Pull.PullRequest.Target
-		deployHeadRef = deployData.Pull.PullRequest.Source
+		deployTitle = deployData.Pullrequest.Title
+		// deployTitle = deployData.Pull.PullRequest.Title
+		deployBaseRef = deployData.Pullrequest.BaseBranch
+		deployHeadRef = deployData.Pullrequest.HeadBranch
 		pullrequest = &lagooncrd.Pullrequest{
-			Title:      deployData.Pull.PullRequest.Title,
-			Number:     strconv.Itoa(deployData.Pull.PullRequest.Number), // uugghh string in the crd
-			BaseBranch: deployData.Pull.PullRequest.Target,
-			BaseSha:    deployData.Pull.PullRequest.Base.Sha,
-			HeadBranch: deployData.Pull.PullRequest.Source,
-			HeadSha:    deployData.Pull.PullRequest.Sha,
-		}
-		switch deployData.GitType {
-		case "gogs":
-			// would need to verify. lagoon doesn't support gogs officially
-			// the gogs pr payloads don't contain the shas like others do
-			pullrequest.BaseSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Target)
-			pullrequest.HeadSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Source)
-		case "gitlab":
-			// gitlab does not send us the target sha, we just use the target_branch
-			pullrequest.BaseSha = fmt.Sprintf("origin/%s", deployData.Pull.PullRequest.Target)
+			Title:      deployTitle,
+			Number:     strconv.Itoa(deployData.Pullrequest.Number), // uugghh string in the crd
+			BaseBranch: deployBaseRef,
+			BaseSha:    deployData.Pullrequest.BaseSha,
+			HeadBranch: deployHeadRef,
+			HeadSha:    deployData.Pullrequest.HeadSha,
 		}
 	case schema.Promote:
 		deployBaseRef = deployData.PromoteSourceEnvironment

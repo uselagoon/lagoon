@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
+import { seedNamespace } from '@lagoon/commons/dist/tasks';
+import { getConfigFromEnv } from '../../util/config';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
@@ -580,44 +581,34 @@ export const deleteEnvironment: ResolverFn = async (
     canDeleteProduction = false;
   }
 
-  let data: RemoveData = {
+  let removeData: RemoveData = {
     projectName: project.name,
-    type: environment.deployType,
     openshiftProjectName: environment.openshiftProjectName,
-    forceDeleteProductionEnvironment: canDeleteProduction
+    forceDeleteProductionEnvironment: canDeleteProduction,
+    environmentName: name
   };
 
   const meta: {
     [key: string]: any;
   } = {
-    projectName: data.projectName,
+    projectName: removeData.projectName,
     environmentName: environment.name
   };
 
+  // @TODO: this switch can probably be removed, there shouldn't ever be no deploytype on an environment
   switch (environment.deployType) {
     case DeployType.BRANCH:
     case DeployType.PROMOTE:
-      data = {
-        ...data,
-        branch: name
-      };
-      break;
-
     case DeployType.PULLREQUEST:
-      data = {
-        ...data,
-        pullrequestNumber: environment.name.replace('pr-', '')
-      };
       break;
-
     default:
       sendToLagoonLogs(
         'error',
-        data.projectName,
+        removeData.projectName,
         '',
         'api:deleteEnvironment:error',
         meta,
-        `*[${data.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``
+        `*[${removeData.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``
       );
       return `Error: unknown deploy type ${environment.deployType}`;
   }
@@ -671,7 +662,7 @@ export const deleteEnvironment: ResolverFn = async (
       projectName,
       environment,
       deleted: deleted, // log if the actual deletion took place
-      data,
+      removeData,
       ...auditLog,
     }
   });
@@ -681,14 +672,24 @@ export const deleteEnvironment: ResolverFn = async (
     return 'success';
   }
 
-  await createRemoveTask(data);
+  await fetch(
+    `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/remove`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      // @ts-ignore
+      body: new URLSearchParams(removeData).toString(),
+    },
+  );
   sendToLagoonLogs(
     'info',
-    data.projectName,
+    removeData.projectName,
     '',
     'api:deleteEnvironment',
     meta,
-    `*[${data.projectName}]* Deleting environment \`${environment.name}\``
+    `*[${removeData.projectName}]* Deleting environment \`${environment.name}\``
   );
 
   return 'success';
