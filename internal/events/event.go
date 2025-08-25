@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/messaging"
+	"github.com/uselagoon/lagoon/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/messaging"
 	"github.com/uselagoon/machinery/api/schema"
 )
 
@@ -58,7 +58,7 @@ func skipDeploy(message string) bool {
 // this could be bitbuck.org(.com) or a private bitbucket server
 // Also the git server could be running on another port than 22, so there is a second regex match for `:[0-9]`
 func BitBucketGitURL(repositoryURL, fullName string) string {
-	// https://github.com/uselagoon/lagoon/blob/v2.27.0/services/webhook-handler/src/extractWebhookData.ts#L68-L78
+	// https://github.com/uselagoon/lagoon/blob/v2.27.0/src/extractWebhookData.ts#L68-L78
 	re := regexp.MustCompile(`https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\/`)
 	matches := re.FindStringSubmatch(repositoryURL)
 	if len(matches) == 0 {

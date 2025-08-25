@@ -7,33 +7,28 @@ import (
 	// we can't use go regex as some things people do with the regex in nodejs aren't supported in golang re2 regex
 	"github.com/dlclark/regexp2"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 )
 
-func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData, bulkID, bulkName string) ([]byte, error) {
+func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData) ([]byte, error) {
 	// get deploytargets for environment if the environment already exists
 	var deployTarget *schema.DeployTarget
-	var activeStanby *schema.DeployTarget
+	var activeStandby *schema.DeployTarget
 	for _, env := range project.Environments {
 		if env.Name == deployData.UnsafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
 		if project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName {
-			activeStanby = &env.DeployTarget
+			activeStandby = &env.DeployTarget
 		}
 	}
 
-	if deployTarget != nil && activeStanby != nil {
-		if deployTarget.ID != activeStanby.ID {
+	if deployTarget != nil && activeStandby != nil {
+		if deployTarget.ID != activeStandby.ID {
 			e.Messaging.Publish("lagoon-logs", []byte("environments must be on same deploytarget"))
 			return nil, fmt.Errorf("environments must be on same deploytarget")
 		}
-	}
-
-	if bulkID != "" {
-		deployData.BulkID = bulkID
-		deployData.BulkName = bulkName
 	}
 
 	if deployTarget != nil {

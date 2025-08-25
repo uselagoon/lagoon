@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) createDeployTask(project schema.Project, deployData lagoon.DeployData, deployType, bulkID, bulkName string) ([]byte, error) {
+func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.DeployData) ([]byte, error) {
 	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(deployData.UnsafeEnvironmentName))
 	if project.OrganizationDetails != nil {
 		for _, env := range project.Environments {
@@ -66,11 +66,13 @@ func (e *Events) createDeployTask(project schema.Project, deployData lagoon.Depl
 		}
 	}
 
-	switch deployType {
-	case "push":
-		return e.deployPush(project, deployData, bulkID, bulkName)
-	case "pull":
-		return e.deployPull(project, deployData, bulkID, bulkName)
+	switch deployData.DeployType {
+	case schema.Branch:
+		return e.deployPush(project, deployData)
+	case schema.PullRequest:
+		return e.deployPull(project, deployData)
+	case schema.Promote:
+		return e.deployPromote(project, deployData)
 	}
 	return nil, fmt.Errorf("nothing to do")
 }

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/messaging"
+	"github.com/uselagoon/lagoon/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/messaging"
 	"github.com/uselagoon/machinery/api/schema"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 )

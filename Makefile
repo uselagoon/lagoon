@@ -673,6 +673,7 @@ ifneq ($(GO_VERSION), $(shell ./local-dev/go/bin/go version 2>/dev/null | sed -n
 	TMPDIR=$$(mktemp -d) \
 		&& curl -sSLo $$TMPDIR/go.tar.gz https://go.dev/dl/go$(GO_VERSION).$(ARCH)-amd64.tar.gz \
 		&& (cd $$TMPDIR && tar -xz --strip-components=1 -f go.tar.gz) && cp -r $$TMPDIR/. ./local-dev/go && rm -rf $$TMPDIR
+	touch local-dev/go/go.mod
 endif
 endif
 

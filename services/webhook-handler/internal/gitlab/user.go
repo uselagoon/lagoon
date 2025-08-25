@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/uselagoon/machinery/api/schema"

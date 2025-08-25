@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
-	mockapi "github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon/fakeapi"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/messaging"
+	"github.com/uselagoon/lagoon/internal/lagoon"
+	mockapi "github.com/uselagoon/lagoon/internal/lagoon/fakeapi"
+	"github.com/uselagoon/lagoon/internal/messaging"
 )
 
 var eventUUID string = "a667f4d0-fa5c-48fa-9ef5-1ff81cfe5cbb"
