@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/drone/go-scm/scm"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 )
 
@@ -49,7 +49,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
-			resp, err = e.createRemoveTask(project, "pull", fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number))
+			resp, err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number))
 		} else {
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
@@ -61,9 +61,30 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 				DeployType:            schema.PullRequest,
 				BulkType:              lagoon.BulkDeploy,
 				GitSHA:                "",
-				Pull:                  scmWebhook,
+				Pullrequest: lagoon.Pullrequest{
+					Number:     scmWebhook.PullRequest.Number,
+					Title:      scmWebhook.PullRequest.Title,
+					BaseBranch: scmWebhook.PullRequest.Target,
+					BaseSha:    scmWebhook.PullRequest.Base.Sha,
+					HeadBranch: scmWebhook.PullRequest.Source,
+					HeadSha:    scmWebhook.PullRequest.Sha,
+				},
 			}
-			resp, err = e.createDeployTask(project, deployData, "pull", bulkID, bulkName)
+			switch deployData.GitType {
+			case "gogs":
+				// would need to verify. lagoon doesn't support gogs officially
+				// the gogs pr payloads don't contain the shas like others do
+				deployData.Pullrequest.BaseSha = fmt.Sprintf("origin/%s", scmWebhook.PullRequest.Target)
+				deployData.Pullrequest.HeadSha = fmt.Sprintf("origin/%s", scmWebhook.PullRequest.Source)
+			case "gitlab":
+				// gitlab does not send us the target sha, we just use the target_branch
+				deployData.Pullrequest.BaseSha = fmt.Sprintf("origin/%s", scmWebhook.PullRequest.Target)
+			}
+			if bulkID != "" {
+				deployData.BulkID = bulkID
+				deployData.BulkName = bulkName
+			}
+			resp, err = e.CreateDeployTask(project, deployData)
 		}
 		if err != nil {
 			errs++

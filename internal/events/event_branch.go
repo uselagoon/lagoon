@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/drone/go-scm/scm"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 )
 
@@ -72,7 +72,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if scmWebhook.Action == scm.ActionDelete || scmWebhook.Action == scm.ActionClose {
-			resp, err = e.createRemoveTask(project, "push", branchName)
+			resp, err = e.CreateRemoveTask(project, branchName)
 		} else {
 			deployData := lagoon.DeployData{
 				BuildName:             buildName,
@@ -84,7 +84,11 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 				BulkType:              lagoon.BulkDeploy,
 				GitSHA:                scmWebhook.Ref.Sha,
 			}
-			resp, err = e.createDeployTask(project, deployData, "push", bulkID, bulkName)
+			if bulkID != "" {
+				deployData.BulkID = bulkID
+				deployData.BulkName = bulkName
+			}
+			resp, err = e.CreateDeployTask(project, deployData)
 		}
 		if err != nil {
 			errs++

@@ -19,10 +19,10 @@ import (
 	"github.com/drone/go-scm/scm/driver/stash"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/events"
+	"github.com/uselagoon/lagoon/internal/events"
+	"github.com/uselagoon/lagoon/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/messaging"
 	syshook "github.com/uselagoon/lagoon/services/webhook-handler/internal/gitlab"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/messaging"
 )
 
 type Server struct {
