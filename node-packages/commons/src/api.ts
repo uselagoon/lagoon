@@ -3,7 +3,7 @@ import { Transport } from './lokka-transport-http-retry';
 import { replace, pipe, toLower } from 'ramda';
 import { getConfigFromEnv } from './util/config';
 
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType } from './types';
+import { TaskStatusType, TaskSourceType } from './types';
 
 export interface Project {
   autoIdle: number;
@@ -98,26 +98,6 @@ interface ProjectPatch {
   standbyRoutes?: string;
   productionEnvironment?: string;
   standbyProductionEnvironment?: string;
-}
-
-interface DeploymentPatch {
-  name?: number;
-  status?: string;
-  created?: string;
-  started?: string;
-  completed?: string;
-  environment?: number;
-  remoteId?: string;
-}
-
-interface TaskPatch {
-  name?: number;
-  status?: string;
-  created?: string;
-  started?: string;
-  completed?: string;
-  environment?: number;
-  remoteId?: string;
 }
 
 interface RestorePatch {
@@ -681,38 +661,6 @@ export const allProjectsInGroup = (groupInput: {
     }
   );
 
-export async function getEnvironmentByName(
-  name: string,
-  projectId: number,
-  includeDeleted: boolean = true
-): Promise<any> {
-  const result = await graphqlapi.query(`
-    {
-      environmentByName(name: "${name}", project:${projectId}, includeDeleted:${includeDeleted}) {
-        id,
-        name,
-        route,
-        routes,
-        deployType,
-        autoIdle,
-        environmentType,
-        openshiftProjectName,
-        updated,
-        created,
-        deleted,
-      }
-    }
-  `);
-
-  if (!result || !result.environmentByName) {
-    throw new EnvironmentNotFound(
-      `Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`
-    );
-  }
-
-  return result;
-}
-
 export async function getEnvironmentByIdWithVariables(
   id: number
 ): Promise<any> {
@@ -769,58 +717,6 @@ export async function getEnvironmentByOpenshiftProjectName(
 
   return result;
 }
-
-export const addOrUpdateEnvironment = (
-  name: string,
-  projectId: number,
-  deployType: DeployType,
-  deployBaseRef: string,
-  environmentType: string,
-  openshift: number,
-  deployHeadRef: string | null = null,
-  deployTitle: string | null = null
-): Promise<any> =>
-  graphqlapi.mutate(
-    `
-($name: String!, $project: Int!, $openshift: Int, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!) {
-  addOrUpdateEnvironment(input: {
-    name: $name,
-    project: $project,
-    openshift: $openshift,
-    deployType: $deployType,
-    deployBaseRef: $deployBaseRef,
-    deployHeadRef: $deployHeadRef,
-    deployTitle: $deployTitle,
-    environmentType: $environmentType,
-  }) {
-    id
-    name
-    project {
-      name
-    }
-    autoIdle
-    deployType
-    environmentType
-    openshiftProjectName
-    envVariables {
-      name
-      value
-      scope
-    }
-  }
-}
-`,
-    {
-      name,
-      project: projectId,
-      deployType: deployType.toUpperCase(),
-      deployBaseRef,
-      deployHeadRef,
-      deployTitle,
-      environmentType,
-      openshift
-    }
-  );
 
 interface GetOpenshiftInfoForProjectResult {
   project: Pick<
@@ -940,81 +836,6 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<Get
     }
 `);
 
-interface GetEnvironentsForProjectEnvironmentResult {
-  name: string;
-  id: number;
-  environmentType: EnvType;
-  openshift: any;
-}
-
-interface GetEnvironentsForProjectProjectResult {
-  id: number;
-  developmentEnvironmentsLimit: number;
-  productionEnvironment: string;
-  standbyProductionEnvironment: string;
-  environments: GetEnvironentsForProjectEnvironmentResult[];
-}
-
-interface GetEnvironentsForProjectResult {
-  project: GetEnvironentsForProjectProjectResult
-}
-
-export const getEnvironmentsForProject = (
-  project: string
-): Promise<GetEnvironentsForProjectResult> =>
-  graphqlapi.query(`
-  {
-    project:projectByName(name: "${project}"){
-      id
-      developmentEnvironmentsLimit
-      productionEnvironment
-      standbyProductionEnvironment
-      environments(includeDeleted:false) {
-        name
-        id
-        environmentType
-        autoIdle
-        openshift{
-          ...${deployTargetMinimalFragment}
-        }
-      }
-    }
-  }
-`);
-
-export async function getOrganizationByIdWithEnvs(id: number): Promise<any> {
-  const result = await graphqlapi.query(`
-    {
-      organization:organizationById(id: ${id}) {
-        id
-        name
-        friendlyName
-        description
-        quotaProject
-        quotaEnvironment
-        quotaGroup
-        quotaNotification
-        quotaRoute
-        environments {
-          name
-          id
-          environmentType
-          autoIdle
-          openshift{
-            ...${deployTargetMinimalFragment}
-          }
-        }
-      }
-    }
-  `);
-
-  if (!result || !result.organization) {
-    throw new OrganizationNotFound(`Cannot find organization ${id}`);
-  }
-
-  return result.organization;
-}
-
 export async function getOrganizationById(id: number): Promise<any> {
   const result = await graphqlapi.query(`
     {
@@ -1044,22 +865,6 @@ export async function getOrganizationById(id: number): Promise<any> {
   return result.organization;
 }
 
-const deploymentFragment = graphqlapi.createFragment(`
-fragment on Deployment {
-  id
-  name
-  status
-  created
-  started
-  completed
-  remoteId
-  uiLink
-  environment {
-    name
-  }
-}
-`);
-
 type DeployTargetMinimalFragment = Pick<
   Kubernetes,
   | 'id'
@@ -1082,62 +887,6 @@ fragment on Openshift {
   monitoringConfig
 }
 `);
-
-export const addDeployment = (
-  name: string,
-  status: string,
-  created: string,
-  environment: number,
-  remoteId: string | null = null,
-  id: number | null = null,
-  started: string | null = null,
-  completed: string | null = null,
-  priority: number,
-  bulkId: string | null = null,
-  bulkName: string | null = null,
-  sourceUser: string | null = null,
-  sourceType: DeploymentSourceType,
-): Promise<any> =>
-  graphqlapi.mutate(
-    `
-  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
-    $started: String, $completed: String, $priority: Int, $bulkId: String, $bulkName: String,
-    $sourceUser: String, $sourceType: DeploymentSourceType) {
-    addDeployment(input: {
-        name: $name
-        status: $status
-        created: $created
-        environment: $environment
-        id: $id
-        remoteId: $remoteId
-        started: $started
-        completed: $completed
-        priority: $priority
-        bulkId: $bulkId
-        bulkName: $bulkName
-        sourceUser: $sourceUser
-        sourceType: $sourceType
-    }) {
-      ...${deploymentFragment}
-    }
-  }
-`,
-    {
-      name,
-      status,
-      created,
-      environment,
-      id,
-      remoteId,
-      started,
-      completed,
-      priority,
-      bulkId,
-      bulkName,
-      sourceUser,
-      sourceType: sourceType.toUpperCase(),
-    }
-  );
 
 export const addTask = (
   name: string,

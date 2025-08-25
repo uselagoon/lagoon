@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/uselagoon/lagoon/services/webhook-handler/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 )

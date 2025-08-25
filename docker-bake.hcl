@@ -225,7 +225,8 @@ target "broker" {
 
 target "api-sidecar-handler" {
   inherits = ["default"]
-  context = "services/api-sidecar-handler"
+  context = ""
+  dockerfile = "services/api-sidecar-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api-sidecar-handler - the api-sidecar-handler service for Lagoon"
   }
@@ -281,7 +282,8 @@ target "tests" {
 
 target "webhook-handler" {
   inherits = ["default"]
-  context = "services/webhook-handler"
+  context = ""
+  dockerfile = "services/webhook-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/webhook-handler - the webhook-handler service for Lagoon"
   }
