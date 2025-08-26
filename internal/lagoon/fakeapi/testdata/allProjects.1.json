@@ -4,6 +4,7 @@
             {
                 "autoIdle": 1,
                 "branches": "true",
+                "buildImage": null,
                 "pullrequests": "^(?!WIP:).+",
                 "deployTargetConfigs": [],
                 "deploymentsDisabled": 0,
@@ -101,7 +102,8 @@
                 "routerPattern": null,
                 "sharedBaasBucket": true,
                 "standbyProductionEnvironment": null,
-                "storageCalc": 1
+                "storageCalc": 1,
+                "subfolder": null
             }
         ]
     }
