@@ -8,6 +8,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
 import { AuditType } from '@lagoon/commons/dist/types';
+import { knex, query } from '../../util/db';
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -50,6 +51,57 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
     throw new Error(`Error retrieving bucket items - ${e.message}`)
 	}
 }
+
+export const getInsightDownloadUrl: ResolverFn = async (
+  { id },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+
+    const queryBuilder = knex('insights').select('file_id', 'environment_id', 'file_name').where('id', id).toString();
+
+    const insightQuery = await query(sqlClientPool, queryBuilder);
+
+    if (!insightQuery || insightQuery.length === 0) {
+      throw new Error(`Insight with ID ${id} not found`);
+    }
+
+    const insight = insightQuery[0];
+    const { file_id, environment_id, file_name } = insight;
+
+    const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(environment_id);
+    const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
+    await hasPermission('environment', 'view', {
+      project: projectData.id
+    });
+
+    const environmentName = getEnvironmentName(environmentData, projectData);
+    try {
+      const s3Key = `insights/${projectData.name}/${environmentName}/${file_name}`;
+
+      if (typeof userActivityLogger === 'function') {
+        const auditLog: AuditLog = {
+          resource: {
+            type: AuditType.FILE,
+          },
+        };
+        userActivityLogger(`User requested a download link`, {
+          event: 'api:getSignedInsightsUrl',
+          payload: {
+            Bucket: bucket,
+            Key: s3Key,
+            ...auditLog,
+          }
+        });
+      }
+
+      const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
+      return await getSignedUrl(s3Client, command, { expiresIn: s3Config.signedLinkExpiration });
+
+  } catch (e) {
+    throw new Error(`Error while creating download link - ${e.message || 'Unknown error'}`);
+  }
+};
 
 export const getInsightsDownloadUrl: ResolverFn = async (
   { fileId, environment, file },

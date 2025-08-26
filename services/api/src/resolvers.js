@@ -38,6 +38,7 @@ const {
   getInsightsFileData,
   getInsightsFilesByEnvironmentId,
   getInsightsDownloadUrl,
+  getInsightDownloadUrl,
 } = require('./resources/insight/resolvers');
 
 const {
@@ -675,7 +676,8 @@ async function getResolvers() {
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
     getAuditLogs,
-    listAllRetentionPolicies
+    listAllRetentionPolicies,
+    getInsightDownloadUrl
   },
   Mutation: {
     addProblem,
