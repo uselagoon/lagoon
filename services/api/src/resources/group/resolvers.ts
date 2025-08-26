@@ -314,7 +314,7 @@ export const addGroup: ResolverFn = async (
       organization: input.organization
     });
     resource = {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION
     }
 
@@ -410,6 +410,9 @@ export const addGroup: ResolverFn = async (
   } else {
     auditLog.resource = groupResource
   }
+  if (input.organization) {
+    auditLog.organizationId = input.organization;
+  }
 
   userActivityLogger(`User added a group`, {
     project: '',
@@ -441,7 +444,7 @@ export const updateGroup: ResolverFn = async (
       organization: org
     });
     resource = {
-      id: org,
+      id: org.toString(),
       type: AuditType.ORGANIZATION
     }
   } else {
@@ -480,6 +483,9 @@ export const updateGroup: ResolverFn = async (
   } else {
     auditLog.resource = groupResource
   }
+  if (org) {
+    auditLog.organizationId = org;
+  }
 
   userActivityLogger(`User updated a group`, {
     project: '',
@@ -510,7 +516,7 @@ export const deleteGroup: ResolverFn = async (
       organization: org
     });
     resource = {
-      id: org,
+      id: org.toString(),
       type: AuditType.ORGANIZATION
     }
   } else {
@@ -537,6 +543,9 @@ export const deleteGroup: ResolverFn = async (
     auditLog.linkedResource = groupResource
   } else {
     auditLog.resource = groupResource
+  }
+  if (org) {
+    auditLog.organizationId = org;
   }
 
   userActivityLogger(`User deleted a group`, {
@@ -644,6 +653,9 @@ export const addUserToGroup: ResolverFn = async (
       details: `${user.email}, role: ${role}`,
     },
   };
+  if (org) {
+    auditLog.organizationId = org;
+  }
   var emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user, {"Role": role});
   userActivityLogger(`User added a user to a group`, {
     project: '',
@@ -707,6 +719,9 @@ export const removeUserFromGroup: ResolverFn = async (
       details: user.email,
     },
   };
+  if (org) {
+    auditLog.organizationId = org;
+  }
 
   var emailDetails = await getGroupEmailDetails('api:removeUserFromGroup', group.name, models, user);
 
@@ -798,7 +813,7 @@ export const addGroupsToProject: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -807,6 +822,9 @@ export const addGroupsToProject: ResolverFn = async (
       details: `multiple groups`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User synced groups to a project`, {
     project: '',
     event: 'api:addGroupsToProject',
@@ -975,7 +993,7 @@ export const removeGroupsFromProject: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -984,6 +1002,9 @@ export const removeGroupsFromProject: ResolverFn = async (
       details: `multiple groups`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User synced groups to a project`, {
     project: '',
     event: 'api:removeGroupsFromProject',

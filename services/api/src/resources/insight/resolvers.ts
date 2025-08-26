@@ -75,6 +75,9 @@ export const getInsightsDownloadUrl: ResolverFn = async (
           type: AuditType.FILE,
         },
       };
+      if (projectData.organization) {
+        auditLog.organizationId = projectData.organization;
+      }
       userActivityLogger(`User requested a download link`, {
         event: 'api:getSignedInsightsUrl',
         payload: {

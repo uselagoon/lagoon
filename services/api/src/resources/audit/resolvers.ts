@@ -6,14 +6,23 @@ import { knex, query } from '../../util/db';
 export const getAuditLogs: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  await hasPermission('project', 'viewAll');
-
-  let queryBuilder = knex('audit_log');
-
   // default results limit to 100
   let limit = 100;
+
+  // check permissions for viewing organization audit logs
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    if (input.organizationId) {
+      await hasPermission('organization', 'view', {
+          organization: input.organizationId,
+      });
+    } else {
+      await hasPermission('project', 'viewAll');
+    }
+  }
+
+  let queryBuilder = knex('audit_log');
 
   if (input) {
     if (input.startDate) {
@@ -80,6 +89,10 @@ export const getAuditLogs: ResolverFn = async (
 
     if (input.ipAddress) {
       queryBuilder = queryBuilder.where('ip_address', input.ipAddress);
+    }
+
+    if (input.organizationId) {
+      queryBuilder = queryBuilder.where('organization_id', input.organizationId);
     }
 
     if (input.source) {

@@ -254,6 +254,7 @@ export const addTask: ResolverFn = async (
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
     environment
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
   await hasPermission('task', `add:${envPerm.environmentType}`, {
     project: envPerm.project
   });
@@ -295,16 +296,19 @@ export const addTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: taskData.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added task '${name}'`, {
     project: '',
     event: 'api:addTask',
@@ -360,10 +364,13 @@ export const deleteTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: id,
+      id: id.toString(),
       type: AuditType.TASK,
     },
   };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
   userActivityLogger(`User deleted task '${id}'`, {
     project: '',
     event: 'api:deleteTask',
@@ -414,16 +421,19 @@ export const cancelTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: task.id,
+      id: task.id.toString(),
       type: AuditType.TASK,
       details: task.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(
     `User cancelled task for '${task.environment}'`,
     {
@@ -485,6 +495,7 @@ export const updateTask: ResolverFn = async (
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
     task[0].environment
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(R.path(['0', 'pid'], curPerms));
 
   if (environment) {
     // Check access to modify task as it will be updated
@@ -526,16 +537,19 @@ export const updateTask: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: env.id,
+      id: env.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: env.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: taskData.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User updated task '${id}'`, {
     project: '',
     event: 'api:updateTask',
@@ -575,6 +589,7 @@ export const taskDrushArchiveDump: ResolverFn = async (
     environmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
 TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
@@ -601,16 +616,19 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 
   const auditLog: AuditLog = {
     resource: {
-      id: envPerm.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: "Drush Archive Dump task",
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
     project: '',
     event: 'api:taskDrushArchiveDump',
@@ -639,6 +657,7 @@ export const taskDrushSqlDump: ResolverFn = async (
     environmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
   const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
 if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
@@ -666,16 +685,19 @@ TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"$
 
   const auditLog: AuditLog = {
     resource: {
-      id: envPerm.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: "Drush SQL Dump task",
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
     project: '',
     event: 'api:taskDrushSqlDump',
@@ -704,6 +726,7 @@ export const taskDrushCacheClear: ResolverFn = async (
     environmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
   const command =
     'drupal_version=$(drush status | grep -i "drupal version" | awk \'{print $NF}\') && \
@@ -733,16 +756,19 @@ export const taskDrushCacheClear: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: envPerm.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: "Drush cache clear task",
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
     project: '',
     event: 'api:taskDrushCacheClear',
@@ -771,6 +797,7 @@ export const taskDrushCron: ResolverFn = async (
     environmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
@@ -789,16 +816,19 @@ export const taskDrushCron: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: envPerm.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: "Drush cron task",
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
     project: '',
     event: 'api:taskDrushCron',
@@ -853,6 +883,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(sourceEnvironment.project);
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
@@ -876,16 +907,19 @@ export const taskDrushSqlSync: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: sourceEnvironment.id,
+      id: sourceEnvironment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: sourceEnvironment.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: `Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     project: '',
     event: 'api:taskDrushSqlSync',
@@ -941,6 +975,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(sourceEnvironment.project);
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
@@ -964,16 +999,19 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: sourceEnvironment.id,
+      id: sourceEnvironment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: sourceEnvironment.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: `rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     project: '',
     event: 'api:taskDrushRsyncFiles',
@@ -1003,6 +1041,7 @@ export const taskDrushUserLogin: ResolverFn = async (
     environmentId,
     'cli'
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
@@ -1021,16 +1060,19 @@ export const taskDrushUserLogin: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: envPerm.id,
+      id: envPerm.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: envPerm.name,
     },
     linkedResource: {
-      id: taskData.id,
+      id: taskData.id.toString(),
       type: AuditType.TASK,
       details: `Drush user login task`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
     project: '',
     event: 'api:taskDrushUserLogin',

@@ -342,7 +342,7 @@ export const addUserToOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name,
     },
@@ -351,6 +351,7 @@ export const addUserToOrganization: ResolverFn = async (
       type: AuditType.USER,
       details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`,
     },
+    organizationId: organizationData.id,
   };
 
   var emailDetails = await getUserOrgEmailDetails('api:addUserToOrganization', models, user, {
@@ -409,7 +410,7 @@ export const removeUserFromOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name
     },
@@ -418,6 +419,7 @@ export const removeUserFromOrganization: ResolverFn = async (
       type: AuditType.USER,
       details: user.email
     },
+    organizationId: organizationData.id,
   };
 
     var emailDetails = await getUserOrgEmailDetails('api:removeUserFromOrganization', models, user, {
@@ -497,7 +499,7 @@ export const addAdminToOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name,
     },
@@ -506,6 +508,7 @@ export const addAdminToOrganization: ResolverFn = async (
       type: AuditType.USER,
       details: `${user.email} role ${role}`,
     },
+    organizationId: organizationData.id,
   };
 
 
@@ -569,7 +572,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name
     },
@@ -578,6 +581,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
       type: AuditType.USER,
       details: user.email
     },
+    organizationId: organizationData.id,
   };
 
   var emailDetails = await getUserOrgEmailDetails('api:removeAdminFromOrganization', models, user, {
