@@ -97,7 +97,6 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		response.Response = string(resp)
 		resps = append(resps, response)
 	}
-	// respBytes, _ := json.Marshal(resps)
 	if errs > 0 {
 		return resps, fmt.Errorf("nothing to do")
 	}

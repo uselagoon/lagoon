@@ -8,7 +8,6 @@ import (
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/lagoon/internal/messaging"
-	"github.com/uselagoon/machinery/api/schema"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
@@ -75,17 +74,6 @@ func (sh *SystemHook) HandleSystemHook(body []byte) error {
 		// unhandled(webhook, `${webhooktype}:${event}`);
 	}
 	return nil
-}
-
-func (sh *SystemHook) handleError(errMsg string, err error) {
-	sh.Messaging.SendToLagoonLogs(
-		"error",
-		"",
-		"",
-		"gitlab:key_destroy:handled",
-		fmt.Sprintf("%s %s", errMsg, err.Error()),
-		schema.LagoonLogMeta{},
-	)
 }
 
 func sanitizeGroupName(in string) string {

@@ -3,8 +3,6 @@ package messaging
 import (
 	"encoding/json"
 	"log"
-
-	"github.com/uselagoon/machinery/api/schema"
 )
 
 // testing rabbitmq/amqp is a pain, so we mock out the messenger
@@ -19,22 +17,9 @@ func (m *MessengerMock) Publish(queue string, message []byte) error {
 	return nil
 }
 
-func (m *MessengerMock) SendToLagoonTasks(routingKey string, build []byte) error {
+func (m *MessengerMock) SendToLagoonTasks(routingKey string, data []byte) error {
 	s := map[string]interface{}{}
-	json.Unmarshal(build, &s)
-	log.Println("sent message", routingKey, s["metadata"])
-	return nil
-}
-
-func (m *MessengerMock) SendToLagoonLogs(severity, project, uuid, event, message string, meta schema.LagoonLogMeta) error {
-	msg := schema.LagoonLog{
-		Severity: severity,
-		Project:  project,
-		Event:    event,
-		UUID:     uuid,
-		Message:  message,
-		Meta:     &meta,
-	}
-	log.Println("no-op unable to send message to lagoon-logs", msg)
+	json.Unmarshal(data, &s)
+	log.Println("sent message", routingKey, s)
 	return nil
 }

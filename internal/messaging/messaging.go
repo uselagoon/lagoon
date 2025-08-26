@@ -1,17 +1,14 @@
 package messaging
 
 import (
-	"encoding/json"
 	"log"
 
 	mq "github.com/cheshir/go-mq/v2"
-	"github.com/uselagoon/machinery/api/schema"
 )
 
 type Messaging interface {
 	Publish(queue string, message []byte) error
 	SendToLagoonTasks(routingKey string, build []byte) error
-	SendToLagoonLogs(severity, project, uuid, event, message string, meta schema.LagoonLogMeta) error
 }
 
 type Messenger struct {
@@ -21,7 +18,6 @@ type Messenger struct {
 
 var _ Messaging = (*Messenger)(nil)
 
-// New returns a messaging with config and controller-runtime client.
 func NewMessaging(
 	config mq.Config,
 	enableDebug bool,
@@ -76,27 +72,6 @@ func (m *Messenger) publishWithKey(queue, routingKey string, message []byte) err
 func (m *Messenger) SendToLagoonTasks(routingKey string, build []byte) error {
 	if err := m.publishWithKey("lagoon-tasks", routingKey, build); err != nil {
 		log.Println("unable to send message to lagoon-tasks", err.Error())
-		return err
-	}
-	return nil
-}
-
-func (m *Messenger) SendToLagoonLogs(severity, project, uuid, event, message string, meta schema.LagoonLogMeta) error {
-	msg := schema.LagoonLog{
-		Severity: severity,
-		Project:  project,
-		Event:    event,
-		UUID:     uuid,
-		Message:  message,
-		Meta:     &meta,
-	}
-	msgBytes, err := json.Marshal(msg)
-	if err != nil {
-		log.Println("unable to marshal message", err.Error())
-		return err
-	}
-	if err := m.Publish("lagoon-logs", msgBytes); err != nil {
-		log.Println("no-op unable to send message to lagoon-logs", err.Error())
 		return err
 	}
 	return nil

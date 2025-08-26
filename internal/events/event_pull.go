@@ -29,8 +29,6 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		}
 	}
 	if len(projects) == 0 {
-		// do nothing, no matching projects found
-		e.Messaging.Publish("lagoon-logs", []byte("skipped"))
 		return nil, fmt.Errorf("skipped")
 	}
 

@@ -34,7 +34,8 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 		i, err := strconv.Atoi(buildPriority)
 		if err != nil {
 			// handle err
-			log.Println("buildprio", err)
+			http.Error(w, "", http.StatusInternalServerError)
+			return
 		}
 		priority = uint(i)
 	}
@@ -43,31 +44,36 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	data, err := base64.StdEncoding.DecodeString(buildVariables)
 	if err != nil {
 		// handle err
-		log.Println("buildvardecode", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 	err = json.Unmarshal(data, &buildVars)
 	if err != nil {
 		// handle err
-		log.Println("buildvar unmarshal", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 	pullrequest := r.Form.Get("pullrequest")
 	pr := &lagoon.Pullrequest{}
 	prd, err := base64.StdEncoding.DecodeString(pullrequest)
 	if err != nil {
 		// handle err
-		log.Println("pr decode", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 	err = json.Unmarshal(prd, pr)
 	if err != nil {
 		// handle err
-		log.Println("pr unmarshal", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 
 	e := events.New(s.LagoonAPI, s.Messaging)
 	project, err := e.LagoonAPI.ProjectByName(projectName)
 	if err != nil {
 		// handle err
-		log.Println("apierr", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 
 	deployData := lagoon.DeployData{
@@ -95,7 +101,8 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	resp, err := e.CreateDeployTask(*project, deployData)
 	if err != nil {
 		// handle err
-		log.Println("deployerr", err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
 	}
 	log.Println(string(resp))
 }
