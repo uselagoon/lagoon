@@ -45,12 +45,12 @@ func (sh *SystemHook) gitlabGroupCreate(b []byte) {
 	_ = json.Unmarshal(b, &w)
 	group, _, err := sh.client.Groups.GetGroup(w.GroupID, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("Could not get group, reason:", err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	data, _ := json.Marshal(b)
@@ -61,10 +61,10 @@ func (sh *SystemHook) gitlabGroupCreate(b []byte) {
 	lGroup := schema.Group{}
 	err = lc.AddGroup(context.Background(), agi, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not add group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Added group %v", lGroup.Name)
 }
 
 func (sh *SystemHook) gitlabGroupUpdate(b []byte) {
@@ -72,12 +72,12 @@ func (sh *SystemHook) gitlabGroupUpdate(b []byte) {
 	_ = json.Unmarshal(b, &w)
 	group, _, err := sh.client.Groups.GetGroup(w.GroupID, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("Could not get group, reason:", err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	data, _ := json.Marshal(b)
@@ -94,10 +94,10 @@ func (sh *SystemHook) gitlabGroupUpdate(b []byte) {
 	lGroup := schema.Group{}
 	err = lc.UpdateGroup(context.Background(), ugi, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not update group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Updated group %v", lGroup.Name)
 }
 
 func (sh *SystemHook) gitlabGroupDelete(b []byte) {
@@ -105,19 +105,19 @@ func (sh *SystemHook) gitlabGroupDelete(b []byte) {
 	_ = json.Unmarshal(b, &w)
 	group, _, err := sh.client.Groups.GetGroup(w.GroupID, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("Could not get group, reason:", err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	lGroup := schema.DeleteGroupInput{}
 	err = lc.DeleteGroup(context.Background(), sanitizeGroupName(group.FullPath), &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not delete group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Deleted group %v", group.Name)
 }
