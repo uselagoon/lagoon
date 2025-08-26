@@ -46,10 +46,11 @@ const addNotificationGeneric = async (sqlClientPool, userActivityLogger, notific
   };
   if (input.organization) {
     auditLog.resource = {
-      id: input.organization,
+      id: input.organization.toString(),
       type: AuditType.ORGANIZATION,
     };
     auditLog.linkedResource = notificationResource;
+    auditLog.organizationId = input.organization;
   }
   userActivityLogger(`User added a ${type} notification`, {
     project: '',
@@ -187,15 +188,18 @@ export const addNotificationToProject: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: projectData.id,
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
       details: projectData.name,
     },
     linkedResource: {
-      id: projectNotification.id,
+      id: projectNotification.nid.toString(),
       type: AuditType.NOTIFICATION,
     },
   };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
   userActivityLogger(`User added a notification to project '${pid}'`, {
     project: '',
     event: 'api:addNotificationToProject',

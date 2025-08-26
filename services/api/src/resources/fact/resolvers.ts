@@ -282,20 +282,23 @@ export const addFact: ResolverFn = async (
     Sql.selectFactByDatabaseId(insertId)
   );
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added a fact to environment '${environment.name}'`, {
     project: '',
     event: 'api:addFact',
@@ -325,20 +328,23 @@ export const addFacts: ResolverFn = async (
   // log an event for each unique environment only
   const uniqueEnvs = [...new Set(returnFacts.map(item => item.environment))];
   for (const env of uniqueEnvs) {
-    const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(env);
     const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(env);
+    const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
     const auditLog: AuditLog = {
       resource: {
-        id: project.id,
+        id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
       },
       linkedResource: {
-        id: environment.id,
+        id: environment.id.toString(),
         type: AuditType.ENVIRONMENT,
         details: environment.name,
       },
     };
+    if (project.organization) {
+      auditLog.organizationId = project.organization;
+    }
     userActivityLogger(`User added facts to environment'`, {
       project: '',
       event: 'api:addFacts',
@@ -391,16 +397,19 @@ export const addFactsByName: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added facts to '${project}:${environment}'`, {
     project: project,
     environment: environment,
@@ -429,22 +438,25 @@ export const deleteFact: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted a fact`, {
     project: '',
     event: 'api:deleteFact',
@@ -477,22 +489,25 @@ export const deleteFactsFromSource: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted facts`, {
     project: '',
     event: 'api:deleteFactsFromSource',

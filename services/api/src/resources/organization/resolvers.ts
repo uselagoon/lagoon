@@ -43,7 +43,7 @@ export const addOrganization: ResolverFn = async (
 
       const auditLog: AuditLog = {
         resource: {
-          id: insertId,
+          id: insertId.toString(),
           type: AuditType.ORGANIZATION,
           details: R.prop(0, rows).name,
         },
@@ -102,12 +102,12 @@ export const addDeployTargetToOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, org).id,
+      id: R.prop(0, org).id.toString(),
       type: AuditType.ORGANIZATION,
       details: R.prop(0, org).name,
     },
     linkedResource: {
-      id: input.deployTarget,
+      id: input.deployTarget.toString(),
       type: AuditType.DEPLOYTARGET,
     },
   };
@@ -148,12 +148,12 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, org).id,
+      id: R.prop(0, org).id.toString(),
       type: AuditType.ORGANIZATION,
       details: R.prop(0, org).name,
     },
     linkedResource: {
-      id: input.deployTarget,
+      id: input.deployTarget.toString(),
       type: AuditType.DEPLOYTARGET,
     },
   };
@@ -246,10 +246,11 @@ export const updateOrganization: ResolverFn = async (
 
     const auditLog: AuditLog = {
       resource: {
-        id: R.prop(0, rows).id,
+        id: R.prop(0, rows).id.toString(),
         type: AuditType.ORGANIZATION,
         details: R.prop(0, rows).name,
       },
+      organizationId: rows[0].id.toString(),
     };
     userActivityLogger(`User updated organization ${R.prop(0, rows).name}`, {
       project: '',
@@ -754,12 +755,12 @@ export const removeProjectFromOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, org).id,
+      id: R.prop(0, org).id.toString(),
       type: AuditType.ORGANIZATION,
       details: R.prop(0, org).name,
     },
     linkedResource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -860,7 +861,7 @@ export const addExistingProjectToOrganization: ResolverFn = async (
 
     const auditLog: AuditLog = {
       resource: {
-        id: orgResult.id,
+        id: orgResult.id.toString(),
         type: AuditType.ORGANIZATION,
         details: orgResult.name,
       },
@@ -900,12 +901,12 @@ export const addExistingProjectToOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: orgResult.id,
+      id: orgResult.id.toString(),
       type: AuditType.ORGANIZATION,
       details: orgResult.name,
     },
     linkedResource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -1026,7 +1027,7 @@ export const addExistingGroupToOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name,
     },
@@ -1097,7 +1098,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: organizationData.id,
+      id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
       details: organizationData.name,
     },
@@ -1185,7 +1186,7 @@ export const deleteOrganization: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: orgResult.id,
+      id: orgResult.id.toString(),
       type: AuditType.ORGANIZATION,
       details: orgResult.name,
     },
@@ -1380,7 +1381,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
 
         const auditLog: AuditLog = {
           resource: {
-            id: orgResult.id,
+            id: orgResult.id.toString(),
             type: AuditType.ORGANIZATION,
             details: orgResult.name,
           },
@@ -1414,7 +1415,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: project.id})
             const auditLog: AuditLog = {
               resource: {
-                id: orgResult.id,
+                id: orgResult.id.toString(),
                 type: AuditType.ORGANIZATION,
                 details: orgResult.name,
               },
@@ -1459,12 +1460,12 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
         // log this activity
         const auditLog: AuditLog = {
           resource: {
-            id: orgResult.id,
+            id: orgResult.id.toString(),
             type: AuditType.ORGANIZATION,
             details: orgResult.name,
           },
           linkedResource: {
-            id: project.id,
+            id: project.id.toString(),
             type: AuditType.PROJECT,
             details: project.name,
           },

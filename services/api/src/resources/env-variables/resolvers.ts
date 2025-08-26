@@ -166,6 +166,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
   let envVarName;
   let envVarScope;
   let envVarTypeName = '';
+  let orgId;
 
   if (envVarType == EnvVarType.ORGANIZATION) {
     envVarTypeName = orgName;
@@ -180,10 +181,11 @@ export const deleteEnvVariableByName: ResolverFn = async (
       organization: org.id,
     });
     resource = {
-      id: org.id,
+      id: org.id.toString(),
       type: AuditType.ORGANIZATION,
       details: org.name,
     }
+    orgId = org.id;
     if (orgVariable[0]) {
       envVarScope = orgVariable[0].scope
       envVarId = orgVariable[0].id
@@ -208,9 +210,12 @@ export const deleteEnvVariableByName: ResolverFn = async (
         project: project.id,
       });
       resource = {
-        id: project.id,
+        id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
+      }
+      if (project.organization) {
+        orgId = project.organization
       }
       if (projectVariable[0]) {
         envVarScope = projectVariable[0].scope
@@ -244,9 +249,12 @@ export const deleteEnvVariableByName: ResolverFn = async (
         );
 
         resource = {
-          id: environment.id,
+          id: environment.id.toString(),
           type: AuditType.ENVIRONMENT,
           details: environment.name,
+        }
+        if (project.organization) {
+          orgId = project.organization
         }
         if (environmentVariable[0]) {
           envVarScope = environmentVariable[0].scope
@@ -275,11 +283,14 @@ export const deleteEnvVariableByName: ResolverFn = async (
   const auditLog: AuditLog = {
     resource: resource,
     linkedResource: {
-      id: envVarId,
+      id: envVarId.toString(),
       type: AuditType.VARIABLE,
       details: `scope: ${envVarScope}, name: ${envVarName}`,
     },
   };
+  if (orgId) {
+    auditLog.organizationId = orgId;
+  }
   userActivityLogger(`User deleted environment variable`, {
     project: projectName,
     event: 'api:deleteEnvVariableByName',
@@ -331,6 +342,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   let updateData = {};
   let envVarTypeName = '';
   let envVarName = name.trim();
+  let orgId;
 
   if (envVarType == EnvVarType.ORGANIZATION) {
     envVarTypeName = orgName;
@@ -340,10 +352,11 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       organization: org.id,
     });
     resource = {
-      id: org.id,
+      id: org.id.toString(),
       type: AuditType.ORGANIZATION,
       details: org.name,
     }
+    orgId = org.id;
     updateData = {
       name: envVarName,
       value,
@@ -360,9 +373,12 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
         project: project.id,
       });
       resource = {
-        id: project.id,
+        id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
+      }
+      if (project.organization) {
+        orgId = project.organization
       }
       updateData = {
         name: envVarName,
@@ -385,9 +401,12 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
         },
       );
       resource = {
-        id: environment.id,
+        id: environment.id.toString(),
         type: AuditType.ENVIRONMENT,
         details: environment.name,
+      }
+      if (project.organization) {
+        orgId = project.organization
       }
       updateData = {
         name: envVarName,
@@ -415,11 +434,14 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   const auditLog: AuditLog = {
     resource: resource,
     linkedResource: {
-      id: insertId,
+      id: insertId.toString(),
       type: AuditType.VARIABLE,
       details: `scope: ${scope}, name: ${envVarName}`,
     },
   };
+  if (orgId) {
+    auditLog.organizationId = orgId;
+  }
   userActivityLogger(
     `User added environment variable to ${envVarType} '${envVarTypeName}'`,
     {
@@ -575,16 +597,19 @@ const addEnvVariableToProject = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: insertId,
+      id: insertId.toString(),
       type: AuditType.VARIABLE,
       details: `scope: ${scope}, name: ${name}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added environment variable '${name}' with scope '${scope}' to project '${typeId}'`, {
     project: '',
     event: 'api:addEnvVariableToProject',
@@ -617,6 +642,7 @@ const addEnvVariableToEnvironment = async (
       project: environment.project
     }
   );
+  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment.id);
 
   const { insertId } = await query(
     sqlClientPool,
@@ -633,16 +659,19 @@ const addEnvVariableToEnvironment = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: insertId,
+      id: insertId.toString(),
       type: AuditType.VARIABLE,
       details: `scope: ${scope}, name: ${name}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added environment variable '${name}' with scope '${scope}' to environment '${environment.name}' on '${environment.project}'`, {
     project: '',
     event: 'api:addEnvVariableToEnvironment',
@@ -672,32 +701,42 @@ export const deleteEnvVariable: ResolverFn = async (
   });
 
   let resource: AuditResource;
+  let orgId;
   const rows = await query(sqlClientPool, Sql.selectEnvVarById(id));
   const envVar = R.prop(0, rows);
   if (envVar.organization) {
     const org =
       await orgHelpers(sqlClientPool).getOrganizationById(envVar.organization);
     resource = {
-      id: org.id,
+      id: org.id.toString(),
       type: AuditType.ORGANIZATION,
       details: org.name,
     };
+    orgId = org.id;
   } else if (envVar.project) {
     const project =
       await projectHelpers(sqlClientPool).getProjectById(envVar.project);
     resource = {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     };
+    if (project.organization) {
+      orgId = project.organization
+    }
   } else if (envVar.environment) {
     const environment =
       await environmentHelpers(sqlClientPool).getEnvironmentById(envVar.environment);
+    const project =
+      await projectHelpers(sqlClientPool).getProjectById(environment.id);
     resource = {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     };
+    if (project.organization) {
+      orgId = project.organization
+    }
   }
 
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
@@ -705,11 +744,14 @@ export const deleteEnvVariable: ResolverFn = async (
   const auditLog: AuditLog = {
     resource: resource,
     linkedResource: {
-      id: envVar.id,
+      id: envVar.id.toString(),
       type: AuditType.VARIABLE,
       details: `scope: ${envVar.scope}, name: ${envVar.name}`,
     },
   };
+  if (orgId) {
+    auditLog.organizationId = orgId;
+  }
   userActivityLogger(`User deleted environment variable`, {
     project: '',
     event: 'api:deleteEnvVariable',
