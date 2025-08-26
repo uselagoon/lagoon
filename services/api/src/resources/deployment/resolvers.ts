@@ -779,11 +779,10 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.deployBaseRef,
         sourceUser: sourceUser,
         projectName: project.name,
-        bulkId: "",
-        bulkName: "",
-        buildPriority: priority,
-        buildVariables: "",
       };
+      if (priority) {
+        deployData.buildPriority = priority
+      }
       if (buildVariables) {
         deployData.buildVariables = encodeJSONBase64(buildVariables)
       }
@@ -802,10 +801,9 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.name,
         sourceUser: sourceUser,
         projectName: project.name,
-        bulkId: "",
-        bulkName: "",
-        buildPriority: priority,
-        buildVariables: "",
+      }
+      if (priority) {
+        deployData.buildPriority = priority
       }
       let pullrequest: DeployPullrequest = {
         title: environment.deployTitle,
@@ -834,11 +832,10 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.name,
         sourceUser: sourceUser,
         projectName: project.name,
-        bulkId: "",
-        bulkName: "",
-        buildPriority: priority,
-        buildVariables: "",
         promoteSourceEnvironment: environment.deployBaseRef
+      }
+      if (priority) {
+        deployData.buildPriority = priority
       }
       if (buildVariables) {
         deployData.buildVariables = encodeJSONBase64(buildVariables)
@@ -963,12 +960,16 @@ export const deployEnvironmentBranch: ResolverFn = async (
   const deployData: DeployData = {
     type: DeployType.BRANCH,
     buildName: buildName,
-    gitSha: branchRef,
     branchName: branchName,
     sourceUser: sourceUser,
     projectName: project.name,
-    buildPriority: priority,
   };
+  if (priority) {
+    deployData.buildPriority = priority
+  }
+  if (branchRef) {
+    deployData.gitSha = branchRef
+  }
   if (buildVariables) {
     deployData.buildVariables = encodeJSONBase64(buildVariables)
   }
@@ -1101,7 +1102,9 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     branchName: branchName,
     sourceUser: sourceUser,
     projectName: project.name,
-    buildPriority: priority,
+  }
+  if (priority) {
+    deployData.buildPriority = priority
   }
   const pullrequest: DeployPullrequest = {
     title: title,
@@ -1258,8 +1261,10 @@ export const deployEnvironmentPromote: ResolverFn = async (
     branchName: destinationEnvironment,
     sourceUser: sourceUser,
     projectName: destProject.name,
-    buildPriority: priority,
     promoteSourceEnvironment: sourceEnvironment.name
+  }
+  if (priority) {
+    deployData.buildPriority = priority
   }
   if (buildVariables) {
     deployData.buildVariables = encodeJSONBase64(buildVariables)

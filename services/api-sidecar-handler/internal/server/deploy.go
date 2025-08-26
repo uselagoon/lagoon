@@ -30,7 +30,7 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	bulkName := r.Form.Get("bulkName")
 	buildPriority := r.Form.Get("buildPriority")
 	var priority uint
-	if buildPriority != "" && buildPriority != "undefined" {
+	if buildPriority != "" {
 		i, err := strconv.Atoi(buildPriority)
 		if err != nil {
 			// handle err
