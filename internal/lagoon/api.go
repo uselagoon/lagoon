@@ -126,8 +126,10 @@ func (l *LagoonAPI) AllProjectByGitURL(gitURL string) (*[]schema.Project, error)
 			autoIdle
 			storageCalc
 			gitUrl
+			subfolder
 			branches
 			pullrequests
+			buildImage
 			envVariables {
 				name
 				value
@@ -240,8 +242,10 @@ func (l *LagoonAPI) ProjectByName(name string) (*schema.Project, error) {
 			autoIdle
 			storageCalc
 			gitUrl
+			subfolder
 			branches
 			pullrequests
+			buildImage
 			envVariables {
 				name
 				value
