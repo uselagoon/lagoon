@@ -30,7 +30,6 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		}
 	}
 	if len(projects) == 0 {
-		// e.Messaging.Publish("lagoon-logs", []byte("skipped"))
 		return nil, fmt.Errorf("skipped no project matched")
 	}
 
@@ -56,7 +55,6 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	}
 	skip := skipDeploy(scmWebhook.Commit.Message)
 	if skip {
-		// e.Messaging.Publish("lagoon-logs", []byte("skipped"))
 		return nil, fmt.Errorf("skipped by skip commit message")
 	}
 

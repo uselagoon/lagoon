@@ -15,7 +15,6 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 		for _, env := range project.Environments {
 			if env.Name != deployData.UnsafeEnvironmentName {
 				if len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment && project.OrganizationDetails.QuotaEnvironment != -1 {
-					e.Messaging.Publish("lagoon-logs", []byte("exceed environment quota"))
 					return nil, fmt.Errorf("exceed environment quota")
 				}
 			}
@@ -41,7 +40,6 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 				}
 			}
 			if !exists {
-				e.Messaging.Publish("lagoon-logs", []byte("exceed production limit"))
 				return nil, fmt.Errorf("exceed production limit")
 			}
 		}
@@ -60,7 +58,6 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 				}
 			}
 			if !exists {
-				e.Messaging.Publish("lagoon-logs", []byte("exceed development limit"))
 				return nil, fmt.Errorf("exceed development limit")
 			}
 		}

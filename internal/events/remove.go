@@ -30,7 +30,6 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 			}
 		}
 		if exists {
-			e.Messaging.Publish("lagoon-logs", []byte(fmt.Sprintf("%s is defined as the production environment for %s, refusing to remove", environmentName, project.Name)))
 			return nil, fmt.Errorf("%s is defined as the production environment for %s, refusing to remove", environmentName, project.Name)
 		}
 	}
@@ -40,7 +39,6 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 		}
 	}
 	if matchEnv.Name == "" {
-		e.Messaging.Publish("lagoon-logs", []byte("skipped"))
 		return nil, fmt.Errorf("skipped")
 	}
 	removeData := lagoon.RemoveData{

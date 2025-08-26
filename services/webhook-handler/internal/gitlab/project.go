@@ -70,12 +70,12 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	_ = json.Unmarshal(b, &w)
 	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("Could not get project, reason:", err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	data, _ := json.Marshal(b)
@@ -89,10 +89,10 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	project := schema.Project{}
 	err = lc.AddProject(context.Background(), agi, &project)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not add project, reason:", err)
 		return
 	}
-	log.Println(project)
+	log.Printf("Created project %v", project.Name)
 }
 
 func (sh *SystemHook) gitlabProjectUpdate(b []byte) {

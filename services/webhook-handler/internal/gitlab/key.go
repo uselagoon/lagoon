@@ -27,21 +27,18 @@ func (sh *SystemHook) gitlabSshKeyAdd(b []byte) {
 	log.Println(w)
 	glKey, _, err := sh.client.Users.GetSSHKey(w.ID, nil)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
-		sh.handleError("Could not create key, reason:", err)
+		log.Println("Could not get users key, reason:", err)
 		return
 	}
 	glUsers, _, err := sh.client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &w.Username}, nil)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
-		sh.handleError("Could not create key, reason:", err)
+		log.Println("Could not list users in gitlab, reason:", err)
 		return
 	}
 	if len(glUsers) == 1 {
 		lc, err := lagoon.GetClient(sh.LagoonAPI)
 		if err != nil {
-			log.Printf("ERROR3: %v", err)
-			sh.handleError("Could not create key, reason:", err)
+			log.Println("Could not create client, reason:", err)
 			return
 		}
 		sshKey := &schema.AddUserSSHPublicKeyInput{
@@ -52,12 +49,10 @@ func (sh *SystemHook) gitlabSshKeyAdd(b []byte) {
 		lSSHKey := schema.SSHKey{}
 		err = lc.AddUserSSHPublicKey(context.Background(), sshKey, &lSSHKey)
 		if err != nil {
-			log.Printf("ERROR4: %v", err)
-			sh.handleError("Could not create key, reason:", err)
+			log.Println("Could not create key, reason:", err)
 			return
 		}
-		log.Println(lSSHKey)
-		sh.Messaging.SendToLagoonLogs("info", "", "", "gitlab:key_create:handled", fmt.Sprintf("Added key to user %v", glUsers[0].Email), schema.LagoonLogMeta{})
+		log.Printf("Added key to user %v", glUsers[0].Email)
 	}
 }
 
@@ -67,32 +62,28 @@ func (sh *SystemHook) gitlabSshKeyRemove(b []byte) {
 	log.Println(w)
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
-		sh.handleError("Could not delete key, reason:", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	lUser := schema.User{}
 	err = lc.UserBySSHKey(context.Background(), w.Key, &lUser)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
-		sh.handleError("Could not delete key, reason:", err)
+		log.Println("Could not get user by key, reason:", err)
 		return
 	}
 	err = lc.GetUserSSHKeysByEmail(context.Background(), lUser.Email, &lUser)
 	if err != nil {
-		log.Printf("ERROR3: %v", err)
-		sh.handleError("Could not delete key, reason:", err)
+		log.Println("Could not get users keys, reason:", err)
 		return
 	}
 	for _, key := range lUser.SSHKeys {
 		if fmt.Sprintf("%s %s", key.KeyType, key.KeyValue) == w.Key {
 			err = lc.DeleteUserSSHPublicKey(context.Background(), key.ID, nil)
 			if err != nil {
-				log.Printf("ERROR4: %v", err)
-				sh.handleError("Could not delete key, reason:", err)
+				log.Println("Could not delete key, reason:", err)
 				return
 			}
-			sh.Messaging.SendToLagoonLogs("info", "", "", "gitlab:key_destroy:handled", fmt.Sprintf("Deleted key %v", key.ID), schema.LagoonLogMeta{})
+			log.Printf("Deleted key %v", key.ID)
 		}
 	}
 }

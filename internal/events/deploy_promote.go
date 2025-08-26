@@ -22,7 +22,6 @@ func (e *Events) deployPromote(project schema.Project, deployData lagoon.DeployD
 	}
 
 	if !foundEnvironment {
-		e.Messaging.Publish("lagoon-logs", []byte("no existing environment to promote from that contains a valid deploytarget"))
 		return nil, fmt.Errorf("no existing environment to promote from that contains a valid deploytarget")
 	}
 
