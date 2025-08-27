@@ -13,5 +13,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-  return Promise.reject(new Error('Unable to rollback data deletion'));
+  return knex.schema;
 };
