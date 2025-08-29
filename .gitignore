@@ -17,6 +17,7 @@ local-dev/jwt
 local-dev/stern
 local-dev/go
 local-dev/certificates
+local-dev/user-keys
 **/v8-*
 node_modules/
 build/*

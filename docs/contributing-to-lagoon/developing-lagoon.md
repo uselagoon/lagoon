@@ -350,6 +350,10 @@ It is also possible to get the command snippet to add the configuration for the 
 make k3d/get-lagoon-cli-details
 ```
 
+If the local-stack was installed with seed-data (default if `make k3d/local-stack` is used), then SSH keys for seed users will be generated in `local-dev/user-keys`. Otherwise you'll need to add ` SEED_DATA_INSTALLED=false` when running this command
+
+When retrieving the cli details output, you can change the `--ssh-key` flag to the key of a different user if you're wanting to test CLI access as a different user. You may need to `lagoon -l local-k3d login` after changing the key to refresh token.
+
 #### Rebuild Lagoon core and push images
 
 This will checkout `CHARTS_REPOSITORY` and `CHARTS_TREEISH` again, then build and re-push the images listed in `KIND_SERVICES` with the correct tag, and redeploy the lagoon charts. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`.

@@ -984,6 +984,7 @@ endif
 	echo ""
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
+SEED_DATA_INSTALLED=true
 .PHONY: k3d/get-lagoon-cli-details
 k3d/get-lagoon-cli-details:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))"; \
@@ -995,8 +996,8 @@ k3d/get-lagoon-cli-details:
 	SSH_TOKEN_PORT=$$($(KUBECTL) -n lagoon-core get services lagoon-core-ssh-token -o jsonpath='{.spec.ports[0].port}'); \
 	TOKEN=$$($(JWT) encode --alg HS256 --no-iat --payload role=admin --iss "$$JWTUSER" --aud "$$JWTAUDIENCE" --sub "$$JWTUSER" --secret "$$JWTSECRET"); \
 	echo "=========CLI DETAILS==========="; \
-	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$LAGOON_API_IP.nip.io/graphql \\"; \
-	echo "--token $$TOKEN \\"; \
+	echo "lagoon config add --lagoon local-k3d --graphql http://lagoon-api.$$LAGOON_API_IP.nip.io/graphql \\" && \
+	[ $(SEED_DATA_INSTALLED) = "true" ] && echo "--ssh-key $(realpath ./local-dev/user-keys/platformowner) \\" || echo "--token $$TOKEN \\" && \
 	echo "--hostname lagoon-token.$$SSH_TOKEN_IP.nip.io \\"; \
 	echo "--port $$SSH_TOKEN_PORT"; \
 	echo ""; \
@@ -1007,7 +1008,7 @@ k3d/get-lagoon-cli-details:
 # k3d/seed-data is a way to seed a lagoon-core deployed via k3d/setup.
 # it is also called as part of k3d/local-stack though so should not need to be called directly.
 .PHONY: k3d/seed-data
-k3d/seed-data:
+k3d/seed-data: k3d/generate-user-keys
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	export LAGOON_LEGACY_ADMIN=$$(docker run \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
@@ -1026,8 +1027,9 @@ k3d/seed-data:
 	else \
 		envsubst < ./local-dev/k3d-seed-data/00-populate-kubernetes.gql | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}'; \
 	fi) && \
+	export LAGOON_API_HOST="$$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" && \
 	export SEED_DATA_JSON="{\"query\": \"$$SEED_DATA\"}" && \
-	curl -ks -XPOST -H 'Content-Type: application/json' -H "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "$$([ $(LAGOON_CORE_USE_HTTPS) = true ] && echo "https" || echo "http")://lagoon-api.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/graphql" -d "$$SEED_DATA_JSON" && \
+	curl -ks -XPOST -H 'Content-Type: application/json' -H "Authorization: bearer $${LAGOON_LEGACY_ADMIN}" "$${LAGOON_API_HOST}" -d "$$SEED_DATA_JSON" && \
 	echo "Loading API seed users" && \
 	if [ $(INSTALL_STABLE_CORE) = true ]; then \
 		cat <(curl -s https://raw.githubusercontent.com/uselagoon/lagoon/refs/tags/$(STABLE_CORE_CHART_APP_VERSION)/local-dev/k3d-seed-data/seed-users.sh) \
@@ -1039,6 +1041,7 @@ k3d/seed-data:
 			-l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/seed-users.sh"; \
 	fi \
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/seed-users.sh' \
+	&& ./local-dev/k3d-seed-data/seed-user-keys.sh \
 	&& echo "You will be able to log in with these seed user email addresses and the passwords will be the same as the email address" \
 	&& echo "eg. maintainer@example.com has the password maintainer@example.com" \
 	&& echo "" \
@@ -1181,3 +1184,15 @@ docs/serve:
 		-v ${PWD}:/docs \
 		--entrypoint sh $(MKDOCS_IMAGE) \
 		-c 'mkdocs serve -s --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
+
+# k3d/generate-user-keys will generate seed user ssh keys that can be used for local testing
+SEED_USERS = guest reporter developer maintainer owner orgviewer orgadmin orgowner platformorgowner platformviewer platformowner
+.PHONY: k3d/generate-user-keys
+k3d/generate-user-keys:
+	@mkdir -p ./local-dev/user-keys
+	@for user in $(SEED_USERS); do \
+		if ! stat ./local-dev/user-keys/$$user &>/dev/null; then \
+			echo "generating key for $$user@example.com" && \
+			ssh-keygen -q -t ed25519 -N '' -f ./local-dev/user-keys/$$user; \
+		fi; \
+	done
