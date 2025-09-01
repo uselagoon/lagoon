@@ -10,14 +10,12 @@ import (
 	"strings"
 
 	"github.com/drone/go-scm/scm"
-	"github.com/drone/go-scm/scm/driver/azure"
 	"github.com/drone/go-scm/scm/driver/bitbucket"
 	"github.com/drone/go-scm/scm/driver/gitea"
 	"github.com/drone/go-scm/scm/driver/github"
 	"github.com/drone/go-scm/scm/driver/gitlab"
 	"github.com/drone/go-scm/scm/driver/gogs"
 	"github.com/drone/go-scm/scm/driver/stash"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/uselagoon/lagoon/internal/events"
 	"github.com/uselagoon/lagoon/internal/lagoon"
@@ -76,14 +74,14 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		reqUUID = r.Header.Get("X-Gitea-Delivery")
 	}
 	// azure might not be usable https://github.com/uselagoon/lagoon/issues/3470#issuecomment-1607066097
-	if r.Header.Get("X-Lagoon-Azure-Devops") != "" {
-		// pass an empty url we only need the webhook parse capability
-		client, _ = azure.New("", "none", "")
-		isGit = true
-		gitType = "azure"
-		event = r.Header.Get("X-Lagoon-Azure-Devops")
-		reqUUID = uuid.New().String()
-	}
+	// if r.Header.Get("X-Lagoon-Azure-Devops") != "" {
+	// 	// pass an empty url we only need the webhook parse capability
+	// 	client, _ = azure.New("", "none", "")
+	// 	isGit = true
+	// 	gitType = "azure"
+	// 	event = r.Header.Get("X-Lagoon-Azure-Devops")
+	// 	reqUUID = uuid.New().String()
+	// }
 	// check if stash or bitbucket
 	if r.Header.Get("X-Event-Key") != "" {
 		if slices.Contains(
@@ -199,7 +197,6 @@ func (s *Server) handleWebhookGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	fmt.Println(p)
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
