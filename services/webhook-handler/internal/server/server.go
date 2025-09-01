@@ -183,7 +183,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
 				return
 			}
-			respondWithJSON(w, 200, map[string]interface{}{"response": response})
+			respondWithJSON(w, http.StatusOK, map[string]interface{}{"response": response})
 			return
 		}
 	}
