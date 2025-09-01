@@ -35,60 +35,56 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 		// so you'd have to do some sort of comparison like this against known queries
 		case "query":
 			request := i.(string)
+			a := []byte(`{"data":{}}`)
 			if strings.Contains(request, "allProjects") {
-				d := false
-				if _, ok := variables["gitUrl"]; ok {
-					d = true
-				}
-				a := []byte(`{"data":{"allProjects":[]}}`)
+				a = []byte(`{"data":{"allProjects":[]}}`)
 				switch {
-				case d && variables["gitUrl"].(string) == "git@github.com:amazeeio/lagoon-nginx-example.git":
+				case variables["gitUrl"].(string) == "git@github.com:amazeeio/lagoon-nginx-example.git":
 					a, _ = f.ReadFile("testdata/allProjects.1.json")
-				case d && variables["gitUrl"].(string) == "git@62cfac0b10da:root/example-project.git":
+				case variables["gitUrl"].(string) == "git@62cfac0b10da:root/example-project.git":
 					a, _ = f.ReadFile("testdata/allProjects.2.json")
-				case d && variables["gitUrl"].(string) == "git@localhost:example/testrepo.git":
+				case variables["gitUrl"].(string) == "git@localhost:example/testrepo.git":
 					a, _ = f.ReadFile("testdata/allProjects.3.json")
-				case d && variables["gitUrl"].(string) == "ssh://git@localhost:7999/tes/testrepo.git":
+				case variables["gitUrl"].(string) == "ssh://git@localhost:7999/tes/testrepo.git":
 					a, _ = f.ReadFile("testdata/allProjects.4.json")
-				case d && variables["gitUrl"].(string) == "ssh://git@localhost:10022/exampleuser/testrepository.git":
+				case variables["gitUrl"].(string) == "ssh://git@localhost:10022/exampleuser/testrepository.git":
 					a, _ = f.ReadFile("testdata/allProjects.5.json")
-				case d && variables["gitUrl"].(string) == "git@bitbucket.org:aio-test/test.git":
+				case variables["gitUrl"].(string) == "git@bitbucket.org:aio-test/test.git":
 					a, _ = f.ReadFile("testdata/allProjects.6.json")
 				}
-				fmt.Fprintf(w, "%s", a)
 			}
 			if strings.Contains(request, "addOrUpdateEnvironment") {
-				d := false
-				if _, ok := variables["name"]; ok {
-					d = true
-				}
-				a := []byte(`{"data":{}}`)
 				switch {
-				case d && variables["name"].(string) == "test-branch":
+				case variables["name"].(string) == "test-branch":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.1.json")
-				case d && variables["name"].(string) == "dev":
+				case variables["name"].(string) == "dev":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.2.json")
-				case d && variables["name"].(string) == "pr-2":
+				case variables["name"].(string) == "pr-2":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.3.json")
+				case variables["name"].(string) == "promotedev":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.4.json")
 				}
-				fmt.Fprintf(w, "%s", a)
 			}
 			if strings.Contains(request, "addDeployment") {
-				d := false
-				if _, ok := variables["environment"]; ok {
-					d = true
-				}
-				a := []byte(`{"data":{}}`)
 				switch {
-				case d && variables["environment"].(float64) == 10:
+				case variables["environment"].(float64) == 10:
 					a, _ = f.ReadFile("testdata/addDeployment.1.json")
-				case d && variables["environment"].(float64) == 5:
+				case variables["environment"].(float64) == 5:
 					a, _ = f.ReadFile("testdata/addDeployment.2.json")
-				case d && variables["environment"].(float64) == 11:
+				case variables["environment"].(float64) == 11:
 					a, _ = f.ReadFile("testdata/addDeployment.3.json")
+				case variables["environment"].(float64) == 13:
+					a, _ = f.ReadFile("testdata/addDeployment.4.json")
 				}
-				fmt.Fprintf(w, "%s", a)
 			}
+			if strings.Contains(request, "projectByName") {
+
+				switch {
+				case variables["name"].(string) == "demo-project1":
+					a, _ = f.ReadFile("testdata/projectByName.1.json")
+				}
+			}
+			fmt.Fprintf(w, "%s", a)
 		}
 	}
 	fmt.Fprintf(w, "")
