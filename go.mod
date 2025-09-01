@@ -8,7 +8,6 @@ require (
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/uselagoon/machinery v0.0.35-0.20250805062131-40263f30ccc9
 	github.com/uselagoon/remote-controller v0.25.0
@@ -36,6 +35,7 @@ require (
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/guregu/null v4.0.0+incompatible // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
@@ -85,4 +85,4 @@ require (
 )
 
 // has changes for bitbucket to set the missing values
-replace github.com/drone/go-scm v1.40.6 => github.com/amazeeio/go-scm v0.0.0-20250822004951-594ffe05f7b7
+replace github.com/drone/go-scm v1.40.6 => github.com/amazeeio/go-scm v0.0.0-20250901004919-2d6cb6d90967
