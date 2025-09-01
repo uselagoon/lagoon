@@ -891,7 +891,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   });
 
   try {
-    await fetch(
+    const response = await fetch(
       `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
       {
         method: 'POST',
@@ -902,6 +902,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
         body: new URLSearchParams(deployData).toString(),
       },
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${environment.name}: ${errorText}`)
+      throw new Error(`Error deploying ${environment.name}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -1026,7 +1031,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   });
 
   try {
-    await fetch(
+    const response = await fetch(
       `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
       {
         method: 'POST',
@@ -1037,6 +1042,11 @@ export const deployEnvironmentBranch: ResolverFn = async (
         body: new URLSearchParams(deployData).toString(),
       },
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -1173,7 +1183,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   });
 
   try {
-    await fetch(
+    const response = await fetch(
       `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
       {
         method: 'POST',
@@ -1184,6 +1194,11 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
         body: new URLSearchParams(deployData).toString(),
       },
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -1330,7 +1345,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
   });
 
   try {
-    await fetch(
+    const response = await fetch(
       `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
       {
         method: 'POST',
@@ -1341,6 +1356,11 @@ export const deployEnvironmentPromote: ResolverFn = async (
         body: new URLSearchParams(deployData).toString(),
       },
     );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',
