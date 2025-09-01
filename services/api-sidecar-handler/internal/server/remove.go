@@ -34,11 +34,11 @@ func (s *Server) removeEnvironment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	resp, err := e.CreateRemoveTask(*project, environmentName)
+	err = e.CreateRemoveTask(*project, environmentName)
 	if err != nil {
 		// handle err
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	log.Println(string(resp))
+	log.Printf("removed environment %s from project %s", environmentName, project.Name)
 }
