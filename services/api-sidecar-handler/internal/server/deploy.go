@@ -40,27 +40,31 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	}
 	buildVariables := r.Form.Get("buildVariables")
 	buildVars := []schema.EnvKeyValue{}
-	data, err := base64.StdEncoding.DecodeString(buildVariables)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode buildvariables: %v", err))
-		return
-	}
-	err = json.Unmarshal(data, &buildVars)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal buildvariables: %v", err))
-		return
+	if buildVariables != "" {
+		data, err := base64.StdEncoding.DecodeString(buildVariables)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode buildvariables: %v", err))
+			return
+		}
+		err = json.Unmarshal(data, &buildVars)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal buildvariables: %v", err))
+			return
+		}
 	}
 	pullrequest := r.Form.Get("pullrequest")
 	pr := &lagoon.Pullrequest{}
-	prd, err := base64.StdEncoding.DecodeString(pullrequest)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode pullrequest payload: %v", err))
-		return
-	}
-	err = json.Unmarshal(prd, pr)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal pullrequest data: %v", err))
-		return
+	if pullrequest != "" {
+		prd, err := base64.StdEncoding.DecodeString(pullrequest)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode pullrequest payload: %v", err))
+			return
+		}
+		err = json.Unmarshal(prd, pr)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal pullrequest data: %v", err))
+			return
+		}
 	}
 
 	e := events.New(s.LagoonAPI, s.Messaging)
