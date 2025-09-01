@@ -32,9 +32,9 @@ func (e *Events) deployPromote(project schema.Project, deployData lagoon.DeployD
 			e.Messaging.Publish("lagoon-logs", []byte(err.Error()))
 			return nil, err
 		}
-		log.Println("deploy environment to same target as source", deployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+		log.Printf("promote environment %s for project %s to environment %s on deploytarget %s", deployData.PromoteSourceEnvironment, buildData.Spec.Project.Name, buildData.Spec.Project.Environment, deployTarget.Name)
 		e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 		return []byte(buildData.Name), nil
 	}
-	return nil, fmt.Errorf("nothing to do")
+	return nil, fmt.Errorf("")
 }

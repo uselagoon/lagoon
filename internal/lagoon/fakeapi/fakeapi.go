@@ -44,6 +44,16 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 				switch {
 				case d && variables["gitUrl"].(string) == "git@github.com:amazeeio/lagoon-nginx-example.git":
 					a, _ = f.ReadFile("testdata/allProjects.1.json")
+				case d && variables["gitUrl"].(string) == "git@62cfac0b10da:root/example-project.git":
+					a, _ = f.ReadFile("testdata/allProjects.2.json")
+				case d && variables["gitUrl"].(string) == "git@localhost:example/testrepo.git":
+					a, _ = f.ReadFile("testdata/allProjects.3.json")
+				case d && variables["gitUrl"].(string) == "ssh://git@localhost:7999/tes/testrepo.git":
+					a, _ = f.ReadFile("testdata/allProjects.4.json")
+				case d && variables["gitUrl"].(string) == "ssh://git@localhost:10022/exampleuser/testrepository.git":
+					a, _ = f.ReadFile("testdata/allProjects.5.json")
+				case d && variables["gitUrl"].(string) == "git@bitbucket.org:aio-test/test.git":
+					a, _ = f.ReadFile("testdata/allProjects.6.json")
 				}
 				fmt.Fprintf(w, "%s", a)
 			}

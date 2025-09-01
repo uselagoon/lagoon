@@ -10,7 +10,7 @@ import (
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName string) ([]byte, error) {
+func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName string) error {
 	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unsafeEnvironmentName))
 	var matchEnv schema.Environment
 	if project.ProductionEnvironment == unsafeEnvironmentName ||
@@ -30,7 +30,7 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 			}
 		}
 		if exists {
-			return nil, fmt.Errorf("%s is defined as the production environment for %s, refusing to remove", environmentName, project.Name)
+			return fmt.Errorf("%s is defined as the production environment for %s, refusing to remove", environmentName, project.Name)
 		}
 	}
 	for _, env := range project.Environments {
@@ -39,7 +39,7 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 		}
 	}
 	if matchEnv.Name == "" {
-		return nil, fmt.Errorf("skipped")
+		return fmt.Errorf("no matching environment found")
 	}
 	removeData := lagoon.RemoveData{
 		ProjectName: project.Name,
@@ -48,7 +48,9 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 		// @TODO: send this now so that phased upgrade of remote-controller can be done while `branch` is still sent
 		EnvironmentName: matchEnv.Name,
 	}
-	log.Println("remove environment from project", matchEnv.Name, project.Name, matchEnv.DeployTarget.Name)
-	e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:remove", matchEnv.DeployTarget.Name), lagoon.RemoveToBytes(&removeData))
-	return nil, nil
+	if err := e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:remove", matchEnv.DeployTarget.Name), lagoon.RemoveToBytes(&removeData)); err != nil {
+		return err
+	}
+	log.Printf("removed environment %s from project %s", environmentName, project.Name)
+	return nil
 }

@@ -10,21 +10,6 @@ import (
 )
 
 func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.BranchHook) ([]Response, error) {
-	// branchName := strings.ReplaceAll(scmWebhook.Ref.Name, "refs/heads/", "")
-	// log.Println(
-	// 	"branch", ":",
-	// 	gitType, ":",
-	// 	event, ":",
-	// 	uuid, ":",
-	// 	scmWebhook.Action, ":",
-	// 	scmWebhook.Repo.Clone, ":",
-	// 	scmWebhook.Repo.CloneSSH, ":",
-	// 	branchName, ":",
-	// 	scmWebhook.Repo.Namespace, ":",
-	// 	scmWebhook.Repo.Name, ":",
-	// 	scmWebhook.Sender.Login,
-	// )
-
 	// github deletions are via "push" events AND if configured "branch deletion" events
 	// for backwards compatability we have to do this hack since drone-scm doesn't acknowledge that deletions via push events
 	// are legitimate
@@ -33,7 +18,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 	// this wouldn't be bad necessarily, just one of the deletions would possibly "fail"
 	// instead we can just ignore the github "branch delete" and "branch" create webhooks
 	if gitType == "github" {
-		return nil, fmt.Errorf("skipped %v unsupported", scmWebhook)
+		return nil, fmt.Errorf("unsupported event")
 	}
 
 	var projects []schema.Project
@@ -43,7 +28,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 	if scmWebhook.Repo.CloneSSH != "" {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.CloneSSH)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
 		if len(projects) > 0 {
 			matched = true
@@ -52,8 +37,11 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 	if scmWebhook.Repo.Clone != "" && !matched {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.Clone)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
+	}
+	if len(projects) == 0 {
+		return nil, fmt.Errorf("no matching project found")
 	}
 
 	branchName := strings.ReplaceAll(scmWebhook.Ref.Name, "refs/heads/", "")
@@ -72,7 +60,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if scmWebhook.Action == scm.ActionDelete || scmWebhook.Action == scm.ActionClose {
-			resp, err = e.CreateRemoveTask(project, branchName)
+			err = e.CreateRemoveTask(project, branchName)
 		} else {
 			deployData := lagoon.DeployData{
 				BuildName:             buildName,
@@ -98,7 +86,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		resps = append(resps, response)
 	}
 	if errs > 0 {
-		return resps, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("")
 	}
 	return resps, nil
 }
