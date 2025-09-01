@@ -17,7 +17,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	if scmWebhook.Repo.CloneSSH != "" {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.CloneSSH)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
 		if len(projects) > 0 {
 			matched = true
@@ -26,11 +26,11 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	if scmWebhook.Repo.Clone != "" && !matched {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.Clone)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
 	}
 	if len(projects) == 0 {
-		return nil, fmt.Errorf("skipped no project matched")
+		return nil, fmt.Errorf("no matching project found")
 	}
 
 	// github deletions are via "push" events AND if configured "branch deletion" events
@@ -68,7 +68,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if deletion {
-			resp, err = e.CreateRemoveTask(project, branchName)
+			err = e.CreateRemoveTask(project, branchName)
 		} else {
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
@@ -95,7 +95,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		resps = append(resps, response)
 	}
 	if errs > 0 {
-		return resps, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("")
 	}
 	return resps, nil
 }

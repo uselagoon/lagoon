@@ -71,5 +71,5 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 	case schema.Promote:
 		return e.deployPromote(project, deployData)
 	}
-	return nil, fmt.Errorf("nothing to do")
+	return nil, fmt.Errorf("")
 }

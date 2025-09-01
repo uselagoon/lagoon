@@ -16,7 +16,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 	if scmWebhook.Repo.CloneSSH != "" {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.CloneSSH)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
 		if len(projects) > 0 {
 			matched = true
@@ -25,11 +25,11 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 	if scmWebhook.Repo.Clone != "" && !matched {
 		projects, bulkID, bulkName, err = e.findProjectsByGitURL(gitType, event, uuid, scmWebhook.Repo.Clone)
 		if err != nil {
-			return nil, fmt.Errorf("skipped %v", err)
+			return nil, err
 		}
 	}
 	if len(projects) == 0 {
-		return nil, fmt.Errorf("skipped")
+		return nil, fmt.Errorf("no matching project found")
 	}
 
 	sourceUser := "webhook"
@@ -47,7 +47,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
-			resp, err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number))
+			err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number))
 		} else {
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
@@ -92,7 +92,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		resps = append(resps, response)
 	}
 	if errs > 0 {
-		return resps, fmt.Errorf("nothing to do")
+		return resps, fmt.Errorf("")
 	}
 	return resps, nil
 }

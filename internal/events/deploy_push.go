@@ -36,7 +36,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 		if err != nil {
 			return nil, err
 		}
-		log.Println("deploy existing environment to specified target", deployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+		log.Printf("deploy existing environment %s for project %s to deploytarget %s", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, deployTarget.Name)
 		e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 		return []byte(buildData.Name), nil
 	}
@@ -51,7 +51,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 					e.Messaging.Publish("lagoon-logs", []byte(err.Error()))
 					return nil, err
 				}
-				log.Println("deploy environment to project target all branches allowed", dtc.DeployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+				log.Printf("deploy environment %s for project %s to deploytargetconfig %s all branches allowed", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, dtc.DeployTarget.Name)
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return []byte(buildData.Name), nil
 			case "false":
@@ -64,7 +64,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 					if err != nil {
 						return nil, err
 					}
-					log.Println("deploy environment to project target matching regex pattern", dtc.DeployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+					log.Printf("deploy environment %s for project %s to deploytargetconfig %s matching regex pattern", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, dtc.DeployTarget.Name)
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 					return []byte(buildData.Name), nil
 				} else {
@@ -80,7 +80,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 			if err != nil {
 				return nil, err
 			}
-			log.Println("deploy environment to deploytarget config defined target all branches allowed", project.DeployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+			log.Printf("deploy environment %s for project %s to deploytarget %s all branches allowed", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, project.DeployTarget.Name)
 			e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 			return []byte(buildData.Name), nil
 		case "false":
@@ -93,7 +93,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				if err != nil {
 					return nil, err
 				}
-				log.Println("deploy environment to deploytarget config defined target matching regex pattern", project.DeployTarget.Name, buildData.Spec.Project.Environment, buildData.Name)
+				log.Printf("deploy environment %s for project %s to deploytarget %s matching regex pattern", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, project.DeployTarget.Name)
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return []byte(buildData.Name), nil
 			} else {
@@ -101,5 +101,5 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 			}
 		}
 	}
-	return nil, fmt.Errorf("nothing to do")
+	return nil, fmt.Errorf("")
 }
