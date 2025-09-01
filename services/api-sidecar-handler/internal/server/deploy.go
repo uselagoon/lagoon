@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/base64"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,8 +33,7 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	if buildPriority != "" {
 		i, err := strconv.Atoi(buildPriority)
 		if err != nil {
-			// handle err
-			http.Error(w, "", http.StatusInternalServerError)
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to convert buildpriority to integer: %v", err))
 			return
 		}
 		priority = uint(i)
@@ -43,36 +42,31 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	buildVars := []schema.EnvKeyValue{}
 	data, err := base64.StdEncoding.DecodeString(buildVariables)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode buildvariables: %v", err))
 		return
 	}
 	err = json.Unmarshal(data, &buildVars)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal buildvariables: %v", err))
 		return
 	}
 	pullrequest := r.Form.Get("pullrequest")
 	pr := &lagoon.Pullrequest{}
 	prd, err := base64.StdEncoding.DecodeString(pullrequest)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to decode pullrequest payload: %v", err))
 		return
 	}
 	err = json.Unmarshal(prd, pr)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to unmarshal pullrequest data: %v", err))
 		return
 	}
 
 	e := events.New(s.LagoonAPI, s.Messaging)
 	project, err := e.LagoonAPI.ProjectByName(projectName)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to get project by name: %v", err))
 		return
 	}
 
@@ -96,11 +90,11 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	if pr.Title != "" {
 		deployData.Pullrequest = *pr
 	}
-	_, err = e.CreateDeployTask(*project, deployData)
+	resp, err := e.CreateDeployTask(*project, deployData)
 	if err != nil {
-		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("unable to create deploy task: %v", err))
 		return
 	}
-	log.Printf("deployed environment %s of type %s for project %s", branchName, deployData.DeployType, project.Name)
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
 }
