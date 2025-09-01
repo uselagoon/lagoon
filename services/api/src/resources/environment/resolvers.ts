@@ -672,7 +672,7 @@ export const deleteEnvironment: ResolverFn = async (
     return 'success';
   }
 
-  await fetch(
+  const response = await fetch(
     `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/remove`,
     {
       method: 'POST',
@@ -683,6 +683,12 @@ export const deleteEnvironment: ResolverFn = async (
       body: new URLSearchParams(removeData).toString(),
     },
   );
+  if (!response.ok) {
+    const errorText = await response.text();
+    logger.error(`Error removing ${environment.name}: ${errorText}`)
+    throw new Error(`Error removing ${environment.name}`);
+  }
+
   sendToLagoonLogs(
     'info',
     removeData.projectName,
