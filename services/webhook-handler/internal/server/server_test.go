@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
-	mockapi "github.com/uselagoon/lagoon/internal/lagoon/fakeapi"
+	"github.com/uselagoon/lagoon/internal/lagoon/mockapi"
 	"github.com/uselagoon/lagoon/internal/messaging"
 )
 
