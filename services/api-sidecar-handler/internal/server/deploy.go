@@ -96,13 +96,11 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	if pr.Title != "" {
 		deployData.Pullrequest = *pr
 	}
-	if promoteSourceEnvironment != "" {
-	}
-	resp, err := e.CreateDeployTask(*project, deployData)
+	_, err = e.CreateDeployTask(*project, deployData)
 	if err != nil {
 		// handle err
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
-	log.Println(string(resp))
+	log.Printf("deployed environment %s of type %s for project %s", branchName, deployData.DeployType, project.Name)
 }
