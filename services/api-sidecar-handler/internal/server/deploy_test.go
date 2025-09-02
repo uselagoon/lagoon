@@ -77,6 +77,18 @@ func TestServer_deployEnvironment(t *testing.T) {
 			wantResponse:  "branch.3.json",
 		},
 		{
+			name:          "branch.4",
+			description:   "",
+			deployType:    "BRANCH",
+			buildName:     "lagoon-build-a1ki2",
+			branchName:    "deploy/production",
+			sourceUser:    "API",
+			projectName:   "demo-project2",
+			buildPriority: 5,
+			wantCode:      200,
+			wantResponse:  "branch.4.json",
+		},
+		{
 			name:                     "promote.1",
 			description:              "",
 			deployType:               "PROMOTE",
