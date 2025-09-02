@@ -11,7 +11,7 @@
             "remoteId": null,
             "started": null,
             "status": "new",
-            "uiLink": "https://ui.example.com/projects/demo-project3/demo-project1-promotedev/deployments/lagoon-build-2ik1a"
+            "uiLink": "https://ui.example.com/projects/demo-project1/demo-project1-promotedev/deployments/lagoon-build-2ik1a"
         }
     }
 }
