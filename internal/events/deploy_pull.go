@@ -38,7 +38,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 		}
 		log.Printf("deploy existing environment %s for project %s to deploytarget %s", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, deployTarget.Name)
 		e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-		return []byte(buildData.Name), nil
+		return lagoon.BuildToBytes(buildData), nil
 	}
 
 	if len(project.DeployTargetConfigs) > 0 {
@@ -52,7 +52,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 				}
 				log.Printf("deploy environment %s for project %s to deploytargetconfig %s all pullrequests allowed", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, dtc.DeployTarget.Name)
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-				return []byte(buildData.Name), nil
+				return lagoon.BuildToBytes(buildData), nil
 			case "false":
 				return nil, fmt.Errorf("deployments disabled for project pullrequests")
 			default:
@@ -65,7 +65,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 					}
 					log.Printf("deploy environment %s for project %s to deploytargetconfig %s matching regex pattern", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, dtc.DeployTarget.Name)
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-					return []byte(buildData.Name), nil
+					return lagoon.BuildToBytes(buildData), nil
 				} else {
 					return nil, fmt.Errorf("didn't match pullrequest title regex pattern for deploytargetconfig")
 				}
@@ -81,7 +81,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 			}
 			log.Printf("deploy environment %s for project %s to deploytarget %s all pullrequests allowed", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, project.DeployTarget.Name)
 			e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-			return []byte(buildData.Name), nil
+			return lagoon.BuildToBytes(buildData), nil
 		case "false":
 			return nil, fmt.Errorf("deployments disabled for project pullrequests")
 		default:
@@ -94,7 +94,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 				}
 				log.Printf("deploy environment %s for project %s to deploytarget %s matching regex pattern", buildData.Spec.Project.Environment, buildData.Spec.Project.Name, project.DeployTarget.Name)
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-				return []byte(buildData.Name), nil
+				return lagoon.BuildToBytes(buildData), nil
 			} else {
 				return nil, fmt.Errorf("didn't match pullrequest title regex pattern for project")
 			}
