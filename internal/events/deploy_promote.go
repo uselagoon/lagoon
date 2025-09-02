@@ -34,7 +34,7 @@ func (e *Events) deployPromote(project schema.Project, deployData lagoon.DeployD
 		}
 		log.Printf("promote environment %s for project %s to environment %s on deploytarget %s", deployData.PromoteSourceEnvironment, buildData.Spec.Project.Name, buildData.Spec.Project.Environment, deployTarget.Name)
 		e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
-		return []byte(buildData.Name), nil
+		return lagoon.BuildToBytes(buildData), nil
 	}
 	return nil, fmt.Errorf("")
 }
