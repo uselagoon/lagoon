@@ -66,7 +66,6 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	e := events.New(s.LagoonAPI, s.Messaging)
 	project, err := e.LagoonAPI.ProjectByName(projectName)
 	if err != nil {

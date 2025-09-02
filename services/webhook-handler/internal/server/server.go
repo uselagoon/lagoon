@@ -21,14 +21,16 @@ import (
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/lagoon/internal/messaging"
 	syshook "github.com/uselagoon/lagoon/services/webhook-handler/internal/gitlab"
+	lagooncrd "github.com/uselagoon/remote-controller/api/lagoon/v1beta2"
 )
 
 type Server struct {
-	Router    *mux.Router
-	Messaging messaging.Messaging
-	GitlabAPI syshook.GitlabAPI
-	LagoonAPI lagoon.LagoonAPI
-	Debug     bool
+	Router          *mux.Router
+	Messaging       messaging.Messaging
+	GitlabAPI       syshook.GitlabAPI
+	LagoonAPI       lagoon.LagoonAPI
+	Debug           bool
+	VerboseResponse bool // used for verifying webhooks are processed properly
 }
 
 func (s *Server) Initialize() {
@@ -183,7 +185,23 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
 				return
 			}
-			respondWithJSON(w, http.StatusOK, map[string]interface{}{"response": response})
+			if s.VerboseResponse {
+				respondWithJSON(w, http.StatusOK, map[string]interface{}{"response": response})
+			} else {
+				newResp := []events.Response{}
+				for _, resp := range response {
+					buildData := &lagooncrd.LagoonBuild{}
+					err := json.Unmarshal([]byte(resp.Response), buildData)
+					if err != nil {
+						// environment removal
+						newResp = append(newResp, events.Response{Project: resp.Project})
+					} else {
+						// environment deployment
+						newResp = append(newResp, events.Response{Project: buildData.Spec.Project.Name, Response: buildData.Name})
+					}
+				}
+				respondWithJSON(w, http.StatusOK, map[string]interface{}{"response": newResp})
+			}
 			return
 		}
 	}
