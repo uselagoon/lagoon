@@ -14,7 +14,7 @@
       "name": "demo-project1",
       "environment": "dev",
       "environmentId": 5,
-      "uiLink": "https://ui.example.com/projects/demo-project3/demo-project1-dev/deployments/lagoon-build-2ik1a",
+      "uiLink": "https://ui.example.com/projects/demo-project1/demo-project1-dev/deployments/lagoon-build-2ik1a",
       "gitUrl": "git@github.com:amazeeio/lagoon-nginx-example.git",
       "routerPattern": "${project}.${environment}.example.com",
       "environmentType": "development",
