@@ -456,8 +456,8 @@ CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
 CHARTS_TREEISH = webhook-handler
-#CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
-CHARTS_REPOSITORY = ../lagoon-charts
+CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
+#CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
 
 # the following can be used to install stable versions of lagoon directly from chart versions
