@@ -704,7 +704,7 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/webhook-handler services/actions-handler taskimages/activestandby
 .PHONY: go/test
 go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
