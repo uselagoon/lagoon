@@ -3,9 +3,10 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-  return knex('env_vars')
-    .where('scope', 'internal_container_registry')
-    .del()
+  return knex.schema
+      .raw(`DELETE FROM env_vars WHERE scope = 'internal_container_registry'`)
+      .raw(`ALTER TABLE env_vars
+        MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';`);
 };
 
 /**
@@ -13,5 +14,7 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-  return knex.schema;
+  return knex.schema
+      .raw(`ALTER TABLE env_vars
+        MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global';`);
 };

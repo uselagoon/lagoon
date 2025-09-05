@@ -313,8 +313,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   }
 
   if (scope === 'internal_container_registry') {
-    logger.warn('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
-    return;
+    throw new Error('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
   }
 
   const envVarType = getEnvVarType({
@@ -539,8 +538,7 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   } = args;
 
   if (args.input.scope === 'internal_container_registry') {
-    logger.warn('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
-    return;
+    throw new Error('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
   }
 
   if (type === 'project') {

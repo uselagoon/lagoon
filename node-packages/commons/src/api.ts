@@ -142,7 +142,6 @@ export enum EnvVariableScope {
   RUNTIME = 'runtime',
   GLOBAL = 'global',
   CONTAINER_REGISTRY = 'container_registry',
-  INTERNAL_CONTAINER_REGISTRY = 'internal_container_registry'
 }
 
 let transportOptions: {
