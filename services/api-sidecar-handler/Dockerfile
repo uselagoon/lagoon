@@ -6,11 +6,11 @@ FROM golang:1.24-alpine3.21 AS builder
 WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
-COPY services/api-sidecar-handler/cmd/ services/api-sidecar-handler/cmd/
-COPY services/api-sidecar-handler/internal/server services/api-sidecar-handler/internal/server
 COPY internal/messaging internal/messaging
 COPY internal/lagoon internal/lagoon
 COPY internal/events internal/events
+COPY services/api-sidecar-handler/cmd/ services/api-sidecar-handler/cmd/
+COPY services/api-sidecar-handler/internal/server services/api-sidecar-handler/internal/server
 
 # compile
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o api-sidecar-handler services/api-sidecar-handler/cmd/main.go
