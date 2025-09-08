@@ -5494,7 +5494,7 @@
 </div>
 </div>
 <h3 id="scopes">Scopes<a class="headerlink" href="#scopes" title="Permanent link">#</a></h3>
-<p>Scopes are used to set an env var for a specific context. An env var can have a scope of <code>build</code>, <code>runtime</code>, <code>global</code>, <code>container_registry</code> or <code>internal_container_registry</code>.</p>
+<p>Scopes are used to set an env var for a specific context. An env var can have a scope of <code>build</code>, <code>runtime</code>, <code>global</code> or <code>container_registry</code>.</p>
 <h4 id="buildtime">Buildtime<a class="headerlink" href="#buildtime" title="Permanent link">#</a></h4>
 <p>Buildtime env vars are only available during Docker image builds, and can be accessed by using the <code>ARG</code> instruction. Check the <a href="https://docs.docker.com/reference/dockerfile/#arg">Docker documention on <code>ARG</code></a> for all the ways to use this method.</p>
 <p>Typically the <code>ARG</code> will go after the FROM. Read <a href="https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact">the Docker documentation about ARG and FROM</a>.</p>
@@ -5589,10 +5589,6 @@
 </div>
 <h4 id="container-registry">Container Registry<a class="headerlink" href="#container-registry" title="Permanent link">#</a></h4>
 <p>Container registry scoped env vars can be used to authenticate to a private container registry so that Lagoon can pull custom and/or private images at buildtime. Check the full documentation on <a href="../../concepts-basics/lagoon-yml/#container-registries">container registries</a> for more information.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The scope <code>internal_container_registry</code> is not for general use, and shouldn't be used unless explicitly required.</p>
-</div>
 <p>An example of setting a <code>container_registry</code> scoped env var:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">Lagoon CLI</label><label for="__tabbed_7_2">Lagoon API</label></div>
 <div class="tabbed-content">
