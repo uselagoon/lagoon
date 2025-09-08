@@ -119,7 +119,7 @@ An example of setting an `environment` env var:
 
 ### Scopes
 
-Scopes are used to set an env var for a specific context. An env var can have a scope of `build`, `runtime`, `global`, `container_registry` or `internal_container_registry`.
+Scopes are used to set an env var for a specific context. An env var can have a scope of `build`, `runtime`, `global` or `container_registry`.
 
 #### Buildtime
 
@@ -226,9 +226,6 @@ An example of setting a `global` scoped env var:
 #### Container Registry
 
 Container registry scoped env vars can be used to authenticate to a private container registry so that Lagoon can pull custom and/or private images at buildtime. Check the full documentation on [container registries](../concepts-basics/lagoon-yml.md#container-registries) for more information.
-
-!!! warning
-    The scope `internal_container_registry` is not for general use, and shouldn't be used unless explicitly required.
 
 An example of setting a `container_registry` scoped env var:
 

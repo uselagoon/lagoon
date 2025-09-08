@@ -7,6 +7,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as orgHelpers } from '../organization/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog, AuditResource } from '../audit/types';
+import {logger} from "../../loggers/logger";
 
 export enum EnvVarType {
   ORGANIZATION = 'organization',
@@ -311,6 +312,10 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
     throw new Error('A variable name must be provided.');
   }
 
+  if (scope === 'internal_container_registry') {
+    throw new Error('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
+  }
+
   const envVarType = getEnvVarType({
     organization: orgName,
     project: projectName,
@@ -531,6 +536,10 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   const {
     input: { type }
   } = args;
+
+  if (args.input.scope === 'internal_container_registry') {
+    throw new Error('Variable scope "internal_container_registry" is deprecated & can no longer be set.');
+  }
 
   if (type === 'project') {
     return addEnvVariableToProject(obj, args, context);
