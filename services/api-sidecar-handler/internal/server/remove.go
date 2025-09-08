@@ -20,7 +20,7 @@ func (s *Server) removeEnvironment(w http.ResponseWriter, r *http.Request) {
 	fdpe, err := strconv.ParseBool(forceDeleteProductionEnvironment)
 	if err != nil {
 		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if !fdpe {
@@ -31,13 +31,13 @@ func (s *Server) removeEnvironment(w http.ResponseWriter, r *http.Request) {
 	project, err := e.LagoonAPI.ProjectByName(projectName)
 	if err != nil {
 		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = e.CreateRemoveTask(*project, environmentName)
+	err = e.CreateRemoveTask(*project, environmentName, fdpe)
 	if err != nil {
 		// handle err
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	log.Printf("removed environment %s from project %s", environmentName, project.Name)

@@ -10,7 +10,7 @@ import (
 	"github.com/uselagoon/machinery/utils/namespace"
 )
 
-func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName string) error {
+func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName string, deleteProd bool) error {
 	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(unsafeEnvironmentName))
 	var matchEnv schema.Environment
 	if project.ProductionEnvironment == unsafeEnvironmentName ||
@@ -29,7 +29,7 @@ func (e *Events) CreateRemoveTask(project schema.Project, unsafeEnvironmentName 
 				exists = true
 			}
 		}
-		if exists {
+		if exists && !deleteProd {
 			return fmt.Errorf("%s is defined as the production environment for %s, refusing to remove", environmentName, project.Name)
 		}
 	}
