@@ -60,7 +60,7 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if scmWebhook.Action == scm.ActionDelete || scmWebhook.Action == scm.ActionClose {
-			err = e.CreateRemoveTask(project, branchName)
+			err = e.CreateRemoveTask(project, branchName, false)
 		} else {
 			deployData := lagoon.DeployData{
 				BuildName:             buildName,

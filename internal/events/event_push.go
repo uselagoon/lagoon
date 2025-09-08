@@ -68,7 +68,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		if deletion {
-			err = e.CreateRemoveTask(project, branchName)
+			err = e.CreateRemoveTask(project, branchName, false)
 		} else {
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
