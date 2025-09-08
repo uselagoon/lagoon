@@ -206,7 +206,7 @@ mutation PopulateApi {
     friendlyName: "Lagoon Demo Organization"
     description: "An organization for testing"
     quotaProject: 5
-    quotaEnvironment: 4
+    quotaEnvironment: 10
     quotaGroup: 10
     quotaNotification: 10
   }) {
