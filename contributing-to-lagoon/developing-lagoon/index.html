@@ -6012,10 +6012,6 @@ This feature also works with the <code>make k3d/install-lagoon</code> command di
 </span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># other combinations as needed</span>
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_POSTGRES_PROVIDER</span><span class="o">=</span><span class="nb">false</span><span class="w">  </span><span class="nv">INSTALL_MONGODB_PROVIDER</span><span class="o">=</span><span class="nb">false</span>
 </span></code></pre></div>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>If you're using an arm64 based operating system (MacOS M* for example), then <code>INSTALL_MONGODB_PROVIDER</code> will always be set to <code>false</code>, this is because there are some issues due to MongoDB not working properly.</p>
-</div>
 <h4 id="build-deploy-image-version">Build-deploy-image version<a class="headerlink" href="#build-deploy-image-version" title="Permanent link">#</a></h4>
 <p>By default, the image used will be <code>uselagoon/build-deploy-image:edge</code>. This image will be pulled, and then re-tagged and pushed into the registry that is deployed as part of the local-stack.</p>
 <p>If you want to run a custom version of the <a href="https://github.com/uselagoon/build-deploy-tool">build-deploy-tool</a> in a local-stack, you can checkout the build-deploy-tool repo, work on your changes and use <code>make docker-build</code> in that repository to build the image. Then in the local-stack repository use <code>make k3d/push-local-build-image</code> to push it to the local-stack registry.</p>
