@@ -218,6 +218,7 @@ const {
   getAllPlatformUsers,
   addPlatformRoleToUser,
   removePlatformRoleFromUser,
+  getUser2fa,
 } = require('./resources/user/resolvers');
 
 const {
@@ -609,11 +610,13 @@ async function getResolvers() {
     }
   },
   User: {
+    has2faEnabled: getUser2fa,
     sshKeys: getUserSshKeys,
     groups: getGroupsByUserId,
     groupRoles: getGroupRolesByUserId,
   },
   OrgUser: {
+    has2faEnabled: getUser2fa,
     groupRoles: getGroupRolesByUserIdAndOrganization,
   },
   Backup: {

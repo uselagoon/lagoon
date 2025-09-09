@@ -85,6 +85,7 @@ export interface UserModel {
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
   getFullUserDetails: (userInput: User) => Promise<Object>;
+  fetchUserTwoFactor: (user: User) => Promise<boolean>;
 }
 
 // these match the names of the roles created in keycloak
@@ -243,16 +244,8 @@ export const User = (clients: {
       if (userdate.length) {
         user.lastAccessed = userdate[0].lastAccessed
       }
-      user.has2faEnabled = await fetchUserTwoFactor(user)
       let userFed = await fetchFederatedIdentities(user);
       if (userFed.hasIdentities) {
-        // if a federated user sets up 2fa or passkeys in their account after they have logged in
-        // it will never be used unless the user unlinks themselves from the identity provider
-        // if that happens, then the user will have no federated user and their 2fa status will show correctly
-        // if a user is federated though, then their 2fa status is managed/enforced in the external provider
-        // and lagoon has no way to verify if 2fa is enabled or enforced in that provider so just set that the user
-        // is a federated user
-        user.has2faEnabled = false
         user.isFederatedUser = userFed.hasIdentities
       }
       usersWithGitlabIdFetch.push({
@@ -1033,6 +1026,7 @@ const getAllProjectsIdsForUser = async (
     deleteUser,
     resetUserPassword,
     transformKeycloakUsers,
-    getFullUserDetails
+    getFullUserDetails,
+    fetchUserTwoFactor,
   };
 };

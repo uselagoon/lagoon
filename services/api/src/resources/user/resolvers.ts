@@ -5,9 +5,7 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
-import { get } from 'http';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { send } from 'process';
 import { UserModel, User } from '../../models/user';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
@@ -786,3 +784,19 @@ async function getUserOrgEmailDetails(action, models: { UserModel: UserModel; },
   return emailDetails;
 }
 
+export const getUser2fa: ResolverFn = async (
+  user,
+  _,
+  { models }
+) => {
+  if (user.isFederatedUser !== undefined && user.isFederatedUser === true ) {
+    // if a federated user sets up 2fa or passkeys in their account after they have logged in
+    // it will never be used unless the user unlinks themselves from the identity provider
+    // if that happens, then the user will have no federated user and their 2fa status will show correctly
+    // if a user is federated though, then their 2fa status is managed/enforced in the external provider
+    // and lagoon has no way to verify if 2fa is enabled or enforced in that provider so just set that the user
+    // is a federated user
+    return false
+  }
+  return models.UserModel.fetchUserTwoFactor(user)
+};
