@@ -941,7 +941,12 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     createOrUpdateSql);
 
   // reset this services containers (delete all and add the current ones)
-  await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
+  let containers = [];
+  if (input.containers){
+    containers = input.containers;
+  }
+  await Helpers(sqlClientPool).resetServiceContainers(insertId, containers)
+
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
