@@ -137,9 +137,6 @@ make k3d/local-stack INSTALL_POSTGRES_PROVIDER=false
 make k3d/local-stack INSTALL_POSTGRES_PROVIDER=false  INSTALL_MONGODB_PROVIDER=false
 ```
 
-!!! info
-    If you're using an arm64 based operating system (MacOS M* for example), then `INSTALL_MONGODB_PROVIDER` will always be set to `false`, this is because there are some issues due to MongoDB not working properly.
-
 #### Build-deploy-image version
 
 By default, the image used will be `uselagoon/build-deploy-image:edge`. This image will be pulled, and then re-tagged and pushed into the registry that is deployed as part of the local-stack.

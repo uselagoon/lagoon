@@ -58,10 +58,10 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
 
-# The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core 
+# The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
-#INSIGHTS_HANDLER_IMAGE_REPO = 
-#INSIGHTS_HANDLER_IMAGE_TAG = 
+#INSIGHTS_HANDLER_IMAGE_REPO =
+#INSIGHTS_HANDLER_IMAGE_TAG =
 
 # SSHPORTALAPI_IMAGE_REPO and SSHPORTALAPI_IMAGE_TAG are an easy way to override the ssh portal api image used in the local stack lagoon-core
 # only works for installations where INSTALL_STABLE_CORE=false
@@ -522,13 +522,6 @@ ifeq ($(INSTALL_DBAAS_PROVIDERS), false)
 	INSTALL_POSTGRES_PROVIDER = false
 	INSTALL_MONGODB_PROVIDER = false
 endif
-# mongo currently doesn't work on arm based systems, so just disable the provider entirely for now
-ifeq ($(ARCH), darwin)
-	INSTALL_MONGODB_PROVIDER = false
-endif
-ifeq ($(MACHINE), arm64)
-	INSTALL_MONGODB_PROVIDER = false
-endif
 
 INSTALL_UNAUTHENTICATED_REGISTRY = false
 # harbor currently doesn't work on arm based systems, so install an unauthenticated registry instead
@@ -693,7 +686,6 @@ helm/repos: local-dev/helm
 	$(HELM) repo add harbor https://helm.goharbor.io
 	$(HELM) repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	$(HELM) repo add stable https://charts.helm.sh/stable
-	$(HELM) repo add bitnami https://charts.bitnami.com/bitnami
 	$(HELM) repo add amazeeio https://amazeeio.github.io/charts/
 	$(HELM) repo add lagoon https://uselagoon.github.io/lagoon-charts/
 	$(HELM) repo add minio https://charts.min.io/
