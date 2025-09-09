@@ -11,6 +11,6 @@ COPY node-packages /app/node-packages
 COPY services/api/package.json /app/services/api/
 COPY services/auth-server/package.json /app/services/auth-server/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --network-timeout 600000
 
 RUN cd /app/node-packages/commons && yarn build
