@@ -701,7 +701,7 @@ helm/repos: local-dev/helm
 
 # stand up a k3d cluster configured appropriately for lagoon testing
 .PHONY: k3d/cluster
-k3d/cluster: local-dev/k3d local-dev/jq local-dev/helm local-dev/kubectl local-dev/stern
+k3d/cluster: local-dev-tools
 	$(K3D) cluster list | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create $(DOCKER_NETWORK) || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -1186,7 +1186,7 @@ docs/serve:
 		-c 'mkdocs serve -s --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
 
 # k3d/generate-user-keys will generate seed user ssh keys that can be used for local testing
-SEED_USERS = guest reporter developer maintainer owner orgviewer orgadmin orgowner platformorgowner platformviewer platformowner
+SEED_USERS = guest reporter developer maintainer owner orguser orgviewer orgadmin orgowner platformorgowner platformviewer platformowner
 .PHONY: k3d/generate-user-keys
 k3d/generate-user-keys:
 	@mkdir -p ./local-dev/user-keys

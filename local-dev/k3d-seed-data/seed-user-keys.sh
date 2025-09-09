@@ -12,7 +12,7 @@ send_graphql_query() {
       id
       name
     }
-  }" | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $$0} else {printf "\\n"$$0}}')
+  }" | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
   json="{\"query\": \"$data\"}"
   curl -ksS -XPOST -H 'Content-Type: application/json' -H "Authorization: bearer ${LAGOON_LEGACY_ADMIN}" "${LAGOON_API_HOST}" -d "$json"
 }
