@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	// we can't use go regex as some things people do with the regex in nodejs aren't supported in golang re2 regex
 	"github.com/dlclark/regexp2"
@@ -42,6 +43,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 	}
 
 	if len(project.DeployTargetConfigs) > 0 {
+		errs := []string{}
 		for _, dtc := range project.DeployTargetConfigs {
 			switch dtc.Branches {
 			case "true":
@@ -55,7 +57,8 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return lagoon.BuildToBytes(buildData), nil
 			case "false":
-				return nil, fmt.Errorf("deployments disabled for project branches")
+				errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s branches disabled", dtc.DeployTarget.Name))
+				continue
 			default:
 				re := regexp2.MustCompile(dtc.Branches, 0)
 				if match, _ := re.MatchString(deployData.UnsafeEnvironmentName); match {
@@ -68,9 +71,13 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 					return lagoon.BuildToBytes(buildData), nil
 				} else {
-					return nil, fmt.Errorf("didn't match regex pattern for deploytarget")
+					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s didn't match branches regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
+					continue
 				}
 			}
+		}
+		if errs != nil {
+			return nil, fmt.Errorf("%s", strings.Join(errs, ","))
 		}
 	} else {
 		switch project.Branches {
