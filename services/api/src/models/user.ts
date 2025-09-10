@@ -37,6 +37,15 @@ export interface User {
   organizationRole?: string;
   platformRoles?: [string];
   emailNotifications?: IEmailNotifications;
+  totp?: boolean;
+  has2faEnabled?: boolean;
+  isFederatedUser?: boolean;
+}
+
+
+interface FederatedIdentity {
+  hasIdentities?: boolean;
+  gitlabId?: string;
 }
 
 interface UserEdit {
@@ -76,6 +85,7 @@ export interface UserModel {
   userLastAccessed: (userInput: User) => Promise<Boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
   getFullUserDetails: (userInput: User) => Promise<Object>;
+  fetchUserTwoFactor: (user: User) => Promise<boolean>;
 }
 
 // these match the names of the roles created in keycloak
@@ -166,18 +176,46 @@ export const User = (clients: {
       )(user.attributes)
     )(users);
 
-  const fetchGitlabId = async (user: User): Promise<string> => {
+
+  const fetchUserTwoFactor = async (user: User): Promise<boolean> => {
+    const credTypes = await keycloakAdminClient.users.getCredentials({
+      id: user.id
+    });
+    let hasTwoFactor = false
+    for(const cred of credTypes) {
+      switch (cred.type.replace(/"/g, "")) {
+        case "webauthn":
+        case "otp":
+          hasTwoFactor = true
+          break;
+        default:
+          break;
+      }
+    }
+    return hasTwoFactor;
+  };
+
+
+  const fetchFederatedIdentities = async (user: User): Promise<FederatedIdentity> => {
+    let userFed: FederatedIdentity = {
+      hasIdentities: false,
+      gitlabId: null,
+    };
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
       id: user.id
     });
+
+    if (identities.length > 0) {
+      userFed.hasIdentities = true;
+    }
 
     const gitlabIdentity = R.find(
       R.propEq('identityProvider', 'gitlab'),
       identities
     );
-
     // @ts-ignore
-    return R.defaultTo(undefined, R.prop('userId', gitlabIdentity));
+    userFed.gitlabId = R.defaultTo(undefined, R.prop('userId', gitlabIdentity))
+    return userFed;
   };
 
   const transformKeycloakUsers = async (
@@ -206,9 +244,13 @@ export const User = (clients: {
       if (userdate.length) {
         user.lastAccessed = userdate[0].lastAccessed
       }
+      let userFed = await fetchFederatedIdentities(user);
+      if (userFed.hasIdentities) {
+        user.isFederatedUser = userFed.hasIdentities
+      }
       usersWithGitlabIdFetch.push({
         ...user,
-        gitlabId: await fetchGitlabId(user)
+        gitlabId: userFed.gitlabId
       });
     }
 
@@ -300,6 +342,7 @@ export const User = (clients: {
     // from various people with issues with this
     email = email.toLocaleLowerCase();
     const keycloakUsers = await keycloakAdminClient.users.find({
+      briefRepresentation: false,
       email
     });
 
@@ -330,6 +373,27 @@ export const User = (clients: {
     }
 
     throw new Error('You must provide a user id or email');
+  };
+
+  // load all keycloak users using pagination
+  const loadAllKeycloakUsers = async (): Promise<User[]> => {
+    let users = [];
+    let first = 0;
+    let pageSize = 200;
+    let fetchedUsers;
+    while (true) {
+      fetchedUsers = await keycloakAdminClient.users.find({
+        briefRepresentation: false,
+        first: first,
+        max: pageSize
+      });
+      users = users.concat(fetchedUsers)
+      first += pageSize;
+      if (fetchedUsers.length < pageSize) {
+        break;
+      }
+    }
+    return users;
   };
 
   // used to list onwers of organizations
@@ -365,7 +429,7 @@ export const User = (clients: {
       return false;
     };
 
-    const keycloakUsers = await keycloakAdminClient.users.find({briefRepresentation: false, max: -1});
+    let keycloakUsers = await loadAllKeycloakUsers()
 
     let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
     let filteredAdmins = filterUsersByAttribute(keycloakUsers, adminFilter);
@@ -389,13 +453,9 @@ export const User = (clients: {
   };
 
   const loadAllUsers = async (): Promise<User[]> => {
-    const keycloakUsers = await keycloakAdminClient.users.find({
-      max: -1
-    });
-
-    const users = await transformKeycloakUsers(keycloakUsers);
-
-    return users;
+    let users = await loadAllKeycloakUsers()
+    const keycloakUsers = await transformKeycloakUsers(users)
+    return keycloakUsers;
   };
 
   const loadAllPlatformUsers = async (): Promise<User[]> => {
@@ -804,7 +864,7 @@ const getAllProjectsIdsForUser = async (
         }
       }
 
-      // Purge the Group cache for all groups the user belongs to, 
+      // Purge the Group cache for all groups the user belongs to,
       // so it does not have out of date information.
       const GroupModel = Group(clients);
       const userGroups = await getAllGroupsForUser(userInput.id);
@@ -966,6 +1026,7 @@ const getAllProjectsIdsForUser = async (
     deleteUser,
     resetUserPassword,
     transformKeycloakUsers,
-    getFullUserDetails
+    getFullUserDetails,
+    fetchUserTwoFactor,
   };
 };

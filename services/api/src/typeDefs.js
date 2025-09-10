@@ -436,6 +436,8 @@ const typeDefs = gql`
     created: String
     lastAccessed: String
     emailNotifications: UserEmailNotification
+    has2faEnabled: Boolean
+    isFederatedUser: Boolean
   }
 
   enum PlatformRole {
@@ -1066,6 +1068,8 @@ const typeDefs = gql`
     admin: Boolean @deprecated(reason: "use organizationRole")
     owner: Boolean @deprecated(reason: "use organizationRole")
     comment: String
+    has2faEnabled: Boolean
+    isFederatedUser: Boolean
     groupRoles: [GroupRoleInterface]
     organizationRole: OrganizationRole
   }
