@@ -64,6 +64,21 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationDeployTargets(id));
     return rows;
   };
+  const organizationIdByBackup = async (id: string) => {
+
+  }
+  const organizationIdByTask = async (id: string) => {
+
+  }
+  const organizationIdByDeployment = async (id: string) => {
+
+  }
+  const organizationIdByEnvironment = async (id: number) => {
+
+  }
+  const organizationIdByProject = async (id: number) => {
+
+  }
   return {
     getOrganizationById,
     getProjectsByOrganizationId,
@@ -124,5 +139,10 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return toNumber(id);
     },
+    organizationIdByBackup,
+    organizationIdByTask,
+    organizationIdByDeployment,
+    organizationIdByEnvironment,
+    organizationIdByProject,
   }
 };

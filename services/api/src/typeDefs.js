@@ -1203,6 +1203,7 @@ const typeDefs = gql`
     ipAddress: String
     source: AuditSource
     created: String
+    organizationId: Int
   }
 
   enum AuditSource {
@@ -1249,6 +1250,7 @@ const typeDefs = gql`
     Limit number of events returned. Defaults to 100 unless start and end date are defined
     """
     limit: Int
+    organizationId: Int
   }
 
   input AddDeployTargetConfigInput {

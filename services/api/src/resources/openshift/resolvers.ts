@@ -16,7 +16,7 @@ export const getToken: ResolverFn = async (
 
     const auditLog: AuditLog = {
       resource: {
-        id: kubernetes.id,
+        id: kubernetes.id.toString(),
         type: AuditType.DEPLOYTARGET,
         details: kubernetes.name,
       },
@@ -80,7 +80,7 @@ export const addOpenshift: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, rows).id,
+      id: R.prop(0, rows).id.toString(),
       type: AuditType.DEPLOYTARGET,
       details: R.prop(0, rows).name,
     },
@@ -120,7 +120,7 @@ export const deleteOpenshift: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, rows).id,
+      id: R.prop(0, rows).id.toString(),
       type: AuditType.DEPLOYTARGET,
       details: R.prop(0, rows).name,
     },
@@ -236,7 +236,7 @@ export const updateOpenshift: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: R.prop(0, rows).id,
+      id: R.prop(0, rows).id.toString(),
       type: AuditType.DEPLOYTARGET,
       details: R.prop(0, rows).name,
     },

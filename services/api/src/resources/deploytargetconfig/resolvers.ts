@@ -152,20 +152,19 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
     })
   );
 
-  const projectObj = await projectHelpers(
-    sqlClientPool
-  ).getProjectByEnvironmentId(environment);
-
   const auditLog: AuditLog = {
     resource: {
-      id: environmentObj.id,
+      id: environmentObj.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environmentObj.name,
     },
     linkedResource: {
-      id: deployTarget,
+      id: deployTarget.toString(),
       type: AuditType.DEPLOYTARGET,
     },
+  }
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
   }
   userActivityLogger(`User changed DeployTarget for environment`, {
     project: '',
@@ -228,12 +227,12 @@ export const addDeployTargetConfig: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: projectData.id,
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
       details: projectData.name,
     },
     linkedResource: {
-      id: insertId,
+      id: insertId.toString(),
       type: AuditType.DEPLOYTARGETCONFIG,
       details: `${JSON.stringify({
         weight,
@@ -242,6 +241,9 @@ export const addDeployTargetConfig: ResolverFn = async (
         deployTarget,
       })}`
     },
+  }
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
   }
   userActivityLogger(`User added DeployTargetConfig`, {
     project: '',
@@ -280,14 +282,17 @@ export const deleteDeployTargetConfig: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: projectData.id,
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
       details: projectData.name,
     },
     linkedResource: {
-      id: id,
+      id: id.toString(),
       type: AuditType.DEPLOYTARGETCONFIG,
     },
+  }
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
   }
   userActivityLogger(`User deleted DeployTargetConfig'`, {
     project: '',
@@ -371,7 +376,7 @@ export const updateDeployTargetConfig: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: projectData.id,
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
       details: projectData.name,
     },
@@ -385,6 +390,9 @@ export const updateDeployTargetConfig: ResolverFn = async (
         deployTarget,
       })}`
     },
+  }
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
   }
   userActivityLogger(`User updated DeployTargetConfig`, {
     event: 'api:updateDeployTargetConfig',

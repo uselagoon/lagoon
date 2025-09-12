@@ -15,6 +15,7 @@ export interface AuditLog {
     impersonatorId?: string;
     impersonatorUsername?: string;
     created?: string;
+    organizationId?: number;
   }
 
   export const Sql = {

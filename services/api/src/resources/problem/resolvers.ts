@@ -200,20 +200,23 @@ export const addProblem: ResolverFn = async (
     Sql.selectProblemByDatabaseId(insertId)
   );
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:addProblem',
@@ -256,22 +259,25 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
 
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:deleteProblem',
@@ -297,7 +303,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
 
   await query(
     sqlClientPool,
@@ -306,16 +312,19 @@ export const deleteProblemsFromSource: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
     project: '',
     event: 'api:deleteProblemsFromSource',

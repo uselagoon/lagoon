@@ -386,21 +386,24 @@ export const addDeployment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: id,
+      id: deployment.id.toString(),
       type: AuditType.DEPLOYMENT,
       details: deployment.name,
     },
   };
-  userActivityLogger(`User added deployment '${id}'`, {
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
+  userActivityLogger(`User added deployment '${deployment.id}'`, {
     project: '',
     event: 'api:addDeployment',
     payload: {
-      deployment: id,
+      deployment: deployment.id,
       ...auditLog,
     }
   });
@@ -436,21 +439,25 @@ export const deleteDeployment: ResolverFn = async (
     deployment.environment
   );
   await query(sqlClientPool, Sql.deleteDeployment(id));
+
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(deployment.environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: id,
+      id: id.toString(),
       type: AuditType.DEPLOYMENT,
       details: deployment.name,
     },
   };
-
-  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentById(parseInt(deployment.environment));
-  const projectData = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
 
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
@@ -534,6 +541,7 @@ export const updateDeployment: ResolverFn = async (
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
     deployment.environment
   );
+  const project = await projectHelpers(sqlClientPool).getProjectById(env.project);
 
   try {
     // handle retention policy hooks
@@ -544,16 +552,19 @@ export const updateDeployment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: env.id,
+      id: env.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: env.name,
     },
     linkedResource: {
-      id: id,
+      id: id.toString(),
       type: AuditType.DEPLOYMENT,
       details: deployment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
     event: 'api:updateDeployment',
@@ -607,16 +618,19 @@ export const cancelDeployment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: deployment.id,
+      id: deployment.id.toString(),
       type: AuditType.DEPLOYMENT,
       details: deployment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User cancelled deployment for '${deployment.environment}'`, {
     project: '',
     event: 'api:cancelDeployment',
@@ -855,16 +869,19 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: `${environment.name}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
     project: '',
     event: 'api:deployEnvironmentLatest',
@@ -970,7 +987,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -979,6 +996,9 @@ export const deployEnvironmentBranch: ResolverFn = async (
       details: `branch name ${deployData.branchName}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     project: '',
     event: 'api:deployEnvironmentBranch',
@@ -1095,7 +1115,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
@@ -1104,6 +1124,9 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       details: `pull request ${deployData.pullrequestNumber}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     project: '',
     event: 'api:deployEnvironmentPullrequest',
@@ -1231,7 +1254,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: destProject.id,
+      id: destProject.id.toString(),
       type: AuditType.PROJECT,
       details: destProject.name,
     },
@@ -1240,6 +1263,9 @@ export const deployEnvironmentPromote: ResolverFn = async (
       details: `promote ${deployData.promoteSourceEnvironment} to ${deployData.branchName}`,
     },
   };
+  if (destProject.organization) {
+    auditLog.organizationId = destProject.organization;
+  }
   userActivityLogger(`User promoted the environment on '${deployData.projectName}'
     from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
     project: '',
@@ -1415,10 +1441,9 @@ export const switchActiveStandby: ResolverFn = async (
       TaskSourceType.API,
     );
     data.task.id = sourceTaskData.addTask.id.toString();
-
     const auditLog: AuditLog = {
       resource: {
-        id: project.id,
+        id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
       },
@@ -1427,6 +1452,9 @@ export const switchActiveStandby: ResolverFn = async (
         details: `switch ${environmentProd.name} with ${environmentStandby.name}`,
       },
     };
+    if (project.organization) {
+      auditLog.organizationId = project.organization;
+    }
     userActivityLogger(`User triggered active/standby on '${project.name}' switching '${environmentProd.name}' with '${environmentStandby.name}'`, {
       project: '',
       event: 'api:switchActiveStandby',
@@ -1574,6 +1602,8 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       details: bulkName,
     },
   };
+  // @TODO: bulk deployments need some thought about audit logs that would be accessible to users
+  // create an event for every environment in the deployment would be wasteful, but maybe consolidating by organization only?
   userActivityLogger(`User performed a bulk deployment`, {
     payload: {
       bulkId: bulkId,

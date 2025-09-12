@@ -61,6 +61,7 @@ export class LagoonLogsTransport extends Transport {
           impersonatorUsername: info.user.access_token.content.impersonator ? info.user.access_token.content.impersonator.username : null,
           source: requestSource,
           auditEvent: `${info.event}`,
+          organizationId: info.payload?.organizationId || null,
         }
         try {
           // save the log
