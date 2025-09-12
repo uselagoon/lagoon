@@ -617,11 +617,11 @@ endif
 
 .PHONY: local-dev/jwt
 local-dev/jwt:
-ifeq ($(JWT_VERSION), $(shell jwt -v 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/v\1/p'))
+ifeq ($(JWT_VERSION), $(shell jwt --version 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/\1/p'))
 	$(info linking local jwt version $(JWT_VERSION))
 	ln -sf $(shell command -v jwt) ./local-dev/jwt
 else
-ifneq ($(JWT_VERSION), $(shell ./local-dev/jwt -v 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/v\1/p'))
+ifneq ($(JWT_VERSION), $(shell ./local-dev/jwt --version 2>/dev/null | sed -nE 's/jwt ([0-9.]+).*/\1/p'))
 	$(info downloading jwt version $(JWT_VERSION) for $(ARCH))
 	rm -f local-dev/jwt || true
 ifeq ($(ARCH), darwin)
