@@ -1008,7 +1008,7 @@ export const deleteEnvironmentService: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.id)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
   const auditLog: AuditLog = {
     resource: {

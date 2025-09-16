@@ -728,7 +728,7 @@ export const deleteEnvVariable: ResolverFn = async (
     const environment =
       await environmentHelpers(sqlClientPool).getEnvironmentById(envVar.environment);
     const project =
-      await projectHelpers(sqlClientPool).getProjectById(environment.id);
+      await projectHelpers(sqlClientPool).getProjectById(environment.project);
     resource = {
       id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,

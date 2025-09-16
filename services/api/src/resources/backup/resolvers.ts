@@ -231,7 +231,7 @@ export const addBackup: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+  userActivityLogger(`User added backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
     project: '',
     event: 'api:addBackup',
     payload: {

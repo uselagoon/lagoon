@@ -200,7 +200,7 @@ export const addProblem: ResolverFn = async (
     Sql.selectProblemByDatabaseId(insertId)
   );
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -259,7 +259,7 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
@@ -303,7 +303,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: environment.project
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.id);
+  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(
     sqlClientPool,
