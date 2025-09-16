@@ -3,7 +3,7 @@
 	"resetPasswordAllowed": true,
 	"verifyEmail": false,
 	"editUsernameAllowed": false,
-	"loginTheme": "lagoon",
+	"loginTheme": "lagoon-v2",
 	"emailTheme": "lagoon",
-	"accountTheme": "lagoon"
+	"accountTheme": "lagoon-v2"
 }
