@@ -442,16 +442,19 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User updated environment`, {
     project: '',
     event: 'api:addOrUpdateEnvironment',
@@ -516,12 +519,12 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   const auditLog: AuditLog = {
     resource: {
-      id: curEnv.project,
+      id: curEnv.project.toString(),
       type: AuditType.PROJECT,
       details: projectName,
     },
     linkedResource: {
-      id: curEnv.id,
+      id: curEnv.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: curEnv.name,
     },
@@ -654,16 +657,19 @@ export const deleteEnvironment: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.project,
+      id: environment.project.toString(),
       type: AuditType.PROJECT,
       details: projectName,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     project: '',
     event: 'api:deleteEnvironment',
@@ -753,23 +759,23 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  const project = await query(
-    sqlClientPool,
-    projectSql.selectProjectById(curEnv.project)
-  );
+  const project = await projectHelpers(sqlClientPool).getProjectById(curEnv.project);
 
   const auditLog: AuditLog = {
     resource: {
-      id: curEnv.project,
+      id: curEnv.project.toString(),
       type: AuditType.PROJECT,
       details: project.name
     },
     linkedResource: {
-      id: curEnv.id,
+      id: curEnv.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: curEnv.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
     project: '',
     event: 'api:updateEnvironment',
@@ -846,19 +852,16 @@ export const setEnvironmentServices: ResolverFn = async (
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
-  const project = await query(
-    sqlClientPool,
-    projectSql.selectProjectById(environment.project)
-  );
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
@@ -950,19 +953,16 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
-  const project = await query(
-    sqlClientPool,
-    projectSql.selectProjectById(environment.project)
-  );
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
@@ -1008,19 +1008,16 @@ export const deleteEnvironmentService: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
 
-  const project = await query(
-    sqlClientPool,
-    projectSql.selectProjectById(environment.project)
-  );
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
     linkedResource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },

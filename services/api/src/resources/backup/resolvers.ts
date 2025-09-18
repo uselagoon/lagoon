@@ -119,6 +119,9 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
             details: R.prop(3, s3Parts),
           },
         };
+        if (project.organization) {
+          auditLog.organizationId = project.organization;
+        }
         userActivityLogger(`User requested a download link`, {
           event: 'api:getSignedBackupUrl',
           payload: {
@@ -209,21 +212,26 @@ export const addBackup: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+
   pubSub.publish(EVENTS.BACKUP, backup);
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: backup.id,
+      id: backup.id.toString(),
       type: AuditType.BACKUP,
       details: `${source} - ${backupId}`,
     },
   };
-  userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  userActivityLogger(`User added backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
     project: '',
     event: 'api:addBackup',
     payload: {
@@ -252,22 +260,26 @@ export const deleteBackup: ResolverFn = async (
   });
 
   const environment = await environmentSql.selectEnvironmentByBackupId(backupId)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backup = R.prop(0, rows);
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id,
+      id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     },
     linkedResource: {
-      id: backup.id,
+      id: backup.id.toString(),
       type: AuditType.BACKUP,
       details: `${backup.source} - ${backupId}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
     event: 'api:deleteBackup',
@@ -360,16 +372,19 @@ export const addRestore: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: environmentData.id,
+      id: environmentData.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environmentData.name,
     },
     linkedResource: {
-      id: backupData.id,
+      id: backupData.id.toString(),
       type: AuditType.BACKUP,
       details: `${backupData.source} - ${backupId}`,
     },
   };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
   userActivityLogger(`User restored a backup '${backupId}' for project ${projectData.name}`, {
     project: '',
     event: 'api:addRestore',
@@ -448,21 +463,25 @@ export const updateRestore: ResolverFn = async (
   const backupData = R.prop(0, rows);
 
   const environmentData = await environmentSql.selectEnvironmentByBackupId(backupId)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);
 
   const auditLog: AuditLog = {
     resource: {
-      id: environmentData.id,
+      id: environmentData.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environmentData.name,
     },
     linkedResource: {
-      id: backupData.id,
+      id: backupData.id.toString(),
       type: AuditType.BACKUP,
       details: `${backupData.source} - ${backupId}`,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   if (userActivityLogger != undefined) {
     userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',

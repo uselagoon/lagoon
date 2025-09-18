@@ -489,11 +489,14 @@ export const addProject = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User added a project '${project.name}'`, {
     project: '',
     event: 'api:addProject',
@@ -605,11 +608,14 @@ export const deleteProject: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: '',
     event: 'api:deleteProject',
@@ -919,11 +925,14 @@ export const updateProject: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: oldProject.id,
+      id: oldProject.id.toString(),
       type: AuditType.PROJECT,
       details: oldProject.name,
     },
   };
+  if (oldProject.organization) {
+    auditLog.organizationId = oldProject.organization;
+  }
   userActivityLogger(`User updated project '${oldProject.name}'`, {
     project: '',
     event: 'api:updateProject',
@@ -996,11 +1005,14 @@ export const removeProjectMetadataByKey: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User removed project metadata key '${key}'`, {
     project: '',
     event: 'api:removeProjectMetadataByKey',
@@ -1063,11 +1075,14 @@ export const updateProjectMetadata: ResolverFn = async (
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id,
+      id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     },
   };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
   userActivityLogger(`User updated project metadata`, {
     project: '',
     event: 'api:updateProjectMetadata',
