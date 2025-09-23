@@ -68,7 +68,7 @@ pipeline {
       steps {
         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
           sh script: '''
-            output=$(curl -s -X POST -F token=$TOKEN -F ref=main https://git.amazeeio.cloud/api/v4/projects/345/trigger/pipeline)
+            output=$(curl -s -X POST -F token=$TOKEN -F ref=main https://git.amazeeio.cloud/api/v4/projects/3456/trigger/pipeline)
             echo "$output"
             if [[ "$output" != *"project_id"* ]]; then
               echo "WARNING: Trigger failed, response did not contain project_id"
