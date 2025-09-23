@@ -78,7 +78,7 @@ The Lagoon Redis images all come pre-loaded with the `redis-cli` command, which 
 
 ### Maximum Memory Policy
 
-By default, the Lagoon `redis` images are set to use the `allkeys-lru` policy. This policy will alow **ANY** keys stored in Redis to be evicted if/when the Redis service hits its `maxmemory` limit according to when the key was least recently used.
+By default, the Lagoon `redis` images are set to use the `allkeys-lru` policy. This policy will allow **ANY** keys stored in Redis to be evicted if/when the Redis service hits its `maxmemory` limit according to when the key was least recently used.
 
 For typical installations, this is the ideal configuration, as Drupal may not set a `TTL` value for each key cached in Redis. If the `maxmemory-policy` is set to something like `volatile-lru` and Drupal doesn't provide these `TTL` tags, this would result in the Redis container filling up, being totally unable to evict **ANY** keys, and ceasing to accept new cache keys at all.
 

@@ -38,7 +38,7 @@ The person setting up your Lagoon, usually {{ defaults.helpstring }} will need s
 
 ## Configure Webhooks
 
-Next, you'll need to configure webhooks for your Git respository. [You can find those instructions here](../using-lagoon-the-basics/configure-webhooks.md).
+Next, you'll need to configure webhooks for your Git repository. [You can find those instructions here](../using-lagoon-the-basics/configure-webhooks.md).
 
 ## `docker-compose.yml`
 

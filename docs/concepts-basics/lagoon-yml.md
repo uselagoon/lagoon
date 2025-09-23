@@ -474,7 +474,7 @@ environments:
 #### Monitoring a specific path
 
 !!! Info
-    Lagoon does not provide any monitoring capabilties out of the box, only labels and annotations. Check with {{ defaults.helpstring }} if monitoring is supported.
+    Lagoon does not provide any monitoring capabilities out of the box, only labels and annotations. Check with {{ defaults.helpstring }} if monitoring is supported.
 
 Lagoon will add the label `lagoon.sh/primaryIngress=true` to the first route defined in the `.lagoon.yml` file for an environment.
 
@@ -726,7 +726,7 @@ container-registries:
     url: my.other.registry.com
 ```
 
-If you do define a username in the `.lagoon.yml` you don't need to add the associated variable, but if you do add the variable, the value of the variable will be prefered.
+If you do define a username in the `.lagoon.yml` you don't need to add the associated variable, but if you do add the variable, the value of the variable will be preferred.
 
 Next, create environment variables in the Lagoon API with the type `container_registry`:
 

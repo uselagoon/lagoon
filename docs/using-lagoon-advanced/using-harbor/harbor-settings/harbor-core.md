@@ -72,7 +72,7 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `HARBOR_ADMIN_PASSWORD`
   * The password which should be used to access harbor using the `admin` user.
   * The default value is `admin` when run locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first set up on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `HARBOR_NGINX_ENDPOINT`
   * This environment variable tells harborregistry where its NGINX ingress controller, harbor-nginx, is running in order to construct proper push and pull instructions in the UI, among other things.
   * The default value is set to `http://harbor-nginx:8080` when run locally or during CI testing.
@@ -124,7 +124,7 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `REGISTRY_HTTP_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to harborregistry.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first set up on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `REGISTRY_STORAGE_PROVIDER_NAME`
   * The storage backend that harborregistry should use.
   * The default value is `s3`.

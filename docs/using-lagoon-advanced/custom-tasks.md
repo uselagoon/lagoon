@@ -26,7 +26,7 @@ There are three levels of permissions to the task system corresponding to projec
 
 ## Defining a task
 
-Tasks are defined by calling the `addAdvancedTaskDefinition` mutation. Importantly, this simply _defines_ the task, it does not invoke it. It simply makes it avaliable to be run in an environment.
+Tasks are defined by calling the `addAdvancedTaskDefinition` mutation. Importantly, this simply _defines_ the task, it does not invoke it. It simply makes it available to be run in an environment.
 
 Schematically, the call looks like this
 
@@ -42,7 +42,7 @@ mutation addAdvancedTask {
     command: string,
     advancedTaskDefinitionArguments: [
       {
-        name: "ENVIROMENT_VARIABLE_NAME",
+        name: "ENVIRONMENT_VARIABLE_NAME",
         displayName: "Friendly Name For Variable",
         type: [STRING | ENVIRONMENT_SOURCE_NAME | ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF]
       }
