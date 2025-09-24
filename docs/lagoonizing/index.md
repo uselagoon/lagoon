@@ -259,7 +259,6 @@ environments:
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
-            hsts: max-age=31536000
         - "example.ch":
             Annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
@@ -399,12 +398,6 @@ You can of course also redirect to any other URL not hosted on Lagoon. This will
 `None`
 
 - Will mean a route for HTTP will not be created, and no redirect will take place.
-
-`Hsts`
-
-- Can be set to a value of `max-age=31536000;includeSubDomains;preload`.
-- Ensure there are no spaces and no other parameters included.
-- Only the `max-age` parameter is required. The required max-age parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 !!! info
     If you plan to switch from a SSL certificate signed by a Certificate Authority (CA) to a Let's Encrypt certificate, it's best to get in touch with {{ defaults.helpstring }} to oversee the transition.

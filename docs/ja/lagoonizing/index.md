@@ -257,7 +257,6 @@ environments:
         - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
-            hsts: max-age=31536000
         - "example.ch":
             Annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
@@ -406,12 +405,6 @@ UptimeRobotがクラスタに設定されている場合、Lagoonは各ルート
 `None`
 
 - HTTPのルートは作成されず、リダイレクトも行われません。
-
-`Hsts`
-
-- `max-age=31536000;includeSubDomains;preload`のような値を設定できます。
-- スペースや他のパラメータが含まれていないことを確認します。
-- `max-age`パラメータのみが必須です。これはHSTSポリシーの有効期間を秒単位で指定します。
 
 !!! Info "Info"
     証明書認証局(CA)によって署名された SSL 証明書から Let's Encrypt 証明書に切り替える予定がある場合は、Lagoon の管理者に連絡して移行を監督してもらうのが最善です。
