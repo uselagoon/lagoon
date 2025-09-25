@@ -255,10 +255,13 @@ pipeline {
       }
       environment {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+        GHCR_PASSWORD = credentials('amazeeio-github-bearer-token')
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O publish-uselagoon-images", label: "Publishing built images to uselagoon"
+        sh script: "make -O publish-uselagoon-images IMAGE_REPO=docker.io/uselagoon", label: "Publishing built images to uselagoon dockerhub"
+        sh script: 'docker login -u uselagoon-user -p $GHCR_PASSWORD ghcr.io', label: "GHCR login"
+        sh script: "make -O publish-uselagoon-images IMAGE_REPO=ghcr.io/uselagoon", label: "Publishing built images to uselagoon ghcr"
       }
     }
     stage ('scan built images') {
