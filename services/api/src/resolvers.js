@@ -310,6 +310,22 @@ const {
   getEnvVariablesByProjectEnvironmentName,
 } = require('./resources/env-variables/resolvers');
 
+const {
+  addRoute,
+  deleteRoute,
+  getRoutesByProjectId,
+  getRoutesByEnvironmentId,
+  getAlternateRoutesByRouteId,
+  getRouteAnnotationsByRouteId,
+  getPathRoutesByRouteId,
+  addRouteAlternativeDomains,
+  removeRouteAlternativeDomain,
+  addRouteAnnotation,
+  removeRouteAnnotation,
+  addPathRoutesToRoute,
+  removePathRouteFromRoute,
+} = require('./resources/routes/resolvers');
+
 async function getResolvers() {
   let graphqlUpload;
   try {
@@ -456,6 +472,15 @@ async function getResolvers() {
       HARBOR: 'harbor',
       HISTORY: 'history',
     },
+    RouteSource: {
+      API: 'api',
+      YAML: 'yaml',
+    },
+    RouteInsecure: {
+      ALLOW: 'Allow',
+      REDIRECT: 'Redirect',
+      NONE: 'None',
+    },
     Openshift: {
       projectUser: getProjectUser,
       token: getToken,
@@ -480,6 +505,7 @@ async function getResolvers() {
       publicKey: getProjectDeployKey,
       organizationDetails: getOrganizationByProject,
       retentionPolicies: getRetentionPoliciesByProjectId,
+      apiRoutes: getRoutesByProjectId,
     },
     GroupInterface: {
       __resolveType(group) {
@@ -522,6 +548,12 @@ async function getResolvers() {
       facts: getFactsByEnvironmentId,
       openshift: getOpenshiftByEnvironmentId,
       kubernetes: getOpenshiftByEnvironmentId,
+      apiRoutes: getRoutesByEnvironmentId,
+    },
+    Route: {
+      alternativeNames: getAlternateRoutesByRouteId,
+      annotations: getRouteAnnotationsByRouteId,
+      pathRoutes: getPathRoutesByRouteId,
     },
     Organization: {
       groups: getGroupsByOrganizationId,
@@ -812,6 +844,14 @@ async function getResolvers() {
     deleteHistoryRetentionPolicy,
     addHistoryRetentionPolicyLink,
     removeHistoryRetentionPolicyLink,
+    addRoute,
+    addRouteAlternativeDomains,
+    removeRouteAlternativeDomain,
+    deleteRoute,
+    addRouteAnnotation,
+    removeRouteAnnotation,
+    addPathRoutesToRoute,
+    removePathRouteFromRoute,
   },
   Subscription: {
     backupChanged: backupSubscriber,

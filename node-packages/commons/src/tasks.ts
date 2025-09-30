@@ -529,6 +529,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
 
   let deployment;
   let environmentId;
+  let apiRoutes;
   try {
     const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
@@ -544,6 +545,29 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
       sourceUser,
       sourceType,
     );
+
+    // get apiRoutes for the environment if any
+    apiRoutes = apiEnvironment.environmentByName.apiRoutes
+    if (apiRoutes.length > 0) {
+      for (let i = 0; i < apiRoutes.length; i++) {
+        // remove any yaml sourced apiRoutes from the list (these don't get send to builds from the api as they are configured by lagoon.yml)
+        if (apiRoutes[i].source == "YAML") {
+          delete apiRoutes[i]
+          continue;
+        }
+        // the structure of annotations in the build-deploy-tool are `map[string]string`
+        // this converts the `key:value` type from the api to `map[string]string` for the build-deploy-tool to consume
+        let annotations = apiRoutes[i].annotations.reduce((acc, item) => {
+          acc[item.key] = item.value;
+          return acc;
+        }, {});
+        apiRoutes[i].annotations = annotations
+        // the structure of alternativeNames in the build-deploy-tool are `[]string`
+        // this converts to that type for the build-deploy-tool to consume
+        let alternativeNames = apiRoutes[i].alternativeNames.map(item => item.domain);
+        apiRoutes[i].alternativeNames = alternativeNames
+      }
+    }
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
@@ -554,7 +578,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
     environment.addOrUpdateEnvironment,
     deployTarget.openshift,
     bulkId || null, bulkName || null, priority, buildVariables,
-    bulkType.Deploy
+    bulkType.Deploy, apiRoutes
   )
 
   let organization: any = null;
@@ -638,7 +662,8 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
   bulkName: string | null,
   buildPriority: number,
   buildVariables: Array<{name: string, value: string}>,
-  bulkTask: bulkType
+  bulkTask: bulkType,
+  apiRoutes: any
 ): Promise<{ routerPattern: string, appliedEnvVars: string }> {
   type EnvKeyValueInternal = Pick<EnvKeyValue, 'name' | 'value'> & {
     scope: EnvVariableScope | InternalEnvVariableScope;
@@ -709,6 +734,19 @@ export const getEnvironmentsRouterPatternAndVariables = async function(
       value: `${org.quotaRoute}`,
       scope: InternalEnvVariableScope.INTERNAL_SYSTEM
     });
+  }
+
+  // `LAGOON_API_ROUTES` is the successor to LAGOON_ROUTES_JSON. the build-deploy-tool will
+  // check if `LAGOON_ROUTES_JSON` is defined, then that will be used to prevent breaking deployments
+  // but will produce a build warning indicating that LAGOON_ROUTES_JSON will be deprecated in the future
+  // and to use API defined routes instead
+  if (apiRoutes) {
+    applyIfNotExists({
+      name: "LAGOON_API_ROUTES",
+      value: encodeJSONBase64({routes: apiRoutes}),
+      scope: InternalEnvVariableScope.INTERNAL_SYSTEM
+    });
+
   }
 
   /*
@@ -1076,7 +1114,8 @@ export const getTaskProjectEnvironmentVariables = async (projectName: string, en
     result.project,
     environment.environmentById,
     environment.environmentById.openshift,
-    null, null, priority, [], bulkType.Task // bulk deployments don't apply to tasks yet, but this is future proofing the function call
+    null, null, priority, [], bulkType.Task, // bulk deployments don't apply to tasks yet, but this is future proofing the function call
+    null
   )
   return appliedEnvVars
 }
