@@ -791,7 +791,7 @@ k3d/checkout-charts: k3d/generate-ca
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
 		&& mkdir -p certs \
-		&& cp ../local-dev/certificates/* certs/.
+		&& test -f $$(mkcert -CAROOT)/rootCA.pem && cp $$(mkcert -CAROOT)/* certs/. || cp ../local-dev/certificates/* certs/.
 
 
 # this just installs lagoon-core, lagoon-remote, and lagoon-build-deploy
@@ -1133,8 +1133,12 @@ k3d/regenerate-ca:
 .PHONY: install-ca
 install-ca:
 ifeq ($(shell command -v mkcert > /dev/null && echo 1 || echo 0), 1)
-	@export CAROOT=local-dev/certificates && \
-	mkcert -install
+	@if test -f "$$(mkcert -CAROOT)/rootCA.pem"; then \
+		echo "Using mkcert root CA in $$(mkcert -CAROOT)"; \
+	else \
+		export CAROOT=local-dev/certificates && \
+		mkcert -install; \
+	fi
 else
 	@echo "mkcert not installed, please install mkcert. See https://github.com/FiloSottile/mkcert#installation"
 endif
