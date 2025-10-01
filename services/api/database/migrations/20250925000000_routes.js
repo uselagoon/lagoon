@@ -8,6 +8,8 @@ exports.up = async function(knex) {
         return knex.schema
         .createTable('routes', function (table) {
             table.increments('id').notNullable().primary();
+            table.timestamp('created').notNullable().defaultTo(knex.fn.now());
+            table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
             table.string('domain', 300).notNullable();
             table.integer('project').notNullable();
             table.integer('environment');
