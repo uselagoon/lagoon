@@ -311,7 +311,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const {
-  addRoute,
+  addRouteToProject,
   deleteRoute,
   getRoutesByProjectId,
   getRoutesByEnvironmentId,
@@ -324,6 +324,8 @@ const {
   removeRouteAnnotation,
   addPathRoutesToRoute,
   removePathRouteFromRoute,
+  addOrUpdateRouteToEnvironment,
+  removeRouteFromEnvironment,
 } = require('./resources/routes/resolvers');
 
 async function getResolvers() {
@@ -554,6 +556,8 @@ async function getResolvers() {
       alternativeNames: getAlternateRoutesByRouteId,
       annotations: getRouteAnnotationsByRouteId,
       pathRoutes: getPathRoutesByRouteId,
+      environment: getEnvironmentById,
+      project: getProjectById,
     },
     Organization: {
       groups: getGroupsByOrganizationId,
@@ -844,7 +848,9 @@ async function getResolvers() {
     deleteHistoryRetentionPolicy,
     addHistoryRetentionPolicyLink,
     removeHistoryRetentionPolicyLink,
-    addRoute,
+    addRouteToProject,
+    addOrUpdateRouteToEnvironment,
+    removeRouteFromEnvironment,
     addRouteAlternativeDomains,
     removeRouteAlternativeDomain,
     deleteRoute,

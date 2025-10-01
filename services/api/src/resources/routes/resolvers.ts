@@ -6,14 +6,15 @@ import { knex, query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { addAnnotation, removeAnnotation, addServicePathRoute, removeServicePathRoute, PathRoutes, RouteAnnotations } from './helpers';
+import { addAnnotation, removeAnnotation, addServicePathRoute, removeServicePathRoute, Helpers } from './helpers';
+import { RouteAnnotations, PathRoutes } from './types';
 import { logger } from '../../loggers/logger';
 
 function hasDuplicates(arr) {
   return new Set(arr).size !== arr.length;
 }
 
-export const addRoute: ResolverFn = async (
+export const addRouteToProject: ResolverFn = async (
   root,
   {
     input: {
@@ -31,29 +32,35 @@ export const addRoute: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // @TODO: permissions
-  // const environment = await environmentHelpers(
-  //   sqlClientPool
-  // ).getEnvironmentById(environmentId);
-  // await hasPermission('environment', `addRoute:${environment.environmentType}`, {
-  //   project: projectId
-  // });
-
-  // the route will be pending status initially it has been "verified" or other
-  logger.info(`${domain} ${service} ${source}`)
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  let environmentId = null;
+  let environmentServices;
+  if (environment) {
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+    const environmentId = env[0].id
+    environmentServices = await environmentHelpers(sqlClientPool).getEnvironmentServices(environmentId)
+  }
 
   // check the route doesn't already exist in this project as either a top level route, or an alternative domain on another route
   const exists = await query(
     sqlClientPool,
-    Sql.selectRouteByDomainAndProjectID(domain, project)
+    Sql.selectRouteByDomainAndProjectID(domain, projectId)
   )
   const exists2 = await query(
     sqlClientPool,
-    Sql.selectRouteAlternativeDomainsByDomainAndProjectID(domain, project)
+    Sql.selectRouteAlternativeDomainsByDomainAndProjectID(domain, projectId)
   )
 
   // fail if the route already exists somewhere in the project
   if (exists.length > 0 || exists2.length > 0) {
     throw Error(`Route already exists in this project`)
+  }
+
+  if (environment) {
+    // ensure the service exists on the environment
+    if (!environmentServices.some(item => item.name === service)) {
+      throw Error(`Service ${service} doesn't exist on this environment`)
+    }
   }
 
   // fail if the domain is provided more than once
@@ -78,9 +85,15 @@ export const addRoute: ResolverFn = async (
 
   // setup pathroutes if provided
   let pr: PathRoutes = [];
-  if (pathRoutes !== undefined) {
-    for (const pathRoute of pathRoutes) {
-      pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
+  if (environment) {
+    if (pathRoutes !== undefined) {
+      for (const pathRoute of pathRoutes) {
+        // ensure the service exists on the environment
+        if (!environmentServices.some(item => item.name === pathRoute.toService)) {
+          throw Error(`Service ${pathRoute.toService} in pathRoutes doesn't exist on this environment`)
+        }
+        pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
+      }
     }
   }
 
@@ -90,8 +103,8 @@ export const addRoute: ResolverFn = async (
     Sql.insertRoute({
       id,
       domain,
-      environment,
-      project,
+      environment: environmentId,
+      project: projectId,
       service,
       source,
       annotations: JSON.stringify(ra),
@@ -100,7 +113,6 @@ export const addRoute: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectRouteByID(insertId));
   const route = R.prop(0, rows);
-
   // add the alternate domains
   if (alternativeNames !== undefined) {
     for (const d of alternativeNames) {
@@ -114,8 +126,140 @@ export const addRoute: ResolverFn = async (
     }
   }
 
+  userActivityLogger(`User added route '${route.domain}' to project '${project.name}'`, {
+    project: '',
+    event: 'api:addRouteToProject',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
+
   return route;
 };
+
+export const addOrUpdateRouteToEnvironment: ResolverFn = async (
+  root,
+  {
+    input: {
+      domain,
+      pathRoutes,
+      project,
+      environment,
+      service,
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // @TODO: permissions
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+
+  const existsProject = await query(
+    sqlClientPool,
+    Sql.selectRouteByDomainAndProjectID(domain, projectId)
+  )
+  if (existsProject.length == 0) {
+    throw Error(`Route doesn't exist on this project`)
+  }
+  const route = existsProject[0]
+
+  if (route.autogenerated == true) {
+    throw Error(`Cannot modify autogenerated routes via this method`)
+  }
+
+  switch (route.environment) {
+    case environmentData.id:
+    case 0:
+    case null:
+      // do nothing
+      break;
+    default:
+      throw Error(`Route is already attached to another environment`)
+  }
+
+  // ensure the service exists on the environment
+  const environmentServices = await environmentHelpers(sqlClientPool).getEnvironmentServices(environmentData.id)
+  if (!environmentServices.some(item => item.name === service)) {
+    throw Error(`Service ${service} doesn't exist on this environment`)
+  }
+
+  // setup pathroutes if provided
+  let pr: PathRoutes = [];
+  if (environment) {
+    if (pathRoutes !== undefined) {
+      for (const pathRoute of pathRoutes) {
+        // ensure the service exists on the environment
+        if (!environmentServices.some(item => item.name === pathRoute.toService)) {
+          throw Error(`Service ${pathRoute.toService} in pathRoutes doesn't exist on this environment`)
+        }
+        pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
+      }
+    }
+  }
+
+  await query(
+    sqlClientPool,
+    Sql.updateRoute({
+      id: route.id,
+      patch: {
+        environment: environmentData.id,
+        service,
+        pathRoutes: JSON.stringify(pr),
+        updated: knex.fn.now(),
+      }
+    })
+  );
+
+  userActivityLogger(`User added route '${route.domain}' to environment '${environmentData.name}'`, {
+    project: '',
+    event: 'api:addRouteToProject',
+    payload: {
+      project: project.id,
+      environment: environmentData.id,
+      route: route.id
+    }
+  });
+
+  const ret = await query(sqlClientPool, Sql.selectRouteByID(route.id));
+  return ret[0];
+}
+
+export const removeRouteFromEnvironment: ResolverFn = async (
+  root,
+  {
+    input: {
+      domain,
+      project,
+      environment,
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // @TODO: permissions
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+
+  const routeId = await Helpers(sqlClientPool).removeRouteFromEnvironment(domain, environmentData.id)
+
+  const ret = await query(sqlClientPool, Sql.selectRouteByID(routeId));
+  const route = ret[0];
+
+  userActivityLogger(`User removed route '${route.domain}' from environment '${environmentData.name}'`, {
+    project: '',
+    event: 'api:removeRouteFromEnvironment',
+    payload: {
+      project: project.id,
+      environment: environmentData.id,
+      route: route.id
+    }
+  });
+
+  return route;
+}
+
 
 export const addRouteAlternativeDomains: ResolverFn = async (
   root,
@@ -129,10 +273,11 @@ export const addRouteAlternativeDomains: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
   const route = R.prop(0, rows);
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   if (alternativeNames !== undefined) {
     for (const d of alternativeNames) {
@@ -173,6 +318,15 @@ export const addRouteAlternativeDomains: ResolverFn = async (
     }
   }
 
+  userActivityLogger(`User added alternative domains to route '${route.domain}' on project '${project.name}'`, {
+    project: '',
+    event: 'api:addRouteAlternativeDomains',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
+
   return route;
 }
 
@@ -188,10 +342,11 @@ export const removeRouteAlternativeDomain: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
   const route = R.prop(0, rows);
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   const alternateDomain = await query(
     sqlClientPool,
@@ -203,6 +358,15 @@ export const removeRouteAlternativeDomain: ResolverFn = async (
   } else {
     throw Error(`Domain doesn't exist on this route`)
   }
+
+  userActivityLogger(`User removed alternative domains from route '${route.domain}' on project '${project}'`, {
+    project: '',
+    event: 'api:removeRouteAlternativeDomain',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
 
   return route;
 }
@@ -219,10 +383,11 @@ export const addRouteAnnotation: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
   const route = R.prop(0, rows);
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   let ra: RouteAnnotations = [];
 
@@ -236,7 +401,8 @@ export const addRouteAnnotation: ResolverFn = async (
   route.annotations = JSON.stringify(ra)
 
   let patch = {
-    annotations: JSON.stringify(ra)
+    annotations: JSON.stringify(ra),
+    updated: knex.fn.now(),
   }
   await query(
     sqlClientPool,
@@ -248,6 +414,15 @@ export const addRouteAnnotation: ResolverFn = async (
 
   const ret = await query(sqlClientPool, Sql.selectRouteByID(id));
   const retRoute = R.prop(0, ret);
+
+  userActivityLogger(`User added annotations to route '${route.domain}' on project '${project.name}'`, {
+    project: '',
+    event: 'api:addRouteAnnotation',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
 
   return retRoute;
 }
@@ -264,10 +439,11 @@ export const removeRouteAnnotation: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
   const route = R.prop(0, rows);
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   let ra: RouteAnnotations = [];
 
@@ -277,7 +453,8 @@ export const removeRouteAnnotation: ResolverFn = async (
   route.annotations = JSON.stringify(ra)
 
   let patch = {
-    annotations: JSON.stringify(ra)
+    annotations: JSON.stringify(ra),
+    updated: knex.fn.now(),
   }
   await query(
     sqlClientPool,
@@ -289,6 +466,15 @@ export const removeRouteAnnotation: ResolverFn = async (
 
   const ret = await query(sqlClientPool, Sql.selectRouteByID(id));
   const retRoute = R.prop(0, ret);
+
+  userActivityLogger(`User removed annotations from route '${route.domain}' on project '${project.name}'`, {
+    project: '',
+    event: 'api:removeRouteAnnotation',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
 
   return retRoute;
 }
@@ -305,10 +491,11 @@ export const addPathRoutesToRoute: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
-  const route = R.prop(0, rows);
+  const route = rows[0];
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   let pr: PathRoutes = [];
 
@@ -322,8 +509,10 @@ export const addPathRoutesToRoute: ResolverFn = async (
   route.pathRoutes = JSON.stringify(pr)
 
   let patch = {
-    pathRoutes: JSON.stringify(pr)
+    pathRoutes: JSON.stringify(pr),
+    updated: knex.fn.now(),
   }
+
   await query(
     sqlClientPool,
     Sql.updateRoute({
@@ -332,8 +521,17 @@ export const addPathRoutesToRoute: ResolverFn = async (
     })
   );
 
+  userActivityLogger(`User added pathroutes to route '${route.domain}' on project ${project.name}`, {
+    project: '',
+    event: 'api:addPathRoutesToRoute',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
+
   const ret = await query(sqlClientPool, Sql.selectRouteByID(id));
-  const retRoute = R.prop(0, ret);
+  const retRoute = ret[0];
 
   return retRoute;
 }
@@ -351,10 +549,11 @@ export const removePathRouteFromRoute: ResolverFn = async (
 ) => {
   // @TODO: permissions
   const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
+  if (rows.length == 0) {
     throw new Error(`Unauthorized: You don't have permission to "addRoute" on "project"`);
   }
   const route = R.prop(0, rows);
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
 
   let pr: PathRoutes = [];
 
@@ -364,7 +563,8 @@ export const removePathRouteFromRoute: ResolverFn = async (
   route.pathRoutes = JSON.stringify(pr)
 
   let patch = {
-    pathRoutes: JSON.stringify(pr)
+    pathRoutes: JSON.stringify(pr),
+    updated: knex.fn.now(),
   }
   await query(
     sqlClientPool,
@@ -374,12 +574,53 @@ export const removePathRouteFromRoute: ResolverFn = async (
     })
   );
 
+  userActivityLogger(`User removed pathroutes from route '${route.domain}' on project '${project.name}'`, {
+    project: '',
+    event: 'api:removePathRouteFromRoute',
+    payload: {
+      project: project.id,
+      route: route.id
+    }
+  });
+
   const ret = await query(sqlClientPool, Sql.selectRouteByID(id));
   const retRoute = R.prop(0, ret);
 
   return retRoute;
 }
 
+export const deleteRoute: ResolverFn = async (
+  root,
+  { input: { id } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // @TODO: permissions
+
+  const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
+  if (rows.length == 0) {
+    throw new Error(`Unauthorized: You don't have permission to "deleteRoute" on "project"`);
+  }
+  const route = rows[0]
+  const project = await projectHelpers(sqlClientPool).getProjectById(route.project)
+
+  // @TODO: do we want to block deletion of routes if they are attached to an environment?
+  // if (route.environment) {
+  //   throw Error(`Route must be removed from environment before deletion`)
+  // }
+
+  await query(sqlClientPool, Sql.deleteRoute(route.id));
+  await query(sqlClientPool, Sql.deleteRoutesAlternativeDomains(route.id));
+
+  userActivityLogger(`User deleted route '${route.domain}' and any associated alternate domains from project '${project.name}'`, {
+    project: '',
+    event: 'api:deleteRoute',
+    payload: {
+      route: route.id
+    }
+  });
+
+  return 'success';
+};
 
 export const getAlternateRoutesByRouteId: ResolverFn = async (
   { id: rid },
@@ -410,49 +651,12 @@ export const getPathRoutesByRouteId: ResolverFn = async (
   return JSON.parse(input.pathRoutes);
 };
 
-export const deleteRoute: ResolverFn = async (
-  root,
-  { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  // @TODO: permissions
-  // const perms = await query(sqlClientPool, Sql.selectPermsForDeployment(id));
-  // await hasPermission('route', 'delete', {
-  //   project: R.path(['0', 'pid'], perms)
-  // });
-
-  const rows = await query(sqlClientPool, Sql.selectRouteByID(id));
-  if (rows.length = 0) {
-    throw new Error(`Unauthorized: You don't have permission to "deleteRoute" on "project"`);
-  }
-
-  await query(sqlClientPool, Sql.deleteRoute(id));
-  await query(sqlClientPool, Sql.deleteRoutesAlternativeDomains(id));
-
-  userActivityLogger(`User deleted route and any associated alternate domains '${id}'`, {
-    project: '',
-    event: 'api:deleteRoute',
-    payload: {
-      deployment: id
-    }
-  });
-
-  return 'success';
-};
-
 export const getRoutesByProjectId: ResolverFn = async (
   { id: projectId },
   { domain },
   { sqlClientPool, hasPermission }
 ) => {
-  // const project = await projectHelpers(
-  //   sqlClientPool
-  // ).getProjectById(projectId);
-
   // @TODO: permissions
-  // await hasPermission('route', 'view', {
-  //   project: project.id
-  // });
 
   let queryBuilder = knex('routes')
     .where('project', projectId)
@@ -470,14 +674,7 @@ export const getRoutesByEnvironmentId: ResolverFn = async (
   { domain },
   { sqlClientPool, hasPermission }
 ) => {
-  // const environment = await environmentHelpers(
-  //   sqlClientPool
-  // ).getEnvironmentById(environmentId);
-
   // @TODO: permissions
-  // await hasPermission('route', 'view', {
-  //   project: environment.project
-  // });
 
   let queryBuilder = knex('routes')
     .where('environment', environmentId)
