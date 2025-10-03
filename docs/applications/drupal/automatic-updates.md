@@ -9,7 +9,7 @@ runtime, it can cause any of the following problems:
    restarted, or scaled at any time. When this happens, the original built
    container image will be ran and any changes that happened at runtime are
    lost.
-2. Tasks and cronjobs may run with the orignal built container image and won't
+2. Tasks and cronjobs may run with the original built container image and won't
    have access to any updated code.
 3. Updating requires write permissions to the filesystem, but it is possible to
    configure an environment that forces a read-only filesystem.

@@ -67,7 +67,7 @@ The Lagoon Valkey images all come pre-loaded with the `valkey-cli` command, whic
 
 ### Maximum Memory Policy
 
-By default, the Lagoon `valkey` images are set to use the `allkeys-lru` policy. This policy will alow **ANY** keys stored in Valkey to be evicted if/when the Valkey service hits its `maxmemory` limit according to when the key was least recently used.
+By default, the Lagoon `valkey` images are set to use the `allkeys-lru` policy. This policy will allow **ANY** keys stored in Valkey to be evicted if/when the Valkey service hits its `maxmemory` limit according to when the key was least recently used.
 
 For typical installations, this is the ideal configuration, as Drupal may not set a `TTL` value for each key cached in Valkey. If the `maxmemory-policy` is set to something like `volatile-lru` and Drupal doesn't provide these `TTL` tags, this would result in the Valkey container filling up, being totally unable to evict **ANY** keys, and ceasing to accept new cache keys at all.
 

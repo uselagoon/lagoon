@@ -42,7 +42,7 @@ mutation addAdvancedTask {
     command: string,
     advancedTaskDefinitionArguments: [
       {
-        name: "ENVIROMENT_VARIABLE_NAME",
+        name: "ENVIRONMENT_VARIABLE_NAME",
         displayName: "Friendly Name For Variable",
         type: [STRING | ENVIRONMENT_SOURCE_NAME | ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF]
       }

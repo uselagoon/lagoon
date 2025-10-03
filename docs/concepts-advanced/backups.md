@@ -205,7 +205,7 @@ allowfullscreen></iframe>
 ### Sync
 
 For Drupal projects, the use of `drush` to sync the database and files is
-recommneded. For non-Drupal projects,
+recommended. For non-Drupal projects,
 [lagoon-sync](https://github.com/uselagoon/lagoon-sync) can be added to the
 project and used to sync the database and files.
 
