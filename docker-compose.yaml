@@ -86,7 +86,7 @@ services:
   api:
     image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
-      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth
+      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
       - NODE_ENV=development
       - OPENSEARCH_INTEGRATION_ENABLED=false
       - DISABLE_CORE_HARBOR=true
@@ -120,7 +120,7 @@ services:
     # always pull the image to prevent stale images locally
     pull_policy: always
     environment:
-      - KEYCLOAK_API=http://localhost:8088/auth
+      - KEYCLOAK_API=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
       - GRAPHQL_API=http://localhost:3000/graphql
     ports:
       - '8888:3000'
@@ -159,7 +159,7 @@ services:
     ports:
       - '8088:8080'
     environment:
-      - KEYCLOAK_FRONTEND_URL=http://localhost:8088/auth/
+      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
       - KEYCLOAK_ADMIN_EMAIL=admin@example.com
       # Uncomment for local new relic tracking
       # - NEW_RELIC_LICENSE_KEY=
