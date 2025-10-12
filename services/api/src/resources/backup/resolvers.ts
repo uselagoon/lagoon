@@ -259,17 +259,17 @@ export const deleteBackup: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  const environment = await environmentSql.selectEnvironmentByBackupId(backupId)
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const environment = await query(sqlClientPool, environmentSql.selectEnvironmentByBackupBackupId(backupId))
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment[0].project);
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backup = R.prop(0, rows);
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
   const auditLog: AuditLog = {
     resource: {
-      id: environment.id.toString(),
+      id: environment[0].id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: environment[0].name,
     },
     linkedResource: {
       id: backup.id.toString(),
@@ -462,7 +462,7 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  const environmentData = await environmentSql.selectEnvironmentByBackupId(backupId)
+  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentByBackupBackupId(backupId))
   const project = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);
