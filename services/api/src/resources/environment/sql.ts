@@ -134,6 +134,47 @@ export const Sql = {
     knex('environment_storage')
       .where(knex.raw('environment_storage.environment = ?', id))
       .toString(),
+  selectEnvironmentStorageByEnvironmentIdByDaysClaim: ({
+    eid,
+    limit,
+    startDate,
+    endDate,
+    claim,
+  }: {
+    eid: number;
+    limit?: number;
+    startDate?: Date;
+    endDate?: Date;
+    claim?: string;
+  }) =>
+    knex
+      .select('id', 'environment', 'persistent_storage_claim', 'kib_used', 'updated')
+      .from(function () {
+        this.select(
+          '*',
+          knex.raw('ROW_NUMBER() OVER (PARTITION BY persistent_storage_claim ORDER BY updated ASC) as rn')
+        )
+        .from('environment_storage')
+        .where('environment', eid)
+        .modify(function (queryBuilder) {
+          if (claim) {
+            queryBuilder.where('persistent_storage_claim', claim);
+          }
+          if (startDate) {
+            queryBuilder = queryBuilder.where('updated', '>=', startDate);
+          }
+
+          if (endDate) {
+            queryBuilder = queryBuilder.where('updated', '<=', endDate);
+          }
+          if (limit) {
+            // last `limit` days including latest/today if found
+            queryBuilder = queryBuilder.where(knex.raw('DATEDIFF(CURRENT_DATE, updated) < ?', [limit]));
+          }
+        })
+        .as('subquery');
+      })
+      .toString(),
   selectEnvironmentByOpenshiftProjectName: (openshiftProjectName: string) =>
     knex('environment AS e')
       .select('e.*')
