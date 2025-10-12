@@ -8,6 +8,13 @@ export const Sql = {
       .andWhere('s3_file.deleted', '0000-00-00 00:00:00')
       .orderBy('s3_file.created', 'desc')
       .toString(),
+  selectTaskFileById: (tid: number, fid: number) =>
+    knex('task_file')
+      .join('s3_file', 'task_file.fid', '=', 's3_file.id')
+      .where('task_file.tid', tid)
+      .andWhere('task_file.fid', fid)
+      .andWhere('s3_file.deleted', '0000-00-00 00:00:00')
+      .toString(),
   insertFile: ({
     id,
     filename,

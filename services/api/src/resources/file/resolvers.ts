@@ -46,6 +46,23 @@ export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivi
   });
 };
 
+export const getDownloadLinkByTaskFileId: ResolverFn = async (
+  root,
+  { taskId, fileId },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(taskId));
+
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms)
+  });
+
+  const rows = await query(sqlClientPool, Sql.selectTaskFileById(taskId, fileId));
+
+  const downloadUrl = await getDownloadLink(rows[0], {}, userActivityLogger)
+  return downloadUrl;
+}
+
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
   _args,
