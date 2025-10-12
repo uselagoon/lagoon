@@ -259,7 +259,7 @@ export const deleteBackup: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  const environment = await query(sqlClientPool, environmentSql.selectEnvironmentByBackupBackupId(backupId))
+  const environment = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
   const project = await projectHelpers(sqlClientPool).getProjectById(environment[0].project);
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backup = R.prop(0, rows);
@@ -462,7 +462,7 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentByBackupBackupId(backupId))
+  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
   const project = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);

@@ -122,7 +122,7 @@ export const Sql = {
       .where(knex.raw('environment_backup.id = ?', id))
       .limit(1)
       .toString(),
-  selectEnvironmentByBackupBackupId: (id: number) =>
+  selectEnvironmentBySnapshotId: (id: number) =>
     knex('environment_backup')
       .select('e.*')
       .join('environment AS e', 'environment_backup.environment', '=', 'e.id')
