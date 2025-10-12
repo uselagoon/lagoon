@@ -498,6 +498,31 @@ export const updateRestore: ResolverFn = async (
   return restoreData;
 };
 
+export const getBackupDownloadLinkByBackupId: ResolverFn = async (
+  root,
+  { backupId },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+) => {
+  const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
+
+  await hasPermission('backup', 'view', {
+    project: R.path(['0', 'pid'], perms)
+  });
+
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectRestoreByBackupId(backupId)
+  );
+  const row = R.prop(0, rows)
+
+  if (!row || row.restoreLocation == null) {
+    throw new Error(`no restore file available`);
+  }
+  const backupData = R.prop(0, rows);
+  const [restLoc, restSize] = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
+  return restLoc;
+}
+
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
