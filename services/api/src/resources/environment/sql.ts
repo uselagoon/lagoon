@@ -122,6 +122,14 @@ export const Sql = {
       .where(knex.raw('environment_backup.id = ?', id))
       .limit(1)
       .toString(),
+  selectEnvironmentBySnapshotId: (id: number) =>
+    knex('environment_backup')
+      .select('e.*')
+      .join('environment AS e', 'environment_backup.environment', '=', 'e.id')
+      .join('project', 'e.project', '=', 'project.id')
+      .where(knex.raw('environment_backup.backup_id = ?', id))
+      .limit(1)
+      .toString(),
   selectEnvironmentStorageByEnvironmentId: (id: number) =>
     knex('environment_storage')
       .where(knex.raw('environment_storage.environment = ?', id))
