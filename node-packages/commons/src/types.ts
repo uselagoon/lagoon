@@ -58,6 +58,13 @@ export enum AuditType {
   FILE = 'file',
 }
 
+
+export enum RouteType {
+    Standard = "standard",
+    Standby = "standby",
+    Active = "active"
+}
+
 export interface DeployData {
   baseBranchName?: string,
   baseSha?: string,

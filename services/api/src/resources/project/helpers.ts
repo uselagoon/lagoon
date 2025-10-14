@@ -74,7 +74,8 @@ export const Helpers = (sqlClientPool: Pool) => {
 
   const getProjectByName = async (name: string) => {
     const rows = await query(sqlClientPool, Sql.selectProjectByName(name));
-    return R.prop(0, rows);
+    const withK8s = aliasOpenshiftToK8s(rows);
+    return R.prop(0, withK8s);
   };
 
   const getProjectByEnvironmentId = async (
@@ -106,6 +107,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     checkOrgProjectUpdatePermission,
     aliasOpenshiftToK8s,
     getProjectById,
+    getProjectByName,
     getProjectsByIds,
     getProjectByEnvironmentId,
     getProjectByOrganizationId,
