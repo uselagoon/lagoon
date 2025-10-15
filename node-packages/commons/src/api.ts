@@ -714,7 +714,7 @@ export async function getEnvironmentByName(
           value
           scope
         }
-        apiRoutes{
+        apiRoutes(source: API){
           domain
           service
           alternativeNames{
@@ -778,7 +778,7 @@ export async function getEnvironmentByIdWithVariables(
           value
           scope
         }
-        apiRoutes{
+        apiRoutes(source: API){
           domain
           service
           alternativeNames{
