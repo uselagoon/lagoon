@@ -1187,7 +1187,7 @@ docs/serve:
 		-p 127.0.0.1:$(MKDOCS_SERVE_PORT):$(MKDOCS_SERVE_PORT) \
 		-v ${PWD}:/docs \
 		--entrypoint sh $(MKDOCS_IMAGE) \
-		-c 'mkdocs serve --livereload -s --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
+		-c 'mkdocs serve --livereload --dirtyreload --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
 
 # k3d/generate-user-keys will generate seed user ssh keys that can be used for local testing
 SEED_USERS = guest reporter developer maintainer owner orguser orgviewer orgadmin orgowner platformorgowner platformviewer platformowner
