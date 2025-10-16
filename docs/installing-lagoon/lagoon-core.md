@@ -64,5 +64,4 @@ For example, if you set
    lagoonSeedPassword: password
    ```
 then you can log in with username "test@example.com" and password "password".
-Otherwise, users can be created via direct interaction with the [GraphQL API](/interacting/graphql-queries/) or using the [Lagoon CLI](/installing-lagoon/lagoon-cli/). 
-
+Otherwise, users can be created via direct interaction with the [GraphQL API](../interacting/graphql-queries.md) or using the [Lagoon CLI](lagoon-cli.md). 
