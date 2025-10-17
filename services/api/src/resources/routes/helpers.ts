@@ -29,8 +29,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       Sql.selectRoutesByDomainAndEnvironmentID(domain, environmentId)
     )
     if (routes.length == 0) {
-      logger.error(`Route doesn't exist on this environment`)
-      return null
+      throw new Error(`Route doesn't exist on this environment`);
     }
     const route = routes[0]
     await query(
