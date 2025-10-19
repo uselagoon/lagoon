@@ -303,7 +303,7 @@ Use build vars when you want to set an env var that is valid at buildtime, but o
 
 Build vars can be set for a deployment using the [Lagoon CLI](https://uselagoon.github.io/lagoon-cli/) or the [Lagoon API](../interacting/graphql.md).
 
-An example use case would be disabling [post rollout tasks](../concepts-basics/lagoon-yml.md#post-rollout-tasks-post_rolloutirun), but only for a single deployment:
+An example use case would be disabling [post rollout tasks](../concepts-basics/lagoon-yml.md#post-rollout-tasks), but only for a single deployment:
 
 === "Lagoon CLI"
 
