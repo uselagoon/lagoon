@@ -463,15 +463,15 @@ export const updateRestore: ResolverFn = async (
   const backupData = R.prop(0, rows);
 
   const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
-  const project = await projectHelpers(sqlClientPool).getProjectById(environmentData.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environmentData[0].project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);
 
   const auditLog: AuditLog = {
     resource: {
-      id: environmentData.id.toString(),
+      id: environmentData[0].id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: environmentData.name,
+      details: environmentData[0].name,
     },
     linkedResource: {
       id: backupData.id.toString(),
