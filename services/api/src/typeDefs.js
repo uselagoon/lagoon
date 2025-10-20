@@ -897,6 +897,15 @@ const typeDefs = gql`
     openshiftProjectPattern: String @deprecated(reason: "No longer in use")
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String @deprecated(reason: "No longer in use")
+    """
+    Pending changes tell us if we need to redeploy an environment
+    """
+    pendingChanges: [EnvironmentPendingChanges]
+  }
+
+  type EnvironmentPendingChanges {
+    type: String
+    details: String
   }
 
   type EnvironmentHitsMonth {
@@ -1005,6 +1014,7 @@ const typeDefs = gql`
     scope: String
     name: String
     value: String
+    updated: String
   }
 
   type Task {
