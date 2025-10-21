@@ -396,6 +396,7 @@ export const addFactsByName: ResolverFn = async (
   );
 
   let projectData = await projectHelpers(sqlClientPool).getProjectById(lagoonProject);
+  let environmentData = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, lagoonProject);
 
   const auditLog: AuditLog = {
     resource: {
@@ -404,9 +405,9 @@ export const addFactsByName: ResolverFn = async (
       details: projectData.name,
     },
     linkedResource: {
-      id: environment.id.toString(),
+      id: environmentData[0].id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: environmentData[0].name,
     },
   };
   if (projectData.organization) {
