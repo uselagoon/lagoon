@@ -1,0 +1,125 @@
+name: Docker Scout for API image
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'docker-scout'
+    paths:
+      - 'yarn.lock'
+      - 'services/api/**'
+      - '.github/workflows/docker-scout.yml'
+  pull_request:
+    branches:
+      - 'main'
+      - 'docker-scout'
+    paths:
+      - 'yarn.lock'
+      - 'services/api/**'
+      - '.github/workflows/docker-scout.yml'
+
+# Security: Restrict permissions to minimum required
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    # Security: Add timeout to prevent runaway jobs
+    timeout-minutes: 30
+    steps:
+      -
+        name: Checkout PR
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          fetch-depth: "0"
+          ref: ${{ github.event.pull_request.head.sha }}
+      -
+        name: Checkout Branch or Tag
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          fetch-depth: "0"
+
+      # Performance: Add Docker layer caching
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: |
+            network=host
+
+      # Performance: Cache Docker layers
+      -
+        name: Cache Docker layers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-api-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-api-
+
+      # Security: Use OIDC token instead of username/password if possible
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Performance: Build with cache mounts and optimized settings
+      -
+        name: Build API image with Docker Bake
+        uses: docker/bake-action@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        with:
+          files: docker-bake.hcl
+          targets: api
+          push: false
+          load: true
+          set: |
+            *.cache-from=type=local,src=/tmp/.buildx-cache
+            *.cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max
+        env:
+          IMAGE_REPO: lagoon
+          TAG: ci-latest
+
+      # Performance: Move cache to prevent unbounded growth
+      -
+        name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      # Security: Enhanced Docker Scout with SARIF output
+      -
+        name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
+        with:
+          command: compare
+          image: lagoon/api:ci-latest
+          to: docker.io/testlagoon/api:main
+          ignore-unchanged: true
+          only-severities: critical,high
+          write-comment: true
+          sarif-file: scout-report.sarif
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Security: Upload SARIF results to GitHub Security tab
+      # -
+      #   name: Upload SARIF results
+      #   uses: github/codeql-action/upload-sarif@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.30.5
+      #   if: always()
+      #   with:
+      #     sarif_file: scout-report.sarif
+
+      # Performance: Clean up Docker images to save space
+      -
+        name: Clean up Docker images
+        if: always()
+        run: |
+          docker image prune -f
+          docker buildx prune -f
