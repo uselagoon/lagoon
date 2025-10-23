@@ -2618,9 +2618,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lagoonyml-production_routes" class="md-nav__link">
+  <a href="#project-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      .lagoon.yml - production_routes
+      Project Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Routes
     </span>
   </a>
   
@@ -2634,40 +2643,16 @@
         <li class="md-nav__item">
   <a href="#triggering-a-switch-event" class="md-nav__link">
     <span class="md-ellipsis">
-      Triggering a switch event
+      Triggering a Switch Event
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Triggering a switch event">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#via-the-ui" class="md-nav__link">
-    <span class="md-ellipsis">
-      via the UI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#via-the-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      via the API
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#drush-aliases" class="md-nav__link">
+  <a href="#workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      drush aliases
+      Workflow
     </span>
   </a>
   
@@ -5098,9 +5083,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lagoonyml-production_routes" class="md-nav__link">
+  <a href="#project-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      .lagoon.yml - production_routes
+      Project Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Routes
     </span>
   </a>
   
@@ -5114,40 +5108,16 @@
         <li class="md-nav__item">
   <a href="#triggering-a-switch-event" class="md-nav__link">
     <span class="md-ellipsis">
-      Triggering a switch event
+      Triggering a Switch Event
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Triggering a switch event">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#via-the-ui" class="md-nav__link">
-    <span class="md-ellipsis">
-      via the UI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#via-the-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      via the API
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#drush-aliases" class="md-nav__link">
+  <a href="#workflow" class="md-nav__link">
     <span class="md-ellipsis">
-      drush aliases
+      Workflow
     </span>
   </a>
   
@@ -5196,164 +5166,215 @@
 
 
 <h1 id="activestandby">Active/Standby<a class="headerlink" href="#activestandby" title="Permanent link">#</a></h1>
+<p>Lagoon supports a method of deployment that switches production routes between two production environments. This reduces downtime, and provides easier rollbacks. It is more widely know in the industry as <a href="https://en.wikipedia.org/wiki/Blue%E2%80%93green_deployment">blue-green deployments</a>.</p>
+<p>For a more detailed explanation, watch our webinar:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/urq15chLvzQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
-<p>To change an existing project to support active/standby you'll need to configure some project settings with the Lagoon API.</p>
-<ul>
-<li><code>productionEnviromment</code> should be set to the branch name of the current active environment.</li>
-<li><code>standbyProductionEnvironment</code> should be set to the branch name of the current environment that is in standby.</li>
-</ul>
-<div class="language-graphql highlight"><span class="filename">Update project settings</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">updateProject</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">updateProject</span><span class="p">(</span><span class="n">input</span><span class="p">:{</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="mi">1234</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">patch</span><span class="p">:{</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="n">productionEnvironment</span><span class="p">:</span><span class="s">&quot;production-brancha&quot;</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="n">standbyProductionEnvironment</span><span class="p">:</span><span class="s">&quot;production-branchb&quot;</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">}){</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="n">name</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="n">productionEnvironment</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">}</span>
+<p>Configuring a project to use active/standby can be done in a few steps. You should have already <a href="../../using-lagoon-the-basics/setup-project/">set up a new project</a> and <a href="../../using-lagoon-the-basics/first-deployment/">deployed the first production environment</a>.</p>
+<h3 id="project-settings">Project Settings<a class="headerlink" href="#project-settings" title="Permanent link">#</a></h3>
+<p>Your existing production environment is considered the current active environment. Before creating a second production environment, set the name of standby environment you will create:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Lagoon CLI</label><label for="__tabbed_1_2">Lagoon API</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>lagoon<span class="w"> </span>update<span class="w"> </span>project<span class="w"> </span>--project<span class="w"> </span>lagoon-demo<span class="w"> </span>--standby-production-environment<span class="w"> </span>prod-right
 </span></code></pre></div>
-<h3 id="lagoonyml-production_routes"><code>.lagoon.yml</code> - <code>production_routes</code><a class="headerlink" href="#lagoonyml-production_routes" title="Permanent link">#</a></h3>
-<p>To configure a project for active/standby in the <code>.lagoon.yml</code> file, you'll need to configure the <code>production_routes</code> section with any routes you want to attach to the <code>active</code> environment, and any routes to the <code>standby</code> environment. During an active/standby switch, these routes will migrate between the two environments.</p>
-<p>If you have two production environments, <code>production-brancha</code> and <code>production-branchb</code>, with the current active production environment as <code>production-brancha</code> then:</p>
-<ul>
-<li>Routes under <code>production_routes.active</code> will direct you to <code>production-brancha</code>.</li>
-<li>Routes under <code>production_routes.standby</code> will direct you to <code>production-branchb</code>.</li>
-</ul>
-<p>During an active/standby switch, the routes will swap:</p>
-<ul>
-<li>Routes under <code>production_routes.active</code> will direct you to <code>production-branchb</code>.</li>
-<li>Routes under <code>production_routes.standby</code> will direct you to <code>production-brancha</code>.</li>
-</ul>
-<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">production_routes</span><span class="p">:</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">active</span><span class="p">:</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">example.com</span><span class="p">:</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;false&#39;</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">active.example.com</span><span class="p">:</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;false&#39;</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">standby.example.com</span><span class="p">:</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">            </span><span class="nt">tls-acme</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;false&#39;</span>
-</span></code></pre></div>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p>Any routes that are under the section <code>environments..routes</code> will not be moved as part of active/standby. These routes will always be attached to the environment as defined. Ensure that if you do need a specific route to be migrated during an active/standby switch, that you remove them from the environments section and place them under the <code>production_routes</code> section specific to if it should be an active or standby route. <a href="../../concepts-basics/lagoon-yml/#routes">See more about routes in <code>.lagoon.yml</code>.</a></p>
 </div>
-<h2 id="triggering-a-switch-event">Triggering a switch event<a class="headerlink" href="#triggering-a-switch-event" title="Permanent link">#</a></h2>
-<h3 id="via-the-ui">via the UI<a class="headerlink" href="#via-the-ui" title="Permanent link">#</a></h3>
-<p>To trigger the switching of environment routes, you can visit the standby environment in the Lagoon UI and click on the button labeled <code>Switch Active/Standby environments</code>. You will be prompted to confirm your action.</p>
-<p>Once confirmed, it will take you to the tasks page where you can view the progress of the switch.</p>
-<h3 id="via-the-api">via the API<a class="headerlink" href="#via-the-api" title="Permanent link">#</a></h3>
-<p>To trigger an event to switch the environments, run the following GraphQL mutation. This will tell Lagoon to begin the process.</p>
-<div class="language-graphql highlight"><span class="filename">Active Standby Switch</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">ActiveStandby</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">switchActiveStandby</span><span class="p">(</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">input</span><span class="p">:{</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="n">project</span><span class="p">:{</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="n">name</span><span class="p">:</span><span class="s">&quot;drupal-example&quot;</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="p">}</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="p">){</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="n">id</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="n">remoteId</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">}</span>
+<div class="tabbed-block">
+<div class="language-graphql highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">updateProject</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">updateProject</span><span class="p">(</span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">patch</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="n">standbyProductionEnvironment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod-right&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="p">}){</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="n">name</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="n">productionEnvironment</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>A task is created in the current active environment <code>tasks</code> tab when a switch event is triggered. You can check the status of the switch here.</p>
-<p>Using the <code>remoteId</code> from the <code>switchActiveStandby</code> mutation, we can also check the status of the task.</p>
-<div class="language-graphql highlight"><span class="filename">Check task status</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">query</span><span class="w"> </span><span class="nf">getTask</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">taskByRemoteId</span><span class="p">(</span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;remoteId&gt;&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">id</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">name</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">created</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">started</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="n">completed</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="n">status</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="n">logs</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="p">}</span>
+</div>
+</div>
+</div>
+<h3 id="routes">Routes<a class="headerlink" href="#routes" title="Permanent link">#</a></h3>
+<p>Routes are configured in the <code>.lagoon.yml</code> file, and by default are tied to a specific environment. Lagoon also supports production <code>active</code> and <code>standby</code> routes which always point to the respective active and standby environments. These routes are configured using the <code>production_routes</code> section in your <code>.lagoon.yml</code>.</p>
+<p>An example of defining both <code>active</code> and <code>standby</code> routes is below. If <code>standby</code> routes are not needed, the section can be ommitted. For all route configuration options, see the <a href="http://localhost:8000/concepts-basics/lagoon-yml/#environment-routes">routes documentation for <code>.lagoon.yml</code></a>.</p>
+<div class="language-yaml highlight"><span class="filename">.lagoon.yml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">production_routes</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">active</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">www.example.com</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">nginx</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">standby.example.com</span>
 </span></code></pre></div>
-<h2 id="drush-aliases"><code>drush</code> aliases<a class="headerlink" href="#drush-aliases" title="Permanent link">#</a></h2>
-<p>By default, projects will be created with the following aliases that will be available when active/standby is enabled on a project.</p>
-<ul>
-<li><code>lagoon-production</code></li>
-<li><code>lagoon-standby</code></li>
-</ul>
-<p>The <code>lagoon-production</code> alias will point to whichever site is defined as <code>productionEnvironment</code>, and <code>lagoon-standby</code> will always point to the site that is defined as <code>standbyProductionEnvironment</code>.</p>
-<p>These aliases are configurable by updating the project. Be aware that changing them may require you to update any scripts that rely on them.</p>
-<div class="language-graphql highlight"><span class="filename">Update Drush Aliases</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">updateProject</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">updateProject</span><span class="p">(</span><span class="n">input</span><span class="p">:{</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="mi">1234</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">patch</span><span class="p">:{</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="n">productionAlias</span><span class="p">:</span><span class="s">&quot;custom-lagoon-production-alias&quot;</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="n">standbyAlias</span><span class="p">:</span><span class="s">&quot;custom-lagoon-standby-alias&quot;</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="p">}){</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="n">productionAlias</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="n">name</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="n">standbyAlias</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">}</span>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Routes can only be switched between services with the same name. If you define an <code>active</code> route on an <code>api</code> service, you must have a service named <code>api</code> in both active and standby environments. It doesn't matter what container the service is running, as long as they share the service name.</p>
+</div>
+<p>Only the routes in the <code>production_routes</code> section are moved as part of an active/standby deployment, so make sure that if any <code>active</code> or <code>standby</code> routes were previously configured for a specific environment, to remove them from the <code>environments.{name}.routes</code> section of <code>.lagoon.yml</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Remember to commit your <code>.lagoon.yml</code> changes to both production branches.</p>
+</div>
+<p>Deploy your <code>.lagoon.yml</code> changes to the active environment. Now create the standby environment:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Lagoon Dashboard</label><label for="__tabbed_2_2">Lagoon CLI</label><label for="__tabbed_2_3">Lagoon API</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Visit the project page and click the <code>New Environment</code> button.</p>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>lagoon<span class="w"> </span>deploy<span class="w"> </span>branch<span class="w"> </span>--project<span class="w"> </span>lagoon-demo<span class="w"> </span>--branch<span class="w"> </span>prod-right
 </span></code></pre></div>
-<h2 id="disabling-activestandby">Disabling Active/Standby<a class="headerlink" href="#disabling-activestandby" title="Permanent link">#</a></h2>
-<p>You need to decide which of these 2 branches are the one you want to go forward with as being the main environment and then ensure it is set as the active branch (e.g <code>production-branchb</code>).</p>
+</div>
+<div class="tabbed-block">
+<div class="language-graphql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">mutation</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">deployEnvironmentBranch</span><span class="p">(</span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">branchName</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod-right&quot;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">project</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;lagoon-demo&quot;</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="p">})</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="triggering-a-switch-event">Triggering a Switch Event<a class="headerlink" href="#triggering-a-switch-event" title="Permanent link">#</a></h2>
+<p>In order to keep downtime as short as possible, the process of switching does as little work as possible. It will verify some environment settings, move the routes between environments, and then update the Lagoon API to mark which environments are now active and standby. It does not perform any other deployment related steps like pre/post rollout tasks, or update environment variables.</p>
+<p>Trigger a switch from the standby environment:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Lagoon Dashboard</label><label for="__tabbed_3_2">Lagoon CLI</label><label for="__tabbed_3_3">Lagoon API</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Visit the standby environment page and click the <code>Switch Active/Standby environments</code> button. You will be prompted to confirm your action.</p>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>lagoon<span class="w"> </span>run<span class="w"> </span>activestandby<span class="w"> </span>--project<span class="w"> </span>lagoon-demo
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-graphql highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">mutation</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">switchActiveStandby</span><span class="p">(</span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">project</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;lagoon-demo&quot;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="p">})</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="n">id</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="n">remoteId</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>A new task will be created in the current standby environment, which can be followed to track the status of the switch:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Lagoon Dashboard</label><label for="__tabbed_4_2">Lagoon CLI</label><label for="__tabbed_4_3">Lagoon API</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Visit the standby environment tasks page and check the latest <code>Active/Standby Switch</code> task.</p>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>lagoon<span class="w"> </span>list<span class="w"> </span>tasks<span class="w"> </span>--project<span class="w"> </span>lagoon-demo<span class="w"> </span>--environment<span class="w"> </span>prod-right
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>lagoon<span class="w"> </span>get<span class="w"> </span>task-by-id<span class="w"> </span>--id<span class="w"> </span><span class="m">1234</span><span class="w"> </span>--logs
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-graphql highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">query</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">taskById</span><span class="p">(</span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="n">id</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="n">name</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="n">created</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="n">started</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="n">completed</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="n">status</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="n">logs</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If your application depends on env vars that would be changed during a deployment after an active/standby switch, you will need remove the dependency on those variables or manually run a deployment after the active/standby switch completes.</p>
+<p>For example, the <code>LAGOON_ROUTES</code> env var will not change, so the standby environment would still have the active routes listed even though it is now pointing at the new active environment instead. Running a deployment resets <code>LAGOON_ROUTES</code> to contain the correct routes.</p>
+</div>
+<h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">#</a></h2>
+<p>An example of a full active/standby deployment might look like the following:</p>
 <ol>
-<li>In your <code>.lagoon.yml</code> file in this (now active) branch, move the routes from the <code>production_routes.active.routes</code> section into the <code>environments.production-branchb</code> section. This will mean that they are then attached to the <code>production-branchb environment</code> only.</li>
-<li>Once you've done this, you can delete the entire production_routes section from the <code>.lagoon.yml</code> file and re-deploy the production-branchb environment.</li>
-<li>If you no longer need the other branch <code>production-brancha</code>, you can delete it.</li>
-<li>If you keep the branch in Git, you should also remove the <code>production_routes</code> from that branch <code>.lagoon.yml</code> too, just to prevent any confusion. The branch will remain as <code>production</code> type unless you delete and redeploy it (wiping all storage and databases, etc).</li>
-<li>Once you've got the project in a state where there is only the <code>production-branchb</code> production environment, and all the other environments are <code>development</code>, update the project to remove the <code>standbyProductionEnvironment</code> from the project so that the active/standby labels on the environments go away.</li>
+<li>Current active production environment is <code>prod-left</code> and standby environment is <code>prod-right</code></li>
+<li>Developers use <code>development</code> and <code>pr</code> environments to test new features and bug fixes</li>
+<li>
+<p>A new release is ready to deploy</p>
+<ol>
+<li>All new code is committed to the <code>prod-right</code> branch and a new deployment is triggered for the standby environment <code>prod-right</code></li>
+<li>The latest database and files are synced from the active environment, <code>prod-left</code></li>
+<li>Developers verify the standby environment is ready using the standby route <code>standby.example.com</code></li>
 </ol>
-<div class="language-graphql highlight"><span class="filename">Turn off Active/Standby</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">mutation</span><span class="w"> </span><span class="nf">updateProject</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">updateProject</span><span class="p">(</span><span class="n">input</span><span class="p">:{</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="mi">1234</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">patch</span><span class="p">:{</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="n">productionEnvironment</span><span class="p">:</span><span class="s">&quot;production-branchb&quot;</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="n">standbyProductionEnvironment</span><span class="p">:</span><span class="s">&quot;&quot;</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="p">}){</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="n">name</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="n">productionEnvironment</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="p">}</span>
+</li>
+<li>
+<p>Active/Standby is triggered to switch production traffic from <code>prod-left</code> to <code>prod-right</code></p>
+</li>
+<li>If there are no issues, the process starts over with the current active production environment now being <code>prod-right</code></li>
+<li>If there were issues, active/standby is triggered again to revert production traffic back to <code>prod-left</code></li>
+</ol>
+<h2 id="disabling-activestandby">Disabling Active/Standby<a class="headerlink" href="#disabling-activestandby" title="Permanent link">#</a></h2>
+<p>The current active production environment will become the only production environment. If the standby production environment is the one you want to keep, perform an active/standby switch so that it becomes the active environment.</p>
+<p>Before deleting the standby environment, disable active/standby. The steps are a reverse of what was done to setup active/standby.</p>
+<ol>
+<li>In your <code>.lagoon.yml</code> file in this (now active) branch, move the routes from the <code>production_routes.active.routes</code> section into the <code>environments.{name}.routes</code> section. This will make them attached to the environment directly. The <code>production_routes</code> section can be deleted, and any <code>standby</code> routes discarded. Deploy these changes to the active environment.</li>
+<li>Delete the standby environment.</li>
+<li>Update the project to remove the standby production environment name:</li>
+</ol>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Lagoon API</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-graphql highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">mutation</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="n">updateProject</span><span class="p">(</span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="n">patch</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">      </span><span class="n">standbyProductionEnvironment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="p">}){</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">    </span><span class="n">name</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="n">productionEnvironment</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="p">}</span>
 </span></code></pre></div>
+</div>
+</div>
+</div>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
 <p>When the active/standby trigger has been executed, the <code>productionEnvironment</code> and <code>standbyProductionEnvironments</code> will switch within the Lagoon API. Both environments are still classed as <code>production</code> environment types. We use the <code>productionEnvironment</code> to determine which one is labelled as <code>active</code>. For more information on the differences between environment types, read the <a href="../../concepts-advanced/environment-types/">documentation for <code>environment types</code></a></p>
-<div class="language-graphql highlight"><span class="filename">Get environments via GraphQL</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">query</span><span class="w"> </span><span class="nf">projectByName</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">projectByName</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="s">&quot;drupal-example&quot;</span><span class="p">){</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">productionEnvironment</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">}</span>
+<div class="language-graphql highlight"><span class="filename">Get environments via GraphQL</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">query</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">projectByName</span><span class="p">(</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;lagoon-demo&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="n">productionEnvironment</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="n">standbyProductionEnvironment</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Before switching environments:</p>
-<div class="language-graphql highlight"><span class="filename">Results of environment query</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="err">&quot;</span><span class="n">data</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="err">&quot;</span><span class="n">projectByName</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">productionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">production</span><span class="err">-</span><span class="n">brancha</span><span class="err">&quot;</span><span class="p">,</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">standbyProductionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">production</span><span class="err">-</span><span class="n">branchb</span><span class="err">&quot;</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">}</span>
+<div class="language-graphql highlight"><span class="filename">Results of environment query</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="err">&quot;</span><span class="n">data</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="err">&quot;</span><span class="n">projectByName</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">productionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">prod</span><span class="err">-</span><span class="n">left</span><span class="err">&quot;</span><span class="p">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">standbyProductionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">prod</span><span class="err">-</span><span class="n">right</span><span class="err">&quot;</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>After switching environments:</p>
-<div class="language-graphql highlight"><span class="filename">Results of environment query</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="err">&quot;</span><span class="n">data</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="err">&quot;</span><span class="n">projectByName</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">productionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">production</span><span class="err">-</span><span class="n">branchb</span><span class="err">&quot;</span><span class="p">,</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">standbyProductionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">production</span><span class="err">-</span><span class="n">brancha</span><span class="err">&quot;</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">}</span>
+<div class="language-graphql highlight"><span class="filename">Results of environment query</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="err">&quot;</span><span class="n">data</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="err">&quot;</span><span class="n">projectByName</span><span class="err">&quot;:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">productionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">prod</span><span class="err">-</span><span class="n">right</span><span class="err">&quot;</span><span class="p">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">      </span><span class="err">&quot;</span><span class="n">standbyProductionEnvironment</span><span class="err">&quot;:</span><span class="w"> </span><span class="err">&quot;</span><span class="n">prod</span><span class="err">-</span><span class="n">left</span><span class="err">&quot;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="p">}</span>
 </span></code></pre></div>
 
 
