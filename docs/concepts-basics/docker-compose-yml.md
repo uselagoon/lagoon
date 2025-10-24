@@ -417,7 +417,7 @@ If your `docker-compose.yml` contains one or more of this (or similar) code bloc
 ...
 ```
 
-The corrected version combines both aliases into a single mapping key - you'll need to remedy all occurrances.
+The corrected version combines both aliases into a single mapping key - you'll need to remedy all occurrences.
 
 ``` yaml title="Docker Compose correct insertion of multiple alias mapping keys"
 ...

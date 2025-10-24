@@ -20,7 +20,7 @@ Similar to the platform-wide owner, except this role can only view.
 
 #### Platform-Wide Organization Owner
 
-The platform-wide organization owner role provides permission to create, update, delete, and all other permissions related to changes withing an organization, including existing organizations. It does not grant full platform-wide owner access, this means the ability to access and deploy projects still needs to be granted via a group within an organization.
+The platform-wide organization owner role provides permission to create, update, delete, and all other permissions related to changes within an organization, including existing organizations. It does not grant full platform-wide owner access, this means the ability to access and deploy projects still needs to be granted via a group within an organization.
 
 This role also has the ability to view all the deploytargets (kubernetes clusters) assigned to Lagoon so that they can be assigned to an organization when it is being created.
 
