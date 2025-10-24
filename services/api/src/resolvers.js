@@ -130,6 +130,10 @@ const {
 } = require('./resources/environment/resolvers');
 
 const {
+  getPendingChangesByEnvironmentId,
+} = require('./resources/environment/environment_redeploy')
+
+const {
   getDeployTargetConfigById,
   getDeployTargetConfigsByProjectId,
   getDeployTargetConfigsByDeployTarget,
@@ -522,6 +526,7 @@ async function getResolvers() {
       facts: getFactsByEnvironmentId,
       openshift: getOpenshiftByEnvironmentId,
       kubernetes: getOpenshiftByEnvironmentId,
+      pendingChanges: getPendingChangesByEnvironmentId,
     },
     Organization: {
       groups: getGroupsByOrganizationId,
