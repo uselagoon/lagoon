@@ -677,6 +677,10 @@ export const addRouteAlternativeDomains: ResolverFn = async (
       if (!isDNS1123Subdomain(d)) {
         throw Error(`'${d}' is not a valid domain`)
       }
+      const combinedAltDomainCount = exists2.length + alternativeNames.length
+      if (combinedAltDomainCount >= 25) {
+        throw Error(`Limit of 25 alternative domains, consider removing some from this route, or create a new route`)
+      }
     }
   }
 

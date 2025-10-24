@@ -2,8 +2,6 @@ import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 
-import { logger } from '../../loggers/logger';
-
 export const Helpers = (sqlClientPool: Pool) => {
   const removeAllRoutesFromEnvironment = async (environmentId: number) => {
     await query(
@@ -46,6 +44,12 @@ export const Helpers = (sqlClientPool: Pool) => {
     if (exists) {
       throw new Error(`Annotation already exists on route`);
     } else {
+      const combinedAnnotationCount = exists.length + 1
+      // arbitrary limit of 10 annotations, maybe this should be less?
+      // would prefer that annotations done this way weren't a thing, but here we are
+      if (combinedAnnotationCount >= 10) {
+        throw Error(`Limit of 10 annotations per route`)
+      }
       await query(
         sqlClientPool,
         Sql.insertRouteAnnotation({routeId, key, value})
@@ -60,6 +64,12 @@ export const Helpers = (sqlClientPool: Pool) => {
       );
       if (exists) {
         throw new Error(`Annotation already exists on route`);
+      }
+      const combinedAnnotationCount = exists.length + annotations.length
+      // arbitrary limit of 10 annotations, maybe this should be less?
+      // would prefer that annotations done this way weren't a thing, but here we are
+      if (combinedAnnotationCount >= 10) {
+        throw Error(`Limit of 10 annotations per route`)
       }
     }
     for(const annotation of annotations) {
@@ -102,7 +112,10 @@ export function addServicePathRoute(
   const exists = pathRoutes.some(
     (a) => a.toService === newToService && a.path === newPath
   );
-
+  const combinedPathRoutesCount = pathRoutes.length + 1
+  if (combinedPathRoutesCount >= 10) {
+    throw Error(`Limit of 10 path rotues, consider removing some from this route`)
+  }
   if (!exists) {
     return [...pathRoutes, { toService: newToService, path: newPath }];
   }
