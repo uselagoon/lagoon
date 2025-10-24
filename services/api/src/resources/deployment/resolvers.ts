@@ -25,7 +25,7 @@ import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
-import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { generateBuildId, variableOnlyBuild } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
@@ -780,6 +780,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = variableOnlyBuild();
+  }
+
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   let deployData: DeployData;
   let meta: {

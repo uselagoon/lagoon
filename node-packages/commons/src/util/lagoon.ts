@@ -4,6 +4,9 @@ import { EnvKeyValue } from '../api';
 export const generateBuildId = () =>
   `lagoon-build-${Math.random().toString(36).substring(7)}`;
 
+export const variableOnlyBuild = () =>
+  `lagoon-variables-${Math.random().toString(36).substring(7)}`;
+
 export const generateTaskName = () =>
   `lagoon-task-${Math.random().toString(36).substring(7)}`;
 
