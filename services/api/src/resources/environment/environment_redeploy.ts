@@ -63,7 +63,7 @@ const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
   // Filter in memory for env vars updated after last deployment
   const pendingChanges = results.filter(row => {
     const updated = new Date(row.updated);
-    const lastDeployment = new Date(row.last_deployment);
+    const lastDeployment = new Date(row.lastDeployment);
     return updated > lastDeployment;
   }).map(row => {
     return {type:`Environment Variable - ${row.varsource} level`, details: row.name};
