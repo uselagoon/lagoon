@@ -1,0 +1,16 @@
+{
+    "data": {
+        "addOrUpdateEnvironment": {
+            "autoIdle": 1,
+            "deployType": "pullrequest",
+            "envVariables": [],
+            "environmentType": "development",
+            "id": 11,
+            "name": "pr-2",
+            "openshiftProjectName": "demo-project1-pr-2",
+            "project": {
+                "name": "demo-project1"
+            }
+        }
+    }
+}
