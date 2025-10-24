@@ -1347,6 +1347,33 @@
                 "name": "update"
               }
             ]
+          },
+          {
+            "name": "route",
+            "ownerManagedAccess": false,
+            "displayName": "route",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "view"
+              },
+              {
+                "name": "update"
+              },
+              {
+                "name": "add:environment"
+              },
+              {
+                "name": "remove:environment"
+              },
+              {
+                "name": "delete"
+              }
+            ]
           }
         ],
         "policies": [
@@ -2675,6 +2702,72 @@
               "scopes": "[\"add\"]",
               "applyPolicies": "[\"Default Policy\"]"
             }
+          },
+          {
+            "name": "Add Route to Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"add\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Update Route on Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Add Route to Environment in Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"add:environment\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Remove Route from Environment in Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"remove:environment\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Delete Route from Project",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"delete\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "View Project Rotues",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"route\"]",
+              "scopes": "[\"view\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
           }
         ],
         "scopes": [
@@ -2932,6 +3025,12 @@
           },
           {
             "name": "viewEnvVar"
+          },
+          {
+            "name": "remove:environment"
+          },
+          {
+            "name": "add:environment"
           }
         ],
         "decisionStrategy": "UNANIMOUS"

@@ -84,6 +84,8 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 				}
 				return err
 			}
+			// if the project has API defined routes, handle updating those here
+			updateActiveStandbyRoutes(l, message.Meta.Project, *updateProject.ProductionEnvironment, *updateProject.StandbyProductionEnvironment, prefix)
 			log.Printf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success")
 		}
 	}
@@ -119,4 +121,82 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	}
 	log.Printf("%supdated task: %s", prefix, message.Meta.JobStatus)
 	return nil
+}
+
+/*
+these will need to be added to machinery at some point
+for now they're defined here and adding or extending to existing schema
+*/
+type Project struct {
+	schema.Project
+	// @TODO: add to machinery
+	APIRoutes []Route `json:"apiRoutes"`
+}
+
+// @TODO: add to machinery
+type Route struct {
+	Domain     string              `json:"domain"`
+	Service    string              `json:"service"`
+	Enviroment *schema.Environment `json:"environment"`
+	Type       string              `json:"type"`
+}
+
+/*
+updateActiveStandbyRoutes will update routes in the project according to the result
+of the active/standby switch, it calls updateRouteType accordingly
+*/
+func updateActiveStandbyRoutes(l *lclient.Client, project, prod, standby, prefix string) {
+	// get routes of the project
+	raw := fmt.Sprintf(`query pbn{
+		projectByName(name:"%s"){
+			id
+			apiRoutes{
+				domain
+				service
+				environment{
+					name
+				}
+				type
+			}
+		}
+	}`, project)
+	rawResp, err := l.ProcessRaw(context.TODO(), raw, nil)
+	if err != nil {
+		log.Printf("%sERROR: unable to update task: %v", prefix, err)
+		return
+	}
+	var p Project
+	d, _ := json.Marshal(rawResp.(map[string]interface{})["projectByName"])
+	json.Unmarshal(d, &p)
+	for _, route := range p.APIRoutes {
+		// only patch routes with an environment attached
+		if route.Type == "ACTIVE" && route.Enviroment != nil {
+			updateRouteType(l, route, prod, project, prefix)
+		}
+		if route.Type == "STANDBY" && route.Enviroment != nil {
+			updateRouteType(l, route, standby, project, prefix)
+		}
+	}
+}
+
+/*
+updateRouteType will just update which environment the route is attached to
+based on the result of the active/standby task completion
+*/
+func updateRouteType(l *lclient.Client, route Route, env, project, prefix string) {
+	raw := fmt.Sprintf(`mutation moveRoute{
+	activeStandbyRouteMove(
+		input:{
+			domain: "%s"
+			environment: "%s"
+			project: "%s"
+		}){
+			id
+		}
+	}`, route.Domain, env, project)
+	_, err := l.ProcessRaw(context.TODO(), raw, nil)
+	if err != nil {
+		log.Printf("%sERROR: unable to update task: %v", prefix, err)
+		return
+	}
 }

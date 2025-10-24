@@ -1,0 +1,23 @@
+---
+- ansible.builtin.import_playbook: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- ansible.builtin.import_playbook: api/add-project.yaml
+  vars:
+    testname: "APIROUTES {{ cluster_type|upper }}"
+    project: ci-api-routes-{{ cluster_type }}
+    git_repo_name: nginx.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- ansible.builtin.import_playbook: api-routes/api-routes.yaml
+  vars:
+    testname: "APIROUTES {{ cluster_type|upper }}"
+    git_repo_name: nginx.git
+    project: ci-api-routes-{{ cluster_type }}
+    branch: api-route
+
+- ansible.builtin.import_playbook: api/delete-project.yaml
+  vars:
+    testname: "APIROUTES {{ cluster_type|upper }}"
+    project: ci-api-routes-{{ cluster_type }}

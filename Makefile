@@ -51,7 +51,7 @@ UPSTREAM_TAG ?= latest
 # latest is the most current release
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_REPO = uselagoon/build-deploy-image
-BUILD_DEPLOY_IMAGE_TAG ?= edge
+BUILD_DEPLOY_IMAGE_TAG ?= pr-464
 
 # UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
 # only works for installations where INSTALL_STABLE_CORE=false
@@ -462,7 +462,7 @@ JWT_VERSION = 6.2.0
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
-TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
+TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
 CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts

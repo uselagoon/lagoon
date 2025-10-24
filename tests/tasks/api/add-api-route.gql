@@ -1,0 +1,22 @@
+mutation addRouteToProject {
+  addRouteToProject(
+    input: {
+      project: "{{ project }}"
+      environment: "{{ branch }}"
+      domain: "{{ domain }}"
+      service: "{{ service }}"
+    }
+  ) {
+    id
+    project {
+      name
+    }
+    environment {
+      name
+    }
+    domain
+    service
+    updated
+    created
+  }
+}
