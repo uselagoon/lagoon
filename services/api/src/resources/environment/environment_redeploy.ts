@@ -35,26 +35,62 @@ _,
 
 const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
       const sql = `
-select e.id as env_id, e.name as env_name, ev.name as envvar_name, ev.updated as envvar_updated,
-  COALESCE(
-    IF(ev.environment IS NULL,NULL,'Environment'),
-      IF(ev.project IS NULL,NULL,'Project'),
-      IF(ev.organization IS NULL,NULL,'Organization')
-      ) as envvar_source
-FROM environment as e
-INNER JOIN project as p ON p.id = e.project
-LEFT JOIN organization as o ON o.id = p.organization
-LEFT JOIN env_vars as ev ON (
-   ev.environment = e.id OR
-   ev.project = p.id OR
-   ev.organization = o.id
+WITH last_completed AS (
+  SELECT COALESCE(MAX(d.completed), TIMESTAMP('1970-01-01 00:00:00')) AS ts
+  FROM deployment d
+  WHERE d.environment = ? AND d.status = 'complete'
 )
-WHERE ev.name IS NOT NULL AND e.id = ?
-AND ev.updated > (select coalesce(max(completed), '0000-00-00 00:00:00') from deployment where environment = ? and status = ?)
-ORDER BY ev.updated desc
+SELECT *
+FROM (
+  -- Environment-scoped
+  SELECT
+    e.id   AS env_id,
+    e.name AS env_name,
+    ev.name AS envvar_name,
+    ev.updated AS envvar_updated,
+    'Environment' AS envvar_source
+  FROM environment e
+  JOIN env_vars ev ON ev.environment = e.id
+  CROSS JOIN last_completed lc
+  WHERE e.id = ?
+    AND ev.name IS NOT NULL
+    AND ev.updated > lc.ts
+
+  UNION ALL
+
+  -- Project-scoped
+  SELECT
+    e.id, e.name,
+    ev.name, ev.updated,
+    'Project' AS envvar_source
+  FROM environment e
+  JOIN project p   ON p.id = e.project
+  JOIN env_vars ev ON ev.project = p.id
+  CROSS JOIN last_completed lc
+  WHERE e.id = ?
+    AND ev.name IS NOT NULL
+    AND ev.updated > lc.ts
+
+  UNION ALL
+
+  -- Organization-scoped
+  SELECT
+    e.id, e.name,
+    ev.name, ev.updated,
+    'Organization' AS envvar_source
+  FROM environment e
+  JOIN project p        ON p.id = e.project
+  JOIN organization o   ON o.id = p.organization
+  JOIN env_vars ev      ON ev.organization = o.id
+  CROSS JOIN last_completed lc
+  WHERE e.id = ?
+    AND ev.name IS NOT NULL
+    AND ev.updated > lc.ts
+) AS allenvs
+ORDER BY allenvs.envvar_updated DESC;
 `;
 
-  const results = await query(sqlClientPool, sql, [envId, envId, 'complete']);
+  const results = await query(sqlClientPool, sql, [envId, envId, envId, envId]);
 
   const pendingChanges = results.map(row => {
     return {type:`Environment Variable - ${row.envvarSource} level`, details: row.envvarName, date: row.envvarUpdated};
