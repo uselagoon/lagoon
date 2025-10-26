@@ -147,6 +147,11 @@ const typeDefs = gql`
     API
   }
 
+  enum DeploymentBuildType {
+    BUILD
+    VARIABLES
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -1007,6 +1012,7 @@ const typeDefs = gql`
     The source of this task from the available deplyoment trigger types
     """
     sourceType: DeploymentSourceType
+    buildType: DeploymentBuildType
   }
 
   type Insight {
@@ -1999,6 +2005,7 @@ const typeDefs = gql`
     buildStep: String
     sourceUser: String
     sourceType: DeploymentSourceType
+    buildType: DeploymentBuildType
   }
 
   input DeleteDeploymentInput {

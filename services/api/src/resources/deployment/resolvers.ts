@@ -30,7 +30,7 @@ import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeploymentBuildType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -780,9 +780,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
   if (buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
     buildName = variableOnlyBuild();
+    buildType = DeploymentBuildType.VARIABLES
   }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -805,7 +807,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
         buildVariables: buildVariables,
         sourceType: DeploymentSourceType.API,
         sourceUser: sourceUser,
-        branchName: environment.deployBaseRef
+        branchName: environment.deployBaseRef,
+        buildType: buildType
       };
       meta = {
         ...meta,

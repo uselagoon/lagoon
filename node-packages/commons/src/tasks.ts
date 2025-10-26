@@ -352,6 +352,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
     bulkId,
     bulkName,
     sourceType,
+    buildType,
   } = deployData;
 
   const buildVariables = deployData.buildVariables || [];
@@ -543,6 +544,7 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
       bulkName,
       sourceUser,
       sourceType,
+      buildType,
     );
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);

@@ -17,6 +17,11 @@ export enum DeploymentSourceType {
   WEBHOOK = 'webhook'
 }
 
+export enum DeploymentBuildType {
+  BUILD = 'build',
+  VARIABLES = 'variables'
+}
+
 export enum TaskStatusType {
   NEW = 'new',
   PENDING = 'pending',
@@ -91,6 +96,7 @@ export interface DeployData {
   sha?: string,
   sourceType: DeploymentSourceType,
   sourceUser?: string,
+  buildType?: DeploymentBuildType,
   type: DeployType;
 }
 

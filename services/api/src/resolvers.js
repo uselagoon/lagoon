@@ -402,6 +402,10 @@ async function getResolvers() {
       API: 'api',
       WEBHOOK: 'webhook'
     },
+    DeploymentBuildType: {
+      BUILD: 'build',
+      VARIABLES: 'variables'
+    },
     TaskSourceType: {
       API: 'api',
     },
