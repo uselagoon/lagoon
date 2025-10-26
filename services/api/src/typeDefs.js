@@ -906,6 +906,7 @@ const typeDefs = gql`
   type EnvironmentPendingChanges {
     type: String
     details: String
+    date: String
   }
 
   type EnvironmentHitsMonth {
