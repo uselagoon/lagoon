@@ -51,7 +51,7 @@ LEFT JOIN env_vars as ev ON (
 )
 WHERE ev.name IS NOT NULL AND e.id = ?
 AND ev.updated > (select coalesce(max(completed), '0000-00-00 00:00:00') from deployment where environment = ? and status = ?)
-ORDER BY ev.updated asc
+ORDER BY ev.updated desc
 `;
 
   const results = await query(sqlClientPool, sql, [envId, envId, 'complete']);
