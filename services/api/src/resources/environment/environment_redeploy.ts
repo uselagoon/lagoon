@@ -93,7 +93,7 @@ ORDER BY allenvs.envvar_updated DESC;
   const results = await query(sqlClientPool, sql, [envId, envId, envId, envId]);
 
   const pendingChanges = results.map(row => {
-    return {type:`Environment Variable - ${row.envvarSource} level`, details: row.envvarName, date: row.envvarUpdated};
+    return {type:`${row.envvarSource} Environment Variable`, details: `Variable name: ${row.envvarName}`, date: row.envvarUpdated};
   });
 
   return pendingChanges;
