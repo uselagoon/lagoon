@@ -264,7 +264,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * In which shell the task should be run. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. [See the example below](#example-post-rollout-tasks) to learn how to write a script with multiple lines.
 * `when`
-  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
+  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run. See [When Clause Operators](#when-clause-operators) for detailed documentation and examples.
 
 Note: If you would like to disable pre/post-rollout tasks during a deployment, you can set either of the following as [buildtime env vars](../concepts-advanced/environment-variables.md#buildtime).
 
@@ -346,6 +346,82 @@ tasks:
 ```
 
 1. Make sure to use the correct aliases for your project here.
+
+### When Clause Operators
+
+The following comparison operators are available for use in `when` clauses:
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `==` | Equal to | `LAGOON_GIT_BRANCH == "main"` |
+| `!=` | Not equal to | `LAGOON_GIT_BRANCH != "production"` |
+| `=~` | Matches regex pattern | `LAGOON_GIT_BRANCH =~ "^feature/.*"` |
+| `!~` | Does not match regex pattern | `LAGOON_GIT_BRANCH !~ "^hotfix/.*"` |
+
+#### Functions
+
+The following functions are available for handling variables safely:
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `withDefault(variable, default)` | Returns the variable value if it exists, otherwise returns the default value | `withDefault("NONEXISTENT_VAR", false) == true` |
+| `exists(variable)` | Returns true if the variable exists, false otherwise | `exists("LAGOON_GIT_BRANCH")` |
+
+#### Usage Examples
+
+```yaml title=".lagoon.yml"
+tasks:
+  post-rollout:
+    - run:
+        name: Run on main branch only
+        command: drush cim
+        service: cli
+        when: LAGOON_GIT_BRANCH == "main"
+    - run:
+        name: Skip on production
+        command: drush sql-sync @prod @self
+        service: cli
+        when: LAGOON_ENVIRONMENT_TYPE != "production"
+    - run:
+        name: Run on feature branches
+        command: ./scripts/feature-setup.sh
+        service: cli
+        when: LAGOON_GIT_BRANCH =~ "^feature/.*"
+    - run:
+        name: Skip hotfix branches
+        command: ./scripts/standard-deploy.sh
+        service: cli
+        when: LAGOON_GIT_BRANCH !~ "^hotfix/.*"
+    - run:
+        name: Run only if custom variable exists
+        command: ./scripts/custom-setup.sh
+        service: cli
+        when: exists("CUSTOM_DEPLOY_FLAG")
+    - run:
+        name: Use default value for undefined variable
+        command: echo "Debug mode enabled"
+        service: cli
+        when: withDefault("DEBUG_MODE", false) == true
+    - run:
+        name: Complex condition with default
+        command: ./scripts/conditional-task.sh
+        service: cli
+                when: withDefault("FEATURE_ENABLED", "false") == "true" && LAGOON_GIT_BRANCH == "main"
+```
+
+#### Available Variables
+
+Common Lagoon environment variables you can use in `when` clauses include:
+- `LAGOON_GIT_BRANCH`
+- `LAGOON_ENVIRONMENT_TYPE`
+- `LAGOON_PROJECT`
+- `LAGOON_ENVIRONMENT`
+
+Use the `exists()` function to check if a variable is defined, and `withDefault()` to provide fallback values for undefined variables. This prevents errors when referencing variables that may not exist in all environments.
+
+## Backup Retention
+```
+
 
 ## Backup Retention
 
