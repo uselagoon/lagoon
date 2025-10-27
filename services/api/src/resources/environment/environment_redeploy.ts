@@ -36,7 +36,7 @@ _,
 const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
       const sql = `
 WITH last_completed AS (
-  SELECT COALESCE(MAX(d.completed), TIMESTAMP('1970-01-01 00:00:00')) AS ts
+  SELECT COALESCE(MAX(d.created), TIMESTAMP('1970-01-01 00:00:00')) AS ts
   FROM deployment d
   WHERE d.environment = ? AND d.status = 'complete'
 )
