@@ -904,9 +904,13 @@ const typeDefs = gql`
   }
 
   type EnvironmentPendingChanges {
-    type: String
+    type: EnvironmentPendingChangeType
     details: String
     date: String
+  }
+
+  enum EnvironmentPendingChangeType {
+    ENVVAR
   }
 
   type EnvironmentHitsMonth {

@@ -19,6 +19,10 @@ import { RemoveData, DeployType, AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
 
+export const environmentPendingChangeTypes = {
+  ENVVAR: "ENVVAR",
+};
+
 export const getPendingChangesByEnvironmentId: ResolverFn = async(
 {
     id
@@ -93,7 +97,7 @@ ORDER BY allenvs.envvar_updated DESC;
   const results = await query(sqlClientPool, sql, [envId, envId, envId, envId]);
 
   const pendingChanges = results.map(row => {
-    return {type:`${row.envvarSource} Environment Variable`, details: `Variable name: ${row.envvarName}`, date: row.envvarUpdated};
+    return {type:environmentPendingChangeTypes.ENVVAR, details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`, date: row.envvarUpdated};
   });
 
   return pendingChanges;
