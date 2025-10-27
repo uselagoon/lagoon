@@ -116,7 +116,7 @@ tasks:
 You can reference any of the following in `when` clauses:
 
 - Default Lagoon environment variables (such as `LAGOON_GIT_BRANCH`, `LAGOON_ENVIRONMENT_TYPE`, etc.)
-- Any `BUILD` or `GLOBAL` scoped variables defined in the Lagoon API
+- Any `BUILD`, `GLOBAL`, or `RUNTIME` scoped variables defined in the Lagoon API
 
 ## Integration with Tasks
 
