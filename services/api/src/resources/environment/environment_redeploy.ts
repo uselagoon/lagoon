@@ -28,7 +28,7 @@ _,
 ) => {
     // Note: as it stands, the only pending changes we have now have to do
     // with env vars, but anything can be added in the form
-    // {type:"string", details:"string"}
+    // {type:"string", details:"string", date: "string"}
     let pendingChanges = await getPendingEnvVarChanges(sqlClientPool, id);
     return pendingChanges;
 }
