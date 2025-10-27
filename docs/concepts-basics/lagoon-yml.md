@@ -348,10 +348,6 @@ tasks:
 1. Make sure to use the correct aliases for your project here.
 
 ## Backup Retention
-```
-
-
-## Backup Retention
 
 ### Production Monthly
 
