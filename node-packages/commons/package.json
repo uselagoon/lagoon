@@ -22,13 +22,12 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@lagoon/lokka-transport-http": "^1.6.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
     "axios": "^1.12.0",
     "jsonwebtoken": "^8.0.1",
     "lokka": "^1.7.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.3.2",
     "ramda": "0.25.0",
     "sha1": "^1.1.1",
     "tsc-silent": "^1.2.2",
