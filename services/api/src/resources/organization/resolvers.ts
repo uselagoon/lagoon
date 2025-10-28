@@ -230,6 +230,15 @@ export const updateOrganization: ResolverFn = async (
       await hasPermission('organization', 'updateOrganization', input.id);
     }
 
+    // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
+    // this feature will become generally available in a future version and this flag will not
+    // be required
+    if (input.patch.featureApiRoutes) {
+      await hasPermission('organization', 'update');
+    } else {
+      await hasPermission('organization', 'updateOrganization', input.id);
+    }
+
     if (input.patch.name) {
       // check if the name is valid
       isValidName(input.patch.name)

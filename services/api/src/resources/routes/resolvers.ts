@@ -57,6 +57,12 @@ export const addRouteToProject: ResolverFn = async (
     project: projectId
   });
 
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   // trim spaces from domain name
   const domainName = domain.trim()
 
@@ -267,6 +273,12 @@ export const updateRouteOnProject: ResolverFn = async (
     project: projectId
   });
 
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   const existsProject = await query(
     sqlClientPool,
     Sql.selectRouteByDomainAndProjectID(domain, projectId)
@@ -357,6 +369,13 @@ export const addOrUpdateRouteOnEnvironment: ResolverFn = async (
   await hasPermission('route', 'add:environment', {
     project: projectId
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
   const environmentData = env[0]
 
@@ -567,6 +586,13 @@ export const removeRouteFromEnvironment: ResolverFn = async (
   await hasPermission('route', 'remove:environment', {
     project: projectId
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
   const environmentData = env[0]
 
@@ -649,6 +675,12 @@ export const addRouteAlternativeDomains: ResolverFn = async (
   await hasPermission('route', 'add', {
     project: projectData.id
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
 
   if (alternativeNames !== undefined) {
     for (const d of alternativeNames) {
@@ -743,6 +775,12 @@ export const removeRouteAlternativeDomain: ResolverFn = async (
     project: projectData.id
   });
 
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   const alternateDomain = await query(
     sqlClientPool,
     Sql.selectRouteAlternativeDomainsByDomainAndProjectID(domain, route.project)
@@ -803,6 +841,12 @@ export const addRouteAnnotation: ResolverFn = async (
   await hasPermission('route', 'add', {
     project: projectData.id
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
 
   await Helpers(sqlClientPool).addRouteAnnotations(route.id, annotations)
 
@@ -865,6 +909,12 @@ export const removeRouteAnnotation: ResolverFn = async (
     project: projectData.id
   });
 
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   await Helpers(sqlClientPool).deleteRouteAnnotation(route.id, key)
 
   await query(
@@ -926,6 +976,12 @@ export const addPathRoutesToRoute: ResolverFn = async (
   await hasPermission('route', 'add', {
     project: projectData.id
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
 
   let pr: PathRoutes = [];
 
@@ -1001,6 +1057,12 @@ export const removePathRouteFromRoute: ResolverFn = async (
     project: projectData.id
   });
 
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
   let pr: PathRoutes = [];
 
   pr = JSON.parse(route.pathRoutes)
@@ -1063,6 +1125,12 @@ export const deleteRoute: ResolverFn = async (
   await hasPermission('route', 'delete', {
     project: projectData.id
   });
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await projectHelpers(sqlClientPool).checkApiRoutesFeature(projectData.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
 
   if (!adminScopes.platformOwner) {
     // general users can't delete routes with these sources from the api

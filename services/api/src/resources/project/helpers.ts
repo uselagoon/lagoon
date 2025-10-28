@@ -5,6 +5,7 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Sql as backupSql } from '../backup/sql';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 // import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -102,6 +103,15 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getProjectsByIds = (projectIds: number[]) =>
     query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
+  const checkApiRoutesFeature = async (organizationId: number) => {
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(organizationId);
+    if (!organization) {
+      // projects not in an organization can use api routes
+      return true;
+    }
+    return Boolean(organization.featureApiRoutes);
+  };
+
   return {
     checkOrgProjectViewPermission,
     checkOrgProjectUpdatePermission,
@@ -111,6 +121,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectsByIds,
     getProjectByEnvironmentId,
     getProjectByOrganizationId,
+    checkApiRoutesFeature,
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(
         sqlClientPool,
