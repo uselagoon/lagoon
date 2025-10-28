@@ -264,7 +264,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * In which shell the task should be run. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. [See the example below](#example-post-rollout-tasks) to learn how to write a script with multiple lines.
 * `when`
-  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
+  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run. See [When Clauses](../concepts-advanced/when-clauses.md) for detailed documentation and examples.
 
 Note: If you would like to disable pre/post-rollout tasks during a deployment, you can set either of the following as [buildtime env vars](../concepts-advanced/environment-variables.md#buildtime).
 
