@@ -6,16 +6,10 @@ import { knex, query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes, AlternativeDomainsLimit } from './helpers';
+import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes, checkServicePathRouteRequirements } from './helpers';
 import { AuditLog } from '../audit/types';
 import { isDNS1123Subdomain } from '../../util/func';
 import { AuditType, RouteSource, RouteType } from '@lagoon/commons/dist/types';
-
-// check array for duplicates that are trimmed and lowercased
-function hasDuplicates(arr) {
-  const normalized = arr.map(item => item.trim().toLowerCase());
-  return new Set(normalized).size !== normalized.length;
-}
 
 /*
   addRouteToProject is used to add a route to a project
@@ -113,16 +107,14 @@ export const addRouteToProject: ResolverFn = async (
 
   // fail if the domain is provided more than once
   if (alternativeNames !== undefined) {
-    for (const d of alternativeNames) {
-      // trim spaces from the alternate domain as part of comparison check
-      const altDomain = d.trim()
-      if (altDomain == domainName) {
-        throw Error(`Main domain included in alternate domains`)
-      }
-    }
-    if (hasDuplicates(alternativeNames)) {
-      throw Error(`Duplicate domains provided in alternate domains`)
-    }
+    await Helpers(sqlClientPool).checkDuplicateAlternativeNames(domainName, alternativeNames);
+    // check the route doesn't already exist in this project, and that any limits are not exceeded
+    await Helpers(sqlClientPool).checkAlternativeNamesRequirements(alternativeNames, projectId)
+  }
+
+  // fail if duplicate annotations provided
+  if (annotations !== undefined) {
+    await Helpers(sqlClientPool).checkDuplicateAnnotations(annotations);
   }
 
   // setup pathroutes if provided
@@ -137,6 +129,7 @@ export const addRouteToProject: ResolverFn = async (
         //   // show a warning in the UI if the service doesn't exist
         //   throw Error(`Service ${pathRoute.toService} in pathRoutes doesn't exist on this environment`)
         // }
+        checkServicePathRouteRequirements(pr)
         pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
       }
     }
@@ -309,6 +302,9 @@ export const updateRouteOnProject: ResolverFn = async (
   // set the updated timestamp on the patch
   patch.updated = knex.fn.now()
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await query(
     sqlClientPool,
     Sql.updateRoute({
@@ -436,11 +432,15 @@ export const addOrUpdateRouteOnEnvironment: ResolverFn = async (
         //   // show a warning in the UI if the service doesn't exist
         //   throw Error(`Service ${pathRoute.toService} in pathRoutes doesn't exist on this environment`)
         // }
+        checkServicePathRouteRequirements(pr)
         pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
       }
     }
   }
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await query(
     sqlClientPool,
     Sql.updateRoute({
@@ -613,6 +613,9 @@ export const removeRouteFromEnvironment: ResolverFn = async (
     }
   }
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   const routeId = await Helpers(sqlClientPool).removeRouteFromEnvironment(domain, environmentData.id)
 
   const ret = await query(sqlClientPool, Sql.selectRouteByID(routeId));
@@ -682,39 +685,14 @@ export const addRouteAlternativeDomains: ResolverFn = async (
   }
 
   if (alternativeNames !== undefined) {
-    for (const d of alternativeNames) {
-      if (d == route.domain) {
-        throw Error(`Main domain included in alternate domains`)
-      }
-    }
-    if (hasDuplicates(alternativeNames)) {
-      throw Error(`Duplicate domains provided in alternate domains`)
-    }
-    // check the route doesn't already exist in this project
-    for (const d of alternativeNames) {
-      // check if the domain is valid dns subdomain
-      if (!isDNS1123Subdomain(d)) {
-        throw Error(`'${d}' is not a valid domain`)
-      }
-      const exists = await query(
-        sqlClientPool,
-        Sql.selectRouteByDomainAndProjectID(d, route.project)
-      )
-      const exists2 = await query(
-        sqlClientPool,
-        Sql.selectRouteAlternativeDomainsByDomainAndProjectID(d, route.project)
-      )
-      // if the domains provided don't already exist, then add them
-      if (exists.length > 0 || exists2.length > 0) {
-        throw Error(`Route already exists in this project`)
-      }
-      const combinedAltDomainCount = exists2.length + alternativeNames.length
-      if (combinedAltDomainCount >= AlternativeDomainsLimit) {
-        throw Error(`Limit of ${AlternativeDomainsLimit} alternative domains, consider removing some from this route, or create a new route`)
-      }
-    }
+    await Helpers(sqlClientPool).checkDuplicateAlternativeNames(route.domain, alternativeNames)
+    // check the route doesn't already exist in this project, and that any limits are not exceeded
+    await Helpers(sqlClientPool).checkAlternativeNamesRequirements(alternativeNames, route.project)
   }
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   // add the alternate domains
   if (alternativeNames !== undefined) {
     for (const d of alternativeNames) {
@@ -784,6 +762,10 @@ export const removeRouteAlternativeDomain: ResolverFn = async (
     sqlClientPool,
     Sql.selectRouteAlternativeDomainsByDomainAndProjectID(domain, route.project)
   )
+
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   if (alternateDomain.length > 0) {
     const ad = R.prop(0, alternateDomain);
     await query(sqlClientPool, Sql.deleteRouteAlternativeDomain(ad.id));
@@ -847,6 +829,14 @@ export const addRouteAnnotation: ResolverFn = async (
     throw Error(`This feature is currently unavailable`)
   }
 
+  // fail if duplicate annotations provided
+  await Helpers(sqlClientPool).checkDuplicateAnnotations(annotations);
+  // check annotation requirements and fail if required
+  await Helpers(sqlClientPool).checkAnnotationRequirements(route.id, annotations);
+
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await Helpers(sqlClientPool).addRouteAnnotations(route.id, annotations)
 
   await query(
@@ -914,6 +904,9 @@ export const removeRouteAnnotation: ResolverFn = async (
     throw Error(`This feature is currently unavailable`)
   }
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await Helpers(sqlClientPool).deleteRouteAnnotation(route.id, key)
 
   await query(
@@ -988,6 +981,7 @@ export const addPathRoutesToRoute: ResolverFn = async (
 
   if (pathRoutes !== undefined) {
     for (const pathRoute of pathRoutes) {
+      checkServicePathRouteRequirements(pr)
       pr = addServicePathRoute(pr, pathRoute.toService, pathRoute.path)
     }
   }
@@ -998,6 +992,9 @@ export const addPathRoutesToRoute: ResolverFn = async (
     updated: knex.fn.now(),
   }
 
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await query(
     sqlClientPool,
     Sql.updateRoute({
@@ -1073,6 +1070,10 @@ export const removePathRouteFromRoute: ResolverFn = async (
     pathRoutes: JSON.stringify(pr),
     updated: knex.fn.now(),
   }
+
+  /*
+    WARNING: anything after this point makes changes to the route
+  */
   await query(
     sqlClientPool,
     Sql.updateRoute({

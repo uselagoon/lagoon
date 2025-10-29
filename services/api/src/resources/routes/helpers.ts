@@ -1,6 +1,7 @@
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+import { isDNS1123Subdomain } from '../../util/func';
 
 export const AnnotationLimit = 10;
 export const PathRoutesLimit = 10;
@@ -40,42 +41,80 @@ export const Helpers = (sqlClientPool: Pool) => {
     )
     return route.id
   };
-  const addRouteAnnotation = async (routeId: number, key: string, value: string) => {
-    const existingAnnotations = await query(sqlClientPool, Sql.selectRouteAnnotationsByRouteID(routeId))
-    const exists = existingAnnotations.some(
-      (a) => a.key === key && a.value === value
-    );
-    if (exists) {
-      throw new Error(`Annotation already exists on route`);
-    } else {
-      const combinedAnnotationCount = existingAnnotations.length + 1
-      // arbitrary limit of 10 annotations, maybe this should be less?
-      // would prefer that annotations done this way weren't a thing, but here we are
-      if (combinedAnnotationCount >= AnnotationLimit) {
-        throw Error(`Limit of ${AnnotationLimit} annotations per route`)
-      }
-      await query(
-        sqlClientPool,
-        Sql.insertRouteAnnotation({routeId, key, value})
-      )
-    }
-  }
-  const addRouteAnnotations = async (routeId: number, annotations: RouteAnnotations) => {
-    const existingAnnotations = await query(sqlClientPool, Sql.selectRouteAnnotationsByRouteID(routeId))
+  const checkAnnotationRequirements = async (routeId: number, annotations: RouteAnnotations) => {
     for(const annotation of annotations) {
+      const existingAnnotations = await query(sqlClientPool, Sql.selectRouteAnnotationsByRouteID(routeId))
       const exists = existingAnnotations.some(
         (a) => a.key === annotation.key && a.value === annotation.value
       );
       if (exists) {
         throw new Error(`Annotation already exists on route`);
-      }
-      const combinedAnnotationCount = existingAnnotations.length + annotations.length
-      // arbitrary limit of 10 annotations, maybe this should be less?
-      // would prefer that annotations done this way weren't a thing, but here we are
-      if (combinedAnnotationCount >= AnnotationLimit) {
-        throw Error(`Limit of ${AnnotationLimit} annotations per route`)
+      } else {
+        const combinedAnnotationCount = existingAnnotations.length + 1
+        // arbitrary limit of 10 annotations, maybe this should be less?
+        // would prefer that annotations done this way weren't a thing, but here we are
+        if (combinedAnnotationCount >= AnnotationLimit) {
+          throw Error(`Limit of ${AnnotationLimit} annotations per route`)
+        }
       }
     }
+  };
+  const checkDuplicateAnnotations = async (annotations: RouteAnnotations) => {
+    const normalized = annotations.map(item => item.key.trim().toLowerCase());
+    if (new Set(normalized).size !== normalized.length) {
+      throw Error(`Duplicate annotation keys provided in annotations`)
+    }
+    if (annotations.length >= AnnotationLimit) {
+      throw Error(`Limit of ${AnnotationLimit} annotations per route`)
+    }
+  };
+  const checkAlternativeNamesRequirements = async (alternativeNames: string[], projectId: number, routeId?: number) => {
+    // check if the limit is not exceeded
+    let existingNames = 0
+    if (routeId) {
+      const existingAltNames = await query(
+        sqlClientPool,
+        Sql.selectRouteAlternativeDomainsByRouteID(routeId)
+      )
+      existingNames = existingAltNames.length
+    }
+    const combinedAltDomainCount = existingNames + alternativeNames.length
+    if (combinedAltDomainCount >= AlternativeDomainsLimit) {
+      throw Error(`Limit of ${AlternativeDomainsLimit} alternative domains, consider removing some from this route, or create a new route`)
+    }
+    // if not exceeded, validate and check if not already exists
+    for (const d of alternativeNames) {
+      // check if the domain is valid dns subdomain
+      if (!isDNS1123Subdomain(d)) {
+        throw Error(`'${d}' is not a valid domain`)
+      }
+      const exists = await query(
+        sqlClientPool,
+        Sql.selectRouteByDomainAndProjectID(d, projectId)
+      )
+      const exists2 = await query(
+        sqlClientPool,
+        Sql.selectRouteAlternativeDomainsByDomainAndProjectID(d, projectId)
+      )
+      // if the domains provided don't already exist, then add them
+      if (exists.length > 0 || exists2.length > 0) {
+        throw Error(`Route already exists in this project`)
+      }
+    }
+  }
+  const checkDuplicateAlternativeNames = async (domainName: string, alternativeNames: string[]) => {
+    for (const d of alternativeNames) {
+      // trim spaces from the alternate domain as part of comparison check
+      const altDomain = d.trim()
+      if (altDomain == domainName) {
+        throw Error(`Main domain included in alternate domains`)
+      }
+    }
+    if (hasDuplicates(alternativeNames)) {
+      throw Error(`Duplicate domains provided in alternate domains`)
+    }
+  };
+  const addRouteAnnotations = async (routeId: number, annotations: RouteAnnotations) => {
     for(const annotation of annotations) {
       await query(
         sqlClientPool,
@@ -101,8 +140,11 @@ export const Helpers = (sqlClientPool: Pool) => {
     deleteAutogeneratedRoutesForEnvironment,
     deleteLagoonYAMLRoutesForEnvironment,
     removeRouteFromEnvironment,
-    addRouteAnnotation,
     addRouteAnnotations,
+    checkAnnotationRequirements,
+    checkDuplicateAnnotations,
+    checkAlternativeNamesRequirements,
+    checkDuplicateAlternativeNames,
     deleteRouteAnnotation,
     deleteRouteAnnotations
   }
@@ -116,15 +158,20 @@ export function addServicePathRoute(
   const exists = pathRoutes.some(
     (a) => a.toService === newToService && a.path === newPath
   );
-  const combinedPathRoutesCount = pathRoutes.length + 1
-  if (combinedPathRoutesCount >= PathRoutesLimit) {
-    throw Error(`Limit of ${PathRoutesLimit} path routes, consider removing some from this route`)
-  }
   if (!exists) {
     return [...pathRoutes, { toService: newToService, path: newPath }];
   }
 
   return pathRoutes;
+}
+
+export function checkServicePathRouteRequirements(
+  pathRoutes: PathRoutes,
+) {
+  const combinedPathRoutesCount = pathRoutes.length + 1
+  if (combinedPathRoutesCount >= PathRoutesLimit) {
+    throw Error(`Limit of ${PathRoutesLimit} path routes, consider removing some from this route`)
+  }
 }
 
 export type RouteAnnotation = {
@@ -185,4 +232,10 @@ export function removeAutogenServicePathRoute(
   return pathRoutes.filter(
     (a) => !(a.fromService === targetFromService &&a.toService === targetToService && a.path === targetPath)
   );
+}
+
+// check array for duplicates that are trimmed and lowercased
+function hasDuplicates(arr) {
+  const normalized = arr.map(item => item.trim().toLowerCase());
+  return new Set(normalized).size !== normalized.length;
 }
