@@ -10,6 +10,7 @@ This Dockerfile is intended to be used to set up a standalone Valkey _ephemeral_
 ## Supported versions
 
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/valkey/8.Dockerfile) - `uselagoon/valkey-8`
+* 9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/valkey/9.Dockerfile) - `uselagoon/valkey-9`
 
 ## Usage
 
