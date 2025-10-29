@@ -44,7 +44,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     if (exists) {
       throw new Error(`Annotation already exists on route`);
     } else {
-      const combinedAnnotationCount = exists.length + 1
+      const combinedAnnotationCount = existingAnnotations.length + 1
       // arbitrary limit of 10 annotations, maybe this should be less?
       // would prefer that annotations done this way weren't a thing, but here we are
       if (combinedAnnotationCount >= 10) {
@@ -65,7 +65,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       if (exists) {
         throw new Error(`Annotation already exists on route`);
       }
-      const combinedAnnotationCount = exists.length + annotations.length
+      const combinedAnnotationCount = existingAnnotations.length + annotations.length
       // arbitrary limit of 10 annotations, maybe this should be less?
       // would prefer that annotations done this way weren't a thing, but here we are
       if (combinedAnnotationCount >= 10) {

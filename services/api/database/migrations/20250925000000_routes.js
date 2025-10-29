@@ -28,7 +28,7 @@ exports.up = async function(knex) {
             table.enu('type', ['standard', 'active', 'standby']).notNullable().defaultTo('standard');
             // table.boolean('wildcard').notNullable().defaultTo(0); // TBD
             // table.boolean('wildcard_apex').notNullable().defaultTo(0); // TBD
-            // table.enu('verified', ['new','pending', 'running', 'error', 'verfied']).notNullable().defaultTo('new'); // TBD
+            // table.enu('verified', ['new','pending', 'running', 'error', 'verified']).notNullable().defaultTo('new'); // TBD
             // table.json('verification').defaultTo('{}'); //TBD
             // table.string('ingress_class', 300); // TBD
             table.unique(['domain', 'project'], {indexName: 'route_project'});
