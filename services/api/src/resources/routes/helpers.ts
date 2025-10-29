@@ -2,6 +2,10 @@ import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 
+export const AnnotationLimit = 10;
+export const PathRoutesLimit = 10;
+export const AlternativeDomainsLimit = 25;
+
 export const Helpers = (sqlClientPool: Pool) => {
   const removeAllRoutesFromEnvironment = async (environmentId: number) => {
     await query(
@@ -47,8 +51,8 @@ export const Helpers = (sqlClientPool: Pool) => {
       const combinedAnnotationCount = existingAnnotations.length + 1
       // arbitrary limit of 10 annotations, maybe this should be less?
       // would prefer that annotations done this way weren't a thing, but here we are
-      if (combinedAnnotationCount >= 10) {
-        throw Error(`Limit of 10 annotations per route`)
+      if (combinedAnnotationCount >= AnnotationLimit) {
+        throw Error(`Limit of ${AnnotationLimit} annotations per route`)
       }
       await query(
         sqlClientPool,
@@ -68,8 +72,8 @@ export const Helpers = (sqlClientPool: Pool) => {
       const combinedAnnotationCount = existingAnnotations.length + annotations.length
       // arbitrary limit of 10 annotations, maybe this should be less?
       // would prefer that annotations done this way weren't a thing, but here we are
-      if (combinedAnnotationCount >= 10) {
-        throw Error(`Limit of 10 annotations per route`)
+      if (combinedAnnotationCount >= AnnotationLimit) {
+        throw Error(`Limit of ${AnnotationLimit} annotations per route`)
       }
     }
     for(const annotation of annotations) {
@@ -113,8 +117,8 @@ export function addServicePathRoute(
     (a) => a.toService === newToService && a.path === newPath
   );
   const combinedPathRoutesCount = pathRoutes.length + 1
-  if (combinedPathRoutesCount >= 10) {
-    throw Error(`Limit of 10 path routes, consider removing some from this route`)
+  if (combinedPathRoutesCount >= PathRoutesLimit) {
+    throw Error(`Limit of ${PathRoutesLimit} path routes, consider removing some from this route`)
   }
   if (!exists) {
     return [...pathRoutes, { toService: newToService, path: newPath }];

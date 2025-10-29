@@ -6,7 +6,7 @@ import { knex, query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes } from './helpers';
+import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes, AlternativeDomainsLimit } from './helpers';
 import { AuditLog } from '../audit/types';
 import { isDNS1123Subdomain } from '../../util/func';
 import { AuditType, RouteSource, RouteType } from '@lagoon/commons/dist/types';
@@ -692,6 +692,10 @@ export const addRouteAlternativeDomains: ResolverFn = async (
     }
     // check the route doesn't already exist in this project
     for (const d of alternativeNames) {
+      // check if the domain is valid dns subdomain
+      if (!isDNS1123Subdomain(d)) {
+        throw Error(`'${d}' is not a valid domain`)
+      }
       const exists = await query(
         sqlClientPool,
         Sql.selectRouteByDomainAndProjectID(d, route.project)
@@ -704,13 +708,9 @@ export const addRouteAlternativeDomains: ResolverFn = async (
       if (exists.length > 0 || exists2.length > 0) {
         throw Error(`Route already exists in this project`)
       }
-      // check if the domain is valid dns subdomain
-      if (!isDNS1123Subdomain(d)) {
-        throw Error(`'${d}' is not a valid domain`)
-      }
       const combinedAltDomainCount = exists2.length + alternativeNames.length
-      if (combinedAltDomainCount >= 25) {
-        throw Error(`Limit of 25 alternative domains, consider removing some from this route, or create a new route`)
+      if (combinedAltDomainCount >= AlternativeDomainsLimit) {
+        throw Error(`Limit of ${AlternativeDomainsLimit} alternative domains, consider removing some from this route, or create a new route`)
       }
     }
   }
