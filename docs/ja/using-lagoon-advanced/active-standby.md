@@ -103,33 +103,6 @@ query getTask {
 }
 ```
 
-## `drush`エイリアス
-
-デフォルトでプロジェクトは以下のエイリアスが作成され、Active/Standbyが有効になっている場合に利用できます。
-
-* `lagoon-production`
-* `lagoon-standby`
-
-`lagoon-production`エイリアスは`productionEnvironment`として定義されているサイトを指し、`lagoon-standby`は常に`standbyProductionEnvironment`として定義されているサイトを指します。
-
-これらのエイリアスは、プロジェクトの更新によって設定を変更することができます。ただし、それらを変更すると、それらに依存するスクリプトを更新する必要があることに注意してください。
-
-```graphql title="Drushエイリアスの更新"
-mutation updateProject {
-  updateProject(input:{
-    id:1234
-    patch:{
-      productionAlias:"custom-lagoon-production-alias"
-      standbyAlias:"custom-lagoon-standby-alias"
-    }
-  }){
-    productionAlias
-    name
-    standbyAlias
-  }
-}
-```
-
 ## Active/Standbyの無効化
 
 これら2つのブランチのうち、どちらを主な環境として進めていくかを決定する必要があります。その後、 それがアクティブなブランチとして設定されていることを確認してください。(例:`production-branchb`)
@@ -141,17 +114,16 @@ mutation updateProject {
 5. プロジェクトが`production-branchb`の`production`環境のみで、他のすべての環境が`development`環境である状態になったら、プロジェクトを更新して`standbyProductionEnvironment`を削除し、環境のActive/Standbyラベルを消去します。
 
 ```graphql title="アクティブ/スタンバイをオフにする"
-mutation updateProject {
-  updateProject(input:{
-    id:1234
-    patch:{
-      productionEnvironment:"production-branchb"
-      standbyProductionEnvironment:""
+mutation {
+  updateProject(input: {
+    id: 1234
+    patch: {
+      standbyProductionEnvironment: ""
     }
   }){
-    standbyProductionEnvironment
     name
     productionEnvironment
+    standbyProductionEnvironment
   }
 }
 ```

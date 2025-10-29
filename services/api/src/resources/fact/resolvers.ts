@@ -395,20 +395,23 @@ export const addFactsByName: ResolverFn = async (
     adminScopes,
   );
 
+  let projectData = await projectHelpers(sqlClientPool).getProjectById(lagoonProject);
+  let environmentData = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, lagoonProject);
+
   const auditLog: AuditLog = {
     resource: {
-      id: project.id.toString(),
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
-      details: project.name,
+      details: projectData.name,
     },
     linkedResource: {
-      id: environment.id.toString(),
+      id: environmentData[0].id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: environment.name,
+      details: environmentData[0].name,
     },
   };
-  if (project.organization) {
-    auditLog.organizationId = project.organization;
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
   }
   userActivityLogger(`User added facts to '${project}:${environment}'`, {
     project: project,
