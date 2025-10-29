@@ -981,10 +981,10 @@ function add_route_permissions {
   echo Creating resource route
   echo '{"name":"route","displayName":"route","scopes":[{"name":"add"},{"name":"view"},{"name":"update"},{"name":"add:environment"},{"name":"remove:environment"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
-  # Create "View Project Rotues" permission
+  # Create "View Project Routes" permission
   /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
   {
-    "name": "View Project Rotues",
+    "name": "View Project Routes",
     "type": "scope",
     "logic": "POSITIVE",
     "decisionStrategy": "UNANIMOUS",
@@ -1020,7 +1020,7 @@ EOF
   }
 EOF
 
-  # Create "VAdd Route to Environment in Project" permission
+  # Create "Add Route to Environment in Project" permission
   /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
   {
     "name": "Add Route to Environment in Project",

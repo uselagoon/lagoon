@@ -114,7 +114,7 @@ export function addServicePathRoute(
   );
   const combinedPathRoutesCount = pathRoutes.length + 1
   if (combinedPathRoutesCount >= 10) {
-    throw Error(`Limit of 10 path rotues, consider removing some from this route`)
+    throw Error(`Limit of 10 path routes, consider removing some from this route`)
   }
   if (!exists) {
     return [...pathRoutes, { toService: newToService, path: newPath }];

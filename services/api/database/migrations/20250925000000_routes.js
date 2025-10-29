@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = async function(knex) {
-    route = await knex.schema.hasTable('routes');
+    const route = await knex.schema.hasTable('routes');
     if (!route) {
         return knex.schema
         .createTable('routes', function (table) {

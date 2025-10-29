@@ -1098,7 +1098,7 @@ const typeDefs = gql`
     updated: String
     created: String
     """
-    Used to set automatic certificate generation using the default ceritificate provisioning system.
+    Used to set automatic certificate generation using the default certificate provisioning system.
     Typically this will be LetsEncrypt.
     """
     tlsAcme: Boolean

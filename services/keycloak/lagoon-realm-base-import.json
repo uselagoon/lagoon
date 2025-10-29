@@ -2759,7 +2759,7 @@
             }
           },
           {
-            "name": "View Project Rotues",
+            "name": "View Project Routes",
             "type": "scope",
             "logic": "POSITIVE",
             "decisionStrategy": "UNANIMOUS",

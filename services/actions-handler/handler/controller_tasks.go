@@ -135,10 +135,10 @@ type Project struct {
 
 // @TODO: add to machinery
 type Route struct {
-	Domain     string              `json:"domain"`
-	Service    string              `json:"service"`
-	Enviroment *schema.Environment `json:"environment"`
-	Type       string              `json:"type"`
+	Domain      string              `json:"domain"`
+	Service     string              `json:"service"`
+	Environment *schema.Environment `json:"environment"`
+	Type        string              `json:"type"`
 }
 
 /*
@@ -170,10 +170,10 @@ func updateActiveStandbyRoutes(l *lclient.Client, project, prod, standby, prefix
 	json.Unmarshal(d, &p)
 	for _, route := range p.APIRoutes {
 		// only patch routes with an environment attached
-		if route.Type == "ACTIVE" && route.Enviroment != nil {
+		if route.Type == "ACTIVE" && route.Environment != nil {
 			updateRouteType(l, route, prod, project, prefix)
 		}
-		if route.Type == "STANDBY" && route.Enviroment != nil {
+		if route.Type == "STANDBY" && route.Environment != nil {
 			updateRouteType(l, route, standby, project, prefix)
 		}
 	}

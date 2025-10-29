@@ -10,7 +10,6 @@ import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes } from
 import { AuditLog } from '../audit/types';
 import { isDNS1123Subdomain } from '../../util/func';
 import { AuditType, RouteSource, RouteType } from '@lagoon/commons/dist/types';
-import { logger } from '../../loggers/logger';
 
 // check array for duplicates that are trimmed and lowercased
 function hasDuplicates(arr) {
@@ -545,7 +544,7 @@ export const activeStandbyRouteMove: ResolverFn = async (
       project: '',
       event: 'api:activeStandbyRouteMove',
       payload: {
-        project: project.id,
+        project: projectId,
         environment: environmentData.id,
         route: route.id
       }
