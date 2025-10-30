@@ -169,11 +169,11 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
   if (args) {
-    // set limit to args.limit, or 60 if undefined
-    let limit = args.limit || 60;
+    // set lastDays to args.lastDays, or 60 if undefined
+    let lastDays = args.lastDays || 60;
     if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-      // limit to 60 results for non-platform users
-      limit = Math.min(args.limit || 60, 60);
+      // lastDays to 60 results for non-platform users
+      lastDays = Math.min(args.lastDays || 60, 60);
 
       // check permissions for non-platform users
       const project = await projectHelpers(
@@ -183,7 +183,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
         project: project.id
       });
     }
-    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({eid, limit, claim: args.claim, startDate: args.startDate, endDate: args.endDate}))
+    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({eid, lastDays, claim: args.claim, startDate: args.startDate, endDate: args.endDate}))
     // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
     return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
   }

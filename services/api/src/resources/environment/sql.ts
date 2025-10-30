@@ -136,13 +136,13 @@ export const Sql = {
       .toString(),
   selectEnvironmentStorageByEnvironmentIdByDaysClaim: ({
     eid,
-    limit,
+    lastDays,
     startDate,
     endDate,
     claim,
   }: {
     eid: number;
-    limit?: number;
+    lastDays?: number;
     startDate?: Date;
     endDate?: Date;
     claim?: string;
@@ -167,9 +167,9 @@ export const Sql = {
           if (endDate) {
             queryBuilder = queryBuilder.where('updated', '<=', endDate);
           }
-          if (limit) {
-            // last `limit` days including latest/today if found
-            queryBuilder = queryBuilder.where(knex.raw('DATEDIFF(CURRENT_DATE, updated) < ?', [limit]));
+          if (lastDays) {
+            // last `lastDays` days including latest/today if found
+            queryBuilder = queryBuilder.where(knex.raw('DATEDIFF(CURRENT_DATE, updated) < ?', [lastDays]));
           }
         })
         .as('subquery');
