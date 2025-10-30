@@ -869,7 +869,7 @@ const typeDefs = gql`
     """
     Reference to EnvironmentStorage API Object, which shows the Storage consumption of this environment per day
     """
-    storages: [EnvironmentStorage]
+    storages(startDate: Date, endDate: Date, lastDays: Int, claim: String): [EnvironmentStorage]
     """
     Reference to EnvironmentStorageMonth API Object, which returns how many storage per day this environment used in a specific month
     """
