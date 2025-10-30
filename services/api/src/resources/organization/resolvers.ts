@@ -221,13 +221,22 @@ export const getEnvironmentsByOrganizationId: ResolverFn = async (
 export const updateOrganization: ResolverFn = async (
     root,
     { input },
-    { sqlClientPool, hasPermission, userActivityLogger }
+    { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
 
     if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment || input.patch.quotaRoute) {
       await hasPermission('organization', 'update');
     } else {
       await hasPermission('organization', 'updateOrganization', input.id);
+    }
+
+    // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
+    // this feature will become generally available in a future version and this flag will not
+    // be required
+    if (input.patch.featureApiRoutes) {
+      if (!adminScopes.platformOwner) {
+        throw new Error('Setting the api routes feature is only available to platform administrators.');
+      }
     }
 
     if (input.patch.name) {

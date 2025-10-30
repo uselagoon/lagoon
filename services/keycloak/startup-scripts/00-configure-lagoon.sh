@@ -966,6 +966,100 @@ function add_lagoon-ui-oidc_impersonator_mappers {
        --config $CONFIG_PATH
 }
 
+function add_route_permissions {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local add_route_to_project=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Add+Route+to+Project --config $CONFIG_PATH)
+
+
+  if [ "$add_route_to_project" != "[ ]" ]; then
+      echo "Route permissions already configured"
+      return 0
+  fi
+
+  echo adding permissions for project routes
+
+  echo Creating resource route
+  echo '{"name":"route","displayName":"route","scopes":[{"name":"add"},{"name":"view"},{"name":"update"},{"name":"add:environment"},{"name":"remove:environment"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+
+  # Create "View Project Routes" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "View Project Routes",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["view"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Guest"]
+  }
+EOF
+
+  # Create "Delete Route from Project" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Delete Route from Project",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["delete"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+
+  # Create "Remove Route from Environment in Project" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Remove Route from Environment in Project",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["remove:environment"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+
+  # Create "Add Route to Environment in Project" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Add Route to Environment in Project",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["add:environment"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+
+  # Create "Update Route on Project" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Update Route on Project",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["update"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+
+  # Create "Add Route to Project" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Add Route to Project",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["route"],
+    "scopes": ["add"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -1022,6 +1116,7 @@ function configure_keycloak {
     add_org_env_vars
     add_lagoon-ui_impersonator_mappers
     add_lagoon-ui-oidc_impersonator_mappers
+    add_route_permissions
 
     # always run last
     sync_client_secrets
