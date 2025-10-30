@@ -94,15 +94,6 @@
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/api/delete-environment.yaml
 
-- name: "{{ testname }} - api update {{ project }} router pattern to empty"
-  hosts: localhost
-  serial: 1
-  vars:
-    project: "{{ project }}"
-    routerpattern: ""
-  tasks:
-  - ansible.builtin.include_tasks: ../../tasks/api/update-project-routerpattern.yaml
-
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
   serial: 1
