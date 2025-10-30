@@ -16,15 +16,10 @@ const { Upload } = require('@aws-sdk/lib-storage');
 const isGCS = process.env.S3_FILES_GCS || 'false'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
 
-
-export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
-  const command = new GetObjectCommand({
-    Bucket: bucket,
-    Key: s3Key,
-  });
+async function generateDownloadLink(s3Key: string, userActivityLogger?: Function ) {
+  const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
 
   if (typeof userActivityLogger === 'function') {
-
     const auditLog: AuditLog = {
       resource: {
         type: AuditType.FILE,
@@ -40,11 +35,32 @@ export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivi
       }
     });
   }
-
-  return getSignedUrl(s3Client, command, {
+  const signedUrl = await getSignedUrl(s3Client, command, {
     expiresIn: s3Config.signedLinkExpiration,
   });
+  return signedUrl;
+}
+
+export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
+  return generateDownloadLink(s3Key, userActivityLogger);
 };
+
+export const getDownloadLinkByTaskFileId: ResolverFn = async (
+  root,
+  { taskId, fileId },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(taskId));
+
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms)
+  });
+
+  const rows = await query(sqlClientPool, Sql.selectTaskFileById(taskId, fileId));
+
+  const downloadUrl = await generateDownloadLink(rows[0].s3Key, userActivityLogger)
+  return downloadUrl;
+}
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },

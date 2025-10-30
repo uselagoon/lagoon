@@ -98,6 +98,7 @@ const {
   uploadFilesForTask,
   deleteFilesForTask,
   getDownloadLink,
+  getDownloadLinkByTaskFileId,
 } = require('./resources/file/resolvers');
 
 const {
@@ -283,6 +284,7 @@ const {
   addRestore,
   getRestoreByBackupId,
   updateRestore,
+  getBackupDownloadLinkByBackupId,
   backupSubscriber,
   getRestoreLocation,
 } = require('./resources/backup/resolvers');
@@ -683,7 +685,9 @@ async function getResolvers() {
     checkBulkImportProjectsAndGroupsToOrganization,
     allPlatformUsers: getAllPlatformUsers,
     getAuditLogs,
-    listAllRetentionPolicies
+    listAllRetentionPolicies,
+    getBackupDownloadLinkByBackupId,
+    getDownloadLinkByTaskFileId,
   },
   Mutation: {
     addProblem,
