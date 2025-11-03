@@ -51,7 +51,7 @@ UPSTREAM_TAG ?= latest
 # latest is the most current release
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_REPO = uselagoon/build-deploy-image
-BUILD_DEPLOY_IMAGE_TAG ?= pr-464
+BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
 # only works for installations where INSTALL_STABLE_CORE=false
