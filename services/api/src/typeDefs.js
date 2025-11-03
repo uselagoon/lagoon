@@ -1522,6 +1522,8 @@ const typeDefs = gql`
     allPlatformUsers(id: String, email: String, gitlabId: Int, role: PlatformRole): [User]
     getAuditLogs(input: AuditLogInput): [AuditLog]
     listAllRetentionPolicies(name: String, type: RetentionPolicyType): [RetentionPolicy]
+    getBackupDownloadLinkByBackupId(backupId: String!): String
+    getDownloadLinkByTaskFileId(taskId: Int!, fileId: Int!): String
   }
 
   type ProjectGroupsToOrganization {
