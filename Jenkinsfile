@@ -121,7 +121,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
+            sh script: "make -j$NPROC k3d/retest TESTS=[api,api-routes,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }

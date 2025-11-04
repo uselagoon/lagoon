@@ -46,11 +46,16 @@ export const getEnvironmentByName: ResolverFn = async (
 };
 
 export const getEnvironmentById = async (
-  root,
+  eid,
   args,
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  const environment = await Helpers(sqlClientPool).getEnvironmentById(args.id);
+  // handle dealing with arg or passthrough
+  let environmentId = args.id
+  if (eid) {
+    environmentId = eid.environment
+  }
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(environmentId);
 
   if (!environment) {
     return null;
@@ -771,7 +776,7 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
-        created: input.patch.created
+        created: input.patch.created,
       }
     })
   );
@@ -1079,10 +1084,7 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectServicesByEnvironmentId(eid)
-  );
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(eid)
   return rows;
 };
 
