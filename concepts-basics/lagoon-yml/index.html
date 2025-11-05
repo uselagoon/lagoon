@@ -6430,7 +6430,7 @@ with your Lagoon administrator to oversee the transition.</p>
 <h4 id="monitoring-a-specific-path">Monitoring a specific path<a class="headerlink" href="#monitoring-a-specific-path" title="Permanent link">#</a></h4>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>Lagoon does not provide any monitoring capabilties out of the box, only labels and annotations. Check with your Lagoon administrator if monitoring is supported.</p>
+<p>Lagoon does not provide any monitoring capabilities out of the box, only labels and annotations. Check with your Lagoon administrator if monitoring is supported.</p>
 </div>
 <p>Lagoon will add the label <code>lagoon.sh/primaryIngress=true</code> to the first route defined in the <code>.lagoon.yml</code> file for an environment.</p>
 <p>If a specific path on a route requires monitoring, define <code>monitoring-path</code> with the path to use. Lagoon will add this path to the annotation <code>monitor.stakater.com/overridePath</code> to the route.</p>
@@ -6666,7 +6666,7 @@ Further information can be found <a href="https://github.com/uselagoon/build-dep
 </span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myotheruser</span>
 </span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my.other.registry.com</span>
 </span></code></pre></div>
-<p>If you do define a username in the <code>.lagoon.yml</code> you don't need to add the associated variable, but if you do add the variable, the value of the variable will be prefered.</p>
+<p>If you do define a username in the <code>.lagoon.yml</code> you don't need to add the associated variable, but if you do add the variable, the value of the variable will be preferred.</p>
 <p>Next, create environment variables in the Lagoon API with the type <code>container_registry</code>:</p>
 <ul>
 <li><code>lagoon add variable -p &lt;project_name&gt; -N &lt;registry_username_variable_name&gt; -V &lt;username_goes_here&gt; -S container_registry</code></li>

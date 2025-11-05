@@ -5995,7 +5995,7 @@
 <p>Additionally, if you would like an initial user or organization (or both) to be created automatically upon install, you can append the following environment variables:</p>
 <div class="language-bash highlight"><span class="filename">Deploy local stack with seeded user and organization</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">LAGOON_SEED_USERNAME</span><span class="o">=</span>user@example.com<span class="w"> </span><span class="nv">LAGOON_SEED_PASSWORD</span><span class="o">=</span>password<span class="w"> </span><span class="nv">LAGOON_SEED_ORGANIZATION</span><span class="o">=</span>example-org
 </span></code></pre></div>
-<p>Seeding an intial user requires both <code>LAGOON_SEED_USERNAME</code> and <code>LAGOON_SEED_PASSWORD</code> to be set, while seeding an organization only requires <code>LAGOON_SEED_ORGANIZATION</code>.
+<p>Seeding an initial user requires both <code>LAGOON_SEED_USERNAME</code> and <code>LAGOON_SEED_PASSWORD</code> to be set, while seeding an organization only requires <code>LAGOON_SEED_ORGANIZATION</code>.
 This feature also works with the <code>make k3d/install-lagoon</code> command discussed below.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -6020,7 +6020,7 @@ This feature also works with the <code>make k3d/install-lagoon</code> command di
 <h3 id="local-stack-setup-options">Local stack setup options<a class="headerlink" href="#local-stack-setup-options" title="Permanent link">#</a></h3>
 <p>There are a number of variables that can be used with <code>make k3d/local-stack</code> that can enable or disable certain options when setting up the initial cluster.</p>
 <h4 id="dbaas-providers">DBaaS providers<a class="headerlink" href="#dbaas-providers" title="Permanent link">#</a></h4>
-<p>There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatability reasons, you can disable them individually.</p>
+<p>There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatibility reasons, you can disable them individually.</p>
 <div class="language-bash highlight"><span class="filename">Deploy local stack without specific provider</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># disable all of them</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>make<span class="w"> </span>k3d/local-stack<span class="w"> </span><span class="nv">INSTALL_DBAAS_PROVIDERS</span><span class="o">=</span><span class="nb">false</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
@@ -6102,7 +6102,7 @@ If you make changes to the charts branch, you can use <code>make k3d/dev</code> 
 <p>Starting a <code>make k3d/local-stack</code> without any stable versions, then using <code>make k3d/install-lagoon</code> with <code>INSTALL_STABLE_X</code> flags may result in a broken Lagoon installation, however, this can be useful for verifying any downgrade or rollback paths.</p>
 </div>
 <h4 id="harbor-or-unauthenticated-registry">Harbor or unauthenticated registry<a class="headerlink" href="#harbor-or-unauthenticated-registry" title="Permanent link">#</a></h4>
-<p>Currently, Harbor does not have any arm64 based images. This means local-stack will not install Harbor on an arm64 based system. Instead an unauthenticed registry will be installed, and <code>lagoon-remote</code> will be configured to use this. This has the downsides that you won't be able to properly test any Harbor integrations on arm64 based systems for now.</p>
+<p>Currently, Harbor does not have any arm64 based images. This means local-stack will not install Harbor on an arm64 based system. Instead an unauthenticated registry will be installed, and <code>lagoon-remote</code> will be configured to use this. This has the downsides that you won't be able to properly test any Harbor integrations on arm64 based systems for now.</p>
 <p>If you want to skip installing Harbor entirely, even if your system is not arm based, you can use the following</p>
 <div class="language-bash highlight"><span class="filename">Harbor disabled</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nv">INSTALL_UNAUTHENTICATED_REGISTRY</span><span class="o">=</span><span class="nb">true</span>
 </span></code></pre></div>

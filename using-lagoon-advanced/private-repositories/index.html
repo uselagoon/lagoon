@@ -4995,7 +4995,7 @@
 <li>Add <code>ARG LAGOON_SSH_PRIVATE_KEY</code> to your <code>dockerfile</code> (before the step of the build process that needs the SSH key).</li>
 <li>Add <code>RUN /lagoon/entrypoints/05-ssh-key.sh</code> to your <code>dockerfile</code> (before the step of the build process that needs the SSH key).</li>
 </ol>
-<div class="language-bash highlight"><span class="filename">Set up your private respository</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RUN<span class="w"> </span>/lagoon/entrypoints/05-ssh-key.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>composer<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>/home/.ssh/key
+<div class="language-bash highlight"><span class="filename">Set up your private repository</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>RUN<span class="w"> </span>/lagoon/entrypoints/05-ssh-key.sh<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>composer<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>/home/.ssh/key
 </span></code></pre></div>
 
 

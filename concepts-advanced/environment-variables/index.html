@@ -5517,7 +5517,7 @@
 <h3 id="scopes">Scopes<a class="headerlink" href="#scopes" title="Permanent link">#</a></h3>
 <p>Scopes are used to set an env var for a specific context. An env var can have a scope of <code>build</code>, <code>runtime</code>, <code>global</code> or <code>container_registry</code>.</p>
 <h4 id="buildtime">Buildtime<a class="headerlink" href="#buildtime" title="Permanent link">#</a></h4>
-<p>Buildtime env vars are only available during Docker image builds, and can be accessed by using the <code>ARG</code> instruction. Check the <a href="https://docs.docker.com/reference/dockerfile/#arg">Docker documention on <code>ARG</code></a> for all the ways to use this method.</p>
+<p>Buildtime env vars are only available during Docker image builds, and can be accessed by using the <code>ARG</code> instruction. Check the <a href="https://docs.docker.com/reference/dockerfile/#arg">Docker documentation on <code>ARG</code></a> for all the ways to use this method.</p>
 <p>Typically the <code>ARG</code> will go after the FROM. Read <a href="https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact">the Docker documentation about ARG and FROM</a>.</p>
 <p>An example of setting a <code>build</code> env var:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Lagoon CLI</label><label for="__tabbed_4_2">Lagoon API</label></div>
@@ -5643,7 +5643,7 @@
 <p>Environment files are only read by containers based on the <a href="../../docker-images/commons/">Lagoon <code>commons</code> base image</a>. They aren't read by Lagoon, but by the containers <code>ENTRYPOINT</code> scripts, which looks for them in the containers working directory. This means that these env vars are only available at runtime.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>If environment files aren't loading, confirm that you're using Lagoon base images, that you're copying them into the contianer as part of your <code>Dockerfile</code>, and that your container has a <code>WORKDIR</code> setting that points to the location of these files.</p>
+<p>If environment files aren't loading, confirm that you're using Lagoon base images, that you're copying them into the container as part of your <code>Dockerfile</code>, and that your container has a <code>WORKDIR</code> setting that points to the location of these files.</p>
 </div>
 <p>The syntax of an environment file is <code>ENV_VAR_NAME="env var value"</code>:</p>
 <div class="language-bash highlight"><span class="filename">.env</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nv">PHP_MEMORY_LIMIT</span><span class="o">=</span><span class="s2">&quot;400M&quot;</span>
