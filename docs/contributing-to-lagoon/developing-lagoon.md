@@ -85,7 +85,7 @@ Additionally, if you would like an initial user or organization (or both) to be 
 make k3d/local-stack LAGOON_SEED_USERNAME=user@example.com LAGOON_SEED_PASSWORD=password LAGOON_SEED_ORGANIZATION=example-org
 ```
 
-Seeding an intial user requires both `LAGOON_SEED_USERNAME` and `LAGOON_SEED_PASSWORD` to be set, while seeding an organization only requires `LAGOON_SEED_ORGANIZATION`.
+Seeding an initial user requires both `LAGOON_SEED_USERNAME` and `LAGOON_SEED_PASSWORD` to be set, while seeding an organization only requires `LAGOON_SEED_ORGANIZATION`.
 This feature also works with the `make k3d/install-lagoon` command discussed below.
 
 !!! warning
@@ -121,7 +121,7 @@ There are a number of variables that can be used with `make k3d/local-stack` tha
 
 #### DBaaS providers
 
-There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatability reasons, you can disable them individually.
+There are some Database as a Service (DBaaS) providers that are installed by default, to speed up time with a local stack, or for compatibility reasons, you can disable them individually.
 
 ```bash title="Deploy local stack without specific provider"
 # disable all of them
@@ -240,7 +240,7 @@ make k3d/install-lagoon INSTALL_STABLE_REMOTE=true INSTALL_STABLE_BUILDDEPLOY=tr
 
 #### Harbor or unauthenticated registry
 
-Currently, Harbor does not have any arm64 based images. This means local-stack will not install Harbor on an arm64 based system. Instead an unauthenticed registry will be installed, and `lagoon-remote` will be configured to use this. This has the downsides that you won't be able to properly test any Harbor integrations on arm64 based systems for now.
+Currently, Harbor does not have any arm64 based images. This means local-stack will not install Harbor on an arm64 based system. Instead an unauthenticated registry will be installed, and `lagoon-remote` will be configured to use this. This has the downsides that you won't be able to properly test any Harbor integrations on arm64 based systems for now.
 
 If you want to skip installing Harbor entirely, even if your system is not arm based, you can use the following
 
