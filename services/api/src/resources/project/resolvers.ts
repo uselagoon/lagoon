@@ -1064,7 +1064,7 @@ export const updateProjectMetadata: ResolverFn = async (
   await query(
     sqlClientPool,
     `UPDATE project
-    SET metadata = JSON_SET(metadata, :meta_key, :meta_value)
+    SET metadata = JSON_SET(COALESCE(metadata, '{}'), :meta_key, :meta_value)
     WHERE id = :id`,
     {
       id,
