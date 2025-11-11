@@ -1425,6 +1425,7 @@ const typeDefs = gql`
     if the project is associated to an organization, and the organization has any retention policies
     """
     retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
+    metadata: JSON
   }
 
   """
