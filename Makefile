@@ -509,6 +509,10 @@ ENABLE_INSIGHTS = false
 
 # optionally install k8up for lagoon local development testing
 INSTALL_K8UP = false
+# this has multiple options available, will default to v2
+# set to v1 to install only k8upv1
+# set to v1,v2 to install both k8upv1 and k8upv2
+INSTALL_K8UP_VERSIONS = v2
 REMOTE_CONTROLLER_K8UP_VERSION = v2
 
 # the following can be used to selectively leave out the installation of certain
@@ -768,6 +772,7 @@ k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) k3d/check
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
 		$$([ $(INSTALL_PROMETHEUS) ] && echo 'INSTALL_PROMETHEUS=$(INSTALL_PROMETHEUS)') \
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
+		$$([ $(INSTALL_K8UP_VERSIONS) ] && echo 'INSTALL_K8UP_VERSIONS=$(INSTALL_K8UP_VERSIONS)') \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
 		$$([ $(INSTALL_MONGODB_PROVIDER) ] && echo 'INSTALL_MONGODB_PROVIDER=$(INSTALL_MONGODB_PROVIDER)') \
@@ -845,6 +850,7 @@ endif
 		$$([ $(INSTALL_MAILPIT) ] && echo 'INSTALL_MAILPIT=$(INSTALL_MAILPIT)') \
 		$$([ $(INSTALL_PROMETHEUS) ] && echo 'INSTALL_PROMETHEUS=$(INSTALL_PROMETHEUS)') \
 		$$([ $(INSTALL_K8UP) ] && echo 'INSTALL_K8UP=$(INSTALL_K8UP)') \
+		$$([ $(INSTALL_K8UP_VERSIONS) ] && echo 'INSTALL_K8UP_VERSIONS=$(INSTALL_K8UP_VERSIONS)') \
 		REMOTE_CONTROLLER_K8UP_VERSION=$(REMOTE_CONTROLLER_K8UP_VERSION) \
 		$$([ $(INSTALL_MARIADB_PROVIDER) ] && echo 'INSTALL_MARIADB_PROVIDER=$(INSTALL_MARIADB_PROVIDER)') \
 		$$([ $(INSTALL_POSTGRES_PROVIDER) ] && echo 'INSTALL_POSTGRES_PROVIDER=$(INSTALL_POSTGRES_PROVIDER)') \
