@@ -113,7 +113,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
+  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentId(eid));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
