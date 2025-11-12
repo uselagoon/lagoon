@@ -96,6 +96,7 @@ const {
 const {
   getFilesByTaskId,
   uploadFilesForTask,
+  uploadFilesForTaskV2,
   deleteFilesForTask,
   getDownloadLink,
   getDownloadLinkByTaskFileId,
@@ -850,6 +851,7 @@ async function getResolvers() {
     cancelTask,
     setEnvironmentServices,
     uploadFilesForTask,
+    uploadFilesForTaskV2,
     deleteFilesForTask,
     deployEnvironmentLatest,
     deployEnvironmentBranch,
