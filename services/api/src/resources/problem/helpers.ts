@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
-import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -48,7 +48,7 @@ export const Helpers = (sqlClientPool: Pool) => {
           envName,
           environmentType
         }: any =
-          (await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+          (await environmentHelpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(
             problem.environment,
             envType
           )) || {};

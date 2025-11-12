@@ -1196,16 +1196,16 @@ export const getRoutesByProjectId: ResolverFn = async (
 };
 
 /*
-  getRoutesByProjectId is used to query the routes attached to an environment
+  getRoutesByEnvironmentId is used to query the routes attached to an environment
 */
 export const getRoutesByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { domain, source },
   { sqlClientPool, hasPermission }
 ) => {
-  const { id: projectId } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  const projectData = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
   await hasPermission('route', 'view', {
-    project: projectId
+    project: projectData.id
   });
 
   let queryBuilder = knex('routes')
