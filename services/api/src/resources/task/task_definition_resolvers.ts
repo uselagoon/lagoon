@@ -123,7 +123,7 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForEnvironment(environment)
   );
 
-  const proj = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+  const proj = await environmentHelpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(
     environment
   );
 
@@ -518,7 +518,7 @@ const getProjectByEnvironmentIdOrProjectId = async (
   project
 ) => {
   if (environment) {
-    let projByEnv = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+    let projByEnv = await environmentHelpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(
       environment
     );
     return await projectHelpers(sqlClientPool).getProjectById(projByEnv.project);

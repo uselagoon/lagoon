@@ -181,9 +181,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
       lastDays = Math.min(args.lastDays || 60, 60);
 
       // check permissions for non-platform users
-      const project = await projectHelpers(
-        sqlClientPool
-      ).getProjectByEnvironmentId(eid);
+      const project = await Helpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(eid);
       await hasPermission('environment', 'view', {
         project: project.id
       });
@@ -235,9 +233,7 @@ export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const { name: projectName } = await projectHelpers(
-    sqlClientPool
-  ).getProjectByEnvironmentId(id);
+  const { name: projectName } = await Helpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(id);
   return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(
     projectName,
     openshiftProjectName,
@@ -540,7 +536,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
   const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
   // const environment = R.path([0], rows);
-  const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
+  const { name: projectName } = await Helpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(environment['environment']);
   const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   const auditLog: AuditLog = {
     resource: {

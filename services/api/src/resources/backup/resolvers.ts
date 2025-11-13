@@ -24,7 +24,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
+  const project = await environmentHelpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(rows[0].environment);
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
 
   // https://{endpoint}/{bucket}/{key}

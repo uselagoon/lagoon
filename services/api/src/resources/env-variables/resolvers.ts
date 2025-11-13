@@ -645,7 +645,7 @@ const addEnvVariableToEnvironment = async (
       project: environment.project
     }
   );
-  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment.id);
+  const project = await environmentHelpers(sqlClientPool).getEnvironmentProjectByEnvironmentId(environment.id);
 
   const { insertId } = await query(
     sqlClientPool,
