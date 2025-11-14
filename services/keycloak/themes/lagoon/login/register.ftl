@@ -1,6 +1,5 @@
 <#import "template.ftl" as layout>
-<#import "register-commons.ftl" as registerCommons>
-<@layout.registrationLayout displayMessage=!messagesPerField.existsError('firstName','lastName','email','username','password','password-confirm','termsAccepted'); section>
+<@layout.registrationLayout displayMessage=!messagesPerField.existsError('firstName','lastName','email','username','password','password-confirm'); section>
     <#if section = "header">
         ${msg("registerTitle")}
     <#elseif section = "form">
@@ -117,8 +116,6 @@
                     </div>
                 </div>
             </#if>
-
-            <@registerCommons.termsAcceptance/>
 
             <#if recaptchaRequired??>
                 <div class="form-group">
