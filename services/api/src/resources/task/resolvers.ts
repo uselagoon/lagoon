@@ -591,13 +591,9 @@ export const taskDrushArchiveDump: ResolverFn = async (
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
--H "Authorization: Bearer $TOKEN" \
--F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
--F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file && rm -rf $file;
-`;
+  // this script is more complicated than usual so for proof of concept, it calls the script from gist
+  // ideally, refactor for inclusion here at some point
+  const command = String.raw`curl https://gist.githubusercontent.com/shreddedbacon/770674061e6c8648c7193761c7a93fce/raw/19bf333c40deb48dbc26fc98f964d6087f3b31cb/drushard.sh | sh`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
@@ -659,14 +655,9 @@ export const taskDrushSqlDump: ResolverFn = async (
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
-if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
--H "Authorization: Bearer $TOKEN" \
--F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
--F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file.gz && rm -rf $file.gz
-`;
+  // this script is more complicated than usual so for proof of concept, it calls the script from gist
+  // ideally, refactor for inclusion here at some point
+  const command = String.raw`curl https://gist.githubusercontent.com/shreddedbacon/d452ee866cac26c77c344a5f86d2ff3f/raw/a38314ceb4530878699d264b46fea7143a4fd8cd/drushsqldump.sh | sh`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({

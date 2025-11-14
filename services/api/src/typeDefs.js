@@ -404,6 +404,12 @@ const typeDefs = gql`
     created: String
   }
 
+  type FileUpload {
+    filename: String
+    url: String
+    fields: JSON
+  }
+
   type SshKey {
     id: Int
     name: String
@@ -2576,6 +2582,11 @@ const typeDefs = gql`
     files: [Upload]!,
   }
 
+  input UploadFilesForTaskV2Input {
+    task: Int!,
+    files: [String]!,
+  }
+
   input DeleteFilesForTaskInput {
     id: Int!
   }
@@ -3029,7 +3040,8 @@ const typeDefs = gql`
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
-    uploadFilesForTask(input: UploadFilesForTaskInput!): Task
+    uploadFilesForTask(input: UploadFilesForTaskInput!): Task @deprecated(reason: "Use uploadFilesForTaskV2 instead")
+    uploadFilesForTaskV2(input: UploadFilesForTaskV2Input!): [FileUpload]
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
