@@ -210,24 +210,6 @@ export const Sql = {
       .where(knex.raw('environment_service.id = ?', id))
       .limit(1)
       .toString(),
-  selectEnvironmentProjectByEnvironmentId: (environmentId, environmentType = []) => {
-    let q = knex('environment as e')
-      .select(
-        'e.id',
-        { envName: 'e.name' },
-        'e.environment_type',
-        'e.project',
-        'e.openshift_project_name',
-        'p.name',
-        { projectId: 'p.id'}
-      )
-      .leftJoin('project as p', 'p.id', '=', 'e.project');
-    if (environmentType && environmentType.length > 0) {
-      q.where('e.environment_type', environmentType);
-    }
-    q.where('e.id', environmentId);
-    return q.toString();
-  },
   // sekect all the containers for a particular service
   selectContainersByServiceId: (id: number) =>
     knex('environment_service_container')

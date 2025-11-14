@@ -30,21 +30,9 @@ export const Helpers = (sqlClientPool: Pool) => {
     return R.prop(0, withK8s);
   };
 
-  const getEnvironmentProjectByEnvironmentId = async (
-    environmentId: number,
-    environmentType = []
-  ) => {
-    const rows = await query(
-      sqlClientPool,
-      Sql.selectEnvironmentProjectByEnvironmentId(environmentId, environmentType)
-    );
-    return R.prop(0, rows);
-  };
-
   return {
     aliasOpenshiftToK8s,
     getEnvironmentById,
-    getEnvironmentProjectByEnvironmentId,
     deleteEnvironment: async (name: string, eid: number, pid: number) => {
       const environmentData = await Helpers(sqlClientPool).getEnvironmentById(eid);
       const projectData = await projectHelpers(sqlClientPool).getProjectById(pid);
