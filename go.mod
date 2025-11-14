@@ -10,7 +10,7 @@ require (
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
 	github.com/gorilla/mux v1.8.1
-	github.com/uselagoon/machinery v0.0.35-0.20250805062131-40263f30ccc9
+	github.com/uselagoon/machinery v0.0.35-0.20251114033344-21744ef5a896
 	github.com/uselagoon/remote-controller v0.25.0
 	gitlab.com/gitlab-org/api/client-go v0.142.0
 	golang.org/x/crypto v0.36.0
@@ -88,3 +88,5 @@ require (
 
 // has changes for bitbucket to set the missing values
 replace github.com/drone/go-scm v1.40.6 => github.com/amazeeio/go-scm v0.0.0-20250901004919-2d6cb6d90967
+
+// https://github.com/uselagoon/machinery/tree/update-group-api-routes for machinery
