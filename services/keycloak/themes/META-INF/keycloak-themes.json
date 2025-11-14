@@ -1,6 +1,9 @@
 {
     "themes": [{
-        "name" : "lagoon",
-        "types": [ "login", "email", "account" ]
+      "name" : "lagoon",
+      "types": [ "login", "email", "account" ]
+    },{
+      "name" : "lagoon-v2",
+      "types": [ "login", "account", "common" ]
     }]
 }
