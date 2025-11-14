@@ -81,11 +81,12 @@ export const Helpers = (sqlClientPool: Pool) => {
   };
 
   const getProjectByEnvironmentId = async (
-    environmentId: number
+    environmentId: number,
+    environmentType = []
   ) => {
     const rows = await query(
       sqlClientPool,
-      Sql.selectProjectByEnvironmentId(environmentId)
+      Sql.selectProjectByEnvironmentId(environmentId, environmentType)
     );
     return R.prop(0, rows);
   };

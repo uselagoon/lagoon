@@ -54,7 +54,7 @@ export const Sql = {
     knex('project as p')
       .where('p.organization', organizationId)
       .toString(),
-  selectProjectByEnvironmentId: (id: number) =>
+  selectProjectByEnvironmentID: (id: number) =>
     knex('environment as e')
       .select('project.*')
       .join('project', 'e.project', '=', 'project.id')
@@ -86,6 +86,24 @@ export const Sql = {
       .where('e.project', '=', id)
       .andWhere('e.deleted', '0000-00-00 00:00:00')
       .toString(),
+  selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
+    let q = knex('environment as e')
+      .select(
+        'e.id',
+        { envName: 'e.name' },
+        'e.environment_type',
+        'e.project',
+        'e.openshift_project_name',
+        'p.name',
+        { projectId: 'p.id'}
+      )
+      .leftJoin('project as p', 'p.id', '=', 'e.project');
+    if (environmentType && environmentType.length > 0) {
+      q.where('e.environment_type', environmentType);
+    }
+    q.where('e.id', environmentId);
+    return q.toString();
+  },
   updateProject: ({
     id,
     patch
