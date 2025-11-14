@@ -18,7 +18,7 @@ description: >-
 | CA | A Certificate Authority is a trusted entity that issues Secure Sockets Layer (SSL) certificates.|
 | CDN | Content Delivery Network - distributes content via caching |
 | CI | Continuous Integration |
-| CIDR | Classess Inter-Domain Routing - a method of assigning IP addresses |
+| CIDR | Classless Inter-Domain Routing - a method of assigning IP addresses |
 | CLI | Command Line Interface |
 | Cluster | A unified group of servers or VMs, distributed and managed together, which serves one entity to ensure high availability, load balancing, and scalability. |
 | CMS | Content Management System |

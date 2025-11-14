@@ -21,7 +21,7 @@ Members of organizations can be given the following roles:
 
     If you need to change quotas, please contact {{ defaults.helpstring }}.
 
-An _organization owner_ can do everything to do with administering an organization aside from changing quotas. They can add and delete users, groups, projects, deploy targets, and notifcations
+An _organization owner_ can do everything to do with administering an organization aside from changing quotas. They can add and delete users, groups, projects, deploy targets, and notifications
 
 An _organization viewer_ is a read-only role that can only view the organization, but cannot make any changes or additions. They can view the projects, groups, users, and notifications within an organization but cannot modify them.
 

@@ -47,11 +47,16 @@ export const getEnvironmentByName: ResolverFn = async (
 };
 
 export const getEnvironmentById = async (
-  root,
+  eid,
   args,
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  const environment = await Helpers(sqlClientPool).getEnvironmentById(args.id);
+  // handle dealing with arg or passthrough
+  let environmentId = args.id
+  if (eid) {
+    environmentId = eid.environment
+  }
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(environmentId);
 
   if (!environment) {
     return null;
@@ -167,8 +172,28 @@ export const getEnvironmentByBackupId: ResolverFn = async (
 export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
+  if (args) {
+    // set lastDays to args.lastDays, or 60 if undefined
+    let lastDays = args.lastDays || 60;
+    if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+      // lastDays to 60 results for non-platform users
+      lastDays = Math.min(args.lastDays || 60, 60);
+
+      // check permissions for non-platform users
+      const project = await projectHelpers(
+        sqlClientPool
+      ).getProjectByEnvironmentId(eid);
+      await hasPermission('environment', 'view', {
+        project: project.id
+      });
+    }
+    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({eid, lastDays, claim: args.claim, startDate: args.startDate, endDate: args.endDate}))
+    // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
+    return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
+  }
+
   await hasPermission('environment', 'storage');
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
@@ -758,7 +783,7 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
-        created: input.patch.created
+        created: input.patch.created,
       }
     })
   );
@@ -1066,10 +1091,7 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool }
 ) => {
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectServicesByEnvironmentId(eid)
-  );
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(eid)
   return rows;
 };
 

@@ -113,7 +113,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentID(eid));
+  const rows = await query(sqlClientPool, Sql.selectProjectByEnvironmentId(eid));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
@@ -268,6 +268,7 @@ export const addProject = async (
         throw new Error('The provided deploytarget is not valid for this organization');
       }
     }
+
   } else {
     if (DISABLE_NON_ORGANIZATION_PROJECT_CREATION == "false" || adminScopes.platformOwner) {
       await hasPermission('project', 'add');
@@ -277,7 +278,6 @@ export const addProject = async (
       );
     }
   }
-
   if (input.name.trim().length == 0) {
     throw new Error(
       'A project name must be provided!'
@@ -1064,7 +1064,7 @@ export const updateProjectMetadata: ResolverFn = async (
   await query(
     sqlClientPool,
     `UPDATE project
-    SET metadata = JSON_SET(metadata, :meta_key, :meta_value)
+    SET metadata = JSON_SET(COALESCE(metadata, '{}'), :meta_key, :meta_value)
     WHERE id = :id`,
     {
       id,
@@ -1097,4 +1097,19 @@ export const updateProjectMetadata: ResolverFn = async (
   });
 
   return Helpers(sqlClientPool).getProjectById(id);
+};
+
+
+/*
+  getFeatureApiRoutes is a field resolver
+  it has no permission checks as it isn't called directly
+  this is used to set the beta feature flag on a project from the organization
+  this feature will eventually be made generally available and the feature flag will be removed
+*/
+export const getFeatureApiRoutes: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  return Helpers(sqlClientPool).checkApiRoutesFeature(input.organization);
 };

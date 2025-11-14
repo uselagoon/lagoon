@@ -123,7 +123,7 @@ Scopes are used to set an env var for a specific context. An env var can have a 
 
 #### Buildtime
 
-Buildtime env vars are only available during Docker image builds, and can be accessed by using the `ARG` instruction. Check the [Docker documention on `ARG`](https://docs.docker.com/reference/dockerfile/#arg) for all the ways to use this method.
+Buildtime env vars are only available during Docker image builds, and can be accessed by using the `ARG` instruction. Check the [Docker documentation on `ARG`](https://docs.docker.com/reference/dockerfile/#arg) for all the ways to use this method.
 
 Typically the `ARG` will go after the FROM. Read [the Docker documentation about ARG and FROM](https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact).
 
@@ -263,7 +263,7 @@ Use environment files for config that can be safely committed to a Git repositor
 Environment files are only read by containers based on the [Lagoon `commons` base image](../docker-images/commons.md). They aren't read by Lagoon, but by the containers `ENTRYPOINT` scripts, which looks for them in the containers working directory. This means that these env vars are only available at runtime.
 
 !!! info
-    If environment files aren't loading, confirm that you're using Lagoon base images, that you're copying them into the contianer as part of your `Dockerfile`, and that your container has a `WORKDIR` setting that points to the location of these files.
+    If environment files aren't loading, confirm that you're using Lagoon base images, that you're copying them into the container as part of your `Dockerfile`, and that your container has a `WORKDIR` setting that points to the location of these files.
 
 The syntax of an environment file is `ENV_VAR_NAME="env var value"`:
 

@@ -417,6 +417,9 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
     }
   }
 
+  // Let's set the updated value for the env var
+  updateData['updated'] = knex.fn.now();
+
   const createOrUpdateSql = knex('env_vars')
     .insert({
       ...updateData,
