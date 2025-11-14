@@ -95,7 +95,8 @@ export const Sql = {
         'e.project',
         'e.openshift_project_name',
         'p.name',
-        { projectId: 'p.id'}
+        { projectId: 'p.id'},
+        'p.organization',
       )
       .leftJoin('project as p', 'p.id', '=', 'e.project');
     if (environmentType && environmentType.length > 0) {

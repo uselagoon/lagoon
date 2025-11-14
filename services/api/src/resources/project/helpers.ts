@@ -83,7 +83,16 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getProjectByEnvironmentId = async (
     environmentId: number,
     environmentType = []
-  ) => {
+  ): Promise<{
+    id: number // environment id
+    envName: string
+    environmentType: string
+    project: number
+    openshiftProjectName: string
+    name: string // project name
+    projectId: number
+    organization: number
+  }> => {
     const rows = await query(
       sqlClientPool,
       Sql.selectProjectByEnvironmentId(environmentId, environmentType)
