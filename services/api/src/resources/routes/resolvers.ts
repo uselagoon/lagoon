@@ -1203,7 +1203,7 @@ export const getRoutesByEnvironmentId: ResolverFn = async (
   { domain, source },
   { sqlClientPool, hasPermission }
 ) => {
-  const { id: projectId } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
+  const { projectId } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environmentId);
   await hasPermission('route', 'view', {
     project: projectId
   });
