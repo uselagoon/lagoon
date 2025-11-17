@@ -118,7 +118,6 @@ const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
                   overrideMap.set(row.envvarName, row)
               } else {
                   // We override without any deployment - remove
-                  // ac.set(row.envvarName, null)
                   overrideMap.delete(row.envvarName)
               }
           }
