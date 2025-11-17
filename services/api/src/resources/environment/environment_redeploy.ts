@@ -112,7 +112,7 @@ results.reduce((ac: Map<string, any>, row) => {
     if (ac.has(row.envvarName)) { // Check if there is already an instance of this var
         let other = ac.get(row.envvarName)
         if(row.envvarPriority > other.envvarPriority) { // if this is higher
-            if(row.mustDeploy == "deploy") {
+            if(row.mustDeploy === "deploy") {
                 // We override conventionally
                 ac.set(row.envvarName, row)
             } else {
@@ -121,7 +121,7 @@ results.reduce((ac: Map<string, any>, row) => {
             }
         }
     } else {
-        if(row.mustDeploy == "deploy") {
+        if(row.mustDeploy === "deploy") {
             // First instance of a var to be deployed
             ac.set(row.envvarName, row)
         }
