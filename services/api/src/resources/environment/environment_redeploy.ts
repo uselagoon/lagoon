@@ -108,32 +108,33 @@ ORDER BY allenvs.envvar_priority ASC;
 
 let overrideMap = new Map()
 
-results.reduce((ac: Map<string, any>, row) => {
-    if (ac.has(row.envvarName)) { // Check if there is already an instance of this var
-        let other = ac.get(row.envvarName)
+results.forEach((row) => {
+    if (overrideMap.has(row.envvarName)) { // Check if there is already an instance of this var
+        let other = overrideMap.get(row.envvarName)
         if(row.envvarPriority > other.envvarPriority) { // if this is higher
             if(row.mustDeploy === "deploy") {
                 // We override conventionally
-                ac.set(row.envvarName, row)
+                overrideMap.set(row.envvarName, row)
             } else {
                 // We override without any deployment - remove
-                ac.set(row.envvarName, null)
+                // ac.set(row.envvarName, null)
+                overrideMap.delete(row.envvarName)
             }
         }
     } else {
         if(row.mustDeploy === "deploy") {
             // First instance of a var to be deployed
-            ac.set(row.envvarName, row)
+            overrideMap.set(row.envvarName, row)
         }
     }
-    return ac
-}, overrideMap)
+})
 
-  const pendingChanges = [];
-  overrideMap.forEach((row) => {
-    if (row !== null) {
-      pendingChanges.push({type:environmentPendingChangeTypes.ENVVAR, details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`, date: row.envvarUpdated})
-    }
+  const pendingChanges =  Array.from(overrideMap.values()).map((row) => {
+      return {
+        type:environmentPendingChangeTypes.ENVVAR,
+        details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`,
+        date: row.envvarUpdated
+      }
   })
 
   return pendingChanges;
