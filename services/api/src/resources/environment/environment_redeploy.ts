@@ -68,7 +68,7 @@ FROM (
   -- Project-scoped
   SELECT
     e.id, e.name,
-    ev.name,
+    ev.name AS envvar_name,
     ev.updated AS envvar_updated,
     lc.ts as env_last_updated,
     IF(ev.updated > lc.ts, "deploy", "no-deploy") as must_deploy,
@@ -86,7 +86,7 @@ FROM (
   -- Organization-scoped
   SELECT
     e.id, e.name,
-    ev.name,
+    ev.name AS envvar_name,
     ev.updated AS envvar_updated,
     lc.ts as env_last_updated,
     IF(ev.updated > lc.ts, "deploy", "no-deploy") as must_deploy,
@@ -109,21 +109,21 @@ ORDER BY allenvs.envvar_priority ASC;
 let overrideMap = new Map()
 
 results.reduce((ac: Map<string, any>, row) => {
-    if (ac.has(row.name)) { // Check if there is already an instance of this var
-        let other = ac.get(row.name)
+    if (ac.has(row.envvarName)) { // Check if there is already an instance of this var
+        let other = ac.get(row.envvarName)
         if(row.envvarPriority > other.envvarPriority) { // if this is higher
             if(row.mustDeploy == "deploy") {
                 // We override conventionally
-                ac.set(row.name, row)
+                ac.set(row.envvarName, row)
             } else {
                 // We override without any deployment - remove
-                ac.set(row.name, null)
+                ac.set(row.envvarName, null)
             }
         }
     } else {
         if(row.mustDeploy == "deploy") {
             // First instance of a var to be deployed
-            ac.set(row.name, row)
+            ac.set(row.envvarName, row)
         }
     }
     return ac
