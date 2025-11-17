@@ -129,7 +129,7 @@ results.reduce((ac: Map<string, any>, row) => {
     return ac
 }, overrideMap)
 
-  let pendingChanges = [];
+  const pendingChanges = [];
   overrideMap.forEach((row) => {
     if (row !== null) {
       pendingChanges.push({type:environmentPendingChangeTypes.ENVVAR, details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`, date: row.envvarUpdated})
