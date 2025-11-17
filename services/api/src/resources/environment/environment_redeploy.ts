@@ -38,6 +38,7 @@ _,
 }
 
 const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
+
       const sql = `
 WITH last_completed AS (
   SELECT COALESCE(MAX(d.created), TIMESTAMP('1970-01-01 00:00:00')) AS ts
@@ -52,36 +53,45 @@ FROM (
     e.name AS env_name,
     ev.name AS envvar_name,
     ev.updated AS envvar_updated,
-    'Environment' AS envvar_source
+    lc.ts as env_last_updated,
+    IF(ev.updated > lc.ts, "deploy", "no-deploy") as must_deploy,
+    'Environment' AS envvar_source,
+    3 as envvar_priority
   FROM environment e
   JOIN env_vars ev ON ev.environment = e.id
   CROSS JOIN last_completed lc
   WHERE e.id = ?
     AND ev.name IS NOT NULL
-    AND ev.updated > lc.ts
 
   UNION ALL
 
   -- Project-scoped
   SELECT
     e.id, e.name,
-    ev.name, ev.updated,
-    'Project' AS envvar_source
+    ev.name,
+    ev.updated AS envvar_updated,
+    lc.ts as env_last_updated,
+    IF(ev.updated > lc.ts, "deploy", "no-deploy") as must_deploy,
+    'Project' AS envvar_source,
+    2 as envvar_priority
   FROM environment e
   JOIN project p   ON p.id = e.project
   JOIN env_vars ev ON ev.project = p.id
   CROSS JOIN last_completed lc
   WHERE e.id = ?
     AND ev.name IS NOT NULL
-    AND ev.updated > lc.ts
 
   UNION ALL
 
   -- Organization-scoped
   SELECT
     e.id, e.name,
-    ev.name, ev.updated,
-    'Organization' AS envvar_source
+    ev.name,
+    ev.updated AS envvar_updated,
+    lc.ts as env_last_updated,
+    IF(ev.updated > lc.ts, "deploy", "no-deploy") as must_deploy,
+    'Organization' AS envvar_source,
+    1 as envvar_priority
   FROM environment e
   JOIN project p        ON p.id = e.project
   JOIN organization o   ON o.id = p.organization
@@ -89,16 +99,40 @@ FROM (
   CROSS JOIN last_completed lc
   WHERE e.id = ?
     AND ev.name IS NOT NULL
-    AND ev.updated > lc.ts
+
 ) AS allenvs
-ORDER BY allenvs.envvar_updated DESC;
+ORDER BY allenvs.envvar_priority ASC;
 `;
 
   const results = await query(sqlClientPool, sql, [envId, envId, envId, envId]);
 
-  const pendingChanges = results.map(row => {
-    return {type:environmentPendingChangeTypes.ENVVAR, details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`, date: row.envvarUpdated};
-  });
+let overrideMap = new Map()
+
+results.reduce((ac: Map<string, any>, row) => {
+    if (ac.has(row.name)) { // Check if there is already an instance of this var
+        let other = ac.get(row.name)
+        if(row.envvarPriority > other.envvarPriority) { // if this is higher
+            if(row.mustDeploy == "deploy") {
+                // We override conventionally
+                ac.set(row.name, row)
+            } else {
+                // We override without any deployment - remove
+                ac.set(row.name, null)
+            }
+        }
+    } else {
+        if(row.mustDeploy == "deploy") {
+            // First instance of a var to be deployed
+            ac.set(row.name, row)
+        }
+    }
+    return ac
+}, overrideMap)
+
+  let pendingChanges = [];
+  overrideMap.forEach((row) => {
+    pendingChanges.push({type:environmentPendingChangeTypes.ENVVAR, details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`, date: row.envvarUpdated})
+  })
 
   return pendingChanges;
 }
