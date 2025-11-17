@@ -144,9 +144,7 @@ pipeline {
       parallel {
         stage ('2: run second test suite') {
           steps {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
-            }
+            sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,image-cache,services,ssh-legacy,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
         }
@@ -169,9 +167,7 @@ pipeline {
       parallel {
         stage ('3: run third test suite') {
           steps {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,python,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
-            }
+            sh script: "make -j$NPROC k3d/retest TESTS=[gitlab,github,bitbucket,python,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }
         }
