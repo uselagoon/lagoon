@@ -132,7 +132,7 @@ const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
   const pendingChanges =  Array.from(overrideMap.values()).map((row) => {
       return {
         type:environmentPendingChangeTypes.ENVVAR,
-        details: `Variable name: ${row.envvarName} (source: ${row.envvarSource} )`,
+        details: `Variable name: ${row.envvarName} (source: ${row.envvarSource})`,
         date: row.envvarUpdated
       };
   })
