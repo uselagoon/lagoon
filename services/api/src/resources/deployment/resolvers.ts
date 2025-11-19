@@ -782,7 +782,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   let buildName = generateBuildId();
   let buildType = DeploymentBuildType.BUILD
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
     buildName = variableOnlyBuild();
     buildType = DeploymentBuildType.VARIABLES
   }
