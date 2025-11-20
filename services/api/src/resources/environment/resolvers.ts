@@ -1141,36 +1141,32 @@ export const environmentIdling = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
-
   if (!environment) {
     throw new Error(
-      'Invalid environment ID'
+      `Unauthorized: You don't have permission to "cancel" on "deployment"`
     );
   }
 
-  await hasPermission('environment', 'view', {
+  // @TODO: add permission to idle/unidle environment
+  await hasPermission('deployment', 'cancel', {
     project: environment.project
   });
 
   // don't try idle if the environment is already idled or unidled
   if (environment.idled && input.idle) {
     throw new Error(
-      `environment is already idled`
+      `Environment is already idled`
     );
   }
   if (!environment.idled && !input.idle) {
     throw new Error(
-      `environment is already unidled`
+      `Environment is already unidled`
     );
   }
 
   const project = await projectHelpers(sqlClientPool).getProjectById(
     environment.project
   );
-
-  await hasPermission('deployment', 'cancel', {
-    project: project.id
-  });
 
   const data = {
     environment,
@@ -1180,15 +1176,27 @@ export const environmentIdling = async (
       forceScale: input.disableAutomaticUnidling
     }
   };
-
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: `${environment.name}, idled: ${input.idle}, unidlingDisabled: ${input.disableAutomaticUnidling}`,
+    },
+  };
   userActivityLogger(`User requested environment idling for '${environment.name}'`, {
     project: '',
-    event: 'api:idleEnvironment',
+    event: 'api:environmentIdling',
     payload: {
       project: project.name,
       environment: environment.name,
       idle: input.idle,
       disableAutomaticUnidling: input.disableAutomaticUnidling,
+      ...auditLog,
     }
   });
 
@@ -1200,7 +1208,7 @@ export const environmentIdling = async (
       'error',
       '',
       '',
-      'api:idleEnvironment',
+      'api:environmentIdling',
       { environment: environment.id },
       `Environment idle attempt possibly failed, reason: ${error}`
     );
@@ -1216,36 +1224,31 @@ export const environmentService = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
-
   if (!environment) {
     throw new Error(
-      'Invalid environment ID'
+      `Unauthorized: You don't have permission to "cancel" on "deployment"`
     );
   }
 
-  await hasPermission('environment', 'view', {
+  // @TODO: add permission to restart service in environment
+  await hasPermission('deployment', 'cancel', {
     project: environment.project
   });
 
-  // don't try idle if the environment is already idled or unidled
-  if (environment.idled && input.idle) {
-    throw new Error(
-      `environment is already idled`
-    );
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environment.id)
+  let serviceExists = false;
+  if (rows && rows.find(e => e.name === input.name)) {
+    serviceExists = true
   }
-  if (!environment.idled && !input.idle) {
+  if (!serviceExists) {
     throw new Error(
-      `environment is already unidled`
+      `Service ${input.serviceName} doesn't exist on environment`
     );
   }
 
   const project = await projectHelpers(sqlClientPool).getProjectById(
     environment.project
   );
-
-  await hasPermission('deployment', 'cancel', {
-    project: project.id
-  });
 
   const data = {
     environment,
@@ -1256,26 +1259,39 @@ export const environmentService = async (
     }
   };
 
-  userActivityLogger(`User requested environment idling for '${environment.name}'`, {
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: `${environment.name}, service: ${input.serviceName}, state: ${input.state}`,
+    },
+  };
+  userActivityLogger(`User requested environment service change for '${environment.name}'`, {
     project: '',
-    event: 'api:idleEnvironment',
+    event: 'api:environmentService',
     payload: {
       project: project.name,
       environment: environment.name,
       idle: input.idle,
       disableAutomaticUnidling: input.disableAutomaticUnidling,
+      ...auditLog
     }
   });
 
   try {
-    await createMiscTask({ key: 'environment:idling', data });
+    await createMiscTask({ key: 'environment:service', data });
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
       'error',
       '',
       '',
-      'api:idleEnvironment',
+      'api:environmentService',
       { environment: environment.id },
       `Environment idle attempt possibly failed, reason: ${error}`
     );
