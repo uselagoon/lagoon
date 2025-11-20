@@ -2,7 +2,6 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
@@ -15,6 +14,13 @@ import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import { RemoveData, DeployType, AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+
+// Helper resolver to convert kibUsed to deprecated bytesUsed.
+export const getBytesUsed: ResolverFn = async (
+  envStorage
+) => {
+  return envStorage.kibUsed
+}
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -188,18 +194,22 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
         project: project.id
       });
     }
-    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({eid, lastDays, claim: args.claim, startDate: args.startDate, endDate: args.endDate}))
-    // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-    return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
+
+    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({
+      eid,
+      lastDays,
+      claim: args.claim,
+      startDate: args.startDate,
+      endDate: args.endDate
+    }))
+    return rows;
   }
 
   await hasPermission('environment', 'storage');
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
 
-  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-  return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
-  // return rows;
+  return rows;
 };
 
 export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
@@ -492,8 +502,19 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   return environment;
 };
 
+// Deprecated resolver that just calls replacement resolver.
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
-  root,
+  _,
+  { input },
+  context
+) => {
+  input.kibUsed = input.bytesUsed
+
+  return addOrUpdateStorageOnEnvironment(undefined, { input: input }, context);
+};
+
+export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
+  _,
   { input: unformattedInput },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
@@ -506,19 +527,13 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       : convertDateToMYSQLDateFormat(new Date().toISOString())
   };
 
-
-  // @DEPRECATE when `bytesUsed` is completely removed, this block can be removed
-  if (input.kibUsed) {
-    // remove the bytesUsed input if kilobytes is provided
-    delete input.bytesUsed
-  } else {
-    // else set kibUsed to the old required input, then remove the old input
-    input.kibUsed = input.bytesUsed
-    delete input.bytesUsed
-  }
-
   const createOrUpdateSql = knex('environment_storage')
-    .insert(input)
+    .insert({
+      environment: input.environment,
+      kibUsed: input.kibUsed,
+      persistentStorageClaim: input.persistentStorageClaim,
+      updated: input.updated,
+    })
     .onConflict('id')
     .merge({
       kibUsed: input.kibUsed
@@ -537,9 +552,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       .toString()
   );
 
-  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-  const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
-  // const environment = R.path([0], rows);
+  const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
   const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   const auditLog: AuditLog = {
