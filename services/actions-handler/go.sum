@@ -852,6 +852,8 @@ github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtX
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/uselagoon/machinery v0.0.35-0.20250519034121-4b2dbc04d43c h1:EHpPToqjyIUba8ahE9se5Io5orZR9mj4Ycz2DARYQCU=
 github.com/uselagoon/machinery v0.0.35-0.20250519034121-4b2dbc04d43c/go.mod h1:G0ujppuNR0BrtAnlmH8xDb9TDfayb4A36aeo0DYg7fQ=
+github.com/uselagoon/machinery v0.0.35-0.20251120223512-9b59a935a52b h1:9HHpHJeygCydjGNjuEDlVDfLJ9v9bpwR0DYoKYrUkhQ=
+github.com/uselagoon/machinery v0.0.35-0.20251120223512-9b59a935a52b/go.mod h1:G0ujppuNR0BrtAnlmH8xDb9TDfayb4A36aeo0DYg7fQ=
 github.com/vishvananda/netlink v0.0.0-20181108222139-023a6dafdcdf/go.mod h1:+SR5DhBJrl6ZM7CoCKvpw5BKroDKQ+PJqOg65H/2ktk=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852/go.mod h1:twkDnbuQxJYemMlGd4JFIcuhgX83tXhKS2B/PRMpOho=
