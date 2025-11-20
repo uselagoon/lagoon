@@ -587,6 +587,7 @@ async function getResolvers() {
     },
     EnvironmentStorage: {
       bytesUsed: getBytesUsed,
+      environment: getEnvironmentById,
     },
     EnvironmentStorageMonth: {
       bytesUsed: getBytesUsed,

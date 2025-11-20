@@ -516,7 +516,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
   _,
   { input: unformattedInput },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('environment', 'storage');
 
@@ -524,7 +524,7 @@ export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
     ...unformattedInput,
     updated: unformattedInput.updated
       ? unformattedInput.updated
-      : convertDateToMYSQLDateFormat(new Date().toISOString())
+      : convertDateToMYSQLDateFormat(new Date().toISOString()),
   };
 
   const createOrUpdateSql = knex('environment_storage')
@@ -534,50 +534,64 @@ export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
       persistentStorageClaim: input.persistentStorageClaim,
       updated: input.updated,
     })
-    .onConflict('id')
+    .onConflict('environment_persistent_storage_claim_updated')
     .merge({
-      kibUsed: input.kibUsed
-    }).toString();
+      kibUsed: input.kibUsed,
+    })
+    .toString();
 
-  const { insertId } = await query(
+  await query(sqlClientPool, createOrUpdateSql);
+
+  const rows = (await query(
     sqlClientPool,
-    createOrUpdateSql
+    knex('environment_storage')
+      .where('persistent_storage_claim', input.persistentStorageClaim)
+      .andWhere('environment', input.environment)
+      .andWhere('updated', input.updated)
+      .toString(),
+  )) as {
+    id: number;
+    persistentStorageClaim: string;
+    environment: number;
+    kibUsed: number;
+    updated: string;
+  }[];
+
+  const envStorage = rows[0];
+  const {
+    name: projectName,
+    projectId,
+    envName,
+  } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+    envStorage.environment,
   );
 
-  const rows = await query(sqlClientPool,
-    knex("environment_storage")
-      .where("persistent_storage_claim", input.persistentStorageClaim)
-      .andWhere("environment", input.environment)
-      .andWhere("updated", input.updated)
-      .toString()
-  );
-
-  const environment = R.path([0], rows);
-  const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
-  const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   const auditLog: AuditLog = {
     resource: {
-      id: curEnv.project.toString(),
+      id: projectId.toString(),
       type: AuditType.PROJECT,
       details: projectName,
     },
     linkedResource: {
-      id: curEnv.id.toString(),
+      id: envStorage.environment.toString(),
       type: AuditType.ENVIRONMENT,
-      details: curEnv.name,
+      details: envName,
     },
   };
-  userActivityLogger(`User updated environment storage on project '${projectName}'`, {
-    project: '',
-    event: 'api:addOrUpdateEnvironmentStorage',
-    payload: {
-      projectName,
-      input,
-      ...auditLog,
-    }
-  });
+  userActivityLogger(
+    `User updated environment storage on project '${projectName}'`,
+    {
+      project: '',
+      event: 'api:addOrUpdateEnvironmentStorage',
+      payload: {
+        projectName,
+        input,
+        ...auditLog,
+      },
+    },
+  );
 
-  return environment;
+  return envStorage;
 };
 
 export const deleteEnvironment: ResolverFn = async (
