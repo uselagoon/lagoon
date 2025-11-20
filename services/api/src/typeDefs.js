@@ -1973,6 +1973,10 @@ const typeDefs = gql`
     patch: UpdateRestorePatchInput!
   }
 
+  input DeleteRestoreInput {
+    backupId: String!
+  }
+
   input UpdateRestorePatchInput {
     status: RestoreStatusType
     created: String
@@ -3003,6 +3007,7 @@ const typeDefs = gql`
     deleteBackup(input: DeleteBackupInput!): String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
+    deleteRestore(input: DeleteRestoreInput!): Backup
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
     deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
     addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
