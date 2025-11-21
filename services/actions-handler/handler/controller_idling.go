@@ -21,13 +21,13 @@ type Idled struct {
 
 func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	prefix := fmt.Sprintf("(messageid:%s) %s: ", messageID, message.Namespace)
-	log.Println(fmt.Sprintf("%sreceived idling environment status update", prefix))
+	log.Printf("%sreceived idling environment status update", prefix)
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
 		// the token wasn't generated
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("ERROR: unable to generate token: %v", err))
+			log.Printf("ERROR: unable to generate token: %v", err)
 		}
 		return nil
 	}
@@ -46,7 +46,7 @@ func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQu
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get project - %v", prefix, err))
+				log.Printf("%sERROR: unable to get project - %v", prefix, err)
 			}
 			return err
 		}
@@ -60,7 +60,7 @@ func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQu
 				"message":  err.Error(),
 			})
 			if m.EnableDebug {
-				log.Println(fmt.Sprintf("%sERROR: unable to get environment - %v", prefix, err))
+				log.Printf("%sERROR: unable to get environment - %v", prefix, err)
 			}
 			return err
 		}
@@ -85,10 +85,10 @@ func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQu
 			"message":  err.Error(),
 		})
 		if m.EnableDebug {
-			log.Println(fmt.Sprintf("%sERROR: unable to update environment - %v", prefix, err))
+			log.Printf("%sERROR: unable to update environment - %v", prefix, err)
 		}
 		return err
 	}
-	log.Println(fmt.Sprintf("%supdated environment", prefix))
+	log.Printf("%supdated environment", prefix)
 	return nil
 }
