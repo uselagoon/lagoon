@@ -1135,67 +1135,72 @@ export const getServiceContainersByServiceId: ResolverFn = async (
   return await rows;
 };
 
-export const environmentIdling = async (
+export const idleOrUnidleEnvironment = async (
   root,
-  input,
+  {
+    input: {
+      environment,
+      project,
+      idle,
+      disableAutomaticUnidling
+    }
+  },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
-  if (!environment) {
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
+  // @TODO: add permission to idle/unidle environment
+  await hasPermission('deployment', 'cancel', {
+    project: projectId
+  });
+
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+  if (!environmentData) {
     throw new Error(
       `Unauthorized: You don't have permission to "cancel" on "deployment"`
     );
   }
 
-  // @TODO: add permission to idle/unidle environment
-  await hasPermission('deployment', 'cancel', {
-    project: environment.project
-  });
-
   // don't try idle if the environment is already idled or unidled
-  if (environment.idled && input.idle) {
+  if (environmentData.idled && idle) {
     throw new Error(
       `Environment is already idled`
     );
   }
-  if (!environment.idled && !input.idle) {
+  if (!environmentData.idled && !idle) {
     throw new Error(
       `Environment is already unidled`
     );
   }
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project
-  );
-
   const data = {
-    environment,
-    project,
+    environment: environmentData,
+    project: projectData,
     idling: {
-      idle: input.idle,
-      forceScale: input.disableAutomaticUnidling
+      idle: idle,
+      forceScale: disableAutomaticUnidling
     }
   };
+
   const auditLog: AuditLog = {
     resource: {
-      id: project.id.toString(),
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
-      details: project.name,
+      details: projectData.name,
     },
     linkedResource: {
-      id: environment.id.toString(),
+      id: environmentData.id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: `${environment.name}, idled: ${input.idle}, unidlingDisabled: ${input.disableAutomaticUnidling}`,
+      details: `${environmentData.name}, idled: ${idle}, unidlingDisabled: ${disableAutomaticUnidling}`,
     },
   };
-  userActivityLogger(`User requested environment idling for '${environment.name}'`, {
+  userActivityLogger(`User requested environment idling for '${environmentData.name}'`, {
     project: '',
-    event: 'api:environmentIdling',
+    event: 'api:idleOrUnidleEnvironment',
     payload: {
-      project: project.name,
-      environment: environment.name,
-      idle: input.idle,
-      disableAutomaticUnidling: input.disableAutomaticUnidling,
+      project: projectData.name,
+      environment: environmentData.name,
       ...auditLog,
     }
   });
@@ -1208,8 +1213,8 @@ export const environmentIdling = async (
       'error',
       '',
       '',
-      'api:environmentIdling',
-      { environment: environment.id },
+      'api:idleOrUnidleEnvironment',
+      { environment: environmentData.id },
       `Environment idle attempt possibly failed, reason: ${error}`
     );
     throw new Error(
@@ -1218,67 +1223,101 @@ export const environmentIdling = async (
   }
 };
 
-export const environmentService = async (
+export const stopOrStartEnvironmentService = async (
   root,
-  input,
+  {
+    input: {
+      environment,
+      project,
+      serviceName,
+      state
+    }
+  },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const environment = await Helpers(sqlClientPool).getEnvironmentById(input.id);
-  if (!environment) {
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
+  // @TODO: add permission to stop/start/restart environment
+  await hasPermission('deployment', 'cancel', {
+    project: projectId
+  });
+
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+  if (!environmentData) {
     throw new Error(
       `Unauthorized: You don't have permission to "cancel" on "deployment"`
     );
   }
 
-  // @TODO: add permission to restart service in environment
-  await hasPermission('deployment', 'cancel', {
-    project: environment.project
-  });
-
-  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environment.id)
-  let serviceExists = false;
-  if (rows && rows.find(e => e.name === input.name)) {
-    serviceExists = true
-  }
-  if (!serviceExists) {
+  if (environmentData.idled) {
     throw new Error(
-      `Service ${input.serviceName} doesn't exist on environment`
+      `Can't perform action because the environment is idled`
     );
   }
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project
-  );
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environmentData.id)
+  let serviceExists = false;
+  if (rows) {
+    for (const service of rows) {
+      if (service.name != serviceName) {
+        continue;
+      }
+      switch (state) {
+        case 'stop':
+          if (service.state === 'stopped') {
+            throw new Error(
+              `Service ${serviceName} is already stopped`
+            );
+          }
+          break;
+        case 'start':
+          if (service.state === 'running') {
+            throw new Error(
+              `Service ${serviceName} is already running`
+            );
+          }
+          break;
+        default:
+          break;
+      }
+      serviceExists = true
+    }
+  }
+  if (!serviceExists) {
+    throw new Error(
+      `Service ${serviceName} doesn't exist on environment`
+    );
+  }
 
   const data = {
-    environment,
-    project,
+    environment: environmentData,
+    project: projectData,
     lagoonService: {
-      name: input.serviceName,
-      state: input.state
+      name: serviceName,
+      state: state
     }
   };
 
   const auditLog: AuditLog = {
     resource: {
-      id: project.id.toString(),
+      id: projectData.id.toString(),
       type: AuditType.PROJECT,
-      details: project.name,
+      details: projectData.name,
     },
     linkedResource: {
-      id: environment.id.toString(),
+      id: environmentData.id.toString(),
       type: AuditType.ENVIRONMENT,
-      details: `${environment.name}, service: ${input.serviceName}, state: ${input.state}`,
+      details: `${environmentData.name}, service: ${serviceName}, state: ${state}`,
     },
   };
-  userActivityLogger(`User requested environment service change for '${environment.name}'`, {
+
+  userActivityLogger(`User requested environment service change for '${environmentData.name}'`, {
     project: '',
-    event: 'api:environmentService',
+    event: 'api:stopOrStartEnvironmentService',
     payload: {
-      project: project.name,
-      environment: environment.name,
-      idle: input.idle,
-      disableAutomaticUnidling: input.disableAutomaticUnidling,
+      project: projectData.name,
+      environment: environmentData.name,
       ...auditLog
     }
   });
@@ -1291,8 +1330,8 @@ export const environmentService = async (
       'error',
       '',
       '',
-      'api:environmentService',
-      { environment: environment.id },
+      'api:stopOrStartEnvironmentService',
+      { environment: environmentData.id },
       `Environment idle attempt possibly failed, reason: ${error}`
     );
     throw new Error(

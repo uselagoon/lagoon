@@ -1355,11 +1355,11 @@ export const createMiscTask = async function(taskData: any) {
       break;
     case 'deploytarget:environment:idling':
       // environment idling is used to handle idling or unidling of an an environment
-      miscTaskData.idling = taskData.data.idling
+      miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.idling)
       break;
     case 'deploytarget:environment:service':
       // environment service is used to handle stop, start, or restarting of a service in an environment
-      miscTaskData.lagoonService = taskData.data.lagoonService
+      miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.lagoonService)
       break;
     default:
       miscTaskData.misc = taskData.data.build
