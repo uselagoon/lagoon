@@ -960,6 +960,7 @@ const typeDefs = gql`
     name: String
     type: String
     containers: [ServiceContainer]
+    replicas: Int
     created: String
     updated: String
   }
@@ -1937,6 +1938,7 @@ const typeDefs = gql`
     name: String!
     type: String!
     containers: [ServiceContainerInput]
+    replicas: Int
   }
 
   input ServiceContainerInput {

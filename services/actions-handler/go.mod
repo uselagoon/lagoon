@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/aws/aws-sdk-go v1.15.11
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.35-0.20251120223512-9b59a935a52b
+	github.com/uselagoon/machinery v0.0.35-0.20251124010253-71bebf6d6966
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 
@@ -28,3 +28,4 @@ require (
 
 // for local development usage
 // replace github.com/uselagoon/machinery v0.0.4 => ../../../../uselagoon/machinery
+// go get github.com/uselagoon/machinery@environment-idled

@@ -9,6 +9,7 @@ exports.up = async function(knex) {
     })
     .alterTable('environment_service', function (table) {
         table.enu('status', ['stopped', 'running']);
+        table.integer('replicas').notNullable().defaultTo(0);
     })
 };
 
@@ -23,5 +24,6 @@ exports.down = async function(knex) {
     })
     .alterTable('environment_service', (table) => {
         table.dropColumn('status');
+        table.dropColumn('replicas');
     })
 };
