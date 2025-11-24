@@ -1,0 +1,16 @@
+.md-header {
+    background-color: var(--md-code-hl-color);
+    color: white;
+}
+
+.md-search__button {
+    color: white;
+}
+
+.md-search__button:before {
+    background-color: white;
+}
+
+.md-search__button:after {
+    background: hsla(225deg,15%,5%,0.54);
+}

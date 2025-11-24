@@ -103,8 +103,7 @@ PUBLISH_PLATFORM_ARCH := linux/amd64,linux/arm64
 SCAN_IMAGES := false
 
 # Settings for the MKDocs serving
-MKDOCS_IMAGE ?= ghcr.io/amazeeio/mkdocs-material
-MKDOCS_SERVE_PORT ?= 8000
+DOCS_SERVE_PORT ?= 8000
 
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
@@ -1188,12 +1187,12 @@ k3d/clean-all: k3d/clean k3d/clean-k3dconfigs k3d/clean-charts
 .PHONY: docs/serve
 docs/serve:
 	@echo "Starting container to serve documentation"
-	@docker pull $(MKDOCS_IMAGE)
+	@docker build -t lagoon/zensical:latest -f docs/zensicalDockerfile ./docs
 	@docker run --rm -it \
-		-p 127.0.0.1:$(MKDOCS_SERVE_PORT):$(MKDOCS_SERVE_PORT) \
+		-p 127.0.0.1:$(DOCS_SERVE_PORT):$(DOCS_SERVE_PORT) \
 		-v ${PWD}:/docs \
-		--entrypoint sh $(MKDOCS_IMAGE) \
-		-c 'mkdocs serve --livereload --dirtyreload --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
+		--entrypoint sh lagoon/zensical:latest \
+		-c 'zensical serve --dev-addr=0.0.0.0:$(DOCS_SERVE_PORT) -f mkdocs.yml'
 
 # k3d/generate-user-keys will generate seed user ssh keys that can be used for local testing
 SEED_USERS = guest reporter developer maintainer owner orguser orgviewer orgadmin orgowner platformorgowner platformviewer platformowner

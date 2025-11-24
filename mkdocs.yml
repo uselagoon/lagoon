@@ -167,19 +167,30 @@ nav:
   - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
   - Lagoon Sync: https://github.com/uselagoon/lagoon-sync
   - Client Libraries: other-tools/client-libraries.md
-- ... | releases/*
+# awesome-pages not supported with zensical
+# - ... | releases/*
+
+extra_css:
+  - stylesheets/extra.css
 
 theme:
   name: 'material'
   palette:
+    # Automatic based on os
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: lucide/sun-moon
+        name: Switch to light mode
     # Palette toggle for light mode
-    - primary: 'blue'
+    - media: "(prefers-color-scheme: light)"
+      primary: 'blue'
       accent: 'light blue'
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     # Palette toggle for dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: 'blue'
       toggle:
         icon: material/white-balance-sunny
@@ -207,8 +218,10 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.tabs.link
+    - navigation.footer
 
 extra:
+  generator: false
   analytics:
     provider: google
     property: G-W1SJFEVFDB
