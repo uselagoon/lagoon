@@ -26,6 +26,14 @@ export const getBytesUsed: ResolverFn = async (
   return envStorage.kibUsed
 }
 
+interface EnvironmentService {
+    name: string
+    type: string
+    environment: number
+    updated: string
+    replicas?: number
+}
+
 export const getEnvironmentByName: ResolverFn = async (
   root,
   args,
@@ -981,33 +989,35 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     project: environment.project
   });
 
-  let updateData = {
+  let envService: EnvironmentService = {
     name: input.name,
     type: input.type,
     environment: environment.id,
     updated: knex.fn.now(),
   };
 
+  if (input.replicas || input.replicas === 0) {
+    // set the replica count if provided
+    envService.replicas = input.replicas
+  }
+
   const createOrUpdateSql = knex('environment_service')
     .insert({
-      ...updateData,
+      ...envService,
     })
     .onConflict('id')
     .merge({
-      ...updateData
+      ...envService
     }).toString();
 
   const { insertId } = await query(
     sqlClientPool,
     createOrUpdateSql);
 
-  // reset this services containers (delete all and add the current ones)
-  let containers = [];
   if (input.containers){
-    containers = input.containers;
+    // reset this services containers (delete all and add the current ones if provided)
+    await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
   }
-  await Helpers(sqlClientPool).resetServiceContainers(insertId, containers)
-
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
