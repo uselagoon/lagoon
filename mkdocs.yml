@@ -85,37 +85,38 @@ nav:
         - Overview: applications/ruby.md
       - Other:
         - Overview: applications/other.md
-- Using Lagoon - The Basics:
-  - Overview: using-lagoon-the-basics/index.md
-  - Local Development Environments: using-lagoon-the-basics/local-development-environments.md
-  - Set Up a New Project: using-lagoon-the-basics/setup-project.md
-  - Configure Webhooks: using-lagoon-the-basics/configure-webhooks.md
-  - First Deployment: using-lagoon-the-basics/first-deployment.md
-  - Lagoon Build Errors and Warnings: using-lagoon-the-basics/lagoon-build-errors-and-warnings.md
-  - Going Live: using-lagoon-the-basics/going-live.md
-- Using Lagoon - Advanced:
-  - Overview: using-lagoon-advanced/index.md
-  - Active/Standby: using-lagoon-advanced/active-standby.md
-  - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
-  - Private Repositories: using-lagoon-advanced/private-repositories.md
-  - SimpleSAML: using-lagoon-advanced/simplesaml.md
-  - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
-  - Node.js Graceful Shutdown: using-lagoon-advanced/nodejs.md
-  - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
-  - Custom Tasks: using-lagoon-advanced/custom-tasks.md
-  - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
-  - Retention Policies: using-lagoon-advanced/retention-policies.md
-  - Blackfire: using-lagoon-advanced/blackfire.md
-  - Harbor:
-    - Using Harbor: using-lagoon-advanced/using-harbor/README.md
-    - Security Scanning: using-lagoon-advanced/using-harbor/security-scanning.md
-    - Harbor Settings: using-lagoon-advanced/using-harbor/harbor-settings/README.md
-    - Harbor-Core: using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md
-    - Harbor-Database: using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md
-    - Harbor-Jobservice: using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md
-    - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
-    - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
-    - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
+- Using Lagoon:
+  - The Basics:
+    - Overview: using-lagoon-the-basics/index.md
+    - Local Development Environments: using-lagoon-the-basics/local-development-environments.md
+    - Set Up a New Project: using-lagoon-the-basics/setup-project.md
+    - Configure Webhooks: using-lagoon-the-basics/configure-webhooks.md
+    - First Deployment: using-lagoon-the-basics/first-deployment.md
+    - Lagoon Build Errors and Warnings: using-lagoon-the-basics/lagoon-build-errors-and-warnings.md
+    - Going Live: using-lagoon-the-basics/going-live.md
+  - Advanced:
+    - Overview: using-lagoon-advanced/index.md
+    - Active/Standby: using-lagoon-advanced/active-standby.md
+    - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
+    - Private Repositories: using-lagoon-advanced/private-repositories.md
+    - SimpleSAML: using-lagoon-advanced/simplesaml.md
+    - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
+    - Node.js Graceful Shutdown: using-lagoon-advanced/nodejs.md
+    - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
+    - Custom Tasks: using-lagoon-advanced/custom-tasks.md
+    - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
+    - Retention Policies: using-lagoon-advanced/retention-policies.md
+    - Blackfire: using-lagoon-advanced/blackfire.md
+    - Harbor:
+      - Using Harbor: using-lagoon-advanced/using-harbor/README.md
+      - Security Scanning: using-lagoon-advanced/using-harbor/security-scanning.md
+      - Harbor Settings: using-lagoon-advanced/using-harbor/harbor-settings/README.md
+      - Harbor-Core: using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md
+      - Harbor-Database: using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md
+      - Harbor-Jobservice: using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md
+      - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
+      - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
+      - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
 - Interacting with Lagoon:
   - Using the UI: interacting/lagoon-ui.md
   - Working with Orgs: interacting/organizations.md
@@ -167,19 +168,63 @@ nav:
   - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
   - Lagoon Sync: https://github.com/uselagoon/lagoon-sync
   - Client Libraries: other-tools/client-libraries.md
-- ... | releases/*
+- Releases:
+  - Policy: releases/policy.md
+  - 2.30.0: releases/2.30.0.md
+  - 2.29.2: releases/2.29.2.md
+  - 2.29.1: releases/2.29.1.md
+  - 2.29.0: releases/2.29.0.md
+  - 2.28.0: releases/2.28.0.md
+  - 2.27.0: releases/2.27.0.md
+  - 2.26.0: releases/2.26.0.md
+  - 2.25.0: releases/2.25.0.md
+  - 2.24.1: releases/2.24.1.md
+  - 2.24.0: releases/2.24.0.md
+  - 2.23.0: releases/2.23.0.md
+  - 2.22.0: releases/2.22.0.md
+  - 2.21.0: releases/2.21.0.md
+  - 2.20.0: releases/2.20.0.md
+  - 2.19.0: releases/2.19.0.md
+  - 2.18.2: releases/2.18.2.md
+  - 2.18.1: releases/2.18.1.md
+  - 2.18.0: releases/2.18.0.md
+  - 2.17.0: releases/2.17.0.md
+  - 2.16.0: releases/2.16.0.md
+  - 2.15.4: releases/2.15.4.md
+  - 2.15.3: releases/2.15.3.md
+  - 2.15.2: releases/2.15.2.md
+  - 2.15.1: releases/2.15.1.md
+  - 2.15.0: releases/2.15.0.md
+  - 2.14.2: releases/2.14.2.md
+  - 2.14.1: releases/2.14.1.md
+  - 2.14.0: releases/2.14.0.md
+  - 2.13.0: releases/2.13.0.md
+  - 2.12.0: releases/2.12.0.md
+  - 2.11.0: releases/2.11.0.md
+  - 2.10.0: releases/2.10.0.md
+
+extra_css:
+  - stylesheets/extra.css
 
 theme:
+  language: en
   name: 'material'
   palette:
+    # Automatic based on os
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: lucide/sun-moon
+        name: Switch to light mode
     # Palette toggle for light mode
-    - primary: 'blue'
+    - media: "(prefers-color-scheme: light)"
+      primary: 'blue'
       accent: 'light blue'
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     # Palette toggle for dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: 'blue'
       toggle:
         icon: material/white-balance-sunny
@@ -207,11 +252,20 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.tabs.link
+    - navigation.footer
 
 extra:
+  generator: false
   analytics:
     provider: google
     property: G-W1SJFEVFDB
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: Japanese
+      link: /ja/
+      lang: ja
 
 extra_javascript:
   - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
@@ -249,7 +303,6 @@ plugins:
       lang:
       - en
       - ja
-  - awesome-pages
   - markdownextradata: {}
   - i18n:
       docs_structure: folder
