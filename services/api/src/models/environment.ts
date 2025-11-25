@@ -83,7 +83,6 @@ export const Environment = (clients: {
   const environmentStorageMonthByEnvironmentId = async (eid, month) => {
     let q = knex('environment_storage')
       .select(knex.raw('SUM(kib_used) as kib_used'))
-      .select(knex.raw('SUM(kib_used) as bytes_used')) // @DEPRECATE when `bytesUsed` is completely removed, this can be removed
       .select(knex.raw(`max(DATE_FORMAT(updated, '%Y-%m')) as month`))
       .where('environment', eid)
       .andWhere(
@@ -94,8 +93,6 @@ export const Environment = (clients: {
       );
 
     const rows = await query(sqlClientPool, q.toString());
-
-    rows.map((row) => ({ ...row, bytesUsed: row.kibUsed })); // @DEPRECATE when `bytesUsed` is completely removed, this can be removed
 
     return rows[0];
   };
