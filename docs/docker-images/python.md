@@ -12,6 +12,7 @@ The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tr
 * 3.11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.11.Dockerfile) (Security Support until October 2027) - `uselagoon/python-3.11`
 * 3.12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.12.Dockerfile) (Security Support until October 2028) - `uselagoon/python-3.12`
 * 3.13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.13.Dockerfile) (Security Support until October 2029) - `uselagoon/python-3.13`
+* 3.14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python/3.14.Dockerfile) (Security Support until October 2030) - `uselagoon/python-3.14`
 
 !!! Tip
     We stop updating and publishing EOL Python images usually with the Lagoon release that comes after the officially communicated EOL date: [https://devguide.python.org/versions/#versions](https://devguide.python.org/versions/#versions). Previous published versions will remain available.
