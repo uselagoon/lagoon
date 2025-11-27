@@ -693,6 +693,7 @@ helm/repos: local-dev/helm
 	$(HELM) repo add metallb https://metallb.github.io/metallb
 	$(HELM) repo add jetstack https://charts.jetstack.io
 	$(HELM) repo add jouve https://jouve.github.io/charts/
+	$(HELM) repo remove twuni
 	$(HELM) repo add twuni https://twuni.github.io/docker-registry.helm
 	$(HELM) repo add k8up https://k8up-io.github.io/k8up
 	$(HELM) repo add appuio https://charts.appuio.ch
