@@ -72,6 +72,20 @@ func Test_getIngressWithLabel(t *testing.T) {
 			if err = json.Unmarshal(r1, wantIngressList); err != nil {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
 			}
+			if len(got.Items) != len(wantIngressList.Items) {
+				t.Errorf("getIngressWithLabel() item length mismatch = \n%v %v", len(got.Items), len(wantIngressList.Items))
+			}
+			for _, gil := range got.Items {
+				gGVK, _ := fakeClient.GroupVersionKindFor(&gil)
+				for _, wil := range wantIngressList.Items {
+					if wil.Name == gil.Name {
+						wilGVK, _ := fakeClient.GroupVersionKindFor(&wil)
+						if wilGVK != gGVK {
+							t.Errorf("getIngressWithLabel() GVK mismatch = \n%v %v", gGVK, wilGVK)
+						}
+					}
+				}
+			}
 			if !reflect.DeepEqual(got, wantIngressList) {
 				gotB, _ := json.MarshalIndent(got, "", "  ")
 				wantB, _ := json.MarshalIndent(wantIngressList, "", "  ")
@@ -180,6 +194,11 @@ func Test_individualIngressMigration(t *testing.T) {
 			wantIngress := &networkv1.Ingress{}
 			if err = json.Unmarshal(r1, wantIngress); err != nil {
 				t.Errorf("couldn't unmarshal ingress list result %v: %v", tt.want, err)
+			}
+			wiGVK, _ := fakeClient.GroupVersionKindFor(wantIngress)
+			gGVK, _ := fakeClient.GroupVersionKindFor(got)
+			if wiGVK != gGVK {
+				t.Errorf("individualIngressMigration() GVK mismatch = \n%v %v", gGVK, wiGVK)
 			}
 			if !reflect.DeepEqual(got, wantIngress) {
 				gotB, _ := json.MarshalIndent(got, "", "  ")

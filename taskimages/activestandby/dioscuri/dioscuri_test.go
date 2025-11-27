@@ -76,7 +76,7 @@ func Test_checkKubernetesServices(t *testing.T) {
 			want: "test-data/check-services/test1-result-ingresslist.json",
 		},
 		{
-			name: "test1 - standby to active environment",
+			name: "test2 - standby to active environment",
 			args: args{
 				destinationNamespace: "active-main",
 				seedServices: []string{
