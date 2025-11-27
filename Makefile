@@ -697,10 +697,12 @@ helm/repos: local-dev/helm
 	$(HELM) repo add metallb https://metallb.github.io/metallb
 	$(HELM) repo add jetstack https://charts.jetstack.io
 	$(HELM) repo add jouve https://jouve.github.io/charts/
-	$(HELM) repo add twuni https://helm.twun.io
 	$(HELM) repo add k8up https://k8up-io.github.io/k8up
 	$(HELM) repo add appuio https://charts.appuio.ch
 	$(HELM) repo add prometheus-community https://prometheus-community.github.io/helm-charts
+ifeq ($(INSTALL_UNAUTHENTICATED_REGISTRY),true)
+	$(HELM) repo add twuni https://twuni.github.io/docker-registry.helm
+endif
 	$(HELM) repo update
 
 # stand up a k3d cluster configured appropriately for lagoon testing
