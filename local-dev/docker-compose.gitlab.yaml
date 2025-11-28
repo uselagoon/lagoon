@@ -1,0 +1,16 @@
+services:
+  gitlab-server:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name: gitlab-server
+    ports:
+      - '8089:80'
+    environment:
+      GITLAB_ROOT_EMAIL: "admin@example.com"
+      GITLAB_ROOT_PASSWORD: "gaid1meCh1ligh7Ooz9quoh2iph4ooda"
+    volumes:
+      - config:/etc/gitlab
+      - data:/var/opt/gitlab
+
+volumes:
+  config:
+  data:

@@ -1,0 +1,259 @@
+{
+    "repository": {
+        "type": "repository",
+        "full_name": "aio-test/test",
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test"
+            },
+            "html": {
+                "href": "https://bitbucket.org/aio-test/test"
+            },
+            "avatar": {
+                "href": "https://bytebucket.org/ravatar/%7B0e4ec4c2-5472-43f6-af6e-69762069446c%7D?ts=default"
+            }
+        },
+        "name": "test",
+        "scm": "git",
+        "website": null,
+        "owner": {
+            "display_name": "aio-test",
+            "links": {
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/workspaces/%7Bd483ecd2-3a71-4ef0-8dfd-499c8c93acb1%7D"
+                },
+                "avatar": {
+                    "href": "https://bitbucket.org/account/aio-test/avatar/"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/%7Bd483ecd2-3a71-4ef0-8dfd-499c8c93acb1%7D/"
+                }
+            },
+            "type": "team",
+            "uuid": "{d483ecd2-3a71-4ef0-8dfd-499c8c93acb1}",
+            "username": "aio-test"
+        },
+        "workspace": {
+            "type": "workspace",
+            "uuid": "{d483ecd2-3a71-4ef0-8dfd-499c8c93acb1}",
+            "name": "aio-test",
+            "slug": "aio-test",
+            "links": {
+                "avatar": {
+                    "href": "https://bitbucket.org/workspaces/aio-test/avatar/?ts=1756691473"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/aio-test/"
+                },
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/workspaces/aio-test"
+                }
+            }
+        },
+        "is_private": true,
+        "project": {
+            "type": "project",
+            "key": "REPO",
+            "uuid": "{80594a4b-6322-4305-9e05-b59001ef3adb}",
+            "name": "repo",
+            "links": {
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/workspaces/aio-test/projects/REPO"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/aio-test/workspace/projects/REPO"
+                },
+                "avatar": {
+                    "href": "https://bitbucket.org/aio-test/workspace/projects/REPO/avatar/32?ts=1756691497"
+                }
+            }
+        },
+        "uuid": "{0e4ec4c2-5472-43f6-af6e-69762069446c}",
+        "parent": null
+    },
+    "actor": {
+        "display_name": "User",
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/users/%7Bcc1043fc-a833-4810-9caf-a08c41fd41f8%7D"
+            },
+            "avatar": {
+                "href": "https://secure.gravatar.com/avatar/4afed2ba8e6ad497a7167ffd258a961b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FB-2.png"
+            },
+            "html": {
+                "href": "https://bitbucket.org/%7Bcc1043fc-a833-4810-9caf-a08c41fd41f8%7D/"
+            }
+        },
+        "type": "user",
+        "uuid": "{cc1043fc-a833-4810-9caf-a08c41fd41f8}",
+        "account_id": "123456:8cc0279c-d923-439b-9361-daf84a4f1687",
+        "nickname": "exampleuser"
+    },
+    "pullrequest": {
+        "comment_count": 0,
+        "task_count": 0,
+        "type": "pullrequest",
+        "id": 2,
+        "title": "test.md created online with Bitbucket",
+        "description": "",
+        "rendered": {
+            "title": {
+                "type": "rendered",
+                "raw": "test.md created online with Bitbucket",
+                "markup": "markdown",
+                "html": "<p>test.md created online with Bitbucket</p>"
+            },
+            "description": {
+                "type": "rendered",
+                "raw": "",
+                "markup": "markdown",
+                "html": ""
+            }
+        },
+        "state": "OPEN",
+        "draft": false,
+        "merge_commit": null,
+        "close_source_branch": false,
+        "closed_by": null,
+        "author": {
+            "display_name": "User",
+            "links": {
+                "self": {
+                    "href": "https://api.bitbucket.org/2.0/users/%7Bcc1043fc-a833-4810-9caf-a08c41fd41f8%7D"
+                },
+                "avatar": {
+                    "href": "https://secure.gravatar.com/avatar/4afed2ba8e6ad497a7167ffd258a961b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FB-2.png"
+                },
+                "html": {
+                    "href": "https://bitbucket.org/%7Bcc1043fc-a833-4810-9caf-a08c41fd41f8%7D/"
+                }
+            },
+            "type": "user",
+            "uuid": "{cc1043fc-a833-4810-9caf-a08c41fd41f8}",
+            "account_id": "123456:8cc0279c-d923-439b-9361-daf84a4f1687",
+            "nickname": "exampleuser"
+        },
+        "reason": "",
+        "created_on": "2025-09-01T01:59:31.498966+00:00",
+        "updated_on": "2025-09-01T02:03:07.544127+00:00",
+        "destination": {
+            "branch": {
+                "name": "main"
+            },
+            "commit": {
+                "hash": "7c880ead8710",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/commit/7c880ead8710"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/aio-test/test/commits/7c880ead8710"
+                    }
+                },
+                "type": "commit"
+            },
+            "repository": {
+                "type": "repository",
+                "full_name": "aio-test/test",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/aio-test/test"
+                    },
+                    "avatar": {
+                        "href": "https://bytebucket.org/ravatar/%7B0e4ec4c2-5472-43f6-af6e-69762069446c%7D?ts=default"
+                    }
+                },
+                "name": "test",
+                "uuid": "{0e4ec4c2-5472-43f6-af6e-69762069446c}"
+            }
+        },
+        "source": {
+            "branch": {
+                "name": "test-branch",
+                "links": {},
+                "sync_strategies": [
+                    "merge_commit",
+                    "rebase"
+                ]
+            },
+            "commit": {
+                "hash": "fe1e1258a740",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/commit/fe1e1258a740"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/aio-test/test/commits/fe1e1258a740"
+                    }
+                },
+                "type": "commit"
+            },
+            "repository": {
+                "type": "repository",
+                "full_name": "aio-test/test",
+                "links": {
+                    "self": {
+                        "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test"
+                    },
+                    "html": {
+                        "href": "https://bitbucket.org/aio-test/test"
+                    },
+                    "avatar": {
+                        "href": "https://bytebucket.org/ravatar/%7B0e4ec4c2-5472-43f6-af6e-69762069446c%7D?ts=default"
+                    }
+                },
+                "name": "test",
+                "uuid": "{0e4ec4c2-5472-43f6-af6e-69762069446c}"
+            }
+        },
+        "reviewers": [],
+        "participants": [],
+        "links": {
+            "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1"
+            },
+            "html": {
+                "href": "https://bitbucket.org/aio-test/test/pull-requests/1"
+            },
+            "commits": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/commits"
+            },
+            "approve": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/approve"
+            },
+            "request-changes": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/request-changes"
+            },
+            "diff": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/diff/aio-test/test:fe1e1258a740%0D7c880ead8710?from_pullrequest_id=1&topic=true"
+            },
+            "diffstat": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/diffstat/aio-test/test:fe1e1258a740%0D7c880ead8710?from_pullrequest_id=1&topic=true"
+            },
+            "comments": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/comments"
+            },
+            "activity": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/activity"
+            },
+            "merge": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/merge"
+            },
+            "decline": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/decline"
+            },
+            "statuses": {
+                "href": "https://api.bitbucket.org/2.0/repositories/aio-test/test/pullrequests/1/statuses"
+            }
+        },
+        "summary": {
+            "type": "rendered",
+            "raw": "",
+            "markup": "markdown",
+            "html": ""
+        }
+    }
+}
