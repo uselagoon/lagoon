@@ -293,6 +293,80 @@ EOF
 EOF
 }
 
+function environment_service_idling_state_permissions {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local restart_services=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Restart+development+environment+services --config $CONFIG_PATH)
+
+  if [ "$restart_services" != "[ ]" ]; then
+      echo "Environment services permissions already configured"
+      return 0
+  fi
+
+  echo Creating resource environment_state
+  echo '{"name":"environment_state","displayName":"environment_state","scopes":[{"name":"restart:production"},{"name":"restart:development"},{"name":"idle:development"},{"name":"unidle:development"},{"name":"idle:production"},{"name":"unidle:production"},{"name":"forceScale:development"},{"name":"forceScale:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+
+  echo Create "Restart production environment services" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Restart production environment services",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["environment_state"],
+    "scopes": ["restart:production"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+  # Create "Restart development environment services" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Restart development environment services",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["environment_state"],
+    "scopes": ["restart:development"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Developer"]
+  }
+EOF
+  # Create "Idle or Unidle development environment" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Idle or Unidle development environment",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["environment_state"],
+    "scopes": ["idle:development","unidle:development"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Developer"]
+  }
+EOF
+  # Create "Idle or Unidle production environment" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Idle or Unidle production environment",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["environment_state"],
+    "scopes": ["idle:production","unidle:production"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Maintainer"]
+  }
+EOF
+  # Create "Idle or Unidle production environment" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Force scale environments",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "AFFIRMATIVE",
+    "resources": ["environment_state"],
+    "scopes": ["forceScale:production","forceScale:development"],
+    "policies": ["[Lagoon] Users role for realm is Platform Viewer","[Lagoon] Users role for realm is Platform Owner"]
+  }
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -336,6 +410,7 @@ function configure_keycloak {
     migrate_to_custom_group_mapper
     #post 2.30.0+ migrations after this point
     add_retentionpolicy_permissions
+    environment_service_idling_state_permissions
 
     # always run last
     sync_client_secrets

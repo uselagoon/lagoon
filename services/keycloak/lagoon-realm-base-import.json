@@ -1435,6 +1435,39 @@
               }
             ]
           }
+          {
+            "name": "environment_state",
+            "ownerManagedAccess": false,
+            "displayName": "environment_state",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "restart:production"
+              },
+              {
+                "name": "restart:development"
+              },
+              {
+                "name": "idle:production"
+              },
+              {
+                "name": "unidle:production"
+              },
+              {
+                "name": "idle:development"
+              },
+              {
+                "name": "unidle:development"
+              },
+              {
+                "name": "forceScale:production"
+              },
+              {
+                "name": "forceScale:development"
+              }
+            ]
+          }
         ],
         "policies": [
           {
@@ -2884,6 +2917,72 @@
               "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           }
+          {
+            "name": "Restart production environment services",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"restart:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Restart development environment services",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"restart:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Restart production environment services",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"restart:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Idle or Unidle development environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"idle:development\",\"unidle:development\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Developer\"]"
+            }
+          },
+          {
+            "name": "Idle or Unidle production environment",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"idle:production\",\"unidle:production\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Maintainer\"]"
+            }
+          },
+          {
+            "name": "Force scale environments",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"environment_state\"]",
+              "scopes": "[\"forceScale:production\",\"forceScale:development\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          }
         ],
         "scopes": [
           {
@@ -3182,6 +3281,30 @@
           },
           {
             "name": "remove:history:project"
+          },
+          {
+            "name": "restart:production"
+          },
+          {
+            "name": "restart:development"
+          },
+          {
+            "name": "idle:production"
+          },
+          {
+            "name": "unidle:production"
+          },
+          {
+            "name": "idle:development"
+          },
+          {
+            "name": "unidle:development"
+          },
+          {
+            "name": "forceScale:production"
+          },
+          {
+            "name": "forceScale:development"
           }
         ],
         "decisionStrategy": "UNANIMOUS"
