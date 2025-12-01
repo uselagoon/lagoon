@@ -1159,16 +1159,55 @@ export const idleOrUnidleEnvironment = async (
 ) => {
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
   const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
-  // @TODO: add permission to idle/unidle environment
-  await hasPermission('deployment', 'cancel', {
-    project: projectId
-  });
-
   const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
   const environmentData = env[0]
   if (!environmentData) {
     throw new Error(
-      `Unauthorized: You don't have permission to "cancel" on "deployment"`
+      `Unauthorized: You don't have permission to "idle" on "environment_state"`
+    );
+  }
+  if (disableAutomaticUnidling) {
+    await hasPermission(
+      'environment_state',
+      `forceScale:${environmentData.environmentType}`,
+      {
+        project: projectId
+      }
+    );
+  }
+  if (idle) {
+    switch (idle) {
+      case true:
+        await hasPermission(
+          'environment_state',
+          `idle:${environmentData.environmentType}`,
+          {
+            project: projectId
+          }
+        );
+        break;
+      default:
+        await hasPermission(
+          'environment_state',
+          `unidle:${environmentData.environmentType}`,
+          {
+            project: projectId
+          }
+        );
+        break;
+    }
+  }
+
+  if (projectData.autoIdle == 0) {
+    // if the project has idling disabled, then don't allow idling or unidling of the environment
+    throw new Error(
+      `Project has idling disabled`
+    );
+  } else if (projectData.autoIdle == 1 && environmentData.autoIdle == 0) {
+    // if the project has idling enabled, but the environment has it disabled
+    // then don't allow idling or unidling of the environment
+    throw new Error(
+      `Environment has idling disabled`
     );
   }
 
@@ -1205,6 +1244,9 @@ export const idleOrUnidleEnvironment = async (
       details: `${environmentData.name}, idled: ${idle}, unidlingDisabled: ${disableAutomaticUnidling}`,
     },
   };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
   userActivityLogger(`User requested environment idling for '${environmentData.name}'`, {
     project: '',
     event: 'api:idleOrUnidleEnvironment',
@@ -1247,24 +1289,25 @@ export const stopOrStartEnvironmentService = async (
 ) => {
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
   const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
-  // @TODO: add permission to stop/start/restart environment
-  await hasPermission('deployment', 'cancel', {
-    project: projectId
-  });
-
   const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
   const environmentData = env[0]
   if (!environmentData) {
     throw new Error(
-      `Unauthorized: You don't have permission to "cancel" on "deployment"`
+      `Unauthorized: You don't have permission to "restart" on "environment_state"`
     );
   }
-
   if (environmentData.idled) {
     throw new Error(
       `Can't perform action because the environment is idled`
     );
   }
+  await hasPermission(
+    'environment_state',
+    `restart:${environmentData.environmentType}`,
+    {
+      project: projectId
+    }
+  );
 
   const rows = await Helpers(sqlClientPool).getEnvironmentServices(environmentData.id)
   let serviceExists = false;
@@ -1275,14 +1318,14 @@ export const stopOrStartEnvironmentService = async (
       }
       switch (state) {
         case 'stop':
-          if (service.state === 'stopped') {
+          if (service.replicas == 0) {
             throw new Error(
               `Service ${serviceName} is already stopped`
             );
           }
           break;
         case 'start':
-          if (service.state === 'running') {
+          if (service.replicas > 0) {
             throw new Error(
               `Service ${serviceName} is already running`
             );
@@ -1321,6 +1364,9 @@ export const stopOrStartEnvironmentService = async (
       details: `${environmentData.name}, service: ${serviceName}, state: ${state}`,
     },
   };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
 
   userActivityLogger(`User requested environment service change for '${environmentData.name}'`, {
     project: '',
