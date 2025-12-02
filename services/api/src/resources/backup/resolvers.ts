@@ -17,9 +17,36 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 import e from 'express';
+import { logger } from '../../loggers/logger';
 
 const { S3Client, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+// https://{endpoint}/{bucket}/{key}
+const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
+const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
+
+const getS3Client = async (sqlClientPool, projectId, s3Parts, restoreLocation) => {
+    let credentials = await getRestoreLocationS3Creds(sqlClientPool, projectId)
+
+    let awsS3Parts;
+
+    if (R.test(awsLinkMatch, restoreLocation)) {
+      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
+    }
+
+    // We have to generate a new client every time because the endpoint is parsed
+    // from the s3 url.
+    const URL = require('url').URL;
+    const restoreLocationURL = new URL(restoreLocation);
+    return new S3Client({
+      credentials,
+      forcePathStyle: true,
+      signatureVersion: 'v4',
+      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
+      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
+    });
+}
 
 const getRestoreLocationS3Creds = async (sqlClientPool, projectId) => {
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(projectId));
@@ -66,79 +93,61 @@ const getRestoreLocationS3Creds = async (sqlClientPool, projectId) => {
     );
   }
 
-  return [accessKeyId, secretAccessKey];
+  return {accessKeyId, secretAccessKey};
 }
 
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  if (rows.length == 0) {
+    return
+  }
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-
-  // https://{endpoint}/{bucket}/{key}
-  const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
 
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
-
-    let [accessKeyId, secretAccessKey] = await getRestoreLocationS3Creds(sqlClientPool, project.projectId)
-
-    let awsS3Parts;
-    const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
-
-    if (R.test(awsLinkMatch, restoreLocation)) {
-      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
-    }
-
-    // We have to generate a new client every time because the endpoint is parsed
-    // from the s3 url.
-    const URL = require('url').URL;
-    const restoreLocationURL = new URL(restoreLocation);
-    const s3Client = new S3Client({
-      credentials: {
-        accessKeyId,
-        secretAccessKey
-      },
-      forcePathStyle: true,
-      signatureVersion: 'v4',
-      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
-      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
-    });
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
+    const bucket = R.prop(2, s3Parts)
+    const fileKey = R.prop(3, s3Parts)
 
     try {
       const headObjectResponse = await s3Client.send(new HeadObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts)
+        Bucket: bucket,
+        Key: fileKey
       }));
       restoreSize = headObjectResponse.ContentLength ?? restoreSize;
 
       const restLoc = await getSignedUrl(s3Client, new GetObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts),
+        Bucket: bucket,
+        Key: fileKey,
       }), {
         expiresIn: s3Config.signedLinkExpiration
       });
 
-      if (typeof userActivityLogger === 'function') {
-        const auditLog: AuditLog = {
-          resource: {
-            type: AuditType.FILE,
-            details: R.prop(3, s3Parts),
-          },
-        };
-        if (project.organization) {
-          auditLog.organizationId = project.organization;
-        }
-        userActivityLogger(`User requested a download link`, {
-          event: 'api:getSignedBackupUrl',
-          payload: {
-            Bucket: R.prop(2, s3Parts),
-            Key: R.prop(3, s3Parts),
-            ...auditLog,
+      if (!restoreSizeOnly) {
+        // only log requests if restorelocation is requested
+        if (typeof userActivityLogger === 'function') {
+          const auditLog: AuditLog = {
+            resource: {
+              type: AuditType.FILE,
+              details: fileKey,
+            },
+          };
+          if (project.organization) {
+            auditLog.organizationId = project.organization;
           }
-        });
+          userActivityLogger(`User requested a download link`, {
+            event: 'api:getSignedBackupUrl',
+            payload: {
+              Bucket: bucket,
+              Key: fileKey,
+              ...auditLog,
+            }
+          });
+        }
       }
 
-      return [restLoc, restoreSize];
+      return {restoreLocation: restLoc, restoreSize};
     } catch(err) {
       await query(
         sqlClientPool,
@@ -146,75 +155,50 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
           backupId
         })
       );
-      return ["", restoreSize];
+      return {restoreLocation: "", restoreSize};
     }
   }
 
-  return [restoreLocation, restoreSize];
+  return {restoreLocation, restoreSize};
 };
 
 const deleteRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  if (rows.length == 0) {
+    return
+  }
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-
-  // https://{endpoint}/{bucket}/{key}
-  const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
 
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
-
-    let [accessKeyId, secretAccessKey] = await getRestoreLocationS3Creds(sqlClientPool, project.projectId)
-
-    let awsS3Parts;
-    const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
-
-    if (R.test(awsLinkMatch, restoreLocation)) {
-      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
-    }
-
-    // We have to generate a new client every time because the endpoint is parsed
-    // from the s3 url.
-    const URL = require('url').URL;
-    const restoreLocationURL = new URL(restoreLocation);
-    const s3Client = new S3Client({
-      credentials: {
-        accessKeyId,
-        secretAccessKey
-      },
-      forcePathStyle: true,
-      signatureVersion: 'v4',
-      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
-      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
-    });
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
+    const bucket = R.prop(2, s3Parts)
+    const fileKey = R.prop(3, s3Parts)
 
     try {
       const headObjectResponse = await s3Client.send(new HeadObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts)
+        Bucket: bucket,
+        Key: fileKey
       }));
       restoreSize = headObjectResponse.ContentLength ?? restoreSize;
 
       // delete the object from the bucket
       await s3Client.send(new DeleteObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts)
+        Bucket: bucket,
+        Key: fileKey
       }));
-
-      await query(
-        sqlClientPool,
-        Sql.deleteRestore({
-          backupId
-        })
-      );
     } catch(err) {
-      await query(
-        sqlClientPool,
-        Sql.deleteRestore({
-          backupId
-        })
-      );
+      // do nothing
+      logger.warn(`failed to check object reference in s3: ${e}`)
     }
+    // in any case, if the restore id is correct, delete the restore id
+    await query(
+      sqlClientPool,
+      Sql.deleteRestore({
+        backupId
+      })
+    );
   }
 };
 
@@ -664,8 +648,8 @@ export const getBackupDownloadLinkByBackupId: ResolverFn = async (
     throw new Error(`no restore file available`);
   }
   const backupData = R.prop(0, rows);
-  const [restLoc, restSize] = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
-  return restLoc;
+  const restoreLoc = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
+  return restoreLoc.restoreLocation;
 }
 
 export const getRestoreByBackupId: ResolverFn = async (
@@ -687,12 +671,12 @@ export const getRestoreByBackupId: ResolverFn = async (
   const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "restoreLocation");
   if (restoreLocationRequested) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
-    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
-    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+    const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
+    return {...row, restoreLocation: restoreLoc.restoreLocation, restoreSize: restoreLoc.restoreSize};
   } else {
     // if the restore does not have a location, return the row as is with restoreSize
-    const [, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, true);
-    return {...row, restoreSize: restSize};
+    const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger, true);
+    return {...row, restoreSize: restoreLoc.restoreSize};
   }
 };
 
