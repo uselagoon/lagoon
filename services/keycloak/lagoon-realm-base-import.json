@@ -1345,6 +1345,9 @@
               },
               {
                 "name": "update"
+              },
+              {
+                "name": "delete"
               }
             ]
           },
@@ -1963,6 +1966,17 @@
             "config": {
               "resources": "[\"restore\"]",
               "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
+            }
+          },
+          {
+            "name": "Delete Restore",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"restore\"]",
+              "scopes": "[\"delete\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
           },
