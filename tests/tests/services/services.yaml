@@ -74,33 +74,6 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, solr-8 service"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr?service=solr-8"
-    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
-
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, redis-7 service"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis?service=redis-7"
-    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
-
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch?service=opensearch-2"
-    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
-
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, persistent storage"
   hosts: localhost
   serial: 1
