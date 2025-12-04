@@ -207,8 +207,7 @@ export const Sql = {
         if (!includeDeleted) {
           queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
         }
-        queryBuilder = queryBuilder.whereRaw('environment.project IN (SELECT id FROM project)')
-        queryBuilder = queryBuilder.orderByRaw('deployment.created DESC, deployment.name DESC')
+        queryBuilder = queryBuilder.orderByRaw('deployment.created DESC, deployment.name DESC');
       })
   })
   .modify(function (queryBuilder) {

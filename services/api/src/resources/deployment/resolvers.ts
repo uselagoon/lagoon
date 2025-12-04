@@ -190,14 +190,14 @@ export const getDeploymentsByFilter: ResolverFn = async (
   if (environmentType && !limitPerEnvironment) {
     // if environment type is set, assume only the latest deployment for the environment
     // is requested depending on the `deploymentStatus` options chosen
-    limitPerEnvironment = 1
+    limitPerEnvironment = 1;
   }
 
-  let limitedStatuses = ["complete", "failed", "cancelled"]
-  if (deploymentStatus.some(element => limitedStatuses.includes(element)) && !limitPerEnvironment) {
+  let limitedStatuses = ["complete", "failed", "cancelled"];
+  if (!limitPerEnvironment && deploymentStatus.some(element => limitedStatuses.includes(element))) {
     // if a user requests `complete`, `failed`, or `cancelled` status builds but does not include a `limitPerEnvironment` limit
     // set the limit to the last 5 deployments to limit the amount of returned data
-    limitPerEnvironment = 5
+    limitPerEnvironment = 5;
   }
   logger.info( Sql.selectDeploymentsByFilter(
     {
@@ -211,7 +211,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
       limitPerEnvironment,
       limit
     }
-  ))
+  ));
   const rows = await query(sqlClientPool, Sql.selectDeploymentsByFilter(
     {
       startDate,
@@ -224,7 +224,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
       limitPerEnvironment,
       limit
     }
-  ))
+  ));
 
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
