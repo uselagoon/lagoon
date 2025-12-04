@@ -3,7 +3,7 @@ import { Transport } from './lokka-transport-http-retry';
 import { replace, pipe, toLower } from 'ramda';
 import { getConfigFromEnv } from './util/config';
 
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType } from './types';
+import { DeploymentSourceType, DeploymentBuildType, DeployType, TaskStatusType, TaskSourceType } from './types';
 
 export interface Project {
   autoIdle: number;
@@ -1190,12 +1190,13 @@ export const addDeployment = (
   bulkName: string | null = null,
   sourceUser: string | null = null,
   sourceType: DeploymentSourceType,
+  buildType: DeploymentBuildType,
 ): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String,
     $started: String, $completed: String, $priority: Int, $bulkId: String, $bulkName: String,
-    $sourceUser: String, $sourceType: DeploymentSourceType) {
+    $sourceUser: String, $sourceType: DeploymentSourceType, $buildType: DeploymentBuildType) {
     addDeployment(input: {
         name: $name
         status: $status
@@ -1210,6 +1211,7 @@ export const addDeployment = (
         bulkName: $bulkName
         sourceUser: $sourceUser
         sourceType: $sourceType
+        buildType: $buildType
     }) {
       ...${deploymentFragment}
     }
