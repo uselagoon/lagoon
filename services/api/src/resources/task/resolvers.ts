@@ -604,29 +604,28 @@ then
 else
     exit $?
 fi
-script='mutation {
-  uploadFilesForTaskV2(input:{
+script='query {
+  getTaskFileUploadForm(input:{
     task: '$TASK_DATA_ID'
-    files: ["'$FILENAME'.gz"]
+    filename: "'$FILENAME'.gz"
   }) {
-    filename
-    url
-    fields
+    postUrl
+    formFields
   }
 }'
 script="$(echo $script | sed 's/"/\\\\"/g' | sed 's/\\\\n/\\\\\\\\n/g' | awk -F'\\n' '{if(NR == 1) {printf $0} else {printf "\\\\n"$0}}')"
 
 curl -ksS -H 'Content-Type: application/json' \\
    -H "Authorization: bearer $(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" \\
-   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.uploadFilesForTaskV2[] as $signedurl |
-  "curl -X POST \\\"" + $signedurl.url + "\\\" " +
+   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.getTaskFileUploadForm as $signedurl |
+  "curl -X POST \\\"" + $signedurl.postUrl + "\\\" " +
   (
-    $signedurl.fields
+    $signedurl.formFields
     | to_entries
     | map("-F \\\"" + .key + "=" + .value + "\\\"")
     | join(" ")
   )
-  + " -F \\"file=@/tmp/\\($signedurl.filename)\\""' | sh
+  + " -F \\"file=@/tmp/'$FILENAME'.gz\\""' | sh
 rm -rf $file
 EOF
   `;
@@ -715,29 +714,28 @@ else if
     exit $?
   fi
 fi
-script='mutation {
-  uploadFilesForTaskV2(input:{
+script='query {
+  getTaskFileUploadForm(input:{
     task: '$TASK_DATA_ID'
-    files: ["'$FILENAME'.gz"]
+    filename: "'$FILENAME'.gz"
   }) {
-    filename
-    url
-    fields
+    postUrl
+    formFields
   }
 }'
 script="$(echo $script | sed 's/"/\\\\"/g' | sed 's/\\\\n/\\\\\\\\n/g' | awk -F'\\n' '{if(NR == 1) {printf $0} else {printf "\\\\n"$0}}')"
 
 curl -ksS -H 'Content-Type: application/json' \\
    -H "Authorization: bearer $(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" \\
-   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.uploadFilesForTaskV2[] as $signedurl |
-  "curl -X POST \\\"" + $signedurl.url + "\\\" " +
+   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.getTaskFileUploadForm as $signedurl |
+  "curl -X POST \\\"" + $signedurl.postUrl + "\\\" " +
   (
-    $signedurl.fields
+    $signedurl.formFields
     | to_entries
     | map("-F \\\"" + .key + "=" + .value + "\\\"")
     | join(" ")
   )
-  + " -F \\"file=@/tmp/\\($signedurl.filename)\\""' | sh
+  + " -F \\"file=@/tmp/'$FILENAME'.gz\\""' | sh
 rm -rf $file
 EOF
   `;

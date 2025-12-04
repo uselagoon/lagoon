@@ -404,10 +404,9 @@ const typeDefs = gql`
     created: String
   }
 
-  type FileUpload {
-    filename: String
-    url: String
-    fields: JSON
+  type TaskFileUploadForm {
+    postUrl: String
+    formFields: JSON
   }
 
   type SshKey {
@@ -1620,6 +1619,11 @@ const typeDefs = gql`
     name: String
   }
 
+  input GetTaskFileUploadFormInput {
+    task: Int!
+    filename: String!
+  }
+
   type Query {
     """
     Returns the current user
@@ -1795,6 +1799,7 @@ const typeDefs = gql`
     listAllRetentionPolicies(name: String, type: RetentionPolicyType): [RetentionPolicy]
     getBackupDownloadLinkByBackupId(backupId: String!): String
     getDownloadLinkByTaskFileId(taskId: Int!, fileId: Int!): String
+    getTaskFileUploadForm(input: GetTaskFileUploadFormInput!): TaskFileUploadForm
   }
 
   type ProjectGroupsToOrganization {
@@ -2585,12 +2590,6 @@ const typeDefs = gql`
     task: Int!,
     files: [Upload]!,
   }
-
-  input UploadFilesForTaskV2Input {
-    task: Int!,
-    files: [String]!,
-  }
-
   input DeleteFilesForTaskInput {
     id: Int!
   }
@@ -3045,8 +3044,7 @@ const typeDefs = gql`
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
-    uploadFilesForTask(input: UploadFilesForTaskInput!): Task @deprecated(reason: "Use uploadFilesForTaskV2 instead")
-    uploadFilesForTaskV2(input: UploadFilesForTaskV2Input!): [FileUpload]
+    uploadFilesForTask(input: UploadFilesForTaskInput!): Task @deprecated(reason: "Use getTaskFileUploadForm instead")
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String

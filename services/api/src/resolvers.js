@@ -96,7 +96,7 @@ const {
 const {
   getFilesByTaskId,
   uploadFilesForTask,
-  uploadFilesForTaskV2,
+  getTaskFileUploadForm,
   deleteFilesForTask,
   getDownloadLink,
   getDownloadLinkByTaskFileId,
@@ -759,6 +759,7 @@ async function getResolvers() {
     listAllRetentionPolicies,
     getBackupDownloadLinkByBackupId,
     getDownloadLinkByTaskFileId,
+    getTaskFileUploadForm,
   },
   Mutation: {
     addProblem,
@@ -851,7 +852,6 @@ async function getResolvers() {
     cancelTask,
     setEnvironmentServices,
     uploadFilesForTask,
-    uploadFilesForTaskV2,
     deleteFilesForTask,
     deployEnvironmentLatest,
     deployEnvironmentBranch,

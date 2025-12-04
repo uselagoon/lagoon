@@ -97,9 +97,9 @@ export const getFilesByTaskId: ResolverFn = async (
   return [];
 }
 
-export const uploadFilesForTaskV2: ResolverFn = async (
+export const getTaskFileUploadForm: ResolverFn = async (
   root,
-  { input: { task, files } },
+  { input: { task, filename } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rowsPerms = await query(
@@ -112,26 +112,22 @@ export const uploadFilesForTaskV2: ResolverFn = async (
     project: projectId
   });
 
-  let signed = [];
-  for (const file of files) {
-    const s3_key = `tasks/${task}/${file}`;
-    const signedurl = await generatePresignedPostUrl(s3_key)
-    signed.push({filename: file, url: signedurl.url, fields: signedurl.fields})
-    const auditLog: AuditLog = {
-      resource: {
-        type: AuditType.FILE,
-        details: s3_key
-      },
-    };
-    userActivityLogger(`User requested file upload link`, {
-      event: 'api:uploadFilesForTaskV2',
-      payload: {
-        Key: s3_key,
-        ...auditLog
-      }
-    });
-  }
-  return signed;
+  const s3_key = `tasks/${task}/${filename}`;
+  const signedurl = await generatePresignedPostUrl(s3_key)
+  const auditLog: AuditLog = {
+    resource: {
+      type: AuditType.FILE,
+      details: s3_key
+    },
+  };
+  userActivityLogger(`User requested file upload link`, {
+    event: 'api:getTaskFileUploadForm',
+    payload: {
+      Key: s3_key,
+      ...auditLog
+    }
+  });
+  return {postUrl: signedurl.url, formFields: signedurl.fields};
 }
 
 async function generatePresignedPostUrl(key) {
