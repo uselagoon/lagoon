@@ -155,7 +155,16 @@ export const getDeploymentsByFilter: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"], startDate, endDate, includeDeleted } = input;
+  let {
+    openshifts,
+    deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"],
+    environmentType,
+    startDate,
+    endDate,
+    includeDeleted,
+    limitPerEnvironment,
+    limit
+  } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -178,39 +187,45 @@ export const getDeploymentsByFilter: ResolverFn = async (
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  let queryBuilder = knex.select("deployment.*").from('deployment').
-      join('environment', 'deployment.environment', '=', 'environment.id');
-
-  if (userProjectIds) {
-      queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
+  if (environmentType && !limitPerEnvironment) {
+    // if environment type is set, assume only the latest deployment for the environment
+    // is requested depending on the `deploymentStatus` options chosen
+    limitPerEnvironment = 1;
   }
 
-  // collect builds for a specific date range
-  if (startDate) {
-    queryBuilder = queryBuilder.where('deployment.created', '>=', input.startDate);
+  let limitedStatuses = ["complete", "failed", "cancelled"];
+  if (!limitPerEnvironment && deploymentStatus.some(element => limitedStatuses.includes(element))) {
+    // if a user requests `complete`, `failed`, or `cancelled` status builds but does not include a `limitPerEnvironment` limit
+    // set the limit to the last 5 deployments to limit the amount of returned data
+    limitPerEnvironment = 5;
   }
+  logger.info( Sql.selectDeploymentsByFilter(
+    {
+      startDate,
+      endDate,
+      environmentType,
+      userProjectIds,
+      deployTargets: openshifts,
+      deploymentStatus,
+      includeDeleted,
+      limitPerEnvironment,
+      limit
+    }
+  ));
+  const rows = await query(sqlClientPool, Sql.selectDeploymentsByFilter(
+    {
+      startDate,
+      endDate,
+      environmentType,
+      userProjectIds,
+      deployTargets: openshifts,
+      deploymentStatus,
+      includeDeleted,
+      limitPerEnvironment,
+      limit
+    }
+  ));
 
-  if (endDate) {
-    queryBuilder = queryBuilder.where('deployment.created', '<=', input.endDate);
-  }
-
-  if(openshifts) {
-    queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
-  }
-
-  queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
-
-  // if includeDeleted is false, exclude deleted environments in the results (default)
-  if (!includeDeleted) {
-    queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
-  }
-
-  // exclude results where a project doesn't exist
-  queryBuilder = queryBuilder.whereRaw('environment.project IN (SELECT id FROM project)')
-
-  const queryBuilderString = queryBuilder.toString();
-
-  const rows = await query(sqlClientPool, queryBuilderString);
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
