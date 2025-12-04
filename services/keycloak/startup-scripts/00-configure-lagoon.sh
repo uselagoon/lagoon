@@ -1148,6 +1148,7 @@ function configure_keycloak {
     add_lagoon-ui_impersonator_mappers
     add_lagoon-ui-oidc_impersonator_mappers
     add_route_permissions
+    delete_restore_permissions
 
     # always run last
     sync_client_secrets
