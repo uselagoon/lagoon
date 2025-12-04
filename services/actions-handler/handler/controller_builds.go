@@ -214,7 +214,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 				for _, sCon := range mService.Containers {
 					containers = append(containers, schema.ServiceContainerInput(sCon))
 				}
-				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers}
+				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers, Replicas: &mService.Replicas}
 				// add or update it
 				setServices, err := lagoon.AddOrUpdateEnvironmentService(ctx, s2add, l)
 				if err != nil {
