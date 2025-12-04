@@ -93,6 +93,7 @@ COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-k
 
 COPY startup-scripts /opt/keycloak/startup-scripts
 COPY themes/lagoon /opt/keycloak/themes/lagoon
+COPY themes/lagoon-v2 /opt/keycloak/themes/lagoon-v2
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
 COPY --from=builder /target/custom-protocol-mapper-1.1.0.jar /opt/keycloak/providers/custom-protocol-mapper-1.1.0.jar
 
