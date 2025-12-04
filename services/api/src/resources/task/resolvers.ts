@@ -591,13 +591,44 @@ export const taskDrushArchiveDump: ResolverFn = async (
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && if drush ard --destination=$file; then echo "drush ard complete"; else exit $?; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
--H "Authorization: Bearer $TOKEN" \
--F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
--F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file && rm -rf $file;
-`;
+  const command = String.raw`
+cat << 'EOF' | sh
+curl -sSL https://github.com/itchyny/gojq/releases/download/v0.12.16/gojq_v0.12.16_linux_amd64.tar.gz | tar -xzC /tmp --strip-components=1 gojq_v0.12.16_linux_amd64/gojq
+chmod +x /tmp/gojq
+
+FILENAME="$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar"
+file="/tmp/`+"${FILENAME}"+`"
+if drush ard --destination=$file
+then
+    echo "drush ard complete"
+else
+    exit $?
+fi
+script='query {
+  getTaskFileUploadForm(input:{
+    task: '$TASK_DATA_ID'
+    filename: "'$FILENAME'.gz"
+  }) {
+    postUrl
+    formFields
+  }
+}'
+script="$(echo $script | sed 's/"/\\\\"/g' | sed 's/\\\\n/\\\\\\\\n/g' | awk -F'\\n' '{if(NR == 1) {printf $0} else {printf "\\\\n"$0}}')"
+
+curl -ksS -H 'Content-Type: application/json' \\
+   -H "Authorization: bearer $(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" \\
+   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.getTaskFileUploadForm as $signedurl |
+  "curl -X POST \\\"" + $signedurl.postUrl + "\\\" " +
+  (
+    $signedurl.formFields
+    | to_entries
+    | map("-F \\\"" + .key + "=" + .value + "\\\"")
+    | join(" ")
+  )
+  + " -F \\"file=@/tmp/'$FILENAME'.gz\\""' | sh
+rm -rf $file
+EOF
+  `;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
@@ -659,14 +690,55 @@ export const taskDrushSqlDump: ResolverFn = async (
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
-if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; else if drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; then echo "drush sql-dump complete"; else exit $?; fi; fi && \
-TOKEN="$(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" && curl --fail-with-body -sS "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`"/graphql \
--H "Authorization: Bearer $TOKEN" \
--F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
--F map='{ "0": ["variables.files.0"] }' \
--F 0=@$file.gz && rm -rf $file.gz
-`;
+  const command = String.raw`
+cat << 'EOF' | sh
+curl -sSL https://github.com/itchyny/gojq/releases/download/v0.12.16/gojq_v0.12.16_linux_amd64.tar.gz | tar -xzC /tmp --strip-components=1 gojq_v0.12.16_linux_amd64/gojq
+chmod +x /tmp/gojq
+
+FILENAME="$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql"
+file="/tmp/`+"${FILENAME}"+`"
+DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+')
+if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]
+then
+  if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip
+  then
+    echo "drush sql-dump complete"
+  else
+    exit $?
+  fi
+else if
+  drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip
+  then
+    echo "drush sql-dump complete"
+  else
+    exit $?
+  fi
+fi
+script='query {
+  getTaskFileUploadForm(input:{
+    task: '$TASK_DATA_ID'
+    filename: "'$FILENAME'.gz"
+  }) {
+    postUrl
+    formFields
+  }
+}'
+script="$(echo $script | sed 's/"/\\\\"/g' | sed 's/\\\\n/\\\\\\\\n/g' | awk -F'\\n' '{if(NR == 1) {printf $0} else {printf "\\\\n"$0}}')"
+
+curl -ksS -H 'Content-Type: application/json' \\
+   -H "Authorization: bearer $(ssh -p `+"${LAGOON_CONFIG_TOKEN_PORT:-$TASK_SSH_PORT}"+` -t lagoon@`+"${LAGOON_CONFIG_TOKEN_HOST:-$TASK_SSH_HOST}"+` token)" \\
+   -X POST -d "{ \\"query\\": \\"$script\\"}" "`+"${LAGOON_CONFIG_API_HOST:-$TASK_API_HOST}"+`/graphql" | /tmp/gojq -r '.data.getTaskFileUploadForm as $signedurl |
+  "curl -X POST \\\"" + $signedurl.postUrl + "\\\" " +
+  (
+    $signedurl.formFields
+    | to_entries
+    | map("-F \\\"" + .key + "=" + .value + "\\\"")
+    | join(" ")
+  )
+  + " -F \\"file=@/tmp/'$FILENAME'.gz\\""' | sh
+rm -rf $file
+EOF
+  `;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
