@@ -13,7 +13,6 @@
     "sync:gitlab:groups": "node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "node dist/gitlab-sync/projects",
     "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
-    "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
     "migrations:lagoon": "node dist/migrations/lagoon/migrations.js"
   },
   "keywords": [],
@@ -44,7 +43,6 @@
     "elasticsearch": "^15.0.0",
     "express": "^4.16.1",
     "git-url-parse": "^13.1.0",
-    "got": "^9.2.2",
     "graphql": "^16.10.0",
     "graphql-iso-date": "^3.5.0",
     "graphql-redis-subscriptions": "^2.7.0",

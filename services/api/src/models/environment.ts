@@ -2,7 +2,6 @@ import moment from 'moment';
 import { Pool } from 'mariadb';
 import { query, knex } from '../util/db';
 import { logger } from '../loggers/logger';
-import { esClient } from '../clients/esClient';
 import { DeployType } from '@lagoon/commons/dist/types';
 
 export interface Environment {
@@ -38,6 +37,7 @@ export interface EnvironmentModel {
 
 export const Environment = (clients: {
   sqlClientPool: Pool;
+  esClient: any;
 }): EnvironmentModel => {
   const { sqlClientPool } = clients;
 
@@ -264,7 +264,7 @@ export const Environment = (clients: {
           },
         },
       };
-      const legacyResult = await esClient.search(legacyQuery);
+      const legacyResult = await clients.esClient.search(legacyQuery);
 
       // NEW LOGGING SYSTEM - K8S openshift/HAProxy && kubernetes Nginx/kubernetes logs
       const newQuery = {
@@ -369,7 +369,7 @@ export const Environment = (clients: {
           },
         },
       };
-      const newResult = await esClient.search(newQuery);
+      const newResult = await clients.esClient.search(newQuery);
 
       return { newResult, legacyResult };
     } catch (e) {
