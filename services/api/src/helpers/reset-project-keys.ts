@@ -4,7 +4,6 @@ import { sanitizeGroupName } from '@lagoon/commons/dist/api';
 import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { sqlClientPool } from '../clients/sqlClient';
-import { esClient } from '../clients/esClient';
 import { query } from '../util/db';
 import { Group, SparseGroup } from '../models/group';
 import { User } from '../models/user';
@@ -28,12 +27,10 @@ interface GitlabProject {
   const GroupModel = Group({
     sqlClientPool,
     keycloakAdminClient,
-    esClient,
   });
   const UserModel = User({
     sqlClientPool,
     keycloakAdminClient,
-    esClient,
   });
 
   const projectArgs = process.argv.slice(2);

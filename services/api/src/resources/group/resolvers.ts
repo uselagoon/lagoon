@@ -5,7 +5,6 @@ import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers } from './helpers';
@@ -391,12 +390,6 @@ export const addGroup: ResolverFn = async (
     }
   }
 
-  // We don't have any projects yet. So just an empty string
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
-    input.name,
-    ''
-  );
-
   const groupResource: AuditResource =  {
     id: group.id,
     type: AuditType.GROUP,
@@ -526,10 +519,6 @@ export const deleteGroup: ResolverFn = async (
   }
 
   await models.GroupModel.deleteGroup(group.id);
-
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
-    group.name
-  );
 
   const groupResource: AuditResource =  {
     id: group.id,
@@ -789,28 +778,6 @@ export const addGroupsToProject: ResolverFn = async (
     await models.GroupModel.addProjectToGroup(project.id, group);
   }
 
-  const syncGroups = groupsInput.map(async groupInput => {
-    const updatedGroup = await models.GroupModel.loadGroupByIdOrName(
-      groupInput
-    );
-    const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
-      updatedGroup
-    );
-    const projectIds = R.join(',')(projectIdsArray);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
-      updatedGroup.name,
-      projectIds
-    );
-  });
-
-  try {
-    await Promise.all(syncGroups);
-  } catch (err) {
-    throw new Error(
-      `Could not sync groups with opendistro-security: ${err.message}`
-    );
-  }
-
   const auditLog: AuditLog = {
     resource: {
       id: project.id.toString(),
@@ -966,29 +933,6 @@ export const removeGroupsFromProject: ResolverFn = async (
   for (const groupInput of groupsInput) {
     const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
     await models.GroupModel.removeProjectFromGroup(project.id, group);
-  }
-
-  const syncGroups = groupsInput.map(async groupInput => {
-    const updatedGroup = await models.GroupModel.loadGroupByIdOrName(
-      groupInput
-    );
-    // @TODO: Load ProjectIDs of subgroups as well
-    const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
-      updatedGroup
-    );
-    const projectIds = R.join(',')(projectIdsArray);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
-      updatedGroup.name,
-      projectIds
-    );
-  });
-
-  try {
-    await Promise.all(syncGroups);
-  } catch (err) {
-    throw new Error(
-      `Could not sync groups with opendistro-security: ${err.message}`
-    );
   }
 
   const auditLog: AuditLog = {

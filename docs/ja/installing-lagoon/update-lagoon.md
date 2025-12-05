@@ -24,12 +24,6 @@
     ```
 
 5. APIポッドを元の数に戻してスケールアップします。 レベル。
-
-6. Lagoon Coreをアップグレードし、OpenSearchのグループ/ユーザー同期を有効にしている場合、OpenSearchのグループを更新するために`sync:opendistro-security`スクリプトを実行する必要がある場合があります。このコマンドは、全体のグループ構造の同期に時間がかかる場合、一度に1つのグループを同期するために`GROUP_REGEX=<group-to-sync`でプレフィックスを付けることもできます。
-
-    ```bash title="スクリプトの実行"
-    kubectl --namespace lagoon-core exec -it deploy/lagoon-core-api -- \
-        sh -c yarn sync:opendistro-security
     ```
 
 追加のアップグレードについては、[https://github.com/uselagoon/lagoon/releases](https://github.com/uselagoon/lagoon/releases)をご覧ください。

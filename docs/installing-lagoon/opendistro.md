@@ -175,10 +175,3 @@ Now that we have our keys and certificates, we can continue with the installatio
   ```bash title="Rollout Lagoon Core"
   helm upgrade --install --create-namespace --namespace lagoon-core -f values.yaml lagoon-core lagoon/lagoon-core
   ```
-
-9. Sync all Lagoon Groups with Opendistro Elasticsearch
-
-  ```bash title="Sync groups"
-  kubectl -n lagoon-core exec -it deploy/lagoon-core-api -- sh
-  yarn run sync:opendistro-security
-  ```

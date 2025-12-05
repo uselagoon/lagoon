@@ -151,7 +151,6 @@ const attrCommentLens = R.compose(
 export const User = (clients: {
   keycloakAdminClient: any;
   sqlClientPool: any;
-  esClient: any;
 }): UserModel => {
   const { keycloakAdminClient } = clients;
 

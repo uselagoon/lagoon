@@ -174,11 +174,3 @@ OpenDistro Helmをインストールします。詳細は[https://opendistro.git
 
   ```bash title="Rollout Lagoon Core"
   helm upgrade --install --create-namespace --namespace lagoon-core -f values.yaml lagoon-core lagoon/lagoon-core
-  ```
-
-9. すべてのLagoonグループをOpendistro Elasticsearchと同期させる
-
-  ```bash title="Sync groups"
-  kubectl -n lagoon-core exec -it deploy/lagoon-core-api -- sh
-  yarn run sync:opendistro-security
-  ```

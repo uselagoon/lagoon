@@ -170,7 +170,6 @@ export interface GroupModel {
 export const Group = (clients: {
   keycloakAdminClient: KeycloakAdminClient;
   sqlClientPool: Pool;
-  esClient: any;
 }): GroupModel => {
   const { keycloakAdminClient } = clients;
 
@@ -384,9 +383,6 @@ export const Group = (clients: {
   };
 
   const loadAllGroups = async (): Promise<KeycloakLagoonGroup[]> => {
-    // briefRepresentation pulls all the group information from keycloak
-    // including the attributes this means we don't need to iterate over all the
-    // groups one by one anymore to get the full group information
     const keycloakGroups = await loadAllKeycloakGroups();
 
     let fullGroups: KeycloakLagoonGroup[] = [];
@@ -394,10 +390,6 @@ export const Group = (clients: {
       fullGroups.push(await loadKeycloakChildren(group));
     }
 
-    // no need to transform, just return the full response, only the `allGroups`
-    // resolvers use this and the `sync-groups-opendistro-security` consumption
-    // of this helper sync script is going to go away in the future when we move
-    // to the `lagoon-opensearch-sync` supporting service
     return fullGroups;
   };
 
