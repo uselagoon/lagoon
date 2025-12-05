@@ -14,7 +14,6 @@
     "sync:gitlab:projects": "node dist/gitlab-sync/projects",
     "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
     "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
-    "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
     "migrations:lagoon": "node dist/migrations/lagoon/migrations.js"
   },
   "keywords": [],
