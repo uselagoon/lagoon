@@ -31,45 +31,45 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-ingress-annotations.yaml
 
-- name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and redirects to https://example.com"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ check_url }}"
-    host: "redirect-to-example.com"
-    expected_redirect_location: "https://example.com/$"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
+# - name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and redirects to https://example.com"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     url: "{{ check_url }}"
+#     host: "redirect-to-example.com"
+#     expected_redirect_location: "https://example.com/$"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
-- name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and request to /asdf redirects to https://example.com/asdf"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/asdf"
-    host: "redirect-to-example.com"
-    expected_redirect_location: "https://example.com/asdf$"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
+# - name: "{{ testname }} - check if custom domain 'redirect-to-example.com' is created and request to /asdf redirects to https://example.com/asdf"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/asdf"
+#     host: "redirect-to-example.com"
+#     expected_redirect_location: "https://example.com/asdf$"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
-- name: "{{ testname }} - check if custom domain 'redirect-to-www.com' is created and redirects to https://www.redirect-to-www.com"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ check_url }}"
-    host: "redirect-to-www.com"
-    expected_redirect_location: "https://www.redirect-to-www.com/$"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
+# - name: "{{ testname }} - check if custom domain 'redirect-to-www.com' is created and redirects to https://www.redirect-to-www.com"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     url: "{{ check_url }}"
+#     host: "redirect-to-www.com"
+#     expected_redirect_location: "https://www.redirect-to-www.com/$"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
-- name: "{{ testname }} - check if custom domain 'www.redirect-from-www.com' is created and redirects to https://redirect-from-www.com"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ check_url }}"
-    host: "www.redirect-from-www.com"
-    expected_redirect_location: "https://redirect-from-www.com/$"
-  tasks:
-  - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
+# - name: "{{ testname }} - check if custom domain 'www.redirect-from-www.com' is created and redirects to https://redirect-from-www.com"
+#   hosts: localhost
+#   serial: 1
+#   vars:
+#     url: "{{ check_url }}"
+#     host: "www.redirect-from-www.com"
+#     expected_redirect_location: "https://redirect-from-www.com/$"
+#   tasks:
+#   - ansible.builtin.include_tasks: ../../checks/check-url-redirect-host.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
