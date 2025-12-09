@@ -58,25 +58,25 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-returncode-host.yaml
 
-# - name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header-null.com' now has HSTS header set"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-#     host: "hsts-header-null.com"
-#     expected_returncode: 200
-#     expected_header: "strict_transport_security"
-#     expected_header_value: "max-age=15768000"
-#   tasks:
-#   - ansible.builtin.include_tasks: ../../checks/check-url-header.yaml
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header-null.com' now has HSTS header set"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "hsts-header-null.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+    expected_header_value: "max-age=15768000"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-header.yaml
 
-# - name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header.com' is created and does not have HSTS header set"
-#   hosts: localhost
-#   serial: 1
-#   vars:
-#     url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-#     host: "hsts-header.com"
-#     expected_returncode: 200
-#     expected_header: "strict_transport_security"
-#   tasks:
-#   - ansible.builtin.include_tasks: ../../checks/check-url-header-absent.yaml
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header.com' is created and does not have HSTS header set"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "hsts-header.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+  tasks:
+  - ansible.builtin.include_tasks: ../../checks/check-url-header-absent.yaml
