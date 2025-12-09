@@ -5290,12 +5290,6 @@
 <div class="language-bash highlight"><span class="filename">Rollout Lagoon Core</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>--create-namespace<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span>-f<span class="w"> </span>values.yaml<span class="w"> </span>lagoon-core<span class="w"> </span>lagoon/lagoon-core
 </span></code></pre></div>
 </li>
-<li>
-<p>Sync all Lagoon Groups with Opendistro Elasticsearch</p>
-<div class="language-bash highlight"><span class="filename">Sync groups</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/lagoon-core-api<span class="w"> </span>--<span class="w"> </span>sh
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>yarn<span class="w"> </span>run<span class="w"> </span>sync:opendistro-security
-</span></code></pre></div>
-</li>
 </ol>
 
 

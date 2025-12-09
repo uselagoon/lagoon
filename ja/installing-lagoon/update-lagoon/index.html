@@ -5180,31 +5180,26 @@
 </span></code></pre></div>
 </li>
 <li>
-<p>APIポッドを元の数に戻してスケールアップします。 レベル。</p>
-</li>
-<li>
-<p>Lagoon Coreをアップグレードし、OpenSearchのグループ/ユーザー同期を有効にしている場合、OpenSearchのグループを更新するために<code>sync:opendistro-security</code>スクリプトを実行する必要がある場合があります。このコマンドは、全体のグループ構造の同期に時間がかかる場合、一度に1つのグループを同期するために<code>GROUP_REGEX=&lt;group-to-sync</code>でプレフィックスを付けることもできます。</p>
-<div class="language-bash highlight"><span class="filename">スクリプトの実行</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>deploy/lagoon-core-api<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>sh<span class="w"> </span>-c<span class="w"> </span>yarn<span class="w"> </span>sync:opendistro-security
-</span></code></pre></div>
+<p>APIポッドを元の数に戻してスケールアップします。 レベル。
+    ```</p>
 </li>
 </ol>
 <p>追加のアップグレードについては、<a href="https://github.com/uselagoon/lagoon/releases">https://github.com/uselagoon/lagoon/releases</a>をご覧ください。</p>
 <h2 id="database-backups">データベースのバックアップ<a class="headerlink" href="#database-backups" title="Permanent link">#</a></h2>
 <p>Lagoon Coreをアップグレードする前にデータベースをバックアップしたい場合があります。以下の手順でバックアップを作成し、必要に応じてそれらを使用して復元することができます。後でそれらを削除することもできます。</p>
 <h3 id="api-db">API DB<a class="headerlink" href="#api-db" title="Permanent link">#</a></h3>
-<div class="language-bash highlight"><span class="filename">API DBのバックアップ</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>lagoon-core-api-db-0<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;mysqldump --max-allowed-packet=500M --events \</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="s1">    --routines --quick --add-locks --no-autocommit \</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="s1">    --single-transaction infrastructure | gzip -9 &gt; \</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="s1">    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).infrastructure.sql.gz&#39;</span>
+<div class="language-bash highlight"><span class="filename">API DBのバックアップ</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>lagoon-core-api-db-0<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;mysqldump --max-allowed-packet=500M --events \</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="s1">    --routines --quick --add-locks --no-autocommit \</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="s1">    --single-transaction infrastructure | gzip -9 &gt; \</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="s1">    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).infrastructure.sql.gz&#39;</span>
 </span></code></pre></div>
 <h3 id="keycloak-db">Keycloak DB<a class="headerlink" href="#keycloak-db" title="Permanent link">#</a></h3>
-<div class="language-bash highlight"><span class="filename">Keycloak DBのバックアップ</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>lagoon-core-keycloak-db-0<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;mysqldump --max-allowed-packet=500M --events \</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s1">    --routines --quick --add-locks --no-autocommit \</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s1">    --single-transaction keycloak | gzip -9 &gt; \</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s1">    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).keycloak.sql.gz&#39;</span>
+<div class="language-bash highlight"><span class="filename">Keycloak DBのバックアップ</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span>--namespace<span class="w"> </span>lagoon-core<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>lagoon-core-keycloak-db-0<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;mysqldump --max-allowed-packet=500M --events \</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="s1">    --routines --quick --add-locks --no-autocommit \</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="s1">    --single-transaction keycloak | gzip -9 &gt; \</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="s1">    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).keycloak.sql.gz&#39;</span>
 </span></code></pre></div>
 
 
