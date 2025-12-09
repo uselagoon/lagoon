@@ -2,7 +2,6 @@ import * as R from 'ramda';
 import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { getKeycloakAdminClient } from '../../../clients/keycloak-admin';
 import { sqlClientPool } from '../../../clients/sqlClient';
-import { esClient } from '../../../clients/esClient';
 import { Group } from '../../../models/group';
 import { Helpers } from '../../../resources/group/helpers';
 
@@ -12,7 +11,6 @@ export const up = async (migrate) => {
   const GroupModel = Group({
     sqlClientPool,
     keycloakAdminClient,
-    esClient,
   });
 
   // load all groups from keycloak
