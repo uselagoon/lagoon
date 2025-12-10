@@ -73,6 +73,7 @@ export const createServer = async () => {
           await User(modelClients).userLastAccessed(currentUser);
         } catch (e) {
           logger.error('Error loading user details for SSE subscription', e.message);
+          throw new AuthenticationError('Failed to load user context for SSE subscription');
         }
       }
 
@@ -138,6 +139,11 @@ export const createServer = async () => {
 
   const server = http.createServer(async (req, res) => {
     if (req.url?.startsWith('/graphql/stream')) {
+      const origin = process.env.CORS_ORIGIN || '*';
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, apollo-require-preflight');
       try {
         await sseHandler(req, res);
       } catch (error: any) {
@@ -209,6 +215,7 @@ try {
             await User(modelClients).userLastAccessed(currentUser);
           } catch (e) {
             logger.error('Error loading user details for subscription', e.message);
+            throw new AuthenticationError('Failed to load user context for subscription');
           }
         }
 
