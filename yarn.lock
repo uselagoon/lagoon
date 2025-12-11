@@ -6209,6 +6209,11 @@ graphql-redis-subscriptions@^2.7.0:
   optionalDependencies:
     ioredis "^5.3.2"
 
+graphql-sse@^2.5.4:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-2.5.4.tgz#29e93d8ccda58b9263b18f176b7be631638ec658"
+  integrity sha512-8PIGHQPv1vokYboL8KsoBomvyJCUMJCAwSp5f+bR2qVoYtPo7CYowrYV7LFiXuiirX0cxVzgUBFNa5BaI4rZ2A==
+
 graphql-subscriptions@^1.0.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/graphql-subscriptions/-/graphql-subscriptions-1.2.1.tgz#2142b2d729661ddf967b7388f7cf1dd4cf2e061d"

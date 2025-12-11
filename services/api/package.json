@@ -46,6 +46,7 @@
     "graphql": "^16.10.0",
     "graphql-iso-date": "^3.5.0",
     "graphql-redis-subscriptions": "^2.7.0",
+    "graphql-sse": "^2.5.4",
     "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^9.0.18",
     "graphql-type-json": "^0.3.0",
