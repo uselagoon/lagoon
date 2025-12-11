@@ -5,7 +5,7 @@
  */
  module.exports = {
 
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
       host : process.env.API_DB_HOST || 'api-db',
       port : process.env.API_DB_PORT || 3306,
