@@ -662,7 +662,7 @@ endif
 endif
 
 GO = $(realpath ./local-dev/go/bin/go)
-GO_VERSION := 1.23.5
+GO_VERSION := 1.25.4
 
 .PHONY: local-dev/go
 local-dev/go:
