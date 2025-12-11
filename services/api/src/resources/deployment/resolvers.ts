@@ -360,6 +360,7 @@ export const addDeployment: ResolverFn = async (
       buildStep,
       sourceUser,
       sourceType,
+      buildType,
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
@@ -395,6 +396,7 @@ export const addDeployment: ResolverFn = async (
       buildStep,
       sourceType,
       sourceUser,
+      buildType,
     })
   );
   const deployment = await Helpers(sqlClientPool).getDeploymentById(insertId);

@@ -26,6 +26,7 @@ export const Sql = {
     buildStep,
     sourceType,
     sourceUser,
+    buildType,
   }: {
     id: number,
     name: string,
@@ -41,6 +42,7 @@ export const Sql = {
     buildStep: string,
     sourceType: DeploymentSourceType,
     sourceUser: string,
+    buildType: string,
   }) =>
     knex('deployment')
       .insert({
@@ -58,6 +60,7 @@ export const Sql = {
         buildStep,
         sourceType,
         sourceUser,
+        buildType,
       })
       .toString(),
   deleteDeployment: (id: number) =>
