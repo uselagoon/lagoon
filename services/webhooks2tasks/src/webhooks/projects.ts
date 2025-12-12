@@ -291,6 +291,7 @@ export async function processProjects(
         break;
 
       case 'bitbucket:repo:push':
+      case 'bitbucket:repo:refs_changed':
         if (body.push.changes[0].closed === true) {
           await handle(
             bitbucketBranchDeleted,
@@ -311,6 +312,9 @@ export async function processProjects(
 
       case 'bitbucket:pullrequest:created':
       case 'bitbucket:pullrequest:updated':
+      case 'bitbucket:pr:opened':
+      case 'bitbucket:pr:modified':
+      case 'bitbucket:pr:from_ref_updated':
         await handle(
           bitbucketPullRequestUpdated,
           webhook,
@@ -320,6 +324,8 @@ export async function processProjects(
         break;
       case 'bitbucket:pullrequest:rejected':
       case 'bitbucket:pullrequest:fulfilled':
+      case 'bitbucket:pr:declined':
+      case 'bitbucket:pr:merged':
         await handle(
           bitbucketPullRequestClosed,
           webhook,
