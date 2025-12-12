@@ -169,7 +169,9 @@ mutation runYarnAudit {
     service:"node",
     command: "yarn audit"})
     {
+      ... on AdvancedTaskDefinitionCommand {
         id
+      }
     }
 }
 ```
