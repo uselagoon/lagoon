@@ -1,0 +1,91 @@
+name-template: 'lagoon-core v$NEXT_MINOR_VERSION'
+tag-template: 'v$NEXT_MINOR_VERSION'
+categories:
+  - title: 'New Features'
+    label: 'feat'
+  - title: 'Bug Fixes'
+    label: 'fix'
+  - title: 'Performance Improvements'
+    label: 'perf'
+  - title: 'Code Refactors'
+    label: 'refactor'
+  - title: 'Code Style and Formatting'
+    label: 'style'
+  - title: 'Build and dependency updates'
+    label: 'build'
+  - title: 'Other minor changes'
+    label: 'chore'
+  - title: 'Continuous Integration updates'
+    label: 'ci'
+  - title: 'Test additions and improvements'
+    label: 'test'
+  - title: 'Documentation only changes'
+    label: 'docs'
+  - title: 'A change that reverts a previously committed change'
+    label: 'revert'
+exclude-labels:
+  - 'skip-changelog'
+autolabeler:
+  - label: 'feat'
+    title:
+      - '/feat:/i'
+  - label: 'fix'
+    title:
+      - '/fix:/i'
+    branch:
+      - '/hotfix\/.+/'
+  - label: 'perf'
+    title:
+      - '/perf:/i'
+  - label: 'refactor'
+    title:
+      - '/refactor:/i'
+  - label: 'style'
+    title:
+      - '/style:/i'
+  - label: 'build'
+    title:
+      - '/build:/i'
+  - label: 'chore'
+    title:
+      - '/chore:/i'
+  - label: 'ci'
+    title:
+      - '/ci:/i'
+    branch:
+      - '/testing\/.+/'
+  - label: 'test'
+    title:
+      - '/test:/i'
+  - label: 'docs'
+    branch:
+      - '/docs\/.+/'
+    title:
+      - '/docs:/i'
+    files:
+      - 'docs/**/*.md'
+  - label: 'revert'
+    title:
+      - '/revert:/i'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+header: |
+  # Welcome to the lagoon-core $NEXT_MINOR_VERSION release
+
+template: |
+  ## Notable changes
+
+  ## Full list of changes in this release
+  $CHANGES
+
+footer: |
+  ## Linked Releases:
+  - lagoon-ui: [https://github.com/uselagoon/lagoon-ui/releases/tag/core-$NEXT_MINOR_VERSION](https://github.com/uselagoon/lagoon-ui/releases/tag/core-$NEXT_MINOR_VERSION)
+  - lagoon-build-deploy: [https://github.com/uselagoon/build-deploy-tool/releases/tag/core-$NEXT_MINOR_VERSION](https://github.com/uselagoon/build-deploy-tool/releases/tag/core-$NEXT_MINOR_VERSION)
+  - lagoon-core: [https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-x.XX.x](https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-core-x.XX.x)
+  - lagoon-remote: [https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-remote-x.XX.x](https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-remote-x.XX.x)
+  - lagoon-test: [https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-test-x.XX.x](https://github.com/uselagoon/lagoon-charts/releases/tag/lagoon-test-x.XX.x)
+
+  ## Full Changelog:
+   - [https://docs.lagoon.sh/releases/$NEXT_MINOR_VERSION](https://docs.lagoon.sh/releases/$NEXT_MINOR_VERSION)
+   - https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$NEXT_MINOR_VERSION
