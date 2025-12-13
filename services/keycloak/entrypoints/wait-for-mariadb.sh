@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-echo "Waiting until $DB_ADDR is ready"
-until nc -vzw5 "$DB_ADDR" 3306; do
+echo "Waiting until $DB_HOST is ready"
+until nc -vzw5 "$DB_HOST" "$DB_PORT"; do
     sleep 1
 done
