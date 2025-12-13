@@ -64,7 +64,8 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_REALM=lagoon \
     KEYCLOAK_REALM_ROLES=admin \
     DB_VENDOR=${DATABASE_VENDOR} \
-    DB_ADDR=keycloak-db \
+    DB_HOST=keycloak-db \
+    DB_PORT=3306 \
     DB_USER=keycloak \
     DB_PASSWORD=keycloak \
     DB_DATABASE=keycloak \
@@ -81,6 +82,7 @@ ENV TMPDIR=/tmp \
     LAGOON_DB_USER=api \
     LAGOON_DB_PASSWORD=api \
     LAGOON_DB_HOST=api-db \
+    LAGOON_DB_PORT=3306 \
     JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
 
 VOLUME /opt/keycloak/data

@@ -13,8 +13,9 @@ public class DbUtil {
         String password = System.getenv("LAGOON_DB_PASSWORD");
         String database = System.getenv("LAGOON_DB_DATABASE");
         String host = System.getenv("LAGOON_DB_HOST");
+        String port = System.getenv("LAGOON_DB_PORT");
 
-        String jdbcUrl = "jdbc:"+driverClass+"://"+host+":3306/"+database+"?user="+username+"&password="+password;
+        String jdbcUrl = "jdbc:"+driverClass+"://"+host+":"+port+"/"+database+"?user="+username+"&password="+password;
         return DriverManager.getConnection(jdbcUrl);
     }
 }
