@@ -147,6 +147,11 @@ const typeDefs = gql`
     API
   }
 
+  enum DeploymentBuildType {
+    BUILD
+    VARIABLES
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -402,6 +407,11 @@ const typeDefs = gql`
     filename: String
     download: String
     created: String
+  }
+
+  type TaskFileUploadForm {
+    postUrl: String
+    formFields: JSON
   }
 
   type SshKey {
@@ -1007,6 +1017,7 @@ const typeDefs = gql`
     The source of this task from the available deplyoment trigger types
     """
     sourceType: DeploymentSourceType
+    buildType: DeploymentBuildType
   }
 
   type Insight {
@@ -1614,6 +1625,11 @@ const typeDefs = gql`
     name: String
   }
 
+  input GetTaskFileUploadFormInput {
+    task: Int!
+    filename: String!
+  }
+
   type Query {
     """
     Returns the current user
@@ -1692,7 +1708,16 @@ const typeDefs = gql`
     deploymentByRemoteId(id: String): Deployment
     deploymentByName(input: DeploymentByNameInput): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
-    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType], startDate: Date, endDate: Date, includeDeleted: Boolean): [Deployment]
+    deploymentsByFilter(
+      openshifts: [Int]
+      deploymentStatus: [DeploymentStatusType]
+      environmentType: EnvType
+      startDate: Date
+      endDate: Date
+      includeDeleted: Boolean
+      limitPerEnvironment: Int
+      limit: Int
+    ): [Deployment]
     taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
@@ -1789,6 +1814,7 @@ const typeDefs = gql`
     listAllRetentionPolicies(name: String, type: RetentionPolicyType): [RetentionPolicy]
     getBackupDownloadLinkByBackupId(backupId: String!): String
     getDownloadLinkByTaskFileId(taskId: Int!, fileId: Int!): String
+    getTaskFileUploadForm(input: GetTaskFileUploadFormInput!): TaskFileUploadForm
   }
 
   type ProjectGroupsToOrganization {
@@ -1973,6 +1999,10 @@ const typeDefs = gql`
     patch: UpdateRestorePatchInput!
   }
 
+  input DeleteRestoreInput {
+    backupId: String!
+  }
+
   input UpdateRestorePatchInput {
     status: RestoreStatusType
     created: String
@@ -1995,6 +2025,7 @@ const typeDefs = gql`
     buildStep: String
     sourceUser: String
     sourceType: DeploymentSourceType
+    buildType: DeploymentBuildType
   }
 
   input DeleteDeploymentInput {
@@ -2575,7 +2606,6 @@ const typeDefs = gql`
     task: Int!,
     files: [Upload]!,
   }
-
   input DeleteFilesForTaskInput {
     id: Int!
   }
@@ -3003,6 +3033,7 @@ const typeDefs = gql`
     deleteBackup(input: DeleteBackupInput!): String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
+    deleteRestore(input: DeleteRestoreInput!): Backup
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
     deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
     addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
@@ -3029,7 +3060,7 @@ const typeDefs = gql`
     updateTask(input: UpdateTaskInput): Task
     cancelTask(input: CancelTaskInput!): String
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
-    uploadFilesForTask(input: UploadFilesForTaskInput!): Task
+    uploadFilesForTask(input: UploadFilesForTaskInput!): Task @deprecated(reason: "Use getTaskFileUploadForm instead")
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String

@@ -1,13 +1,13 @@
 module github.com/uselagoon/lagoon/services/logs2notifications
 
-go 1.23
+go 1.25
 
 require (
-	github.com/aws/aws-sdk-go v1.55.6
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2
-	github.com/slack-go/slack v0.15.0
-	github.com/uselagoon/machinery v0.0.31
+	github.com/slack-go/slack v0.17.3
+	github.com/uselagoon/machinery v0.0.34
 	gopkg.in/mail.v2 v2.3.1
 )
 

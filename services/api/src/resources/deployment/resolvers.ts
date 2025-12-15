@@ -23,12 +23,12 @@ import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
-import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { generateBuildId, generateVariableOnlyBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { encodeJSONBase64, jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -153,7 +153,16 @@ export const getDeploymentsByFilter: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"], startDate, endDate, includeDeleted } = input;
+  let {
+    openshifts,
+    deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"],
+    environmentType,
+    startDate,
+    endDate,
+    includeDeleted,
+    limitPerEnvironment,
+    limit
+  } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -176,39 +185,45 @@ export const getDeploymentsByFilter: ResolverFn = async (
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  let queryBuilder = knex.select("deployment.*").from('deployment').
-      join('environment', 'deployment.environment', '=', 'environment.id');
-
-  if (userProjectIds) {
-      queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
+  if (environmentType && !limitPerEnvironment) {
+    // if environment type is set, assume only the latest deployment for the environment
+    // is requested depending on the `deploymentStatus` options chosen
+    limitPerEnvironment = 1;
   }
 
-  // collect builds for a specific date range
-  if (startDate) {
-    queryBuilder = queryBuilder.where('deployment.created', '>=', input.startDate);
+  let limitedStatuses = ["complete", "failed", "cancelled"];
+  if (!limitPerEnvironment && deploymentStatus.some(element => limitedStatuses.includes(element))) {
+    // if a user requests `complete`, `failed`, or `cancelled` status builds but does not include a `limitPerEnvironment` limit
+    // set the limit to the last 5 deployments to limit the amount of returned data
+    limitPerEnvironment = 5;
   }
+  logger.info( Sql.selectDeploymentsByFilter(
+    {
+      startDate,
+      endDate,
+      environmentType,
+      userProjectIds,
+      deployTargets: openshifts,
+      deploymentStatus,
+      includeDeleted,
+      limitPerEnvironment,
+      limit
+    }
+  ));
+  const rows = await query(sqlClientPool, Sql.selectDeploymentsByFilter(
+    {
+      startDate,
+      endDate,
+      environmentType,
+      userProjectIds,
+      deployTargets: openshifts,
+      deploymentStatus,
+      includeDeleted,
+      limitPerEnvironment,
+      limit
+    }
+  ));
 
-  if (endDate) {
-    queryBuilder = queryBuilder.where('deployment.created', '<=', input.endDate);
-  }
-
-  if(openshifts) {
-    queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
-  }
-
-  queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
-
-  // if includeDeleted is false, exclude deleted environments in the results (default)
-  if (!includeDeleted) {
-    queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
-  }
-
-  // exclude results where a project doesn't exist
-  queryBuilder = queryBuilder.whereRaw('environment.project IN (SELECT id FROM project)')
-
-  const queryBuilderString = queryBuilder.toString();
-
-  const rows = await query(sqlClientPool, queryBuilderString);
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -343,6 +358,7 @@ export const addDeployment: ResolverFn = async (
       buildStep,
       sourceUser,
       sourceType,
+      buildType,
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
@@ -378,6 +394,7 @@ export const addDeployment: ResolverFn = async (
       buildStep,
       sourceType,
       sourceUser,
+      buildType,
     })
   );
   const deployment = await Helpers(sqlClientPool).getDeploymentById(insertId);
@@ -778,6 +795,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
+
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   let meta: {
     [key: string]: any;
@@ -793,6 +817,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.deployBaseRef,
         sourceUser: sourceUser,
         projectName: project.name,
+        buildType: buildType,
       };
       if (priority) {
         deployData.buildPriority = priority

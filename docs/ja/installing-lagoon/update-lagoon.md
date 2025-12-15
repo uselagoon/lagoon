@@ -23,21 +23,7 @@
         -f values.yaml lagoon-core lagoon/lagoon-core
     ```
 
-5. (Lagoon v2.11.0以降、このステップは不要になりました)
-    Lagoon Coreをアップグレードする場合、アップグレード後の移行を行うために`rerun_initdb.sh`スクリプトを実行することを確認してください。
-
-    ```bash title="スクリプトを実行"
-    kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
-        sh -c /rerun_initdb.sh
-    ```
-
-6. APIポッドを元の数に戻してスケールアップします。 レベル。
-
-7. Lagoon Coreをアップグレードし、OpenSearchのグループ/ユーザー同期を有効にしている場合、OpenSearchのグループを更新するために`sync:opendistro-security`スクリプトを実行する必要がある場合があります。このコマンドは、全体のグループ構造の同期に時間がかかる場合、一度に1つのグループを同期するために`GROUP_REGEX=<group-to-sync`でプレフィックスを付けることもできます。
-
-    ```bash title="スクリプトの実行"
-    kubectl --namespace lagoon-core exec -it deploy/lagoon-core-api -- \
-        sh -c yarn sync:opendistro-security
+5. APIポッドを元の数に戻してスケールアップします。 レベル。
     ```
 
 追加のアップグレードについては、[https://github.com/uselagoon/lagoon/releases](https://github.com/uselagoon/lagoon/releases)をご覧ください。

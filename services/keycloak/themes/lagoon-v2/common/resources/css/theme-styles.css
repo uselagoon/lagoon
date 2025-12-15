@@ -1,0 +1,38 @@
+:root {
+        /* --keycloak-bg-logo-url: url('../img/bgimageundefined'); */
+        --keycloak-logo-url: url('../img/logo.svg');
+        --keycloak-logo-height: 63px;
+        --keycloak-logo-width: 300px;
+        --pf-v5-global--danger-color--100: #c9190b;
+        --pf-v5-global--success-color--100: #3e8635;
+        --pf-v5-global--active-color--100: #0066cc;
+        --pf-v5-global--primary-color--100: #0066cc;
+        --pf-v5-global--link--Color: #0066cc;
+        --pf-v5-global--link--Color--hover: #004080;
+        --pf-v5-global--BackgroundColor--light-100: #ffffff;
+        --pf-v5-global--BackgroundColor--dark-300: #212427;
+        --pf-v5-global--BackgroundColor--dark-100: #4c84ff;
+        --pf-v5-global--Color--100: #151515;
+        --pf-v5-global--Color--light-100: #ffffff;
+        --pf-v5-global--Color--dark-100: #151515;
+      }
+      .pf-v5-theme-dark {
+        --pf-v5-global--FontFamily--text: "RedHatText", helvetica, arial, sans-serif;
+        --pf-v5-global--danger-color--100: #fe5142;
+        --pf-v5-global--success-color--100: #5ba352;
+        --pf-v5-global--active-color--100: #1fa7f8;
+        --pf-v5-global--primary-color--300: #0066cc;
+        --pf-v5-global--primary-color--200: #004080;
+        --pf-v5-global--primary-color--100: #1fa7f8;
+        --pf-v5-global--link--Color: #1fa7f8;
+        --pf-v5-global--link--Color--hover: #73bcf7;
+        --pf-v5-global--BackgroundColor--light-100: #1b1d21;
+        --pf-v5-global--BackgroundColor--300: #26292d;
+        --pf-v5-global--BackgroundColor--100: #1b1d21;
+        --pf-v5-global--palette--black-1000: #4c84ff;
+        --pf-v5-global--Color--light-200: #f0f0f0;
+        --pf-v5-global--Color--100: #e0e0e0;
+        --pf-v5-global--Color--light-100: #e0e0e0;
+        --pf-v5-global--BackgroundColor--400: #36373a;
+        --pf-v5-global--Color--dark-100: #e0e0e0;
+      }

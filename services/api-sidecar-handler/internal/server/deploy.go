@@ -29,6 +29,7 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	bulkID := r.Form.Get("bulkId")
 	bulkName := r.Form.Get("bulkName")
 	buildPriority := r.Form.Get("buildPriority")
+	buildType := r.Form.Get("buildType")
 	var priority uint
 	if buildPriority != "" {
 		i, err := strconv.Atoi(buildPriority)
@@ -86,6 +87,7 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 		BulkID:                   bulkID,
 		BulkName:                 bulkName,
 		BuildVariables:           buildVars,
+		BuildType:                lagoon.DeploymentBuildType(strings.ToUpper(buildType)),
 	}
 	if priority != 0 {
 		deployData.BuildPriority = &priority

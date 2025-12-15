@@ -3,7 +3,6 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { seedNamespace } from '@lagoon/commons/dist/tasks';
 import { getConfigFromEnv } from '../../util/config';
 import { ResolverFn } from '../';
-import { logger } from '../../loggers/logger';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
@@ -16,6 +15,14 @@ import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import { RemoveData, DeployType, AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
+import { logger } from '../../loggers/logger';
+
+// Helper resolver to convert kibUsed to deprecated bytesUsed.
+export const getBytesUsed: ResolverFn = async (
+  envStorage
+) => {
+  return envStorage.kibUsed
+}
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -189,18 +196,22 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
         project: project.id
       });
     }
-    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({eid, lastDays, claim: args.claim, startDate: args.startDate, endDate: args.endDate}))
-    // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-    return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
+
+    const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentIdByDaysClaim({
+      eid,
+      lastDays,
+      claim: args.claim,
+      startDate: args.startDate,
+      endDate: args.endDate
+    }))
+    return rows;
   }
 
   await hasPermission('environment', 'storage');
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
 
-  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-  return rows.map(row => ({ ...row, bytesUsed: row.kibUsed}));
-  // return rows;
+  return rows;
 };
 
 export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
@@ -493,10 +504,21 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   return environment;
 };
 
+// Deprecated resolver that just calls replacement resolver.
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
-  root,
+  _,
+  { input },
+  context
+) => {
+  input.kibUsed = input.bytesUsed
+
+  return addOrUpdateStorageOnEnvironment(undefined, { input: input }, context);
+};
+
+export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
+  _,
   { input: unformattedInput },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('environment', 'storage');
 
@@ -504,68 +526,74 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
     ...unformattedInput,
     updated: unformattedInput.updated
       ? unformattedInput.updated
-      : convertDateToMYSQLDateFormat(new Date().toISOString())
+      : convertDateToMYSQLDateFormat(new Date().toISOString()),
   };
 
-
-  // @DEPRECATE when `bytesUsed` is completely removed, this block can be removed
-  if (input.kibUsed) {
-    // remove the bytesUsed input if kilobytes is provided
-    delete input.bytesUsed
-  } else {
-    // else set kibUsed to the old required input, then remove the old input
-    input.kibUsed = input.bytesUsed
-    delete input.bytesUsed
-  }
-
   const createOrUpdateSql = knex('environment_storage')
-    .insert(input)
-    .onConflict('id')
+    .insert({
+      environment: input.environment,
+      kibUsed: input.kibUsed,
+      persistentStorageClaim: input.persistentStorageClaim,
+      updated: input.updated,
+    })
+    .onConflict('environment_persistent_storage_claim_updated')
     .merge({
-      kibUsed: input.kibUsed
-    }).toString();
+      kibUsed: input.kibUsed,
+    })
+    .toString();
 
-  const { insertId } = await query(
+  await query(sqlClientPool, createOrUpdateSql);
+
+  const rows = (await query(
     sqlClientPool,
-    createOrUpdateSql
+    knex('environment_storage')
+      .where('persistent_storage_claim', input.persistentStorageClaim)
+      .andWhere('environment', input.environment)
+      .andWhere('updated', input.updated)
+      .toString(),
+  )) as {
+    id: number;
+    persistentStorageClaim: string;
+    environment: number;
+    kibUsed: number;
+    updated: string;
+  }[];
+
+  const envStorage = rows[0];
+  const {
+    name: projectName,
+    projectId,
+    envName,
+  } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+    envStorage.environment,
   );
 
-  const rows = await query(sqlClientPool,
-    knex("environment_storage")
-      .where("persistent_storage_claim", input.persistentStorageClaim)
-      .andWhere("environment", input.environment)
-      .andWhere("updated", input.updated)
-      .toString()
-  );
-
-  // @DEPRECATE when `bytesUsed` is completely removed, this can be reverted
-  const environment = R.path([0], rows.map(row => ({ ...row, bytesUsed: row.kibUsed})));
-  // const environment = R.path([0], rows);
-  const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
-  const curEnv = await Helpers(sqlClientPool).getEnvironmentById(environment['environment']);
   const auditLog: AuditLog = {
     resource: {
-      id: curEnv.project.toString(),
+      id: projectId.toString(),
       type: AuditType.PROJECT,
       details: projectName,
     },
     linkedResource: {
-      id: curEnv.id.toString(),
+      id: envStorage.environment.toString(),
       type: AuditType.ENVIRONMENT,
-      details: curEnv.name,
+      details: envName,
     },
   };
-  userActivityLogger(`User updated environment storage on project '${projectName}'`, {
-    project: '',
-    event: 'api:addOrUpdateEnvironmentStorage',
-    payload: {
-      projectName,
-      input,
-      ...auditLog,
-    }
-  });
+  userActivityLogger(
+    `User updated environment storage on project '${projectName}'`,
+    {
+      project: '',
+      event: 'api:addOrUpdateEnvironmentStorage',
+      payload: {
+        projectName,
+        input,
+        ...auditLog,
+      },
+    },
+  );
 
-  return environment;
+  return envStorage;
 };
 
 export const deleteEnvironment: ResolverFn = async (

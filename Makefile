@@ -80,7 +80,7 @@ UI_IMAGE_TAG = main
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
@@ -461,7 +461,7 @@ JWT_VERSION = 6.2.0
 STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
-TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services]
+TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
 CHARTS_TREEISH = webhook-handler
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
@@ -661,7 +661,7 @@ endif
 endif
 
 GO = $(realpath ./local-dev/go/bin/go)
-GO_VERSION := 1.23.5
+GO_VERSION := 1.25.4
 
 .PHONY: local-dev/go
 local-dev/go:
@@ -697,10 +697,12 @@ helm/repos: local-dev/helm
 	$(HELM) repo add metallb https://metallb.github.io/metallb
 	$(HELM) repo add jetstack https://charts.jetstack.io
 	$(HELM) repo add jouve https://jouve.github.io/charts/
-	$(HELM) repo add twuni https://helm.twun.io
 	$(HELM) repo add k8up https://k8up-io.github.io/k8up
 	$(HELM) repo add appuio https://charts.appuio.ch
 	$(HELM) repo add prometheus-community https://prometheus-community.github.io/helm-charts
+ifeq ($(INSTALL_UNAUTHENTICATED_REGISTRY),true)
+	$(HELM) repo add twuni https://twuni.github.io/docker-registry.helm
+endif
 	$(HELM) repo update
 
 # stand up a k3d cluster configured appropriately for lagoon testing

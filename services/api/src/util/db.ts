@@ -6,7 +6,7 @@ import { notArray } from '../util/func';
 import snakecase from './snakeCase';
 
 export const knex = require('knex')({
-  client: 'mysql',
+  client: 'mysql2',
   // Simplified version of converting input to snake case and
   // output to camel case from Objection.js
   // Ref: https://github.com/Vincit/objection.js/blob/89481597099e33d913bd7a7e437ff7a487c62fbd/lib/utils/identifierMapping.js
@@ -23,7 +23,7 @@ export const knex = require('knex')({
 
 // set up the lagoon migrations table
 export const migrate = require('knex')({
-  client: 'mysql',
+  client: 'mysql2',
   connection: {
     host : process.env.API_DB_HOST || 'api-db',
     port : process.env.API_DB_PORT || 3306,

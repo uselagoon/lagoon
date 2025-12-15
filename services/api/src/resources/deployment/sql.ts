@@ -26,6 +26,7 @@ export const Sql = {
     buildStep,
     sourceType,
     sourceUser,
+    buildType,
   }: {
     id: number,
     name: string,
@@ -41,6 +42,7 @@ export const Sql = {
     buildStep: string,
     sourceType: DeploymentSourceType,
     sourceUser: string,
+    buildType: string,
   }) =>
     knex('deployment')
       .insert({
@@ -58,6 +60,7 @@ export const Sql = {
         buildStep,
         sourceType,
         sourceUser,
+        buildType,
       })
       .toString(),
   deleteDeployment: (id: number) =>
@@ -152,4 +155,73 @@ export const Sql = {
       .where('environment', '=', environment)
       .delete()
       .toString(),
+  selectDeploymentsByFilter: ({
+    startDate,
+    endDate,
+    environmentType,
+    userProjectIds,
+    deployTargets,
+    deploymentStatus,
+    includeDeleted,
+    limitPerEnvironment,
+    limit,
+  }: {
+    startDate?: Date;
+    endDate?: Date;
+    environmentType: string;
+    userProjectIds?: number[];
+    deployTargets?: number[];
+    deploymentStatus?: string[];
+    includeDeleted?: boolean;
+    limitPerEnvironment?: number;
+    limit?: number;
+  }) =>
+  knex
+  .select('*')
+  .from(function() {
+    this.select(
+        'deployment.*',
+        'environment.project as project_id',
+        knex.raw('ROW_NUMBER() OVER (PARTITION BY deployment.environment ORDER BY deployment.created DESC) AS env_row_num'),
+      )
+      .from('deployment')
+      .innerJoin('environment', 'deployment.environment', 'environment.id')
+      .as('ranked_deployments')
+      .modify(function (queryBuilder) {
+        if (userProjectIds) {
+          queryBuilder = queryBuilder.whereIn('environment.project', userProjectIds);
+        }
+        // collect builds for a specific date range
+        if (startDate) {
+          queryBuilder = queryBuilder.where('deployment.created', '>=', startDate);
+        }
+        if (endDate) {
+          queryBuilder = queryBuilder.where('deployment.created', '<=', endDate);
+        }
+        // collect builds for specific environment type
+        if (environmentType) {
+          queryBuilder = queryBuilder.where('environment.environment_type', environmentType);
+        }
+        if(deployTargets) {
+          queryBuilder = queryBuilder.whereIn('environment.openshift', deployTargets);
+        }
+        queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
+        // if includeDeleted is false, exclude deleted environments in the results (default)
+        if (!includeDeleted) {
+          queryBuilder = queryBuilder.where('environment.deleted', '=', '0000-00-00 00:00:00');
+        }
+        queryBuilder = queryBuilder.orderByRaw('deployment.created DESC, deployment.name DESC');
+      })
+  })
+  .modify(function (queryBuilder) {
+    // limit the number of deployments per environment
+    if (limitPerEnvironment) {
+      queryBuilder = queryBuilder.where('env_row_num', '<=', limitPerEnvironment);
+    }
+    if (limit) {
+      queryBuilder = queryBuilder.limit(limit);
+    }
+    queryBuilder = queryBuilder.orderBy('created', 'desc')
+  })
+  .toString(),
 };

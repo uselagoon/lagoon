@@ -5,7 +5,6 @@ import { logger } from '../../loggers/logger';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { Helpers } from './helpers';
-import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
@@ -410,15 +409,6 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(
-    sqlClientPool,
-    models.GroupModel
-  ).syncGroupWithSpecificTenant(
-    `p${project.id}`,
-    'global_tenant',
-    `${project.id}`
-  );
-
   // Always create a default user
   let defaultUser;
   try {
@@ -557,25 +547,11 @@ export const deleteProject: ResolverFn = async (
   // Remove the project from all groups it is associated to
   try {
     const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-    // @TODO: use the new helper instead in the following for loop, once the `opendistrosecurityoperations` stuff goes away
-    // await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
-    for (const groupInput of projectGroups) {
-      const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-      await models.GroupModel.removeProjectFromGroup(project.id, group);
-      const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
-        group
-      );
-      const projectIds = R.join(',')(projectIdsArray);
-      OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
-        group.name,
-        projectIds
-      );
-    }
+    await models.GroupModel.removeProjectFromGroups(pid, projectGroups);
   } catch (err) {
     logger.error(
       `Could not remove project from associated groups ${project.name}: ${err.message}`
     );
-
   }
 
   // Remove the default project group
@@ -584,10 +560,6 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(
-      sqlClientPool,
-      models.GroupModel
-    ).deleteGroupWithSpecificTenant(`p${pid}`, group.name);
   } catch (err) {
     logger.error(
       `Could not delete default group for project ${project.name}: ${err.message}`
@@ -1064,7 +1036,7 @@ export const updateProjectMetadata: ResolverFn = async (
   await query(
     sqlClientPool,
     `UPDATE project
-    SET metadata = JSON_SET(COALESCE(metadata, '{}'), :meta_key, :meta_value)
+    SET metadata = JSON_SET(metadata, :meta_key, :meta_value)
     WHERE id = :id`,
     {
       id,

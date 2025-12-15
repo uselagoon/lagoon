@@ -1,7 +1,7 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:1.24-alpine3.21 AS builder
+FROM golang:1.25-alpine3.22 AS builder
 
 WORKDIR /workspace
 COPY go.mod go.mod

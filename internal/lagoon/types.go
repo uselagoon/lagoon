@@ -21,6 +21,7 @@ type DeployData struct {
 	DeployType               schema.DeployType    `json:"deployType"`
 	PromoteSourceEnvironment string               `json:"promoteSourceEnvironment"`
 	Pullrequest              Pullrequest          `json:"pullrequest"`
+	BuildType                DeploymentBuildType  `json:"buildType"`
 }
 
 type Pullrequest struct {
@@ -58,3 +59,10 @@ type RemoveData struct {
 	Branch                           string `json:"branch"`
 	ForceDeleteProductionEnvironment bool   `json:"forceDeleteProductionEnvironment"`
 }
+
+type DeploymentBuildType string
+
+const (
+	BuildDeployment     DeploymentBuildType = "BUILD"
+	VariablesDeployment DeploymentBuildType = "VARIABLES"
+)

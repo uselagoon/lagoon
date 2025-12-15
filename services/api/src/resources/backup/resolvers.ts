@@ -17,67 +17,19 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 import e from 'express';
+import { logger } from '../../loggers/logger';
 
-const { S3Client, HeadObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
-  let restoreSize = 0;
-  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-  const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
+// https://{endpoint}/{bucket}/{key}
+const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
+const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
 
-  // https://{endpoint}/{bucket}/{key}
-  const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
-
-  if (R.test(s3LinkMatch, restoreLocation)) {
-    const s3Parts = R.match(s3LinkMatch, restoreLocation);
-
-    // Handle custom restore configurations
-    let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => {
-      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
-    })
-    if (lagoonBaasCustomRestoreEndpoint) {
-      lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
-    }
-    let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => {
-      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
-    })
-    if (lagoonBaasCustomRestoreBucket) {
-      lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
-    }
-    let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => {
-      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
-    })
-    if (lagoonBaasCustomRestoreAccessKey) {
-      lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
-    }
-    let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => {
-      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
-    })
-    if (lagoonBaasCustomRestoreSecretKey) {
-      lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
-    }
-
-    let accessKeyId, secretAccessKey
-    if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
-      // Custom Restore location exists, use these credentials instead
-      accessKeyId = lagoonBaasCustomRestoreAccessKey
-      secretAccessKey = lagoonBaasCustomRestoreSecretKey
-    } else {
-      // No Custom Restore location exists, use default credentials
-      accessKeyId = getConfigFromEnv(
-        'S3_BAAS_ACCESS_KEY_ID',
-        'XXXXXXXXXXXXXXXXXXXX'
-      );
-      secretAccessKey = getConfigFromEnv(
-        'S3_BAAS_SECRET_ACCESS_KEY',
-        'XXXXXXXXXXXXXXXXXXXX'
-      );
-    }
+const getS3Client = async (sqlClientPool, projectId, s3Parts, restoreLocation) => {
+    let credentials = await getRestoreLocationS3Creds(sqlClientPool, projectId)
 
     let awsS3Parts;
-    const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
 
     if (R.test(awsLinkMatch, restoreLocation)) {
       awsS3Parts = R.match(awsLinkMatch, restoreLocation);
@@ -87,52 +39,115 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
     // from the s3 url.
     const URL = require('url').URL;
     const restoreLocationURL = new URL(restoreLocation);
-    const s3Client = new S3Client({
-      credentials: {
-        accessKeyId,
-        secretAccessKey
-      },
+    return new S3Client({
+      credentials,
       forcePathStyle: true,
       signatureVersion: 'v4',
       endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
       region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
     });
+}
+
+const getRestoreLocationS3Creds = async (sqlClientPool, projectId) => {
+  const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(projectId));
+  // Handle custom restore configurations
+  let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => {
+    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
+  })
+  if (lagoonBaasCustomRestoreEndpoint) {
+    lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
+  }
+  let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => {
+    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
+  })
+  if (lagoonBaasCustomRestoreBucket) {
+    lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
+  }
+  let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => {
+    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
+  })
+  if (lagoonBaasCustomRestoreAccessKey) {
+    lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
+  }
+  let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => {
+    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
+  })
+  if (lagoonBaasCustomRestoreSecretKey) {
+    lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
+  }
+
+  let accessKeyId, secretAccessKey
+  if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
+    // Custom Restore location exists, use these credentials instead
+    accessKeyId = lagoonBaasCustomRestoreAccessKey
+    secretAccessKey = lagoonBaasCustomRestoreSecretKey
+  } else {
+    // No Custom Restore location exists, use default credentials
+    accessKeyId = getConfigFromEnv(
+      'S3_BAAS_ACCESS_KEY_ID',
+      'XXXXXXXXXXXXXXXXXXXX'
+    );
+    secretAccessKey = getConfigFromEnv(
+      'S3_BAAS_SECRET_ACCESS_KEY',
+      'XXXXXXXXXXXXXXXXXXXX'
+    );
+  }
+
+  return {accessKeyId, secretAccessKey};
+}
+
+const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
+  let restoreSize = 0;
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  if (rows.length == 0) {
+    return
+  }
+  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
+
+  if (R.test(s3LinkMatch, restoreLocation)) {
+    const s3Parts = R.match(s3LinkMatch, restoreLocation);
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
+    const bucket = R.prop(2, s3Parts)
+    const fileKey = R.prop(3, s3Parts)
 
     try {
       const headObjectResponse = await s3Client.send(new HeadObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts)
+        Bucket: bucket,
+        Key: fileKey
       }));
       restoreSize = headObjectResponse.ContentLength ?? restoreSize;
 
       const restLoc = await getSignedUrl(s3Client, new GetObjectCommand({
-        Bucket: R.prop(2, s3Parts),
-        Key: R.prop(3, s3Parts),
+        Bucket: bucket,
+        Key: fileKey,
       }), {
         expiresIn: s3Config.signedLinkExpiration
       });
 
-      if (typeof userActivityLogger === 'function') {
-        const auditLog: AuditLog = {
-          resource: {
-            type: AuditType.FILE,
-            details: R.prop(3, s3Parts),
-          },
-        };
-        if (project.organization) {
-          auditLog.organizationId = project.organization;
-        }
-        userActivityLogger(`User requested a download link`, {
-          event: 'api:getSignedBackupUrl',
-          payload: {
-            Bucket: R.prop(2, s3Parts),
-            Key: R.prop(3, s3Parts),
-            ...auditLog,
+      if (!restoreSizeOnly) {
+        // only log requests if restorelocation is requested
+        if (typeof userActivityLogger === 'function') {
+          const auditLog: AuditLog = {
+            resource: {
+              type: AuditType.FILE,
+              details: fileKey,
+            },
+          };
+          if (project.organization) {
+            auditLog.organizationId = project.organization;
           }
-        });
+          userActivityLogger(`User requested a download link`, {
+            event: 'api:getSignedBackupUrl',
+            payload: {
+              Bucket: bucket,
+              Key: fileKey,
+              ...auditLog,
+            }
+          });
+        }
       }
 
-      return [restLoc, restoreSize];
+      return {restoreLocation: restLoc, restoreSize};
     } catch(err) {
       await query(
         sqlClientPool,
@@ -140,11 +155,51 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
           backupId
         })
       );
-      return ["", restoreSize];
+      return {restoreLocation: "", restoreSize};
     }
   }
 
-  return [restoreLocation, restoreSize];
+  return {restoreLocation, restoreSize};
+};
+
+const deleteRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
+  let restoreSize = 0;
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  if (rows.length == 0) {
+    return
+  }
+  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
+
+  if (R.test(s3LinkMatch, restoreLocation)) {
+    const s3Parts = R.match(s3LinkMatch, restoreLocation);
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
+    const bucket = R.prop(2, s3Parts)
+    const fileKey = R.prop(3, s3Parts)
+
+    try {
+      const headObjectResponse = await s3Client.send(new HeadObjectCommand({
+        Bucket: bucket,
+        Key: fileKey
+      }));
+      restoreSize = headObjectResponse.ContentLength ?? restoreSize;
+
+      // delete the object from the bucket
+      await s3Client.send(new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: fileKey
+      }));
+    } catch(err) {
+      // do nothing
+      logger.warn(`failed to check object reference in s3: ${e}`)
+    }
+    // in any case, if the restore id is correct, delete the restore id
+    await query(
+      sqlClientPool,
+      Sql.deleteRestore({
+        backupId
+      })
+    );
+  }
 };
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
@@ -498,6 +553,80 @@ export const updateRestore: ResolverFn = async (
   return restoreData;
 };
 
+
+export const deleteRestore: ResolverFn = async (
+  root,
+  {
+    input: {
+      backupId,
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+) => {
+
+  let rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  if (rows.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "delete" on "restore"`
+    );
+  }
+  const backupData = R.prop(0, rows);
+
+  const permsRestore = await query(
+    sqlClientPool,
+    Sql.selectPermsForRestore(backupId)
+  );
+
+  // Check access to modify restore as it currently stands
+  await hasPermission('restore', 'delete', {
+    project: R.path(['0', 'pid'], permsRestore)
+  });
+
+  rows = await query(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
+  if (rows.length == 0) {
+    throw new Error(
+      `No restore file found for backup`
+    );
+  }
+  const restoreData = R.prop(0, rows);
+
+  await deleteRestoreLocation(backupId, restoreData.restoreLocation, sqlClientPool);
+
+  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
+  const project = await projectHelpers(sqlClientPool).getProjectById(environmentData[0].project);
+
+  pubSub.publish(EVENTS.BACKUP, backupData);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: environmentData[0].id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: environmentData[0].name,
+    },
+    linkedResource: {
+      id: backupData.id.toString(),
+      type: AuditType.BACKUP,
+      details: `${backupData.source} - ${backupId}`,
+    },
+  };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  if (userActivityLogger != undefined) {
+    userActivityLogger(`User deleted restored file for backup '${backupId}'`, {
+      project: '',
+      event: 'api:deleteRestore',
+      payload: {
+        backupId,
+        backupData,
+        ...auditLog,
+      }
+    });
+  }
+
+  return backupData;
+};
+
 export const getBackupDownloadLinkByBackupId: ResolverFn = async (
   root,
   { backupId },
@@ -519,8 +648,8 @@ export const getBackupDownloadLinkByBackupId: ResolverFn = async (
     throw new Error(`no restore file available`);
   }
   const backupData = R.prop(0, rows);
-  const [restLoc, restSize] = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
-  return restLoc;
+  const restoreLoc = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
+  return restoreLoc.restoreLocation;
 }
 
 export const getRestoreByBackupId: ResolverFn = async (
@@ -542,12 +671,12 @@ export const getRestoreByBackupId: ResolverFn = async (
   const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "restoreLocation");
   if (restoreLocationRequested) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
-    const [restLoc, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
-    return {...row, restoreLocation: restLoc, restoreSize: restSize};
+    const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
+    return {...row, restoreLocation: restoreLoc.restoreLocation, restoreSize: restoreLoc.restoreSize};
   } else {
     // if the restore does not have a location, return the row as is with restoreSize
-    const [, restSize] = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, true);
-    return {...row, restoreSize: restSize};
+    const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger, true);
+    return {...row, restoreSize: restoreLoc.restoreSize};
   }
 };
 

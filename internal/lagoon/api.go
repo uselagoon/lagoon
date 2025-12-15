@@ -107,11 +107,16 @@ func (l *LagoonAPI) addOrUpdateEnvironment(deployData DeployData, deployBaseRef,
 	return &aoue, nil
 }
 
-func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPriority uint) (*schema.Deployment, error) {
+type Deployment struct {
+	schema.Deployment
+	BuildType DeploymentBuildType `json:"buildType,omitempty"`
+}
+
+func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPriority uint) (*Deployment, error) {
 	lc, _ := GetClient(*l)
 	deployMutation := `mutation addDeployment($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int,
 	$priority: Int, $bulkId: String, $bulkName: String,
-    $sourceUser: String, $sourceType: DeploymentSourceType) {
+    $sourceUser: String, $sourceType: DeploymentSourceType, $buildType: DeploymentBuildType) {
 		addDeployment(input: {
 			name: $name
 			status: $status
@@ -123,6 +128,7 @@ func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPri
 			bulkName: $bulkName
 			sourceUser: $sourceUser
 			sourceType: $sourceType
+			buildType: $buildType
 		}) {
 			id
 			name
@@ -135,6 +141,7 @@ func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPri
 			environment {
 				name
 			}
+			buildType
 		}
   	}`
 	d, err := lc.ProcessRaw(context.Background(), deployMutation, map[string]interface{}{
@@ -147,13 +154,14 @@ func (l *LagoonAPI) addDeployment(deployData DeployData, environmentID, buildPri
 		"bulkName":    deployData.BulkName,
 		"sourceUser":  deployData.SourceUser,
 		"sourceType":  deployData.SourceType,
+		"buildType":   deployData.BuildType,
 	})
 	if err != nil {
 		return nil, err
 	}
 	// da, _ := json.Marshal(d)
 	// fmt.Println(string(da))
-	deployment := schema.Deployment{}
+	deployment := Deployment{}
 	db, _ := json.Marshal(d.(map[string]interface{})["addDeployment"])
 	json.Unmarshal(db, &deployment)
 	return &deployment, nil

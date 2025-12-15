@@ -1060,6 +1060,37 @@ EOF
 EOF
 }
 
+function delete_restore_permissions {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local delete_restore=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Delete+Restore --config $CONFIG_PATH)
+
+
+  if [ "$delete_restore" != "[ ]" ]; then
+      echo "Restore delete permissions already configured"
+      return 0
+  fi
+
+  echo Re-configuring restore permissions
+
+  # update the resource scopes to include delete
+  restore_resource_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=restore --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$restore_resource_id --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name": "add"},{"name": "addNoExec"},{"name": "update"},{"name": "delete"}]'
+
+  # Create "Delete Restore" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Delete Restore",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "UNANIMOUS",
+    "resources": ["restore"],
+    "scopes": ["delete"],
+    "policies": ["[Lagoon] User has access to project","[Lagoon] Users role for project is Guest"]
+  }
+EOF
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -1117,6 +1148,7 @@ function configure_keycloak {
     add_lagoon-ui_impersonator_mappers
     add_lagoon-ui-oidc_impersonator_mappers
     add_route_permissions
+    delete_restore_permissions
 
     # always run last
     sync_client_secrets

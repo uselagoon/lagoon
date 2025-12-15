@@ -145,7 +145,13 @@ func getRouterPatternAndVariables(
 	   Env vars that are set by users, or derived from them.
 	*/
 	// Build env vars passed to the API.
-	appliedEnvVars = append(appliedEnvVars, buildVariables...)
+	for _, bVar := range buildVariables {
+		appliedEnvVars = append(appliedEnvVars, schema.EnvKeyValue{
+			Name:  bVar.Name,
+			Value: bVar.Value,
+			Scope: "build",
+		})
+	}
 
 	// Bulk deployment vars
 	switch bulkType {

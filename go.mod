@@ -1,8 +1,6 @@
 module github.com/uselagoon/lagoon
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
