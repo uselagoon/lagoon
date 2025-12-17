@@ -58,26 +58,61 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
         }
       }
     } else if ('x-event-key' in req.headers) {
-      webhooktype = 'bitbucket'
-      event = req.headers['x-event-key']
-      uuid = req.headers['x-request-uuid']
-      // Bitbucket does not provide a git-ssh URI to the repo in the webhook payload
-      // We the html repo link (example https://bitbucket.org/teamawesome/repository) to extract the correct target domain (bitbucket.org)
-      // this could be bitbuck.org(.com) or a private bitbucket server
-      // Also the git server could be running on another port than 22, so there is a second regex match for `:[0-9]`
-      const regexmatch = bodyObj.repository.links.html.href.match(/https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\//i)
-      // The first match is the domain
-      const domain = regexmatch[1]
-      if (!regexmatch[2]) {
-        // If there is no 2nd regex match, ther is no port found and it's not added to the URL
-        // use the extracted domain and repo full_name (teamawesome/repository) to build the git URI, example git@bitbucket.org:teamawesome/repository.git
-        giturl = `git@${domain}:${bodyObj.repository.full_name}.git`
-      } else {
-        // If there is a second regex match, we add the port to the url and also format the url with `ssh://` in front which is needed for requests with anoter port
-        const port = regexmatch[2]
-        giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`
+      webhooktype = 'bitbucket';
+      event = req.headers['x-event-key'];
+      uuid = req.headers['x-request-uuid'];
+
+      const cloneLinks = bodyObj.repository.links?.clone;
+
+      // Bitbucket Server (Data Center) uses the 'clone' links to provide SSH and HTTP URLs
+      if (Array.isArray(cloneLinks)) {
+        const sshLink = cloneLinks.find(link => link.name === 'ssh');
+        const httpLink = cloneLinks.find(link => link.name === 'http');
+        if (sshLink?.href) {
+          giturl = sshLink.href;
+        } else if (httpLink?.href) {
+
+          const match = httpLink.href.match(/https?:\/\/([^\/]+)\/scm\/([^\.]+)\.git/i);
+          if (match) {
+            const domain = match[1];
+            const projectAndRepo = match[2];
+            giturl = `git@${domain}:${projectAndRepo}.git`;
+          } else {
+            throw new Error(`Could not parse project/repo from http clone link: ${httpLink.href}`);
+          }
+        }
       }
-    // TODO: Use when single snapshot data is fixed
+      if (!giturl) {
+        let repoHref = null;
+
+        if (bodyObj.repository.links?.html?.href) {
+          repoHref = bodyObj.repository.links.html.href;
+        } else if (bodyObj.repository.links?.self?.[0]?.href) {
+          repoHref = bodyObj.repository.links.self[0].href;
+        } else {
+          throw new Error('Could not determine repository URL from webhook payload.');
+        }
+
+        const regexmatch = repoHref.match(/https?:\/\/([a-z0-9-_.]*)(:[0-9]*)?\//i);
+        if (!regexmatch) {
+          throw new Error(`Could not parse domain from repository href: ${repoHref}`);
+        }
+
+        const domain = regexmatch[1];
+
+        if (!bodyObj.repository.full_name) {
+          throw new Error('Missing repository.full_name in webhook payload.');
+        }
+
+        if (!regexmatch[2]) {
+          giturl = `git@${domain}:${bodyObj.repository.full_name}.git`;
+        } else {
+          const port = regexmatch[2];
+          giturl = `ssh://git@${domain}${port}/${bodyObj.repository.full_name}.git`;
+        }
+      }
+
+      // TODO: Use when single snapshot data is fixed
     // } else if (bodyObj.backup_metrics) {
     //   webhooktype = 'resticbackup';
     //   event = 'snapshot:finished'
