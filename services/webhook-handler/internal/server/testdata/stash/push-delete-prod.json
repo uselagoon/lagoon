@@ -1,0 +1,76 @@
+{
+    "eventKey": "repo:refs_changed",
+    "date": "2025-09-01T01:07:08+0000",
+    "actor": {
+        "name": "exampleuser",
+        "emailAddress": "user@example.com",
+        "active": true,
+        "displayName": "Example User",
+        "id": 3,
+        "slug": "exampleuser",
+        "type": "NORMAL",
+        "links": {
+            "self": [
+                {
+                    "href": "http://localhost:7990/users/exampleuser"
+                }
+            ]
+        }
+    },
+    "repository": {
+        "slug": "testrepo",
+        "id": 1,
+        "name": "testrepo",
+        "hierarchyId": "34319d1467d40bfffa18",
+        "scmId": "git",
+        "state": "AVAILABLE",
+        "statusMessage": "Available",
+        "forkable": true,
+        "project": {
+            "key": "TES",
+            "id": 1,
+            "name": "testproject",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+                "self": [
+                    {
+                        "href": "http://localhost:7990/projects/TES"
+                    }
+                ]
+            }
+        },
+        "public": false,
+        "archived": false,
+        "links": {
+            "clone": [
+                {
+                    "href": "ssh://git@localhost:7999/tes/testrepo.git",
+                    "name": "ssh"
+                },
+                {
+                    "href": "http://localhost:7990/scm/tes/testrepo.git",
+                    "name": "http"
+                }
+            ],
+            "self": [
+                {
+                    "href": "http://localhost:7990/projects/TES/repos/testrepo/browse"
+                }
+            ]
+        }
+    },
+    "changes": [
+        {
+            "ref": {
+                "id": "refs/heads/main",
+                "displayId": "main",
+                "type": "BRANCH"
+            },
+            "refId": "refs/heads/main",
+            "fromHash": "1ce69480cccdeb9a007566d38f30bc194a3cace1",
+            "toHash": "0000000000000000000000000000000000000000",
+            "type": "DELETE"
+        }
+    ]
+}

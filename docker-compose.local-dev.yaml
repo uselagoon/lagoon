@@ -4,20 +4,6 @@ volumes:
   broker: {}
 
 services:
-  webhook-handler:
-    command: yarn run dev
-    volumes:
-      - ./services/webhook-handler/src:/app/services/webhook-handler/src
-      - ./node-packages:/app/node-packages:delegated
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
-  webhooks2tasks:
-    command: yarn run dev
-    volumes:
-      - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
-      - ./node-packages:/app/node-packages:delegated
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
   api-db-init:
     volumes:
       - ./services/api/database:/app/services/api/database
