@@ -80,6 +80,7 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 				DeployType:            schema.Branch,
 				BulkType:              lagoon.BulkDeploy,
 				GitSHA:                scmWebhook.After,
+				BuildType:             lagoon.BuildDeployment,
 			}
 			if bulkID != "" {
 				deployData.BulkID = bulkID

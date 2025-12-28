@@ -67,6 +67,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 					HeadBranch: scmWebhook.PullRequest.Source,
 					HeadSha:    scmWebhook.PullRequest.Sha,
 				},
+				BuildType: lagoon.BuildDeployment,
 			}
 			switch deployData.GitType {
 			case "gogs":

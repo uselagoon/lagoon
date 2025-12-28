@@ -840,6 +840,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.name,
         sourceUser: sourceUser,
         projectName: project.name,
+        buildType: buildType,
       }
       if (priority) {
         deployData.buildPriority = priority
@@ -871,7 +872,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
         branchName: environment.name,
         sourceUser: sourceUser,
         projectName: project.name,
-        promoteSourceEnvironment: environment.deployBaseRef
+        promoteSourceEnvironment: environment.deployBaseRef,
+        buildType: buildType,
       }
       if (priority) {
         deployData.buildPriority = priority
@@ -1003,6 +1005,12 @@ export const deployEnvironmentBranch: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData: DeployData = {
     type: DeployType.BRANCH,
@@ -1010,6 +1018,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: branchName,
     sourceUser: sourceUser,
     projectName: project.name,
+    buildType: buildType,
   };
   if (priority) {
     deployData.buildPriority = priority
@@ -1149,7 +1158,12 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
-
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData: DeployData = {
     type: DeployType.PULLREQUEST,
@@ -1157,6 +1171,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     branchName: branchName,
     sourceUser: sourceUser,
     projectName: project.name,
+    buildType: buildType,
   }
   if (priority) {
     deployData.buildPriority = priority
@@ -1316,6 +1331,12 @@ export const deployEnvironmentPromote: ResolverFn = async (
   });
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData: DeployData = {
@@ -1324,7 +1345,8 @@ export const deployEnvironmentPromote: ResolverFn = async (
     branchName: destinationEnvironment,
     sourceUser: sourceUser,
     projectName: destProject.name,
-    promoteSourceEnvironment: sourceEnvironment.name
+    promoteSourceEnvironment: sourceEnvironment.name,
+    buildType: buildType,
   }
   if (priority) {
     deployData.buildPriority = priority
