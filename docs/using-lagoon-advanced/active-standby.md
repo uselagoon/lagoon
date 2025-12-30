@@ -41,6 +41,9 @@ Your existing production environment is considered the current active environmen
 
 Routes are configured in the `.lagoon.yml` file, and by default are tied to a specific environment. Lagoon also supports production `active` and `standby` routes which always point to the respective active and standby environments. These routes are configured using the `production_routes` section in your `.lagoon.yml`.
 
+!!! tip "Simplified with API Routes"
+    Managing active/standby routes is much simpler when using [API-defined routes](advanced-route-concepts.md#activestandby-with-api-routes). Instead of configuring routes in both environment YAML files, you can create routes in the API and mark them as active or standby. The API automatically handles route switching during active/standby transitions.
+
 An example of defining both `active` and `standby` routes is below. If `standby` routes are not needed, the section can be ommitted. For all route configuration options, see the [routes documentation for `.lagoon.yml`](http://localhost:8000/concepts-basics/lagoon-yml/#environment-routes).
 
 ```yaml title=".lagoon.yml"
