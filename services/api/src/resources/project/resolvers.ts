@@ -19,6 +19,8 @@ import { AuditLog, AuditResource } from '../audit/types';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
+const BLOCKED_PROJECT_NAME_PATTERN = process.env.BLOCKED_PROJECT_NAME_PATTERN
+
 const isValidGitUrl = value => {
   try {
     GitUrlParse(value)
@@ -289,6 +291,13 @@ export const addProject = async (
   }
   if (validator.matches(input.name, /--/)) {
     throw new Error('Multiple consecutive dashes are not allowed for name!');
+  }
+  if (BLOCKED_PROJECT_NAME_PATTERN) {
+    // create regex from the environment variable string and strip leading/trailing quotes
+    const regexPattern = new RegExp(BLOCKED_PROJECT_NAME_PATTERN.replace(/^['"]|['"]$/g, ''));
+    if (validator.matches(input.name, regexPattern)) {
+      throw new Error('Project name is not allowed, try a different name');
+    }
   }
   if (!isValidGitUrl(input.gitUrl)) {
     throw new Error('The provided gitUrl is invalid.');
@@ -684,6 +693,13 @@ export const updateProject: ResolverFn = async (
       throw new Error(
         'Only lowercase characters, numbers and dashes allowed for name!'
       );
+    }
+    if (BLOCKED_PROJECT_NAME_PATTERN) {
+      // create regex from the environment variable string and strip leading/trailing quotes
+      const regexPattern = new RegExp(BLOCKED_PROJECT_NAME_PATTERN.replace(/^['"]|['"]$/g, ''));
+      if (validator.matches(name, regexPattern)) {
+        throw new Error('Project name is not allowed, try a different name');
+      }
     }
   }
 
