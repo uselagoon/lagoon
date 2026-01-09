@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-server
+    environment:
+      POSTGRES_PASSWORD: mysecret
+      POSTGRES_USER: gogs
+      POSTGRES_DB: gogsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  gogs:
+    image: gogs/gogs
+    container_name: gogs
+    ports:
+      - "10022:22"
+      - "10880:3000"
+    volumes:
+      - gogs:/data
+    depends_on:
+      - postgres
+
+volumes:
+  postgres:
+  gogs:
