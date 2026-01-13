@@ -9,7 +9,7 @@
     connection: {
       host : process.env.API_DB_HOST || 'api-db',
       port : process.env.API_DB_PORT || 3306,
-      user : process.env.API_DB_USER || 'api',
+      user : process.env.API_DB_USERNAME || 'api',
       password : process.env.API_DB_PASSWORD || 'api',
       database : process.env.API_DB_DATABASE || 'infrastructure'
     },
