@@ -66,3 +66,25 @@ const (
 	BuildDeployment     DeploymentBuildType = "BUILD"
 	VariablesDeployment DeploymentBuildType = "VARIABLES"
 )
+
+type RouterPatternVariablesInput struct {
+	Project        schema.Project       `json:"project"`
+	Environment    schema.Environment   `json:"environment"`
+	DeployTarget   schema.DeployTarget  `json:"deployTarget"`
+	BulkID         string               `json:"bulkId,omitempty"`
+	BulkName       string               `json:"bulkName,omitempty"`
+	BuildPriority  *uint                `json:"buildPriority"`
+	BuildVariables []schema.EnvKeyValue `json:"buildVariables"`
+	BulkType       BulkType             `json:"bulkType"`
+}
+
+// modifies the api routes annotations/alternative names for what is expected by the build
+type APIRoute struct {
+	schema.Route
+	Annotations      map[string]string `json:"annotations"`
+	AlternativeNames []string          `json:"alternativeNames"`
+}
+
+type APIRoutes struct {
+	Routes []APIRoute `json:"routes"`
+}

@@ -1,6 +1,7 @@
 package lagoon
 
 import (
+	"log/slog"
 	"time"
 
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
@@ -15,6 +16,7 @@ type LagoonAPI struct {
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
 	Version         string `json:"version"`
+	Logger          *slog.Logger
 }
 
 func GetClient(l LagoonAPI) (*lclient.Client, error) {

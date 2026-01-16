@@ -90,6 +90,12 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/projectByName.2.json")
 				}
 			}
+			if strings.Contains(request, "environmentById") {
+				switch {
+				case variables["id"].(float64) == 5:
+					a, _ = f.ReadFile("testdata/environmentById.1.json")
+				}
+			}
 			fmt.Fprintf(w, "%s", a)
 		}
 	}

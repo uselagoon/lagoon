@@ -101,14 +101,16 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 	// fmt.Println("addDeployment", deployment)
 
 	routerPattern, envvars := getRouterPatternAndVariables(
-		deployData.Project,
-		*aoue,
-		deployData.DeployTarget,
-		deployData.BulkID,
-		deployData.BulkName,
-		int(*buildPriority),
-		deployData.BuildVariables,
-		deployData.BulkType,
+		RouterPatternVariablesInput{
+			Project:        deployData.Project,
+			Environment:    *aoue,
+			DeployTarget:   deployData.DeployTarget,
+			BulkID:         deployData.BulkID,
+			BulkName:       deployData.BulkName,
+			BuildPriority:  buildPriority,
+			BuildVariables: deployData.BuildVariables,
+			BulkType:       deployData.BulkType,
+		},
 	)
 	envVarBytes, _ := json.Marshal(envvars)
 
