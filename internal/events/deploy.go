@@ -12,11 +12,15 @@ import (
 func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.DeployData) ([]byte, error) {
 	environmentName := namespace.ShortenEnvironment(project.Name, namespace.MakeSafe(deployData.UnsafeEnvironmentName))
 	if project.OrganizationDetails != nil {
+		exists := false
 		for _, env := range project.Environments {
-			if env.Name != deployData.UnsafeEnvironmentName {
-				if len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment && project.OrganizationDetails.QuotaEnvironment != -1 {
-					return nil, fmt.Errorf("exceed environment quota")
-				}
+			if env.Name == deployData.UnsafeEnvironmentName {
+				exists = true
+			}
+		}
+		if !exists {
+			if project.OrganizationDetails.QuotaEnvironment != -1 && len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment {
+				return nil, fmt.Errorf("exceed environment quota")
 			}
 		}
 	}
