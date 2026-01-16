@@ -10,12 +10,14 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/andreyvit/diff"
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/lagoon/internal/lagoon/mockapi"
 	"github.com/uselagoon/lagoon/internal/messaging"
+	"github.com/uselagoon/machinery/api/schema"
 	lagooncrd "github.com/uselagoon/remote-controller/api/lagoon/v1beta2"
 )
 
@@ -37,6 +39,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 		pullrequest              string
 		wantCode                 int
 		wantResponse             string
+		wantVars                 string
 	}{
 		{
 			name:          "branch.1",
@@ -49,6 +52,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			buildPriority: 5,
 			wantCode:      200,
 			wantResponse:  "branch.1.json",
+			wantVars:      "branch.1.vars.json",
 		},
 		{
 			name:           "branch.2",
@@ -62,6 +66,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			buildVariables: `[{"name":"BUILDVAR","value":"myvariable"}]`,
 			wantCode:       200,
 			wantResponse:   "branch.2.json",
+			wantVars:       "branch.2.vars.json",
 		},
 		{
 			name:          "branch.3",
@@ -75,6 +80,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			gitSha:        "abc123def456",
 			wantCode:      200,
 			wantResponse:  "branch.3.json",
+			wantVars:      "branch.3.vars.json",
 		},
 		{
 			name:          "branch.4",
@@ -87,6 +93,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			buildPriority: 5,
 			wantCode:      200,
 			wantResponse:  "branch.4.json",
+			wantVars:      "branch.4.vars.json",
 		},
 		{
 			name:                     "promote.1",
@@ -100,6 +107,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			buildPriority:            5,
 			wantCode:                 200,
 			wantResponse:             "promote.1.json",
+			wantVars:                 "promote.1.vars.json",
 		},
 		{
 			name:          "pullrequest.1",
@@ -113,6 +121,7 @@ func TestServer_deployEnvironment(t *testing.T) {
 			pullrequest:   `{"number":2,"title":"pullrequest title","headBranch":"headBranchName","headSha":"headBranchRef","baseBranch":"baseBranchName","baseSha":"baseBranchRef"}`,
 			wantCode:      200,
 			wantResponse:  "pullrequest.1.json",
+			wantVars:      "pullrequest.1.vars.json",
 		},
 	}
 	testSrv := mockapi.TestGraphQLServer()
@@ -152,13 +161,25 @@ func TestServer_deployEnvironment(t *testing.T) {
 			if response.Code != tt.wantCode {
 				t.Errorf("response code is wrong, got %d want %d", response.Code, tt.wantCode)
 			}
-			a, _ := os.ReadFile(fmt.Sprintf("testdata/%s", tt.wantResponse))
+			wantResult, _ := os.ReadFile(fmt.Sprintf("testdata/%s", tt.wantResponse))
 			var respJSON bytes.Buffer
 			_ = json.Indent(&respJSON, response.Body.Bytes(), "", "  ")
 			buildData := &lagooncrd.LagoonBuild{}
 			_ = json.Unmarshal(respJSON.Bytes(), buildData)
 			log.Println("[RESPONSE]", buildData.Name, buildData.Spec.Project.Name, buildData.Spec.Project.Environment)
-			assertResponseBody(t, respJSON.String(), string(a))
+			assertResponseBody(t, respJSON.String(), string(wantResult))
+			if tt.wantVars != "" {
+				wantVars, _ := os.ReadFile(fmt.Sprintf("testdata/%s", tt.wantVars))
+				wantedVars := []schema.EnvKeyValue{}
+				json.Unmarshal(wantVars, &wantedVars)
+				gotVars := []schema.EnvKeyValue{}
+				json.Unmarshal(buildData.Spec.Project.Variables.Environment, &gotVars)
+				if !reflect.DeepEqual(wantedVars, gotVars) {
+					a2p, _ := json.MarshalIndent(wantedVars, "", "  ")
+					gotp, _ := json.MarshalIndent(gotVars, "", "  ")
+					t.Errorf("variables in build don't match expected = \n%v", diff.LineDiff(string(a2p), string(gotp)))
+				}
+			}
 		})
 	}
 }

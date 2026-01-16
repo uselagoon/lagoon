@@ -3,6 +3,7 @@ package gitlab
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 
@@ -22,6 +23,7 @@ type SystemHook struct {
 	client    *gitlab.Client
 	LagoonAPI lagoon.LagoonAPI
 	Messaging messaging.Messaging
+	Logger    *slog.Logger
 }
 
 func New(api, token string, lapi lagoon.LagoonAPI, m messaging.Messaging) (SystemHook, error) {
@@ -33,6 +35,7 @@ func New(api, token string, lapi lagoon.LagoonAPI, m messaging.Messaging) (Syste
 		client:    git,
 		LagoonAPI: lapi,
 		Messaging: m,
+		Logger:    lapi.Logger,
 	}, nil
 }
 

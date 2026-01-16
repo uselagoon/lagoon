@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/cheshir/go-mq/v2"
@@ -157,6 +159,13 @@ func main() {
 
 	msg := messaging.NewMessaging(config, true)
 
+	// set up slog
+	opts := &slog.HandlerOptions{
+		// Level: slog.LevelDebug,
+	}
+	handler := slog.NewJSONHandler(os.Stdout, opts)
+	logger := slog.New(handler)
+
 	srv := server.Server{
 		Messaging: msg,
 		LagoonAPI: lagoon.LagoonAPI{
@@ -166,6 +175,7 @@ func main() {
 			JWTIssuer:       jwtIssuer,
 			TokenSigningKey: jwtTokenSigningKey,
 			Version:         lagoonAPIVersion,
+			Logger:          logger,
 		},
 	}
 	srv.Initialize()

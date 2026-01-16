@@ -40,6 +40,8 @@ services:
     # this is neded for the internal dns references
     container_name: apisidecarhandler
     image: ${IMAGE_REPO:-lagoon}/api-sidecar-handler:${IMAGE_REPO_BROKER_TAG:-${IMAGE_REPO_TAG:-latest}}
+    environment:
+      - GRAPHQL_ENDPOINT=http://api:3000/graphql
     ports:
       - '3333:3333'
   logs2notifications:

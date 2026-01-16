@@ -62,6 +62,7 @@ func (s *Server) Initialize() {
 	s.Router.HandleFunc("/generate/ed25519", generateED25519Key).Methods("GET")
 	s.Router.HandleFunc("/environment/deploy", s.deployEnvironment).Methods("POST")
 	s.Router.HandleFunc("/environment/remove", s.removeEnvironment).Methods("POST")
+	s.Router.HandleFunc("/environment/routerpatternvariables", s.getRouterPatternAndVariables).Methods("POST")
 }
 
 func (s *Server) Run(addr string) {

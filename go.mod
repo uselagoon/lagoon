@@ -8,10 +8,10 @@ require (
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
 	github.com/gorilla/mux v1.8.1
-	github.com/uselagoon/machinery v0.0.35-0.20251114033344-21744ef5a896
+	github.com/uselagoon/machinery v0.0.35-0.20260116002349-3a28cd8c75f8
 	github.com/uselagoon/remote-controller v0.25.0
 	gitlab.com/gitlab-org/api/client-go v0.142.0
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.46.0
 	k8s.io/apimachinery v0.33.4
 )
 
@@ -38,7 +38,7 @@ require (
 	github.com/guregu/null v4.0.0+incompatible // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
-	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/hashicorp/go-version v1.8.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -60,11 +60,11 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/oauth2 v0.34.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/term v0.38.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect

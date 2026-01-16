@@ -454,7 +454,7 @@ compose-api-logs-development:
 ## CI targets
 
 KUBECTL_VERSION := v1.31.0
-HELM_VERSION := v3.16.1
+HELM_VERSION := v3.19.4
 K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
 JWT_VERSION = 6.2.0
