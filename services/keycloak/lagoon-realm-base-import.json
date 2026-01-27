@@ -1377,6 +1377,60 @@
                 "name": "delete"
               }
             ]
+          },
+          {
+            "name": "retention_policy",
+            "ownerManagedAccess": false,
+            "displayName": "retention_policy",
+            "attributes": {},
+            "uris": [],
+            "scopes": [
+              {
+                "name": "add"
+              },
+              {
+                "name": "delete"
+              },
+              {
+                "name": "update"
+              },
+              {
+                "name": "add:harbor:global"
+              },
+              {
+                "name": "add:harbor:organization"
+              },
+              {
+                "name": "add:harbor:project"
+              },
+              {
+                "name": "add:history:global"
+              },
+              {
+                "name": "add:history:organization"
+              },
+              {
+                "name": "add:history:project"
+              },
+              {
+                "name": "remove:harbor:global"
+              },
+              {
+                "name": "remove:harbor:organization"
+              },
+              {
+                "name": "remove:harbor:project"
+              },
+              {
+                "name": "remove:history:global"
+              },
+              {
+                "name": "remove:history:organization"
+              },
+              {
+                "name": "remove:history:project"
+              }
+            ]
           }
         ],
         "policies": [
@@ -2782,6 +2836,50 @@
               "scopes": "[\"view\"]",
               "applyPolicies": "[\"[Lagoon] User has access to project\",\"[Lagoon] Users role for project is Guest\"]"
             }
+          },
+          {
+            "name": "View All Retention Policies",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"retention_policy\"]",
+              "scopes": "[\"viewAll\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Add Retention Policy",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"retention_policy\"]",
+              "scopes": "[\"add\",\"add:harbor:global\",\"add:harbor:organization\",\"add:harbor:project\",\"add:history:global\",\"add:history:organization\",\"add:history:project\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Update Retention Policy",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"retention_policy\"]",
+              "scopes": "[\"update\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Delete Retention Policy",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "UNANIMOUS",
+            "config": {
+              "resources": "[\"retention_policy\"]",
+              "scopes": "[\"delete\",\"remove:harbor:global\",\"remove:harbor:organization\",\"remove:harbor:project\",\"remove:history:global\",\"remove:history:organization\",\"remove:history:project\"]",
+              "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
           }
         ],
         "scopes": [
@@ -3045,6 +3143,42 @@
           },
           {
             "name": "add:environment"
+          },
+          {
+            "name": "add:harbor:global"
+          },
+          {
+            "name": "add:harbor:organization"
+          },
+          {
+            "name": "add:harbor:project"
+          },
+          {
+            "name": "add:history:global"
+          },
+          {
+            "name": "add:history:organization"
+          },
+          {
+            "name": "add:history:project"
+          },
+          {
+            "name": "remove:harbor:global"
+          },
+          {
+            "name": "remove:harbor:organization"
+          },
+          {
+            "name": "remove:harbor:project"
+          },
+          {
+            "name": "remove:history:global"
+          },
+          {
+            "name": "remove:history:organization"
+          },
+          {
+            "name": "remove:history:project"
           }
         ],
         "decisionStrategy": "UNANIMOUS"

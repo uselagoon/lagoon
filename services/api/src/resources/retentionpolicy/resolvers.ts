@@ -251,7 +251,7 @@ const addRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivity
   }
   switch (input.scope) {
     case "global":
-      await hasPermission('retention_policy', 'addGlobal');
+      await hasPermission('retention_policy', `add:${type}:global`);
       event = `${prefix}RetentionPolicyGlobal`
       break;
     case "organization":
@@ -261,7 +261,7 @@ const addRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivity
           `Organization does not exist`
         );
       }
-      await hasPermission('retention_policy', 'addOrganization');
+      await hasPermission('retention_policy', `add:${type}:organization`);
       scopeId = organization.id
       event = `${prefix}RetentionPolicyOrganization`
       break;
@@ -272,7 +272,7 @@ const addRetentionPolicyLink = async (sqlClientPool, hasPermission, userActivity
           `Project does not exist`
         );
       }
-      await hasPermission('retention_policy', 'addProject');
+      await hasPermission('retention_policy', `add:${type}:project`);
       scopeId = project.id
       event = `${prefix}RetentionPolicyProject`
       break;
@@ -355,7 +355,7 @@ const removeRetentionPolicyLink = async (sqlClientPool, hasPermission, userActiv
   }
   switch (input.scope) {
     case "global":
-      await hasPermission('retention_policy', 'addGlobal');
+      await hasPermission('retention_policy', `remove:${type}:global`);
       event = `${prefix}RetentionPolicyGlobal`
       break;
     case "organization":
@@ -365,7 +365,7 @@ const removeRetentionPolicyLink = async (sqlClientPool, hasPermission, userActiv
           `Organization does not exist`
         );
       }
-      await hasPermission('retention_policy', 'addOrganization');
+      await hasPermission('retention_policy', `remove:${type}:organization`);
       scopeId = organization.id
       event = `${prefix}RetentionPolicyOrganization`
       break;
@@ -376,7 +376,7 @@ const removeRetentionPolicyLink = async (sqlClientPool, hasPermission, userActiv
           `Project does not exist`
         );
       }
-      await hasPermission('retention_policy', 'addProject');
+      await hasPermission('retention_policy', `remove:${type}:project`);
       scopeId = project.id
       event = `${prefix}RetentionPolicyProject`
       break;
