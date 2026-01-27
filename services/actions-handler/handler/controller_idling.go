@@ -15,10 +15,6 @@ import (
 	"github.com/uselagoon/machinery/utils/jwt"
 )
 
-type Idled struct {
-	Idled bool `json:"idled"`
-}
-
 type ServiceState struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
@@ -76,10 +72,10 @@ func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQu
 		environmentID = *message.Meta.EnvironmentID
 	}
 	decodeData, _ := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
-	idled := &Idled{}
+	idled := &schema.Idled{}
 	json.Unmarshal(decodeData, idled)
 	updateEnvironmentPatch := schema.UpdateEnvironmentPatchInput{
-		Idled: &idled.Idled,
+		IdleState: &idled.IdleState,
 	}
 	updateEnvironment, err := lagoon.UpdateEnvironment(ctx, environmentID, updateEnvironmentPatch, l)
 	if err != nil {

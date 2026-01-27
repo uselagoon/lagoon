@@ -5,7 +5,7 @@
 exports.up = async function(knex) {
     return knex.schema
     .alterTable('environment', (table) => {
-        table.boolean('idled').notNullable().defaultTo(0);
+        table.string('idle_state').notNullable().defaultTo('active');
     })
     .alterTable('environment_service', function (table) {
         table.integer('replicas').notNullable().defaultTo(0);
@@ -19,7 +19,7 @@ exports.up = async function(knex) {
 exports.down = async function(knex) {
     return knex.schema
     .alterTable('environment', (table) => {
-        table.dropColumn('idled');
+        table.dropColumn('idle_state');
     })
     .alterTable('environment_service', (table) => {
         table.dropColumn('replicas');

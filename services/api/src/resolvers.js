@@ -521,6 +521,11 @@ async function getResolvers() {
       START: 'start',
       RESTART: 'restart',
     },
+    IdleState: {
+      ACTIVE: 'active',
+      IDLED: 'idled',
+      SCALED: 'scaled',
+    },
     Openshift: {
       projectUser: getProjectUser,
       token: getToken,

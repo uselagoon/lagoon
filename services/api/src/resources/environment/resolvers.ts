@@ -816,7 +816,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
-        idled: input.patch.idled
+        idleState: input.patch.idleState
       }
     })
   );
@@ -859,7 +859,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
-        idled: input.patch.idled
+        idleState: input.patch.idleState
       },
       data: withK8s,
       ...auditLog,
@@ -1212,12 +1212,12 @@ export const idleOrUnidleEnvironment = async (
   }
 
   // don't try idle if the environment is already idled or unidled
-  if (environmentData.idled && idle) {
+  if (environmentData.idleState != 'active' && idle) {
     throw new Error(
       `Environment is already idled`
     );
   }
-  if (!environmentData.idled && !idle) {
+  if (environmentData.idleState == 'active' && !idle) {
     throw new Error(
       `Environment is already unidled`
     );
@@ -1296,7 +1296,7 @@ export const stopOrStartEnvironmentService = async (
       `Unauthorized: You don't have permission to "restart" on "environment_state"`
     );
   }
-  if (environmentData.idled) {
+  if (environmentData.idleState != 'active') {
     throw new Error(
       `Can't perform action because the environment is idled`
     );
