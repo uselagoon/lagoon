@@ -700,6 +700,7 @@ helm/repos: local-dev/helm
 	$(HELM) repo add k8up https://k8up-io.github.io/k8up
 	$(HELM) repo add appuio https://charts.appuio.ch
 	$(HELM) repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	$(HELM) repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
 ifeq ($(INSTALL_UNAUTHENTICATED_REGISTRY),true)
 	$(HELM) repo add twuni https://twuni.github.io/docker-registry.helm
 endif
