@@ -4,6 +4,9 @@
 
 # Lagoon - the developer-focused application delivery platform for Kubernetes
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11874/badge)](https://www.bestpractices.dev/projects/11874)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/uselagoon/lagoon/badge)](https://securityscorecards.dev/viewer/?uri=github.com/uselagoon/lagoon)
+
 ## Table of Contents
 1. Project Description
 2. Usage
