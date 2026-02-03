@@ -8,7 +8,7 @@ require (
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
 	github.com/gorilla/mux v1.8.1
-	github.com/uselagoon/machinery v0.0.35-0.20260116002349-3a28cd8c75f8
+	github.com/uselagoon/machinery v0.0.35-0.20260203042240-6782a52a4564
 	github.com/uselagoon/remote-controller v0.25.0
 	gitlab.com/gitlab-org/api/client-go v0.142.0
 	golang.org/x/crypto v0.46.0
