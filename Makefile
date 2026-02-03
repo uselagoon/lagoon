@@ -1209,3 +1209,7 @@ k3d/generate-user-keys:
 			ssh-keygen -q -t ed25519 -N '' -f ./local-dev/user-keys/$$user; \
 		fi; \
 	done
+
+.PHONY: lint
+lint:
+	find . -mindepth 2 -name "go.mod" -execdir golangci-lint run \;
