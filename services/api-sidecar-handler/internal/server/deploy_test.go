@@ -123,6 +123,20 @@ func TestServer_deployEnvironment(t *testing.T) {
 			wantResponse:  "pullrequest.1.json",
 			wantVars:      "pullrequest.1.vars.json",
 		},
+		{
+			name:          "pullrequest.2",
+			description:   "",
+			deployType:    "PULLREQUEST",
+			buildName:     "lagoon-build-2ik1a",
+			branchName:    "pr-2",
+			sourceUser:    "API",
+			projectName:   "demo-project1",
+			buildPriority: 5,
+			pullrequest:   `{"number":2,"title":"feat: 🔧 test","headBranch":"headBranchName","headSha":"headBranchRef","baseBranch":"baseBranchName","baseSha":"baseBranchRef"}`,
+			wantCode:      200,
+			wantResponse:  "pullrequest.2.json",
+			wantVars:      "pullrequest.2.vars.json",
+		},
 	}
 	testSrv := mockapi.TestGraphQLServer()
 	msg := &messaging.MessengerMock{}

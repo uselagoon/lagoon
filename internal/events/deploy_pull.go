@@ -7,6 +7,7 @@ import (
 
 	// we can't use go regex as some things people do with the regex in nodejs aren't supported in golang re2 regex
 	"github.com/dlclark/regexp2"
+	"github.com/forPelevin/gomoji"
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
@@ -23,6 +24,15 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 		if project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName {
 			activeStandby = &env.DeployTarget
 		}
+	}
+
+	// if the pr title contains emojis, convert them to text slug
+	// this will run if the environment was added via the api or webhook
+	// this prevents issues if the emoji is converted to utf when added to the database
+	if gomoji.ContainsEmoji(deployData.Pullrequest.Title) {
+		deployData.Pullrequest.Title = gomoji.ReplaceEmojisWithFunc(deployData.Pullrequest.Title, func(em gomoji.Emoji) string {
+			return fmt.Sprintf(":%s:", em.Slug)
+		})
 	}
 
 	if deployTarget != nil && activeStandby != nil {

@@ -79,6 +79,14 @@ func TestWebhookEvents(t *testing.T) {
 			wantResponse: "github/pr-open.result.json",
 		},
 		{
+			name:         "github-pull-open-emoji",
+			gitType:      "github",
+			event:        "pull_request",
+			webhook:      "github/pr-open-emoji",
+			wantCode:     200,
+			wantResponse: "github/pr-open-emoji.result.json",
+		},
+		{
 			name:         "github-pull-open-draft",
 			gitType:      "github",
 			event:        "pull_request",

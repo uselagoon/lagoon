@@ -7,6 +7,7 @@ require (
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/drone/go-scm v1.40.6
+	github.com/forPelevin/gomoji v1.4.1
 	github.com/gorilla/mux v1.8.1
 	github.com/uselagoon/machinery v0.0.35-0.20260203042240-6782a52a4564
 	github.com/uselagoon/remote-controller v0.25.0
@@ -56,6 +57,7 @@ require (
 	github.com/prometheus/common v0.61.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
