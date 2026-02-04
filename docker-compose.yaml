@@ -86,7 +86,7 @@ services:
   api:
     image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     environment:
-      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
+      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://172.17.0.1:8088/auth}
       - NODE_ENV=development
       - DISABLE_CORE_HARBOR=true
       - CI=${CI:-true}
@@ -119,10 +119,25 @@ services:
     # always pull the image to prevent stale images locally
     pull_policy: always
     environment:
-      - KEYCLOAK_API=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
+      - KEYCLOAK_API=${KEYCLOAK_FRONTEND_URL:-http://172.17.0.1:8088/auth}
       - GRAPHQL_API=http://localhost:3000/graphql
     ports:
       - '8888:3000'
+  beta-ui:
+    # no reason to have this UI run in development mode, so just consume the upstream built image and runtime
+    # can now override just the image for the UI and its tag using envvars
+    image: ${BETA_UI_IMAGE_REPO:-uselagoon/beta-ui}:${BETA_UI_IMAGE_TAG:-main}
+    # always pull the image to prevent stale images locally
+    pull_policy: always
+    environment:
+      - AUTH_SECRET=local-testing
+      - AUTH_KEYCLOAK_ID=lagoon-ui-oidc
+      - AUTH_KEYCLOAK_SECRET=20580a56-6fbc-11ef-9a5b-3b4da292aa54
+      - AUTH_KEYCLOAK_ISSUER=${KEYCLOAK_FRONTEND_URL:-http://172.17.0.1:8088/auth/realms/lagoon}
+      - GRAPHQL_API=http://172.17.0.1:3000/graphql
+      - LAGOON_ROUTE=http://172.17.0.1:8989
+    ports:
+      - '8989:3000'
   actions-handler:
     image: ${IMAGE_REPO:-lagoon}/actions-handler:${IMAGE_REPO_ACTIONS_HANDLER_TAG:-${IMAGE_REPO_TAG:-latest}}
     restart: on-failure
@@ -158,7 +173,7 @@ services:
     ports:
       - '8088:8080'
     environment:
-      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://localhost:8088/auth}
+      - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://172.17.0.1:8088/auth}
       - KEYCLOAK_ADMIN_EMAIL=admin@example.com
       # Uncomment for local new relic tracking
       # - NEW_RELIC_LICENSE_KEY=
