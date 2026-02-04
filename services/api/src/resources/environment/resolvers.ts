@@ -187,11 +187,11 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
       lastDays = Math.min(args.lastDays || 60, 60);
 
       // check permissions for non-platform users
-      const project = await projectHelpers(
-        sqlClientPool
-      ).getProjectByEnvironmentId(eid);
+      const { projectId } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+        eid,
+      );
       await hasPermission('environment', 'view', {
-        project: project.id
+        project: projectId,
       });
     }
 
