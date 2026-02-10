@@ -1386,6 +1386,9 @@
             "uris": [],
             "scopes": [
               {
+                "name": "viewAll"
+              },
+              {
                 "name": "add"
               },
               {
