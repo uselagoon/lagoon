@@ -71,9 +71,21 @@ func (m *Messenger) handleIdling(ctx context.Context, messageQueue *mq.MessageQu
 		// pull the id from the message
 		environmentID = *message.Meta.EnvironmentID
 	}
-	decodeData, _ := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
+	decodeData, err := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
+	if err != nil {
+		if m.EnableDebug {
+			log.Printf("%sERROR: unable to decode data payload - %v", prefix, err)
+		}
+		return err
+	}
 	idled := &schema.Idled{}
-	json.Unmarshal(decodeData, idled)
+	err = json.Unmarshal(decodeData, idled)
+	if err != nil {
+		if m.EnableDebug {
+			log.Printf("%sERROR: unable to unmarshal data payload - %v", prefix, err)
+		}
+		return err
+	}
 	updateEnvironmentPatch := schema.UpdateEnvironmentPatchInput{
 		IdleState: &idled.IdleState,
 	}

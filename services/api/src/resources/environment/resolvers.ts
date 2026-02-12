@@ -1388,7 +1388,7 @@ export const stopOrStartEnvironmentService = async (
       '',
       'api:stopOrStartEnvironmentService',
       { environment: environmentData.id },
-      `Environment idle attempt possibly failed, reason: ${error}`
+      `Service state change attempt possibly failed, reason: ${error}`
     );
     throw new Error(
       error.message
