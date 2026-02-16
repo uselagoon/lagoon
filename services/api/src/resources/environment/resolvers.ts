@@ -1,6 +1,10 @@
 import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
+import {
+  createRemoveTask,
+  createMiscTask,
+  seedNamespace
+} from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
@@ -20,6 +24,14 @@ export const getBytesUsed: ResolverFn = async (
   envStorage
 ) => {
   return envStorage.kibUsed
+}
+
+interface EnvironmentService {
+    name: string
+    type: string
+    environment: number
+    updated: string
+    replicas?: number
 }
 
 export const getEnvironmentByName: ResolverFn = async (
@@ -804,6 +816,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
+        idleState: input.patch.idleState
       }
     })
   );
@@ -845,7 +858,8 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
-        created: input.patch.created
+        created: input.patch.created,
+        idleState: input.patch.idleState
       },
       data: withK8s,
       ...auditLog,
@@ -975,33 +989,35 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     project: environment.project
   });
 
-  let updateData = {
+  let envService: EnvironmentService = {
     name: input.name,
     type: input.type,
     environment: environment.id,
     updated: knex.fn.now(),
   };
 
+  if (input.replicas || input.replicas === 0) {
+    // set the replica count if provided
+    envService.replicas = input.replicas
+  }
+
   const createOrUpdateSql = knex('environment_service')
     .insert({
-      ...updateData,
+      ...envService,
     })
     .onConflict('id')
     .merge({
-      ...updateData
+      ...envService
     }).toString();
 
   const { insertId } = await query(
     sqlClientPool,
     createOrUpdateSql);
 
-  // reset this services containers (delete all and add the current ones)
-  let containers = [];
   if (input.containers){
-    containers = input.containers;
+    // reset this services containers (delete all and add the current ones if provided)
+    await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
   }
-  await Helpers(sqlClientPool).resetServiceContainers(insertId, containers)
-
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
@@ -1127,4 +1143,255 @@ export const getServiceContainersByServiceId: ResolverFn = async (
     Sql.selectContainersByServiceId(sid)
   );
   return await rows;
+};
+
+export const idleOrUnidleEnvironment = async (
+  root,
+  {
+    input: {
+      environment,
+      project,
+      idle,
+      disableAutomaticUnidling
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+  if (!environmentData) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "idle" on "environment_state"`
+    );
+  }
+  if (disableAutomaticUnidling) {
+    await hasPermission(
+      'environment_state',
+      `forceScale:${environmentData.environmentType}`,
+      {
+        project: projectId
+      }
+    );
+  }
+  if (idle) {
+    switch (idle) {
+      case true:
+        await hasPermission(
+          'environment_state',
+          `idle:${environmentData.environmentType}`,
+          {
+            project: projectId
+          }
+        );
+        break;
+      default:
+        await hasPermission(
+          'environment_state',
+          `unidle:${environmentData.environmentType}`,
+          {
+            project: projectId
+          }
+        );
+        break;
+    }
+  }
+
+  if (projectData.autoIdle == 0) {
+    // if the project has idling disabled, then don't allow idling or unidling of the environment
+    throw new Error(
+      `Project has idling disabled`
+    );
+  } else if (projectData.autoIdle == 1 && environmentData.autoIdle == 0) {
+    // if the project has idling enabled, but the environment has it disabled
+    // then don't allow idling or unidling of the environment
+    throw new Error(
+      `Environment has idling disabled`
+    );
+  }
+
+  // don't try idle if the environment is already idled or unidled
+  if (environmentData.idleState != 'active' && idle) {
+    throw new Error(
+      `Environment is already idled`
+    );
+  }
+  if (environmentData.idleState == 'active' && !idle) {
+    throw new Error(
+      `Environment is already unidled`
+    );
+  }
+
+  const data = {
+    environment: environmentData,
+    project: projectData,
+    idling: {
+      idle: idle,
+      forceScale: disableAutomaticUnidling
+    }
+  };
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id.toString(),
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: environmentData.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: `${environmentData.name}, idled: ${idle}, unidlingDisabled: ${disableAutomaticUnidling}`,
+    },
+  };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
+  userActivityLogger(`User requested environment idling for '${environmentData.name}'`, {
+    project: '',
+    event: 'api:idleOrUnidleEnvironment',
+    payload: {
+      project: projectData.name,
+      environment: environmentData.name,
+      ...auditLog,
+    }
+  });
+
+  try {
+    await createMiscTask({ key: 'environment:idling', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:idleOrUnidleEnvironment',
+      { environment: environmentData.id },
+      `Environment idle attempt possibly failed, reason: ${error}`
+    );
+    throw new Error(
+      error.message
+    );
+  }
+};
+
+export const stopOrStartEnvironmentService = async (
+  root,
+  {
+    input: {
+      environment,
+      project,
+      serviceName,
+      state
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
+  const environmentData = env[0]
+  if (!environmentData) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "restart" on "environment_state"`
+    );
+  }
+  if (environmentData.idleState != 'active') {
+    throw new Error(
+      `Can't perform action because the environment is idled`
+    );
+  }
+  await hasPermission(
+    'environment_state',
+    `restart:${environmentData.environmentType}`,
+    {
+      project: projectId
+    }
+  );
+
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environmentData.id)
+  let serviceExists = false;
+  if (rows) {
+    for (const service of rows) {
+      if (service.name != serviceName) {
+        continue;
+      }
+      switch (state) {
+        case 'stop':
+          if (service.replicas == 0) {
+            throw new Error(
+              `Service ${serviceName} is already stopped`
+            );
+          }
+          break;
+        case 'start':
+          if (service.replicas > 0) {
+            throw new Error(
+              `Service ${serviceName} is already running`
+            );
+          }
+          break;
+        default:
+          break;
+      }
+      serviceExists = true
+    }
+  }
+  if (!serviceExists) {
+    throw new Error(
+      `Service ${serviceName} doesn't exist on environment`
+    );
+  }
+
+  const data = {
+    environment: environmentData,
+    project: projectData,
+    lagoonService: {
+      name: serviceName,
+      state: state
+    }
+  };
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: projectData.id.toString(),
+      type: AuditType.PROJECT,
+      details: projectData.name,
+    },
+    linkedResource: {
+      id: environmentData.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: `${environmentData.name}, service: ${serviceName}, state: ${state}`,
+    },
+  };
+  if (projectData.organization) {
+    auditLog.organizationId = projectData.organization;
+  }
+
+  userActivityLogger(`User requested environment service change for '${environmentData.name}'`, {
+    project: '',
+    event: 'api:stopOrStartEnvironmentService',
+    payload: {
+      project: projectData.name,
+      environment: environmentData.name,
+      ...auditLog
+    }
+  });
+
+  try {
+    await createMiscTask({ key: 'environment:service', data });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:stopOrStartEnvironmentService',
+      { environment: environmentData.id },
+      `Service state change attempt possibly failed, reason: ${error}`
+    );
+    throw new Error(
+      error.message
+    );
+  }
 };
