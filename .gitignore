@@ -38,3 +38,5 @@ lagoon-charts.*
 calico.yaml
 .devcontainer
 docker-compose.override.yml
+scan.txt
+build.txt
