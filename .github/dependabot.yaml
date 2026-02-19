@@ -1,0 +1,63 @@
+version: 2
+updates:
+- package-ecosystem: github-actions
+  commit-message:
+    prefix: chore
+    include: scope
+  directory: /
+  schedule:
+    interval: monthly
+  groups:
+    github-actions:
+      patterns:
+      - "*"
+      update-types:
+      - "minor"
+      - "patch"
+- package-ecosystem: docker
+  commit-message:
+    prefix: chore
+    include: scope
+  directory: /
+  schedule:
+    interval: monthly
+  groups:
+    docker:
+      patterns:
+      - "*"
+      update-types:
+      - "minor"
+      - "patch"
+- package-ecosystem: gomod
+  commit-message:
+    prefix: chore
+    include: scope
+  directories:
+  - /services/actions-handler
+  - /services/api-sidecar-handler
+  - /services/backup-handler
+  - /services/logs2notifications
+  - /taskimages/activestandby
+  schedule:
+    interval: monthly
+  groups:
+    gomod:
+      patterns:
+      - "*"
+      update-types:
+      - "minor"
+      - "patch"
+- package-ecosystem: npm
+  commit-message:
+    prefix: chore
+    include: scope
+  directory: /
+  schedule:
+    interval: monthly
+  groups:
+    gomod:
+      patterns:
+      - "*"
+      update-types:
+      - "minor"
+      - "patch"
