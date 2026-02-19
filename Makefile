@@ -57,6 +57,8 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 # only works for installations where INSTALL_STABLE_CORE=false
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
+BETA_UI_IMAGE_REPO = uselagoon/beta-ui
+BETA_UI_IMAGE_TAG = main
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
@@ -379,6 +381,7 @@ logs:
 up:
 ifeq ($(ARCH), darwin)
 	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
 		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 else
@@ -386,6 +389,7 @@ else
 	# linux-specific workaround: https://github.com/docker/cli/issues/2290
 	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
 		UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+		BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker compose -p $(CI_BUILD_TAG) -f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d
 endif
@@ -416,6 +420,7 @@ local-dev-yarn-stop:
 .PHONY: ui-development
 ui-development: build-ui-logs-development
 	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+	BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
 		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
@@ -423,6 +428,7 @@ ui-development: build-ui-logs-development
 .PHONY: api-development
 api-development: build-ui-logs-development
 	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+	BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) docker compose -p $(CI_BUILD_TAG) \
 		-f docker-compose.yaml -f docker-compose.local-dev.yaml --compatibility up -d api api-db api-sidecar-handler local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 	$(MAKE) wait-for-keycloak
@@ -430,8 +436,9 @@ api-development: build-ui-logs-development
 .PHONY: ui-logs-development
 ui-logs-development: build-ui-logs-development
 	UI_IMAGE_TAG=$(UI_IMAGE_TAG) UI_IMAGE_REPO=$(UI_IMAGE_REPO) \
+	BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) \
 		IMAGE_REPO=$(CI_BUILD_TAG) COMPOSE_STACK_NAME=$(CI_BUILD_TAG) \
-		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui" $(MAKE) compose-api-logs-development
+		ADDITIONAL_FLAGS="-f docker-compose.yaml -f docker-compose.local-dev.yaml" ADDITIONAL_SERVICES="ui beta-ui" $(MAKE) compose-api-logs-development
 
 .PHONY: api-logs-development
 api-logs-development: build-ui-logs-development
@@ -815,6 +822,7 @@ ifneq ($(INSTALL_STABLE_CORE),true)
 		&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& $(MAKE) k3d/push-images JQ=$(JQ) HELM=$(HELM) KUBECTL=$(KUBECTL)
 	docker pull $(UI_IMAGE_REPO):$(UI_IMAGE_TAG)
+	docker pull $(BETA_UI_IMAGE_REPO):$(BETA_UI_IMAGE_TAG)
 endif
 	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
 	&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
@@ -825,6 +833,7 @@ endif
 		TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
 		UI_IMAGE_REPO=$(UI_IMAGE_REPO) UI_IMAGE_TAG=$(UI_IMAGE_TAG) \
+		BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) \
 		LAGOON_CORE_USE_HTTPS=$(LAGOON_CORE_USE_HTTPS) \
 		SSHPORTALAPI_IMAGE_REPO=$(SSHPORTALAPI_IMAGE_REPO) SSHPORTALAPI_IMAGE_TAG=$(SSHPORTALAPI_IMAGE_TAG) \
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \

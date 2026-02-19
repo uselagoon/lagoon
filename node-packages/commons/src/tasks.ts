@@ -358,9 +358,7 @@ export const createMiscTask = async function(taskData: any) {
     data: { project }
   } = taskData;
 
-  // handle any controller based misc tasks
   let updatedKey = `deploytarget:${key}`;
-  let taskId = 'misc-kubernetes';
   // determine the deploy target (openshift/kubernetes) for the task to go to
   // we get this from the environment
   const result = await getOpenShiftInfoForEnvironment(taskData.data.environment.id);
@@ -486,6 +484,14 @@ export const createMiscTask = async function(taskData: any) {
     case 'deploytarget:build:cancel':
       // build cancellation is just a standard unmodified message
       miscTaskData.misc = taskData.data.build
+      break;
+    case 'deploytarget:environment:idling':
+      // environment idling is used to handle idling or unidling of an an environment
+      miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.idling)
+      break;
+    case 'deploytarget:environment:service':
+      // environment service is used to handle stop, start, or restarting of a service in an environment
+      miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.lagoonService)
       break;
     default:
       miscTaskData.misc = taskData.data.build
