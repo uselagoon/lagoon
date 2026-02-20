@@ -48,6 +48,6 @@ type Snapshot struct {
 	Hostname string      `json:"hostname"`
 	Username string      `json:"username"`
 	UID      int         `json:"uid"`
-	Gid      int         `json:"gid"`
+	GID      int         `json:"gid"`
 	Tags     interface{} `json:"tags"`
 }
