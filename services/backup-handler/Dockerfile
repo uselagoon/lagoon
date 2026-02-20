@@ -30,10 +30,6 @@ ENV JWT_SECRET=super-secret-string \
     JWT_ISSUER=backup-handler \
     LAGOON_API_VERSION=v2.18.0 \
     GRAPHQL_ENDPOINT="http://api:3000/graphql" \
-    RABBITMQ_ADDRESS=broker \
-    RABBITMQ_PORT=5672 \
-    RABBITMQ_USERNAME=guest \
-    RABBITMQ_PASSWORD=guest \
     HTTP_LISTEN_PORT=3000
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
