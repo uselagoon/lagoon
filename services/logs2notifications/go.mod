@@ -7,7 +7,7 @@ require (
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2
 	github.com/slack-go/slack v0.17.3
-	github.com/uselagoon/machinery v0.0.34
+	github.com/uselagoon/machinery v0.0.35-0.20260203042240-6782a52a4564
 	gopkg.in/mail.v2 v2.3.1
 )
 
@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/guregu/null v4.0.0+incompatible // indirect
-	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/hashicorp/go-version v1.8.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/machinebox/graphql v0.2.3-0.20181106130121-3a9253180225 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect

@@ -1,9 +1,7 @@
 import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
-  createDeployTask,
   createMiscTask,
-  createPromoteTask,
   sendToLagoonActions,
   makeSafe
 } from '@lagoon/commons/dist/tasks';
@@ -26,11 +24,11 @@ import { Sql as environmentSql } from '../environment/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
 import { generateBuildId, generateVariableOnlyBuildId } from '@lagoon/commons/dist/util/lagoon';
-import { jsonMerge } from '@lagoon/commons/dist/util/func';
+import { encodeJSONBase64, jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeploymentBuildType } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType } from '@lagoon/commons/dist/types';
 import { AuditLog } from '../audit/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
@@ -339,7 +337,7 @@ export const getDeploymentUrl: ResolverFn = async (
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
-  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
+  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/environment/deployments/${deployment.name}`;
 };
 
 export const addDeployment: ResolverFn = async (
@@ -805,87 +803,90 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  let deployData: DeployData;
   let meta: {
     [key: string]: any;
   } = {
     projectName: project.name
   };
-  let taskFunction;
+  let deployData: DeployData;
   switch (environment.deployType) {
     case DeployType.BRANCH:
       deployData = {
-        projectName: project.name,
         type: environment.deployType,
         buildName: buildName,
-        buildPriority: priority,
-        bulkId: bulkId,
-        bulkName: bulkName,
-        buildVariables: buildVariables,
-        sourceType: DeploymentSourceType.API,
-        sourceUser: sourceUser,
         branchName: environment.deployBaseRef,
-        buildType: buildType
+        sourceUser: sourceUser,
+        projectName: project.name,
+        buildType: buildType,
       };
-      meta = {
-        ...meta,
-        branchName: deployData.branchName
-      };
-      taskFunction = createDeployTask;
+      if (priority) {
+        deployData.buildPriority = priority
+      }
+      if (buildVariables) {
+        deployData.buildVariables = encodeJSONBase64(buildVariables)
+      }
+      if (bulkId) {
+        deployData.bulkId = bulkId
+      }
+      if (bulkName) {
+        deployData.bulkName = bulkName
+      }
       break;
 
     case DeployType.PULLREQUEST:
       deployData = {
-        projectName: project.name,
         type: environment.deployType,
         buildName: buildName,
-        buildPriority: priority,
-        bulkId: bulkId,
-        bulkName: bulkName,
-        buildVariables: buildVariables,
-        sourceType: DeploymentSourceType.API,
+        branchName: environment.name,
         sourceUser: sourceUser,
-        pullrequestTitle: environment.deployTitle,
-        pullrequestNumber: environment.name.replace('pr-', ''),
-        headBranchName: environment.deployHeadRef,
+        projectName: project.name,
+        buildType: buildType,
+      }
+      if (priority) {
+        deployData.buildPriority = priority
+      }
+      let pullrequest: DeployPullrequest = {
+        title: environment.deployTitle,
+        number: environment.name.replace('pr-', ''),
+        headBranch: environment.deployHeadRef,
         headSha: `origin/${environment.deployHeadRef}`,
-        baseBranchName: environment.deployBaseRef,
-        baseSha: `origin/${environment.deployBaseRef}`,
-        branchName: environment.name
-      };
-      meta = {
-        ...meta,
-        pullrequestTitle: deployData.pullrequestTitle,
-        pullrequestNumber: environment.name.replace('pr-', ''),
-        headBranchName: environment.deployHeadRef,
-        headSha: `origin/${environment.deployHeadRef}`,
-        baseBranchName: environment.deployBaseRef,
-        baseSha: `origin/${environment.deployBaseRef}`,
-        branchName: environment.name
-      };
-      taskFunction = createDeployTask;
+        baseBranch: environment.deployBaseRef,
+        baseSha: `origin/${environment.deployBaseRef}`
+      }
+      deployData.pullrequest = encodeJSONBase64(pullrequest)
+      if (buildVariables) {
+        deployData.buildVariables = encodeJSONBase64(buildVariables)
+      }
+      if (bulkId) {
+        deployData.bulkId = bulkId
+      }
+      if (bulkName) {
+        deployData.bulkName = bulkName
+      }
       break;
 
     case DeployType.PROMOTE:
       deployData = {
-        projectName: project.name,
         type: environment.deployType,
         buildName: buildName,
-        buildPriority: priority,
-        bulkId: bulkId,
-        bulkName: bulkName,
-        buildVariables: buildVariables,
-        sourceType: DeploymentSourceType.API,
-        sourceUser: sourceUser,
         branchName: environment.name,
-        promoteSourceEnvironment: environment.deployBaseRef
-      };
-      meta = {
-        ...meta,
-        branchName: deployData.branchName,
-        promoteSourceEnvironment: deployData.promoteSourceEnvironment
-      };
-      taskFunction = createPromoteTask;
+        sourceUser: sourceUser,
+        projectName: project.name,
+        promoteSourceEnvironment: environment.deployBaseRef,
+        buildType: buildType,
+      }
+      if (priority) {
+        deployData.buildPriority = priority
+      }
+      if (buildVariables) {
+        deployData.buildVariables = encodeJSONBase64(buildVariables)
+      }
+      if (bulkId) {
+        deployData.bulkId = bulkId
+      }
+      if (bulkName) {
+        deployData.bulkName = bulkName
+      }
       break;
 
     default:
@@ -917,7 +918,22 @@ export const deployEnvironmentLatest: ResolverFn = async (
   });
 
   try {
-    await taskFunction(deployData);
+    const response = await fetch(
+      `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // @ts-ignore
+        body: new URLSearchParams(deployData).toString(),
+      },
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${environment.name}: ${errorText}`)
+      throw new Error(`Error deploying ${environment.name}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -989,21 +1005,36 @@ export const deployEnvironmentBranch: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-
-  const deployData = {
+  const deployData: DeployData = {
     type: DeployType.BRANCH,
-    projectName: project.name,
-    branchName,
-    sha: branchRef,
     buildName: buildName,
-    buildPriority: priority,
-    bulkId: bulkId,
-    bulkName: bulkName,
-    buildVariables: buildVariables,
-    sourceType: DeploymentSourceType.API,
-    sourceUser: sourceUser
+    branchName: branchName,
+    sourceUser: sourceUser,
+    projectName: project.name,
+    buildType: buildType,
   };
+  if (priority) {
+    deployData.buildPriority = priority
+  }
+  if (branchRef) {
+    deployData.gitSha = branchRef
+  }
+  if (buildVariables) {
+    deployData.buildVariables = encodeJSONBase64(buildVariables)
+  }
+  if (bulkId) {
+    deployData.bulkId = bulkId
+  }
+  if (bulkName) {
+    deployData.bulkName = bulkName
+  }
 
   const meta = {
     projectName: project.name,
@@ -1034,7 +1065,22 @@ export const deployEnvironmentBranch: ResolverFn = async (
   });
 
   try {
-    await createDeployTask(deployData);
+    const response = await fetch(
+      `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // @ts-ignore
+        body: new URLSearchParams(deployData).toString(),
+      },
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -1112,30 +1158,45 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   }
 
   let buildName = generateBuildId();
-
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const deployData = {
+  const deployData: DeployData = {
     type: DeployType.PULLREQUEST,
-    projectName: project.name,
-    pullrequestTitle: title,
-    pullrequestNumber: number,
-    headBranchName,
-    headSha: headBranchRef,
-    baseBranchName,
-    baseSha: baseBranchRef,
-    branchName,
     buildName: buildName,
-    buildPriority: priority,
-    bulkId: bulkId,
-    bulkName: bulkName,
-    buildVariables: buildVariables,
-    sourceType: DeploymentSourceType.API,
-    sourceUser: sourceUser
-  };
-
+    branchName: branchName,
+    sourceUser: sourceUser,
+    projectName: project.name,
+    buildType: buildType,
+  }
+  if (priority) {
+    deployData.buildPriority = priority
+  }
+  const pullrequest: DeployPullrequest = {
+    title: title,
+    number: number,
+    headBranch: headBranchName,
+    headSha: headBranchRef,
+    baseBranch: baseBranchName,
+    baseSha: baseBranchRef
+  }
+  deployData.pullrequest = encodeJSONBase64(pullrequest)
+  if (buildVariables) {
+    deployData.buildVariables = encodeJSONBase64(buildVariables)
+  }
+  if (bulkId) {
+    deployData.bulkId = bulkId
+  }
+  if (bulkName) {
+    deployData.bulkName = bulkName
+  }
   const meta = {
     projectName: project.name,
-    pullrequestTitle: deployData.pullrequestTitle
+    pullrequestTitle: pullrequest.title
   };
 
   const auditLog: AuditLog = {
@@ -1146,7 +1207,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     },
     linkedResource: {
       type: AuditType.ENVIRONMENT,
-      details: `pull request ${deployData.pullrequestNumber}`,
+      details: `pull request ${pullrequest.number}`,
     },
   };
   if (project.organization) {
@@ -1162,7 +1223,22 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   });
 
   try {
-    await createDeployTask(deployData);
+    const response = await fetch(
+      `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // @ts-ignore
+        body: new URLSearchParams(deployData).toString(),
+      },
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',
@@ -1255,21 +1331,35 @@ export const deployEnvironmentPromote: ResolverFn = async (
   });
 
   let buildName = generateBuildId();
+  let buildType = DeploymentBuildType.BUILD
+  // change the buildname to a variables only name if the build variable for lagoon variables only is found
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  const deployData = {
+  const deployData: DeployData = {
     type: DeployType.PROMOTE,
-    projectName: destProject.name,
-    branchName: destinationEnvironment,
-    promoteSourceEnvironment: sourceEnvironment.name,
     buildName: buildName,
-    buildPriority: priority,
-    bulkId: bulkId,
-    bulkName: bulkName,
-    buildVariables: buildVariables,
-    sourceType: DeploymentSourceType.API,
-    sourceUser: sourceUser
-  };
+    branchName: destinationEnvironment,
+    sourceUser: sourceUser,
+    projectName: destProject.name,
+    promoteSourceEnvironment: sourceEnvironment.name,
+    buildType: buildType,
+  }
+  if (priority) {
+    deployData.buildPriority = priority
+  }
+  if (buildVariables) {
+    deployData.buildVariables = encodeJSONBase64(buildVariables)
+  }
+  if (bulkId) {
+    deployData.bulkId = bulkId
+  }
+  if (bulkName) {
+    deployData.bulkName = bulkName
+  }
 
   const meta = {
     projectName: deployData.projectName,
@@ -1302,7 +1392,22 @@ export const deployEnvironmentPromote: ResolverFn = async (
   });
 
   try {
-    await createPromoteTask(deployData);
+    const response = await fetch(
+      `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/deploy`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // @ts-ignore
+        body: new URLSearchParams(deployData).toString(),
+      },
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      throw new Error(`Error deploying ${deployData.branchName}`);
+    }
 
     sendToLagoonLogs(
       'info',

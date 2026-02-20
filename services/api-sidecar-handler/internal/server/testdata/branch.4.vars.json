@@ -1,0 +1,22 @@
+[
+  {
+    "scope": "internal_system",
+    "name": "LAGOON_SYSTEM_CORE_VERSION",
+    "value": "unknown"
+  },
+  {
+    "scope": "internal_system",
+    "name": "LAGOON_SYSTEM_ROUTER_PATTERN",
+    "value": "${project}.${environment}.example.com"
+  },
+  {
+    "scope": "internal_system",
+    "name": "LAGOON_SYSTEM_PROJECT_SHARED_BUCKET",
+    "value": "ci-local-control-k8s"
+  },
+  {
+    "scope": "build",
+    "name": "LAGOON_BUILD_PRIORITY",
+    "value": "5"
+  }
+]

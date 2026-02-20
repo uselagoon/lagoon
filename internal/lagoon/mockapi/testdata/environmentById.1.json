@@ -1,0 +1,20 @@
+{
+    "data": {
+        "environmentById": {
+            "autoIdle": 1,
+            "environmentType": "development",
+            "id": 5,
+            "name": "dev",
+            "kubernetesNamespaceName": "demo-project1-dev",
+            "openshift": {
+                "buildImage": null,
+                "disabled": false,
+                "id": 2001,
+                "monitoringConfig": null,
+                "name": "ci-local-control-k8s",
+                "routerPattern": "${project}.${environment}.example.com",
+                "sharedBaasBucketName": null
+            }
+        }
+    }
+}

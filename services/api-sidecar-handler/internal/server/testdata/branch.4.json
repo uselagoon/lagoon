@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "name": "lagoon-build-a1ki2",
+    "namespace": "lagoon",
+    "creationTimestamp": null
+  },
+  "spec": {
+    "build": {
+      "type": "branch",
+      "priority": 5
+    },
+    "project": {
+      "id": 180,
+      "name": "demo-project2",
+      "environment": "deploy-production",
+      "environmentId": 14,
+      "uiLink": "https://ui.example.com/projects/demo-project2/demo-project2-deploy-production/deployments/lagoon-build-a1ki2",
+      "gitUrl": "git@github.com:amazeeio/lagoon-nginx-example.git",
+      "routerPattern": "${project}.${environment}.example.com",
+      "environmentType": "development",
+      "productionEnvironment": "main",
+      "standbyEnvironment": "",
+      "deployTarget": "ci-local-control-k8s",
+      "projectSecret": "6002ca3626cbef0fee820d63c36567b9160e82ab2fe5e7b6572e7dd4de07c463",
+      "key": "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KU05JUEtFWQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K",
+      "monitoring": {},
+      "variables": {
+        "environment": "W3sic2NvcGUiOiJpbnRlcm5hbF9zeXN0ZW0iLCJuYW1lIjoiTEFHT09OX1NZU1RFTV9DT1JFX1ZFUlNJT04iLCJ2YWx1ZSI6InVua25vd24ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUk9VVEVSX1BBVFRFUk4iLCJ2YWx1ZSI6IiR7cHJvamVjdH0uJHtlbnZpcm9ubWVudH0uZXhhbXBsZS5jb20ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUFJPSkVDVF9TSEFSRURfQlVDS0VUIiwidmFsdWUiOiJjaS1sb2NhbC1jb250cm9sLWs4cyJ9LHsic2NvcGUiOiJidWlsZCIsIm5hbWUiOiJMQUdPT05fQlVJTERfUFJJT1JJVFkiLCJ2YWx1ZSI6IjUifV0="
+      },
+      "environmentIdling": 1,
+      "projectIdling": 1,
+      "storageCalculator": 1
+    },
+    "branch": {
+      "name": "deploy/production"
+    },
+    "pullrequest": {},
+    "promote": {},
+    "gitReference": "origin/deploy/production"
+  },
+  "status": {}
+}

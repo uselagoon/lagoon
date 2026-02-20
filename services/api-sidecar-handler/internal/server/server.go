@@ -2,9 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/uselagoon/lagoon/internal/lagoon"
+	"github.com/uselagoon/lagoon/internal/messaging"
 )
 
 type ParsedPublicKeyResponse struct {
@@ -43,15 +46,36 @@ func (p *ParsedPrivateKeyResponse) String() string {
 	}
 	return string(b)
 }
-func Run() error {
-	r := mux.NewRouter()
-	r.HandleFunc("/status", status).Methods("GET")
-	r.HandleFunc("/validate/public", validatePublicKey).Methods("POST")
-	r.HandleFunc("/validate/private", validatePrivateKey).Methods("POST")
-	r.HandleFunc("/generate/ed25519", generateED25519Key).Methods("GET")
 
-	if err := http.ListenAndServe(":3333", r); err != nil {
-		return err
-	}
-	return nil
+type Server struct {
+	Router    *mux.Router
+	Messaging messaging.Messaging
+	LagoonAPI lagoon.LagoonAPI
+	Debug     bool
+}
+
+func (s *Server) Initialize() {
+	s.Router = mux.NewRouter()
+	s.Router.HandleFunc("/status", status).Methods("GET")
+	s.Router.HandleFunc("/validate/public", validatePublicKey).Methods("POST")
+	s.Router.HandleFunc("/validate/private", validatePrivateKey).Methods("POST")
+	s.Router.HandleFunc("/generate/ed25519", generateED25519Key).Methods("GET")
+	s.Router.HandleFunc("/environment/deploy", s.deployEnvironment).Methods("POST")
+	s.Router.HandleFunc("/environment/remove", s.removeEnvironment).Methods("POST")
+	s.Router.HandleFunc("/environment/routerpatternvariables", s.getRouterPatternAndVariables).Methods("POST")
+}
+
+func (s *Server) Run(addr string) {
+	log.Fatal(http.ListenAndServe(addr, s.Router))
+}
+
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }

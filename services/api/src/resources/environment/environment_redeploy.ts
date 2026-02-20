@@ -1,22 +1,6 @@
-// This file contains the logic to determine whether an environment requires a redeploy
-
-import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createRemoveTask, seedNamespace } from '@lagoon/commons/dist/tasks';
+// This file contains the logic to determine whether an environment requir
 import { ResolverFn } from '..';
-import { logger } from '../../loggers/logger';
-import { isPatchEmpty, query, knex } from '../../util/db';
-import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
-import { Helpers } from './helpers';
-import { Sql } from './sql';
-import { Sql as projectSql } from '../project/sql';
-import { Helpers as projectHelpers } from '../project/helpers';
-import { Helpers as openshiftHelpers } from '../openshift/helpers';
-import { Helpers as organizationHelpers } from '../organization/helpers';
-import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
-import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { RemoveData, DeployType, AuditType } from '@lagoon/commons/dist/types';
-import { AuditLog } from '../audit/types';
+import { query } from '../../util/db';
 
 
 export const environmentPendingChangeTypes = {

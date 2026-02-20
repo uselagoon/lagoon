@@ -76,38 +76,35 @@ export enum RouteSource {
 }
 
 export interface DeployData {
-  baseBranchName?: string,
-  baseSha?: string,
   branchName: string,
   buildName: string,
   buildPriority?: number,
-  buildVariables?: Array<{name: string, value: string}>,
+  buildVariables?: string,
   bulkId?: string,
   bulkName?: string,
-  headBranchName?: string,
-  headSha?: string,
   projectName: string,
   promoteSourceEnvironment?: string,
-  pullrequestNumber?: number,
-  pullrequestTitle?: string,
-  pullrequestUrl?: string,
+  pullrequest?: string,
   repoName?: string,
   repoUrl?: string,
-  sha?: string,
-  sourceType: DeploymentSourceType,
+  gitSha?: string,
   sourceUser?: string,
   buildType?: DeploymentBuildType,
   type: DeployType;
 }
 
+export interface DeployPullrequest {
+  title: string,
+  number: string,
+  headBranch: string,
+  headSha: string,
+  baseBranch: string,
+  baseSha: string,
+}
+
 export interface RemoveData {
-  branch?: string;
-  branchName?: string;
+  projectName: string;
+  environmentName: string;
   forceDeleteProductionEnvironment?: boolean;
   openshiftProjectName?: string;
-  projectName: string;
-  pullrequest?: string;
-  pullrequestNumber?: number;
-  pullrequestTitle?: string;
-  type: DeployType;
 }
