@@ -7,4 +7,4 @@
 # https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
 
 echo "Starting lint test"
-docker run --rm ${IMAGE_NAME} yarn run lint
+docker run --rm ${IMAGE_NAME} pnpm run lint

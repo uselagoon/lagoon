@@ -20,7 +20,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
   auth-server:
-    command: yarn run dev
+    command: pnpm run dev
     volumes:
       - ./services/auth-server/src:/app/services/auth-server/src
   keycloak:

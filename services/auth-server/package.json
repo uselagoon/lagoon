@@ -22,7 +22,7 @@
       "src"
     ],
     "ext": "js,ts,json",
-    "exec": "yarn build && yarn start --inspect=0.0.0.0:9229"
+    "exec": "pnpm build && pnpm start --inspect=0.0.0.0:9229"
   },
   "dependencies": {
     "axios": "^1.12.0",
