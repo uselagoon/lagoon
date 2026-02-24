@@ -2,7 +2,7 @@ module github.com/uselagoon/lagoon/services/backup-handler
 
 go 1.25
 
-require github.com/uselagoon/machinery v0.0.36-0.20260223222038-8118f3c2cb49
+require github.com/uselagoon/machinery v0.0.36-0.20260220001712-f1a24d1f8deb
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
