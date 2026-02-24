@@ -37,4 +37,8 @@ COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
 
 RUN yarn build
 
+# Backwards-compatibility symlink: some external services still reference
+# /app/services/api/... paths. This makes them resolve to /app/...
+RUN mkdir -p /app/services && ln -s /app /app/services/api
+
 CMD ["node", "-r", "dotenv-extended/config", "dist/index"]
