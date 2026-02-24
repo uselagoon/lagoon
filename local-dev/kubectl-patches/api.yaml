@@ -18,8 +18,8 @@ spec:
           name: api-src
         - mountPath: "/app/services/api/dist"
           name: api-dist
-        - mountPath: "/app/node-packages"
-          name: node-packages
+        - mountPath: "/app/services/api/commons"
+          name: api-commons
       volumes:
       - name: api-src
         hostPath:
@@ -29,7 +29,7 @@ spec:
         hostPath:
           path: "/lagoon/services/api/dist"
           type: Directory
-      - name: node-packages
+      - name: api-commons
         hostPath:
-          path: "/lagoon/node-packages"
+          path: "/lagoon/services/api/commons"
           type: Directory

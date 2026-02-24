@@ -57,8 +57,8 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 # only works for installations where INSTALL_STABLE_CORE=false
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
-BETA_UI_IMAGE_REPO = uselagoon/beta-ui
-BETA_UI_IMAGE_TAG = main
+BETA_UI_IMAGE_REPO = testlagoon/beta-ui
+BETA_UI_IMAGE_TAG = arm64
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
@@ -215,7 +215,7 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-# api uses the root context to access node-packages and workspace files
+# api uses the root context to access services/api/commons and workspace files
 build/api: services/api/Dockerfile
 build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
@@ -399,7 +399,7 @@ local-dev-yarn:
 	$(MAKE) local-dev-yarn-stop
 	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-22-builder
 	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
-	docker exec local-dev-yarn bash -c "cd /app/node-packages/commons && yarn build"
+	docker exec local-dev-yarn bash -c "cd /app/services/api/commons && yarn build"
 	echo -e "use 'yarn workspace api add package@version' to update a package in workspace api"
 	docker exec -it local-dev-yarn bash
 	$(MAKE) local-dev-yarn-stop

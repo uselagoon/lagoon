@@ -181,7 +181,7 @@ Kubernetesに関連する個々のルーチンは次のとおりです:
 
 ### lagoon-commons
 
-サービスは多くのNode.jsパッケージだけでなく、実際のカスタムコードも共有しています。このコードは`node-packages/lagoon-commons`内にあり、自動的にシンボリックリンクされます。 Yarnワークスペースによって管理されています。さらに、サービスの[`nodemon`](https://www.npmjs.com/package/nodemon)は、`node-packages`の変更をチェックし、ノードプロセスを自動的に再起動するように設定されています。
+サービスは多くのNode.jsパッケージだけでなく、実際のカスタムコードも共有しています。このコードは`services/api/commons`内にあり、自動的にシンボリックリンクされます。 Yarnワークスペースによって管理されています。さらに、サービスの[`nodemon`](https://www.npmjs.com/package/nodemon)は、`services/api/commons`の変更をチェックし、ノードプロセスを自動的に再起動するように設定されています。
 
 ## トラブルシューティング
 

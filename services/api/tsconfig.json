@@ -1,11 +1,19 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "lib": ["es6", "es2017"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "outDir": "./dist",
-    "moduleResolution": "node"
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "ES6"
   },
   "include": ["./src"],
   "references": [
-    { "path": "../../node-packages/commons" }
+    { "path": "./commons" }
   ]
 }

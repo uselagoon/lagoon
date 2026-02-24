@@ -16,8 +16,8 @@ spec:
           name: webhooks2tasks-src
         - mountPath: "/app/services/webhooks2tasks/dist"
           name: webhooks2tasks-dist
-        - mountPath: "/app/node-packages"
-          name: node-packages
+        - mountPath: "/app/services/api/commons"
+          name: api-commons
       volumes:
       - name: webhooks2tasks-src
         hostPath:
@@ -27,7 +27,7 @@ spec:
         hostPath:
           path: "/lagoon/services/webhooks2tasks/dist"
           type: Directory
-      - name: node-packages
+      - name: api-commons
         hostPath:
-          path: "/lagoon/node-packages"
+          path: "/lagoon/services/api/commons"
           type: Directory

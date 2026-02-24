@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --build",
     "format": "prettier-eslint --write '**/*.js'",
-    "lint": "../eslint-config-lagoon-node/node_modules/.bin/eslint .",
+    "lint": "eslint .",
     "test": "jest"
   },
   "devDependencies": {

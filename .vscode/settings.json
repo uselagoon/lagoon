@@ -1,7 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "eslint.workingDirectories": [
-    "./node-packages/commons"
+    "./services/api",
+    "./services/api/commons"
   ],
   "git.ignoreLimitWarning": true,
   "javascript.validate.enable": false,

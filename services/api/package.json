@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "format": "prettier-eslint --write '**/*.js'",
-    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
+    "lint": "eslint .",
     "test": "jest --forceExit --detectOpenHandles --maxWorkers=10",
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
     "build": "tsc --build",
@@ -69,6 +69,11 @@
     "winston-transport": "^4.4.0"
   },
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-typescript": "^0.14.0",
     "@faker-js/faker": "^8.4.1",
     "@types/express": "^4.17.6",
     "@types/jest": "^29.5.12",

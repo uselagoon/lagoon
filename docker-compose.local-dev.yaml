@@ -7,8 +7,8 @@ services:
   api-db-init:
     volumes:
       - ./services/api/database:/app/services/api/database
-      - ./node-packages:/app/node-packages:delegated
-      - /app/node-packages/commons/dist
+      - ./services/api/commons:/app/services/api/commons:delegated
+      - /app/services/api/commons/dist
   api-lagoon-migrations:
     volumes:
       - ./services/api/src:/app/services/api/src
@@ -17,8 +17,8 @@ services:
     volumes:
       - ./services/api/database:/app/services/api/database
       - ./services/api/src:/app/services/api/src
-      - ./node-packages:/app/node-packages:delegated
-      - /app/node-packages/commons/dist
+      - ./services/api/commons:/app/services/api/commons:delegated
+      - /app/services/api/commons/dist
   auth-server:
     command: pnpm run dev
     volumes:

@@ -8,9 +8,8 @@
   ],
   "private": true,
   "workspaces": [
-    "node-packages/*",
-    "services/*",
-    "!services/auth-server"
+    "services/api",
+    "services/api/commons"
   ],
   "devDependencies": {
     "prettier": "^3.2.5",

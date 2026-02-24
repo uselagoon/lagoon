@@ -1,11 +1,17 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "allowJs": false,
+    "allowSyntheticDefaultImports": true,
     "composite": true,
     "declarationMap": true,
+    "esModuleInterop": true,
+    "lib": ["es6", "es2017"],
+    "module": "CommonJS",
     "outDir": "./dist",
+    "resolveJsonModule": true,
     "rootDir": "./src",
+    "skipLibCheck": true,
+    "target": "ES6",
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["./src"]
