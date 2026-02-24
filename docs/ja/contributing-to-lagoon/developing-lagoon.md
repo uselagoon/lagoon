@@ -175,7 +175,7 @@ Kubernetesに関連する個々のルーチンは次のとおりです:
 
 ## ローカル開発
 
-ほとんどのサービスは[Node.js](https://nodejs.org/en/docs/)で書かれています。これらのサービスの多くが同様のNode.jsコードとNode.jsパッケージを共有しているため、[Yarn](https://yarnpkg.com/en/docs)という機能を使用しています。これは[Yarn workspaces](https://yarnpkg.com/en/docs/workspaces)と呼ばれます。Yarn workspacesは、ワークスペースを定義するプロジェクトのルートディレクトリに`package.json`が必要です。
+ほとんどのサービスは[Node.js](https://nodejs.org/en/docs/)で書かれています。APIサービスは`services/api`に配置されたスタンドアロンのNode.jsプロジェクトで、独自の`package.json`と`yarn.lock`を持っています。依存関係はそのディレクトリ内から直接Yarnで管理されます。
 
 サービスの開発は、Docker内で直接行うことができます。それぞれのサービスのコンテナは、ソースコードが実行中のコンテナにマウントされるように設定されています([`docker-compose.yml`を参照](../concepts-basics/docker-compose-yml.md))。Node.js自体が`nodemon`を介してコードを監視し、変更があるとNode.jsプロセスを自動的に再起動します。
 

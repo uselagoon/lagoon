@@ -6,15 +6,15 @@ volumes:
 services:
   api-db-init:
     volumes:
-      - ./services/api/database:/app/services/api/database
+      - ./services/api/database:/app/database
   api-lagoon-migrations:
     volumes:
-      - ./services/api/src:/app/services/api/src
+      - ./services/api/src:/app/src
   api:
     command: ./node_modules/.bin/tsc-watch --incremental --onSuccess "node -r dotenv-extended/config dist/index"
     volumes:
-      - ./services/api/database:/app/services/api/database
-      - ./services/api/src:/app/services/api/src
+      - ./services/api/database:/app/database
+      - ./services/api/src:/app/src
   auth-server:
     command: pnpm run dev
     volumes:

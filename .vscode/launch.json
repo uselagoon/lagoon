@@ -10,9 +10,9 @@
       "request": "attach",
       "port": 9229,
       "address": "localhost",
-      "outFiles": ["${workspaceRoot}/app/services/api/dist/**/*.js"],
+      "outFiles": ["${workspaceRoot}/services/api/dist/**/*.js"],
       "localRoot": "${workspaceFolder}/services/api",
-      "remoteRoot": "/app/services/api",
+      "remoteRoot": "/app",
       "sourceMaps": true,
       "protocol": "inspector"
     }

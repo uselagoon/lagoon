@@ -13,8 +13,8 @@ node --inspect=0.0.0.0:9229
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
     volumes:
-      - ./services/api/src:/app/services/api/src
-      - ./services/api/dist:/app/services/api/dist
+      - ./services/api/src:/app/src
+      - ./services/api/dist:/app/dist
   depends_on:
       - api-db
       - local-api-data-watcher-pusher
@@ -39,9 +39,9 @@ node --inspect=0.0.0.0:9229
       "request": "attach",
       "port": 9229,
       "address": "localhost",
-      "outFiles": ["${workspaceRoot}/app/services/api/dist/**/*.js"],
-      "localRoot": "${ "workspaceFolder}/services/api",
-      "remoteRoot": "/app/services/api",
+      "outFiles": ["${workspaceRoot}/services/api/dist/**/*.js"],
+      "localRoot": "${workspaceFolder}/services/api",
+      "remoteRoot": "/app",
       "sourceMaps": true,
       "protocol": "inspector"
     }

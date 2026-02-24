@@ -14,9 +14,9 @@ spec:
           - -c
           - './node_modules/.bin/tsc-watch --incremental --onSuccess "node -r dotenv-extended/config dist/index"'
         volumeMounts:
-        - mountPath: "/app/services/api/src"
+        - mountPath: "/app/src"
           name: api-src
-        - mountPath: "/app/services/api/dist"
+        - mountPath: "/app/dist"
           name: api-dist
       volumes:
       - name: api-src

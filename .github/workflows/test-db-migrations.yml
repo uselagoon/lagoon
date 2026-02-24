@@ -52,11 +52,11 @@ jobs:
       -
         name: Initiate rollback
         run: |
-          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:rollback --all --cwd /app/services/api/database'
+          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:rollback --all --cwd /app/database'
       -
         name: Reperform initial migration
         run: |
-          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:latest --cwd /app/services/api/database'
+          docker compose -p lagoon exec api sh -c './node_modules/.bin/knex migrate:latest --cwd /app/database'
       -
         name: Remove testing setup
         run: |

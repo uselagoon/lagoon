@@ -56,8 +56,8 @@ services:
   api-db-init:
     image: ${IMAGE_REPO:-lagoon}/api:${IMAGE_REPO_API_TAG:-${IMAGE_REPO_TAG:-latest}}
     command: >
-      sh -c "./node_modules/.bin/knex migrate:list --cwd /app/services/api/database
-      && ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database"
+      sh -c "./node_modules/.bin/knex migrate:list --cwd /app/database
+      && ./node_modules/.bin/knex migrate:latest --cwd /app/database"
     depends_on:
       api-db:
         condition: service_started

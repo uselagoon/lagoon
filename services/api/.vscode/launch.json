@@ -9,7 +9,7 @@
       "address": "localhost",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "localRoot": "${workspaceFolder}",
-      "remoteRoot": "/app/services/api",
+      "remoteRoot": "/app",
       "sourceMaps": true,
       "protocol": "inspector"
     },

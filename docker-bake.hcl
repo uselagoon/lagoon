@@ -149,8 +149,8 @@ group "prod-images" {
 
 target "api" {
   inherits = ["default"]
-  context = "."
-  dockerfile = "services/api/Dockerfile"
+  context = "services/api"
+  dockerfile = "Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api - the API service for Lagoon"
   }
