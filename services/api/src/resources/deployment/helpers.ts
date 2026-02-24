@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { asyncPipe } from '@lagoon/commons/dist/util/func';
+import { asyncPipe } from '../../commons/util/func';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';

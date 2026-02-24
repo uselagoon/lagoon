@@ -9,7 +9,7 @@ import { Sql as environmentSql } from '../environment/sql';
 import {
   sendToLagoonActions,
   // @ts-ignore
-} from '@lagoon/commons/dist/tasks';
+} from '../../commons/tasks';
 import { query } from '../../util/db';
 import { logger } from '../../loggers/logger';
 

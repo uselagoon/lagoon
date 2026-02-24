@@ -5,7 +5,7 @@ import { HarborRetentionMessage, HarborRetentionEventType, HarborRetentionMessag
 import { Sql as environmentSql } from '../environment/sql';
 import { Sql as openshiftSql } from '../openshift/sql';
 import { Sql as projectSql } from '../project/sql';
-import { createRetentionPolicyTask } from '@lagoon/commons/dist/tasks';
+import { createRetentionPolicyTask } from '../../commons/tasks';
 
 export const HarborRetentionEnforcer = () => {
     const updateProjects = async (sqlClientPool, policyChanges: any) => {

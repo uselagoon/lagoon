@@ -1,4 +1,4 @@
-import { TaskSourceType } from '@lagoon/commons/dist/types';
+import { TaskSourceType } from '../../commons/types';
 import { knex } from '../../util/db';
 
 export const Sql = {

@@ -5,7 +5,7 @@ import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as orgHelpers } from '../organization/helpers';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog, AuditResource } from '../audit/types';
 import {logger} from "../../loggers/logger";
 

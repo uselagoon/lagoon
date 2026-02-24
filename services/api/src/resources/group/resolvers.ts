@@ -9,9 +9,9 @@ import { KeycloakUnauthorizedError } from '../../util/auth';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers } from './helpers';
 import { sqlClientPool } from '../../clients/sqlClient';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog, AuditResource } from '../audit/types';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import { User, UserModel } from '../../models/user';
 
 const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"

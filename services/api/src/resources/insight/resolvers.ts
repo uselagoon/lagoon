@@ -7,7 +7,7 @@ const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/c
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'

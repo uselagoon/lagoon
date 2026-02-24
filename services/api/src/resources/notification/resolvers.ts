@@ -13,9 +13,9 @@ import {
 import {
   notificationIntToContentType,
   notificationContentTypeToInt
-} from '@lagoon/commons/dist/notificationCommons';
+} from '../../commons/notificationCommons';
 import { sqlClientPool } from '../../clients/sqlClient';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog, AuditResource } from '../audit/types';
 
 const DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT = process.env.DISABLE_NON_ORGANIZATION_NOTIFICATION_ASSIGNMENT || "false"

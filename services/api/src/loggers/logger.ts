@@ -1,6 +1,6 @@
 const { addColors, createLogger, format, transports } = require('winston');
 import { getConfigFromEnv } from '../util/config';
-import { levels, colors } from '@lagoon/commons/dist/logs/';
+import { levels, colors } from '../commons/logs/';
 
 addColors(colors);
 

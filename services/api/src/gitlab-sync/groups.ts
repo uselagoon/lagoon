@@ -1,12 +1,12 @@
 import * as R from 'ramda';
-import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
+import * as gitlabApi from '../commons/gitlab/api';
 import {
   sanitizeGroupName,
   addGroupWithParent,
   addGroup,
   addUserToGroup
-} from '@lagoon/commons/dist/api';
-import { logger } from '@lagoon/commons/dist/logs/local-logger';
+} from '../commons/api';
+import { logger } from '../commons/logs/local-logger';
 
 interface GitlabGroup {
   id: number,

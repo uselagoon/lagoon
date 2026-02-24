@@ -9,7 +9,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { addServicePathRoute, removeServicePathRoute, Helpers, PathRoutes, checkServicePathRouteRequirements, checkServiceAutoGenPathRouteRequirements } from './helpers';
 import { AuditLog } from '../audit/types';
 import { isDNS1123Subdomain } from '../../util/func';
-import { AuditType, RouteSource, RouteType } from '@lagoon/commons/dist/types';
+import { AuditType, RouteSource, RouteType } from '../../commons/types';
 
 /*
   addRouteToProject is used to add a route to a project

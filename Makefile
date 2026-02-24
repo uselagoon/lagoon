@@ -215,7 +215,7 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-# api uses the root context to access services/api/commons and workspace files
+# api uses the root context to access workspace files
 build/api: services/api/Dockerfile
 build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
@@ -399,7 +399,6 @@ local-dev-yarn:
 	$(MAKE) local-dev-yarn-stop
 	docker run --name local-dev-yarn -d -v ${PWD}:/app uselagoon/node-22-builder
 	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
-	docker exec local-dev-yarn bash -c "cd /app/services/api/commons && yarn build"
 	echo -e "use 'yarn workspace api add package@version' to update a package in workspace api"
 	docker exec -it local-dev-yarn bash
 	$(MAKE) local-dev-yarn-stop

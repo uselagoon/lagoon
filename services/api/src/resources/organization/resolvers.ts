@@ -9,7 +9,7 @@ import { arrayDiff, toNumber, requestsExtraFields } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import validator from 'validator';
 import { AuditLog } from '../audit/types';
 

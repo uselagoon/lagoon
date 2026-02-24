@@ -16,8 +16,6 @@ spec:
           name: webhook-handler-src
         - mountPath: "/app/services/webhook-handler/dist"
           name: webhook-handler-dist
-        - mountPath: "/app/services/api/commons"
-          name: api-commons
       volumes:
       - name: webhook-handler-src
         hostPath:
@@ -26,8 +24,4 @@ spec:
       - name: webhook-handler-dist
         hostPath:
           path: "/lagoon/services/webhook-handler/dist"
-          type: Directory
-      - name: api-commons
-        hostPath:
-          path: "/lagoon/services/api/commons"
           type: Directory

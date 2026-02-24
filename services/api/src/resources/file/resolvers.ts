@@ -5,7 +5,7 @@ import { query } from '../../util/db';
 import { Sql as taskSql } from '../task/sql';
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand, DeleteObjectsCommand, ListObjectsCommand } from "@aws-sdk/client-s3";

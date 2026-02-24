@@ -6,7 +6,6 @@ network: k3d
 volumes:
   - volume: ${HOME}/.docker/config.json:/var/lib/kubelet/config.json
   - volume: services:/lagoon/services
-  - volume: services-api-commons:/lagoon/services/api/commons
   - volume: ${PWD}/calico.yaml:/var/lib/rancher/k3s/server/manifests/calico.yaml
 registries:
   config: |

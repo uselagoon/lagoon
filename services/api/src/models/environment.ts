@@ -2,7 +2,7 @@ import moment from 'moment';
 import { Pool } from 'mariadb';
 import { query, knex } from '../util/db';
 import { logger } from '../loggers/logger';
-import { DeployType } from '@lagoon/commons/dist/types';
+import { DeployType } from '../commons/types';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,

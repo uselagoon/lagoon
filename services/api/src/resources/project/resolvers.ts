@@ -13,7 +13,7 @@ import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 

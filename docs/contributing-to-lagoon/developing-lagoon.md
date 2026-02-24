@@ -461,7 +461,7 @@ The development of the services can happen directly within Docker. Each containe
 
 ### lagoon-commons
 
-The services not only share many Node.js packages, but also share actual custom code. This code is within `services/api/commons`. It will be automatically symlinked by Yarn workspaces. Additionally, the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it checks for changes in `services/api/commons` and will restart the node process automatically.
+The API service contains its own shared utilities and code within `services/api/src/commons`. This code is compiled as part of the API build and changes to it are picked up automatically by `tsc-watch` when running the local development environment.
 
 ## Troubleshooting
 

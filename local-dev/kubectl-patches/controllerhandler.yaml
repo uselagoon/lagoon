@@ -16,8 +16,6 @@ spec:
           name: controllerhandler-src
         - mountPath: "/app/services/controllerhandler/dist"
           name: controllerhandler-dist
-        - mountPath: "/app/services/api/commons"
-          name: api-commons
       volumes:
       - name: controllerhandler-src
         hostPath:
@@ -26,8 +24,4 @@ spec:
       - name: controllerhandler-dist
         hostPath:
           path: "/lagoon/services/controllerhandler/dist"
-          type: Directory
-      - name: api-commons
-        hostPath:
-          path: "/lagoon/services/api/commons"
           type: Directory

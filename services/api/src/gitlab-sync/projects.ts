@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
+import * as gitlabApi from '../commons/gitlab/api';
 import {
   sanitizeGroupName,
   sanitizeProjectName,
@@ -7,8 +7,8 @@ import {
   getProjectByName,
   addGroupToProject,
   addUserToGroup
-} from '@lagoon/commons/dist/api';
-import { logger } from '@lagoon/commons/dist/logs/local-logger';
+} from '../commons/api';
+import { logger } from '../commons/logs/local-logger';
 import { validateKey } from '../util/func';
 
 interface GitlabProject {

@@ -1,4 +1,4 @@
-import { AuditType } from "@lagoon/commons/src/types"
+import { AuditType } from "../../commons/types"
 
 export interface AuditLog {
     organizationId?: number

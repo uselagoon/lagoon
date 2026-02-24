@@ -8,8 +8,7 @@
   ],
   "private": true,
   "workspaces": [
-    "services/api",
-    "services/api/commons"
+    "services/api"
   ],
   "devDependencies": {
     "prettier": "^3.2.5",

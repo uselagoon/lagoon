@@ -18,8 +18,8 @@ import {
 import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { KeycloakUnauthorizedError } from '../../util/auth';
-import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
-import { TaskSourceType } from '@lagoon/commons/dist/types';
+import { generateTaskName } from '../../commons/util/lagoon';
+import { TaskSourceType } from '../../commons/types';
 
 enum AdvancedTaskDefinitionTarget {
   Group,

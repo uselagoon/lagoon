@@ -1,10 +1,10 @@
 import 'newrelic';
 import { Server } from 'http';
-import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { initSendToLagoonLogs } from './commons/logs/lagoon-logger';
 import {
   initSendToLagoonTasks,
   initSendToLagoonActions
-} from '@lagoon/commons/dist/tasks';
+} from './commons/tasks';
 import { waitForKeycloak } from './util/waitForKeycloak';
 import { envHasConfig } from './util/config';
 import { logger } from './loggers/logger';

@@ -8,7 +8,7 @@ import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
 export const getFactsByEnvironmentId: ResolverFn = async (

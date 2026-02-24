@@ -1,6 +1,6 @@
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createMiscTask } from '@lagoon/commons/dist/tasks';
+import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
+import { createMiscTask } from '../../commons/tasks';
 import { ResolverFn } from '../';
 import { getConfigFromEnv, s3Config } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
@@ -14,7 +14,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 import e from 'express';
 import { logger } from '../../loggers/logger';

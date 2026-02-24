@@ -4,7 +4,7 @@ import {
   asyncPipe,
   decodeJSONBase64,
   encodeJSONBase64,
-} from '@lagoon/commons/dist/util/func';
+} from '../commons/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { toNumber, getErrorMessage } from '../util/func';
 import { getConfigFromEnv } from '../util/config';

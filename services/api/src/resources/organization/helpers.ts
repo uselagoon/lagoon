@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { toNumber } from '../../util/func';
-import { asyncPipe } from '@lagoon/commons/dist/util/func';
+import { asyncPipe } from '../../commons/util/func';
 import { Sql } from './sql';
 
 export const Helpers = (sqlClientPool: Pool) => {

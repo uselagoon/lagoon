@@ -1,7 +1,7 @@
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/dist/logs/local-logger';
-import { sanitizeGroupName } from '@lagoon/commons/dist/api';
-import * as gitlabApi from '@lagoon/commons/dist/gitlab/api';
+import { logger } from '../commons/logs/local-logger';
+import { sanitizeGroupName } from '../commons/api';
+import * as gitlabApi from '../commons/gitlab/api';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';

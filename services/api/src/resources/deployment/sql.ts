@@ -1,4 +1,4 @@
-import { DeploymentSourceType } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType } from '../../commons/types';
 import { knex } from '../../util/db';
 
 export const Sql = {

@@ -6,7 +6,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
 export const getAllProblems: ResolverFn = async (

@@ -1,11 +1,11 @@
 import Transport = require('winston-transport');
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { sendToLagoonLogs } from '../commons/logs/lagoon-logger';
 import { parseAndCleanMeta } from './userActivityLogger';
 import { Sql } from '../resources/audit/sql';
 import { sqlClientPool } from '../clients/sqlClient';
 import { query } from '../util/db';
 import { logger } from './logger';
-import { AuditSourceType } from '@lagoon/commons/dist/types';
+import { AuditSourceType } from '../commons/types';
 
 export class LagoonLogsTransport extends Transport {
     constructor(options) {

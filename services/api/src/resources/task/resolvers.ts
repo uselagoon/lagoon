@@ -15,10 +15,10 @@ import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
-import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createMiscTask } from '@lagoon/commons/dist/tasks';
-import { TaskSourceType, AuditType } from '@lagoon/commons/dist/types';
+import { generateTaskName } from '../../commons/util/lagoon';
+import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
+import { createMiscTask } from '../../commons/tasks';
+import { TaskSourceType, AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 

@@ -12,14 +12,12 @@ spec:
         command:
           - sh
           - -c
-          - './node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"'
+          - './node_modules/.bin/tsc-watch --incremental --onSuccess "node -r dotenv-extended/config dist/index"'
         volumeMounts:
         - mountPath: "/app/services/api/src"
           name: api-src
         - mountPath: "/app/services/api/dist"
           name: api-dist
-        - mountPath: "/app/services/api/commons"
-          name: api-commons
       volumes:
       - name: api-src
         hostPath:
@@ -28,8 +26,4 @@ spec:
       - name: api-dist
         hostPath:
           path: "/lagoon/services/api/dist"
-          type: Directory
-      - name: api-commons
-        hostPath:
-          path: "/lagoon/services/api/commons"
           type: Directory

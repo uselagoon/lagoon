@@ -3,7 +3,7 @@ import { ResolverFn } from '../';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
 export const getToken: ResolverFn = async (

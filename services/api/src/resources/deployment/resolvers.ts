@@ -1,10 +1,10 @@
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import {
   createMiscTask,
   sendToLagoonActions,
   makeSafe
-} from '@lagoon/commons/dist/tasks';
+} from '../../commons/tasks';
 import { ResolverFn } from '../';
 import {
   pubSub,
@@ -19,16 +19,16 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as retentionHelpers } from '../retentionpolicy/helpers';
 import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { addTask } from '@lagoon/commons/dist/api';
+import { addTask } from '../../commons/api';
 import { Sql as environmentSql } from '../environment/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
-import { generateBuildId, generateVariableOnlyBuildId } from '@lagoon/commons/dist/util/lagoon';
-import { encodeJSONBase64, jsonMerge } from '@lagoon/commons/dist/util/func';
+import { generateBuildId, generateVariableOnlyBuildId } from '../../commons/util/lagoon';
+import { encodeJSONBase64, jsonMerge } from '../../commons/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType } from '@lagoon/commons/dist/types';
+import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'

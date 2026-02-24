@@ -8,7 +8,7 @@ import { Sql } from './sql';
 import { Sql as EnvironmentSql } from '../environment/sql'
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as organizationHelpers } from '../organization/helpers';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
 export const getDeployTargetConfigById = async (

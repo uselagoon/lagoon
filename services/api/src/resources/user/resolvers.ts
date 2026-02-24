@@ -3,9 +3,9 @@ import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import { UserModel, User } from '../../models/user';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {

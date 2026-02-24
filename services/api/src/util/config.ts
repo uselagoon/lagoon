@@ -1,4 +1,4 @@
-export * from '@lagoon/commons/dist/util/config';
+export * from '../commons/util/config';
 
 const s3Config = {
   signedLinkExpiration: process.env.S3_SIGNED_LINK_EXPIRATION
@@ -8,4 +8,4 @@ const s3Config = {
 
 export { s3Config };
 
-export { getLagoonRouteFromEnv } from '@lagoon/commons/dist/util/lagoon'
+export { getLagoonRouteFromEnv } from '../commons/util/lagoon'

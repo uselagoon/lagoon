@@ -1,4 +1,4 @@
-export * from '@lagoon/commons/dist/util/func';
+export * from '../commons/util/func';
 
 // Check if the GraphQL request contains any fields that are not in the provided args
 export function requestsExtraFields(info, minimalFields: string[]): boolean {

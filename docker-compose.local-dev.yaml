@@ -7,18 +7,14 @@ services:
   api-db-init:
     volumes:
       - ./services/api/database:/app/services/api/database
-      - ./services/api/commons:/app/services/api/commons:delegated
-      - /app/services/api/commons/dist
   api-lagoon-migrations:
     volumes:
       - ./services/api/src:/app/services/api/src
   api:
-    command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
+    command: ./node_modules/.bin/tsc-watch --incremental --onSuccess "node -r dotenv-extended/config dist/index"
     volumes:
       - ./services/api/database:/app/services/api/database
       - ./services/api/src:/app/services/api/src
-      - ./services/api/commons:/app/services/api/commons:delegated
-      - /app/services/api/commons/dist
   auth-server:
     command: pnpm run dev
     volumes:

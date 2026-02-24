@@ -12,8 +12,5 @@
     "skipLibCheck": true,
     "target": "ES6"
   },
-  "include": ["./src"],
-  "references": [
-    { "path": "./commons" }
-  ]
+  "include": ["./src"]
 }

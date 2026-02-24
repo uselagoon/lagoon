@@ -6,12 +6,9 @@ ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/node-22-builder:${UPSTREAM_TAG:-latest} AS workspace-builder
 
 COPY package.json yarn.lock .env.defaults /app/
-COPY services/api/commons /app/services/api/commons/
 COPY services/api/package.json /app/services/api/
 
 RUN yarn install --frozen-lockfile --network-timeout 600000
-
-RUN cd /app/services/api/commons && yarn build
 
 # STAGE 2: API service image
 FROM ${UPSTREAM_REPO:-uselagoon}/node-22:${UPSTREAM_TAG:-latest}
