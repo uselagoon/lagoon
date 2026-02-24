@@ -147,18 +147,10 @@ group "prod-images" {
   ]
 }
 
-target "yarn-workspace-builder" {
-  inherits = ["default"]
-  context = "."
-  dockerfile = "yarn-workspace-builder/Dockerfile"
-}
-
 target "api" {
   inherits = ["default"]
-  context = "services/api"
-  contexts = {
-    "lagoon/yarn-workspace-builder": "target:yarn-workspace-builder"
-  }
+  context = "."
+  dockerfile = "services/api/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api - the API service for Lagoon"
   }

@@ -165,16 +165,7 @@ docker_pull:
 ####### Services Images are the Docker Images used to run the Lagoon Microservices, these images
 ####### will be expected by docker compose to exist.
 
-# Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
-# used by all microservices based on Node.js to not build similar node packages again
-build-images += yarn-workspace-builder
-build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
-	$(eval image = $(subst build/,,$@))
-	$(call docker_buildx_create)
-	$(call docker_build,$(image),$(image)/Dockerfile,.)
-	$(call scan_image,$(image),)
-
-#######
+######
 ####### Task Images
 #######
 ####### Task Images are standalone images that are used to run advanced tasks when using the builddeploy controllers.
@@ -224,7 +215,8 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-build/api: build/yarn-workspace-builder
+# api uses the root context to access node-packages and workspace files
+build/api: services/api/Dockerfile
 build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile

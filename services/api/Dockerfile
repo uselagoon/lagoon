@@ -1,29 +1,37 @@
 ARG LAGOON_GIT_BRANCH
-ARG IMAGE_REPO
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder AS yarn-workspace-builder
 
-# STAGE 2: specific service Image
+# STAGE 1: Install yarn workspace dependencies and build shared node packages
+FROM ${UPSTREAM_REPO:-uselagoon}/node-22-builder:${UPSTREAM_TAG:-latest} AS workspace-builder
+
+COPY package.json yarn.lock .env.defaults tsconfig.json /app/
+COPY node-packages /app/node-packages
+COPY services/api/package.json /app/services/api/
+
+RUN yarn install --frozen-lockfile --network-timeout 600000
+
+RUN cd /app/node-packages/commons && yarn build
+
+# STAGE 2: API service image
 FROM ${UPSTREAM_REPO:-uselagoon}/node-22:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
-# Copying generated node_modules from the first stage
-COPY --from=yarn-workspace-builder /app /app
+# Copy the built workspace from stage 1
+COPY --from=workspace-builder /app /app
 
 # Setting the workdir to the service, all following commands will run from here
 WORKDIR /app/services/api/
 
-# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
-COPY --from=yarn-workspace-builder /app/.env.defaults .
+# Copying the .env.defaults into the Workdir
+COPY --from=workspace-builder /app/.env.defaults .
 
 # Copying files from our service
-COPY . .
+COPY services/api/ .
 
-# Verify that all dependencies have been installed via the yarn-workspace-builder
+# Verify that all dependencies have been installed
 RUN yarn check --verify-tree
 
 # Making sure we run in production
@@ -36,7 +44,7 @@ ENV NODE_ENV=production \
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
-COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
+COPY services/api/wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
 
 RUN yarn build
 
