@@ -57,8 +57,8 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 # only works for installations where INSTALL_STABLE_CORE=false
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
-BETA_UI_IMAGE_REPO = testlagoon/beta-ui
-BETA_UI_IMAGE_TAG = arm64
+BETA_UI_IMAGE_REPO = uselagoon/beta-ui
+BETA_UI_IMAGE_TAG = main
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
