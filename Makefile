@@ -224,7 +224,7 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-build/auth-server build/webhook-handler build/api: build/yarn-workspace-builder
+build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile

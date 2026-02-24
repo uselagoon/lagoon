@@ -9,7 +9,6 @@ COPY node-packages /app/node-packages
 # package.json files for workspaces, otherwise
 # subdependencies won't be installed
 COPY services/api/package.json /app/services/api/
-COPY services/auth-server/package.json /app/services/auth-server/
 
 RUN yarn install --frozen-lockfile --network-timeout 600000
 

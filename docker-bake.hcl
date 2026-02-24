@@ -196,9 +196,6 @@ target "actions-handler" {
 target "auth-server" {
   inherits = ["default"]
   context = "services/auth-server"
-  contexts = {
-    "lagoon/yarn-workspace-builder": "target:yarn-workspace-builder"
-  }
   labels = {
     "org.opencontainers.image.title": "lagoon-core/auth-server - the auth-server service for Lagoon"
   }

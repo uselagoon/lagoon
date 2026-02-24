@@ -9,7 +9,8 @@
   "private": true,
   "workspaces": [
     "node-packages/*",
-    "services/*"
+    "services/*",
+    "!services/auth-server"
   ],
   "devDependencies": {
     "prettier": "^3.2.5",

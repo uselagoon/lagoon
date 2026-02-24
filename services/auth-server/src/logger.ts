@@ -1,6 +1,16 @@
 const { addColors, createLogger, format, transports } = require('winston');
-import { getConfigFromEnv } from '@lagoon/commons/dist/util/config';
-import { levels, colors } from '@lagoon/commons/dist/logs/';
+
+const getConfigFromEnv = (name: string, fallback: string = ''): string =>
+  process.env[name] || fallback;
+
+const levels = {
+  fatal: 0, error: 1, warn: 2, info: 3, verbose: 4, debug: 5, trace: 6
+};
+
+const colors = {
+  fatal: 'red', error: 'red', warn: 'yellow', info: 'magenta',
+  verbose: 'white', debug: 'gray', trace: 'cyan'
+};
 
 addColors(colors);
 
