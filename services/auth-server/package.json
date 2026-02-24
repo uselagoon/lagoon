@@ -15,7 +15,7 @@
     "start": "node dist/index",
     "dev": "NODE_ENV=development nodemon",
     "format": "prettier-eslint --write '**/*.js'",
-    "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint ."
+    "lint": "eslint ."
   },
   "nodemonConfig": {
     "watch": [
@@ -25,19 +25,24 @@
     "exec": "pnpm build && pnpm start --inspect=0.0.0.0:9229"
   },
   "dependencies": {
-    "axios": "^1.12.0",
-    "body-parser": "^1.18.2",
-    "express": "^4.16.2",
+    "axios": "^1.13.5",
+    "body-parser": "^1.20.4",
+    "express": "^4.22.1",
     "jsonwebtoken": "^8.5.1",
-    "morgan": "^1.9.0",
+    "morgan": "^1.10.1",
     "ramda": "0.25.0",
-    "winston": "^3"
+    "winston": "^3.19.0"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.8",
-    "nodemon": "^3.0.3",
-    "prettier": "^3.2.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1",
     "prettier-eslint-cli": "^8.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }

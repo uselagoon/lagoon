@@ -1,33 +1,22 @@
-import R from 'ramda';
 import JWT from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../logger';
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
-const parseBearerToken = R.compose(
-  R.ifElse(
-    (splits: any) =>
-      R.length(splits) === 2 &&
-      R.compose(
-        R.toLower,
-        R.defaultTo(''),
-        R.head,
-      // @ts-ignore
-      )(splits) === 'bearer',
-    R.nth(1),
-    R.always(null),
-  ),
-  R.split(' '),
-  R.defaultTo(''),
-);
+const parseBearerToken = (header: string | undefined): string | null => {
+  const parts = (header || '').split(' ');
+  if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+    return parts[1];
+  }
+  return null;
+};
 
 export const validateToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  // @ts-ignore
   const token = parseBearerToken(req.get('Authorization'));
 
   if (token == null) {
@@ -58,7 +47,6 @@ export const validateToken = async (
     }
 
     next();
-    return;
   } catch (e) {
     return res.status(403).send({
       errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],

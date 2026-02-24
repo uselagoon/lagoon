@@ -1,1 +1,46 @@
-module.exports = require('eslint-config-lagoon-node');
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+      'eslint-import-resolver-typescript': true,
+    },
+  },
+  extends: ['airbnb-base', 'plugin:@typescript-eslint/recommended'],
+  plugins: ['@typescript-eslint'],
+  env: { es6: true, jest: true, node: true },
+  rules: {
+    'import/extensions': ['error', 'ignorePackages', { ts: 'never', tsx: 'never', js: 'never' }],
+    'arrow-parens': 'off',
+    camelcase: 'off',
+    'consistent-return': 'off',
+    'function-paren-newline': 'off',
+    'global-require': 'off',
+    'import/first': 'off',
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: ['**/*.test.js', '**/scripts/*.js'],
+      },
+    ],
+    'import/prefer-default-export': 'off',
+    'max-len': 'off',
+    'no-await-in-loop': 'off',
+    'no-confusing-arrow': 'off',
+    'no-console': 'off',
+    'no-mixed-operators': 'off',
+    'no-multi-assign': 'off',
+    'no-param-reassign': 'off',
+    'no-plusplus': 'off',
+    'no-restricted-globals': 'off',
+    'no-restricted-syntax': 'off',
+    'no-throw-literal': 'off',
+    'no-underscore-dangle': 'off',
+    'no-use-before-define': 'off',
+    'prefer-destructuring': 'off',
+    'prefer-promise-reject-errors': 'off',
+    radix: 'off',
+  },
+};

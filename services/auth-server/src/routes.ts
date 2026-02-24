@@ -10,7 +10,7 @@ declare type keycloakGrant = {
 
 export const generateRoute = (getUserGrant: (userId: string) => Promise<keycloakGrant>) => {
   const route = async (req: Request, res: Response) => {
-    const userId: any = R.path(['body', 'userId'], req);
+    const userId = R.path<string>(['body', 'userId'], req);
     const verbose = R.pathOr(false, ['body', 'verbose'], req);
     const returnGrant = R.pathOr(false, ['body', 'grant'], req);
 
