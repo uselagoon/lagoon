@@ -6,7 +6,7 @@ network: k3d
 volumes:
   - volume: ${HOME}/.docker/config.json:/var/lib/kubelet/config.json
   - volume: services:/lagoon/services
-  - volume: services/api/commons:/lagoon/services/api/commons
+  - volume: services-api-commons:/lagoon/services/api/commons
 registries:
   create: # pass through for k3d node to share images with the host
     image: ligfx/k3d-registry-dockerd:v0.5
