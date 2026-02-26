@@ -3,7 +3,7 @@ const {
   ApolloServer,
   AuthenticationError,
 } = require('apollo-server-express');
-const gql = require('graphql-tag');
+const { parse: gqlParse } = require('graphql');
 const newrelic = require('newrelic');
 const { decode } = require('jsonwebtoken');
 const { getConfigFromEnv } = require('./util/config');
@@ -235,9 +235,7 @@ async function initCheck() {
           const queryString = R.prop('query', request);
           const variables = R.prop('variables', request);
 
-        const queryObject = gql`
-          ${queryString}
-        `;
+        const queryObject = gqlParse(queryString);
         const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
           (init, q, idx) =>
             idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
