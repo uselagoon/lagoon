@@ -40,3 +40,4 @@ calico.yaml
 docker-compose.override.yml
 scan.txt
 build.txt
+services/**/.pnpm-store

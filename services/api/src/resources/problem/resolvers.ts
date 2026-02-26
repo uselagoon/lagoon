@@ -133,7 +133,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     return e
   }, rows);
 
-  return R.sort(R.descend(R.prop('created')), rows);
+  return R.sort(R.descend((r: any) => r.created), rows);
 };
 
 export const addProblem: ResolverFn = async (

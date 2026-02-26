@@ -103,7 +103,7 @@ export const getFactReferencesByFactId: ResolverFn = async (
     Sql.selectFactReferencesByFactId(fid)
   );
 
-  return R.sort(R.descend(R.prop('name')), rows);
+  return R.sort(R.descend((r: any) => r.name), rows);
 };
 
 const predicateRHSProcess = (predicate, targetValue) => predicate == 'CONTAINS' ? `%${targetValue}%` : targetValue

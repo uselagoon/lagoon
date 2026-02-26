@@ -11,7 +11,7 @@ node --inspect=0.0.0.0:9229
 ```yaml title="docker-compose.yml"
   api:
     image: ${IMAGE_REPO:-lagoon}/api
-    command: yarn run dev
+    command: pnpm run dev
     volumes:
       - ./services/api/src:/app/src
       - ./services/api/dist:/app/dist

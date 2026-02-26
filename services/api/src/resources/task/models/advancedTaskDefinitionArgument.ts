@@ -42,7 +42,7 @@ export class EnvironmentSourceArgument extends ArgumentBase {
             this.sqlClientPool,
             `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${this.environmentId}`
           );
-        this.environmentNameList = R.pluck('name')(rows);
+        this.environmentNameList = R.pluck('name')(rows) as string[];
     }
 
     /**
@@ -83,7 +83,7 @@ export class OtherEnvironmentSourceNamesArgument extends ArgumentBase {
             this.sqlClientPool,
             `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${this.environmentId} and e.id != ${this.environmentId}`
           );
-        this.environmentNameList = R.pluck('name')(rows);
+        this.environmentNameList = R.pluck('name')(rows) as string[];
     }
 
     /**

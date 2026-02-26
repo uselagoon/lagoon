@@ -6,8 +6,8 @@ ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/node-22-builder:${UPSTREAM_TAG:-latest} AS builder
 
 WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --network-timeout 600000
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
 # STAGE 2: API service image
 FROM ${UPSTREAM_REPO:-uselagoon}/node-22:${UPSTREAM_TAG:-latest}
@@ -35,7 +35,7 @@ ENV NODE_ENV=production \
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
 COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
 
-RUN yarn build
+RUN corepack enable && pnpm build
 
 # Backwards-compatibility symlink: some external services still reference
 # /app/services/api/... paths. This makes them resolve to /app/...

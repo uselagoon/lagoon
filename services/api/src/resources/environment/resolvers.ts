@@ -101,11 +101,11 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   }
 
   let filterEnvironments = false;
-  let filteredEnvironments = [];
+  let filteredEnvironments: any[] = [];
 
   if (args.factFilter && args.factFilter.filters && args.factFilter.filters.length !== 0) {
     filterEnvironments = true;
-    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false);
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false) as any[];
   }
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(args.type, pid, args.includeDeleted, filterEnvironments, filteredEnvironments));
@@ -459,7 +459,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       'deployType',
       'environmentType',
     ]),
-    R.mergeDeepRight({ updated: knex.fn.now() })
+    R.mergeDeepRight({ updated: knex.fn.now() }) as any
   )(input);
 
   const createOrUpdateSql = knex('environment')
@@ -471,7 +471,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     })
     .onConflict('id')
     .merge({
-      ...updateData
+      ...(updateData as any)
     }).toString();
 
   const { insertId } = await query(

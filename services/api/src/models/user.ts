@@ -230,7 +230,7 @@ export const User = (clients: {
           R.set(commentLens, R.view(attrCommentLens, keycloakUser)),
           // set the user created time
           R.set(R.lensPath(['created']), new Date(keycloakUser.createdTimestamp).toISOString().slice(0, 19).replace('T', ' ') || null),
-        )(keycloakUser)
+        )(keycloakUser as any)
     );
 
     let usersWithGitlabIdFetch = [];
@@ -648,7 +648,7 @@ const getAllProjectsIdsForUser = async (
       if (projectIds.includes(projectId)) {
         const groupRoles = R.pipe(
           R.filter(membership =>
-            R.pathEq(['user', 'id'], userInput.id, membership)
+            R.pathEq(userInput.id, ['user', 'id'], membership)
           ),
           R.pluck('role')
         )(group.members);
@@ -752,7 +752,7 @@ const getAllProjectsIdsForUser = async (
       R.view(attr),
       R.defaultTo(`${organization}`),
       R.split(','),
-      R.without(`${organization}`),
+      R.without([`${organization}`]),
       R.uniq,
       R.join(',')
       // @ts-ignore
@@ -838,26 +838,26 @@ const getAllProjectsIdsForUser = async (
         comment = {comment: R.prop('comment', userInput)}
       }
       // set the organization if provided
-      if (R.prop('organization', userInput)) {
+      if (R.prop('organization' as any, userInput as any)) {
         // owner is an option, default is view
         if (R.prop('remove', userInput)) {
-          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-          organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
+          organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
+          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
         } else {
-          if (R.prop('owner', userInput)) {
-            organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-            organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
-            organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+          if (R.prop('owner' as any, userInput as any)) {
+            organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
+            organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
+            organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
           } else {
-            if (R.prop('admin', userInput)) {
-              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-              organizationsAdmin = {'lagoon-organizations-admin': [addOrgToAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
-              organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+            if (R.prop('admin' as any, userInput as any)) {
+              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
+              organizationsAdmin = {'lagoon-organizations-admin': [addOrgToAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
+              organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
             } else {
-              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization', userInput), user)]}
-              organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization', userInput), user)]}
-              organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization', userInput), user)]}
+              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
+              organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
+              organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
             }
           }
         }

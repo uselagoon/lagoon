@@ -393,19 +393,19 @@ down:
 kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
-.PHONY: local-dev-yarn
-local-dev-yarn:
-	$(MAKE) local-dev-yarn-stop
-	docker run --name local-dev-yarn -d -v ${PWD}/services/api:/app uselagoon/node-22-builder
-	docker exec local-dev-yarn bash -c "yarn install --frozen-lockfile"
-	echo -e "use 'yarn add package@version' to update a package in the api"
-	docker exec -it local-dev-yarn bash
-	$(MAKE) local-dev-yarn-stop
+.PHONY: local-dev-pnpm
+local-dev-pnpm:
+	$(MAKE) local-dev-pnpm-stop
+	docker run --name local-dev-pnpm -d -v ${PWD}/services/api:/app uselagoon/node-22-builder
+	docker exec local-dev-pnpm bash -c "corepack enable && pnpm install --frozen-lockfile --force"
+	echo -e "use 'pnpm add package@version' to update a package in the api"
+	docker exec -it local-dev-pnpm bash
+	$(MAKE) local-dev-pnpm-stop
 
-.PHONY: local-dev-yarn-stop
-local-dev-yarn-stop:
-	docker stop local-dev-yarn || true
-	docker rm local-dev-yarn || true
+.PHONY: local-dev-pnpm-stop
+local-dev-pnpm-stop:
+	docker stop local-dev-pnpm || true
+	docker rm local-dev-pnpm || true
 
 .PHONY: ui-development
 ui-development: build-ui-logs-development
@@ -896,7 +896,7 @@ k3d/local-dev-patch:
 		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "building $$image" \
-			&& cd services/$$image && yarn install && yarn build && cd ../..; \
+			&& cd services/$$image && corepack enable && pnpm install && pnpm build && cd ../..; \
 		done \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "patching lagoon-core-$$image" \

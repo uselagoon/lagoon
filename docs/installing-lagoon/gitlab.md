@@ -30,5 +30,5 @@ Not needed for \*most\* installs, but this is configured to integrate Lagoon wit
 6. Run the following command in an API pod:
 
     ```bash title="Sync with GitLab"
-      yarn sync:gitlab:all
+      pnpm run sync:gitlab:all
     ```

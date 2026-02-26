@@ -108,8 +108,8 @@ export class GroupNotFoundError extends Error {
 const internalGroupTypes = [GroupType.ROLE_SUBGROUP];
 
 export const isRoleSubgroup = R.pathEq(
-  ['attributes', 'type', 0],
-  'role-subgroup'
+  'role-subgroup',
+  ['attributes', 'type', 0]
 );
 
 const isInternalGroup = (group: SparseGroup) => {

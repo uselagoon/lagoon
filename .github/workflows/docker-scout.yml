@@ -6,7 +6,6 @@ on:
       - 'main'
       - 'docker-scout'
     paths:
-      - 'yarn.lock'
       - 'services/api/**'
       - '.github/workflows/docker-scout.yml'
   pull_request:
@@ -14,7 +13,6 @@ on:
       - 'main'
       - 'docker-scout'
     paths:
-      - 'yarn.lock'
       - 'services/api/**'
       - '.github/workflows/docker-scout.yml'
 

@@ -139,10 +139,7 @@ export const addNotificationToProject: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const input = [
-    R.over(
-      R.lensProp('notificationSeverityThreshold'),
-      notificationContentTypeToInt
-    )
+    (obj: any) => ({ ...obj, notificationSeverityThreshold: notificationContentTypeToInt(obj.notificationSeverityThreshold) })
   ].reduce(
     (argumentsToProcess, functionToApply) =>
       functionToApply(argumentsToProcess),
@@ -259,7 +256,7 @@ export const deleteNotificationMicrosoftTeams: ResolverFn = async (
     type: 'microsoftteams'
   });
 
-  if (R.length(nids) > 0) {
+  if (R.length(nids as any[]) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
@@ -286,7 +283,7 @@ export const deleteNotificationEmail: ResolverFn = async (
     type: 'email'
   });
 
-  if (R.length(nids) > 0) {
+  if (R.length(nids as any[]) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
@@ -313,7 +310,7 @@ export const deleteNotificationRocketChat: ResolverFn = async (
     type: 'rocketchat'
   });
 
-  if (R.length(nids) > 0) {
+  if (R.length(nids as any[]) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
@@ -340,7 +337,7 @@ export const deleteNotificationSlack: ResolverFn = async (
     type: 'slack'
   });
 
-  if (R.length(nids) > 0) {
+  if (R.length(nids as any[]) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
@@ -371,7 +368,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
     type: 'webhook',
   });
 
-  if (R.length(nids) > 0) {
+  if (R.length(nids as any[]) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
@@ -424,10 +421,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
   });
 
   const args = [
-    R.over(
-      R.lensProp('notificationSeverityThreshold'),
-      notificationContentTypeToInt
-    )
+    (obj: any) => ({ ...obj, notificationSeverityThreshold: notificationContentTypeToInt(obj.notificationSeverityThreshold) })
   ].reduce(
     (argumentsToProcess, functionToApply) =>
       functionToApply(argumentsToProcess),
@@ -466,11 +460,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
   }, []);
 
   return resultArray.map(e =>
-    R.over(
-      R.lensProp('notificationSeverityThreshold'),
-      notificationIntToContentType,
-      e
-    )
+    ({ ...e, notificationSeverityThreshold: notificationIntToContentType((e as any).notificationSeverityThreshold) })
   );
 };
 
@@ -485,10 +475,7 @@ export const getNotificationsByOrganizationId: ResolverFn = async (
   });
 
   const args = [
-    R.over(
-      R.lensProp('notificationSeverityThreshold'),
-      notificationContentTypeToInt
-    )
+    (obj: any) => ({ ...obj, notificationSeverityThreshold: notificationContentTypeToInt(obj.notificationSeverityThreshold) })
   ].reduce(
     (argumentsToProcess, functionToApply) =>
       functionToApply(argumentsToProcess),
@@ -519,11 +506,7 @@ export const getNotificationsByOrganizationId: ResolverFn = async (
   }, []);
 
   return resultArray.map(e =>
-    R.over(
-      R.lensProp('notificationSeverityThreshold'),
-      notificationIntToContentType,
-      e
-    )
+    ({ ...e, notificationSeverityThreshold: notificationIntToContentType((e as any).notificationSeverityThreshold) })
   );
 };
 

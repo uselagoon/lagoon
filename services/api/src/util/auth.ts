@@ -78,14 +78,14 @@ export const getUserRoleForProjectFromRoleProjectIds = (
   return [highestRoleForProject, R.uniq(upids)];
 };
 
-const getHighestRole = (roles) => {
+const getHighestRole = (roles): string => {
   return R.pipe(
     R.uniq,
     R.reject(R.isEmpty),
     R.reject(R.isNil),
     R.sort(sortRolesByWeight),
     R.last
-  )(roles);
+  )(roles) as string;
 };
 
 export const isLegacyToken = R.pathSatisfies(isNotNil, ['payload', 'role']);
@@ -234,8 +234,8 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
         userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`]
       };
     }
-    if (R.prop('organization', attributes)) {
-      const organizationId = parseInt(R.prop('organization', attributes), 10);
+    if (R.prop('organization' as any, attributes)) {
+      const organizationId = parseInt(R.prop('organization' as any, attributes) as string, 10);
       claims = {
         ...claims,
         organizationQuery: [`${organizationId}`]
@@ -295,7 +295,7 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
 
         const groupRoles = R.pipe(
           R.filter(membership =>
-            R.pathEq(['user', 'id'], currentUser.id, membership)
+            R.pathEq(currentUser.id, ['user', 'id'], membership)
           ),
           R.pluck('role')
         )(groupMembers);
@@ -311,7 +311,7 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
         if (highestRoleForGroup) {
           claims = {
             ...claims,
-            userGroupRole: [highestRoleForGroup]
+            userGroupRole: [highestRoleForGroup as string]
           };
         }
       } catch (err) {

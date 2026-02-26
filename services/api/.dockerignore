@@ -2,3 +2,5 @@ node_modules
 dist
 .git
 *.log
+.pnpm-store
+**/.pnpm-store

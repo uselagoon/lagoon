@@ -12,7 +12,7 @@ interface IPermissionsMockItem {
 }
 
 const areIKeycloakAuthAttributesEqual = (a: IKeycloakAuthAttributes, b: IKeycloakAuthAttributes) => {
-    const userSort = R.partial(R.sort, [(a, b) => { return a - b;}]);
+    const userSort = R.partial(R.sort, [(a: any, b: any) => { return a - b;}]);
     return R.equals(a.project, b.project) && R.equals(a.group, b.group) &&
     R.equals(userSort(a.users || []), userSort(b.users || []));
 }
