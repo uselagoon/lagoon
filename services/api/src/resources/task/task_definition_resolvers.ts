@@ -560,7 +560,7 @@ export const invokeRegisteredTask = async (
     for(let i = 0; i < argumentValues.length; i++) {
       //grab the type for this one
       let {advancedTaskDefinitionArgumentName, value} = argumentValues[i];
-      let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
+      let taskArgDef = R.find(R.propEq(advancedTaskDefinitionArgumentName, 'name'))(taskArgs);
       if(!taskArgDef) {
         throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
       }

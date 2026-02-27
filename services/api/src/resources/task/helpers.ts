@@ -331,7 +331,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
             sqlClientPool
           ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
           const activeEnvironments = R.filter(
-            R.propEq('deleted', '0000-00-00 00:00:00'),
+            R.propEq('0000-00-00 00:00:00', 'deleted'),
             environments
           );
 

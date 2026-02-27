@@ -754,7 +754,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentsByEnvironmentInput(environmentInput);
   const activeEnvironments = R.filter(
-    R.propEq('deleted', '0000-00-00 00:00:00'),
+    R.propEq('0000-00-00 00:00:00', 'deleted'),
     environments
   );
 
@@ -1316,7 +1316,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
   const activeEnvironments = R.filter(
-    R.propEq('deleted', '0000-00-00 00:00:00'),
+    R.propEq('0000-00-00 00:00:00', 'deleted'),
     sourceEnvironments
   );
 
@@ -1662,7 +1662,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
         sqlClientPool
       ).getEnvironmentsByEnvironmentInput(environmentInput);
       const activeEnvironments = R.filter(
-        R.propEq('deleted', '0000-00-00 00:00:00'),
+        R.propEq('0000-00-00 00:00:00', 'deleted'),
         environments
       );
 

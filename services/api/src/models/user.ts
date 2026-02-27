@@ -209,7 +209,7 @@ export const User = (clients: {
     }
 
     const gitlabIdentity = R.find(
-      R.propEq('identityProvider', 'gitlab'),
+      R.propEq('gitlab', 'identityProvider'),
       identities
     );
     // @ts-ignore
@@ -350,7 +350,7 @@ export const User = (clients: {
     }
 
     const userId = R.pipe(
-      R.filter(R.propEq('email', email)),
+      R.filter(R.propEq(email, 'email')),
       R.path(['0', 'id'])
     )(keycloakUsers);
 

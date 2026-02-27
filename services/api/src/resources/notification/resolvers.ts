@@ -521,7 +521,7 @@ const checkNotificationUpdatePermissions = async (check, hasPermission) => {
 }
 
 const checkNotificationExists = (name, check) => {
-  if (R.find(R.propEq('name', `${name}`))(check) == undefined) {
+  if (R.find(R.propEq(`${name}`, 'name'))(check) == undefined) {
     throw new Error(`No notification found for ${name}`);
   }
 }

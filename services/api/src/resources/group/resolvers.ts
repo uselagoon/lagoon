@@ -56,7 +56,7 @@ export const getAllGroups: ResolverFn = async (
   const userGroups = await keycloakUsersGroups;
 
   if (name) {
-    return R.filter(R.propEq('name', name), userGroups);
+    return R.filter(R.propEq(name, 'name'), userGroups);
   } else {
     return userGroups;
   }
@@ -65,13 +65,13 @@ export const getAllGroups: ResolverFn = async (
 
 // TODO: recursive lookups for groups in groups?
 export const getGroupFromGroupsById = async (id, groups) => {
-  const d = R.filter(R.propEq('id', id), groups);
+  const d = R.filter(R.propEq(id, 'id'), groups);
   if (d.length) {
     return d[0];
   }
   for (const group in groups) {
     if (groups[group].groups.length) {
-      const d = R.filter(R.propEq('id', id), groups[group].groups)
+      const d = R.filter(R.propEq(id, 'id'), groups[group].groups)
       if (d.length) {
         return d[0];
       }
@@ -81,13 +81,13 @@ export const getGroupFromGroupsById = async (id, groups) => {
 }
 
 export const getGroupFromGroupsByName = async (id, groups) => {
-  const d = R.filter(R.propEq('name', id), groups);
+  const d = R.filter(R.propEq(id, 'name'), groups);
   if (d.length) {
     return d[0];
   }
   for (const group in groups) {
     if (groups[group].groups.length) {
-      const d = R.filter(R.propEq('name', id), groups[group].groups)
+      const d = R.filter(R.propEq(id, 'name'), groups[group].groups)
       if (d.length) {
         return d[0];
       }
@@ -285,7 +285,7 @@ export const getGroupByName: ResolverFn = async (
   }
 
   const userGroups = keycloakUsersGroups;
-  const group = R.head(R.filter(R.propEq('name', name), userGroups));
+  const group = R.head(R.filter(R.propEq(name, 'name'), userGroups));
 
   if (R.isEmpty(group)) {
     throw new GroupNotFoundError(`Group not found: ${name}`);
