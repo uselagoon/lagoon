@@ -695,6 +695,7 @@ const getAllProjectsIdsForUser = async (
         await passwordResetHandler(user.id);
       } catch (err: any) {
         logger.warn(`Failed to send password reset email: ${err.message}`);
+        throw new Error(`Failed to send password reset email: ${err.message}`);
       }
     }
 
@@ -771,17 +772,17 @@ const getAllProjectsIdsForUser = async (
   }
 
   const passwordResetHandler = async (id: string): Promise<void> => {
-    const uiClientIDs = ["lagoon-ui", "lagoon-ui-oidc"];
+    const uiClientIds = ["lagoon-ui", "lagoon-ui-oidc"];
     const redirectUri = getConfigFromEnv("UI_URL", "http://localhost:8888");
     let error: unknown;
 
-    for (const uiClientID of uiClientIDs) {
+    for (const uiClientId of uiClientIds) {
       try {
         await keycloakAdminClient.users.executeActionsEmail({
           id,
           lifespan: 43200,
           actions: ["UPDATE_PASSWORD"],
-          clientId: uiClientID,
+          clientId: uiClientId,
           redirectUri
         });
         return;
