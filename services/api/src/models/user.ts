@@ -691,13 +691,11 @@ const getAllProjectsIdsForUser = async (
     }
 
     if (resetPassword) {
-      await keycloakAdminClient.users.executeActionsEmail({
-        id: user.id,
-        lifespan: 43200,
-        actions: ["UPDATE_PASSWORD"],
-        clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
-      });
+      try {
+        await passwordResetHandler(user.id);
+      } catch (err) {
+        logger.warn(`Failed to send password reset email: ${err.message}`);
+      }
     }
 
     // Let's start with the email opt-in preference defaults
@@ -772,21 +770,34 @@ const getAllProjectsIdsForUser = async (
     )(user);
   }
 
+  const passwordResetHandler = async (id: string): Promise<void> => {
+    const uiClientIDs = ["lagoon-ui", "lagoon-ui-oidc"];
+    const redirectUri = getConfigFromEnv("UI_URL", "http://localhost:8888");
+
+    for (const uiClientID of uiClientIDs) {
+      try {
+        await keycloakAdminClient.users.executeActionsEmail({
+          id,
+          lifespan: 43200,
+          actions: ["UPDATE_PASSWORD"],
+          clientId: uiClientID,
+          redirectUri
+        });
+        return;
+      } catch (err) {
+        logger.warn(`Failed to send password reset email: ${err.message}`);
+      }
+    }
+  };
+
   const resetUserPassword = async (id: string): Promise<void> => {
     try {
-      await keycloakAdminClient.users.executeActionsEmail({
-        id: id,
-        lifespan: 43200,
-        actions: ["UPDATE_PASSWORD"],
-        clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
-      });
+      await passwordResetHandler(id);
     } catch (err) {
-      if (err.response.status && err.response.status === 404) {
+      if (err.response?.status === 404) {
         throw new UserNotFoundError(`User not found: ${id}`);
-      } else {
-        throw new Error(`Error updating Lagoon user account: ${err.message}`);
       }
+      throw new Error(`Error updating Lagoon user account: ${err.message}`);
     }
   };
 
