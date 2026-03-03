@@ -693,7 +693,7 @@ const getAllProjectsIdsForUser = async (
     if (resetPassword) {
       try {
         await passwordResetHandler(user.id);
-      } catch (err) {
+      } catch (err: any) {
         logger.warn(`Failed to send password reset email: ${err.message}`);
       }
     }
@@ -773,6 +773,7 @@ const getAllProjectsIdsForUser = async (
   const passwordResetHandler = async (id: string): Promise<void> => {
     const uiClientIDs = ["lagoon-ui", "lagoon-ui-oidc"];
     const redirectUri = getConfigFromEnv("UI_URL", "http://localhost:8888");
+    let error: unknown;
 
     for (const uiClientID of uiClientIDs) {
       try {
@@ -785,15 +786,16 @@ const getAllProjectsIdsForUser = async (
         });
         return;
       } catch (err) {
-        logger.warn(`Failed to send password reset email: ${err.message}`);
+        error = err;
       }
     }
+    throw error;
   };
 
   const resetUserPassword = async (id: string): Promise<void> => {
     try {
       await passwordResetHandler(id);
-    } catch (err) {
+    } catch (err: any) {
       if (err.response?.status === 404) {
         throw new UserNotFoundError(`User not found: ${id}`);
       }
