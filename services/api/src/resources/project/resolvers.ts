@@ -11,6 +11,7 @@ import * as OS from '../openshift/sql';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import { AuditType } from '@lagoon/commons/dist/types';
@@ -1084,4 +1085,92 @@ export const getFeatureApiRoutes: ResolverFn = async (
   { sqlClientPool }
 ) => {
   return Helpers(sqlClientPool).checkApiRoutesFeature(input.organization);
+};
+
+
+export const cloneProject: ResolverFn = async (
+  root,
+  { input:
+    {
+      project: projectName,
+      sourceProject: {
+        name: sourceProjectName,
+        metadata,
+        projectVariables,
+        notifications,
+        groups,
+      },
+      sourceEnvironment: {
+        name: sourceEnvironmentName,
+        environmentVariables,
+        copyData,
+      }
+    }
+  },
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
+) => {
+  const pid = await Helpers(sqlClientPool).getProjectIdByName(sourceProjectName);
+  const project = await Helpers(sqlClientPool).getProjectById(pid);
+
+  // if the project is in an organization then check the organization delete project permission
+  // otherwise fall back to the non-organization permission check
+  if (project.organization != null) {
+    await hasPermission('organization', 'cloneProject', {
+      organization: project.organization
+    });
+  } else {
+    // project is not in an organization and cannot be cloned
+    throw new Error(
+      `Unauthorized: You don't have permission to "cloneProject" on "organization"`
+    );
+  }
+
+  // check if environment exists
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, pid)
+  const environmentData = env[0]
+  if (!environmentData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+
+  // Clone the project schema and create new project from source
+
+  // Execute deployment for new environment
+
+  // Create lagoon-sync advanced task in source environment
+
+  // ???
+
+  // Profit
+};
+
+export const updateProjectClone: ResolverFn = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        name,
+      }
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+/*
+  getProjectCloneByProject is a field resolver
+  it has no permission checks as it isn't called directly
+  used to retrieve the status of a project clone
+*/
+export const getProjectCloneByProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  // check if projectclone exists for project
+  return null; // return null if no cloning
 };
