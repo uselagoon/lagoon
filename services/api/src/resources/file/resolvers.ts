@@ -240,3 +240,108 @@ export const deleteFilesForTask: ResolverFn = async (
 
   return 'success';
 };
+
+export const getProjectCloneFileUploadForm: ResolverFn = async (
+  root,
+  { input: { cloneId, filename } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // check permissions for project clone file upload
+  // const rowsPerms = await query(
+  //   sqlClientPool,
+  //   taskSql.selectPermsForTask(task)
+  // );
+  // const projectId = R.path(['0', 'pid'], rowsPerms);
+
+  // await hasPermission('task', 'update', {
+  //   project: projectId
+  // });
+
+  const s3_key = `projectclone/${cloneId}/${filename}`;
+  const signedurl = await generatePresignedPostUrl(s3_key)
+  const auditLog: AuditLog = {
+    resource: {
+      type: AuditType.FILE,
+      details: s3_key
+    },
+  };
+  userActivityLogger(`User requested file upload link`, {
+    event: 'api:getProjectCloneFileUploadForm',
+    payload: {
+      Key: s3_key,
+      ...auditLog
+    }
+  });
+  return {postUrl: signedurl.url, formFields: signedurl.fields};
+}
+
+export const getDownloadLinkByProjectCloneFileId: ResolverFn = async (
+  root,
+  { cloneId, fileId },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // check permissions for project clone file download
+  // const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(cloneId));
+
+  // await hasPermission('task', 'view', {
+  //   project: R.path(['0', 'pid'], rowsPerms)
+  // });
+
+  const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${cloneId}` });
+  const response = await s3Client.send(command);
+  if (response.Contents) {
+    let count = 0;
+    for (const obj of response.Contents) {
+      count++;
+      if (count == fileId) {
+        const downloadUrl = await generateDownloadLink(obj.Key, userActivityLogger)
+        return downloadUrl;
+      }
+    }
+  }
+  throw new Error(`File not found`);
+}
+
+export const deleteFilesForProjectClone: ResolverFn = async (
+  root,
+  { input: { id } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // check permissions for project clone file deletions
+  // const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
+
+  // await hasPermission('task', 'delete', {
+  //   project: R.path(['0', 'pid'], rowsPerms)
+  // });
+
+  const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${id}` });
+  const response = await s3Client.send(command);
+  if (response.Contents) {
+    let deleteObjects = [];
+    let count = 0;
+    for (const obj of response.Contents) {
+      count++;
+      deleteObjects.push({
+        Key: obj.Key
+      })
+    }
+    const deletecommand = new DeleteObjectsCommand({
+      Bucket: bucket,
+      Delete: {
+        Objects: deleteObjects,
+        Quiet: false
+      }
+    });
+    await s3Client.send(deletecommand);
+  }
+
+  userActivityLogger(`User deleted files for projectclone '${id}'`, {
+    project: '',
+    event: 'api:deleteFilesForProjectClone',
+    payload: {
+      id
+    }
+  });
+
+  return 'success';
+};

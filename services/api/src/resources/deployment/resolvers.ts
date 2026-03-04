@@ -988,6 +988,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
     throw new Error('Deployments have been disabled for this project');
   }
 
+  await deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
+};
+
+export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger ) {
   let buildName = generateBuildId();
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
@@ -1074,7 +1078,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
         throw new Error(error.message);
     }
   }
-};
+}
 
 export const deployEnvironmentPullrequest: ResolverFn = async (
   root,
