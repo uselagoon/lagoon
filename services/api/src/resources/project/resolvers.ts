@@ -12,11 +12,16 @@ import { Sql as sshKeySql } from '../sshKey/sql';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { deployBranch } from '../deployment/resolvers';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -228,7 +233,6 @@ export const addProject = async (
   { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
 
-  // Add the user who submitted this request to the project
   let userAlreadyHasAccess = false;
   if (adminScopes.platformOwner) {
     userAlreadyHasAccess = true
@@ -278,6 +282,35 @@ export const addProject = async (
       );
     }
   }
+
+  const project = await createProject(input, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes)
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  userActivityLogger(`User added a project '${project.name}'`, {
+    project: '',
+    event: 'api:addProject',
+    payload: {
+      input,
+      data: project,
+      ...auditLog,
+    }
+  });
+
+  return project;
+};
+
+async function createProject(input, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes ) {
+    // Add the user who submitted this request to the project
+
   if (input.name.trim().length == 0) {
     throw new Error(
       'A project name must be provided!'
@@ -477,29 +510,8 @@ export const addProject = async (
       );
     }
   }
-
-  const auditLog: AuditLog = {
-    resource: {
-      id: project.id.toString(),
-      type: AuditType.PROJECT,
-      details: project.name,
-    },
-  };
-  if (project.organization) {
-    auditLog.organizationId = project.organization;
-  }
-  userActivityLogger(`User added a project '${project.name}'`, {
-    project: '',
-    event: 'api:addProject',
-    payload: {
-      input,
-      data: project,
-      ...auditLog,
-    }
-  });
-
   return project;
-};
+}
 
 export const deleteProject: ResolverFn = async (
   _root,
@@ -1087,12 +1099,15 @@ export const getFeatureApiRoutes: ResolverFn = async (
   return Helpers(sqlClientPool).checkApiRoutesFeature(input.organization);
 };
 
-
+/*
+  cloneProject can be used to clone a project within an organization
+  an organization owner or admin will be able to initiate the process
+*/
 export const cloneProject: ResolverFn = async (
   root,
   { input:
     {
-      project: projectName,
+      projectName: projectName,
       sourceProject: {
         name: sourceProjectName,
         metadata,
@@ -1107,16 +1122,21 @@ export const cloneProject: ResolverFn = async (
       }
     }
   },
-  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes, legacyGrant }
 ) => {
   const pid = await Helpers(sqlClientPool).getProjectIdByName(sourceProjectName);
-  const project = await Helpers(sqlClientPool).getProjectById(pid);
+  const sourceProject = await Helpers(sqlClientPool).getProjectById(pid);
+
+  let userAlreadyHasAccess = false;
+  if (adminScopes.platformOwner) {
+    userAlreadyHasAccess = true
+  }
 
   // if the project is in an organization then check the organization delete project permission
   // otherwise fall back to the non-organization permission check
-  if (project.organization != null) {
-    await hasPermission('organization', 'cloneProject', {
-      organization: project.organization
+  if (sourceProject.organization != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: sourceProject.organization
     });
   } else {
     // project is not in an organization and cannot be cloned
@@ -1134,17 +1154,79 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // Clone the project schema and create new project from source
+  // clone the project schema and create new project from source
+  let newProjectInput = sourceProject
+  newProjectInput.name = projectName
+  delete(newProjectInput.id)
+  delete(newProjectInput.privateKey)
+  delete(newProjectInput.created)
+  delete(newProjectInput.kubernetes)
+  delete(newProjectInput.buildImage)
+  delete(newProjectInput.standbyRoutes)
+  delete(newProjectInput.productionRoutes)
+  delete(newProjectInput.sharedBaasBucket)
+  delete(newProjectInput.deploymentsDisabled)
+  if (!copyProjectMetadata) {
+    delete(newProjectInput.metadata)
+  }
+  let project = await createProject(newProjectInput, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes)
 
-  // Execute deployment for new environment
+  const { insertId } = await query(
+    sqlClientPool,
+    Sql.insertProjectClone({
+      destinationProject: project.id,
+      sourceProject: pid,
+      status: 'pending'
+    })
+  );
 
-  // Create lagoon-sync advanced task in source environment
+  await query(
+    sqlClientPool,
+    Sql.addProjectCloneToProject(project.id, insertId)
+  );
+  project.clone = insertId
 
+  // copy things like groups, variables, notifications, etc..
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  userActivityLogger(`User cloned a project '${project.name}'`, {
+    project: '',
+    event: 'api:cloneProject',
+    payload: {
+      data: project,
+      ...auditLog,
+    }
+  });
+
+
+  // execute deployment for new environment
+  const envType =
+    sourceEnvironmentName === project.productionEnvironment ? 'production' : 'development';
+  let priority = project.developmentBuildPriority
+  if (envType == 'production') {
+    priority = project.productionBuildPriority
+  }
+
+  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
+
+  // copy environment variables
+  // create lagoon-sync advanced task in source environment
   // ???
-
-  // Profit
+  // profit
+  return project;
 };
 
+/*
+  updateProjectClone is used to update the status of a project cloning process
+*/
 export const updateProjectClone: ResolverFn = async (
   root,
   {
@@ -1162,6 +1244,104 @@ export const updateProjectClone: ResolverFn = async (
 };
 
 /*
+  cancelProjectClone is used to cancel a project cloning process
+  the created project and anything associated to the cloned project will be removed
+*/
+export const cancelProjectClone: ResolverFn = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        name,
+      }
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // delete cloned environment
+  // delete any uploaded files
+  // delete any tasks in the source environment
+  // delete the ProjectClone reference
+  // delete cloned project
+};
+
+/*
+  copyProjectGroups can be used to copy group associations from one project to another
+  it will not copy project default groups, optionally copy users access in the project default
+  only available for projects within an organization
+*/
+export const copyProjectGroups: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+/*
+  copyProjectNotifications will copy the project notifications association for a project from another project
+  only available for projects within an organization
+*/
+export const copyProjectNotifications: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+
+/*
+  copyProjectMetadata will copy the project metadata from one project to another
+  only available for projects within an organization
+*/
+export const copyProjectMetadata: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+
+/*
+  copyProjectVariables copies project scoped variables in one project to another
+  only available for projects within an organization
+*/
+export const copyProjectVariables: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+
+/*
+  copyEnvironmentVariables copies environment scoped variables in one environment in a project, to another environment in the same project, or a different project
+  only available for projects within an organization
+*/
+export const copyEnvironmentVariables: ResolverFn = async (
+  root,
+  {
+    sourceProject, sourceEnvironment, destinationProject, destinationEnvironment
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+
+};
+
+/*
   getProjectCloneByProject is a field resolver
   it has no permission checks as it isn't called directly
   used to retrieve the status of a project clone
@@ -1172,5 +1352,9 @@ export const getProjectCloneByProject: ResolverFn = async (
   { sqlClientPool }
 ) => {
   // check if projectclone exists for project
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(input.clone));
+  if (rows.length > 0) {
+    return rows[0]
+  }
   return null; // return null if no cloning
 };
