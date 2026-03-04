@@ -1,37 +1,38 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { GetObjectCommand, DeleteObjectsCommand, ListObjectsCommand } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { ResolverFn } from '..';
 import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql as taskSql } from '../task/sql';
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
 import { AuditType } from '../../commons/types';
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { GetObjectCommand, DeleteObjectsCommand, ListObjectsCommand } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
 
 // if this is google cloud storage or not
-const isGCS = process.env.S3_FILES_GCS || 'false'
-const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+const isGCS = process.env.S3_FILES_GCS || 'false';
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files';
 
-async function generateDownloadLink(s3Key: string, userActivityLogger?: Function ) {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+async function generateDownloadLink(s3Key: string, userActivityLogger?: Function) {
   const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
 
   if (typeof userActivityLogger === 'function') {
     const auditLog: AuditLog = {
       resource: {
         type: AuditType.FILE,
-        details: s3Key
+        details: s3Key,
       },
     };
 
-    userActivityLogger(`User requested a download link`, {
+    userActivityLogger('User requested a download link', {
       event: 'api:getSignedTaskUrl',
       payload: {
         Key: s3Key,
-        ...auditLog
-      }
+        ...auditLog,
+      },
     });
   }
   const signedUrl = await getSignedUrl(s3Client, command, {
@@ -40,19 +41,17 @@ async function generateDownloadLink(s3Key: string, userActivityLogger?: Function
   return signedUrl;
 }
 
-export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => {
-  return generateDownloadLink(s3Key, userActivityLogger);
-};
+export const getDownloadLink: ResolverFn = async ({ s3Key }, input, { userActivityLogger }) => generateDownloadLink(s3Key, userActivityLogger);
 
 export const getDownloadLinkByTaskFileId: ResolverFn = async (
   root,
   { taskId, fileId },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(taskId));
 
   await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
+    project: R.path(['0', 'pid'], rowsPerms),
   });
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `tasks/${taskId}` });
@@ -61,74 +60,74 @@ export const getDownloadLinkByTaskFileId: ResolverFn = async (
     let count = 0;
     for (const obj of response.Contents) {
       count++;
-      if (count == fileId) {
-        const downloadUrl = await generateDownloadLink(obj.Key, userActivityLogger)
+      if (count === fileId) {
+        const downloadUrl = await generateDownloadLink(obj.Key, userActivityLogger);
         return downloadUrl;
       }
     }
   }
-  throw new Error(`File not found`);
-}
+  throw new Error('File not found');
+};
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
   _args,
-  { sqlClientPool }
+  {},
 ) => {
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `tasks/${tid}` });
   const response = await s3Client.send(command);
   if (response.Contents) {
-    let objects = [];
+    const objects = [];
     let count = 0;
     for (const obj of response.Contents) {
       count++;
       const date = new Date(obj.LastModified);
-      let path = require('path');
+      const path = require('path');
       objects.push({
         id: count,
         filename: path.basename(obj.Key),
         s3Key: obj.Key,
         // fix the date for lagoon styled dates
-        created: date.toISOString().slice(0, 19).replace('T', ' ')
-      })
+        created: date.toISOString().slice(0, 19).replace('T', ' '),
+      });
     }
     return objects;
   }
   return [];
-}
+};
 
 export const getTaskFileUploadForm: ResolverFn = async (
   root,
   { input: { task, filename } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const rowsPerms = await query(
     sqlClientPool,
-    taskSql.selectPermsForTask(task)
+    taskSql.selectPermsForTask(task),
   );
   const projectId = R.path(['0', 'pid'], rowsPerms);
 
   await hasPermission('task', 'update', {
-    project: projectId
+    project: projectId,
   });
 
   const s3_key = `tasks/${task}/${filename}`;
-  const signedurl = await generatePresignedPostUrl(s3_key)
+  const signedurl = await generatePresignedPostUrl(s3_key);
   const auditLog: AuditLog = {
     resource: {
       type: AuditType.FILE,
-      details: s3_key
+      details: s3_key,
     },
   };
-  userActivityLogger(`User requested file upload link`, {
+  userActivityLogger('User requested file upload link', {
     event: 'api:getTaskFileUploadForm',
     payload: {
       Key: s3_key,
-      ...auditLog
-    }
+      ...auditLog,
+    },
   });
-  return {postUrl: signedurl.url, formFields: signedurl.fields};
-}
+  return { postUrl: signedurl.url, formFields: signedurl.fields };
+};
 
 async function generatePresignedPostUrl(key) {
   try {
@@ -138,29 +137,29 @@ async function generatePresignedPostUrl(key) {
       Expires: 60, // 60 seconds
       Conditions: [
         // limit upload size? maybe configurable at project/org level instead?
-        ["content-length-range", 0, 1099511627776], // 1tb
+        ['content-length-range', 0, 1099511627776], // 1tb
       ],
     });
 
     return { url, fields };
-  } catch (error) {
-    throw new Error(`Error generating presigned POST URL`);
+  } catch (_error) {
+    throw new Error('Error generating presigned POST URL');
   }
 }
 
 export const uploadFilesForTask: ResolverFn = async (
   root,
   { input: { task, files } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const rowsPerms = await query(
     sqlClientPool,
-    taskSql.selectPermsForTask(task)
+    taskSql.selectPermsForTask(task),
   );
   const projectId = R.path(['0', 'pid'], rowsPerms);
 
   await hasPermission('task', 'update', {
-    project: projectId
+    project: projectId,
   });
 
   const resolvedFiles = await Promise.all(files);
@@ -173,7 +172,7 @@ export const uploadFilesForTask: ResolverFn = async (
         Bucket: bucket,
         Key: s3_key,
         Body: newFile.createReadStream(),
-        ...(isGCS == 'false' && { ACL: 'private' }),
+        ...(isGCS === 'false' && { ACL: 'private' }),
       },
     });
 
@@ -190,9 +189,9 @@ export const uploadFilesForTask: ResolverFn = async (
       project: '',
       event: 'api:uploadFilesForTask',
       payload: {
-        task
-      }
-    }
+        task,
+      },
+    },
   );
 
   return task;
@@ -201,31 +200,29 @@ export const uploadFilesForTask: ResolverFn = async (
 export const deleteFilesForTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
 
   await hasPermission('task', 'delete', {
-    project: R.path(['0', 'pid'], rowsPerms)
+    project: R.path(['0', 'pid'], rowsPerms),
   });
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `tasks/${id}` });
   const response = await s3Client.send(command);
   if (response.Contents) {
-    let deleteObjects = [];
-    let count = 0;
+    const deleteObjects = [];
     for (const obj of response.Contents) {
-      count++;
       deleteObjects.push({
-        Key: obj.Key
-      })
+        Key: obj.Key,
+      });
     }
     const deletecommand = new DeleteObjectsCommand({
       Bucket: bucket,
       Delete: {
         Objects: deleteObjects,
-        Quiet: false
-      }
+        Quiet: false,
+      },
     });
     await s3Client.send(deletecommand);
   }
@@ -234,8 +231,8 @@ export const deleteFilesForTask: ResolverFn = async (
     project: '',
     event: 'api:deleteFilesForTask',
     payload: {
-      id
-    }
+      id,
+    },
   });
 
   return 'success';

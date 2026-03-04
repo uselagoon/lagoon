@@ -1,6 +1,6 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
 import validator from 'validator';
+import { ResolverFn } from '..';
 import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
@@ -14,28 +14,28 @@ import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import { User, UserModel } from '../../models/user';
 
-const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || "false"
+const DISABLE_NON_ORGANIZATION_GROUP_CREATION = process.env.DISABLE_NON_ORGANIZATION_GROUP_CREATION || 'false';
 
 export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
-
       if (name) {
         const group = await models.GroupModel.loadGroupByName(name);
         return [group];
-      } else {
-        const allGroups = await models.GroupModel.loadAllGroups();
-        const groups = await models.GroupModel.transformKeycloakGroups(allGroups);
-        const filterFn = (key, val) => group => group[key].includes(val);
-        const filteredByName = groups.filter(filterFn('name', name));
-        const filteredByType = groups.filter(filterFn('type', type));
-        return name || type ? R.union(filteredByName, filteredByType) : groups;
       }
+      const allGroups = await models.GroupModel.loadAllGroups();
+      const groups = await models.GroupModel.transformKeycloakGroups(allGroups);
+      const filterFn = (key, val) => group => group[key].includes(val);
+      const filteredByName = groups.filter(filterFn('name', name));
+      const filteredByType = groups.filter(filterFn('type', type));
+      return name || type ? R.union(filteredByName, filteredByType) : groups;
     } catch (err) {
       if (name && err instanceof GroupNotFoundError) {
         throw err;
@@ -57,10 +57,8 @@ export const getAllGroups: ResolverFn = async (
 
   if (name) {
     return R.filter(R.propEq(name, 'name'), userGroups);
-  } else {
-    return userGroups;
   }
-
+  return userGroups;
 };
 
 // TODO: recursive lookups for groups in groups?
@@ -71,14 +69,14 @@ export const getGroupFromGroupsById = async (id, groups) => {
   }
   for (const group in groups) {
     if (groups[group].groups.length) {
-      const d = R.filter(R.propEq(id, 'id'), groups[group].groups)
+      const d = R.filter(R.propEq(id, 'id'), groups[group].groups);
       if (d.length) {
         return d[0];
       }
     }
   }
   return {};
-}
+};
 
 export const getGroupFromGroupsByName = async (id, groups) => {
   const d = R.filter(R.propEq(id, 'name'), groups);
@@ -87,146 +85,154 @@ export const getGroupFromGroupsByName = async (id, groups) => {
   }
   for (const group in groups) {
     if (groups[group].groups.length) {
-      const d = R.filter(R.propEq(id, 'name'), groups[group].groups)
+      const d = R.filter(R.propEq(id, 'name'), groups[group].groups);
       if (d.length) {
         return d[0];
       }
     }
   }
   return {};
-}
+};
 
-export const getGroupRolesByUserId: ResolverFn =async (
+export const getGroupRolesByUserId: ResolverFn = async (
   { id: uid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
-      let groups = []
+      const groups = [];
       for (const g in queryUserGroups) {
-        let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
-        if (queryUserGroups[g].attributes["type"]) {
-          group.groupType = queryUserGroups[g].attributes["type"][0]
+        const group = {
+          id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null,
+        };
+        if (queryUserGroups[g].attributes.type) {
+          group.groupType = queryUserGroups[g].attributes.type[0];
         }
         const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
         if (org) {
-          group.organization = org
+          group.organization = org;
         }
-        groups.push(group)
+        groups.push(group);
       }
 
       return groups;
-    } catch (err) {
+    } catch (_err) {
       if (!keycloakGrant) {
         logger.debug('No grant available for getGroupsByUserId');
         return [];
       }
     }
   }
-  let groups = []
+  const groups = [];
   for (const g in keycloakUsersGroups) {
-    let group = {id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
-    if (keycloakUsersGroups[g].attributes["type"]) {
-      group.groupType = keycloakUsersGroups[g].attributes["type"][0]
+    const group = {
+      id: keycloakUsersGroups[g].id, name: keycloakUsersGroups[g].name, role: keycloakUsersGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null,
+    };
+    if (keycloakUsersGroups[g].attributes.type) {
+      group.groupType = keycloakUsersGroups[g].attributes.type[0];
     }
     const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakUsersGroups[g].id);
     if (org) {
-      group.organization = org
+      group.organization = org;
     }
-    groups.push(group)
+    groups.push(group);
   }
 
   return groups;
-}
+};
 
 export const getMembersByGroupId: ResolverFn = async (
   { id },
   _input,
-  { models }
+  { models },
 ) => {
   // getMembersByGroupId is a field resolver that can't be queried directly,
   // permissions MUST be checked in a parent resolver.
   const group = await models.GroupModel.loadGroupById(id);
   const members = await models.GroupModel.getGroupMembership(group);
   return members;
-}
+};
 
 export const getMemberCountByGroupId: ResolverFn = async (
   { id },
   _input,
-  { models }
+  { models },
 ) => {
   // getMemberCountByGroupId is a field resolver that can't be queried directly,
   // permissions MUST be checked in a parent resolver.
   const group = await models.GroupModel.loadGroupById(id);
   const memberCount = await models.GroupModel.getGroupMemberCount(group);
   return memberCount;
-}
+};
 
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    sqlClientPool, models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
     try {
-      const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+      const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid);
       return projectGroups;
-    } catch (err) {
+    } catch (_err) {
       if (!keycloakGrant) {
         logger.debug('No grant available for getGroupsByProjectId');
         return [];
       }
     }
   } else {
-    const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+    const projectGroups = await Helpers(sqlClientPool).selectGroupsByProjectId(models, pid);
     const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
+      keycloakGrant.access_token.content.sub,
     );
 
     // if this user is an owner of an organization, then also display org based groups to this user
     // when listing project groups
     const userGroups = keycloakUsersGroups;
-    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
-    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
-    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations', user.attributes)).toString();
+    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin', user.attributes)).toString();
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer', user.attributes)).toString();
 
-    if (usersOrgs != "" ) {
+    if (usersOrgs !== '') {
       const uOrgs = usersOrgs.split(',');
       for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
         for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
+          userGroups.push(pGroup);
         }
       }
     }
-    if (usersOrgsAdmin != "" ) {
+    if (usersOrgsAdmin !== '') {
       const uOrgs = usersOrgsAdmin.split(',');
       for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
         for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
+          userGroups.push(pGroup);
         }
       }
     }
-    if (usersOrgsViewer != "" ) {
+    if (usersOrgsViewer !== '') {
       const uOrgs = usersOrgsViewer.split(',');
       for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
+        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
         for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
+          userGroups.push(pGroup);
         }
       }
     }
-    let userProjectGroups = []
+    const userProjectGroups = [];
     for (const ug of userGroups) {
-      const pg = projectGroups.find(i => i.id === ug.id)
+      const pg = projectGroups.find(i => i.id === ug.id);
       if (pg) {
-        userProjectGroups.push(pg)
+        userProjectGroups.push(pg);
       }
     }
 
@@ -237,7 +243,9 @@ export const getGroupsByProjectId: ResolverFn = async (
 export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
-  { hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
@@ -245,7 +253,7 @@ export const getGroupsByUserId: ResolverFn = async (
       const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid);
 
       return queryUserGroups;
-    } catch (err) {
+    } catch (_err) {
       if (!keycloakGrant) {
         logger.debug('No grant available for getGroupsByUserId');
         return [];
@@ -260,7 +268,9 @@ export const getGroupsByUserId: ResolverFn = async (
 export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
@@ -297,7 +307,9 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger}
+  {
+    models, sqlClientPool, keycloakGrant, adminScopes, hasPermission, userActivityLogger,
+  },
 ) => {
   let attributes = null;
   // check if this is a group being added in an organization
@@ -306,52 +318,52 @@ export const addGroup: ResolverFn = async (
   if (input.organization != null) {
     const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
     if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
+      throw new Error('Organization does not exist');
     }
 
     await hasPermission('organization', 'addGroup', {
-      organization: input.organization
+      organization: input.organization,
     });
     resource = {
       id: organizationData.id.toString(),
-      type: AuditType.ORGANIZATION
-    }
+      type: AuditType.ORGANIZATION,
+    };
 
-    const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, input.organization)
-    let groupCount = 0
+    const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, input.organization);
+    let groupCount = 0;
     for (const pGroup in orgGroups) {
       // project-default-groups don't count towards group quotas
-      if (orgGroups[pGroup].attributes["type"] != "project-default-group") {
-        groupCount++
+      if (orgGroups[pGroup].attributes.type !== 'project-default-group') {
+        groupCount++;
       }
     }
 
-    if (groupCount >= organizationData.quotaGroup && organizationData.quotaGroup != -1) {
+    if (groupCount >= organizationData.quotaGroup && organizationData.quotaGroup !== -1) {
       throw new Error(
-        `This would exceed this organizations group quota; ${groupCount}/${organizationData.quotaGroup}`
+        `This would exceed this organizations group quota; ${groupCount}/${organizationData.quotaGroup}`,
       );
     }
 
     attributes = {
       attributes: {
         // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
-        "lagoon-organization": [input.organization]
-      }
-    }
+        'lagoon-organization': [input.organization],
+      },
+    };
   } else {
     // otherwise fall back
-    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION == "false" || adminScopes.platformOwner) {
+    if (DISABLE_NON_ORGANIZATION_GROUP_CREATION === 'false' || adminScopes.platformOwner) {
       await hasPermission('group', 'add');
     } else {
       throw new Error(
-        'Group creation is restricted to organizations only'
+        'Group creation is restricted to organizations only',
       );
     }
   }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
-      'Only lowercase characters, numbers and dashes allowed for name!'
+      'Only lowercase characters, numbers and dashes allowed for name!',
     );
   }
 
@@ -362,11 +374,10 @@ export const addGroup: ResolverFn = async (
     }
 
     const parentGroup = await models.GroupModel.loadGroupByIdOrName(
-      input.parentGroup
+      input.parentGroup,
     );
     parentGroupId = parentGroup.id;
   }
-
 
   const group = await models.GroupModel.addGroup({
     name: input.name,
@@ -378,55 +389,53 @@ export const addGroup: ResolverFn = async (
   // if the user is not an admin, or an organization add, then add the user as an owner to the group
   if (!adminScopes.platformOwner && !input.organization && keycloakGrant) {
     const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
+      keycloakGrant.access_token.content.sub,
     );
 
     try {
       await models.GroupModel.addUserToGroup(user, group, 'owner');
     } catch (err) {
       logger.error(
-        `Could not link requesting user to group ${group.name}: ${err.message}`
+        `Could not link requesting user to group ${group.name}: ${err.message}`,
       );
     }
   }
 
-  const groupResource: AuditResource =  {
+  const groupResource: AuditResource = {
     id: group.id,
     type: AuditType.GROUP,
-    details: group.name
-  }
+    details: group.name,
+  };
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
   };
   if (resource) {
-    auditLog.linkedResource = groupResource
+    auditLog.linkedResource = groupResource;
   } else {
-    auditLog.resource = groupResource
+    auditLog.resource = groupResource;
   }
   if (input.organization) {
     auditLog.organizationId = input.organization;
   }
 
-  userActivityLogger(`User added a group`, {
+  userActivityLogger('User added a group', {
     project: '',
     event: 'api:addGroup',
     payload: {
       data: {
-        group
+        group,
       },
       ...auditLog,
-    }
+    },
   });
 
   return group;
 };
 
-
-
 export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
-  { models, hasPermission, userActivityLogger }
+  { models, hasPermission, userActivityLogger },
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
@@ -434,15 +443,15 @@ export const updateGroup: ResolverFn = async (
   if (org) {
     // if this is a group in an organization, check that the user updating it has permission to do so before deleting the group
     await hasPermission('organization', 'addGroup', {
-      organization: org
+      organization: org,
     });
     resource = {
       id: org.toString(),
-      type: AuditType.ORGANIZATION
-    }
+      type: AuditType.ORGANIZATION,
+    };
   } else {
     await hasPermission('group', 'update', {
-      group: group.id
+      group: group.id,
     });
   }
 
@@ -453,43 +462,43 @@ export const updateGroup: ResolverFn = async (
   if (typeof patch.name === 'string') {
     if (validator.matches(patch.name, /[^0-9a-z-]/)) {
       throw new Error(
-        'Only lowercase characters, numbers and dashes allowed for name!'
+        'Only lowercase characters, numbers and dashes allowed for name!',
       );
     }
   }
 
   const updatedGroup = await models.GroupModel.updateGroup({
     id: group.id,
-    name: patch.name
+    name: patch.name,
   });
 
-  const groupResource: AuditResource =  {
+  const groupResource: AuditResource = {
     id: group.id,
     type: AuditType.GROUP,
-    details: group.name
-  }
+    details: group.name,
+  };
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
   };
   if (resource) {
-    auditLog.linkedResource = groupResource
+    auditLog.linkedResource = groupResource;
   } else {
-    auditLog.resource = groupResource
+    auditLog.resource = groupResource;
   }
   if (org) {
     auditLog.organizationId = org;
   }
 
-  userActivityLogger(`User updated a group`, {
+  userActivityLogger('User updated a group', {
     project: '',
     event: 'api:updateGroup',
     payload: {
       data: {
         patch,
-        updatedGroup
+        updatedGroup,
       },
       ...auditLog,
-    }
+    },
   });
 
   return updatedGroup;
@@ -498,7 +507,9 @@ export const updateGroup: ResolverFn = async (
 export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  {
+    models, sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const org = await Helpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
@@ -506,46 +517,46 @@ export const deleteGroup: ResolverFn = async (
   if (org) {
     // if this is a group in an organization, check that the user deleting it has permission to do so before deleting the group
     await hasPermission('organization', 'removeGroup', {
-      organization: org
+      organization: org,
     });
     resource = {
       id: org.toString(),
-      type: AuditType.ORGANIZATION
-    }
+      type: AuditType.ORGANIZATION,
+    };
   } else {
     await hasPermission('group', 'delete', {
-      group: group.id
+      group: group.id,
     });
   }
 
   await models.GroupModel.deleteGroup(group.id);
 
-  const groupResource: AuditResource =  {
+  const groupResource: AuditResource = {
     id: group.id,
     type: AuditType.GROUP,
-    details: group.name
-  }
+    details: group.name,
+  };
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
   };
   if (resource) {
-    auditLog.linkedResource = groupResource
+    auditLog.linkedResource = groupResource;
   } else {
-    auditLog.resource = groupResource
+    auditLog.resource = groupResource;
   }
   if (org) {
     auditLog.organizationId = org;
   }
 
-  userActivityLogger(`User deleted a group`, {
+  userActivityLogger('User deleted a group', {
     project: '',
     event: 'api:deleteGroup',
     payload: {
       data: {
-        group
+        group,
       },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -553,8 +564,12 @@ export const deleteGroup: ResolverFn = async (
 
 export const addUserToGroup: ResolverFn = async (
   _root,
-  { input: { user: userInput, group: groupInput, role, inviteUser } },
-  { models, hasPermission, userActivityLogger }
+  {
+    input: {
+      user: userInput, group: groupInput, role, inviteUser,
+    },
+  },
+  { models, hasPermission, userActivityLogger },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -572,14 +587,14 @@ export const addUserToGroup: ResolverFn = async (
     // check if user already exists
     user = await models.UserModel.loadUserByIdOrEmail({
       id: R.prop('id', userInput),
-      email: R.prop('email', userInput)
+      email: R.prop('email', userInput),
     });
   } catch (e) {
     // capture the error
-    createUserErr = e
+    createUserErr = e;
     // if inviteuser is false, and there is an error, return the error
     if (createUserErr && !inviteUser) {
-      return createUserErr
+      return createUserErr;
     }
   }
 
@@ -587,10 +602,10 @@ export const addUserToGroup: ResolverFn = async (
   if (org) {
     // if this is a group in an organization, check that the user adding members to the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
-      organization: org
+      organization: org,
     });
     // only organization:addGroup will be able to "invite users" this way
-    if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
+    if (createUserErr && createUserErr.message.includes('User not found') && inviteUser) {
       const email = R.prop('email', userInput);
       // check if email is provided
       if (email) {
@@ -598,28 +613,28 @@ export const addUserToGroup: ResolverFn = async (
         try {
           // then create the user account
           user = await models.UserModel.addUser({
-            email: email,
+            email,
             username: email,
           }, true);
           logger.debug(`UserInvite: User created and password reset requested for ${email}`);
         } catch (e) {
-          return e
+          return e;
         }
       } else if (createUserErr) {
         // otherwise return whatever error loadUserByIdOrEmail returned
-        return createUserErr
+        return createUserErr;
       }
     }
   } else {
     await hasPermission('group', 'addUser', {
-      group: group.id
+      group: group.id,
     });
-    if (createUserErr && createUserErr.message.includes("User not found") && inviteUser) {
+    if (createUserErr && createUserErr.message.includes('User not found') && inviteUser) {
       // otherwise return the error
       throw new Error('Cannot invite user to group that is not in an organization');
     } else if (createUserErr) {
       // otherwise return whatever error loadUserByIdOrEmail returned
-      return createUserErr
+      return createUserErr;
     }
   }
 
@@ -627,7 +642,7 @@ export const addUserToGroup: ResolverFn = async (
   const updatedGroup = await models.GroupModel.addUserToGroup(
     user,
     group,
-    role
+    role,
   );
 
   const auditLog: AuditLog = {
@@ -645,18 +660,18 @@ export const addUserToGroup: ResolverFn = async (
   if (org) {
     auditLog.organizationId = org;
   }
-  var emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user, {"Role": role});
-  userActivityLogger(`User added a user to a group`, {
+  const emailDetails = await getGroupEmailDetails('api:addUserToGroup', group.name, models, user, { Role: role });
+  userActivityLogger('User added a user to a group', {
     project: '',
     event: 'api:addUserToGroup',
     payload: {
       input: {
-        user: userInput, group: groupInput, role
+        user: userInput, group: groupInput, role,
       },
       data: updatedGroup,
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return updatedGroup;
@@ -665,7 +680,7 @@ export const addUserToGroup: ResolverFn = async (
 export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
-  { models, hasPermission, userActivityLogger }
+  { models, hasPermission, userActivityLogger },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -673,7 +688,7 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
-    email: R.prop('email', userInput)
+    email: R.prop('email', userInput),
   });
 
   if (R.isEmpty(groupInput)) {
@@ -685,16 +700,16 @@ export const removeUserFromGroup: ResolverFn = async (
   if (org) {
     // if this is a group in an organization, check that the user removing members from the group in this org is in the org
     await hasPermission('organization', 'addGroup', {
-      organization: org
+      organization: org,
     });
   } else {
     await hasPermission('group', 'removeUser', {
-      group: group.id
+      group: group.id,
     });
   }
 
   await models.GroupModel.removeUserFromGroup(user, group);
-  const updatedGroup = models.GroupModel.loadGroupById(group.id)
+  const updatedGroup = models.GroupModel.loadGroupById(group.id);
 
   const auditLog: AuditLog = {
     resource: {
@@ -712,19 +727,19 @@ export const removeUserFromGroup: ResolverFn = async (
     auditLog.organizationId = org;
   }
 
-  var emailDetails = await getGroupEmailDetails('api:removeUserFromGroup', group.name, models, user);
+  const emailDetails = await getGroupEmailDetails('api:removeUserFromGroup', group.name, models, user);
 
-  userActivityLogger(`User removed a user from a group`, {
+  userActivityLogger('User removed a user from a group', {
     project: '',
     event: 'api:removeUserFromGroup',
     payload: {
       input: {
-        user: userInput, group: groupInput
+        user: userInput, group: groupInput,
       },
       data: updatedGroup,
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return updatedGroup;
@@ -733,19 +748,21 @@ export const removeUserFromGroup: ResolverFn = async (
 export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  {
+    models, sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput
+    projectInput,
   );
   if (project.organization != null) {
     // this project is in an organization, limit it to organization groups only
     await hasPermission('organization', 'addGroup', {
-      organization: project.organization
+      organization: project.organization,
     });
   } else {
     await hasPermission('project', 'addGroup', {
-      project: project.id
+      project: project.id,
     });
   }
 
@@ -766,10 +783,10 @@ export const addGroupsToProject: ResolverFn = async (
       throw new Error('Group must be in same organization as the project');
     }
     if (org && project.organization != null) {
-      if (project.organization == org) {
+      if (project.organization === org) {
         // if this is a group in an organization, check that the user removing members from the group in this org is in the org
         await hasPermission('organization', 'addGroup', {
-          organization: org
+          organization: org,
         });
       } else {
         throw new Error('Group must be in same organization as the project');
@@ -786,21 +803,21 @@ export const addGroupsToProject: ResolverFn = async (
     },
     linkedResource: {
       type: AuditType.GROUP,
-      details: `multiple groups`,
+      details: 'multiple groups',
     },
   };
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User synced groups to a project`, {
+  userActivityLogger('User synced groups to a project', {
     project: '',
     event: 'api:addGroupsToProject',
     payload: {
       input: {
-        project: projectInput, groups: groupsInput
+        project: projectInput, groups: groupsInput,
       },
       ...auditLog,
-    }
+    },
   });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
@@ -809,16 +826,18 @@ export const addGroupsToProject: ResolverFn = async (
 export const getAllProjectsByGroupId: ResolverFn = async (
   root,
   input,
-  context
+  context,
 ) => getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
 
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClientPool, hasPermission, keycloakGrant, adminScopes }
+  {
+    models, sqlClientPool, keycloakGrant, adminScopes,
+  },
 ) => {
   const {
-    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
+    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
   } = models;
 
   // use the admin scope check instead of `hasPermission` for speed
@@ -827,8 +846,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
       // get group from all keycloak groups apollo context
       const group = await loadGroupByIdOrName(groupInput);
       const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-      return projectIdsArray.map(async id =>
-        projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
+      return projectIdsArray.map(async id => projectHelpers(sqlClientPool).getProjectByProjectInput({ id }),
       );
     } catch (err) {
       if (err instanceof GroupNotFoundError) {
@@ -845,61 +863,61 @@ export const getAllProjectsInGroup: ResolverFn = async (
   if (!keycloakGrant) {
     logger.debug('No grant available for getAllProjectsInGroup');
     return [];
-  } else {
-    const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
-    const userGroups = await models.UserModel.getAllGroupsForUser(keycloakGrant.access_token.content.sub);
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
-    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
-    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
-    if (usersOrgs != "" ) {
-      const uOrgs = usersOrgs.split(',');
-      for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
-        for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
-        }
-      }
-    }
-    if (usersOrgsAdmin != "" ) {
-      const uOrgs = usersOrgsAdmin.split(',');
-      for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
-        for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
-        }
-      }
-    }
-    if (usersOrgsViewer != "" ) {
-      const uOrgs = usersOrgsViewer.split(',');
-      for (const userOrg of uOrgs) {
-        const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg)
-        for (const pGroup of orgGroups) {
-          userGroups.push(pGroup)
-        }
-      }
-    }
-    // @ts-ignore
-    if (!R.contains(group.name, R.pluck('name', userGroups))) {
-      logger.debug('No grant available for getAllProjectsInGroup');
-      return [];
-    }
-    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-    return projectIdsArray.map(async id =>
-      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
-    );
   }
+  const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
+  const userGroups = await models.UserModel.getAllGroupsForUser(keycloakGrant.access_token.content.sub);
+  const user = await models.UserModel.loadUserById(
+    keycloakGrant.access_token.content.sub,
+  );
+  const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations', user.attributes)).toString();
+  const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin', user.attributes)).toString();
+  const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer', user.attributes)).toString();
+  if (usersOrgs !== '') {
+    const uOrgs = usersOrgs.split(',');
+    for (const userOrg of uOrgs) {
+      const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
+      for (const pGroup of orgGroups) {
+        userGroups.push(pGroup);
+      }
+    }
+  }
+  if (usersOrgsAdmin !== '') {
+    const uOrgs = usersOrgsAdmin.split(',');
+    for (const userOrg of uOrgs) {
+      const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
+      for (const pGroup of orgGroups) {
+        userGroups.push(pGroup);
+      }
+    }
+  }
+  if (usersOrgsViewer !== '') {
+    const uOrgs = usersOrgsViewer.split(',');
+    for (const userOrg of uOrgs) {
+      const orgGroups = await Helpers(sqlClientPool).selectGroupsByOrganizationId(models, userOrg);
+      for (const pGroup of orgGroups) {
+        userGroups.push(pGroup);
+      }
+    }
+  }
+  // @ts-ignore
+  if (!R.contains(group.name, R.pluck('name', userGroups))) {
+    logger.debug('No grant available for getAllProjectsInGroup');
+    return [];
+  }
+  const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+  return projectIdsArray.map(async id => projectHelpers(sqlClientPool).getProjectByProjectInput({ id }),
+  );
 };
 
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  {
+    models, sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput
+    projectInput,
   );
 
   // check if this is a group being removed by an organization
@@ -907,16 +925,16 @@ export const removeGroupsFromProject: ResolverFn = async (
   if (project.organization != null) {
     const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization);
     if (organizationData === undefined) {
-      throw new Error(`Organization does not exist`)
+      throw new Error('Organization does not exist');
     }
 
     await hasPermission('organization', 'removeGroup', {
-      organization: project.organization
+      organization: project.organization,
     });
   } else {
     // otherwise fall back
     await hasPermission('project', 'removeGroup', {
-      project: project.id
+      project: project.id,
     });
   }
 
@@ -943,40 +961,39 @@ export const removeGroupsFromProject: ResolverFn = async (
     },
     linkedResource: {
       type: AuditType.GROUP,
-      details: `multiple groups`,
+      details: 'multiple groups',
     },
   };
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User synced groups to a project`, {
+  userActivityLogger('User synced groups to a project', {
     project: '',
     event: 'api:removeGroupsFromProject',
     payload: {
       input: {
-        project: projectInput, groups: groupsInput
+        project: projectInput, groups: groupsInput,
       },
       ...auditLog,
-    }
+    },
   });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
-
 // This function retrieves email details for SSH key actions based on user preferences
 // it's really a convenience function to avoid code duplication
 async function getGroupEmailDetails(action, groupname, models: { UserModel: UserModel;}, user: User, additionalDetails = {}) {
-  var emailDetails = {};
+  let emailDetails = {};
   try {
-    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if (dbUserDetails && dbUserDetails['optEmailGroupRole'] == true) {
+    const dbUserDetails = await models.UserModel.getFullUserDetails(user) as any;
+    if (dbUserDetails && dbUserDetails.optEmailGroupRole === true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
           Email: user.email,
           GroupName: groupname,
-          ...additionalDetails
+          ...additionalDetails,
         },
       };
     }
@@ -987,7 +1004,7 @@ async function getGroupEmailDetails(action, groupname, models: { UserModel: User
       user.id,
       action,
       {},
-      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`,
     );
   }
   return emailDetails;

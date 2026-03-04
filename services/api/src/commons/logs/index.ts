@@ -5,7 +5,7 @@ export const levels = {
   info: 3,
   verbose: 4,
   debug: 5,
-  trace: 6
+  trace: 6,
 };
 
 export const colors = {
@@ -15,5 +15,5 @@ export const colors = {
   info: 'magenta',
   verbose: 'white',
   debug: 'gray',
-  trace: 'cyan'
+  trace: 'cyan',
 };

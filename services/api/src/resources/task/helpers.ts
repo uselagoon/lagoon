@@ -31,7 +31,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
     // if the user is not a platform owner or viewer, then perform normal permission check
     if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
       await hasPermission('task', 'view', {
-        project: R.path(['0', 'pid'], rowsPerms)
+        project: R.path(['0', 'pid'], rowsPerms),
       });
     }
 
@@ -56,7 +56,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       adminOnlyView,
       execute,
       sourceUser,
-      sourceType
+      sourceType,
     }: {
       id?: number;
       name: string;
@@ -110,13 +110,13 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
 
       rows = await query(
         sqlClientPool,
-        environmentSql.selectEnvironmentById(taskData.environment)
+        environmentSql.selectEnvironmentById(taskData.environment),
       );
       const environmentData = R.prop(0, rows);
 
       rows = await query(
         sqlClientPool,
-        projectSql.selectProject(environmentData.project)
+        projectSql.selectProject(environmentData.project),
       );
       const projectData = R.prop(0, rows);
 
@@ -124,8 +124,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
 
       const routerPatternVarsInput = {
         projectName: projectData.name,
-        environmentId: environmentData.id
-      }
+        environmentId: environmentData.id,
+      };
       const response = await fetch(
         `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/routerpatternvariables`,
         {
@@ -139,10 +139,10 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       );
       if (!response.ok) {
         const errorText = await response.text();
-        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`)
+        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`);
         throw new Error(`Error getting variables for task ${environmentData.name}`);
       }
-      const resp = JSON.parse(await response.text())
+      const resp = JSON.parse(await response.text());
       // logger.info(`AAAAAAA1 ${resp.envVars}`)
 
       try {
@@ -159,12 +159,12 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
           '',
           'api:addTask',
           { taskId: taskData.id },
-          `*[${projectData.name}]* Task not initiated, reason: ${error}`
+          `*[${projectData.name}]* Task not initiated, reason: ${error}`,
         );
       }
 
       // pass to the HistoryRetentionEnforcer to clean up tasks based on any retention policies
-      await HistoryRetentionEnforcer().cleanupTasks(projectData, environmentData)
+      await HistoryRetentionEnforcer().cleanupTasks(projectData, environmentData);
 
       return taskData;
     },
@@ -182,7 +182,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
         image,
         payload = {},
         remoteId,
-        execute,
+        execute: _execute,
         deployTokenInjection,
         projectKeyInjection,
         adminOnlyView,
@@ -217,8 +217,7 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       );
       const projectData = R.prop(0, rows);
 
-
-      const  queryresp = await query(
+      const queryresp = await query(
         sqlClientPool,
         Sql.insertTask({
           id,
@@ -244,26 +243,26 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       const { insertId } = queryresp;
       rows = await query(sqlClientPool, Sql.selectTask(insertId));
       const taskData = R.prop(0, rows);
-      const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
+      const ADVANCED_TASK_EVENT_TYPE = 'task:advanced';
 
       taskData.id = taskData.id.toString();
 
-      let jobSpec = {
+      const jobSpec = {
         task: taskData,
         project: projectData,
         environment: environmentData,
         advancedTask: {
           RunnerImage: image,
           JSONPayload: encodeJSONBase64(payload),
-          deployerToken: deployTokenInjection, //an admintask will have a deployer token and ssh key injected into it
+          deployerToken: deployTokenInjection, // an admintask will have a deployer token and ssh key injected into it
           sshKey: projectKeyInjection,
-        }
-      }
+        },
+      };
 
       const routerPatternVarsInput = {
         projectName: projectData.name,
-        environmentId: environmentData.id
-      }
+        environmentId: environmentData.id,
+      };
       const response = await fetch(
         `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/routerpatternvariables`,
         {
@@ -277,10 +276,10 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       );
       if (!response.ok) {
         const errorText = await response.text();
-        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`)
+        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`);
         throw new Error(`Error getting variables for task ${environmentData.name}`);
       }
-      const resp = JSON.parse(await response.text())
+      const resp = JSON.parse(await response.text());
 
       try {
         await createMiscTask(
@@ -288,8 +287,8 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
             key: ADVANCED_TASK_EVENT_TYPE,
             data: jobSpec,
             envVars: resp.envVars,
-          }
-        )
+          },
+        );
       } catch (error) {
         sendToLagoonLogs(
           'error',
@@ -309,67 +308,67 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
       const hasName = R.both(R.has('taskName'), R.propSatisfies(notEmpty, 'taskName'));
       const hasEnvironment = R.both(
         R.has('environment'),
-        R.propSatisfies(notEmpty, 'environment')
+        R.propSatisfies(notEmpty, 'environment'),
       );
       // @ts-ignore
       const hasNameAndEnvironment = R.both(hasName, hasEnvironment);
 
       const taskFromId = asyncPipe(
-          R.prop('id'),
-          getTaskById,
-          task => {
-            if (!task) {
-              throw new Error('No matching task found');
-            }
-
-            return task;
-          }
-        );
-
-        const taskFromNameEnv = async input => {
-          const environments = await environmentHelpers(
-            sqlClientPool
-          ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
-          const activeEnvironments = R.filter(
-            R.propEq('0000-00-00 00:00:00', 'deleted'),
-            environments
-          );
-
-          if (activeEnvironments.length != 1) {
-            throw new Error('No matching environment found');
-          }
-
-          const environment = R.prop(0, activeEnvironments);
-
-          const rows = await query(
-            sqlClientPool,
-            Sql.selectTaskByNameAndEnvironment(
-              R.prop('taskName', input),
-              environment.id
-            )
-          );
-
-          if (!R.prop(0, rows)) {
+        R.prop('id'),
+        getTaskById,
+        task => {
+          if (!task) {
             throw new Error('No matching task found');
           }
 
-          return R.prop(0, rows);
-        };
+          return task;
+        },
+      );
 
-        return R.cond([
-          [hasId, taskFromId],
-          // @ts-ignore
-          [hasNameAndEnvironment, taskFromNameEnv],
-          [
-            R.T,
-            () => {
-              throw new Error(
-                'Must provide task (id) or (name and environment)'
-              );
-            }
-          ]
+      const taskFromNameEnv = async input => {
+        const environments = await environmentHelpers(
+          sqlClientPool,
+        ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
+        const activeEnvironments = R.filter(
+          R.propEq('0000-00-00 00:00:00', 'deleted'),
+          environments,
+        );
+
+        if (activeEnvironments.length !== 1) {
+          throw new Error('No matching environment found');
+        }
+
+        const environment = R.prop(0, activeEnvironments);
+
+        const rows = await query(
+          sqlClientPool,
+          Sql.selectTaskByNameAndEnvironment(
+            R.prop('taskName', input),
+            environment.id,
+          ),
+        );
+
+        if (!R.prop(0, rows)) {
+          throw new Error('No matching task found');
+        }
+
+        return R.prop(0, rows);
+      };
+
+      return R.cond([
+        [hasId, taskFromId],
         // @ts-ignore
-        ])(taskInput);
-    }
+        [hasNameAndEnvironment, taskFromNameEnv],
+        [
+          R.T,
+          () => {
+            throw new Error(
+              'Must provide task (id) or (name and environment)',
+            );
+          },
+        ],
+        // @ts-ignore
+      ])(taskInput);
+    },
   };
 };

@@ -5,12 +5,11 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 
 export const Helpers = (sqlClientPool: Pool) => {
-  const groupByProblemIdentifier = problems =>
-    problems.reduce((obj, problem) => {
-      obj[problem.identifier] = obj[problem.identifier] || [];
-      obj[problem.identifier].push(problem);
-      return obj;
-    }, {});
+  const groupByProblemIdentifier = problems => problems.reduce((obj, problem) => {
+    obj[problem.identifier] = obj[problem.identifier] || [];
+    obj[problem.identifier].push(problem);
+    return obj;
+  }, {});
 
   const getAllProblems = async (source, environment, envType, severity) => {
     const environmentType = envType && envType.map(t => t.toLowerCase() || []);
@@ -21,24 +20,23 @@ export const Helpers = (sqlClientPool: Pool) => {
         source,
         environmentId: environment,
         environmentType,
-        severity
-      })
+        severity,
+      }),
     );
   };
 
-  const getSeverityOptions = async () =>
-    R.map(
-      R.prop('severity'),
-      await query(sqlClientPool, Sql.selectSeverityOptions())
-    );
+  const getSeverityOptions = async () => R.map(
+    R.prop('severity'),
+    await query(sqlClientPool, Sql.selectSeverityOptions()),
+  );
 
   const getProblemsWithProjects = async (
     problems,
     hasPermission,
-    args: any = []
+    args: any = [],
   ) => {
     const withProjects = await Object.keys(problems).map(key => {
-      let projects = problems[key].map(async problem => {
+      const projects = problems[key].map(async problem => {
         const envType = !R.isEmpty(args.envType) && args.envType;
         const {
           id,
@@ -46,15 +44,14 @@ export const Helpers = (sqlClientPool: Pool) => {
           openshiftProjectName,
           name,
           envName,
-          environmentType
-        }: any =
-          (await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
-            problem.environment,
-            envType
-          )) || {};
+          environmentType,
+        }: any = (await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+          problem.environment,
+          envType,
+        )) || {};
 
         hasPermission('project', 'view', {
-          project: !R.isNil(project) && project
+          project: !R.isNil(project) && project,
         });
 
         return (
@@ -64,7 +61,7 @@ export const Helpers = (sqlClientPool: Pool) => {
             openshiftProjectName,
             name,
             environments: { name: envName },
-            type: environmentType
+            type: environmentType,
           }
         );
       });
@@ -72,8 +69,8 @@ export const Helpers = (sqlClientPool: Pool) => {
       return {
         identifier: key,
         problem: { ...problem },
-        projects: projects,
-        problems: problems[key]
+        projects,
+        problems: problems[key],
       };
     });
 
@@ -84,6 +81,6 @@ export const Helpers = (sqlClientPool: Pool) => {
     getAllProblems,
     getSeverityOptions,
     groupByProblemIdentifier,
-    getProblemsWithProjects
+    getProblemsWithProjects,
   };
 };

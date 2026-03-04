@@ -4,7 +4,7 @@ import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { logger } from '../../loggers/logger';
 import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
@@ -12,7 +12,7 @@ import { AuditLog } from '../audit/types';
 export const getAllProblems: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   let rows = [];
 
@@ -22,7 +22,7 @@ export const getAllProblems: ResolverFn = async (
         args.source,
         args.environment,
         args.envType,
-        args.severity
+        args.severity,
       );
     } else {
       rows = await query(
@@ -31,8 +31,8 @@ export const getAllProblems: ResolverFn = async (
           source: [],
           environmentId: 0,
           environmentType: [],
-          severity: []
-        })
+          severity: [],
+        }),
       );
     }
   } catch (err) {
@@ -42,9 +42,8 @@ export const getAllProblems: ResolverFn = async (
     }
   }
 
-  const problems: any =
-    rows &&
-    rows.map(async problem => {
+  const problems: any = rows
+    && rows.map(async problem => {
       const {
         environment: envId,
         name,
@@ -55,7 +54,7 @@ export const getAllProblems: ResolverFn = async (
       } = problem;
 
       await hasPermission('problem', 'view', {
-        project: project
+        project,
       });
 
       return {
@@ -65,52 +64,48 @@ export const getAllProblems: ResolverFn = async (
           name,
           project,
           environmentType,
-          openshiftProjectName
-        }
+          openshiftProjectName,
+        },
       };
     });
 
   return Promise.all(problems).then(completed => {
     const sorted = R.sort(R.descend(R.prop('severity')), completed);
-    return sorted.map((row: any) => ({ ...(row as Object) }));
+    return sorted.map((row: any) => ({ ...(row as object) }));
   });
 };
 
 export const getSeverityOptions: ResolverFn = async (
   root,
   args,
-  { sqlClientPool }
-) => {
-  return await problemHelpers(sqlClientPool).getSeverityOptions();
-};
+  { sqlClientPool },
+) => await problemHelpers(sqlClientPool).getSeverityOptions();
 
 export const getProblemSources: ResolverFn = async (
   root,
   args,
-  { sqlClientPool }
-) => {
-  return R.map(
-    R.prop('source'),
-    await query(
-      sqlClientPool,
-      'SELECT DISTINCT source FROM environment_problem'
-    )
-  );
-};
+  { sqlClientPool },
+) => R.map(
+  R.prop('source'),
+  await query(
+    sqlClientPool,
+    'SELECT DISTINCT source FROM environment_problem',
+  ),
+);
 
 export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { severity, source },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('problem', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -119,18 +114,18 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     Sql.selectProblemsByEnvironmentId({
       environmentId,
       severity,
-      source
-    })
+      source,
+    }),
   );
 
-  //With some changes in Mariadb, we now have to stringify outgoing json
+  // With some changes in Mariadb, we now have to stringify outgoing json
   interface hasData {
     data: string
   }
 
   rows = R.map((e:hasData) => {
     e.data = JSON.stringify(e.data);
-    return e
+    return e;
   }, rows);
 
   return R.sort(R.descend((r: any) => r.created), rows);
@@ -152,22 +147,22 @@ export const addProblem: ResolverFn = async (
       description,
       version,
       fixedVersion,
-      links
-    }
+      links,
+    },
   },
   { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'add', {
-    project: environment.project
+    project: environment.project,
   });
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertProblem({
         severity,
@@ -180,27 +175,27 @@ export const addProblem: ResolverFn = async (
         description,
         version: version || '',
         fixed_version: fixedVersion,
-        links: links,
+        links,
         data,
-        created
-      })
+        created,
+      }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding problem. Problem already exists.`
+        'Error adding problem. Problem already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectProblemByDatabaseId(insertId)
+    Sql.selectProblemByDatabaseId(insertId),
   );
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -232,15 +227,15 @@ export const addProblem: ResolverFn = async (
         description,
         version: version || '',
         fixed_version: fixedVersion,
-        links: links,
+        links,
         data: JSON.stringify(data),
         created,
       },
       ...auditLog,
-    }
+    },
   });
 
-  let ret = R.prop(0, rows);
+  const ret = R.prop(0, rows);
   ret.data = JSON.stringify(data);
 
   return ret;
@@ -249,17 +244,17 @@ export const addProblem: ResolverFn = async (
 export const deleteProblem: ResolverFn = async (
   root,
   { input: { environment: environmentId, identifier, service } },
-  { sqlClientPool, hasPermission, userActivityLogger  }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier, service));
 
@@ -284,7 +279,7 @@ export const deleteProblem: ResolverFn = async (
     payload: {
       input: { environment, identifier },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -293,21 +288,21 @@ export const deleteProblem: ResolverFn = async (
 export const deleteProblemsFromSource: ResolverFn = async (
   root,
   { input: { environment: environmentId, source, service } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(
     sqlClientPool,
-    Sql.deleteProblemsFromSource(environmentId, source, service)
+    Sql.deleteProblemsFromSource(environmentId, source, service),
   );
 
   const auditLog: AuditLog = {
@@ -331,7 +326,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
     payload: {
       input: { environment, source, service },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';

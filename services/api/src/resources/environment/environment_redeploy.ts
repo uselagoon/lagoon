@@ -2,27 +2,25 @@
 import { ResolverFn } from '..';
 import { query } from '../../util/db';
 
-
 export const environmentPendingChangeTypes = {
-  ENVVAR: "ENVVAR",
+  ENVVAR: 'ENVVAR',
 };
 
-export const getPendingChangesByEnvironmentId: ResolverFn = async(
-{
-    id
-},
-_,
-{ sqlClientPool, hasPermission },
+export const getPendingChangesByEnvironmentId: ResolverFn = async (
+  {
+    id,
+  },
+  _,
+  { sqlClientPool },
 ) => {
-    // Note: as it stands, the only pending changes we have now have to do
-    // with env vars, but anything can be added in the form
-    // {type:"string", details:"string", date: "string"}
-    let pendingChanges = await getPendingEnvVarChanges(sqlClientPool, id);
-    return pendingChanges;
-}
+  // Note: as it stands, the only pending changes we have now have to do
+  // with env vars, but anything can be added in the form
+  // {type:"string", details:"string", date: "string"}
+  const pendingChanges = await getPendingEnvVarChanges(sqlClientPool, id);
+  return pendingChanges;
+};
 
-const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
-
+const getPendingEnvVarChanges = async (sqlClientPool, envId) => {
   const sql = `
     WITH last_completed AS (
       SELECT COALESCE(MAX(d.created), TIMESTAMP('1970-01-01 00:00:00')) AS ts
@@ -92,34 +90,30 @@ const getPendingEnvVarChanges = async(sqlClientPool, envId) => {
 
   const overrideMap = new Map();
 
-  const shouldDeployDBString = "deploy";
+  const shouldDeployDBString = 'deploy';
   results.forEach((row) => {
-      if (overrideMap.has(row.envvarName)) { // Check if there is already an instance of this var
-          let other = overrideMap.get(row.envvarName);
-          if(row.envvarPriority > other.envvarPriority) { // if this is higher
-              if(row.mustDeploy === shouldDeployDBString) {
-                  // We override conventionally
-                  overrideMap.set(row.envvarName, row);
-              } else {
-                  // We override without any deployment - remove
-                  overrideMap.delete(row.envvarName);
-              }
-          }
-      } else {
-          if(row.mustDeploy === shouldDeployDBString) {
-              // First instance of a var to be deployed
-              overrideMap.set(row.envvarName, row);
-          }
+    if (overrideMap.has(row.envvarName)) { // Check if there is already an instance of this var
+      const other = overrideMap.get(row.envvarName);
+      if (row.envvarPriority > other.envvarPriority) { // if this is higher
+        if (row.mustDeploy === shouldDeployDBString) {
+          // We override conventionally
+          overrideMap.set(row.envvarName, row);
+        } else {
+          // We override without any deployment - remove
+          overrideMap.delete(row.envvarName);
+        }
       }
-  })
+    } else if (row.mustDeploy === shouldDeployDBString) {
+      // First instance of a var to be deployed
+      overrideMap.set(row.envvarName, row);
+    }
+  });
 
-  const pendingChanges =  Array.from(overrideMap.values()).map((row) => {
-      return {
-        type:environmentPendingChangeTypes.ENVVAR,
-        details: `Variable name: ${row.envvarName} (source: ${row.envvarSource})`,
-        date: row.envvarUpdated
-      };
-  })
+  const pendingChanges = Array.from(overrideMap.values()).map((row) => ({
+    type: environmentPendingChangeTypes.ENVVAR,
+    details: `Variable name: ${row.envvarName} (source: ${row.envvarSource})`,
+    date: row.envvarUpdated,
+  }));
 
   return pendingChanges;
-}
+};

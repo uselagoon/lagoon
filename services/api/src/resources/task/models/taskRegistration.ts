@@ -1,26 +1,41 @@
 export const newTaskRegistrationFromObject = (
-  payload: Partial<TaskRegistration>
+  payload: Partial<TaskRegistration>,
 ) => {
-  let obj = new TaskRegistration();
+  const obj = new TaskRegistration();
   return { ...obj, ...payload };
 };
 
 export class TaskRegistration {
-  static TYPE_STANDARD = "COMMAND"
-  static TYPE_ADVANCED = "IMAGE"
+  static TYPE_STANDARD = 'COMMAND';
+
+  static TYPE_ADVANCED = 'IMAGE';
+
   id: number;
+
   type: string;
+
   name: string;
+
   description: string;
+
   advanced_task_definition: number;
+
   environment: number;
+
   project: number;
+
   groupName: string;
+
   command: string;
+
   service: string;
+
   created: string;
+
   deleted: string;
+
   image: string;
+
   permission: string;
 }
 
@@ -45,10 +60,9 @@ export interface AdvancedTaskDefinitionInterface {
   advancedTaskDefinitionArguments?: Partial<AdvancedTaskDefinitionArguments>;
 }
 
-
 export const AdvancedTaskDefinitionType = {
   command: 'COMMAND',
-  image: 'IMAGE'
+  image: 'IMAGE',
 };
 
 export interface AdvancedTaskDefinitionArguments {
@@ -56,21 +70,17 @@ export interface AdvancedTaskDefinitionArguments {
   type?: string;
   range?: string;
   advancedTaskDefinition?: number;
-};
+}
 
 export const getAdvancedTaskDefinitionType = (taskDef:AdvancedTaskDefinitionInterface) => {
-    if(taskDef.type.toLowerCase() == AdvancedTaskDefinitionType.command.toLowerCase()) {
-      return AdvancedTaskDefinitionType.command;
-    }
-    return AdvancedTaskDefinitionType.image;
+  if (taskDef.type.toLowerCase() === AdvancedTaskDefinitionType.command.toLowerCase()) {
+    return AdvancedTaskDefinitionType.command;
   }
+  return AdvancedTaskDefinitionType.image;
+};
 
-export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
-  return taskDef.systemWide == true;
-}
+export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef:AdvancedTaskDefinitionInterface): boolean => taskDef.systemWide === true;
 
-export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
-  return isAdvancedTaskDefinitionSystemLevelTask(taskDef)
-  || getAdvancedTaskDefinitionType(taskDef) == AdvancedTaskDefinitionType.image
-  || taskDef.groupName != undefined;
-}
+export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef:AdvancedTaskDefinitionInterface): boolean => isAdvancedTaskDefinitionSystemLevelTask(taskDef)
+  || getAdvancedTaskDefinitionType(taskDef) === AdvancedTaskDefinitionType.image
+  || taskDef.groupName !== undefined;

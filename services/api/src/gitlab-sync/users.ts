@@ -13,8 +13,8 @@ const usernameExistsRegex = /Username.*?exists/;
   for (const user of allUsers) {
     logger.debug(`Processing ${user.email}`);
 
-    let firstName = user.name,
-      lastName;
+    let firstName = user.name;
+    let lastName;
     if (user.name.includes(' ')) {
       const nameParts = user.name.split(' ');
       firstName = R.head(nameParts) as string;
@@ -41,7 +41,7 @@ const usernameExistsRegex = /Username.*?exists/;
               firstName,
               lastName,
               gitlabId: user.id,
-            }
+            },
           );
         } catch (err) {
           logger.error(`Could not sync (update) gitlab user ${user.email} id ${user.id}: ${err.message}`);
@@ -51,4 +51,4 @@ const usernameExistsRegex = /Username.*?exists/;
   }
 
   logger.info('Sync completed');
-})()
+})();

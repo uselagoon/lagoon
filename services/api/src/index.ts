@@ -3,7 +3,7 @@ import { Server } from 'http';
 import { initSendToLagoonLogs } from './commons/logs/lagoon-logger';
 import {
   initSendToLagoonTasks,
-  initSendToLagoonActions
+  initSendToLagoonActions,
 } from './commons/tasks';
 import { waitForKeycloak } from './util/waitForKeycloak';
 import { envHasConfig } from './util/config';
@@ -14,16 +14,14 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 initSendToLagoonActions();
 
-const makeGracefulShutdown = (server: Server) => {
-  return async (signal: NodeJS.Signals) => {
-    logger.info(`${signal}: API Shutting Down`);
+const makeGracefulShutdown = (_server: Server) => async (signal: NodeJS.Signals) => {
+  logger.info(`${signal}: API Shutting Down`);
 
-    logger.verbose('Closing sqlClientPool');
-    const { sqlClientPool } = await import('./clients/sqlClient');
-    await sqlClientPool.end();
+  logger.verbose('Closing sqlClientPool');
+  const { sqlClientPool } = await import('./clients/sqlClient');
+  await sqlClientPool.end();
 
-    process.kill(process.pid, signal);
-  };
+  process.kill(process.pid, signal);
 };
 
 (async () => {

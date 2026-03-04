@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { query, isPatchEmpty } from '../../util/db';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Sql } from './sql';
@@ -11,7 +11,7 @@ import { UserModel, User } from '../../models/user';
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
   return models.UserModel.loadUserById(currentUserId);
-}
+};
 
 class SearchInputError extends Error {
   constructor(message: string) {
@@ -27,7 +27,6 @@ class UserNotFoundError extends Error {
   }
 }
 
-
 export const getUserBySshKey: ResolverFn = async (
   _root,
   { sshKey },
@@ -41,7 +40,7 @@ export const getUserBySshKey: ResolverFn = async (
     // @ts-ignore
   )(sshKey);
 
-  if(!keyType || !keyValue) {
+  if (!keyType || !keyValue) {
     throw new SearchInputError("Malformed ssh key provided. Should begin with key-type (eg. ssh-rsa|ssh-ed25519|etc.), then a space, then the key's value");
   }
 
@@ -63,19 +62,19 @@ export const getUserBySshFingerprint: ResolverFn = async (
 ) => {
   await hasPermission('user', 'getBySshKey');
 
-  if(!fingerprint) {
-    throw new SearchInputError("Malformed ssh key fingerprint provided");
+  if (!fingerprint) {
+    throw new SearchInputError('Malformed ssh key fingerprint provided');
   }
   try {
     const rows = await query(
       sqlClientPool,
-      Sql.selectUserIdBySshFingerprint({keyFingerprint: fingerprint}),
+      Sql.selectUserIdBySshFingerprint({ keyFingerprint: fingerprint }),
     );
     const userId = R.map(R.prop('usid'), rows);
     const user = await models.UserModel.loadUserById(userId[0]);
     return user;
-  } catch (err) {
-    throw new UserNotFoundError("No user found matching provided fingerprint");
+  } catch (_err) {
+    throw new UserNotFoundError('No user found matching provided fingerprint');
   }
 };
 
@@ -83,7 +82,7 @@ export const getUserBySshFingerprint: ResolverFn = async (
 export const getAllUsers: ResolverFn = async (
   _root,
   { id, email, gitlabId },
-  { sqlClientPool, models, hasPermission },
+  { models, hasPermission },
 ) => {
   await hasPermission('user', 'viewAll');
 
@@ -91,28 +90,26 @@ export const getAllUsers: ResolverFn = async (
     try {
       // use the model to get a user by email address instead of filtering
       const user = await models.UserModel.loadUserByEmail(email);
-      return [user]
-    } catch (e) {
+      return [user];
+    } catch (_e) {
       // if no user found, return empty user list like before
-      return []
+      return [];
     }
   }
   if (id) {
     try {
       // use the model to get a user by id instead of filtering
       const user = await models.UserModel.loadUserById(id);
-      return [user]
-    } catch (e) {
+      return [user];
+    } catch (_e) {
       // if no user found, return empty user list like before
-      return []
+      return [];
     }
   }
   // since gitlab users are harder to check, do the all users query and then filter them
   const users = await models.UserModel.loadAllUsers();
   if (gitlabId) {
-    const filteredByGitlab = users.filter(function (item) {
-      return item.gitlabId === gitlabId;
-    });
+    const filteredByGitlab = users.filter((item) => item.gitlabId === gitlabId);
     return filteredByGitlab;
   }
 
@@ -123,14 +120,15 @@ export const getAllUsers: ResolverFn = async (
 export const getUserByEmail: ResolverFn = async (
   _root,
   { email },
-  { sqlClientPool, models, hasPermission, keycloakGrant },
+  {
+    models, hasPermission, keycloakGrant,
+  },
 ) => {
-
   const user = await models.UserModel.loadUserByEmail(email);
   if (keycloakGrant) {
-    if (keycloakGrant.access_token.content.sub == user.id) {
+    if (keycloakGrant.access_token.content.sub === user.id) {
       await hasPermission('ssh_key', 'view:user', {
-        users: [user.id]
+        users: [user.id],
       });
     } else {
       await hasPermission('user', 'viewAll');
@@ -163,7 +161,7 @@ export const addUser: ResolverFn = async (
     resource: {
       id: user.id,
       type: AuditType.USER,
-      details: input.email
+      details: input.email,
     },
   };
   userActivityLogger(`User added a user '${input.email}'`, {
@@ -175,7 +173,7 @@ export const addUser: ResolverFn = async (
         email: user.email,
       },
       ...auditLog,
-    }
+    },
   });
 
   return user;
@@ -234,7 +232,7 @@ export const resetUserPassword: ResolverFn = async (
     resource: {
       id: user.id,
       type: AuditType.USER,
-      details: user.email
+      details: user.email,
     },
   };
   userActivityLogger(`User requested password reset '${user.email}'`, {
@@ -246,7 +244,7 @@ export const resetUserPassword: ResolverFn = async (
         email: user.email,
       },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -272,7 +270,7 @@ export const deleteUser: ResolverFn = async (
     resource: {
       id: user.id,
       type: AuditType.USER,
-      details: user.email
+      details: user.email,
     },
   };
   userActivityLogger(`User deleted a user '${user.email}'`, {
@@ -284,7 +282,7 @@ export const deleteUser: ResolverFn = async (
         email: user.email,
       },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -293,21 +291,24 @@ export const deleteUser: ResolverFn = async (
 // @DEPRECATED use addAdminToOrganization - addUserToOrganization adds a user as an organization owner
 export const addUserToOrganization: ResolverFn = async (
   _root,
-  { input: { user: userInput, organization: organization, admin: admin, owner: owner } },
-  { sqlClientPool, models, hasPermission, userActivityLogger },
+  {
+    input: {
+      user: userInput, organization, admin, owner,
+    },
+  },
+  {
+    sqlClientPool, models, hasPermission, userActivityLogger,
+  },
 ) => {
-
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
   if (organizationData === undefined) {
-    let scope = "addViewer"
+    let scope = 'addViewer';
     if (owner) {
-      scope = "addOwner"
-    } else {
-      if (admin) {
-        scope = "addOwner"
-      }
+      scope = 'addOwner';
+    } else if (admin) {
+      scope = 'addOwner';
     }
-    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`);
   }
 
   const user = await models.UserModel.loadUserByIdOrEmail({
@@ -315,28 +316,26 @@ export const addUserToOrganization: ResolverFn = async (
     email: R.prop('email', userInput),
   });
 
-  let updateUser = {
+  const updateUser = {
     id: user.id,
-    organization: organization,
+    organization,
     admin: false,
     owner: false,
-  }
+  };
   if (owner) {
     await hasPermission('organization', 'addOwner', {
-      organization: organization
+      organization,
     });
-    updateUser.owner = true
+    updateUser.owner = true;
+  } else if (admin) {
+    await hasPermission('organization', 'addOwner', {
+      organization,
+    });
+    updateUser.admin = true;
   } else {
-    if (admin) {
-      await hasPermission('organization', 'addOwner', {
-        organization: organization
-      });
-      updateUser.admin = true
-    } else {
-      await hasPermission('organization', 'addViewer', {
-        organization: organization
-      });
-    }
+    await hasPermission('organization', 'addViewer', {
+      organization,
+    });
   }
   await models.UserModel.updateUser(updateUser);
 
@@ -349,16 +348,16 @@ export const addUserToOrganization: ResolverFn = async (
     linkedResource: {
       id: user.id,
       type: AuditType.USER,
-      details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`,
+      details: `${user.email} role ${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : 'viewer')}`,
     },
     organizationId: organizationData.id,
   };
 
-  var emailDetails = await getUserOrgEmailDetails('api:addUserToOrganization', models, user, {
+  const emailDetails = await getUserOrgEmailDetails('api:addUserToOrganization', models, user, {
     Name: user.email,
     Email: user.email,
     OrganizationName: organizationData.name,
-    Role: `${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : `viewer`)}`
+    Role: `${(admin ? `admin: ${admin}` : owner ? `owner: ${owner}` : 'viewer')}`,
   });
 
   userActivityLogger(`User added a user to organization '${organizationData.name}'`, {
@@ -368,29 +367,29 @@ export const addUserToOrganization: ResolverFn = async (
       user: {
         id: user.id,
         email: user.email,
-        organization: organization,
-        admin: admin,
-        owner: owner,
+        organization,
+        admin,
+        owner,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return organizationData;
-
 };
 
 // @DEPRECATED use removeAdminFromOrganization - removeUserFromOrganization a user as an organization owner
 export const removeUserFromOrganization: ResolverFn = async (
   _root,
-  { input: { user: userInput, organization: organization } },
-  { sqlClientPool, models, hasPermission, userActivityLogger },
+  { input: { user: userInput, organization } },
+  {
+    sqlClientPool, models, hasPermission, userActivityLogger,
+  },
 ) => {
-
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
   if (organizationData === undefined) {
-    throw new Error(`Unauthorized: You don't have permission to "addOwner" on "organization"`)
+    throw new Error('Unauthorized: You don\'t have permission to "addOwner" on "organization"');
   }
 
   const user = await models.UserModel.loadUserByIdOrEmail({
@@ -399,12 +398,12 @@ export const removeUserFromOrganization: ResolverFn = async (
   });
 
   await hasPermission('organization', 'addOwner', {
-    organization: organization
+    organization,
   });
 
   await models.UserModel.updateUser({
     id: user.id,
-    organization: organization,
+    organization,
     remove: true,
   });
 
@@ -412,22 +411,21 @@ export const removeUserFromOrganization: ResolverFn = async (
     resource: {
       id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
-      details: organizationData.name
+      details: organizationData.name,
     },
     linkedResource: {
       id: user.id,
       type: AuditType.USER,
-      details: user.email
+      details: user.email,
     },
     organizationId: organizationData.id,
   };
 
-    var emailDetails = await getUserOrgEmailDetails('api:removeUserFromOrganization', models, user, {
-      Name: user.email,
-      Email: user.email,
-      OrganizationName: organizationData.name,
-    });
-
+  const emailDetails = await getUserOrgEmailDetails('api:removeUserFromOrganization', models, user, {
+    Name: user.email,
+    Email: user.email,
+    OrganizationName: organizationData.name,
+  });
 
   userActivityLogger(`User removed a user from organization '${organizationData.name}'`, {
     project: '',
@@ -435,11 +433,11 @@ export const removeUserFromOrganization: ResolverFn = async (
     payload: {
       user: {
         id: user.id,
-        organization: organization,
+        organization,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return organizationData;
@@ -448,39 +446,41 @@ export const removeUserFromOrganization: ResolverFn = async (
 // addAdminToOrganization adds a user as an organization administrator
 export const addAdminToOrganization: ResolverFn = async (
   _root,
-  { input: { user: userInput, organization: organization, role } },
-  { sqlClientPool, models, hasPermission, userActivityLogger },
+  { input: { user: userInput, organization, role } },
+  {
+    sqlClientPool, models, hasPermission, userActivityLogger,
+  },
 ) => {
-  let updateUser = {
-    id: "",
+  const updateUser = {
+    id: '',
     admin: false,
     owner: false,
-    organization: 0
-  }
-  let scope = "addOwner"
+    organization: 0,
+  };
+  let scope = 'addOwner';
   switch (role) {
-    case "ADMIN":
-      scope = "addOwner"
-      updateUser.admin = true
+    case 'ADMIN':
+      scope = 'addOwner';
+      updateUser.admin = true;
       break;
-    case "OWNER":
-      scope = "addOwner"
-      updateUser.owner = true
+    case 'OWNER':
+      scope = 'addOwner';
+      updateUser.owner = true;
       break;
-    case "VIEWER": //fallthrough default
+    case 'VIEWER': // fallthrough default
     default:
-      scope = "addViewer"
-      updateUser.admin = false
-      updateUser.owner = false
+      scope = 'addViewer';
+      updateUser.admin = false;
+      updateUser.owner = false;
       break;
   }
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationByOrganizationInput(
     organization,
     scope,
-    "organization"
+    'organization',
   );
   if (organizationData === undefined) {
-    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`)
+    throw new Error(`Unauthorized: You don't have permission to "${scope}" on "organization"`);
   }
 
   const user = await models.UserModel.loadUserByIdOrEmail({
@@ -488,11 +488,11 @@ export const addAdminToOrganization: ResolverFn = async (
     email: R.prop('email', userInput),
   });
 
-  updateUser.id = user.id
-  updateUser.organization = organizationData.id
+  updateUser.id = user.id;
+  updateUser.organization = organizationData.id;
 
   await hasPermission('organization', scope, {
-    organization: organizationData.id
+    organization: organizationData.id,
   });
 
   await models.UserModel.updateUser(updateUser);
@@ -511,14 +511,13 @@ export const addAdminToOrganization: ResolverFn = async (
     organizationId: organizationData.id,
   };
 
-
   // var emailDetails = await getUserOrgEmailDetails(models, user, organizationData, role);
-  var emailDetails = await getUserOrgEmailDetails('api:addAdminToOrganization', models, user, {
-      Name: user.email,
-      Email: user.email,
-      OrganizationName: organizationData.name,
-      Role: role,
-    });
+  const emailDetails = await getUserOrgEmailDetails('api:addAdminToOrganization', models, user, {
+    Name: user.email,
+    Email: user.email,
+    OrganizationName: organizationData.name,
+    Role: role,
+  });
 
   userActivityLogger(`User added an administrator to organization '${organizationData.name}'`, {
     project: '',
@@ -528,11 +527,11 @@ export const addAdminToOrganization: ResolverFn = async (
         id: user.id,
         email: user.email,
         organization: organizationData.id,
-        role: role,
+        role,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return organizationData;
@@ -542,17 +541,18 @@ export const addAdminToOrganization: ResolverFn = async (
 export const removeAdminFromOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization } },
-  { sqlClientPool, models, hasPermission, userActivityLogger },
+  {
+    sqlClientPool, models, hasPermission, userActivityLogger,
+  },
 ) => {
-
-  const scope = 'addOwner'
+  const scope = 'addOwner';
   const organizationData = await organizationHelpers(sqlClientPool).getOrganizationByOrganizationInput(
     organization,
     scope,
-    "organization"
+    'organization',
   );
   if (organizationData === undefined) {
-    throw new Error(`Unauthorized: You don't have permission to scope on "organization"`)
+    throw new Error('Unauthorized: You don\'t have permission to scope on "organization"');
   }
 
   const user = await models.UserModel.loadUserByIdOrEmail({
@@ -561,7 +561,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
   });
 
   await hasPermission('organization', scope, {
-    organization: organizationData.id
+    organization: organizationData.id,
   });
 
   await models.UserModel.updateUser({
@@ -574,21 +574,21 @@ export const removeAdminFromOrganization: ResolverFn = async (
     resource: {
       id: organizationData.id.toString(),
       type: AuditType.ORGANIZATION,
-      details: organizationData.name
+      details: organizationData.name,
     },
     linkedResource: {
       id: user.id,
       type: AuditType.USER,
-      details: user.email
+      details: user.email,
     },
     organizationId: organizationData.id,
   };
 
-  var emailDetails = await getUserOrgEmailDetails('api:removeAdminFromOrganization', models, user, {
-      Name: user.email,
-      Email: user.email,
-      OrganizationName: organizationData.name,
-    });
+  const emailDetails = await getUserOrgEmailDetails('api:removeAdminFromOrganization', models, user, {
+    Name: user.email,
+    Email: user.email,
+    OrganizationName: organizationData.name,
+  });
 
   userActivityLogger(`User removed an administrator from organization '${organizationData.name}'`, {
     project: '',
@@ -601,7 +601,7 @@ export const removeAdminFromOrganization: ResolverFn = async (
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return organizationData;
@@ -610,32 +610,28 @@ export const removeAdminFromOrganization: ResolverFn = async (
 // query to list all platform users
 export const getAllPlatformUsers: ResolverFn = async (
   _root,
-  { id, email, gitlabId, role },
+  {
+    id, email, gitlabId, role,
+  },
   { models, adminScopes },
 ) => {
   // if user is platform owner or viewer
   if (adminScopes.platformOwner || adminScopes.platformViewer) {
     const users = await models.UserModel.loadAllPlatformUsers();
     if (id) {
-      const filteredById = users.filter(function (item) {
-        return item.id === id;
-      });
+      const filteredById = users.filter((item) => item.id === id);
       return filteredById;
     }
     if (email) {
-      const filteredByEmail = users.filter(function (item) {
-        return item.email === email;
-      });
+      const filteredByEmail = users.filter((item) => item.email === email);
       return filteredByEmail;
     }
     if (gitlabId) {
-      const filteredByGitlab = users.filter(function (item) {
-        return item.gitlabId === gitlabId;
-      });
+      const filteredByGitlab = users.filter((item) => item.gitlabId === gitlabId);
       return filteredByGitlab;
     }
     if (role) {
-      const filteredByPlatformRole = users.filter(function (item) {
+      const filteredByPlatformRole = users.filter((item) => {
         const found = item.platformRoles.some(el => el === role);
         if (found) {
           return item;
@@ -644,11 +640,10 @@ export const getAllPlatformUsers: ResolverFn = async (
       return filteredByPlatformRole;
     }
     return users;
-  } else {
-    throw new Error(
-      `Unauthorized: You don't have permission to perform this action`
-    );
   }
+  throw new Error(
+    'Unauthorized: You don\'t have permission to perform this action',
+  );
 };
 
 // addPlatformRoleToUser is used to add platform-owner or platform-viewer to a user
@@ -665,20 +660,17 @@ export const addPlatformRoleToUser: ResolverFn = async (
     });
     await models.UserModel.addPlatformRoleToUser(user, role);
     const users = await models.UserModel.loadAllPlatformUsers();
-    const filteredByEmail = users.filter(function (item) {
-      return item.email === user.email;
-    });
+    const filteredByEmail = users.filter((item) => item.email === user.email);
 
     const auditLog: AuditLog = {
       resource: {
         id: user.id,
         type: AuditType.USER,
-        details: `${user.email} role: ${role}`
+        details: `${user.email} role: ${role}`,
       },
     };
 
-
-    var emailDetails = await getUserOrgEmailDetails('api:addPlatformRoleToUser', models, user, {
+    const emailDetails = await getUserOrgEmailDetails('api:addPlatformRoleToUser', models, user, {
       Name: user.email,
       Email: user.email,
       Role: role,
@@ -691,18 +683,17 @@ export const addPlatformRoleToUser: ResolverFn = async (
         user: {
           id: user.id,
           email: user.email,
-          role: role,
+          role,
         },
         ...auditLog,
         ...emailDetails,
-      }
+      },
     });
     return filteredByEmail[0];
-  } else {
-    throw new Error(
-      `Unauthorized: You don't have permission to perform this action`
-    );
   }
+  throw new Error(
+    'Unauthorized: You don\'t have permission to perform this action',
+  );
 };
 
 // removePlatformRoleFromUser will remove a platform role from a user
@@ -719,19 +710,17 @@ export const removePlatformRoleFromUser: ResolverFn = async (
     });
     await models.UserModel.removePlatformRoleFromUser(user, role);
     const users = await models.UserModel.loadAllPlatformUsers();
-    const filteredByEmail = users.filter(function (item) {
-      return item.email === user.email;
-    });
+    const filteredByEmail = users.filter((item) => item.email === user.email);
 
     const auditLog: AuditLog = {
       resource: {
         id: user.id,
         type: AuditType.USER,
-        details: `${user.email} role: ${role}`
+        details: `${user.email} role: ${role}`,
       },
     };
 
-    var emailDetails = await getUserOrgEmailDetails('api:removePlatformRoleFromUser', models, user, {
+    const emailDetails = await getUserOrgEmailDetails('api:removePlatformRoleFromUser', models, user, {
       Name: user.email,
       Email: user.email,
       Role: role,
@@ -744,34 +733,32 @@ export const removePlatformRoleFromUser: ResolverFn = async (
         user: {
           id: user.id,
           email: user.email,
-          role: role,
+          role,
         },
         ...auditLog,
         ...emailDetails,
-      }
+      },
     });
     if (filteredByEmail[0]) {
-      return filteredByEmail[0]
+      return filteredByEmail[0];
     }
     return user;
-  } else {
-    throw new Error(
-      `Unauthorized: You don't have permission to perform this action`
-    );
   }
+  throw new Error(
+    'Unauthorized: You don\'t have permission to perform this action',
+  );
 };
 
-
 async function getUserOrgEmailDetails(action, models: { UserModel: UserModel; }, user: User, payloadData) {
-  var emailDetails = {};
+  let emailDetails = {};
   try {
-    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if (dbUserDetails && dbUserDetails['optEmailOrgRole'] == true) {
+    const dbUserDetails = await models.UserModel.getFullUserDetails(user) as any;
+    if (dbUserDetails && dbUserDetails.optEmailOrgRole === true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
           Email: user.email,
-          ...payloadData
+          ...payloadData,
         },
       };
     }
@@ -782,7 +769,7 @@ async function getUserOrgEmailDetails(action, models: { UserModel: UserModel; },
       user.id,
       action,
       payloadData,
-      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`,
     );
   }
   return emailDetails;
@@ -791,16 +778,16 @@ async function getUserOrgEmailDetails(action, models: { UserModel: UserModel; },
 export const getUser2fa: ResolverFn = async (
   user,
   _,
-  { models }
+  { models },
 ) => {
-  if (user.isFederatedUser !== undefined && user.isFederatedUser === true ) {
+  if (user.isFederatedUser !== undefined && user.isFederatedUser === true) {
     // if a federated user sets up 2fa or passkeys in their account after they have logged in
     // it will never be used unless the user unlinks themselves from the identity provider
     // if that happens, then the user will have no federated user and their 2fa status will show correctly
     // if a user is federated though, then their 2fa status is managed/enforced in the external provider
     // and lagoon has no way to verify if 2fa is enabled or enforced in that provider so just set that the user
     // is a federated user
-    return false
+    return false;
   }
-  return models.UserModel.fetchUserTwoFactor(user)
+  return models.UserModel.fetchUserTwoFactor(user);
 };

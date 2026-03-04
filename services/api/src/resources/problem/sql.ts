@@ -15,7 +15,7 @@ const standardEnvironmentReturn = {
   links: 'links',
   data: 'data',
   created: 'created',
-  deleted: 'deleted'
+  deleted: 'deleted',
 };
 
 export const Sql = {
@@ -23,16 +23,16 @@ export const Sql = {
     source = [],
     environmentId,
     environmentType = [],
-    severity = []
+    severity = [],
   }: {
     source: string[];
     environmentId: number;
     environmentType: string[];
     severity: string[];
   }) => {
-    let q = knex('environment_problem as p')
+    const q = knex('environment_problem as p')
       .join('environment as e', { environment: 'e.id' }, '=', {
-        environment: 'p.environment'
+        environment: 'p.environment',
       })
       .where('p.deleted', '=', '0000-00-00 00:00:00')
       .select(
@@ -43,8 +43,8 @@ export const Sql = {
           name: 'e.name',
           project: 'e.project',
           environmentType: 'e.environment_type',
-          openshiftProjectName: 'e.openshift_project_name'
-        }
+          openshiftProjectName: 'e.openshift_project_name',
+        },
       );
 
     if (environmentType.length > 0) {
@@ -61,20 +61,18 @@ export const Sql = {
     }
     return q.toString();
   },
-  selectSeverityOptions: () =>
-    knex('environment_problem')
-      .select('severity')
-      .toString(),
-  selectProblemByDatabaseId: id =>
-    knex('environment_problem')
-      .where('id', id)
-      .toString(),
+  selectSeverityOptions: () => knex('environment_problem')
+    .select('severity')
+    .toString(),
+  selectProblemByDatabaseId: id => knex('environment_problem')
+    .where('id', id)
+    .toString(),
   selectProblemsByEnvironmentId: ({
     environmentId,
     severity = [],
-    source = []
+    source = [],
   }) => {
-    let q = knex('environment_problem')
+    const q = knex('environment_problem')
       .select(standardEnvironmentReturn)
       .where('environment', environmentId)
       .where('deleted', '=', '0000-00-00 00:00:00');
@@ -99,50 +97,48 @@ export const Sql = {
     fixed_version,
     links,
     data,
-    created
-  }) =>
-    knex('environment_problem')
-      .insert({
-        environment,
-        severity,
-        severity_score,
-        identifier,
-        lagoon_service,
-        source,
-        associated_package,
-        description,
-        version,
-        fixed_version,
-        links,
-        data,
-        created
-      })
-      .toString(),
+    created,
+  }) => knex('environment_problem')
+    .insert({
+      environment,
+      severity,
+      severity_score,
+      identifier,
+      lagoon_service,
+      source,
+      associated_package,
+      description,
+      version,
+      fixed_version,
+      links,
+      data,
+      created,
+    })
+    .toString(),
   deleteProblem: (environment, identifier, service) => {
-    let q = knex('environment_problem')
+    const q = knex('environment_problem')
       .where({
-        environment: environment,
-        identifier: identifier
+        environment,
+        identifier,
       });
-    if (service != undefined) {
+    if (service !== undefined) {
       q.where('lagoon_service', service);
     }
     return q.del().toString();
   },
   deleteProblemsForEnvironment: (environment) => { // This should be used primarily to remove problems when deleting an environment
-    let q = knex('environment_problem')
+    const q = knex('environment_problem')
       .where({
-        environment: environment
+        environment,
       });
     return q.del().toString();
   },
-  deleteProblemsFromSource: (environment, source, service) =>
-    knex('environment_problem')
-      .where({
-        environment: environment,
-        source: source,
-        lagoon_service: service
-      })
-      .del()
-      .toString()
+  deleteProblemsFromSource: (environment, source, service) => knex('environment_problem')
+    .where({
+      environment,
+      source,
+      lagoon_service: service,
+    })
+    .del()
+    .toString(),
 };

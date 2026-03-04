@@ -2,20 +2,20 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async function(knex) {
-    return knex.schema
+exports.up = async function (knex) {
+  return knex.schema
     .alterTable('advanced_task_definition', (table) => {
-        table.boolean('system_wide').notNullable().defaultTo(0);
-    })
+      table.boolean('system_wide').notNullable().defaultTo(0);
+    });
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = async function(knex) {
-    return knex.schema
+exports.down = async function (knex) {
+  return knex.schema
     .alterTable('advanced_task_definition', (table) => {
-        table.dropColumn('system_wide');
-    })
+      table.dropColumn('system_wide');
+    });
 };

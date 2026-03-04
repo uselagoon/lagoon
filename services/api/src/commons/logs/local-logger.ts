@@ -1,6 +1,9 @@
-const { addColors, createLogger, format, transports } = require('winston');
 import { getConfigFromEnv } from '../util/config';
-import { levels, colors } from './';
+import { levels, colors } from '.';
+
+const {
+  addColors, createLogger, format, transports,
+} = require('winston');
 
 export interface LogFn {
   (...args: any[]): void;

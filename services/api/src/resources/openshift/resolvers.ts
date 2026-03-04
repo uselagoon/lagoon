@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
@@ -9,7 +9,7 @@ import { AuditLog } from '../audit/types';
 export const getToken: ResolverFn = async (
   kubernetes,
   _args,
-  { hasPermission, userActivityLogger }
+  { hasPermission, userActivityLogger },
 ) => {
   try {
     await hasPermission('openshift', 'view:token');
@@ -21,18 +21,18 @@ export const getToken: ResolverFn = async (
         details: kubernetes.name,
       },
     };
-    userActivityLogger(`User viewed openshift token`, {
+    userActivityLogger('User viewed openshift token', {
       project: '',
       event: 'api:viewOpenshiftToken',
       payload: {
         name: kubernetes.name,
         id: kubernetes.id,
         ...auditLog,
-      }
+      },
     });
 
     return kubernetes.token;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 };
@@ -40,13 +40,13 @@ export const getToken: ResolverFn = async (
 export const getConsoleUrl: ResolverFn = async (
   kubernetes,
   _args,
-  { hasPermission }
+  { hasPermission },
 ) => {
   try {
     await hasPermission('openshift', 'view:token');
 
     return kubernetes.consoleUrl;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 };
@@ -54,13 +54,13 @@ export const getConsoleUrl: ResolverFn = async (
 export const getMonitoringConfig: ResolverFn = async (
   kubernetes,
   _args,
-  { hasPermission }
+  { hasPermission },
 ) => {
   try {
     await hasPermission('openshift', 'view:token');
 
     return kubernetes.monitoringConfig;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 };
@@ -70,7 +70,7 @@ export const getProjectUser: ResolverFn = async () => null;
 export const addOpenshift: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('openshift', 'add');
 
@@ -92,7 +92,7 @@ export const addOpenshift: ResolverFn = async (
       name: input.name,
       id: R.prop(0, rows).id,
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -101,16 +101,17 @@ export const addOpenshift: ResolverFn = async (
 export const deleteOpenshift: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('openshift', 'delete');
 
   let res = await query(sqlClientPool, knex('project')
-  .join('openshift', 'project.openshift', '=', 'openshift.id')
-  .where('openshift.name', input.name).count('project.id', {as: 'numactive'}).toString());
+    .join('openshift', 'project.openshift', '=', 'openshift.id')
+    .where('openshift.name', input.name).count('project.id', { as: 'numactive' })
+    .toString());
 
   const numberActiveOs: number = R.path(['0', 'numactive'], res);
-  if(numberActiveOs > 0) {
+  if (numberActiveOs > 0) {
     throw new Error(`Openshift "${input.name} still in use, can not delete`);
   }
 
@@ -131,7 +132,7 @@ export const deleteOpenshift: ResolverFn = async (
     payload: {
       name: input.name,
       ...auditLog,
-    }
+    },
   });
   // TODO: maybe check rows for changed result
   return 'success';
@@ -140,7 +141,7 @@ export const deleteOpenshift: ResolverFn = async (
 export const getAllOpenshifts: ResolverFn = async (
   root,
   { disabled, buildImage },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   await hasPermission('openshift', 'viewAll');
 
@@ -159,13 +160,12 @@ export const getAllOpenshifts: ResolverFn = async (
 export const getOpenshiftByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('openshift', 'view', {
-      project: pid
+      project: pid,
     });
   }
 
@@ -177,17 +177,16 @@ export const getOpenshiftByProjectId: ResolverFn = async (
 export const getOpenshiftByDeployTargetId: ResolverFn = async (
   { id: did },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   // get the project id for the deploytarget
-  const projectrows = await query(sqlClientPool, Sql.selectProjectIdByDeployTargetId(did)
+  const projectrows = await query(sqlClientPool, Sql.selectProjectIdByDeployTargetId(did),
   );
-
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('openshift', 'view', {
-      project: projectrows[0].project
+      project: projectrows[0].project,
     });
   }
 
@@ -199,17 +198,17 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
 export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   // get the project id for the environment
   const project = await projectHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getProjectByEnvironmentId(eid);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('openshift', 'view', {
-      project: project.project
+      project: project.project,
     });
   }
 
@@ -221,7 +220,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
 export const updateOpenshift: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('openshift', 'update');
 
@@ -248,7 +247,7 @@ export const updateOpenshift: ResolverFn = async (
       name: R.prop(0, rows).name,
       id: R.prop(0, rows).id,
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, rows);

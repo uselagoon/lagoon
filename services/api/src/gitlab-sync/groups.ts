@@ -4,16 +4,16 @@ import {
   sanitizeGroupName,
   addGroupWithParent,
   addGroup,
-  addUserToGroup
+  addUserToGroup,
 } from '../commons/api';
 import { logger } from '../commons/logs/local-logger';
 
-interface GitlabGroup {
+interface _GitlabGroup {
   id: number,
   name: string,
   full_path: string,
   parent_id: number,
-};
+}
 
 const groupExistsRegex = /Group.*?exists/;
 const sortGroupsByHierarchy = R.sortBy(R.path(['full_path']));
@@ -53,7 +53,7 @@ const syncGroup = async group => {
 
 (async () => {
   const allGroups = await gitlabApi.getAllGroups();
-  let groupsQueue = sortGroupsByHierarchy(allGroups).map(group => ({ group, retries: 0}));
+  const groupsQueue = sortGroupsByHierarchy(allGroups).map(group => ({ group, retries: 0 }));
 
   logger.info(`Syncing ${allGroups.length} groups`);
 
@@ -65,12 +65,11 @@ const syncGroup = async group => {
       if (retries < 3) {
         logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
         groupsQueue.push({ group, retries: retries + 1 });
-      }
-      else {
+      } else {
         logger.error(`Sync failed: ${err.message}`);
       }
     }
   }
 
   logger.info('Sync completed');
-})()
+})();

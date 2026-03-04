@@ -1,43 +1,42 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import validator from 'validator';
+import { ResolverFn } from '..';
 import { logger } from '../../loggers/logger';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { Helpers} from './helpers';
+import { Helpers } from './helpers';
 import { Sql } from './sql';
-import { arrayDiff, toNumber, requestsExtraFields } from '../../util/func';
+import { arrayDiff, requestsExtraFields } from '../../util/func';
 import { Helpers as openshiftHelpers } from '../openshift/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { AuditType } from '../../commons/types';
-import validator from 'validator';
 import { AuditLog } from '../audit/types';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
     throw new Error(
-      'Only lowercase characters, numbers and dashes allowed for name!'
+      'Only lowercase characters, numbers and dashes allowed for name!',
     );
   }
   if (validator.matches(value, /--/)) {
     throw new Error('Multiple consecutive dashes are not allowed for name!');
   }
-}
+};
 
 export const addOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-
   // check if the name is valid
-  isValidName(input.name)
+  isValidName(input.name);
 
   try {
     await hasPermission('organization', 'add');
     const org = await query(sqlClientPool, Sql.selectOrganizationByName(input.name));
     // if no organization found, create it
-    if (R.length(org) == 0) {
+    if (R.length(org) === 0) {
       const { insertId } = await query(sqlClientPool, Sql.insertOrganization(input));
       const rows = await query(sqlClientPool, Sql.selectOrganization(insertId));
 
@@ -54,50 +53,48 @@ export const addOrganization: ResolverFn = async (
         event: 'api:addOrganization',
         payload: {
           data: {
-            input
+            input,
           },
           ...auditLog,
-        }
+        },
       });
 
       return R.prop(0, rows);
-    } else {
-      throw new Error(`There was an error creating the organization, ${input.name} already exists`);
     }
-  }  catch (err) {
+    throw new Error(`There was an error creating the organization, ${input.name} already exists`);
+  } catch (err) {
     throw new Error(`There was an error creating the organization ${input.name} ${err}`);
   }
 };
 
-
 export const addDeployTargetToOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('organization', 'add');
 
   const org = await query(sqlClientPool, Sql.selectOrganization(input.organization));
-  if (R.length(org) == 0) {
+  if (R.length(org) === 0) {
     throw new Error(
-      `Organization doesn't exist`
+      'Organization doesn\'t exist',
     );
   }
   try {
-    await openshiftHelpers(sqlClientPool).getOpenshiftByOpenshiftInput({id: input.deployTarget})
-  }  catch (err) {
+    await openshiftHelpers(sqlClientPool).getOpenshiftByOpenshiftInput({ id: input.deployTarget });
+  } catch (err) {
     throw new Error(`There was an error adding the deployTarget: ${err}`);
   }
-  const result = await query(sqlClientPool, Sql.selectDeployTargetsByOrganizationAndDeployTarget(input.organization, input.deployTarget))
+  const result = await query(sqlClientPool, Sql.selectDeployTargetsByOrganizationAndDeployTarget(input.organization, input.deployTarget));
   if (R.length(result) >= 1) {
     throw new Error(
-      `Already added to organization`
+      'Already added to organization',
     );
   }
   try {
-      await query(sqlClientPool, Sql.addDeployTarget({dtid: input.deployTarget, orgid: input.organization}));
-  }  catch (err) {
-      throw new Error(`There was an error adding the deployTarget: ${err}`);
+    await query(sqlClientPool, Sql.addDeployTarget({ dtid: input.deployTarget, orgid: input.organization }));
+  } catch (err) {
+    throw new Error(`There was an error adding the deployTarget: ${err}`);
   }
 
   const auditLog: AuditLog = {
@@ -117,10 +114,10 @@ export const addDeployTargetToOrganization: ResolverFn = async (
     event: 'api:addDeployTargetToOrganization',
     payload: {
       data: {
-        input
+        input,
       },
       ...auditLog,
-    }
+    },
   });
 
   return org[0];
@@ -129,20 +126,20 @@ export const addDeployTargetToOrganization: ResolverFn = async (
 export const removeDeployTargetFromOrganization: ResolverFn = async (
   args,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('organization', 'add');
 
   const org = await query(sqlClientPool, Sql.selectOrganization(input.organization));
-  if (R.length(org) == 0) {
+  if (R.length(org) === 0) {
     throw new Error(
-      `Organization doesn't exist`
+      'Organization doesn\'t exist',
     );
   }
 
   try {
     await query(sqlClientPool, Sql.removeDeployTarget(input.organization, input.deployTarget));
-  }  catch (err) {
+  } catch (err) {
     throw new Error(`There was an error removing the deployTarget: ${err}`);
   }
 
@@ -163,20 +160,19 @@ export const removeDeployTargetFromOrganization: ResolverFn = async (
     event: 'api:removeDeployTargetFromOrganization',
     payload: {
       data: {
-        input
+        input,
       },
       ...auditLog,
-    }
+    },
   });
 
   return org[0];
 };
 
-
 export const getDeployTargetsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   // let oid = args.organization;
   if (args.organization) {
@@ -184,13 +180,13 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
   }
 
   await hasPermission('organization', 'view', {
-      organization: oid,
+    organization: oid,
   });
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetsByOrganization(oid));
 
   if (!rows) {
-      return null;
+    return null;
   }
 
   return rows;
@@ -199,111 +195,112 @@ export const getDeployTargetsByOrganizationId: ResolverFn = async (
 export const getEnvironmentsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   // let oid = args.organization;
   if (args.organization) {
     oid = args.organization;
   }
   await hasPermission('organization', 'view', {
-      organization: oid,
+    organization: oid,
   });
 
   const rows = await query(sqlClientPool, Sql.selectOrganizationEnvironments(oid));
 
   if (!rows) {
-      return null;
+    return null;
   }
 
   return rows;
 };
 
 export const updateOrganization: ResolverFn = async (
-    root,
-    { input },
-    { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  root,
+  { input },
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
+  if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment || input.patch.quotaRoute) {
+    await hasPermission('organization', 'update');
+  } else {
+    await hasPermission('organization', 'updateOrganization', input.id);
+  }
 
-    if (input.patch.quotaProject || input.patch.quotaGroup || input.patch.quotaNotification || input.patch.quotaEnvironment || input.patch.quotaRoute) {
-      await hasPermission('organization', 'update');
-    } else {
-      await hasPermission('organization', 'updateOrganization', input.id);
+  // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
+  // this feature will become generally available in a future version and this flag will not
+  // be required
+  if (input.patch.featureApiRoutes) {
+    if (!adminScopes.platformOwner) {
+      throw new Error('Setting the api routes feature is only available to platform administrators.');
     }
+  }
 
-    // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
-    // this feature will become generally available in a future version and this flag will not
-    // be required
-    if (input.patch.featureApiRoutes) {
-      if (!adminScopes.platformOwner) {
-        throw new Error('Setting the api routes feature is only available to platform administrators.');
-      }
-    }
+  if (input.patch.name) {
+    // check if the name is valid
+    isValidName(input.patch.name);
+  }
 
-    if (input.patch.name) {
-      // check if the name is valid
-      isValidName(input.patch.name)
-    }
+  const oid = input.id.toString();
 
-    const oid = input.id.toString();
+  if (isPatchEmpty(input)) {
+    throw new Error('input.patch requires at least 1 attribute');
+  }
 
-    if (isPatchEmpty(input)) {
-      throw new Error('input.patch requires at least 1 attribute');
-    }
+  await query(sqlClientPool, Sql.updateOrganization(input));
+  const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
 
-    await query(sqlClientPool, Sql.updateOrganization(input));
-    const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
-
-    const auditLog: AuditLog = {
-      resource: {
-        id: R.prop(0, rows).id.toString(),
-        type: AuditType.ORGANIZATION,
-        details: R.prop(0, rows).name,
+  const auditLog: AuditLog = {
+    resource: {
+      id: R.prop(0, rows).id.toString(),
+      type: AuditType.ORGANIZATION,
+      details: R.prop(0, rows).name,
+    },
+    organizationId: rows[0].id.toString(),
+  };
+  userActivityLogger(`User updated organization ${R.prop(0, rows).name}`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:updateOrganization',
+    payload: {
+      data: {
+        input,
       },
-      organizationId: rows[0].id.toString(),
-    };
-    userActivityLogger(`User updated organization ${R.prop(0, rows).name}`, {
-      project: '',
-      organization: input.organization,
-      event: 'api:updateOrganization',
-      payload: {
-        data: {
-          input
-        },
-        ...auditLog,
-      }
-    });
+      ...auditLog,
+    },
+  });
 
-    return R.prop(0, rows);
+  return R.prop(0, rows);
 };
 
 export const getOrganizationById: ResolverFn = async (
-    id,
-    args,
-    { sqlClientPool, hasPermission }
+  id,
+  args,
+  { sqlClientPool, hasPermission },
 ) => {
-    let oid = args.id;
-    if (id) {
-      oid = id;
-    }
+  let oid = args.id;
+  if (id) {
+    oid = id;
+  }
 
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
+  await hasPermission('organization', 'view', {
+    organization: oid,
+  });
 
-    const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
-    const orgResult = rows[0];
+  const rows = await query(sqlClientPool, Sql.selectOrganization(oid));
+  const orgResult = rows[0];
 
-    if (!orgResult) {
-        return null;
-    }
+  if (!orgResult) {
+    return null;
+  }
 
-    return orgResult;
+  return orgResult;
 };
 
 export const getOrganizationByName: ResolverFn = async (
   name,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   let orgName = args.name;
   if (name) {
@@ -325,32 +322,34 @@ export const getOrganizationByName: ResolverFn = async (
 };
 
 export const getAllOrganizations: ResolverFn = async (
-    root,
-    args,
-    { sqlClientPool, models, hasPermission, keycloakGrant }
+  root,
+  args,
+  {
+    sqlClientPool, models, hasPermission, keycloakGrant,
+  },
 ) => {
-    let userOrganizationIds: number[];
+  let userOrganizationIds: number[];
 
-    try {
-      await hasPermission('organization', 'viewAll');
-    } catch (err) {
-      if (!keycloakGrant) {
-        logger.warn('No grant available for getAllProjects');
-        return [];
-      }
-
-      userOrganizationIds = await models.UserModel.getAllOrganizationIdsForUser({
-        id: keycloakGrant.access_token.content.sub
-      });
+  try {
+    await hasPermission('organization', 'viewAll');
+  } catch (_err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
     }
 
-    let queryBuilder = knex('organization');
+    userOrganizationIds = await models.UserModel.getAllOrganizationIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+  }
 
-    if (userOrganizationIds) {
-      queryBuilder = queryBuilder.whereIn('id', userOrganizationIds);
-    }
-    const rows = await query(sqlClientPool, queryBuilder.toString());
-    return rows;
+  let queryBuilder = knex('organization');
+
+  if (userOrganizationIds) {
+    queryBuilder = queryBuilder.whereIn('id', userOrganizationIds);
+  }
+  const rows = await query(sqlClientPool, queryBuilder.toString());
+  return rows;
 };
 
 // get projects by organization id, used by organization resolver to list projects
@@ -359,11 +358,11 @@ export const getAllOrganizations: ResolverFn = async (
 export const getProjectsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool },
 ) => {
   const rows = await query(
     sqlClientPool,
-    Sql.selectOrganizationProjects(oid)
+    Sql.selectOrganizationProjects(oid),
   );
   return rows;
 };
@@ -374,11 +373,10 @@ export const getOrganizationByProject: ResolverFn = async (
   project,
   args,
   { sqlClientPool, hasPermission },
-  info
+  info,
 ) => {
-
   if (!project || !project.organization) {
-    return null
+    return null;
   }
 
   const extraFields = requestsExtraFields(info, ['id', 'name', 'friendlyName']);
@@ -399,25 +397,21 @@ export const getOrganizationByProject: ResolverFn = async (
 export const getNotificationsForOrganizationProjectId: ResolverFn = async (
   organization,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool },
 ) => {
-  let oid = args.organization;
-  if (organization) {
-    oid = organization.organization;
-  }
   let pid = args.organization;
   if (organization) {
     pid = organization.id;
   }
 
-  return await notificationHelpers(sqlClientPool).selectNotificationsByProjectId({project: pid})
+  return await notificationHelpers(sqlClientPool).selectNotificationsByProjectId({ project: pid });
 };
 
 // gets owners of an organization by id
 export const getOwnersByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models }
+  { hasPermission, models },
 ) => {
   await hasPermission('organization', 'view', {
     organization: oid,
@@ -430,13 +424,13 @@ export const getOwnersByOrganizationId: ResolverFn = async (
 export const getGroupsByOrganizationId: ResolverFn = async (
   { id: oid },
   _input,
-  { hasPermission, models, sqlClientPool }
+  { hasPermission, models, sqlClientPool },
 ) => {
   await hasPermission('organization', 'viewGroup', {
     organization: oid,
   });
 
-  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, oid)
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, oid);
 
   return orgGroups;
 };
@@ -445,52 +439,52 @@ export const getGroupsByOrganizationId: ResolverFn = async (
 export const getUsersByOrganizationId: ResolverFn = async (
   _,
   args,
-  { hasPermission, models, sqlClientPool }
+  { hasPermission, models, sqlClientPool },
 ) => {
   await hasPermission('organization', 'viewUsers', {
     organization: args.organization,
   });
 
-  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, args.organization)
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, args.organization);
 
-  let members = []
+  const members = [];
   for (const group in orgGroups) {
     const groupMembers = await models.GroupModel.getGroupMembership(orgGroups[group]);
     // there is probably a better way to do this to only add unique members in the organization in the response
     let exists = false;
     for (const member in groupMembers) {
       for (const m in members) {
-        if (groupMembers[member].user.id == members[m].id) {
-          exists = true
+        if (groupMembers[member].user.id === members[m].id) {
+          exists = true;
         }
       }
       if (!exists) {
         // quick check to set the owner flag or not
-        groupMembers[member].user.owner = false
-        groupMembers[member].user.admin = false
-        groupMembers[member].user.comment = null
+        groupMembers[member].user.owner = false;
+        groupMembers[member].user.admin = false;
+        groupMembers[member].user.comment = null;
         if (groupMembers[member].user.attributes) {
-          if (groupMembers[member].user.attributes["comment"]) {
-            groupMembers[member].user.comment = groupMembers[member].user.attributes["comment"][0]
+          if (groupMembers[member].user.attributes.comment) {
+            groupMembers[member].user.comment = groupMembers[member].user.attributes.comment[0];
           }
-          if (groupMembers[member].user.attributes["lagoon-organizations"]) {
-            for (const a in groupMembers[member].user.attributes["lagoon-organizations"]) {
-              if (parseInt(groupMembers[member].user.attributes["lagoon-organizations"][a]) == args.organization) {
-                groupMembers[member].user.owner = true
+          if (groupMembers[member].user.attributes['lagoon-organizations']) {
+            for (const a in groupMembers[member].user.attributes['lagoon-organizations']) {
+              if (parseInt(groupMembers[member].user.attributes['lagoon-organizations'][a]) === args.organization) {
+                groupMembers[member].user.owner = true;
               }
             }
           }
-          if (groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
-            for (const a in groupMembers[member].user.attributes["lagoon-organizations-admin"]) {
-              if (parseInt(groupMembers[member].user.attributes["lagoon-organizations-admin"][a]) == args.organization) {
-                groupMembers[member].user.admin = true
+          if (groupMembers[member].user.attributes['lagoon-organizations-admin']) {
+            for (const a in groupMembers[member].user.attributes['lagoon-organizations-admin']) {
+              if (parseInt(groupMembers[member].user.attributes['lagoon-organizations-admin'][a]) === args.organization) {
+                groupMembers[member].user.admin = true;
               }
             }
           }
         }
-        members.push(groupMembers[member].user)
+        members.push(groupMembers[member].user);
       }
-      exists = false
+      exists = false;
     }
   }
   return members.map(row => ({ ...row, organization: args.organization }));
@@ -499,92 +493,94 @@ export const getUsersByOrganizationId: ResolverFn = async (
 // get a users information for a user in the organization
 export const getUserByEmailAndOrganizationId: ResolverFn = async (
   _root,
-  { email, organization},
-  { sqlClientPool, models, hasPermission },
+  { email, organization },
+  { models, hasPermission },
 ) => {
   await hasPermission('organization', 'viewUser', {
-    organization: organization
+    organization,
   });
 
   try {
     const user = await models.UserModel.loadUserByEmail(email);
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(user.id, organization);
 
-    user.owner = false
-    user.admin = false
-    user.comment = null
-    if (user.attributes?.["comment"]) {
-      user.comment = user.attributes["comment"][0]
+    user.owner = false;
+    user.admin = false;
+    user.comment = null;
+    if (user.attributes?.comment) {
+      user.comment = user.attributes.comment[0];
     }
-    if (user.attributes?.["lagoon-organizations"]) {
-      for (const a in user.attributes["lagoon-organizations"]) {
-        if (parseInt(user.attributes["lagoon-organizations"][a]) == organization) {
-          user.owner = true
+    if (user.attributes?.['lagoon-organizations']) {
+      for (const a in user.attributes['lagoon-organizations']) {
+        if (parseInt(user.attributes['lagoon-organizations'][a]) === organization) {
+          user.owner = true;
         }
       }
     }
-    if (user.attributes?.["lagoon-organizations-admin"]) {
-      for (const a in user.attributes["lagoon-organizations-admin"]) {
-        if (parseInt(user.attributes["lagoon-organizations-admin"][a]) == organization) {
-          user.admin = true
+    if (user.attributes?.['lagoon-organizations-admin']) {
+      for (const a in user.attributes['lagoon-organizations-admin']) {
+        if (parseInt(user.attributes['lagoon-organizations-admin'][a]) === organization) {
+          user.admin = true;
         }
       }
     }
-    if (queryUserGroups.length == 0) {
+    if (queryUserGroups.length === 0) {
       // if this user has no groups in this organization, then return nothing about this user at all
-      return null
+      return null;
     }
-    return { ...user, organization: organization };
-  } catch (err) {
-    return null
+    return { ...user, organization };
+  } catch (_err) {
+    return null;
   }
-  return null
+  return null;
 };
 
 // list the group roles for this user that have the organization id
-export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
+export const getGroupRolesByUserIdAndOrganization: ResolverFn = async (
   { id: uid, organization },
   _input,
-  { models, sqlClientPool }
+  { models, sqlClientPool },
 ) => {
   if (organization) {
     const queryUserGroups = await models.UserModel.getAllGroupsForUser(uid, organization);
-    let groups = []
+    const groups = [];
     for (const g in queryUserGroups) {
-      let group = {id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null}
-      if (queryUserGroups[g].attributes?.["type"]) {
-        group.groupType = queryUserGroups[g].attributes["type"][0]
+      const group = {
+        id: queryUserGroups[g].id, name: queryUserGroups[g].name, role: queryUserGroups[g].subGroups[0].realmRoles[0], groupType: null, organization: null,
+      };
+      if (queryUserGroups[g].attributes?.type) {
+        group.groupType = queryUserGroups[g].attributes.type[0];
       }
-      const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(queryUserGroups[g].id)
+      const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(queryUserGroups[g].id);
       if (org) {
-        group.organization = org
+        group.organization = org;
       }
-      groups.push(group)
+      groups.push(group);
     }
 
     return groups;
   }
-  return null
-}
+  return null;
+};
 
 // list all groups by organization id
 export const getGroupsByNameAndOrganizationId: ResolverFn = async (
   root,
   { name, organization },
-  { hasPermission, models, sqlClientPool }
+  { hasPermission, models, sqlClientPool },
 ) => {
   try {
     await hasPermission('organization', 'viewGroup', {
-      organization: organization,
+      organization,
     });
 
     const group = await models.GroupModel.loadGroupByName(name);
-    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id)
-    if (org == organization) {
-      return group
+    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+    if (org === organization) {
+      return group;
     }
-  } catch (err) {
-      return [];
+  } catch (_err) {
+    return [];
   }
   return [];
 };
@@ -592,11 +588,11 @@ export const getGroupsByNameAndOrganizationId: ResolverFn = async (
 export const getGroupCountByOrganizationProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models }
+  { sqlClientPool, models },
 ) => {
-  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  return orgProjectGroups.length
-}
+  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
+  return orgProjectGroups.length;
+};
 
 // get the groups of a project in an organization
 // this is only accessible as a resolver of organizations
@@ -605,12 +601,12 @@ export const getGroupCountByOrganizationProject: ResolverFn = async (
 export const getGroupsByOrganizationsProject: ResolverFn = async (
   { id: pid },
   _input,
-  { sqlClientPool, models }
+  { sqlClientPool, models },
 ) => {
   // rather than make this more complicated than it needs to be, just return all the groups attached to a project, even those that aren't in the organization
   // this way the organization owner can make the decision to remove the group from the project
   // this isn't an impossibile situation, but is unlikely, due to the historical nature of lagoons group attachment process
-  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+  const orgProjectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
   return orgProjectGroups;
 };
 
@@ -618,79 +614,79 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
 // this will return errors if there are projects or groups that are part of different organizations
 // this is a helper function that is a WIP, not fully flushed out
 
-const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds,projectInOtherOrgs, sqlClientPool) => {
-    // get all the groups the requested project is in
-    for (const group of projectGroups) {
-      // for each group the project is in, check if it has an organization
+const checkProjectGroupAssociation = async (oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool) => {
+  // get all the groups the requested project is in
+  for (const group of projectGroups) {
+    // for each group the project is in, check if it has an organization
 
-      const groupOrganization = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
-        // if it has an organization that is not the requested organization, add it to a list
-      if (groupOrganization != null && groupOrganization != oid) {
-        projectGroupNames.push({group: group.name, organization: groupOrganization.toString()})
-        otherOrgs.push(groupOrganization.toString())
-      }
-      // for each group the project is in, get the list of projects that are also in this group
-      const groupProjects = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
-      for (const project of groupProjects) {
-        groupProjectIds.push({group: group.name, project: project})
-      }
+    const groupOrganization = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(group.id);
+    // if it has an organization that is not the requested organization, add it to a list
+    if (groupOrganization != null && groupOrganization !== oid) {
+      projectGroupNames.push({ group: group.name, organization: groupOrganization.toString() });
+      otherOrgs.push(groupOrganization.toString());
     }
+    // for each group the project is in, get the list of projects that are also in this group
+    const groupProjects = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
+    for (const project of groupProjects) {
+      groupProjectIds.push({ group: group.name, project });
+    }
+  }
 
-    if (groupProjectIds.length > 0) {
-      // for all the groups->projects associations
-      for (const pGroup of groupProjectIds) {
-        const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-        // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
-        if (project.organization != oid && project.organization != null) {
-          projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
-          otherOrgs.push(project.organization.toString())
-        }
+  if (groupProjectIds.length > 0) {
+    // for all the groups->projects associations
+    for (const pGroup of groupProjectIds) {
+      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project);
+      // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
+      if (project.organization !== oid && project.organization != null) {
+        projectInOtherOrgs.push({ group: pGroup.group, project: project.name, organization: project.organization });
+        otherOrgs.push(project.organization.toString());
       }
     }
+  }
 
-    // report errors here
-    const uniqOtherOrgs = new Set(otherOrgs)
-    if (projectInOtherOrgs.length > 0) {
-      if (uniqOtherOrgs.size > 1) {
-        throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
-      } else {
-        // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-        // to the new organization
-        // throw new Error(`This project has groups that have projects in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-      }
+  // report errors here
+  const uniqOtherOrgs = new Set(otherOrgs);
+  if (projectInOtherOrgs.length > 0) {
+    if (uniqOtherOrgs.size > 1) {
+      throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`);
+    } else {
+      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
+      // to the new organization
+      // throw new Error(`This project has groups that have projects in 1 other organizations: [${[...uniqOtherOrgs]}]`)
     }
-    if (projectGroupNames.length > 0) {
-      if (uniqOtherOrgs.size > 1) {
-        throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
-      } else {
-        // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
-        // to the new organization
-        // throw new Error(`This project has groups that are in 1 other organizations: [${[...uniqOtherOrgs]}]`)
-      }
+  }
+  if (projectGroupNames.length > 0) {
+    if (uniqOtherOrgs.size > 1) {
+      throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`);
+    } else {
+      // if there is only 1 organization across all the associated projects/groups, then its possible to modify all of these to change them
+      // to the new organization
+      // throw new Error(`This project has groups that are in 1 other organizations: [${[...uniqOtherOrgs]}]`)
     }
-}
+  }
+};
 
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission }
+  { sqlClientPool, models, hasPermission },
 ) => {
-  let pid = input.project;
-  let oid = input.organization;
+  const pid = input.project;
+  const oid = input.organization;
 
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
-  const groupProjectIds = []
-  const projectInOtherOrgs = []
-  const projectGroupNames = []
-  const otherOrgs = []
+  const groupProjectIds = [];
+  const projectInOtherOrgs = [];
+  const projectGroupNames = [];
+  const otherOrgs = [];
 
   // get all the groups the requested project is in
-  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool)
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
+  await checkProjectGroupAssociation(oid, projectGroups, projectGroupNames, otherOrgs, groupProjectIds, projectInOtherOrgs, sqlClientPool);
 
-  return "success";
+  return 'success';
 };
 
 // remove project from an organization
@@ -699,48 +695,50 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
 export const removeProjectFromOrganization: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, models, userActivityLogger,
+  },
 ) => {
   // platform admin only
   await hasPermission('organization', 'add');
 
-  let pid = input.project;
-  const project = await projectHelpers(sqlClientPool).getProjectById(pid)
-  if (project.organization != input.organization) {
+  const pid = input.project;
+  const project = await projectHelpers(sqlClientPool).getProjectById(pid);
+  if (project.organization !== input.organization) {
     throw new Error(
-      `Project is not in organization`
+      'Project is not in organization',
     );
   }
 
   try {
-    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
 
-    let removeGroups = []
+    const removeGroups = [];
     for (const g in projectGroups) {
-      if (projectGroups[g].attributes["type"] == "project-default-group") {
+      if (projectGroups[g].attributes.type === 'project-default-group') {
         // remove all users from the project default group except the `default-user@project`
-        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name)
+        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name);
         // remove the default project group from the group_organization association table
         // when the project is removed from the organization
         await models.GroupModel.removeGroupFromOrganization(projectGroups[g].id);
       } else {
-        removeGroups.push(projectGroups[g])
+        removeGroups.push(projectGroups[g]);
       }
     }
     // remove groups from project
     await models.GroupModel.removeProjectFromGroups(pid, removeGroups);
-  } catch (err) {
+  } catch (_err) {
     throw new Error(
-      `Unable to remove all groups from the project`
-    )
+      'Unable to remove all groups from the project',
+    );
   }
   try {
     // remove all notifications from project
-    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
-  } catch (err) {
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({ project: pid });
+  } catch (_err) {
     throw new Error(
-      `Unable to remove all notifications from the project`
-    )
+      'Unable to remove all notifications from the project',
+    );
   }
 
   try {
@@ -749,15 +747,15 @@ export const removeProjectFromOrganization: ResolverFn = async (
       sqlClientPool,
       Sql.updateProjectOrganization({
         pid,
-        patch:{
+        patch: {
           organization: null,
-        }
-      })
+        },
+      }),
     );
-  } catch (err) {
+  } catch (_err) {
     throw new Error(
-      `Unable to remove project from organization`
-    )
+      'Unable to remove project from organization',
+    );
   }
 
   const org = await query(sqlClientPool, Sql.selectOrganization(input.organization));
@@ -780,14 +778,14 @@ export const removeProjectFromOrganization: ResolverFn = async (
     event: 'api:removeProjectFromOrganization',
     payload: {
       data: {
-        input
+        input,
       },
       ...auditLog,
-    }
+    },
   });
 
   return projectHelpers(sqlClientPool).getProjectById(pid);
-}
+};
 
 // add existing project to an organization
 // this removes all notifications and groups from the project and resets all the access to the project to only
@@ -795,28 +793,29 @@ export const removeProjectFromOrganization: ResolverFn = async (
 export const addExistingProjectToOrganization: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, models,
+  },
 ) => {
-
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
   const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
   const orgResult = rows[0];
 
-  let pid = input.project;
-  let oid = input.organization;
-  const project = await projectHelpers(sqlClientPool).getProjectById(pid)
+  const pid = input.project;
+  const oid = input.organization;
+  const project = await projectHelpers(sqlClientPool).getProjectById(pid);
 
   // get all the groups the requested project is in
   try {
-    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
 
-    let removeGroups = []
+    const removeGroups = [];
     for (const g in projectGroups) {
-      if (projectGroups[g].attributes["type"] == "project-default-group") {
+      if (projectGroups[g].attributes.type === 'project-default-group') {
         // remove all users from the project default group except the `default-user@project`
-        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name)
+        await models.GroupModel.removeNonProjectDefaultUsersFromGroup(projectGroups[g], project.name);
         // update group
         await models.GroupModel.updateGroup({
           id: projectGroups[g].id,
@@ -824,33 +823,33 @@ export const addExistingProjectToOrganization: ResolverFn = async (
           attributes: {
             ...projectGroups[g].attributes,
             // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
-            "lagoon-organization": [""]
-          }
+            'lagoon-organization': [''],
+          },
         });
         // remove the default project group from the group_organization association table
         // when the project is about to be added to the new organization
-        await groupHelpers(sqlClientPool).removeGroupFromOrganization(projectGroups[g].id)
+        await groupHelpers(sqlClientPool).removeGroupFromOrganization(projectGroups[g].id);
       } else {
-        removeGroups.push(projectGroups[g])
+        removeGroups.push(projectGroups[g]);
       }
     }
     // remove groups from project
     await models.GroupModel.removeProjectFromGroups(pid, removeGroups);
-  } catch (err) {
+  } catch (_err) {
     throw new Error(
-      `Unable to remove all groups from the project`
-    )
+      'Unable to remove all groups from the project',
+    );
   }
   try {
     // remove all notifications from project
-    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: pid})
-  } catch (err) {
+    await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({ project: pid });
+  } catch (_err) {
     throw new Error(
-      `Unable to remove all notifications from the project`
-    )
+      'Unable to remove all notifications from the project',
+    );
   }
 
-  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
   // check if project.organization is already set?
   // get all groups the project is in
   for (const group of projectGroups) {
@@ -861,10 +860,10 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       attributes: {
         ...group.attributes,
         // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
-        "lagoon-organization": [input.organization]
-      }
+        'lagoon-organization': [input.organization],
+      },
     });
-    await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
+    await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id);
 
     // log this activity
 
@@ -880,16 +879,16 @@ export const addExistingProjectToOrganization: ResolverFn = async (
         details: group.name,
       },
     };
-    userActivityLogger(`User added a group to organization`, {
+    userActivityLogger('User added a group to organization', {
       project: '',
       organization: input.organization,
       event: 'api:updateOrganizationGroup',
       payload: {
         data: {
-          updatedGroup
+          updatedGroup,
         },
         ...auditLog,
-      }
+      },
     });
   }
 
@@ -900,10 +899,10 @@ export const addExistingProjectToOrganization: ResolverFn = async (
     sqlClientPool,
     Sql.updateProjectOrganization({
       pid,
-      patch:{
+      patch: {
         organization: oid,
-      }
-    })
+      },
+    }),
   );
 
   // log this activity
@@ -920,69 +919,67 @@ export const addExistingProjectToOrganization: ResolverFn = async (
       details: project.name,
     },
   };
-  userActivityLogger(`User added an existing project to organization`, {
+  userActivityLogger('User added an existing project to organization', {
     project: '',
     organization: input.organization,
     event: 'api:addExistingProjectToOrganization',
     payload: {
       data: {
         project: pid,
-        patch:{
+        patch: {
           organization: oid,
-        }
+        },
       },
       ...auditLog,
-    }
+    },
   });
 
   return projectHelpers(sqlClientPool).getProjectById(pid);
-}
+};
 
 const checkOrgProjectGroup = async (sqlClientPool, input, models) => {
   // check the organization exists
   const organizationData = await Helpers(sqlClientPool).getOrganizationById(input.organization);
   if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
+    throw new Error('Organization does not exist');
   }
 
   // check the requested group exists
   const group = await models.GroupModel.loadGroupByIdOrName(input);
   if (group === undefined) {
-    throw new Error(`Group does not exist`)
+    throw new Error('Group does not exist');
   }
 
   // check the organization for projects currently attached to it
   const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
-  const projectIdsByOrg = []
+  const projectIdsByOrg = [];
   for (const project of projectsByOrg) {
-    projectIdsByOrg.push(parseInt(project.id))
+    projectIdsByOrg.push(parseInt(project.id));
   }
 
   // get the project ids
-  const groupProjectIds = []
+  const groupProjectIds = [];
   const groupProjects = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
   if (groupProjects.length > 0) {
     for (const project of groupProjects) {
-      groupProjectIds.push(project)
+      groupProjectIds.push(project);
     }
   }
 
   if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
-    if (projectIdsByOrg.length == 0) {
-      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
-    } else {
-      if (groupProjectIds.length > 0) {
-        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        if (filters.length > 0) {
-          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
-        }
+    if (projectIdsByOrg.length === 0) {
+      const filters = arrayDiff(groupProjectIds, projectIdsByOrg);
+      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`);
+    } else if (groupProjectIds.length > 0) {
+      const filters = arrayDiff(groupProjectIds, projectIdsByOrg);
+      if (filters.length > 0) {
+        throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`);
       }
     }
   }
 
-  return group
-}
+  return group;
+};
 
 // check an existing group to see if it can be added to an organization
 // this function will return errors if there are projects in the group that are not in the organization
@@ -991,14 +988,14 @@ const checkOrgProjectGroup = async (sqlClientPool, input, models) => {
 export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission },
 ) => {
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
-  await checkOrgProjectGroup(sqlClientPool, input, models)
+  await checkOrgProjectGroup(sqlClientPool, input, models);
 
-  return "success"
+  return 'success';
 };
 
 // add an existing group to an organization
@@ -1007,7 +1004,9 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
 export const addExistingGroupToOrganization: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  {
+    models, sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
@@ -1015,10 +1014,10 @@ export const addExistingGroupToOrganization: ResolverFn = async (
   // check the organization exists
   const organizationData = await Helpers(sqlClientPool).getOrganizationById(input.organization);
   if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
+    throw new Error('Organization does not exist');
   }
 
-  const group = await checkOrgProjectGroup(sqlClientPool, input, models)
+  const group = await checkOrgProjectGroup(sqlClientPool, input, models);
 
   // update the group to be in the organization
   const updatedGroup = await models.GroupModel.updateGroup({
@@ -1027,10 +1026,10 @@ export const addExistingGroupToOrganization: ResolverFn = async (
     attributes: {
       ...group.attributes,
       // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
-      "lagoon-organization": [input.organization]
-    }
+      'lagoon-organization': [input.organization],
+    },
   });
-  await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
+  await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id);
 
   // log this activity
 
@@ -1046,55 +1045,56 @@ export const addExistingGroupToOrganization: ResolverFn = async (
       details: group.name,
     },
   };
-  userActivityLogger(`User added a group to organization`, {
+  userActivityLogger('User added a group to organization', {
     project: '',
     organization: input.organization,
     event: 'api:updateOrganizationGroup',
     payload: {
       data: {
-        updatedGroup
+        updatedGroup,
       },
       ...auditLog,
-    }
+    },
   });
 
-  return updatedGroup
+  return updatedGroup;
 };
 
 // removes a user from all groups in an organisation
 export const removeUserFromOrganizationGroups: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organizationInput } },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
+  {
+    models, sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
-
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
   }
 
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
-    email: R.prop('email', userInput)
+    email: R.prop('email', userInput),
   });
 
   // check the organization exists
   const organizationData = await Helpers(sqlClientPool).getOrganizationById(organizationInput);
   if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
+    throw new Error('Organization does not exist');
   }
 
   // check permissions and get groups
   await hasPermission('organization', 'removeGroup', {
     organization: organizationInput,
   });
-  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, organizationInput)
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, organizationInput);
 
   // iterate through groups and remove the user
-  let groupsRemoved = []
+  const groupsRemoved = [];
   for (const group in orgGroups) {
     // if the groups organization is the one to remove from, push it to a new array
-    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(orgGroups[group].id)
-    if (org == organizationInput) {
+    const org = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(orgGroups[group].id);
+    if (org === organizationInput) {
       groupsRemoved.push(orgGroups[group]);
     }
   }
@@ -1102,7 +1102,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
   try {
     await models.GroupModel.removeUserFromGroups(user, groupsRemoved);
   } catch (error) {
-    throw new Error(`Unable to remove user from groups: ${error}`)
+    throw new Error(`Unable to remove user from groups: ${error}`);
   }
 
   const auditLog: AuditLog = {
@@ -1113,7 +1113,7 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
     },
     linkedResource: {
       type: AuditType.GROUP,
-      details: "multiple groups",
+      details: 'multiple groups',
     },
   };
   userActivityLogger(`User removed from these groups in organization: ${organizationData.name}`, {
@@ -1122,11 +1122,11 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
     event: 'api:removeUserFromOrganizationGroups',
     payload: {
       input: {
-        user: userInput, organization: organizationInput
+        user: userInput, organization: organizationInput,
       },
       data: groupsRemoved,
       ...auditLog,
-    }
+    },
   });
 
   return organizationData;
@@ -1136,61 +1136,63 @@ export const removeUserFromOrganizationGroups: ResolverFn = async (
 export const deleteOrganization: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, models,
+  },
 ) => {
   await hasPermission('organization', 'delete', {
-    organization: input.id
+    organization: input.id,
   });
 
   const rows = await query(sqlClientPool, Sql.selectOrganization(input.id));
-  if (R.length(rows) == 0) {
+  if (R.length(rows) === 0) {
     throw new Error(
-      `Organization doesn't exist`
+      'Organization doesn\'t exist',
     );
   }
   const orgResult = rows[0];
 
   const projects = await query(
-    sqlClientPool, Sql.selectOrganizationProjects(orgResult.id)
+    sqlClientPool, Sql.selectOrganizationProjects(orgResult.id),
   );
 
   if (projects.length > 0) {
     // throw error if there are any existing environments
     throw new Error(
-      'Unable to delete organization, there are existing projects that need to be removed first'
+      'Unable to delete organization, there are existing projects that need to be removed first',
     );
   }
 
-  const notifications = await Helpers(sqlClientPool).getNotificationsForOrganizationId(orgResult.id)
+  const notifications = await Helpers(sqlClientPool).getNotificationsForOrganizationId(orgResult.id);
   if (notifications.length > 0) {
     // throw error if there are any existing environments
     throw new Error(
-      'Unable to delete organization, there are existing notifications that need to be removed first'
+      'Unable to delete organization, there are existing notifications that need to be removed first',
     );
   }
 
-  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, orgResult.id)
+  const orgGroups = await groupHelpers(sqlClientPool).selectGroupsByOrganizationId(models, orgResult.id);
   if (orgGroups.length > 0) {
     // throw error if there are any existing environments
     throw new Error(
-      'Unable to delete organization, there are existing groups that need to be removed first'
+      'Unable to delete organization, there are existing groups that need to be removed first',
     );
   }
 
   try {
     await query(
       sqlClientPool,
-      Sql.deleteOrganizationDeployTargets(orgResult.id)
+      Sql.deleteOrganizationDeployTargets(orgResult.id),
     );
 
     await query(
       sqlClientPool,
-      Sql.deleteOrganization(orgResult.id)
+      Sql.deleteOrganization(orgResult.id),
     );
-  } catch (err) {
+  } catch (_err) {
     throw new Error(
-      `Unable to delete organization`
-    )
+      'Unable to delete organization',
+    );
   }
 
   const auditLog: AuditLog = {
@@ -1205,131 +1207,133 @@ export const deleteOrganization: ResolverFn = async (
     event: 'api:deleteOrganization',
     payload: {
       input: {
-        orgResult
+        orgResult,
       },
       ...auditLog,
-    }
+    },
   });
   return 'success';
 };
 
 // recursive check of a project and the groups of that project
 const checkProjectGroups = async (groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, pid) => {
-  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid)
-  let index = projectIds.findIndex((item) => item === pid);
+  const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, pid);
+  const index = projectIds.findIndex((item) => item === pid);
   if (index === -1) {
-    projectIds.push(pid)
+    projectIds.push(pid);
     // get all the groups the requested project is in
     for (const group of projectGroups) {
-      const groupProjectIdss = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id)
+      const groupProjectIdss = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
       // for each group the project is in, get the list of projects that are also in this group
       for (const project of groupProjectIdss) {
-        let index = groupProjectIds.findIndex((item) => item.group === group.name);
+        const index = groupProjectIds.findIndex((item) => item.group === group.name);
         if (index === -1) {
-          groupProjectIds.push({group: group.name, project: project})
-          projectsGroups.push(group)
+          groupProjectIds.push({ group: group.name, project });
+          projectsGroups.push(group);
         }
         // recurse the project if it hasn't already had been done
-        let index2 = projectIds.findIndex((item) => item === project);
+        const index2 = projectIds.findIndex((item) => item === project);
         if (index2 === -1) {
-          await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, project)
+          await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, project);
         }
       }
     }
   }
-}
+};
 
 const checkBulkProjectGroupAssociation = async (oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models) => {
   const groupProjectIds = [];
   const projectIds = [];
-  const projectsGroups = []
-  await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, pid)
+  const projectsGroups = [];
+  await checkProjectGroups(groupProjectIds, projectIds, projectsGroups, models, sqlClientPool, pid);
 
   // for all the projects in the first projects group, iterate through the projects and the groups attached
   // to these projects and try to build out a map of all the groups and projects that are linked by the primary project
   if (groupProjectIds.length > 0) {
     for (const pGroup of groupProjectIds) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
+      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project);
       // check if the project is already in the requested organization
-      if (project.organization != oid && project.organization == null) {
-        let alreadyAdded = false
+      if (project.organization !== oid && project.organization == null) {
+        let alreadyAdded = false;
         for (const f of projectsToMove) {
-          if (f.id == project.id) {
-            alreadyAdded = true
+          if (f.id === project.id) {
+            alreadyAdded = true;
           }
         }
         if (!alreadyAdded) {
           // if it isn't already in the requested organization, add it to the list of projects that should be moved
-          projectsToMove.push(project)
+          projectsToMove.push(project);
         }
       } else {
         // if the project is in a completely different organization
-        if (project.organization != oid) {
-          let alreadyAdded = false
+        if (project.organization !== oid) {
+          let alreadyAdded = false;
           for (const f of projectsInOtherOrgs) {
-            if (f.id == project.id) {
-              alreadyAdded = true
+            if (f.id === project.id) {
+              alreadyAdded = true;
             }
           }
           if (!alreadyAdded) {
             // add it to the lsit of projects that will cause this check to fail
-            projectsInOtherOrgs.push(project)
+            projectsInOtherOrgs.push(project);
           }
         }
       }
     }
     for (const group of projectsGroups) {
       // for every group that the project is in, check if the group is already in the requested organization
-      if (group.organization != oid && group.organization == null) {
-        let alreadyAdded = false
+      if (group.organization !== oid && group.organization == null) {
+        let alreadyAdded = false;
         for (const f of groupsToMove) {
-          if (f.id == group.id) {
-            alreadyAdded = true
+          if (f.id === group.id) {
+            alreadyAdded = true;
           }
         }
         if (!alreadyAdded) {
           // if it isn't already in the requested organization, add it to the list of groups that should be moved
-          groupsToMove.push(group)
+          groupsToMove.push(group);
         }
       } else {
         // if the group is in a completely different organization
-        if (group.organization != oid) {
-          let alreadyAdded = false
+        if (group.organization !== oid) {
+          let alreadyAdded = false;
           for (const f of groupsInOtherOrgs) {
-            if (f.id == group.id) {
-              alreadyAdded = true
+            if (f.id === group.id) {
+              alreadyAdded = true;
             }
           }
           if (!alreadyAdded) {
             // add it to the lsit of projects that will cause this check to fail
-            groupsInOtherOrgs.push(group)
+            groupsInOtherOrgs.push(group);
           }
         }
       }
     }
   }
-}
+};
 
 export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, models, hasPermission }
+  { sqlClientPool, models, hasPermission },
 ) => {
-  let pid = input.project;
-  let oid = input.organization;
+  const pid = input.project;
+  const oid = input.organization;
 
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
-  const projectsToMove = []
-  const groupsToMove = []
-  const projectsInOtherOrgs = []
-  const groupsInOtherOrgs = []
+  const projectsToMove = [];
+  const groupsToMove = [];
+  const projectsInOtherOrgs = [];
+  const groupsInOtherOrgs = [];
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
+  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models);
 
-  return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
+  return {
+    projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs,
+  };
 };
 
 // given a project, collect all the groups that this project has, and all the projects that those groups have and their associated projects
@@ -1337,11 +1341,12 @@ export const checkBulkImportProjectsAndGroupsToOrganization: ResolverFn = async 
 export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   root,
   { input, detachNotifications },
-  { sqlClientPool, hasPermission, userActivityLogger, models }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, models,
+  },
 ) => {
-
-  let pid = input.project;
-  let oid = input.organization;
+  const pid = input.project;
+  const oid = input.organization;
 
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
@@ -1349,20 +1354,20 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectOrganization(input.organization));
   const orgResult = rows[0];
 
-  const projectsToMove = []
-  const groupsToMove = []
-  const projectsInOtherOrgs = []
-  const groupsInOtherOrgs = []
+  const projectsToMove = [];
+  const groupsToMove = [];
+  const projectsInOtherOrgs = [];
+  const groupsInOtherOrgs = [];
 
   // get all the groups the requested project is in
-  await checkBulkProjectGroupAssociation(oid, pid,  projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models)
+  await checkBulkProjectGroupAssociation(oid, pid, projectsToMove, groupsToMove, projectsInOtherOrgs, groupsInOtherOrgs, sqlClientPool, models);
 
   // if anything comes back in projectsInOtherOrgs or groupsInOtherOrgs, then this mutation should fail and inform the user
   // to run the query first and return the fields that contain information about why it can't move the projects
   if (projectsInOtherOrgs.length > 0 || groupsInOtherOrgs.length > 0) {
     throw new Error(
-      `The process detected projects or groups that are in another organization already, you should run checkBulkImportProjectsAndGroupsToOrganization and return otherOrgProjects and otherOrgGroups fields`
-    )
+      'The process detected projects or groups that are in another organization already, you should run checkBulkImportProjectsAndGroupsToOrganization and return otherOrgProjects and otherOrgGroups fields',
+    );
   }
 
   // update all projects to be in the organization
@@ -1371,20 +1376,20 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   for (const group of groupsToMove) {
     // update the groups of the project to be in the organization
     if (!groupsDone.includes(group.id)) {
-      if (group.organization != oid && group.organization == null) {
+      if (group.organization !== oid && group.organization == null) {
         await models.GroupModel.updateGroup({
           id: group.id,
           name: group.name,
           attributes: {
             ...group.attributes,
             // lagoon-organization attribute is added for legacy reasons only, theses values are stored in the api-db now
-            "lagoon-organization": [input.organization]
-          }
+            'lagoon-organization': [input.organization],
+          },
         });
         if (input.organization) {
-          await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id)
+          await groupHelpers(sqlClientPool).addOrganizationToGroup(input.organization, group.id);
         }
-        groupsDone.push(group.id)
+        groupsDone.push(group.id);
 
         // log this activity
 
@@ -1400,28 +1405,28 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             details: group.name,
           },
         };
-        userActivityLogger(`User added a group to organization`, {
+        userActivityLogger('User added a group to organization', {
           project: '',
           organization: input.organization,
           event: 'api:addGroupToOrganization',
           payload: {
             data: {
               group: group.name,
-              organization: oid
+              organization: oid,
             },
             ...auditLog,
-          }
+          },
         });
       }
     }
   }
   for (const project of projectsToMove) {
     if (!projectsDone.includes(project.id)) {
-      if (project.organization != oid && project.organization == null) {
+      if (project.organization !== oid && project.organization == null) {
         if (detachNotifications) {
           // remove all notifications from projects before adding them to the organizations
           try {
-            await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({project: project.id})
+            await notificationHelpers(sqlClientPool).removeAllNotificationsFromProject({ project: project.id });
             const auditLog: AuditLog = {
               resource: {
                 id: orgResult.id.toString(),
@@ -1430,27 +1435,27 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
               },
               linkedResource: {
                 type: AuditType.NOTIFICATION,
-                details: "multiple notifications",
+                details: 'multiple notifications',
               },
             };
-            userActivityLogger(`User removed all notifications from project`, {
+            userActivityLogger('User removed all notifications from project', {
               project: '',
               organization: input.organization,
               event: 'api:removeNotificationsFromProject',
               payload: {
                 data: {
                   project: project.id,
-                  patch:{
+                  patch: {
                     organization: oid,
                   },
                   ...auditLog,
-                }
-              }
+                },
+              },
             });
-          } catch (err) {
+          } catch (_err) {
             throw new Error(
-              `Unable to remove all notifications from the project`
-            )
+              'Unable to remove all notifications from the project',
+            );
           }
         }
 
@@ -1459,12 +1464,12 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
           sqlClientPool,
           Sql.updateProjectOrganization({
             pid: project.id,
-            patch:{
+            patch: {
               organization: oid,
-            }
-          })
+            },
+          }),
         );
-        projectsDone.push(project.id)
+        projectsDone.push(project.id);
 
         // log this activity
         const auditLog: AuditLog = {
@@ -1479,23 +1484,25 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
             details: project.name,
           },
         };
-        userActivityLogger(`User added a project to organization`, {
+        userActivityLogger('User added a project to organization', {
           project: '',
           organization: input.organization,
           event: 'api:addExistingProjectToOrganization',
           payload: {
             data: {
               project: project.id,
-              patch:{
+              patch: {
                 organization: oid,
               },
               ...auditLog,
-            }
-          }
+            },
+          },
         });
       }
     }
   }
 
-  return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
-}
+  return {
+    projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs,
+  };
+};

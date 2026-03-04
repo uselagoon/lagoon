@@ -8,11 +8,11 @@ export const config = {
   realm: 'lagoon',
   apiClientSecret: getConfigFromEnv(
     'KEYCLOAK_API_CLIENT_SECRET',
-    '<secret not set>'
+    '<secret not set>',
   ),
   get publicRoute() {
     return getLagoonRouteFromEnv(/keycloak-/, this.origin);
-  }
+  },
 };
 
 const keycloakConfig = new KeycloakConfig({
@@ -21,8 +21,8 @@ const keycloakConfig = new KeycloakConfig({
   clientId: 'api',
   bearerOnly: true,
   credentials: {
-    secret: config.apiClientSecret
-  }
+    secret: config.apiClientSecret,
+  },
 });
 
 export const keycloakGrantManager = new KeycloakGrantManager(keycloakConfig);
@@ -32,7 +32,7 @@ export const keycloakGrantManager = new KeycloakGrantManager(keycloakConfig);
 // the URL used in the UI doesn't match what's used in the API.
 keycloakGrantManager.validateToken = function validateToken(
   token,
-  expectedType
+  expectedType,
 ) {
   return new Promise((resolve, reject) => {
     if (!token) {
@@ -48,17 +48,17 @@ keycloakGrantManager.validateToken = function validateToken(
     } else if (!token.content.iss.includes('auth/realms/lagoon')) {
       reject(new Error('invalid token (wrong ISS)'));
     } else {
-      const audienceData = Array.isArray(token.content.aud) ? token.content.aud : [token.content.aud]
+      const audienceData = Array.isArray(token.content.aud) ? token.content.aud : [token.content.aud];
       if (expectedType === 'ID') {
         if (!audienceData.includes(this.clientId)) {
-          reject(new Error('invalid token (wrong audience)'))
+          reject(new Error('invalid token (wrong audience)'));
         }
         if (token.content.azp && token.content.azp !== this.clientId) {
-          reject(new Error('invalid token (authorized party should match client id)'))
+          reject(new Error('invalid token (authorized party should match client id)'));
         }
       } else if (this.verifyTokenAudience) {
         if (!audienceData.includes(this.clientId)) {
-          reject(new Error('invalid token (wrong audience)'))
+          reject(new Error('invalid token (wrong audience)'));
         }
       }
       const verify = crypto.createVerify('RSA-SHA256');
@@ -71,11 +71,11 @@ keycloakGrantManager.validateToken = function validateToken(
           } else {
             resolve(token);
           }
-        } catch (err) {
+        } catch (_err) {
           reject(
             new Error(
-              'Misconfigured parameters while validating token. Check your keycloak.json file!'
-            )
+              'Misconfigured parameters while validating token. Check your keycloak.json file!',
+            ),
           );
         }
       } else {
@@ -91,7 +91,7 @@ keycloakGrantManager.validateToken = function validateToken(
             }
           })
           .catch(err => {
-            reject(new Error('failed to load public key to verify token. Reason: ' + err.message));
+            reject(new Error(`failed to load public key to verify token. Reason: ${err.message}`));
           });
       }
     }

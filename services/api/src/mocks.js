@@ -19,7 +19,7 @@ const addTime = (originalDate, hoursLimit) => {
   const date = new Date(originalDate);
   date.setTime(
     date.getTime()
-    + faker.number.int(hoursLimit*60*60*1000)
+    + faker.number.int(hoursLimit * 60 * 60 * 1000),
   );
   return date.toISOString();
 };
@@ -51,9 +51,9 @@ export const generator = (schema, min = 1, max) => {
 // 'scalar' and 'enum' mocks from typeDefs.
 //
 const mocks = {
-  Date: () => faker.date.between({from: '2018-11-01T00:00:00', to: '2019-10-31T23:59:59'}).toISOString(),
+  Date: () => faker.date.between({ from: '2018-11-01T00:00:00', to: '2019-10-31T23:59:59' }).toISOString(),
   JSON: () => ({ id: faker.number.int(), currency: 'usd' }),
-  SshKeyType: () => faker.helpers.arrayElement(['ssh_rsa', 'ssh_ed25519','ecdsa_sha2_nistp256','ecdsa_sha2_nistp384','ecdsa_sha2_nistp521']),
+  SshKeyType: () => faker.helpers.arrayElement(['ssh_rsa', 'ssh_ed25519', 'ecdsa_sha2_nistp256', 'ecdsa_sha2_nistp384', 'ecdsa_sha2_nistp521']),
   DeployType: () => faker.helpers.arrayElement(['branch', 'pullrequest', 'promote']),
   EnvType: () => faker.helpers.arrayElement(['production', 'development']),
   NotificationType: () => faker.helpers.arrayElement(['slack', 'rocketchat', 'microsoftteams', 'email', 'webhook']),
@@ -99,50 +99,50 @@ mocks.SshKey = () => ({
   created: mocks.Date(),
 });
 
-mocks.User = (parent, args = {}, context, info) => {
+mocks.User = (parent, args = {}, _context, _info) => {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   const user = {
     id: faker.number.int(),
-    email: faker.internet.email({firstName, lastName}),
+    email: faker.internet.email({ firstName, lastName }),
     firstName,
     lastName,
     comment: faker.lorem.words(5),
     gitlabId: faker.number.int(),
-    sshKeys: [ mocks.SshKey() ],
+    sshKeys: [mocks.SshKey()],
     groups: [],
   };
   return {
     ...user,
     groups: args.hasOwnProperty('groups')
       ? args.groups
-      : [mocks.Group(null, {user})],
-  }
+      : [mocks.Group(null, { user })],
+  };
 };
 
-mocks.GroupMembership = (parent, args = {}, context, info) => ({
+mocks.GroupMembership = (parent, args = {}, _context, _info) => ({
   user: args.hasOwnProperty('user')
     ? args.user
-    : mocks.User(null, {groups: []}),
+    : mocks.User(null, { groups: [] }),
   role: mocks.GroupRole(),
 });
 
-mocks.Group = (parent, args = {}, context, info) => {
+mocks.Group = (parent, args = {}, _context, _info) => {
   const user = args.hasOwnProperty('user')
     ? args.user
-    : mocks.User(null, {groups: []});
-  const user2 = mocks.User(null, {groups: []});
+    : mocks.User(null, { groups: [] });
+  const user2 = mocks.User(null, { groups: [] });
 
   const group = {
     id: faker.number.int(),
     name: faker.word.sample(),
     // Only mock nested groups when not asked for a user-specific group.
     groups: !args.hasOwnProperty('user')
-      ? [mocks.Group(null, {user: mocks.User(null, {groups: []})})]
+      ? [mocks.Group(null, { user: mocks.User(null, { groups: [] }) })]
       : [],
     members: [
-      mocks.GroupMembership(null, {user}),
-      mocks.GroupMembership(null, {user: user2}),
+      mocks.GroupMembership(null, { user }),
+      mocks.GroupMembership(null, { user: user2 }),
     ],
   };
 
@@ -153,7 +153,7 @@ mocks.Group = (parent, args = {}, context, info) => {
   return group;
 };
 
-//mocks.Group = mocks.GroupInterface;
+// mocks.Group = mocks.GroupInterface;
 
 mocks.OrgUser = () => ({
   id: faker.string.uuid(),
@@ -198,14 +198,14 @@ mocks.OrgEnvironment = () => ({
   deployTitle: 'main',
   autoIdle: 1,
   environmentType: 'production',
-  openshiftProjectName: `org-project-main`,
-  kubernetesNamespaceName: `org-project-main`,
+  openshiftProjectName: 'org-project-main',
+  kubernetesNamespaceName: 'org-project-main',
   updated: mocks.Date(),
   created: mocks.Date(),
   deleted: '0000-00-00 00:00:00',
   route: 'https://org-project.example.com',
   routes: 'https://org-project.example.com',
-  services: [ mocks.EnvironmentService() ],
+  services: [mocks.EnvironmentService()],
   openshift: mocks.Openshift(),
   kubernetes: mocks.Kubernetes(),
 });
@@ -217,7 +217,7 @@ mocks.OrganizationNotification = () => ({
 
 mocks.Organization = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-org',
+  name: `${faker.word.sample()}-org`,
   friendlyName: faker.company.name(),
   description: faker.lorem.sentence(),
   quotaProject: faker.number.int({ min: 5, max: 50 }),
@@ -225,12 +225,12 @@ mocks.Organization = () => ({
   quotaNotification: faker.number.int({ min: 5, max: 20 }),
   quotaEnvironment: faker.number.int({ min: 10, max: 100 }),
   quotaRoute: faker.number.int({ min: 10, max: 100 }),
-  deployTargets: [ mocks.Openshift() ],
-  projects: [ mocks.OrgProject(), mocks.OrgProject() ],
+  deployTargets: [mocks.Openshift()],
+  projects: [mocks.OrgProject(), mocks.OrgProject()],
   environments: [],
-  groups: [ mocks.OrgGroup() ],
-  owners: [ mocks.OrgUser() ],
-  notifications: [ mocks.Notification() ],
+  groups: [mocks.OrgGroup()],
+  owners: [mocks.OrgUser()],
+  notifications: [mocks.Notification()],
   created: mocks.Date(),
   envVariables: [],
   retentionPolicies: [],
@@ -255,7 +255,7 @@ mocks.Openshift = () => ({
 
 mocks.Kubernetes = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-k8s',
+  name: `${faker.word.sample()}-k8s`,
   consoleUrl: 'https://192.168.99.100:6443/',
   token: faker.string.uuid(),
   routerPattern: '${project}.${branch}.192.168.99.100.xip.io',
@@ -277,14 +277,14 @@ mocks.NotificationRocketChat = () => ({
   id: faker.number.int(),
   name: 'amazeeio--lagoon-local-ci',
   webhook: 'https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
-  channel: 'lagoon-local-ci'
+  channel: 'lagoon-local-ci',
 });
 
 mocks.NotificationSlack = () => ({
   id: faker.number.int(),
   name: 'amazeeio--lagoon-local-ci',
   webhook: 'https://amazeeio.slack.com/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
-  channel: 'lagoon-local-ci'
+  channel: 'lagoon-local-ci',
 });
 
 mocks.NotificationEmail = () => ({
@@ -322,7 +322,7 @@ mocks.Notification = () => {
   }
 };
 
-mocks.Project = (parent, args = {}, context, info) => {
+mocks.Project = (parent, args = {}, _context, _info) => {
   const name = `${faker.company.catchPhraseAdjective()} ${faker.company.bsNoun()}`.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
   const project = {
     id: faker.number.int(),
@@ -345,7 +345,7 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     developmentEnvironmentsLimit: 10,
     environments: [],
     created: mocks.Date(),
-    envVariables: [ mocks.EnvKeyValue() ],
+    envVariables: [mocks.EnvKeyValue()],
     // groups: [ mocks.Group() ],
   };
   return {
@@ -354,11 +354,12 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
   };
 };
 
-mocks.Environment = (parent, args = {}, context, info) => {
+mocks.Environment = (parent, args = {}, _context, _info) => {
   const name = args.hasOwnProperty('name')
     ? args.name
     : faker.helpers.arrayElement(['master', 'staging', 'development', 'pr-42', 'pr-100', 'pr-175']);
-  let deployType, deployBaseRef, deployHeadRef;
+  let deployType; let deployBaseRef; let
+    deployHeadRef;
   if (/^pr\-/.test(name)) {
     deployType = 'pullrequest';
     deployBaseRef = 'target';
@@ -391,47 +392,57 @@ mocks.Environment = (parent, args = {}, context, info) => {
     storages: [],
     storageMonth: mocks.EnvironmentStorageMonth(),
     hitsMonth: mocks.EnvironmentHitsMonth(),
-    envVariables: [ mocks.EnvKeyValue() ],
+    envVariables: [mocks.EnvKeyValue()],
     route: name === 'master' ? `https://${project.name}.org` : `https://${name}.${project.name}.org`,
     routes: `https://${project.name}.org,https://varnish-${project.name}-org-prod.us.amazee.io,https://nginx-${project.name}-org-prod.us.amazee.io`,
     monitoringUrls: null,
     deployments: [
-      mocks.Deployment(null, {environment: { created: new Date(mocks.Date()) }}),
-      mocks.Deployment(null, {environment: {}})
+      mocks.Deployment(null, { environment: { created: new Date(mocks.Date()) } }),
+      mocks.Deployment(null, { environment: {} }),
     ],
     backups: [],
     tasks: [],
     problems: [],
     facts: [],
-    services: [ mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService() ],
+    services: [mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService()],
   };
 
   return {
     ...environment,
-    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
+    storages: [mocks.EnvironmentStorage(null, { environment })],
     deployments: args.hasOwnProperty('deployments') ? args.deployments : [
-      mocks.Deployment(null, {environment} ),
-      mocks.Deployment(null, {environment} )
+      mocks.Deployment(null, { environment }),
+      mocks.Deployment(null, { environment }),
     ],
     problems: args.hasOwnProperty('problems') ? args.problems : [
-      mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
-      mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
-      mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
-      mocks.Problem(null, {source: "OWASP ZAP", severity: "LOW"}),
+      mocks.Problem(null, { source: 'Drutiny', severity: 'CRITICAL' }),
+      mocks.Problem(null, { source: 'Trivy', severity: 'MEDIUM' }),
+      mocks.Problem(null, { source: 'Drutiny', severity: 'HIGH' }),
+      mocks.Problem(null, { source: 'OWASP ZAP', severity: 'LOW' }),
       mocks.Problem(),
-      mocks.Problem()
+      mocks.Problem(),
     ],
     facts: args.hasOwnProperty('facts') ? args.facts : [
-      mocks.Fact(null, { name: "php-version", value: faker.helpers.arrayElement(['7.4.1', '7.2.1', '7.1.1', '8.1.0']), source: "php-version", category: "Programming language", keyFact: true} ),
-      mocks.Fact(null, { name: "drupal-core", value: "9.0.12", source: "drupal-version", category: "Framework", keyFact: true} ),
-      mocks.Fact(null, { name: "Lagoon", value: " 21.3.0", source: "env", category: "Platform", keyFact: true} ),
-      mocks.Fact(null, { name: "site-code-status", value: faker.helpers.arrayElement(['200', '404', '403', '301', '504', '503']), source: "curl", category: "Performance", keyFact: true} ),
-      mocks.Fact(null, { name: "lagoon-category", value: "saas", source: "saas", category: "Lagoon", keyFact: true} ),
+      mocks.Fact(null, {
+        name: 'php-version', value: faker.helpers.arrayElement(['7.4.1', '7.2.1', '7.1.1', '8.1.0']), source: 'php-version', category: 'Programming language', keyFact: true,
+      }),
+      mocks.Fact(null, {
+        name: 'drupal-core', value: '9.0.12', source: 'drupal-version', category: 'Framework', keyFact: true,
+      }),
+      mocks.Fact(null, {
+        name: 'Lagoon', value: ' 21.3.0', source: 'env', category: 'Platform', keyFact: true,
+      }),
+      mocks.Fact(null, {
+        name: 'site-code-status', value: faker.helpers.arrayElement(['200', '404', '403', '301', '504', '503']), source: 'curl', category: 'Performance', keyFact: true,
+      }),
+      mocks.Fact(null, {
+        name: 'lagoon-category', value: 'saas', source: 'saas', category: 'Lagoon', keyFact: true,
+      }),
       mocks.Fact(),
-      mocks.Fact()
+      mocks.Fact(),
     ],
-    backups: args.hasOwnProperty('backups') ? args.backups : [ mocks.Backup(null, {environment}) ],
-    tasks: args.hasOwnProperty('tasks') ? args.tasks : [ mocks.Task(null, {environment}) ],
+    backups: args.hasOwnProperty('backups') ? args.backups : [mocks.Backup(null, { environment })],
+    tasks: args.hasOwnProperty('tasks') ? args.tasks : [mocks.Task(null, { environment })],
   };
 };
 
@@ -439,7 +450,7 @@ mocks.EnvironmentHitsMonth = () => ({
   total: faker.number.int(),
 });
 
-mocks.EnvironmentStorage = (parent, args = {}, context, info) => ({
+mocks.EnvironmentStorage = (parent, args = {}, _context, _info) => ({
   id: faker.number.int(),
   environment: args.hasOwnProperty('environment') ? { id: args.environment.id } : { id: mocks.Environment().id },
   persistentStorageClaim: '',
@@ -459,7 +470,7 @@ mocks.EnvironmentHoursMonth = () => {
   const date = new Date(mocks.Date());
   return {
     month: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    hours: faker.number.int({ max: 24*30 }),
+    hours: faker.number.int({ max: 24 * 30 }),
   };
 };
 
@@ -468,14 +479,14 @@ mocks.EnvironmentService = () => ({
   name: faker.helpers.arrayElement(['cli', 'nginx', 'mariadb', 'solr', 'varnish', 'php']),
 });
 
-mocks.Fact = (parent, args = {}, context, info) => {
-  const id = `${faker.number.int({min: 0, max: 99999})}`;
+mocks.Fact = (parent, args = {}, _context, _info) => {
+  const id = `${faker.number.int({ min: 0, max: 99999 })}`;
   const name = args.hasOwnProperty('name') ? args.name : faker.helpers.arrayElement(['drupal-version', 'drush-version', 'admin_toolbar', 'drupal-core', 'laravel', 'composer-version']);
   const value = args.hasOwnProperty('value') ? args.value : faker.helpers.arrayElement(['8.0.1', '9.0.1', '3.2.1', '10.20.2', '4.3.4']);
   const source = args.hasOwnProperty('source') ? args.source : faker.helpers.arrayElement(['drush_pml', 'drush_status', 'http_header', 'php-version', 'env']);
   const category = args.hasOwnProperty('category') ? args.category : faker.helpers.arrayElement(['Application', 'Framework', 'Docker configuration', 'Drupal configuration', 'Lagoon', 'Platform', 'Programming language']);
   const description = faker.lorem.paragraph();
-  const environment = `${faker.number.int({min:0, max:5})}`;
+  const environment = `${faker.number.int({ min: 0, max: 5 })}`;
   const keyFact = args.hasOwnProperty('keyFact') ? args.keyFact : false;
   const type = args.hasOwnProperty('type') ? args.type : 'TEXT';
 
@@ -483,25 +494,25 @@ mocks.Fact = (parent, args = {}, context, info) => {
     id: faker.number.int(),
     fid: faker.number.int(),
     name: faker.helpers.arrayElement([
-      ['nginx.company.amazee.io'], ['cli'], ['solr'], ['php'], ['backend.company.amazee.io']
-    ])
+      ['nginx.company.amazee.io'], ['cli'], ['solr'], ['php'], ['backend.company.amazee.io'],
+    ]),
   }];
 
   return {
-    id: id,
-    name: name,
-    value: value,
-    source: source,
-    category: category,
+    id,
+    name,
+    value,
+    source,
+    category,
     description,
     environment,
     keyFact,
     type,
-    references
+    references,
   };
 };
 
-mocks.Backup = (parent, args = {}, context, info) => {
+mocks.Backup = (parent, args = {}, _context, _info) => {
   const date = mocks.Date();
   const backupId = faker.string.uuid();
   return {
@@ -511,11 +522,11 @@ mocks.Backup = (parent, args = {}, context, info) => {
     backupId,
     created: date,
     deleted: addTime(date, 24),
-    restore: mocks.Restore(null, {backupId}),
+    restore: mocks.Restore(null, { backupId }),
   };
 };
 
-mocks.Restore = (parent, args = {}, context, info) => {
+mocks.Restore = (parent, args = {}, _context, _info) => {
   const backupId = args.hasOwnProperty('backupId')
     ? args.backupId
     : faker.number.int();
@@ -528,11 +539,11 @@ mocks.Restore = (parent, args = {}, context, info) => {
   };
 };
 
-mocks.Deployment = (parent, args = {}, context, info) => {
+mocks.Deployment = (parent, args = {}, _context, _info) => {
   const id = faker.number.int();
   const created = args.hasOwnProperty('created') ? args.created : mocks.Date();
-  const started = addTime(created, .5);
-  const completed = addTime(started, .75);
+  const started = addTime(created, 0.5);
+  const completed = addTime(started, 0.75);
 
   return {
     id,
@@ -541,7 +552,7 @@ mocks.Deployment = (parent, args = {}, context, info) => {
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(null, {deployments: []} ),
+    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(null, { deployments: [] }),
     remoteId: faker.number.int(),
     buildLog: 'Buildem logem ipsum.',
   };
@@ -554,7 +565,7 @@ mocks.EnvKeyValue = () => ({
   value: '4A65DC68F2',
 });
 
-mocks.Task = (parent, args = {}, context, info) => {
+mocks.Task = (parent, args = {}, _context, _info) => {
   const name = faker.helpers.arrayElement(['Site Status', 'Drupal Archive']);
   const created = mocks.Date();
   const started = addTime(created, 0.125);
@@ -566,12 +577,12 @@ mocks.Task = (parent, args = {}, context, info) => {
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ?  args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
     service: 'cli',
     command: name === 'Site Status' ? 'drush status' : 'drush archive-dump',
     remoteId: faker.string.uuid(),
     logs: 'Taskem logem ipsum.',
-    files: [ mocks.File() ],
+    files: [mocks.File()],
   };
 };
 
@@ -631,12 +642,12 @@ mocks.AdvancedTaskDefinitionArgument = () => ({
 
 mocks.AdvancedTaskDefinitionCommand = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-task',
+  name: `${faker.word.sample()}-task`,
   description: faker.lorem.sentence(),
   confirmationText: '',
   type: 'COMMAND',
   service: 'cli',
-  command: 'drush ' + faker.word.sample(),
+  command: `drush ${faker.word.sample()}`,
   groupName: '',
   environment: null,
   project: null,
@@ -652,7 +663,7 @@ mocks.AdvancedTaskDefinitionCommand = () => ({
 
 mocks.AdvancedTaskDefinitionImage = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-image-task',
+  name: `${faker.word.sample()}-image-task`,
   description: faker.lorem.sentence(),
   confirmationText: '',
   type: 'IMAGE',
@@ -666,14 +677,14 @@ mocks.AdvancedTaskDefinitionImage = () => ({
   deployTokenInjection: false,
   projectKeyInjection: false,
   adminOnlyView: false,
-  advancedTaskDefinitionArguments: [ mocks.AdvancedTaskDefinitionArgument() ],
+  advancedTaskDefinitionArguments: [mocks.AdvancedTaskDefinitionArgument()],
   created: mocks.Date(),
   deleted: '0000-00-00 00:00:00',
 });
 
 mocks.HarborRetentionPolicy = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-harbor-policy',
+  name: `${faker.word.sample()}-harbor-policy`,
   configuration: {
     enabled: true,
     rules: [{ name: 'retain-last-10', pattern: '**', latestPulled: 10 }],
@@ -686,7 +697,7 @@ mocks.HarborRetentionPolicy = () => ({
 
 mocks.HistoryRetentionPolicy = () => ({
   id: faker.number.int(),
-  name: faker.word.sample() + '-history-policy',
+  name: `${faker.word.sample()}-history-policy`,
   configuration: {
     enabled: true,
     deploymentHistory: 10,
@@ -699,32 +710,31 @@ mocks.HistoryRetentionPolicy = () => ({
   source: faker.helpers.arrayElement(['project', 'organization']),
 });
 
-mocks.Problem = (parent, args = {}, context, info) => {
-    const recentYear = faker.helpers.arrayElement(['2019', '2020']);
-    const vuln_id = `CVE-${recentYear}-${faker.number.int({min: 1000, max: 99999})}`;
-    const source = faker.helpers.arrayElement(['Lighthouse', 'Drutiny', 'Trivy', 'OWASP ZAP', 'Script']);
-    // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
-    const associatedPackage = faker.helpers.arrayElement(packages);
-    // const version = `${faker.number.int(4)}.${faker.number.int(9)}.${faker.number.int(49)}`;
-    // const fixedVersion = `${version}+deb8u${faker.number.int(9)}`;
-    const severity = faker.helpers.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
-    const description = faker.lorem.paragraph();
-    const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
-    const severityScore = `0.${faker.number.int({min:1, max:9})}`;
-    const data =  JSON.stringify({id: `${faker.number.int({min:1, max:100})}`}, null, '\t');
+mocks.Problem = (parent, args = {}, _context, _info) => {
+  const recentYear = faker.helpers.arrayElement(['2019', '2020']);
+  const vuln_id = `CVE-${recentYear}-${faker.number.int({ min: 1000, max: 99999 })}`;
+  const source = faker.helpers.arrayElement(['Lighthouse', 'Drutiny', 'Trivy', 'OWASP ZAP', 'Script']);
+  // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
+  const associatedPackage = faker.helpers.arrayElement(packages);
+  // const version = `${faker.number.int(4)}.${faker.number.int(9)}.${faker.number.int(49)}`;
+  // const fixedVersion = `${version}+deb8u${faker.number.int(9)}`;
+  const severity = faker.helpers.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+  const description = faker.lorem.paragraph();
+  const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
+  const severityScore = `0.${faker.number.int({ min: 1, max: 9 })}`;
+  const data = JSON.stringify({ id: `${faker.number.int({ min: 1, max: 100 })}` }, null, '\t');
 
-    return {
-      identifier: vuln_id,
-      severity: args.hasOwnProperty('severity') ? args.severity : severity,
-      source: args.hasOwnProperty('source') ? args.source : source,
-      severityScore: severityScore,
-      associatedPackage: associatedPackage,
-      description,
-      links,
-      data
-    };
+  return {
+    identifier: vuln_id,
+    severity: args.hasOwnProperty('severity') ? args.severity : severity,
+    source: args.hasOwnProperty('source') ? args.source : source,
+    severityScore,
+    associatedPackage,
+    description,
+    links,
+    data,
+  };
 };
-
 
 //
 // Query 'type' mock from typeDefs.
@@ -760,17 +770,17 @@ mocks.Query = () => ({
   environmentByOpenshiftProjectName: () => mocks.Environment(),
   environmentById: () => mocks.Environment(),
   environmentByKubernetesNamespaceName: () => mocks.Environment(),
-  allEnvironments: (parent, args = {}, context, info) => {
+  allEnvironments: (parent, args = {}, _context, _info) => {
     const project = args.hasOwnProperty('project')
       ? args.project
-      : mocks.Project(null, {environments: []});
+      : mocks.Project(null, { environments: [] });
     return [
-      mocks.Environment(null, {project, name: 'master'}),
-      mocks.Environment(null, {project, name: 'staging'}),
-      mocks.Environment(null, {project, name: 'development'}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.number.int({min: 1, max: 50})}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.number.int({min: 51, max: 100})}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.number.int({min: 101, max: 150})}),
+      mocks.Environment(null, { project, name: 'master' }),
+      mocks.Environment(null, { project, name: 'staging' }),
+      mocks.Environment(null, { project, name: 'development' }),
+      mocks.Environment(null, { project, name: `pr-${faker.number.int({ min: 1, max: 50 })}` }),
+      mocks.Environment(null, { project, name: `pr-${faker.number.int({ min: 51, max: 100 })}` }),
+      mocks.Environment(null, { project, name: `pr-${faker.number.int({ min: 101, max: 150 })}` }),
     ];
   },
   environmentsByKubernetes: () => new MockList(5, () => mocks.Environment()),
@@ -945,7 +955,7 @@ mocks.Mutation = () => ({
   deleteFilesForTask: () => 'success',
 
   // Services
-  setEnvironmentServices: () => [ mocks.EnvironmentService() ],
+  setEnvironmentServices: () => [mocks.EnvironmentService()],
   addOrUpdateEnvironmentService: () => mocks.EnvironmentService(),
   deleteEnvironmentService: () => 'success',
   stopOrStartEnvironmentService: () => 'success',
@@ -1031,7 +1041,6 @@ mocks.Mutation = () => ({
   addHistoryRetentionPolicyLink: () => 'success',
   removeHistoryRetentionPolicyLink: () => 'success',
 });
-
 
 //
 // Subscription 'type' mock from typeDefs.

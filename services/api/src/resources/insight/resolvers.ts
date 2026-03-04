@@ -3,25 +3,26 @@ import { getEnvironmentName, convertBytesToHumanFileSize } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 
-const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
 import { AuditType } from '../../commons/types';
 
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
+
 // s3 config
-const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
-const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
-const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-const region = process.env.S3_FILES_REGION || 'us-east-1'
-const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+const accessKeyId = process.env.S3_FILES_ACCESS_KEY_ID || 'minio';
+const secretAccessKey = process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123';
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files';
+const region = process.env.S3_FILES_REGION || 'us-east-1';
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000';
 
 const config = {
   origin: s3Origin,
-  accessKeyId: accessKeyId,
-  secretAccessKey: secretAccessKey,
-  region: region,
-  bucket: bucket
+  accessKeyId,
+  secretAccessKey,
+  region,
+  bucket,
 };
 
 const s3Client = new S3Client({
@@ -32,12 +33,12 @@ const s3Client = new S3Client({
   },
   region: config.region,
   forcePathStyle: true,
-  signatureVersion: 'v4'
+  signatureVersion: 'v4',
 });
 
 // Get insights files directly from the bucket
 export const getInsightsBucketFiles = async ({ prefix }) => {
-	try {
+  try {
     const data = await s3Client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }));
 
     if (!data.Contents) {
@@ -45,28 +46,26 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
     }
 
     return await JSON.parse(JSON.stringify(data.Contents));
-	}
-  catch (e) {
-    throw new Error(`Error retrieving bucket items - ${e.message}`)
-	}
-}
+  } catch (e) {
+    throw new Error(`Error retrieving bucket items - ${e.message}`);
+  }
+};
 
 export const getInsightsDownloadUrl: ResolverFn = async (
-  { fileId, environment, file },
+  { _fileId, environment, file },
   _args,
-  { sqlClientPool, userActivityLogger }
+  { sqlClientPool, userActivityLogger },
 ) => {
-
   const environmentData = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(parseInt(environment));
   const projectData = await projectHelpers(sqlClientPool).getProjectById(
-    environmentData.project
+    environmentData.project,
   );
 
-  let environmentName = getEnvironmentName(environmentData, projectData);
+  const environmentName = getEnvironmentName(environmentData, projectData);
 
-	try {
+  try {
     const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
 
     if (typeof userActivityLogger === 'function') {
@@ -78,44 +77,44 @@ export const getInsightsDownloadUrl: ResolverFn = async (
       if (projectData.organization) {
         auditLog.organizationId = projectData.organization;
       }
-      userActivityLogger(`User requested a download link`, {
+      userActivityLogger('User requested a download link', {
         event: 'api:getSignedInsightsUrl',
         payload: {
           Bucket: bucket,
           Key: s3Key,
           ...auditLog,
-        }
+        },
       });
     }
 
     const command = new GetObjectCommand({ Bucket: bucket, Key: s3Key });
 
     return await getSignedUrl(s3Client, command, { expiresIn: s3Config.signedLinkExpiration });
-	} catch (e) {
-   return `Error while creating download link - ${e.Error || 'Unknown error'}`
-	}
-}
+  } catch (e) {
+    return `Error while creating download link - ${e.Error || 'Unknown error'}`;
+  }
+};
 
 export const getInsightsFileData: ResolverFn = async (
   { fileId, environment, file },
   _args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
   if (!fileId) {
     return null;
   }
 
   const environmentData = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(parseInt(environment));
   const projectData = await projectHelpers(sqlClientPool).getProjectById(
-    environmentData.project
+    environmentData.project,
   );
 
-  let environmentName = getEnvironmentName(environmentData, projectData);
+  const environmentName = getEnvironmentName(environmentData, projectData);
 
   try {
-    let insightsFile = 'insights/'+projectData.name+'/'+environmentName+'/'+file
+    const insightsFile = `insights/${projectData.name}/${environmentName}/${file}`;
     const data = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: insightsFile }));
 
     if (!data) {
@@ -132,45 +131,44 @@ export const getInsightsFileData: ResolverFn = async (
 
 export const getInsightsFilesByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { name, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { _name, _limit },
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-
   if (!eid) {
-    throw "No Environment ID given.";
+    throw 'No Environment ID given.';
   }
 
   const environmentData = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(parseInt(eid));
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environmentData.project
+      project: environmentData.project,
     });
   }
 
   const projectData = await projectHelpers(sqlClientPool).getProjectById(
-    environmentData.project
+    environmentData.project,
   );
   const environmentName = getEnvironmentName(environmentData, projectData);
 
-  const insightsItems = await getInsightsBucketFiles({ prefix: 'insights/'+projectData.name+'/'+environmentName+'/'});
+  const insightsItems = await getInsightsBucketFiles({ prefix: `insights/${projectData.name}/${environmentName}/` });
   const files = await Promise.all(insightsItems.map(async (file, index) => {
-    const fileName = file.Key ? file.Key.split("/").pop() : "";
-    const type = fileName ? fileName.split('-')[0] : "";
-    const service = fileName ? fileName.split('-').at('-1').split('.')[0] : "";
+    const fileName = file.Key ? file.Key.split('/').pop() : '';
+    const type = fileName ? fileName.split('-')[0] : '';
+    const service = fileName ? fileName.split('-').at('-1').split('.')[0] : '';
 
     return {
-      id: index+1,
+      id: index + 1,
       file: fileName,
       size: file.Size && convertBytesToHumanFileSize(file.Size),
       created: file.LastModified && file.LastModified,
-      service: service,
-      type: type,
+      service,
+      type,
       environment: eid,
-    }
+    };
   }));
 
   return files;

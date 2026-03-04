@@ -7,8 +7,7 @@ export function createRouter() {
   const router = express.Router();
 
   // Redirect GET requests on "/" to the status route.
-  router.get('/', (req: Request, res: Response) =>
-    res.redirect('/status'),
+  router.get('/', (req: Request, res: Response) => res.redirect('/status'),
   );
 
   // Fetch the current api status.

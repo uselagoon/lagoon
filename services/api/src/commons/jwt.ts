@@ -1,4 +1,5 @@
 import { sign } from 'jsonwebtoken';
+
 type Role = 'none' | 'admin' | 'drush';
 
 interface Payload {

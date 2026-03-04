@@ -1,6 +1,9 @@
-const { addColors, createLogger, format, transports } = require('winston');
 import { getConfigFromEnv } from '../util/config';
-import { levels, colors } from '../commons/logs/';
+import { levels, colors } from '../commons/logs';
+
+const {
+  addColors, createLogger, format, transports,
+} = require('winston');
 
 addColors(colors);
 
@@ -12,14 +15,14 @@ export const logger = createLogger({
     format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     format.printf(
-      ({ timestamp, level, message }) => `[${timestamp}] [${level}]: ${message}`
-    )
+      ({ timestamp, level, message }) => `[${timestamp}] [${level}]: ${message}`,
+    ),
   ),
   transports: [
     new transports.Console({
       level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'info'),
       handleExceptions: true,
-      json: false
-    })
-  ]
+      json: false,
+    }),
+  ],
 });

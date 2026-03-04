@@ -10,7 +10,7 @@ export type RequestWithRequestData = Request & {
 const ipAddress = async (
   req: RequestWithRequestData,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const ipAddress = getClientIp(req);

@@ -1,4 +1,4 @@
-import { AuditType } from "../../commons/types"
+import { AuditType } from '../../commons/types';
 
 export interface AuditLog {
     organizationId?: number

@@ -8,4 +8,4 @@ const s3Config = {
 
 export { s3Config };
 
-export { getLagoonRouteFromEnv } from '../commons/util/lagoon'
+export { getLagoonRouteFromEnv } from '../commons/util/lagoon';

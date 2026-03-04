@@ -1,12 +1,14 @@
 import * as R from 'ramda';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
-import { getConfigFromEnv } from '../util/config';
+import { getConfigFromEnv } from './config';
 import { encodeJSONBase64, isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
-const { userActivityLogger } = require('../loggers/userActivityLogger');
+
 import { Group } from '../models/group';
 import { User } from '../models/user';
+
+const { userActivityLogger } = require('../loggers/userActivityLogger');
 
 export interface LegacyToken {
   iat: number;
@@ -30,12 +32,12 @@ const sortRolesByWeight = (a, b) => {
     reporter: 2,
     developer: 3,
     maintainer: 4,
-    owner: 5
+    owner: 5,
   };
 
   if (roleWeights[a] < roleWeights[b]) {
     return -1;
-  } else if (roleWeights[a] > roleWeights[b]) {
+  } if (roleWeights[a] > roleWeights[b]) {
     return 1;
   }
 
@@ -43,32 +45,32 @@ const sortRolesByWeight = (a, b) => {
 };
 
 export const getUserProjectIdsFromRoleProjectIds = (
-  roleProjectIds
+  roleProjectIds,
 ): number[] => {
   // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
   // the structure of this payload is:
   /*
     {"guest":[13],"devloper":[20,14],"maintainer":[13,18,19,12]}
   */
-  let upids = [];
+  const upids = [];
   for (const r in roleProjectIds) {
     for (const pid in roleProjectIds[r]) {
-      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : '';
     }
   }
   return R.uniq(upids);
 };
 
 export const getUserRoleForProjectFromRoleProjectIds = (
-  roleProjectIds, projectId
+  roleProjectIds, projectId,
 ): [string, number[]] => {
-  let upids = [];
-  let roles = [];
+  const upids = [];
+  const roles = [];
   for (const r in roleProjectIds) {
     for (const pid in roleProjectIds[r]) {
-      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
-      if (projectId == roleProjectIds[r][pid]) {
-        roles.push(r)
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : '';
+      if (projectId === roleProjectIds[r][pid]) {
+        roles.push(r);
       }
     }
   }
@@ -78,15 +80,13 @@ export const getUserRoleForProjectFromRoleProjectIds = (
   return [highestRoleForProject, R.uniq(upids)];
 };
 
-const getHighestRole = (roles): string => {
-  return R.pipe(
-    R.uniq,
-    R.reject(R.isEmpty),
-    R.reject(R.isNil),
-    R.sort(sortRolesByWeight),
-    R.last
-  )(roles) as string;
-};
+const getHighestRole = (roles): string => R.pipe(
+  R.uniq,
+  R.reject(R.isEmpty),
+  R.reject(R.isNil),
+  R.sort(sortRolesByWeight),
+  R.last,
+)(roles) as string;
 
 export const isLegacyToken = R.pathSatisfies(isNotNil, ['payload', 'role']);
 export const isKeycloakToken = R.pathSatisfies(isNotNil, ['payload', 'typ']);
@@ -94,18 +94,18 @@ export const isKeycloakToken = R.pathSatisfies(isNotNil, ['payload', 'typ']);
 export const getGrantForKeycloakToken = async (token: string) => {
   // Create grant, validating token is signed/fresh.
   const grant = await keycloakGrantManager.createGrant({
-    access_token: token
+    access_token: token,
   });
 
   // Validates token has a live session.
   const valid = await keycloakGrantManager.validateAccessToken(grant.access_token, undefined);
 
   if (!valid) {
-    throw new Error('session signed out')
+    throw new Error('session signed out');
   }
 
-  return grant
-}
+  return grant;
+};
 
 export const getCredentialsForLegacyToken = async (token: string): Promise<LegacyToken> => {
   const decoded = verify(token, getConfigFromEnv('JWTSECRET'));
@@ -114,23 +114,25 @@ export const getCredentialsForLegacyToken = async (token: string): Promise<Legac
     throw new Error('Decoding token resulted in wrong format.');
   }
 
-  const { role = 'none', aud, sub, iss, iat, exp } = decoded;
+  const {
+    role = 'none', aud, sub, iss, iat, exp,
+  } = decoded;
 
   // check the expiration on legacy tokens, reject them if necessary
-  const maxExpiry = getConfigFromEnv('LEGACY_EXPIRY_MAX', '3600') // 1hour default
-  const rejectLegacyExpiry = getConfigFromEnv('LEGACY_EXPIRY_REJECT', 'false') // don't reject intially, just log
+  const maxExpiry = getConfigFromEnv('LEGACY_EXPIRY_MAX', '3600'); // 1hour default
+  const rejectLegacyExpiry = getConfigFromEnv('LEGACY_EXPIRY_REJECT', 'false'); // don't reject intially, just log
   if (exp && iat) {
-    if ((exp-iat) > parseInt(maxExpiry)) {
-      const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(exp-iat)} is greater than ${parseInt(maxExpiry)}`
+    if ((exp - iat) > parseInt(maxExpiry)) {
+      const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(exp - iat)} is greater than ${parseInt(maxExpiry)}`;
       logger.warn(msg);
-      if (rejectLegacyExpiry == "true") {
+      if (rejectLegacyExpiry === 'true') {
         throw new Error(msg);
       }
     }
   } else {
-    const msg = `Legacy token (sub:${sub}; iss:${iss}) has no expiry`
+    const msg = `Legacy token (sub:${sub}; iss:${iss}) has no expiry`;
     logger.warn(msg);
-    if (rejectLegacyExpiry == "true") {
+    if (rejectLegacyExpiry === 'true') {
       throw new Error(msg);
     }
   }
@@ -150,7 +152,7 @@ export const getCredentialsForLegacyToken = async (token: string): Promise<Legac
     iss,
     aud,
     role,
-    permissions: {}
+    permissions: {},
   };
 };
 
@@ -163,8 +165,8 @@ export const legacyHasPermission = legacyCredentials => {
       userActivityLogger.user_info(
         `User does not have permission to '${scope}' on '${resource}'`,
         {
-          user: legacyCredentials ? legacyCredentials : null
-        }
+          user: legacyCredentials || null,
+        },
       );
       throw new Error('Unauthorized');
     }
@@ -183,7 +185,6 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
   const UserModel = User(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
-
     let claims: {
       currentUser: [string];
       usersQuery?: [string];
@@ -196,7 +197,7 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
       userOrganizationsAdmin?: [string];
       userOrganizationsView?: [string];
     } = {
-      currentUser: [currentUser.id]
+      currentUser: [currentUser.id],
     };
 
     const usersAttribute = R.prop('users', attributes);
@@ -206,10 +207,10 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
         usersQuery: [
           R.compose(
             R.join('|'),
-            R.prop('users')
-          )(attributes)
+            R.prop('users'),
+          )(attributes),
         ],
-        currentUser: [currentUser.id]
+        currentUser: [currentUser.id],
       };
     }
 
@@ -217,28 +218,28 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
     if (R.prop('lagoon-organizations', currentUser.attributes)) {
       claims = {
         ...claims,
-        userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+        userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`],
       };
     }
     // check organization admin attributes
     if (R.prop('lagoon-organizations-admin', currentUser.attributes)) {
       claims = {
         ...claims,
-        userOrganizationsAdmin: [`${R.prop('lagoon-organizations-admin', currentUser.attributes)}`]
+        userOrganizationsAdmin: [`${R.prop('lagoon-organizations-admin', currentUser.attributes)}`],
       };
     }
     // check organization viewer attributes
     if (R.prop('lagoon-organizations-viewer', currentUser.attributes)) {
       claims = {
         ...claims,
-        userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`]
+        userOrganizationsView: [`${R.prop('lagoon-organizations-viewer', currentUser.attributes)}`],
       };
     }
     if (R.prop('organization' as any, attributes)) {
       const organizationId = parseInt(R.prop('organization' as any, attributes) as string, 10);
       claims = {
         ...claims,
-        organizationQuery: [`${organizationId}`]
+        organizationQuery: [`${organizationId}`],
       };
     }
 
@@ -250,10 +251,10 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
       try {
         claims = {
           ...claims,
-          projectQuery: [`${projectId}`]
+          projectQuery: [`${projectId}`],
         };
 
-        let [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+        let [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId);
 
         if (!highestRoleForProject) {
           // if no role is detected, fall back to checking the slow way. this is usually only going to be on project creation
@@ -262,25 +263,25 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
           // grab the users project ids and roles in the first request
           groupRoleProjectIds = await UserModel.getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
 
-          [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
+          [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId);
         }
 
         if (upids.length) {
           claims = {
             ...claims,
-            userProjects: [upids.join('-')]
+            userProjects: [upids.join('-')],
           };
         }
 
         if (highestRoleForProject) {
           claims = {
             ...claims,
-            userProjectRole: [highestRoleForProject]
+            userProjectRole: [highestRoleForProject],
           };
         }
       } catch (err) {
         logger.error(
-          `Couldn't submit project (${projectId}) claims for authz request: ${err.message}`
+          `Couldn't submit project (${projectId}) claims for authz request: ${err.message}`,
         );
       }
     }
@@ -288,16 +289,15 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
     if (R.prop('group', attributes)) {
       try {
         const group = await GroupModel.loadGroupById(
-          R.prop('group', attributes)
+          R.prop('group', attributes),
         );
 
-        const groupMembers = await GroupModel.getGroupMembership(group)
+        const groupMembers = await GroupModel.getGroupMembership(group);
 
         const groupRoles = R.pipe(
-          R.filter(membership =>
-            R.pathEq(currentUser.id, ['user', 'id'], membership)
+          R.filter(membership => R.pathEq(currentUser.id, ['user', 'id'], membership),
           ),
-          R.pluck('role')
+          R.pluck('role'),
         )(groupMembers);
 
         const highestRoleForGroup = R.pipe(
@@ -305,21 +305,21 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
           R.reject(R.isEmpty),
           R.reject(R.isNil),
           R.sort(sortRolesByWeight),
-          R.last
+          R.last,
         )(groupRoles);
 
         if (highestRoleForGroup) {
           claims = {
             ...claims,
-            userGroupRole: [highestRoleForGroup as string]
+            userGroupRole: [highestRoleForGroup as string],
           };
         }
       } catch (err) {
         logger.error(
           `Couldn't submit group (${R.prop(
             'group',
-            attributes
-          )}) claims for authz request: ${err.message}`
+            attributes,
+          )}) claims for authz request: ${err.message}`,
         );
       }
     }
@@ -333,44 +333,44 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
       permissions: [
         {
           id: resource,
-          scopes: [scope]
-        }
-      ]
+          scopes: [scope],
+        },
+      ],
     };
 
     if (!R.isEmpty(claims)) {
       authzRequest = {
         ...authzRequest,
         claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
-        claim_token: encodeJSONBase64(claims)
+        claim_token: encodeJSONBase64(claims),
       };
     }
 
     const request = {
       headers: {},
       kauth: {
-        grant: serviceAccount
-      }
+        grant: serviceAccount,
+      },
     };
 
     try {
       const newGrant = await keycloakGrantManager.checkPermissions(
         authzRequest,
-        request
+        request,
       );
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         return;
       }
-    } catch (err) {
+    } catch (_err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
       userActivityLogger.user_info(
         `User does not have permission to '${scope}' on '${resource}'`,
         {
           user: currentUser.id,
-          attributes: attributes
-        }
+          attributes,
+        },
       );
     }
 
@@ -378,11 +378,11 @@ export const keycloakHasPermission = (grant, modelClients, serviceAccount, curre
       `User does not have permission to '${scope}' on '${resource}'`,
       {
         user: grant.access_token.content,
-        attributes: attributes
-      }
+        attributes,
+      },
     );
     throw new KeycloakUnauthorizedError(
-      `Unauthorized: You don't have permission to "${scope}" on "${resource}"`
+      `Unauthorized: You don't have permission to "${scope}" on "${resource}"`,
     );
   };
 };

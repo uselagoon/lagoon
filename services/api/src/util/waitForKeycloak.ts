@@ -16,7 +16,7 @@ export const waitForKeycloak = async () => {
       }
 
       const clients = await keycloakAdminClient.clients.find({
-        clientId: 'api'
+        clientId: 'api',
       });
       if (!clients.length) {
         throw new Error('The "api" client has not been created yet.');

@@ -14,5 +14,4 @@ export const convertDateToMYSQLDateFormat = (date: string) => {
     .toString();
 };
 
-
 export default convertDateToMYSQLDateTimeFormat;

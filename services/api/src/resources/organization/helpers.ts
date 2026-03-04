@@ -23,42 +23,42 @@ export const Helpers = (sqlClientPool: Pool) => {
     return rows;
   };
   const getNotificationsByTypeForOrganizationId = async (id: number, type: string) => {
-    let input = {id: id, type: type}
+    const input = { id, type };
     const result = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    return result
+    return result;
   };
   const getNotificationsForOrganizationId = async (id: number) => {
-    let input = {id: id, type: "slack"}
+    const input = { id, type: 'slack' };
     // get all the notifications for the projects
     const slacks = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    input.type = "rocketchat"
+    input.type = 'rocketchat';
     const rcs = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    input.type = "microsoftteams"
+    input.type = 'microsoftteams';
     const teams = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    input.type = "email"
+    input.type = 'email';
     const email = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    input.type = "webhook"
+    input.type = 'webhook';
     const webhook = await query(
       sqlClientPool,
-      Sql.selectNotificationsByTypeByOrganizationId(input)
+      Sql.selectNotificationsByTypeByOrganizationId(input),
     );
-    const result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
-    return result
+    const result = [...slacks, ...rcs, ...teams, ...email, ...webhook];
+    return result;
   };
   const getDeployTargetsByOrganizationId = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationDeployTargets(id));
@@ -99,20 +99,20 @@ export const Helpers = (sqlClientPool: Pool) => {
           R.T,
           () => {
             throw new Error('Must provide organization "id" or "name"');
-          }
-        ]
+          },
+        ],
       ])(organizationInput);
     },
     getOrganizationIdByName: async (name: string): Promise<number> => {
       const idResult = await query(
         sqlClientPool,
-        Sql.selectOrganizationByName(name)
+        Sql.selectOrganizationByName(name),
       );
 
       const amount = R.length(idResult);
       if (amount > 1) {
         throw new Error(
-          `Multiple organization candidates for '${name}' (${amount} found). Do nothing.`
+          `Multiple organization candidates for '${name}' (${amount} found). Do nothing.`,
         );
       }
 
@@ -124,5 +124,5 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return toNumber(id);
     },
-  }
+  };
 };

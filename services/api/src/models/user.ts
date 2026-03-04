@@ -42,7 +42,6 @@ export interface User {
   isFederatedUser?: boolean;
 }
 
-
 interface FederatedIdentity {
   hasIdentities?: boolean;
   gitlabId?: string;
@@ -76,15 +75,15 @@ export interface UserModel {
     projectId: number,
     userGroups: Group[]
   ) => Promise<string[]>;
-  addUser: (userInput: User, resetPassword?: Boolean) => Promise<User>;
+  addUser: (userInput: User, resetPassword?: boolean) => Promise<User>;
   addPlatformRoleToUser: (userInput: User, role: PlatformRole) => Promise<User>;
   removePlatformRoleFromUser: (userInput: User, role: PlatformRole) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   resetUserPassword: (id: string) => Promise<void>;
-  userLastAccessed: (userInput: User) => Promise<Boolean>;
+  userLastAccessed: (userInput: User) => Promise<boolean>;
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
-  getFullUserDetails: (userInput: User) => Promise<Object>;
+  getFullUserDetails: (userInput: User) => Promise<object>;
   fetchUserTwoFactor: (user: User) => Promise<boolean>;
 }
 
@@ -124,28 +123,28 @@ const attrLagoonOrgOwnerLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsLens,
-  R.lensPath([0])
+  R.lensPath([0]),
 );
 
 const attrLagoonOrgAdminLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsAdminLens,
-  R.lensPath([0])
+  R.lensPath([0]),
 );
 
 const attrLagoonOrgViewerLens = R.compose(
   // @ts-ignore
   attrLens,
   lagoonOrganizationsViewerLens,
-  R.lensPath([0])
+  R.lensPath([0]),
 );
 
 const attrCommentLens = R.compose(
   // @ts-ignore
   attrLens,
   commentLens,
-  R.lensPath([0])
+  R.lensPath([0]),
 );
 
 export const User = (clients: {
@@ -157,35 +156,32 @@ export const User = (clients: {
   // filter for user attributes like `lagoon-organizations`
   const filterUsersByAttribute = (
     users: User[],
-    filterFn: AttributeFilterFn
-  ): User[] =>
-    R.filter((user: User) =>
-      R.pipe(
-        R.toPairs,
-        R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
-          if (!isMatch) {
-            return filterFn({
-              name: attribute[0],
-              value: attribute[1]
-            });
-          }
+    filterFn: AttributeFilterFn,
+  ): User[] => R.filter((user: User) => R.pipe(
+    R.toPairs,
+    R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
+      if (!isMatch) {
+        return filterFn({
+          name: attribute[0],
+          value: attribute[1],
+        });
+      }
 
-          return isMatch;
-        }, false)
-      )(user.attributes)
-    )(users);
-
+      return isMatch;
+    }, false),
+  )(user.attributes),
+  )(users);
 
   const fetchUserTwoFactor = async (user: User): Promise<boolean> => {
     const credTypes = await keycloakAdminClient.users.getCredentials({
-      id: user.id
+      id: user.id,
     });
-    let hasTwoFactor = false
-    for(const cred of credTypes) {
-      switch (cred.type.replace(/"/g, "")) {
-        case "webauthn":
-        case "otp":
-          hasTwoFactor = true
+    let hasTwoFactor = false;
+    for (const cred of credTypes) {
+      switch (cred.type.replace(/"/g, '')) {
+        case 'webauthn':
+        case 'otp':
+          hasTwoFactor = true;
           break;
         default:
           break;
@@ -194,14 +190,13 @@ export const User = (clients: {
     return hasTwoFactor;
   };
 
-
   const fetchFederatedIdentities = async (user: User): Promise<FederatedIdentity> => {
-    let userFed: FederatedIdentity = {
+    const userFed: FederatedIdentity = {
       hasIdentities: false,
       gitlabId: null,
     };
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
-      id: user.id
+      id: user.id,
     });
 
     if (identities.length > 0) {
@@ -210,15 +205,15 @@ export const User = (clients: {
 
     const gitlabIdentity = R.find(
       R.propEq('gitlab', 'identityProvider'),
-      identities
+      identities,
     );
     // @ts-ignore
-    userFed.gitlabId = R.defaultTo(undefined, R.prop('userId', gitlabIdentity))
+    userFed.gitlabId = R.defaultTo(undefined, R.prop('userId', gitlabIdentity));
     return userFed;
   };
 
   const transformKeycloakUsers = async (
-    keycloakUsers: UserRepresentation[]
+    keycloakUsers: UserRepresentation[],
   ): Promise<User[]> => {
     // Map from keycloak object to user object
     const users = keycloakUsers.map(
@@ -230,26 +225,26 @@ export const User = (clients: {
           R.set(commentLens, R.view(attrCommentLens, keycloakUser)),
           // set the user created time
           R.set(R.lensPath(['created']), new Date(keycloakUser.createdTimestamp).toISOString().slice(0, 19).replace('T', ' ') || null),
-        )(keycloakUser as any)
+        )(keycloakUser as any),
     );
 
-    let usersWithGitlabIdFetch = [];
+    const usersWithGitlabIdFetch = [];
 
     for (const user of users) {
       const userdate = await query(
         sqlClientPool,
-        Sql.selectLastAccessed(user.id)
+        Sql.selectLastAccessed(user.id),
       );
       if (userdate.length) {
-        user.lastAccessed = userdate[0].lastAccessed
+        user.lastAccessed = userdate[0].lastAccessed;
       }
-      let userFed = await fetchFederatedIdentities(user);
+      const userFed = await fetchFederatedIdentities(user);
       if (userFed.hasIdentities) {
-        user.isFederatedUser = userFed.hasIdentities
+        user.isFederatedUser = userFed.hasIdentities;
       }
       usersWithGitlabIdFetch.push({
         ...user,
-        gitlabId: userFed.gitlabId
+        gitlabId: userFed.gitlabId,
       });
     }
 
@@ -258,7 +253,7 @@ export const User = (clients: {
 
   const linkUserToGitlab = async (
     user: User,
-    gitlabUserId: string
+    gitlabUserId: string,
   ): Promise<void> => {
     try {
       // Add Gitlab Federated Identity to User
@@ -268,12 +263,12 @@ export const User = (clients: {
         federatedIdentity: {
           identityProvider: 'gitlab',
           userId: gitlabUserId,
-          userName: gitlabUserId // we don't map the username, instead just use the UID again
-        }
+          userName: gitlabUserId, // we don't map the username, instead just use the UID again
+        },
       });
     } catch (err) {
       throw new Error(
-        `Error linking user "${user.email}" to Gitlab Federated Identity: ${err}`
+        `Error linking user "${user.email}" to Gitlab Federated Identity: ${err}`,
       );
     }
   };
@@ -283,41 +278,41 @@ export const User = (clients: {
       // Remove Gitlab Federated Identity from User
       await keycloakAdminClient.users.delFromFederatedIdentity({
         id: user.id,
-        federatedIdentityId: 'gitlab'
+        federatedIdentityId: 'gitlab',
       });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
         // No-op
       } else {
         throw new Error(
-          `Error unlinking user "${user.email}" from Gitlab Federated Identity: ${err}`
+          `Error unlinking user "${user.email}" from Gitlab Federated Identity: ${err}`,
         );
       }
     }
   };
 
   const loadUserById = async (id: string): Promise<User> => {
-    let keycloakUser: User
+    let keycloakUser: User;
     keycloakUser = await keycloakAdminClient.users.findOne({
-      id
+      id,
     });
     const users = await transformKeycloakUsers([keycloakUser]);
-    keycloakUser = users[0]
+    keycloakUser = users[0];
 
     if (R.isNil(keycloakUser)) {
       throw new UserNotFoundError(`User not found a: ${id}`);
     }
 
     // fetch the user's optin-in preference for organization emails
-    var emailOptions = {
+    let emailOptions = {
       organizationRoleChanges: false,
       sshKeyChanges: false,
-      groupRoleChanges: false
+      groupRoleChanges: false,
     };
     try {
       const userOptIn = await query(
         sqlClientPool,
-        Sql.selectUserById(id)
+        Sql.selectUserById(id),
       );
       if (userOptIn.length) {
         emailOptions = {
@@ -342,7 +337,7 @@ export const User = (clients: {
     email = email.toLocaleLowerCase();
     const keycloakUsers = await keycloakAdminClient.users.find({
       briefRepresentation: false,
-      email
+      email,
     });
 
     if (R.isEmpty(keycloakUsers)) {
@@ -351,7 +346,7 @@ export const User = (clients: {
 
     const userId = R.pipe(
       R.filter(R.propEq(email, 'email')),
-      R.path(['0', 'id'])
+      R.path(['0', 'id']),
     )(keycloakUsers);
 
     if (R.isNil(userId)) {
@@ -378,15 +373,15 @@ export const User = (clients: {
   const loadAllKeycloakUsers = async (): Promise<User[]> => {
     let users = [];
     let first = 0;
-    let pageSize = 200;
+    const pageSize = 200;
     let fetchedUsers;
     while (true) {
       fetchedUsers = await keycloakAdminClient.users.find({
         briefRepresentation: false,
-        first: first,
-        max: pageSize
+        first,
+        max: pageSize,
       });
-      users = users.concat(fetchedUsers)
+      users = users.concat(fetchedUsers);
       first += pageSize;
       if (fetchedUsers.length < pageSize) {
         break;
@@ -428,23 +423,23 @@ export const User = (clients: {
       return false;
     };
 
-    let keycloakUsers = await loadAllKeycloakUsers()
+    const keycloakUsers = await loadAllKeycloakUsers();
 
-    let filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
-    let filteredAdmins = filterUsersByAttribute(keycloakUsers, adminFilter);
-    let filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
+    const filteredOwners = filterUsersByAttribute(keycloakUsers, ownerFilter);
+    const filteredAdmins = filterUsersByAttribute(keycloakUsers, adminFilter);
+    const filteredViewers = filterUsersByAttribute(keycloakUsers, viewerFilter);
     for (const f1 in filteredOwners) {
-      filteredOwners[f1].owner = true
-      filteredOwners[f1].organizationRole = "OWNER"
+      filteredOwners[f1].owner = true;
+      filteredOwners[f1].organizationRole = 'OWNER';
     }
     for (const f1 in filteredAdmins) {
-      filteredAdmins[f1].admin = true
-      filteredAdmins[f1].organizationRole = "ADMIN"
+      filteredAdmins[f1].admin = true;
+      filteredAdmins[f1].organizationRole = 'ADMIN';
     }
     for (const f1 in filteredViewers) {
-      filteredViewers[f1].organizationRole = "VIEWER"
+      filteredViewers[f1].organizationRole = 'VIEWER';
     }
-    const orgUsers = [...filteredOwners, ...filteredAdmins, ...filteredViewers]
+    const orgUsers = [...filteredOwners, ...filteredAdmins, ...filteredViewers];
 
     const users = await transformKeycloakUsers(orgUsers);
 
@@ -452,53 +447,53 @@ export const User = (clients: {
   };
 
   const loadAllUsers = async (): Promise<User[]> => {
-    let users = await loadAllKeycloakUsers()
-    const keycloakUsers = await transformKeycloakUsers(users)
+    const users = await loadAllKeycloakUsers();
+    const keycloakUsers = await transformKeycloakUsers(users);
     return keycloakUsers;
   };
 
   const loadAllPlatformUsers = async (): Promise<User[]> => {
-    let platformUsers = [];
+    const platformUsers = [];
     const keycloakPlatformOwners = await keycloakAdminClient.roles.findUsersWithRole({
       name: PlatformRole.OWNER,
-      max: -1
+      max: -1,
     });
     for (const f1 in keycloakPlatformOwners) {
-      keycloakPlatformOwners[f1].platformRoles = []
+      keycloakPlatformOwners[f1].platformRoles = [];
       const found = platformUsers.findIndex(el => el.email === keycloakPlatformOwners[f1].email);
       if (found === -1) {
-        keycloakPlatformOwners[f1].platformRoles.push(PlatformRole.OWNER)
-        platformUsers.push(keycloakPlatformOwners[f1])
+        keycloakPlatformOwners[f1].platformRoles.push(PlatformRole.OWNER);
+        platformUsers.push(keycloakPlatformOwners[f1]);
       } else {
-        platformUsers[found].platformRoles.push(PlatformRole.OWNER)
+        platformUsers[found].platformRoles.push(PlatformRole.OWNER);
       }
     }
     const keycloakPlatformViewers = await keycloakAdminClient.roles.findUsersWithRole({
       name: PlatformRole.VIEWER,
-      max: -1
+      max: -1,
     });
     for (const f1 in keycloakPlatformViewers) {
-      keycloakPlatformViewers[f1].platformRoles = []
+      keycloakPlatformViewers[f1].platformRoles = [];
       const found = platformUsers.findIndex(el => el.email === keycloakPlatformViewers[f1].email);
       if (found === -1) {
-        keycloakPlatformViewers[f1].platformRoles.push(PlatformRole.VIEWER)
-        platformUsers.push(keycloakPlatformViewers[f1])
+        keycloakPlatformViewers[f1].platformRoles.push(PlatformRole.VIEWER);
+        platformUsers.push(keycloakPlatformViewers[f1]);
       } else {
-        platformUsers[found].platformRoles.push(PlatformRole.VIEWER)
+        platformUsers[found].platformRoles.push(PlatformRole.VIEWER);
       }
     }
     const keycloakPlatformOrgOwners = await keycloakAdminClient.roles.findUsersWithRole({
       name: PlatformRole.ORGANIZATION_OWNER,
-      max: -1
+      max: -1,
     });
     for (const f1 in keycloakPlatformOrgOwners) {
-      keycloakPlatformOrgOwners[f1].platformRoles = []
+      keycloakPlatformOrgOwners[f1].platformRoles = [];
       const found = platformUsers.findIndex(el => el.email === keycloakPlatformOrgOwners[f1].email);
       if (found === -1) {
-        keycloakPlatformOrgOwners[f1].platformRoles.push(PlatformRole.ORGANIZATION_OWNER)
-        platformUsers.push(keycloakPlatformOrgOwners[f1])
+        keycloakPlatformOrgOwners[f1].platformRoles.push(PlatformRole.ORGANIZATION_OWNER);
+        platformUsers.push(keycloakPlatformOrgOwners[f1]);
       } else {
-        platformUsers[found].platformRoles.push(PlatformRole.ORGANIZATION_OWNER)
+        platformUsers[found].platformRoles.push(PlatformRole.ORGANIZATION_OWNER);
       }
     }
     const users = await transformKeycloakUsers(platformUsers);
@@ -507,31 +502,31 @@ export const User = (clients: {
 
   const addPlatformRoleToUser = async (userInput: User, role: PlatformRole): Promise<User> => {
     const kcRole = await keycloakAdminClient.roles.findOneByName({
-      name: role
+      name: role,
     });
-    let keycloakUser = await keycloakAdminClient.users.addRealmRoleMappings({
+    const keycloakUser = await keycloakAdminClient.users.addRealmRoleMappings({
       id: userInput.id,
       roles: [{
         id: kcRole.id,
-        name: kcRole.name
-      }]
+        name: kcRole.name,
+      }],
     });
-    return keycloakUser
-  }
+    return keycloakUser;
+  };
 
   const removePlatformRoleFromUser = async (userInput: User, role: PlatformRole): Promise<User> => {
     const kcRole = await keycloakAdminClient.roles.findOneByName({
-      name: role
+      name: role,
     });
     const keycloakUser = await keycloakAdminClient.users.delRealmRoleMappings({
       id: userInput.id,
       roles: [{
         id: kcRole.id,
-        name: kcRole.name
-      }]
+        name: kcRole.name,
+      }],
     });
-    return keycloakUser
-  }
+    return keycloakUser;
+  };
 
   const getAllGroupsForUser = async (
     userId: string,
@@ -542,14 +537,14 @@ export const User = (clients: {
       id: userId,
       briefRepresentation: false,
     })) as KeycloakLagoonGroup[];
-    let roleSubgroups = [];
-    for (const keycloakGroup of keycloakGroups){
+    const roleSubgroups = [];
+    for (const keycloakGroup of keycloakGroups) {
       const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroup.id);
       const organizationId = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id);
-      roleSubgroups.push(GroupModel.createGroupFromKeycloak(keycloakGroup, projectIds, organizationId))
+      roleSubgroups.push(GroupModel.createGroupFromKeycloak(keycloakGroup, projectIds, organizationId));
     }
 
-    let userGroups: {
+    const userGroups: {
       [key: string]: Group;
     } = {};
     for (const ug of roleSubgroups) {
@@ -560,7 +555,7 @@ export const User = (clients: {
       if (!userGroups[ug.parentGroupId]) {
         const parentGroup = await GroupModel.loadGroupById(ug.parentGroupId);
         const parentOrg = await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(parentGroup.id);
-        if (organization && parentOrg && toNumber(parentOrg) != organization) {
+        if (organization && parentOrg && toNumber(parentOrg) !== organization) {
           continue;
         }
         // only set the users role-group as the subgroup, this is because
@@ -576,81 +571,80 @@ export const User = (clients: {
     return Object.values(userGroups);
   };
 
-const getAllProjectsIdsForUser = async (
-  userId: string,
-  groups?: Group[]
-): Promise<any[]> => {
-  const GroupModel = Group(clients);
-  let userGroups = [];
-  if (!groups) {
-    groups = await keycloakAdminClient.users.listGroups({
-      id: userId,
-      briefRepresentation: false
-    });
-  }
-
-  const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
-  for (const ug of groups) {
-    // push the group ids into an array of group ids only for sql lookups
-    let index = userGroups.findIndex((item: any) => item.name === ug.name.replace(regexp, ""));
-    if (index === -1) {
-      const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ""))
-      userGroups.push(parentGroup);
+  const getAllProjectsIdsForUser = async (
+    userId: string,
+    groups?: Group[],
+  ): Promise<any[]> => {
+    const GroupModel = Group(clients);
+    const userGroups = [];
+    if (!groups) {
+      groups = await keycloakAdminClient.users.listGroups({
+        id: userId,
+        briefRepresentation: false,
+      });
     }
-  }
-  let roleProjectIds: any = {};
-  for (const roleSubgroup of userGroups as Group[]) {
-    for (const fullSubgroup of groups as Group[]) {
-      for (const group of fullSubgroup.subGroups) {
+
+    const regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
+    for (const ug of groups) {
+    // push the group ids into an array of group ids only for sql lookups
+      const index = userGroups.findIndex((item: any) => item.name === ug.name.replace(regexp, ''));
+      if (index === -1) {
+        const parentGroup = await GroupModel.loadGroupByName(ug.name.replace(regexp, ''));
+        userGroups.push(parentGroup);
+      }
+    }
+    const roleProjectIds: any = {};
+    for (const roleSubgroup of userGroups as Group[]) {
+      for (const fullSubgroup of groups as Group[]) {
+        for (const group of fullSubgroup.subGroups) {
         // filter out the users roles subgroup from the main group so the correct roles are attached to the project ids
-        if (roleSubgroup.name.replace(regexp, "") == fullSubgroup.name) {
+          if (roleSubgroup.name.replace(regexp, '') === fullSubgroup.name) {
           // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
           // getProjectsFromGroupAndSubgroups already covers this fix
-          const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
-            roleSubgroup
-          );
-          if (!roleProjectIds[group.realmRoles[0]]) {
-            roleProjectIds[group.realmRoles[0]] = []
+            const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
+              roleSubgroup,
+            );
+            if (!roleProjectIds[group.realmRoles[0]]) {
+              roleProjectIds[group.realmRoles[0]] = [];
+            }
+            projectIds.forEach((pid: any) => {
+              roleProjectIds[group.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[group.realmRoles[0]].push(pid) : '';
+            });
           }
-          projectIds.forEach((pid: any) => {
-            roleProjectIds[group.realmRoles[0]].indexOf(pid) === -1 ? roleProjectIds[group.realmRoles[0]].push(pid) : ""
-          })
         }
       }
     }
-  }
 
-  const allPidsSet = new Set();
-  for (const roleKey in roleProjectIds) {
-    if (Object.prototype.hasOwnProperty.call(roleProjectIds, roleKey)) {
-      const pidsForRole = roleProjectIds[roleKey];
-      if (Array.isArray(pidsForRole)) {
-        pidsForRole.forEach(pid => allPidsSet.add(pid));
+    const allPidsSet = new Set();
+    for (const roleKey in roleProjectIds) {
+      if (Object.prototype.hasOwnProperty.call(roleProjectIds, roleKey)) {
+        const pidsForRole = roleProjectIds[roleKey];
+        if (Array.isArray(pidsForRole)) {
+          pidsForRole.forEach(pid => allPidsSet.add(pid));
+        }
       }
     }
-  }
-  return roleProjectIds;
-};
+    return roleProjectIds;
+  };
 
   const getUserRolesForProject = async (
     userInput: User,
     projectId: number,
-    userGroups: Group[]
+    userGroups: Group[],
   ): Promise<string[]> => {
     const GroupModel = Group(clients);
 
     let roles = [];
     for (const group of userGroups) {
       const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(
-        group
+        group,
       );
 
       if (projectIds.includes(projectId)) {
         const groupRoles = R.pipe(
-          R.filter(membership =>
-            R.pathEq(userInput.id, ['user', 'id'], membership)
+          R.filter(membership => R.pathEq(userInput.id, ['user', 'id'], membership),
           ),
-          R.pluck('role')
+          R.pluck('role'),
         )(group.members);
 
         roles = [...roles, ...groupRoles];
@@ -660,23 +654,23 @@ const getAllProjectsIdsForUser = async (
     return R.uniq(roles);
   };
 
-  const addUser = async (userInput: User, resetPassword?: Boolean): Promise<User> => {
+  const addUser = async (userInput: User, resetPassword?: boolean): Promise<User> => {
     let response: { id: string };
     try {
       response = await keycloakAdminClient.users.create({
         ...pickNonNil(
           ['email', 'username', 'firstName', 'lastName'],
-          userInput
+          userInput,
         ),
         enabled: true,
         attributes: {
-          comment: [R.defaultTo('', R.prop('comment', userInput))]
-        }
+          comment: [R.defaultTo('', R.prop('comment', userInput))],
+        },
       });
     } catch (err) {
       if (err.response.status && err.response.status === 409) {
         throw new UsernameExistsError(
-          `Username ${R.prop('username', userInput)} exists`
+          `Username ${R.prop('username', userInput)} exists`,
         );
       } else {
         throw new Error(`Error creating Lagoon user account: ${err.message}`);
@@ -694,14 +688,14 @@ const getAllProjectsIdsForUser = async (
       await keycloakAdminClient.users.executeActionsEmail({
         id: user.id,
         lifespan: 43200,
-        actions: ["UPDATE_PASSWORD"],
-        clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
+        actions: ['UPDATE_PASSWORD'],
+        clientId: 'lagoon-ui',
+        redirectUri: getConfigFromEnv('UI_URL', 'http://localhost:8888'),
       });
     }
 
     // Let's start with the email opt-in preference defaults
-    var emailOptinUpdates = {
+    const emailOptinUpdates = {
       opt_email_org_role: true,
       opt_email_sshkey: true,
       opt_email_group_role: false,
@@ -711,10 +705,10 @@ const getAllProjectsIdsForUser = async (
       if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
         emailOptinUpdates.opt_email_org_role = userInput.emailNotifications.organizationRoleChanges;
       }
-          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+      if (userInput.emailNotifications.sshKeyChanges !== undefined) {
         emailOptinUpdates.opt_email_sshkey = userInput.emailNotifications.sshKeyChanges;
       }
-          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+      if (userInput.emailNotifications.groupRoleChanges !== undefined) {
         emailOptinUpdates.opt_email_group_role = userInput.emailNotifications.groupRoleChanges;
       }
     }
@@ -746,40 +740,36 @@ const getAllProjectsIdsForUser = async (
     };
   };
 
-  const removeOrgFromAttr = (attr, organization, user) => {
-    return R.pipe(
-      // @ts-ignore
-      R.view(attr),
-      R.defaultTo(`${organization}`),
-      R.split(','),
-      R.without([`${organization}`]),
-      R.uniq,
-      R.join(',')
-      // @ts-ignore
-    )(user);
-  }
+  const removeOrgFromAttr = (attr, organization, user) => R.pipe(
+    // @ts-ignore
+    R.view(attr),
+    R.defaultTo(`${organization}`),
+    R.split(','),
+    R.without([`${organization}`]),
+    R.uniq,
+    R.join(','),
+    // @ts-ignore
+  )(user);
 
-  const addOrgToAttr = (attr, organization, user) => {
-    return R.pipe(
-      // @ts-ignore
-      R.view(attr),
-      R.defaultTo(`${organization}`),
-      R.split(','),
-      R.append(`${organization}`),
-      R.uniq,
-      R.join(',')
-      // @ts-ignore
-    )(user);
-  }
+  const addOrgToAttr = (attr, organization, user) => R.pipe(
+    // @ts-ignore
+    R.view(attr),
+    R.defaultTo(`${organization}`),
+    R.split(','),
+    R.append(`${organization}`),
+    R.uniq,
+    R.join(','),
+    // @ts-ignore
+  )(user);
 
   const resetUserPassword = async (id: string): Promise<void> => {
     try {
       await keycloakAdminClient.users.executeActionsEmail({
-        id: id,
+        id,
         lifespan: 43200,
-        actions: ["UPDATE_PASSWORD"],
-        clientId: "lagoon-ui",
-        redirectUri: getConfigFromEnv('UI_URL', "http://localhost:8888")
+        actions: ['UPDATE_PASSWORD'],
+        clientId: 'lagoon-ui',
+        redirectUri: getConfigFromEnv('UI_URL', 'http://localhost:8888'),
       });
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
@@ -790,29 +780,29 @@ const getAllProjectsIdsForUser = async (
     }
   };
 
-  const userLastAccessed = async (userInput: User): Promise<Boolean> => {
+  const userLastAccessed = async (userInput: User): Promise<boolean> => {
     // set the last accessed as a unix timestamp on the user attributes
     try {
       await query(
         sqlClientPool,
-        Sql.updateLastAccessed(userInput.id)
+        Sql.updateLastAccessed(userInput.id),
       );
     } catch (err) {
       logger.warn(`Error updating user: ${err.message}`);
     }
-    return true
+    return true;
   };
 
-  const getFullUserDetails = async (userInput: User): Promise<Object> => {
+  const getFullUserDetails = async (userInput: User): Promise<object> => {
     // get the local DB user details
     const user = await query(
       sqlClientPool,
-      Sql.selectUserById(userInput.id)
+      Sql.selectUserById(userInput.id),
     );
     return {
       ...user[0],
-    }
-  }
+    };
+  };
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
     // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
@@ -830,36 +820,32 @@ const getAllProjectsIdsForUser = async (
         email: curEmail,
         username: curUsername,
         firstName: curFirstName,
-        lastName: curLastName
+        lastName: curLastName,
       } = user;
 
       // set the comment if provided
       if (R.prop('comment', userInput)) {
-        comment = {comment: R.prop('comment', userInput)}
+        comment = { comment: R.prop('comment', userInput) };
       }
       // set the organization if provided
       if (R.prop('organization' as any, userInput as any)) {
         // owner is an option, default is view
         if (R.prop('remove', userInput)) {
-          organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
-          organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
-          organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
+          organizations = { 'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsAdmin = { 'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsView = { 'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)] };
+        } else if (R.prop('owner' as any, userInput as any)) {
+          organizations = { 'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsAdmin = { 'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsView = { 'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)] };
+        } else if (R.prop('admin' as any, userInput as any)) {
+          organizations = { 'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsAdmin = { 'lagoon-organizations-admin': [addOrgToAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsView = { 'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)] };
         } else {
-          if (R.prop('owner' as any, userInput as any)) {
-            organizations = {'lagoon-organizations': [addOrgToAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
-            organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
-            organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
-          } else {
-            if (R.prop('admin' as any, userInput as any)) {
-              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
-              organizationsAdmin = {'lagoon-organizations-admin': [addOrgToAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
-              organizationsView = {'lagoon-organizations-viewer': [removeOrgFromAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
-            } else {
-              organizations = {'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)]}
-              organizationsAdmin = {'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)]}
-              organizationsView = {'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)]}
-            }
-          }
+          organizations = { 'lagoon-organizations': [removeOrgFromAttr(attrLagoonOrgOwnerLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsAdmin = { 'lagoon-organizations-admin': [removeOrgFromAttr(attrLagoonOrgAdminLens, R.prop('organization' as any, userInput as any), user)] };
+          organizationsView = { 'lagoon-organizations-viewer': [addOrgToAttr(attrLagoonOrgViewerLens, R.prop('organization' as any, userInput as any), user)] };
         }
       }
 
@@ -868,12 +854,12 @@ const getAllProjectsIdsForUser = async (
       const GroupModel = Group(clients);
       const userGroups = await getAllGroupsForUser(userInput.id);
       await Promise.all(
-          userGroups.map((userGroup) => GroupModel.purgeGroupCache(userGroup, true) )
+        userGroups.map((userGroup) => GroupModel.purgeGroupCache(userGroup, true)),
       );
 
       await keycloakAdminClient.users.update(
         {
-          id: userInput.id
+          id: userInput.id,
         },
         {
           email: userInput.email ?? curEmail,
@@ -885,9 +871,9 @@ const getAllProjectsIdsForUser = async (
             ...organizations,
             ...organizationsAdmin,
             ...organizationsView,
-            ...comment
-          }
-        }
+            ...comment,
+          },
+        },
       );
     } catch (err) {
       if (err.response.status && err.response.status === 404) {
@@ -909,20 +895,20 @@ const getAllProjectsIdsForUser = async (
     // TODO - this is probably a good place to put the updates generally
 
     // we need to build the update query - it'll consist of three different items
-    var emailOptinUpdates = {};
+    let emailOptinUpdates = {};
     if (userInput.emailNotifications !== undefined) {
       if (userInput.emailNotifications.organizationRoleChanges !== undefined) {
-        emailOptinUpdates = {opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates};
+        emailOptinUpdates = { opt_email_org_role: userInput.emailNotifications.organizationRoleChanges, ...emailOptinUpdates };
       }
-          if (userInput.emailNotifications.sshKeyChanges !== undefined) {
-        emailOptinUpdates = {opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates};
+      if (userInput.emailNotifications.sshKeyChanges !== undefined) {
+        emailOptinUpdates = { opt_email_sshkey: userInput.emailNotifications.sshKeyChanges, ...emailOptinUpdates };
       }
-          if (userInput.emailNotifications.groupRoleChanges !== undefined) {
-        emailOptinUpdates = {opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates};
+      if (userInput.emailNotifications.groupRoleChanges !== undefined) {
+        emailOptinUpdates = { opt_email_group_role: userInput.emailNotifications.groupRoleChanges, ...emailOptinUpdates };
       }
     }
 
-    var successfulEmailPatch = {};
+    let successfulEmailPatch = {};
     try {
       if (emailOptinUpdates && Object.keys(emailOptinUpdates).length > 0) {
         await query(
@@ -943,7 +929,7 @@ const getAllProjectsIdsForUser = async (
     return {
       ...user,
       gitlabId: R.prop('gitlabId', userInput),
-      emailNotifications: {...user.emailNotifications, ...successfulEmailPatch},
+      emailNotifications: { ...user.emailNotifications, ...successfulEmailPatch },
     };
   };
 
@@ -952,17 +938,17 @@ const getAllProjectsIdsForUser = async (
       // delete the ssh keys of the user
       await query(
         sqlClientPool,
-        Sql.deleteFromSshKeys(id)
+        Sql.deleteFromSshKeys(id),
       );
       // delete from the reference table
       await query(
         sqlClientPool,
-        Sql.deleteFromUserSshKeys(id)
+        Sql.deleteFromUserSshKeys(id),
       );
       // delete from the user table
       await query(
         sqlClientPool,
-        Sql.deleteFromUser(id)
+        Sql.deleteFromUser(id),
       );
 
       await keycloakAdminClient.users.del({ id });
@@ -976,31 +962,31 @@ const getAllProjectsIdsForUser = async (
   };
 
   const getAllOrganizationIdsForUser = async (
-    userInput: UserEdit
+    userInput: UserEdit,
   ): Promise<number[]> => {
     let organizations = [];
 
     const user = await loadUserById(userInput.id);
-    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
-    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin',  user.attributes)).toString()
-    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer',  user.attributes)).toString()
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations', user.attributes)).toString();
+    const usersOrgsAdmin = R.defaultTo('', R.prop('lagoon-organizations-admin', user.attributes)).toString();
+    const usersOrgsViewer = R.defaultTo('', R.prop('lagoon-organizations-viewer', user.attributes)).toString();
 
-    if (usersOrgs != "" ) {
+    if (usersOrgs !== '') {
       const usersOrgsArr = usersOrgs.split(',');
       for (const userOrg of usersOrgsArr) {
-        organizations = [...organizations, userOrg]
+        organizations = [...organizations, userOrg];
       }
     }
-    if (usersOrgsAdmin != "" ) {
+    if (usersOrgsAdmin !== '') {
       const usersOrgsArr = usersOrgsAdmin.split(',');
       for (const userOrg of usersOrgsArr) {
-        organizations = [...organizations, userOrg]
+        organizations = [...organizations, userOrg];
       }
     }
-    if (usersOrgsViewer != "" ) {
+    if (usersOrgsViewer !== '') {
       const usersOrgsArr = usersOrgsViewer.split(',');
       for (const userOrg of usersOrgsArr) {
-        organizations = [...organizations, userOrg]
+        organizations = [...organizations, userOrg];
       }
     }
     return R.uniq(organizations);

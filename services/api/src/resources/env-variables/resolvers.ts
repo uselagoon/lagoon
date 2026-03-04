@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { query, knex } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -7,7 +7,6 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers as orgHelpers } from '../organization/helpers';
 import { AuditType } from '../../commons/types';
 import { AuditLog, AuditResource } from '../audit/types';
-import {logger} from "../../loggers/logger";
 
 export enum EnvVarType {
   ORGANIZATION = 'organization',
@@ -16,15 +15,15 @@ export enum EnvVarType {
 }
 
 const getEnvVarType = (envVars: {
-  organization?: String;
-  project?: String;
-  environment?: String;
+  organization?: string;
+  project?: string;
+  environment?: string;
 }): EnvVarType | Error => {
   if (envVars.organization && !envVars.project && !envVars.environment) {
     return EnvVarType.ORGANIZATION;
-  } else if (!envVars.organization && envVars.project && !envVars.environment) {
+  } if (!envVars.organization && envVars.project && !envVars.environment) {
     return EnvVarType.PROJECT;
-  } else if (!envVars.organization && envVars.project && envVars.environment) {
+  } if (!envVars.organization && envVars.project && envVars.environment) {
     return EnvVarType.ENVIRONMENT;
   }
 
@@ -50,94 +49,90 @@ export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
   args,
   { sqlClientPool, hasPermission, adminScopes },
-  info
+  info,
 ) => {
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
-    if (index != -1) {
+    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === 'value');
+    if (index !== -1) {
       await hasPermission('env_var', 'project:viewValue', {
-        project: pid
+        project: pid,
       });
       const rows = await query(
         sqlClientPool,
-        Sql.selectEnvVarsByProjectId(pid)
-      );
-
-      return rows;
-    } else {
-      await hasPermission('env_var', 'project:view', {
-        project: pid
-      });
-      const rows = await query(
-        sqlClientPool,
-        Sql.selectEnvVarsWithoutValueByProjectId(pid)
+        Sql.selectEnvVarsByProjectId(pid),
       );
 
       return rows;
     }
-  } else {
+    await hasPermission('env_var', 'project:view', {
+      project: pid,
+    });
     const rows = await query(
       sqlClientPool,
-      Sql.selectEnvVarsByProjectId(pid)
+      Sql.selectEnvVarsWithoutValueByProjectId(pid),
     );
 
     return rows;
   }
-}
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectEnvVarsByProjectId(pid),
+  );
+
+  return rows;
+};
 
 export const getEnvVarsByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
   { sqlClientPool, hasPermission, adminScopes },
-  info
+  info,
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
-  ).getEnvironmentById(eid)
+    sqlClientPool,
+  ).getEnvironmentById(eid);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
-    if (index != -1) {
+    const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === 'value');
+    if (index !== -1) {
       await hasPermission(
         'env_var',
         `environment:viewValue:${environment.environmentType}`,
         {
-          project: environment.project
-        }
+          project: environment.project,
+        },
       );
 
       const rows = await query(
         sqlClientPool,
-        Sql.selectEnvVarsByEnvironmentId(eid)
-      );
-
-      return rows;
-    } else {
-      await hasPermission(
-        'env_var',
-        `environment:view:${environment.environmentType}`,
-        {
-          project: environment.project
-        }
-      );
-      const rows = await query(
-        sqlClientPool,
-        Sql.selectEnvVarsWithoutValueByEnvironmentId(eid)
+        Sql.selectEnvVarsByEnvironmentId(eid),
       );
 
       return rows;
     }
-  } else {
+    await hasPermission(
+      'env_var',
+      `environment:view:${environment.environmentType}`,
+      {
+        project: environment.project,
+      },
+    );
     const rows = await query(
       sqlClientPool,
-      Sql.selectEnvVarsByEnvironmentId(eid)
+      Sql.selectEnvVarsWithoutValueByEnvironmentId(eid),
     );
 
     return rows;
   }
-}
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectEnvVarsByEnvironmentId(eid),
+  );
+
+  return rows;
+};
 
 export const deleteEnvVariableByName: ResolverFn = async (
   root,
@@ -168,10 +163,9 @@ export const deleteEnvVariableByName: ResolverFn = async (
   let envVarTypeName = '';
   let orgId;
 
-  if (envVarType == EnvVarType.ORGANIZATION) {
+  if (envVarType === EnvVarType.ORGANIZATION) {
     envVarTypeName = orgName;
-    const org =
-      await orgHelpers(sqlClientPool).getOrganizationByName(orgName);
+    const org = await orgHelpers(sqlClientPool).getOrganizationByName(orgName);
     const orgVariable = await query(
       sqlClientPool,
       Sql.selectEnvVarByNameAndOrgId(name, org.id),
@@ -184,22 +178,21 @@ export const deleteEnvVariableByName: ResolverFn = async (
       id: org.id.toString(),
       type: AuditType.ORGANIZATION,
       details: org.name,
-    }
+    };
     orgId = org.id;
     if (orgVariable[0]) {
-      envVarScope = orgVariable[0].scope
-      envVarId = orgVariable[0].id
-      envVarName = orgVariable[0].name
+      envVarScope = orgVariable[0].scope;
+      envVarId = orgVariable[0].id;
+      envVarName = orgVariable[0].name;
       await query(sqlClientPool, Sql.deleteEnvVariable(orgVariable[0].id));
     } else {
       // variable doesn't exist, just return success
       return 'success';
     }
   } else {
-    const project =
-      await projectHelpers(sqlClientPool).getProjectByProjectInput({name: projectName});
+    const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({ name: projectName });
 
-    if (envVarType == EnvVarType.PROJECT) {
+    if (envVarType === EnvVarType.PROJECT) {
       envVarTypeName = projectName;
       const projectVariable = await query(
         sqlClientPool,
@@ -213,14 +206,14 @@ export const deleteEnvVariableByName: ResolverFn = async (
         id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
-      }
+      };
       if (project.organization) {
-        orgId = project.organization
+        orgId = project.organization;
       }
       if (projectVariable[0]) {
-        envVarScope = projectVariable[0].scope
-        envVarId = projectVariable[0].id
-        envVarName = projectVariable[0].name
+        envVarScope = projectVariable[0].scope;
+        envVarId = projectVariable[0].id;
+        envVarName = projectVariable[0].name;
         await query(
           sqlClientPool,
           Sql.deleteEnvVariable(projectVariable[0].id),
@@ -229,7 +222,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
         // variable doesn't exist, just return success
         return 'success';
       }
-    } else if (envVarType == EnvVarType.ENVIRONMENT) {
+    } else if (envVarType === EnvVarType.ENVIRONMENT) {
       const environmentRows = await query(
         sqlClientPool,
         Sql.selectEnvironmentByNameAndProject(environmentName, project.id),
@@ -252,14 +245,14 @@ export const deleteEnvVariableByName: ResolverFn = async (
           id: environment.id.toString(),
           type: AuditType.ENVIRONMENT,
           details: environment.name,
-        }
+        };
         if (project.organization) {
-          orgId = project.organization
+          orgId = project.organization;
         }
         if (environmentVariable[0]) {
-          envVarScope = environmentVariable[0].scope
-          envVarId = environmentVariable[0].id
-          envVarName = environmentVariable[0].name
+          envVarScope = environmentVariable[0].scope;
+          envVarId = environmentVariable[0].id;
+          envVarName = environmentVariable[0].name;
           envVarTypeName = environmentName;
           await query(
             sqlClientPool,
@@ -281,7 +274,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
   }
 
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
     linkedResource: {
       id: envVarId.toString(),
       type: AuditType.VARIABLE,
@@ -291,7 +284,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
   if (orgId) {
     auditLog.organizationId = orgId;
   }
-  userActivityLogger(`User deleted environment variable`, {
+  userActivityLogger('User deleted environment variable', {
     project: projectName,
     event: 'api:deleteEnvVariableByName',
     payload: {
@@ -319,7 +312,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   },
   { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-  if (name.trim().length == 0) {
+  if (name.trim().length === 0) {
     throw new Error('A variable name must be provided.');
   }
 
@@ -339,15 +332,14 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
 
   let resource: AuditResource;
 
-  let updateData = {};
+  let updateData: Record<string, any> = {};
   let envVarTypeName = '';
-  let envVarName = name.trim();
+  const envVarName = name.trim();
   let orgId;
 
-  if (envVarType == EnvVarType.ORGANIZATION) {
+  if (envVarType === EnvVarType.ORGANIZATION) {
     envVarTypeName = orgName;
-    const org =
-      await orgHelpers(sqlClientPool).getOrganizationByName(orgName);
+    const org = await orgHelpers(sqlClientPool).getOrganizationByName(orgName);
     await hasPermission('organization', 'addEnvVar', {
       organization: org.id,
     });
@@ -355,7 +347,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       id: org.id.toString(),
       type: AuditType.ORGANIZATION,
       details: org.name,
-    }
+    };
     orgId = org.id;
     updateData = {
       name: envVarName,
@@ -364,8 +356,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       organization: org.id,
     };
   } else {
-    const project =
-      await projectHelpers(sqlClientPool).getProjectByProjectInput({name: projectName});
+    const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({ name: projectName });
 
     if (envVarType === EnvVarType.PROJECT) {
       envVarTypeName = projectName;
@@ -376,9 +367,9 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
         id: project.id.toString(),
         type: AuditType.PROJECT,
         details: project.name,
-      }
+      };
       if (project.organization) {
-        orgId = project.organization
+        orgId = project.organization;
       }
       updateData = {
         name: envVarName,
@@ -386,7 +377,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
         scope,
         project: project.id,
       };
-    } else if (envVarType == EnvVarType.ENVIRONMENT) {
+    } else if (envVarType === EnvVarType.ENVIRONMENT) {
       envVarTypeName = environmentName;
       const environmentRows = await query(
         sqlClientPool,
@@ -404,9 +395,9 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
         id: environment.id.toString(),
         type: AuditType.ENVIRONMENT,
         details: environment.name,
-      }
+      };
       if (project.organization) {
-        orgId = project.organization
+        orgId = project.organization;
       }
       updateData = {
         name: envVarName,
@@ -418,7 +409,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   }
 
   // Let's set the updated value for the env var
-  updateData['updated'] = knex.fn.now();
+  updateData.updated = knex.fn.now();
 
   const createOrUpdateSql = knex('env_vars')
     .insert({
@@ -435,7 +426,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
     linkedResource: {
       id: insertId.toString(),
       type: AuditType.VARIABLE,
@@ -466,92 +457,88 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
 export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   root,
   { input: { project: projectName, environment: environmentName } },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
-  info
+  {
+    sqlClientPool, hasPermission, adminScopes,
+  },
+  info,
 ) => {
-  const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === "value");
+  const index = info.fieldNodes[0].selectionSet.selections.findIndex(item => item.name.value === 'value');
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    {name: projectName}
+    { name: projectName },
   );
 
   if (environmentName) {
     // is environment
     const environmentRows = await query(
       sqlClientPool,
-      Sql.selectEnvironmentByNameAndProject(environmentName, project.id)
+      Sql.selectEnvironmentByNameAndProject(environmentName, project.id),
     );
     const environment = environmentRows[0];
 
     // if the user is not a platform owner or viewer, then perform normal permission check
     if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-      if (index != -1) {
+      if (index !== -1) {
         await hasPermission(
           'env_var',
           `environment:viewValue:${environment.environmentType}`,
           {
-            project: project.id
-          }
+            project: project.id,
+          },
         );
 
         const environmentVariables = await query(
           sqlClientPool,
-          Sql.selectEnvVarsByEnvironmentId(environment.id)
+          Sql.selectEnvVarsByEnvironmentId(environment.id),
         );
-        return environmentVariables
-
-      } else {
-        await hasPermission(
-          'env_var',
-          `environment:view:${environment.environmentType}`,
-          {
-            project: project.id
-          }
-        );
-
-        const environmentVariables = await query(
-          sqlClientPool,
-          Sql.selectEnvVarsWithoutValueByEnvironmentId(environment.id)
-        );
-        return environmentVariables
+        return environmentVariables;
       }
-    } else {
+      await hasPermission(
+        'env_var',
+        `environment:view:${environment.environmentType}`,
+        {
+          project: project.id,
+        },
+      );
+
       const environmentVariables = await query(
         sqlClientPool,
-        Sql.selectEnvVarsByEnvironmentId(environment.id)
+        Sql.selectEnvVarsWithoutValueByEnvironmentId(environment.id),
       );
-      return environmentVariables
+      return environmentVariables;
     }
-  } else if (projectName) {
+    const environmentVariables = await query(
+      sqlClientPool,
+      Sql.selectEnvVarsByEnvironmentId(environment.id),
+    );
+    return environmentVariables;
+  } if (projectName) {
     // is project
     // if the user is not a platform owner or viewer, then perform normal permission check
     if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-      if (index != -1) {
+      if (index !== -1) {
         await hasPermission('env_var', 'project:viewValue', {
-          project: project.id
+          project: project.id,
         });
         const projectVariables = await query(
           sqlClientPool,
-          Sql.selectEnvVarsByProjectId(project.id)
+          Sql.selectEnvVarsByProjectId(project.id),
         );
-        return projectVariables
-
-      } else {
-        await hasPermission('env_var', 'project:view', {
-          project: project.id
-        });
-        const projectVariables = await query(
-          sqlClientPool,
-          Sql.selectEnvVarsWithoutValueByProjectId(project.id)
-        );
-        return projectVariables
+        return projectVariables;
       }
-    } else {
+      await hasPermission('env_var', 'project:view', {
+        project: project.id,
+      });
       const projectVariables = await query(
         sqlClientPool,
-        Sql.selectEnvVarsByProjectId(project.id)
+        Sql.selectEnvVarsWithoutValueByProjectId(project.id),
       );
-      return projectVariables
+      return projectVariables;
     }
+    const projectVariables = await query(
+      sqlClientPool,
+      Sql.selectEnvVarsByProjectId(project.id),
+    );
+    return projectVariables;
   }
   return [];
 };
@@ -559,7 +546,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
 // Deprecated
 export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   const {
-    input: { type }
+    input: { type },
   } = args;
 
   if (args.input.scope === 'internal_container_registry') {
@@ -568,7 +555,7 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
 
   if (type === 'project') {
     return addEnvVariableToProject(obj, args, context);
-  } else if (type === 'environment') {
+  } if (type === 'environment') {
     return addEnvVariableToEnvironment(obj, args, context);
   }
 };
@@ -576,14 +563,17 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
 // Deprecated
 const addEnvVariableToProject = async (
   root,
-  { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  {
+    input: {
+      id, typeId, name, value, scope,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('env_var', 'project:add', {
-    project: `${typeId}`
+    project: `${typeId}`,
   });
-  const project =
-    await projectHelpers(sqlClientPool).getProjectByProjectInput({id: typeId});
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({ id: typeId });
 
   const { insertId } = await query(
     sqlClientPool,
@@ -592,8 +582,8 @@ const addEnvVariableToProject = async (
       name,
       value,
       scope,
-      project: typeId
-    })
+      project: typeId,
+    }),
   );
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
@@ -622,7 +612,7 @@ const addEnvVariableToProject = async (
       scope,
       typeId,
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -631,19 +621,23 @@ const addEnvVariableToProject = async (
 // Deprecated
 const addEnvVariableToEnvironment = async (
   root,
-  { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  {
+    input: {
+      id, typeId, name, value, scope,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(typeId);
 
   await hasPermission(
     'env_var',
     `environment:add:${environment.environmentType}`,
     {
-      project: environment.project
-    }
+      project: environment.project,
+    },
   );
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment.id);
 
@@ -654,8 +648,8 @@ const addEnvVariableToEnvironment = async (
       name,
       value,
       scope,
-      environment: typeId
-    })
+      environment: typeId,
+    }),
   );
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
@@ -685,7 +679,7 @@ const addEnvVariableToEnvironment = async (
       typeId,
       environment,
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -695,12 +689,12 @@ const addEnvVariableToEnvironment = async (
 export const deleteEnvVariable: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForEnvVariable(id));
 
   await hasPermission('env_var', 'delete', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
   let resource: AuditResource;
@@ -708,8 +702,7 @@ export const deleteEnvVariable: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvVarById(id));
   const envVar = R.prop(0, rows);
   if (envVar.organization) {
-    const org =
-      await orgHelpers(sqlClientPool).getOrganizationById(envVar.organization);
+    const org = await orgHelpers(sqlClientPool).getOrganizationById(envVar.organization);
     resource = {
       id: org.id.toString(),
       type: AuditType.ORGANIZATION,
@@ -717,35 +710,32 @@ export const deleteEnvVariable: ResolverFn = async (
     };
     orgId = org.id;
   } else if (envVar.project) {
-    const project =
-      await projectHelpers(sqlClientPool).getProjectById(envVar.project);
+    const project = await projectHelpers(sqlClientPool).getProjectById(envVar.project);
     resource = {
       id: project.id.toString(),
       type: AuditType.PROJECT,
       details: project.name,
     };
     if (project.organization) {
-      orgId = project.organization
+      orgId = project.organization;
     }
   } else if (envVar.environment) {
-    const environment =
-      await environmentHelpers(sqlClientPool).getEnvironmentById(envVar.environment);
-    const project =
-      await projectHelpers(sqlClientPool).getProjectById(environment.project);
+    const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(envVar.environment);
+    const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
     resource = {
       id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
       details: environment.name,
     };
     if (project.organization) {
-      orgId = project.organization
+      orgId = project.organization;
     }
   }
 
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
 
   const auditLog: AuditLog = {
-    resource: resource,
+    resource,
     linkedResource: {
       id: envVar.id.toString(),
       type: AuditType.VARIABLE,
@@ -755,13 +745,13 @@ export const deleteEnvVariable: ResolverFn = async (
   if (orgId) {
     auditLog.organizationId = orgId;
   }
-  userActivityLogger(`User deleted environment variable`, {
+  userActivityLogger('User deleted environment variable', {
     project: '',
     event: 'api:deleteEnvVariable',
     payload: {
       id,
       ...auditLog,
-    }
+    },
   });
 
   return 'success';

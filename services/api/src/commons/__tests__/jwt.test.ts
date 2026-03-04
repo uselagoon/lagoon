@@ -8,7 +8,7 @@ describe('createJWT', () => {
         role: 'admin' as const,
         iat: 1503014400000,
         exp: 1503014400000,
-        iss: 'jest'
+        iss: 'jest',
       },
       jwtSecret: 'secret',
     };
@@ -47,7 +47,7 @@ describe('createJWT', () => {
         userId: 0,
         permissions: {
           projects: [],
-          customers: []
+          customers: [],
         },
         role: 'admin' as const,
         iat: 1503014400, // way back in the past

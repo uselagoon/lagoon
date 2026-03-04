@@ -17,7 +17,7 @@ class ApiError extends Error {}
 const generateToken = (): string => {
   if (!envHasConfig('JWTSECRET') || !envHasConfig('JWTAUDIENCE')) {
     logger.error(
-      'Unable to create api token due to missing `JWTSECRET`/`JWTAUDIENCE` environment variables'
+      'Unable to create api token due to missing `JWTSECRET`/`JWTAUDIENCE` environment variables',
     );
     return '';
   }
@@ -28,51 +28,51 @@ const generateToken = (): string => {
       iss: 'lagoon-internal',
       aud: getConfigFromEnv('JWTAUDIENCE'),
       // set a 60s expiry on the token
-      exp: Math.floor(Date.now() / 1000) + 60
+      exp: Math.floor(Date.now() / 1000) + 60,
     },
-    getConfigFromEnv('JWTSECRET')
+    getConfigFromEnv('JWTSECRET'),
   );
 
   return `Bearer ${apiAdminToken}`;
 };
 
 // Retries the fetch if operational/network errors occur
-const retryFetch = (endpoint: string, options: any, retriesLeft = 5, interval = 1000): Promise<any> =>
-  new Promise((resolve, reject) => {
-    // get a fresh token for every request
-    options.headers.Authorization = generateToken();
+const retryFetch = (endpoint: string, options: any, retriesLeft = 5, interval = 1000): Promise<any> => new Promise((resolve, reject) => {
+  // get a fresh token for every request
+  options.headers.Authorization = generateToken();
 
-    return fetchUrl(endpoint, options)
-      .then(response => {
-        if (response.status !== 200 && response.status !== 400) {
-          throw new NetworkError(`Invalid status code: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(({ data, errors }) => {
-        if (errors) {
-          const error = new ApiError(`GraphQL Error: ${errors[0].message}`) as any;
-          error.rawError = errors;
-          error.rawData = data;
-          throw error;
-        }
-        resolve(data);
-      })
-      .catch(error => {
-        // Don't retry if limit is reached or the error was not network/operational
-        if (retriesLeft === 1 || error instanceof ApiError) {
-          reject(error);
-          return;
-        }
+  return fetchUrl(endpoint, options)
+    .then(response => {
+      if (response.status !== 200 && response.status !== 400) {
+        throw new NetworkError(`Invalid status code: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(({ data, errors }) => {
+      if (errors) {
+        const error = new ApiError(`GraphQL Error: ${errors[0].message}`) as any;
+        error.rawError = errors;
+        error.rawData = data;
+        throw error;
+      }
+      resolve(data);
+    })
+    .catch(error => {
+      // Don't retry if limit is reached or the error was not network/operational
+      if (retriesLeft === 1 || error instanceof ApiError) {
+        reject(error);
+        return;
+      }
 
-        setTimeout(() => {
-          retryFetch(endpoint, options, retriesLeft - 1, interval).then(resolve, reject);
-        }, interval);
-      });
-  });
+      setTimeout(() => {
+        retryFetch(endpoint, options, retriesLeft - 1, interval).then(resolve, reject);
+      }, interval);
+    });
+});
 
 export class Transport {
   private endpoint: string;
+
   private options: TransportOptions;
 
   constructor(endpoint: string, options: TransportOptions = {}) {
@@ -80,10 +80,10 @@ export class Transport {
     this.options = {
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers
+        ...options.headers,
       },
       timeout: 30000,
-      ...options
+      ...options,
     };
   }
 
@@ -91,7 +91,7 @@ export class Transport {
     return {
       method: 'POST',
       ...this.options,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     };
   }
 

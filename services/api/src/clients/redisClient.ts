@@ -36,7 +36,7 @@ export const redisClient = redis.createClient({
   enable_offline_queue: false,
 });
 
-redisClient.on('error', function (error) {
+redisClient.on('error', (error) => {
   console.error(error);
 });
 

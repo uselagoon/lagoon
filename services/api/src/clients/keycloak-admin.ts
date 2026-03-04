@@ -18,8 +18,8 @@ export const isNetworkError = (
   }
 
   return (
-    'response' in error &&
-    typeof error.response === 'object'
+    'response' in error
+    && typeof error.response === 'object'
   );
 };
 
@@ -34,7 +34,6 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
    */
   keycloakAdminClient.registerTokenProvider({
     async getAccessToken() {
-
       if (keycloakAdminClient.accessToken) {
         const token = decode(keycloakAdminClient.accessToken, { json: true });
         const now = Math.floor(Date.now() / 1000);
@@ -57,7 +56,7 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
         clientId: 'admin-api',
         clientSecret: getConfigFromEnv(
           'KEYCLOAK_ADMIN_API_CLIENT_SECRET',
-          '<secret not set>'
+          '<secret not set>',
         ),
       });
 

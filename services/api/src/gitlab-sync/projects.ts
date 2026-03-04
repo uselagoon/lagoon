@@ -6,7 +6,7 @@ import {
   addProject,
   getProjectByName,
   addGroupToProject,
-  addUserToGroup
+  addUserToGroup,
 } from '../commons/api';
 import { logger } from '../commons/logs/local-logger';
 import { validateKey } from '../util/func';
@@ -20,7 +20,7 @@ interface GitlabProject {
     path: string,
     full_path: string,
   },
-};
+}
 
 const projectExistsRegex = /Project already exists/;
 const convertRoleNumberToString = R.cond([
@@ -32,13 +32,15 @@ const convertRoleNumberToString = R.cond([
 ]);
 
 const syncProject = async (project) => {
-  const { id, path, ssh_url_to_repo: gitUrl, namespace } = project;
+  const {
+    id, path, ssh_url_to_repo: gitUrl, namespace,
+  } = project;
   const projectName = sanitizeProjectName(path);
   const openshift = 1;
-  const productionenvironment = "master";
+  const productionenvironment = 'master';
   logger.debug(`Processing ${projectName}`);
 
-  if (project.namespace.kind != 'group') {
+  if (project.namespace.kind !== 'group') {
     logger.info(`Skipping creation of project ${projectName}: not in group namespace`);
     return;
   }
@@ -56,13 +58,13 @@ const syncProject = async (project) => {
   }
 
   try {
-    const publickey = await validateKey(R.prop('privateKey', lagoonProject), "private")
+    const publickey = await validateKey(R.prop('privateKey', lagoonProject), 'private');
 
     if (!publickey?.publickey) {
       throw new Error('Could not validate key');
     }
 
-    await gitlabApi.addDeployKeyToProject(id, publickey['publickey']);
+    await gitlabApi.addDeployKeyToProject(id, publickey.publickey);
   } catch (err) {
     if (!err.message.includes('has already been taken')) {
       throw new Error(`Could not add deploy_key to gitlab project ${id}, reason: ${err}`);
@@ -84,7 +86,7 @@ const syncProject = async (project) => {
 
 (async () => {
   const allProjects = await gitlabApi.getAllProjects() as GitlabProject[];
-  let projectsQueue = allProjects.map(project => ({ project, retries: 0}));
+  const projectsQueue = allProjects.map(project => ({ project, retries: 0 }));
 
   logger.info(`Syncing ${allProjects.length} projects`);
 
@@ -96,12 +98,11 @@ const syncProject = async (project) => {
       if (retries < 3) {
         logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
         projectsQueue.push({ project, retries: retries + 1 });
-      }
-      else {
+      } else {
         logger.error(`Sync failed: ${err.message}`);
       }
     }
   }
 
   logger.info('Sync completed');
-})()
+})();

@@ -1,8 +1,8 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
-import { validateKey, generatePrivateKey as genpk } from '../../util/func';
+import { validateKey } from '../../util/func';
 import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
 import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
@@ -15,10 +15,10 @@ const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 export const getUserSshKeys: ResolverFn = async (
   { id: userId },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   await hasPermission('ssh_key', 'view:user', {
-    users: [userId]
+    users: [userId],
   });
 
   return query(sqlClientPool, Sql.selectSshKeysByUserId(userId));
@@ -27,62 +27,66 @@ export const getUserSshKeys: ResolverFn = async (
 export const addSshKey: ResolverFn = async (
   root,
   {
-    input: { id, name, publicKey, keyValue, keyType, user: userInput }
+    input: {
+      id, name, publicKey, keyValue, keyType, user: userInput,
+    },
   },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, models, userActivityLogger,
+  },
 ) => {
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: R.prop('id', userInput),
-    email: R.prop('email', userInput)
+    email: R.prop('email', userInput),
   });
 
   await hasPermission('ssh_key', 'add', {
-    users: [user.id]
+    users: [user.id],
   });
 
-  let keyFormatted = ""
+  let keyFormatted = '';
   if (!publicKey) {
     keyType = keyType.replaceAll('_', '-').toLowerCase();
     // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
     const keyValueParts = keyValue.split(' ');
     keyFormatted = formatSshKey({
       keyType,
-      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue
+      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue,
     });
   } else {
-    keyFormatted = publicKey
+    keyFormatted = publicKey;
   }
 
-  const vkey = await validateKey(keyFormatted, "public")
-  if (!vkey['sha256fingerprint']) {
+  const vkey = await validateKey(keyFormatted, 'public');
+  if (!vkey.sha256fingerprint) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
   }
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertSshKey({
         id,
         name,
-        keyValue: vkey['value'],
-        keyType: vkey['type'],
-        keyFingerprint: vkey['sha256fingerprint']
-      })
+        keyValue: vkey.value,
+        keyType: vkey.type,
+        keyFingerprint: vkey.sha256fingerprint,
+      }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding SSH key. Key already exists.`
+        'Error adding SSH key. Key already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   await query(
     sqlClientPool,
-    Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
+    Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(insertId));
 
@@ -93,13 +97,13 @@ export const addSshKey: ResolverFn = async (
       details: user.email,
     },
     linkedResource: {
-      id: id,
+      id,
       type: AuditType.SSHKEY,
-      details: vkey['sha256fingerprint']
+      details: vkey.sha256fingerprint,
     },
   };
 
-  var emailDetails = await getSshEmailDetails('api:addSshKey', name, models, user);
+  const emailDetails = await getSshEmailDetails('api:addSshKey', name, models, user);
 
   userActivityLogger(`User added ssh key '${name}'`, {
     project: '',
@@ -108,17 +112,17 @@ export const addSshKey: ResolverFn = async (
       input: {
         id,
         name,
-        keyValue: vkey['value'],
-        keyType: vkey['type'],
-        keyFingerprint: vkey['sha256fingerprint']
+        keyValue: vkey.value,
+        keyType: vkey.type,
+        keyFingerprint: vkey.sha256fingerprint,
       },
       data: {
         sshKeyId: insertId,
-        user
+        user,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -130,16 +134,20 @@ export const updateSshKey: ResolverFn = async (
     input: {
       id,
       patch,
-      patch: { name, publicKey, keyType, keyValue }
-    }
+      patch: {
+        name, publicKey, keyType, keyValue,
+      },
+    },
   },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, models, userActivityLogger,
+  },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'update', {
-    users: userIds
+    users: userIds,
   });
 
   const user = await models.UserModel.loadUserByIdOrEmail({
@@ -150,23 +158,23 @@ export const updateSshKey: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  let keyFormatted = ""
+  let keyFormatted = '';
   if (!publicKey) {
     keyType = keyType.replaceAll('_', '-').toLowerCase();
     // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
     const keyValueParts = keyValue.split(' ');
     keyFormatted = formatSshKey({
       keyType,
-      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue
+      keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue,
     });
   } else {
-    keyFormatted = publicKey
+    keyFormatted = publicKey;
   }
 
-  const vkey = await validateKey(keyFormatted, "public")
-  if (!vkey['sha256fingerprint']) {
+  const vkey = await validateKey(keyFormatted, 'public');
+  if (!vkey.sha256fingerprint) {
     throw new Error(
-      'Invalid SSH key format! Please verify keyType + keyValue'
+      'Invalid SSH key format! Please verify keyType + keyValue',
     );
   }
 
@@ -177,21 +185,21 @@ export const updateSshKey: ResolverFn = async (
         id,
         patch: {
           name,
-          keyType: vkey['type'],
-          keyValue: vkey['value'],
-          keyFingerprint: vkey['sha256fingerprint']
-        }
-      })
+          keyType: vkey.type,
+          keyValue: vkey.value,
+          keyFingerprint: vkey.sha256fingerprint,
+        },
+      }),
     );
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error updating SSH key. Key already exists.`
+        'Error updating SSH key. Key already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
@@ -202,13 +210,13 @@ export const updateSshKey: ResolverFn = async (
       details: user.email,
     },
     linkedResource: {
-      id: id,
+      id,
       type: AuditType.SSHKEY,
-      details: vkey['sha256fingerprint']
+      details: vkey.sha256fingerprint,
     },
   };
 
-  var emailDetails = await getSshEmailDetails('api:updateSshKey', name, models, user);
+  const emailDetails = await getSshEmailDetails('api:updateSshKey', name, models, user);
   userActivityLogger(`User updated ssh key '${id}'`, {
     project: '',
     event: 'api:updateSshKey',
@@ -216,7 +224,7 @@ export const updateSshKey: ResolverFn = async (
       patch,
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -225,18 +233,20 @@ export const updateSshKey: ResolverFn = async (
 export const deleteSshKey: ResolverFn = async (
   root,
   { input: { name } },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, models, userActivityLogger,
+  },
 ) => {
   // Map from sshKey name to id and throw on several error cases
   const skidResult = await query(
     sqlClientPool,
-    Sql.selectSshKeyIdByName(name)
+    Sql.selectSshKeyIdByName(name),
   );
 
   const amount = R.length(skidResult);
   if (amount > 1) {
     throw new Error(
-      `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`
+      `Multiple sshKey candidates for '${name}' (${amount} found). Do nothing.`,
     );
   }
 
@@ -248,26 +258,20 @@ export const deleteSshKey: ResolverFn = async (
 
   const perms = await query(
     sqlClientPool,
-    Sql.selectUserIdsBySshKeyId(skid)
+    Sql.selectUserIdsBySshKeyId(skid),
   );
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds
+    users: userIds,
   });
 
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: userIds[0],
   });
 
-  let res = await query(
-    sqlClientPool,
-    Sql.deleteUserSshKeyByKeyId(skid)
-  );
-  res = await query(
-    sqlClientPool,
-    Sql.deleteSshKeyByKeyId(skid)
-  );
+  await query(sqlClientPool, Sql.deleteUserSshKeyByKeyId(skid));
+  await query(sqlClientPool, Sql.deleteSshKeyByKeyId(skid));
 
   const auditLog: AuditLog = {
     resource: {
@@ -280,22 +284,22 @@ export const deleteSshKey: ResolverFn = async (
       type: AuditType.SSHKEY,
     },
   };
-  var emailDetails = await getSshEmailDetails('api:deleteSshKey', "", models, user);
+  const emailDetails = await getSshEmailDetails('api:deleteSshKey', '', models, user);
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
     event: 'api:deleteSshKey',
     payload: {
       input: {
-        name
+        name,
       },
       data: {
         ssh_key_name: name,
         ssh_key_id: skid,
-        user: userIds
+        user: userIds,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return 'success';
@@ -304,27 +308,23 @@ export const deleteSshKey: ResolverFn = async (
 export const deleteSshKeyById: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, models, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, models, userActivityLogger,
+  },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds
+    users: userIds,
   });
 
   const user = await models.UserModel.loadUserByIdOrEmail({
     id: userIds[0],
   });
 
-  let res = await query(
-    sqlClientPool,
-    Sql.deleteUserSshKeyByKeyId(id)
-  );
-  res = await query(
-    sqlClientPool,
-    Sql.deleteSshKeyByKeyId(id)
-  );
+  await query(sqlClientPool, Sql.deleteUserSshKeyByKeyId(id));
+  await query(sqlClientPool, Sql.deleteSshKeyByKeyId(id));
 
   // TODO: Check rows for success
 
@@ -339,21 +339,21 @@ export const deleteSshKeyById: ResolverFn = async (
       type: AuditType.SSHKEY,
     },
   };
-  var emailDetails = await getSshEmailDetails('api:deleteSshKeyById', "", models, user);
+  const emailDetails = await getSshEmailDetails('api:deleteSshKeyById', '', models, user);
   userActivityLogger(`User deleted ssh key with id '${id}'`, {
     project: '',
     event: 'api:deleteSshKeyById',
     payload: {
       input: {
-        id
+        id,
       },
       data: {
         ssh_key_id: id,
-        user: userIds
+        user: userIds,
       },
       ...auditLog,
       ...emailDetails,
-    }
+    },
   });
 
   return 'success';
@@ -362,10 +362,10 @@ export const deleteSshKeyById: ResolverFn = async (
 // This function retrieves email details for SSH key actions based on user preferences
 // it's really a convenience function to avoid code duplication
 async function getSshEmailDetails(action, keyname, models: { UserModel: UserModel; GroupModel: GroupModel; EnvironmentModel: EnvironmentModel; }, user: User) {
-  var emailDetails = {};
+  let emailDetails = {};
   try {
-    let dbUserDetails = await models.UserModel.getFullUserDetails(user);
-    if (dbUserDetails && dbUserDetails['optEmailSshkey'] == true) {
+    const dbUserDetails = await models.UserModel.getFullUserDetails(user) as any;
+    if (dbUserDetails && dbUserDetails.optEmailSshkey === true) {
       emailDetails = {
         userActionEmailDetails: {
           Name: user.email,
@@ -381,9 +381,8 @@ async function getSshEmailDetails(action, keyname, models: { UserModel: UserMode
       user.id,
       action,
       {},
-      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`
+      `Error while trying to get full user DB details for user(id|email) (${user.id}|${user.email}): error: ${e.message}`,
     );
   }
   return emailDetails;
 }
-

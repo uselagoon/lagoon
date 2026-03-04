@@ -2,8 +2,8 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
-    return knex.schema.alterTable('user', function(table) {
+exports.up = function (knex) {
+  return knex.schema.alterTable('user', (table) => {
     // table.boolean('org_email_optin').notNullable().defaultTo(true);
     table.boolean('opt_email_org_role').notNullable().defaultTo(true); // when a users role within the organization management changes
     table.boolean('opt_email_sshkey').notNullable().defaultTo(true); // when an ssh key is added or removed from the user
@@ -15,8 +15,8 @@ exports.up = function(knex) {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
-  return knex.schema.alterTable('user', function(table) {
+exports.down = function (knex) {
+  return knex.schema.alterTable('user', (table) => {
     // table.dropColumn('org_email_optin');
     table.dropColumn('opt_email_org_role');
     table.dropColumn('opt_email_sshkey');

@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
+import type { GroupRepresentation, KeycloakAdminClient } from '@s3pweb/keycloak-admin-client-cjs';
 import {
   asyncPipe,
   decodeJSONBase64,
@@ -9,7 +10,6 @@ import pickNonNil from '../util/pickNonNil';
 import { toNumber, getErrorMessage } from '../util/func';
 import { getConfigFromEnv } from '../util/config';
 import { logger } from '../loggers/logger';
-import type { GroupRepresentation, KeycloakAdminClient } from '@s3pweb/keycloak-admin-client-cjs';
 import { isNetworkError } from '../clients/keycloak-admin';
 import { User } from './user';
 import {
@@ -109,7 +109,7 @@ const internalGroupTypes = [GroupType.ROLE_SUBGROUP];
 
 export const isRoleSubgroup = R.pathEq(
   'role-subgroup',
-  ['attributes', 'type', 0]
+  ['attributes', 'type', 0],
 );
 
 const isInternalGroup = (group: SparseGroup) => {
@@ -122,10 +122,9 @@ const isInternalGroup = (group: SparseGroup) => {
   }
 
   return false;
-}
+};
 
-const attributeKVOrNull = (key: string, group: GroupRepresentation) =>
-  String(R.pathOr(null, ['attributes', key], group));
+const attributeKVOrNull = (key: string, group: GroupRepresentation) => String(R.pathOr(null, ['attributes', key], group));
 
 const parseGroupType = (type: string): GroupType | null => {
   if (Object.values(GroupType).includes(type as GroupType)) {
@@ -155,16 +154,16 @@ export interface GroupModel {
   deleteGroup: (id: string) => Promise<void>
   removeGroupFromOrganization: (id: string) => Promise<void>
   addUserToGroup: (user: User, groupInput: GroupInput, roleName: string) => Promise<Group>
-  removeUserFromGroup: (user: User, group: Group ) => Promise<void>
-  removeUserFromGroups: (user: User,groups: Group[]) => Promise<void>
+  removeUserFromGroup: (user: User, group: Group) => Promise<void>
+  removeUserFromGroups: (user: User, groups: Group[]) => Promise<void>
   addProjectToGroup: (projectId: number, groupInput: any) => Promise<void>
   removeProjectFromGroup: (projectId: number, group: Group) => Promise<void>
   removeProjectFromGroups: (projectId: number, groups: Group[]) => Promise<void>
   transformKeycloakGroups: (keycloakGroups: GroupRepresentation[]) => Promise<Group[]>
   getGroupMembership: (group: Group) => Promise<GroupMembership[]>
   getGroupMemberCount: (group: Group) => Promise<number>
-  removeNonProjectDefaultUsersFromGroup: (group: Group, project: String) => Promise<Group>
-  purgeGroupCache: (group: Pick<Group, 'name' | 'id'>, membersOnly: Boolean) => Promise<void>
+  removeNonProjectDefaultUsersFromGroup: (group: Group, project: string) => Promise<Group>
+  purgeGroupCache: (group: Pick<Group, 'name' | 'id'>, membersOnly: boolean) => Promise<void>
 }
 
 export const Group = (clients: {
@@ -174,7 +173,7 @@ export const Group = (clients: {
   const { keycloakAdminClient } = clients;
 
   const transformKeycloakGroups = async (
-    keycloakGroups: GroupRepresentation[]
+    keycloakGroups: GroupRepresentation[],
   ): Promise<Group[]> => {
     // Map from keycloak object to group object
     const groups = await Promise.all(keycloakGroups.map(
@@ -186,10 +185,10 @@ export const Group = (clients: {
         attributes: keycloakGroup.attributes,
         subGroups: keycloakGroup.subGroups,
         organization: await groupHelpers(sqlClientPool).selectOrganizationIdByGroupId(keycloakGroup.id), // if it exists set it or null
-      })
+      }),
     ));
 
-    let groupsWithGroupsAndMembers = [];
+    const groupsWithGroupsAndMembers = [];
 
     for (const group of groups) {
       const subGroups = R.reject(isRoleSubgroup)(group.subGroups);
@@ -205,7 +204,7 @@ export const Group = (clients: {
   };
 
   const createGroupFromKeycloak = (group: KeycloakLagoonGroup, projectsArray: number[], organizationAttr: number): SparseGroup => {
-    const groupAttr = group.attributes?.['type']?.[0];
+    const groupAttr = group.attributes?.type?.[0];
 
     if (!group.id) {
       throw new Error('Missing group id');
@@ -338,11 +337,10 @@ export const Group = (clients: {
   }): Promise<SparseGroup> => {
     if (groupInput.id) {
       return loadSparseGroupById(groupInput.id);
-    } else if (groupInput.name) {
+    } if (groupInput.name) {
       return loadSparseGroupByName(groupInput.name);
-    } else {
-      throw new Error('You must provide a group id or name');
     }
+    throw new Error('You must provide a group id or name');
   };
 
   /**
@@ -354,26 +352,25 @@ export const Group = (clients: {
   ): Promise<Group> => {
     if (groupInput.id) {
       return loadGroupById(groupInput.id);
-    } else if (groupInput.name) {
+    } if (groupInput.name) {
       return loadGroupByName(groupInput.name);
-    } else {
-      throw new Error('You must provide a group id or name');
     }
+    throw new Error('You must provide a group id or name');
   };
 
   // load all keycloak groups using pagination
   const loadAllKeycloakGroups = async (): Promise<KeycloakLagoonGroup[]> => {
     let groups = [];
     let first = 0;
-    let pageSize = 200;
+    const pageSize = 200;
     let fetchedGroups;
     while (true) {
       fetchedGroups = await keycloakAdminClient.groups.find({
         briefRepresentation: false,
-        first: first,
-        max: pageSize
+        first,
+        max: pageSize,
       });
-      groups = groups.concat(fetchedGroups)
+      groups = groups.concat(fetchedGroups);
       first += pageSize;
       if (fetchedGroups.length < pageSize) {
         break;
@@ -385,7 +382,7 @@ export const Group = (clients: {
   const loadAllGroups = async (): Promise<KeycloakLagoonGroup[]> => {
     const keycloakGroups = await loadAllKeycloakGroups();
 
-    let fullGroups: KeycloakLagoonGroup[] = [];
+    const fullGroups: KeycloakLagoonGroup[] = [];
     for (const group of keycloakGroups) {
       fullGroups.push(await loadKeycloakChildren(group));
     }
@@ -398,7 +395,7 @@ export const Group = (clients: {
     depth: number | null = null,
   ): Promise<HieararchicalGroup> => {
     // Subgroups already loaded.
-    if ("groups" in group && "allGroups" in group) {
+    if ('groups' in group && 'allGroups' in group) {
       return group;
     }
 
@@ -411,13 +408,13 @@ export const Group = (clients: {
       };
     }
 
-    let keycloakGroups = await keycloakAdminClient.groups.listSubGroups({
+    const keycloakGroups = await keycloakAdminClient.groups.listSubGroups({
       parentId: group.id,
       max: group.subGroupCount,
       briefRepresentation: false, // Returns attributes
     });
 
-    let subGroups: HieararchicalGroup[] = [];
+    const subGroups: HieararchicalGroup[] = [];
     for (const keycloakGroup of keycloakGroups) {
       // get the projectids from the group_project database table instead of group attributes
       const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(keycloakGroup.id);
@@ -425,12 +422,11 @@ export const Group = (clients: {
 
       const subGroup = createGroupFromKeycloak(keycloakGroup, projectIds, organizationId);
 
-      const groupWithSubgroups = await loadSubGroups(subGroup, depth ? depth -1 : null);
+      const groupWithSubgroups = await loadSubGroups(subGroup, depth ? depth - 1 : null);
       subGroups.push({
         ...subGroup,
         allGroups: groupWithSubgroups.allGroups,
-        groups: groupWithSubgroups.allGroups.filter((group: HieararchicalGroup): boolean =>
-          !isInternalGroup(group)
+        groups: groupWithSubgroups.allGroups.filter((group: HieararchicalGroup): boolean => !isInternalGroup(group),
         ),
       });
     }
@@ -438,21 +434,20 @@ export const Group = (clients: {
     const groupWithSubgroups = {
       ...group,
       allGroups: subGroups,
-      groups: subGroups.filter((group: HieararchicalGroup): boolean =>
-        !isInternalGroup(group)
+      groups: subGroups.filter((group: HieararchicalGroup): boolean => !isInternalGroup(group),
       ),
     };
 
-    return groupWithSubgroups
+    return groupWithSubgroups;
   };
 
-  const loadKeycloakChildren = async(group: KeycloakLagoonGroup): Promise<KeycloakLagoonGroup> => {
-    let keycloakGroups = await keycloakAdminClient.groups.listSubGroups({
+  const loadKeycloakChildren = async (group: KeycloakLagoonGroup): Promise<KeycloakLagoonGroup> => {
+    const keycloakGroups = await keycloakAdminClient.groups.listSubGroups({
       parentId: group.id,
       briefRepresentation: false, // Returns attributes
     });
 
-    let subGroups: KeycloakLagoonGroup[] = [];
+    const subGroups: KeycloakLagoonGroup[] = [];
     for (const keycloakGroup of keycloakGroups) {
       const groupWithSubgroups = await loadKeycloakChildren(keycloakGroup);
       subGroups.push({
@@ -465,25 +460,24 @@ export const Group = (clients: {
       ...group,
       subGroups,
     };
-  }
+  };
 
-  const loadParentGroup = async (groupInput: Group): Promise<Group> =>
-    asyncPipe(
-      R.prop('path'),
-      R.split('/'),
-      R.nth(-2),
-      R.cond([[R.isEmpty, R.always(null)], [R.T, loadGroupByName]])
-    )(groupInput);
+  const loadParentGroup = async (groupInput: Group): Promise<Group> => asyncPipe(
+    R.prop('path'),
+    R.split('/'),
+    R.nth(-2),
+    R.cond([[R.isEmpty, R.always(null)], [R.T, loadGroupByName]]),
+  )(groupInput);
 
   // Recursive function to load membership "up" the group chain
-  const getMembersFromGroupAndParents = async (
-    group: Group
+  const _getMembersFromGroupAndParents = async (
+    group: Group,
   ): Promise<GroupMembership[]> => {
     const members = R.prop('members', group);
 
     const parentGroup = await loadParentGroup(group);
     const parentMembers = parentGroup
-      ? await getMembersFromGroupAndParents(parentGroup)
+      ? await _getMembersFromGroupAndParents(parentGroup)
       : [];
 
     return [...members, ...parentMembers];
@@ -491,7 +485,7 @@ export const Group = (clients: {
 
   // Recursive function to load projects "up" the group chain
   const getProjectsFromGroupAndParents = async (
-    group: Group
+    group: Group,
   ): Promise<number[]> => {
     // get the projectids from the group_project database table instead of group attributes
     const projectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
@@ -504,13 +498,13 @@ export const Group = (clients: {
     return [
       // @ts-ignore
       ...projectIds,
-      ...parentProjectIds
+      ...parentProjectIds,
     ];
   };
 
   // Recursive function to load projects "down" the group chain
   const getProjectsFromGroupAndSubgroups = async (
-    group: Group
+    group: Group,
   ): Promise<number[]> => {
     try {
       // get the projectids from the group_project database table instead of group attributes
@@ -528,14 +522,14 @@ export const Group = (clients: {
       const projectIdsArray = [
         // @ts-ignore
         ...groupProjectIds,
-        ...subGroupProjectIds
+        ...subGroupProjectIds,
       ];
       // remove deleted projects from the result to prevent null errors in user queries
       const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(projectIdsArray);
-      let existingProjectsIds = [];
+      const existingProjectsIds = [];
       existingProjectsIds.push(...existingProjects.map(epi => epi.id));
-      return projectIdsArray.filter(item => existingProjectsIds.some(existingProjectsIds => existingProjectsIds === item))
-    } catch (err) {
+      return projectIdsArray.filter(item => existingProjectsIds.some(existingProjectsIds => existingProjectsIds === item));
+    } catch (_err) {
       return [];
     }
   };
@@ -543,17 +537,17 @@ export const Group = (clients: {
   // return only project ids that still exist in lagoon in the response for which projects this group has assigned
   // in the past some groups could have been deleted from lagoon and their `attribute` in keycloak remained
   const getProjectsFromGroup = async (
-    group: Group
+    group: Group,
   ): Promise<number[]> => {
     try {
       // get the projectids from the group_project database table instead of group attributes
       const groupProjectIds = await groupHelpers(sqlClientPool).selectProjectIdsByGroupID(group.id);
       // remove deleted projects from the result to prevent null errors in user queries
       const existingProjects = await projectHelpers(sqlClientPool).getAllProjectsIn(groupProjectIds);
-      let existingProjectsIds = [];
+      const existingProjectsIds = [];
       existingProjectsIds.push(...existingProjects.map(epi => epi.id));
-      return existingProjectsIds
-    } catch (err) {
+      return existingProjectsIds;
+    } catch (_err) {
       return [];
     }
   };
@@ -568,7 +562,7 @@ export const Group = (clients: {
       membership = await getGroupMembershipCache(group.id);
     }
 
-    if (membership.length == 0) {
+    if (membership.length === 0) {
       const UserModel = User(clients);
       const roleSubgroups = group.subGroups.filter(isRoleSubgroup);
 
@@ -601,9 +595,9 @@ export const Group = (clients: {
   };
 
   const getGroupMemberCount = async (
-    group: Group
+    group: Group,
   ): Promise<number> => {
-    const membership = await getGroupMembership(group)
+    const membership = await getGroupMembership(group);
     return membership.length;
   };
 
@@ -703,7 +697,7 @@ export const Group = (clients: {
         {
           id: groupInput.id,
         },
-        //@ts-ignore
+        // @ts-ignore
         {
           ...pickNonNil(['name', 'attributes'], groupInput),
         },
@@ -724,12 +718,12 @@ export const Group = (clients: {
       }
     }
 
-    if (groupInput.name && oldGroup.name != groupInput.name) {
+    if (groupInput.name && oldGroup.name !== groupInput.name) {
       try {
         const newGroup = await loadSparseGroupById(groupInput.id);
         const fullGroup = await loadSubGroups(newGroup, 1);
         for (const subGroup of fullGroup.allGroups) {
-          if (subGroup.type == GroupType.ROLE_SUBGROUP) {
+          if (subGroup.type === GroupType.ROLE_SUBGROUP) {
             await keycloakAdminClient.groups.update(
               {
                 id: subGroup.id,
@@ -783,8 +777,8 @@ export const Group = (clients: {
         attributes: {
           ...group.attributes,
           // lagoon-organization attribute is removed for legacy reasons only, theses values are stored in the api-db now
-          "lagoon-organization": [""]
-        }
+          'lagoon-organization': [''],
+        },
       });
       await groupHelpers(sqlClientPool).removeGroupFromOrganization(id);
       await purgeGroupCache(group);
@@ -860,7 +854,7 @@ export const Group = (clients: {
   ): Promise<void> => {
     const groupMembers = await getGroupMembership(group, false);
     const userMembership = groupMembers.find(
-      (membership: GroupMembership) => membership.user.id == user.id,
+      (membership: GroupMembership) => membership.user.id === user.id,
     );
 
     if (userMembership) {
@@ -995,12 +989,11 @@ export const Group = (clients: {
 
   const removeNonProjectDefaultUsersFromGroup = async (
     group: Group,
-    project: String,
+    project: string,
   ): Promise<Group> => {
     const groupMembers = await getGroupMembership(group, false);
     const nonDefaultMembers = groupMembers.filter(
-      (member: GroupMembership) =>
-        member.user.email != `default-user@${project}`,
+      (member: GroupMembership) => member.user.email !== `default-user@${project}`,
     );
 
     for (const member of nonDefaultMembers) {
@@ -1012,7 +1005,7 @@ export const Group = (clients: {
 
   const purgeGroupCache = async (
     group: Pick<Group, 'name' | 'id'>,
-    membersOnly: Boolean = false,
+    membersOnly: boolean = false,
   ): Promise<void> => {
     try {
       if (!membersOnly) {
@@ -1038,7 +1031,7 @@ export const Group = (clients: {
     const nameCacheKey = `cache:keycloak:group-id:${group.name}`;
 
     try {
-      const data = encodeJSONBase64(group)
+      const data = encodeJSONBase64(group);
       await redisClient
         .multi()
         .set(nameCacheKey, group.id)
@@ -1064,7 +1057,7 @@ export const Group = (clients: {
 
   const getGroupCacheById = async (groupId: string): Promise<Group | null> => {
     try {
-      let data = await get(`cache:keycloak:group:${groupId}`);
+      const data = await get(`cache:keycloak:group:${groupId}`);
 
       if (!data) {
         return null;
@@ -1100,7 +1093,7 @@ export const Group = (clients: {
     groupId: string,
   ): Promise<GroupMembership[]> => {
     try {
-      let data = await get(`cache:keycloak:group-members:${groupId}`);
+      const data = await get(`cache:keycloak:group-members:${groupId}`);
 
       if (!data) {
         return [];
@@ -1139,6 +1132,6 @@ export const Group = (clients: {
     getGroupMembership,
     getGroupMemberCount,
     removeNonProjectDefaultUsersFromGroup,
-    purgeGroupCache
+    purgeGroupCache,
   };
 };

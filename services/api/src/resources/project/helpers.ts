@@ -21,21 +21,20 @@ export const Helpers = (sqlClientPool: Pool) => {
       try {
         // finally check the user view:project permission
         await hasPermission('project', 'view', {
-          project: project.id
+          project: project.id,
         });
-        return
       } catch (err) {
         if (project.organization != null) {
           await hasPermission('organization', 'viewProject', {
-            organization: project.organization
+            organization: project.organization,
           });
           // if the organization owner has permission to view project, return
-          return
+          return;
         }
-        throw err
+        throw err;
       }
     }
-  }
+  };
   const checkOrgProjectUpdatePermission = async (hasPermission, pid) => {
     // helper checks the permission to updateProject:organization
     // or the update:project permission
@@ -44,29 +43,24 @@ export const Helpers = (sqlClientPool: Pool) => {
     try {
       // finally check the user update:project permission
       await hasPermission('project', 'update', {
-        project: project.id
+        project: project.id,
       });
-      return
     } catch (err) {
       if (project.organization != null) {
         await hasPermission('organization', 'updateProject', {
-          organization: project.organization
+          organization: project.organization,
         });
         // if the organization owner has permission to update project, return
-        return
+        return;
       }
-      throw err
+      throw err;
     }
-  }
-
-  const aliasOpenshiftToK8s = (projects: any[]) => {
-    return projects.map(project => {
-      return {
-        ...project,
-        kubernetes: project.openshift,
-      };
-    });
   };
+
+  const aliasOpenshiftToK8s = (projects: any[]) => projects.map(project => ({
+    ...project,
+    kubernetes: project.openshift,
+  }));
 
   const getProjectById = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectProject(id));
@@ -82,7 +76,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
   const getProjectByEnvironmentId = async (
     environmentId: number,
-    environmentType = []
+    environmentType = [],
   ): Promise<{
     id: number // environment id
     envName: string
@@ -95,23 +89,22 @@ export const Helpers = (sqlClientPool: Pool) => {
   }> => {
     const rows = await query(
       sqlClientPool,
-      Sql.selectProjectByEnvironmentId(environmentId, environmentType)
+      Sql.selectProjectByEnvironmentId(environmentId, environmentType),
     );
     return R.prop(0, rows);
   };
 
   const getProjectByOrganizationId = async (
-    organizationId: number
+    organizationId: number,
   ) => {
     const rows = await query(
       sqlClientPool,
-      Sql.selectProjectsByOrganizationId(organizationId)
+      Sql.selectProjectsByOrganizationId(organizationId),
     );
     return rows;
   };
 
-  const getProjectsByIds = (projectIds: number[]) =>
-    query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
+  const getProjectsByIds = (projectIds: number[]) => query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
   const checkApiRoutesFeature = async (organizationId: number) => {
     const organization = await organizationHelpers(sqlClientPool).getOrganizationById(organizationId);
@@ -135,13 +128,13 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(
         sqlClientPool,
-        Sql.selectProjectIdByName(name)
+        Sql.selectProjectIdByName(name),
       );
 
       const amount = R.length(pidResult);
       if (amount > 1) {
         throw new Error(
-          `Multiple project candidates for '${name}' (${amount} found). Do nothing.`
+          `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
         );
       }
 
@@ -184,37 +177,34 @@ export const Helpers = (sqlClientPool: Pool) => {
           R.T,
           () => {
             throw new Error('Must provide project "id" or "name"');
-          }
-        ]
+          },
+        ],
       ])(projectInput);
     },
     getAllProjects: async () => query(sqlClientPool, Sql.selectAllProjects()),
-    getAllProjectsNotIn: async ids =>
-      query(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
-    getAllProjectsIn: async ids =>
-      query(sqlClientPool, Sql.selectAllProjectsIn(ids)),
-    getAllProjectNames: async () =>
-      R.map(
-        R.prop('name'),
-        await query(sqlClientPool, Sql.selectAllProjectNames())
-      ),
+    getAllProjectsNotIn: async ids => query(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
+    getAllProjectsIn: async ids => query(sqlClientPool, Sql.selectAllProjectsIn(ids)),
+    getAllProjectNames: async () => R.map(
+      R.prop('name'),
+      await query(sqlClientPool, Sql.selectAllProjectNames()),
+    ),
     deleteProjectById: async (id: number) => {
       // logger.debug(`deleting project ${id} notifications`)
       await query(
         sqlClientPool,
-        Sql.deleteNotifications(id)
+        Sql.deleteNotifications(id),
       );
       // logger.debug(`deleting project ${id} environment variables`)
       // clean up environment variables for project
       await query(
         sqlClientPool,
-        Sql.deleteEnvironmentVariables(id)
+        Sql.deleteEnvironmentVariables(id),
       );
       // logger.debug(`deleting project ${id} deploytarget configurations`)
       // clean up deploytarget configurations
       await query(
         sqlClientPool,
-        Sql.deleteDeployTargetConfigs(id)
+        Sql.deleteDeployTargetConfigs(id),
       );
       // logger.debug(`deleting project ${id} environment leftover backups rows`)
       // clean up backups table so backups for environments don't remain in limbo once the project is deleted
@@ -225,19 +215,19 @@ export const Helpers = (sqlClientPool: Pool) => {
       const projectEnvironmentIds = await query(sqlClientPool, environmentSql.selectEnvironmentsByProjectID(id, true));
       await query(
         sqlClientPool,
-        backupSql.deleteBackupsByEnvironmentIds(projectEnvironmentIds)
+        backupSql.deleteBackupsByEnvironmentIds(projectEnvironmentIds),
       );
       // same for environment storage
       // logger.debug(`deleting project ${id} environment leftover storage rows`)
       await query(
         sqlClientPool,
-        environmentSql.deleteEnvironmentStorageByEnvironmentIds(projectEnvironmentIds)
+        environmentSql.deleteEnvironmentStorageByEnvironmentIds(projectEnvironmentIds),
       );
       // logger.debug(`deleting project ${id} leftover environment rows`)
       // clean up environments table so environments don't remain in limbo once the project is deleted
       await query(
         sqlClientPool,
-        environmentSql.deleteEnvironmentsByProjectID(id)
+        environmentSql.deleteEnvironmentsByProjectID(id),
       );
       // delete any autogenerated route configuration for this project
       await routeHelpers(sqlClientPool).deleteAutogeneratedRouteConfigForProject(id);
@@ -245,8 +235,8 @@ export const Helpers = (sqlClientPool: Pool) => {
       // delete the project
       await query(
         sqlClientPool,
-        Sql.deleteProject(id)
+        Sql.deleteProject(id),
       );
-    }
+    },
   };
 };

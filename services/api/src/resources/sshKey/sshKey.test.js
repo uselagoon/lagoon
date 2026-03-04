@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 const { Sql } = require('./sql');
 const { validateSshKey } = require('./index');
 

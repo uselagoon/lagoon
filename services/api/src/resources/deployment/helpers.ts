@@ -1,6 +1,6 @@
 import * as R from 'ramda';
-import { asyncPipe } from '../../commons/util/func';
 import { Pool } from 'mariadb';
+import { asyncPipe } from '../../commons/util/func';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -9,23 +9,23 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getDeploymentById = async (deploymentID: number) => {
     const rows = await query(
       sqlClientPool,
-      Sql.selectDeployment(deploymentID)
+      Sql.selectDeployment(deploymentID),
     );
     return R.prop(0, rows);
   };
 
   // getSourceUser can decode the keycloak or legacy grant into a username or issuer name
   // this can then be stored against the deployment (or task) resource in the API when it is created
-  const getSourceUser =async (keycloakGrant, legacyGrant) => {
-    let sourceUser = "administrator"
+  const getSourceUser = async (keycloakGrant, legacyGrant) => {
+    let sourceUser = 'administrator';
     if (keycloakGrant) {
-      sourceUser = keycloakGrant.access_token.content.email
+      sourceUser = keycloakGrant.access_token.content.email;
     }
     if (legacyGrant) {
-      sourceUser = legacyGrant.iss
+      sourceUser = legacyGrant.iss;
     }
-    return sourceUser
-  }
+    return sourceUser;
+  };
 
   return {
     getSourceUser,
@@ -36,7 +36,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
       const hasEnvironment = R.both(
         R.has('environment'),
-        R.propSatisfies(notEmpty, 'environment')
+        R.propSatisfies(notEmpty, 'environment'),
       );
       // @ts-ignore
       const hasNameAndEnvironment = R.both(hasName, hasEnvironment);
@@ -50,16 +50,16 @@ export const Helpers = (sqlClientPool: Pool) => {
           }
 
           return deployment;
-        }
+        },
       );
 
       const deploymentFromNameEnv = async input => {
         const environments = await environmentHelpers(
-          sqlClientPool
+          sqlClientPool,
         ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
         const activeEnvironments = R.filter(
           R.propEq('0000-00-00 00:00:00', 'deleted'),
-          environments
+          environments,
         );
 
         if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -72,8 +72,8 @@ export const Helpers = (sqlClientPool: Pool) => {
           sqlClientPool,
           Sql.selectDeploymentByNameAndEnvironment(
             R.prop('name', input),
-            environment.id
-          )
+            environment.id,
+          ),
         );
 
         if (!R.prop(0, rows)) {
@@ -91,12 +91,12 @@ export const Helpers = (sqlClientPool: Pool) => {
           R.T,
           () => {
             throw new Error(
-              'Must provide deployment (id) or (name and environment)'
+              'Must provide deployment (id) or (name and environment)',
             );
-          }
-        ]
+          },
+        ],
       // @ts-ignore
       ])(deploymentInput);
-    }
+    },
   };
 };

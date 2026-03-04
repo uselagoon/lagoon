@@ -7,7 +7,7 @@ import { DeployType } from '../commons/types';
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
   name?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
-  project?: Number; // int(11) DEFAULT NULL,
+  project?: number; // int(11) DEFAULT NULL,
   deployType?: DeployType;
   environmentType?: string; //  enum('production','development') COLLATE utf8_bin NOT NULL,
   openshiftProjectName?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
@@ -16,7 +16,7 @@ export interface Environment {
   deleted?: string;
   route?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   routes?: string; // text COLLATE utf8_bin DEFAULT NULL,
-  autoIdle?: Boolean; // int(1) NOT NULL DEFAULT 1,
+  autoIdle?: boolean; // int(1) NOT NULL DEFAULT 1,
   deployBaseRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   deployHeadRef?: string; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   deployTitle?: string; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
@@ -71,25 +71,24 @@ export const Environment = (clients: {
   const environmentsByProjectId = projectEnvironments;
 
   // Needed for local Dev - Required if not connected to openshift
-  const errorCatcherFn = (msg, responseObj) => (err) => {
-    const errMsg =
-      err && err.status && err.message
-        ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}`
-        : `err undefined`;
+  const _errorCatcherFn = (msg, responseObj) => (err) => {
+    const errMsg = err && err.status && err.message
+      ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}`
+      : 'err undefined';
     logger.error(`${msg}: ${errMsg}`);
     return { ...responseObj };
   };
 
   const environmentStorageMonthByEnvironmentId = async (eid, month) => {
-    let q = knex('environment_storage')
+    const q = knex('environment_storage')
       .select(knex.raw('SUM(kib_used) as kib_used'))
-      .select(knex.raw(`max(DATE_FORMAT(updated, '%Y-%m')) as month`))
+      .select(knex.raw('max(DATE_FORMAT(updated, \'%Y-%m\')) as month'))
       .where('environment', eid)
       .andWhere(
-        knex.raw(`YEAR(updated) = YEAR(STR_TO_DATE(?, '%Y-%m'))`, month),
+        knex.raw('YEAR(updated) = YEAR(STR_TO_DATE(?, \'%Y-%m\'))', month),
       )
       .andWhere(
-        knex.raw(`MONTH(updated) = MONTH(STR_TO_DATE(?, '%Y-%m'))`, month),
+        knex.raw('MONTH(updated) = MONTH(STR_TO_DATE(?, \'%Y-%m\'))', month),
       );
 
     const rows = await query(sqlClientPool, q.toString());
@@ -136,10 +135,9 @@ export const Environment = (clients: {
     }
 
     // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
-    const month_leading_zero =
-      interested_month_start.getMonth() + 1 < 10
-        ? `0${interested_month_start.getMonth() + 1}`
-        : interested_month_start.getMonth() + 1;
+    const month_leading_zero = interested_month_start.getMonth() + 1 < 10
+      ? `0${interested_month_start.getMonth() + 1}`
+      : interested_month_start.getMonth() + 1;
     const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
 
     // Created Date is created after the interested month: Ran for 0 hours in the requested month
@@ -149,9 +147,9 @@ export const Environment = (clients: {
 
     // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
     if (
-      deleted_date < interested_month_start &&
-      moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !==
-        '0000-00-00 00:00:00'
+      deleted_date < interested_month_start
+      && moment(deleted_date).format('YYYY-MM-DD HH:mm:ss')
+        !== '0000-00-00 00:00:00'
     ) {
       return { month, hours: 0 };
     }
@@ -168,8 +166,8 @@ export const Environment = (clients: {
     }
 
     if (
-      deleted === '0000-00-00 00:00:00' ||
-      deleted_date > interested_month_end
+      deleted === '0000-00-00 00:00:00'
+      || deleted_date > interested_month_end
     ) {
       // Environment is not deleted yet or was deleted after the interested month
       date_to = interested_month_end;
@@ -375,7 +373,7 @@ export const Environment = (clients: {
     } catch (e) {
       logger.error(
         `Elastic Search Query Error: ${
-          JSON.stringify(e) != '{}' ? JSON.stringify(e) : e
+          JSON.stringify(e) !== '{}' ? JSON.stringify(e) : e
         }`,
       );
       // const noHits = { total: 0 };
@@ -397,59 +395,53 @@ export const Environment = (clients: {
   const calculateHitsFromESData = (legacyResult, newResult) => {
     // 0 hits found in elasticsearch, don't even try to generate monthly counts
     if (
-      legacyResult.hits.total.value === 0 &&
-      newResult.hits.total.value === 0
+      legacyResult.hits.total.value === 0
+      && newResult.hits.total.value === 0
     ) {
       return { total: 0 };
     }
 
-    var total = 0;
+    let total = 0;
 
-    const legacyBuckets =
-      legacyResult &&
-      legacyResult.aggregations &&
-      legacyResult.aggregations.hourly &&
-      legacyResult.aggregations.hourly.buckets
-        ? legacyResult.aggregations.hourly.buckets
-        : 0;
-    const legacyResultCount =
-      legacyResult &&
-      legacyResult.aggregations &&
-      legacyResult.aggregations.hourly &&
-      legacyResult.aggregations.hourly.buckets &&
-      legacyResult.aggregations.hourly.buckets.length
-        ? legacyResult.aggregations.hourly.buckets.length
-        : 0;
-    const legacyAvg =
-      legacyResult &&
-      legacyResult.aggregations &&
-      legacyResult.aggregations.average &&
-      legacyResult.aggregations.average.value
-        ? parseInt(legacyResult.aggregations.average.value)
-        : 0;
+    const legacyBuckets = legacyResult
+      && legacyResult.aggregations
+      && legacyResult.aggregations.hourly
+      && legacyResult.aggregations.hourly.buckets
+      ? legacyResult.aggregations.hourly.buckets
+      : 0;
+    const legacyResultCount = legacyResult
+      && legacyResult.aggregations
+      && legacyResult.aggregations.hourly
+      && legacyResult.aggregations.hourly.buckets
+      && legacyResult.aggregations.hourly.buckets.length
+      ? legacyResult.aggregations.hourly.buckets.length
+      : 0;
+    const legacyAvg = legacyResult
+      && legacyResult.aggregations
+      && legacyResult.aggregations.average
+      && legacyResult.aggregations.average.value
+      ? parseInt(legacyResult.aggregations.average.value)
+      : 0;
 
-    const newBuckets =
-      newResult &&
-      newResult.aggregations &&
-      newResult.aggregations.hourly &&
-      newResult.aggregations.hourly.buckets
-        ? newResult.aggregations.hourly.buckets
-        : 0;
-    const newResultCount =
-      newResult &&
-      newResult.aggregations &&
-      newResult.aggregations.hourly &&
-      newResult.aggregations.hourly.buckets &&
-      newResult.aggregations.hourly.buckets.length
-        ? newResult.aggregations.hourly.buckets.length
-        : 0;
-    const newAvg =
-      newResult &&
-      newResult.aggregations &&
-      newResult.aggregations.average &&
-      newResult.aggregations.average.value
-        ? parseInt(newResult.aggregations.average.value)
-        : 0;
+    const newBuckets = newResult
+      && newResult.aggregations
+      && newResult.aggregations.hourly
+      && newResult.aggregations.hourly.buckets
+      ? newResult.aggregations.hourly.buckets
+      : 0;
+    const newResultCount = newResult
+      && newResult.aggregations
+      && newResult.aggregations.hourly
+      && newResult.aggregations.hourly.buckets
+      && newResult.aggregations.hourly.buckets.length
+      ? newResult.aggregations.hourly.buckets.length
+      : 0;
+    const newAvg = newResult
+      && newResult.aggregations
+      && newResult.aggregations.average
+      && newResult.aggregations.average.value
+      ? parseInt(newResult.aggregations.average.value)
+      : 0;
 
     /*
     foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
@@ -465,18 +457,18 @@ export const Environment = (clients: {
     const count = newResultCount > 0 ? newResultCount : legacyResultCount;
     for (let i = 0; i < count; i++) {
       if (
-        newResultCount !== 0 &&
-        newBuckets[i] &&
-        newBuckets[i].count &&
-        newBuckets[i].count.value !== 0
+        newResultCount !== 0
+        && newBuckets[i]
+        && newBuckets[i].count
+        && newBuckets[i].count.value !== 0
       ) {
         // We have new logging data, use this for total
         total += newBuckets[i].count.value;
       } else if (
-        legacyResultCount !== 0 &&
-        legacyBuckets[i] &&
-        legacyBuckets[i].count &&
-        legacyBuckets[i].count.value !== 0
+        legacyResultCount !== 0
+        && legacyBuckets[i]
+        && legacyBuckets[i].count
+        && legacyBuckets[i].count.value !== 0
       ) {
         // We have legacy data
         total += legacyBuckets[i].count.value;

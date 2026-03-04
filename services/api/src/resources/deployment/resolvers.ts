@@ -1,15 +1,17 @@
 import * as R from 'ramda';
+import sha1 from 'sha1';
+import uuid4 from 'uuid4';
 import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import {
   createMiscTask,
   sendToLagoonActions,
-  makeSafe
+  makeSafe,
 } from '../../commons/tasks';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber,
-  EVENTS
+  EVENTS,
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { knex, query, isPatchEmpty } from '../../util/db';
@@ -21,28 +23,30 @@ import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '../../commons/api';
 import { Sql as environmentSql } from '../environment/sql';
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
-import sha1 from 'sha1';
+
 import { generateBuildId, generateVariableOnlyBuildId } from '../../commons/util/lagoon';
 import { encodeJSONBase64, jsonMerge } from '../../commons/util/func';
 import { logger } from '../../loggers/logger';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import uuid4 from 'uuid4';
-import { DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType } from '../../commons/types';
+import {
+  DeploymentSourceType, DeployType, TaskStatusType, TaskSourceType, DeployData, AuditType, DeployPullrequest, DeploymentBuildType,
+} from '../../commons/types';
 import { AuditLog } from '../audit/types';
 
-const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
-const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
-const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
-const region = process.env.S3_FILES_REGION || 'us-east-1'
-const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+
+const accessKeyId = process.env.S3_FILES_ACCESS_KEY_ID || 'minio';
+const secretAccessKey = process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123';
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files';
+const region = process.env.S3_FILES_REGION || 'us-east-1';
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000';
 
 const config = {
   origin: s3Origin,
-  accessKeyId: accessKeyId,
-  secretAccessKey: secretAccessKey,
-  region: region,
-  bucket: bucket
+  accessKeyId,
+  secretAccessKey,
+  region,
+  bucket,
 };
 
 const s3Client = new S3Client({
@@ -53,40 +57,42 @@ const s3Client = new S3Client({
   },
   region: config.region,
   forcePathStyle: true,
-  signatureVersion: 'v4'
+  signatureVersion: 'v4',
 });
 
 const convertDateFormat = R.init;
 
 export const getBuildLog: ResolverFn = async (
-  { remoteId, environment, name, status },
+  {
+    remoteId, environment, name, _status,
+  },
   _args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
   if (!remoteId) {
     return null;
   }
 
   const environmentData = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(parseInt(environment));
   const projectData = await projectHelpers(sqlClientPool).getProjectById(
-    environmentData.project
+    environmentData.project,
   );
 
   // we need to get the safename of the environment from when it was created
-  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-  var environmentName = makeSafe(environmentData.name)
-  var overlength = 58 - projectData.name.length;
-  if ( environmentName.length > overlength ) {
-    var hash = sha1(environmentName).substring(0,4)
-    environmentName = environmentName.substring(0, overlength-5)
-    environmentName = environmentName.concat('-' + hash)
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+  let environmentName = makeSafe(environmentData.name);
+  const overlength = 58 - projectData.name.length;
+  if (environmentName.length > overlength) {
+    const hash = sha1(environmentName).substring(0, 4);
+    environmentName = environmentName.substring(0, overlength - 5);
+    environmentName = environmentName.concat(`-${hash}`);
   }
 
   try {
     // where it should be, check `buildlogs/projectName/environmentName/buildName-remoteId.txt`
-    let buildLog = 'buildlogs/'+projectData.name+'/'+environmentName+'/'+name+'-'+remoteId+'.txt'
+    const buildLog = `buildlogs/${projectData.name}/${environmentName}/${name}-${remoteId}.txt`;
     const response = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: buildLog }));
     const data = await response.Body.transformToString('utf-8');
 
@@ -104,9 +110,10 @@ export const getBuildLog: ResolverFn = async (
 export const getDeploymentsByBulkId: ResolverFn = async (
   root,
   { bulkId },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+  {
+    sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups,
+  },
 ) => {
-
   /*
     use the same mechanism for viewing all projects
     bulk deployments can span multiple projects, and anyone with access to a project
@@ -118,7 +125,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
-  } catch (err) {
+  } catch (_err) {
     if (!keycloakGrant) {
       logger.debug('No grant available for getDeploymentsByBulkId');
       return [];
@@ -130,16 +137,16 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 
   let queryBuilder = knex('deployment')
     .where('deployment.bulk_id', bulkId)
-    .toString()
+    .toString();
 
   if (userProjectIds) {
     queryBuilder = knex('environment')
-    .select('deployment.*')
-    .join('deployment', 'environment.id', '=', 'deployment.environment')
-    .join('project', 'environment.project', '=', 'project.id')
-    .whereIn('project.id', userProjectIds)
-    .andWhere('deployment.bulk_id', bulkId)
-    .toString()
+      .select('deployment.*')
+      .join('deployment', 'environment.id', '=', 'deployment.environment')
+      .join('project', 'environment.project', '=', 'project.id')
+      .whereIn('project.id', userProjectIds)
+      .andWhere('deployment.bulk_id', bulkId)
+      .toString();
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
@@ -150,19 +157,20 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups,
+  },
 ) => {
-
-  let {
+  const {
     openshifts,
-    deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"],
+    deploymentStatus = ['NEW', 'PENDING', 'RUNNING', 'QUEUED'],
     environmentType,
     startDate,
     endDate,
     includeDeleted,
-    limitPerEnvironment,
-    limit
+    limit,
   } = input;
+  let { limitPerEnvironment } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -175,7 +183,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
   let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
-  } catch (err) {
+  } catch (_err) {
     if (!keycloakGrant) {
       logger.debug('No grant available for getDeploymentsByFilter');
       return [];
@@ -191,13 +199,13 @@ export const getDeploymentsByFilter: ResolverFn = async (
     limitPerEnvironment = 1;
   }
 
-  let limitedStatuses = ["complete", "failed", "cancelled"];
+  const limitedStatuses = ['complete', 'failed', 'cancelled'];
   if (!limitPerEnvironment && deploymentStatus.some(element => limitedStatuses.includes(element))) {
     // if a user requests `complete`, `failed`, or `cancelled` status builds but does not include a `limitPerEnvironment` limit
     // set the limit to the last 5 deployments to limit the amount of returned data
     limitPerEnvironment = 5;
   }
-  logger.info( Sql.selectDeploymentsByFilter(
+  logger.info(Sql.selectDeploymentsByFilter(
     {
       startDate,
       endDate,
@@ -207,8 +215,8 @@ export const getDeploymentsByFilter: ResolverFn = async (
       deploymentStatus,
       includeDeleted,
       limitPerEnvironment,
-      limit
-    }
+      limit,
+    },
   ));
   const rows = await query(sqlClientPool, Sql.selectDeploymentsByFilter(
     {
@@ -220,8 +228,8 @@ export const getDeploymentsByFilter: ResolverFn = async (
       deploymentStatus,
       includeDeleted,
       limitPerEnvironment,
-      limit
-    }
+      limit,
+    },
   ));
 
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -231,23 +239,23 @@ export const getDeploymentsByFilter: ResolverFn = async (
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(eid);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('deployment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
   let queryBuilder = knex('deployment')
-  .where('environment', eid)
-  .orderBy('created', 'desc')
-  .orderBy('id', 'desc');
+    .where('environment', eid)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
 
   if (name) {
     queryBuilder = queryBuilder.andWhere('name', name);
@@ -263,7 +271,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
 export const getDeploymentByRemoteId: ResolverFn = async (
   _root,
   { id },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   const queryString = knex('deployment')
     .where('remote_id', '=', id)
@@ -278,11 +286,11 @@ export const getDeploymentByRemoteId: ResolverFn = async (
 
   const perms = await query(
     sqlClientPool,
-    Sql.selectPermsForDeployment(deployment.id)
+    Sql.selectPermsForDeployment(deployment.id),
   );
 
   await hasPermission('deployment', 'view', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
   return deployment;
@@ -291,19 +299,18 @@ export const getDeploymentByRemoteId: ResolverFn = async (
 export const getDeploymentByName: ResolverFn = async (
   _root,
   { input: { project: projectName, environment: environmentName, name } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
-
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
-    projectName
+    projectName,
   );
 
   await hasPermission('deployment', 'view', {
-    project: projectId
+    project: projectId,
   });
 
   const environmentRows = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(
-    environmentName, projectId
+    environmentName, projectId,
   );
 
   const queryString = knex('deployment')
@@ -324,15 +331,15 @@ export const getDeploymentByName: ResolverFn = async (
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
   _args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
   const lagoonUiRoute = getLagoonRouteFromEnv(
     /\/ui-/,
-    getConfigFromEnv('UI_URL', 'http://localhost:8888')
+    getConfigFromEnv('UI_URL', 'http://localhost:8888'),
   );
 
   const { name: project, openshiftProjectName } = await projectHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getProjectByEnvironmentId(environment);
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
@@ -359,22 +366,24 @@ export const addDeployment: ResolverFn = async (
       sourceUser,
       sourceType,
       buildType,
-    }
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant,
+  },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
-    project: environment.project
+    project: environment.project,
   });
 
-  sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  sourceType ??= DeploymentSourceType.API
+  sourceUser ??= await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
+  sourceType ??= DeploymentSourceType.API;
 
   const projectData = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project
+    environment.project,
   );
 
   const { insertId } = await query(
@@ -395,7 +404,7 @@ export const addDeployment: ResolverFn = async (
       sourceType,
       sourceUser,
       buildType,
-    })
+    }),
   );
   const deployment = await Helpers(sqlClientPool).getDeploymentById(insertId);
 
@@ -420,11 +429,11 @@ export const addDeployment: ResolverFn = async (
     payload: {
       deployment: deployment.id,
       ...auditLog,
-    }
+    },
   });
 
   // pass to the HistoryRetentionEnforcer to clean up deployments based on any retention policies
-  await HistoryRetentionEnforcer().cleanupDeployments(projectData, environment)
+  await HistoryRetentionEnforcer().cleanupDeployments(projectData, environment);
 
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
@@ -433,25 +442,24 @@ export const addDeployment: ResolverFn = async (
 export const deleteDeployment: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForDeployment(id));
 
   await hasPermission('deployment', 'delete', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
-
-  const deployment = await Helpers(sqlClientPool).getDeploymentById(id)
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
   if (!deployment) {
     throw new Error(
-      `Invalid deployment input`
+      'Invalid deployment input',
     );
   }
 
   const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(
-    deployment.environment
+    deployment.environment,
   );
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
@@ -477,15 +485,15 @@ export const deleteDeployment: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
   // pass the deployment to the HistoryRetentionEnforcer
-  await HistoryRetentionEnforcer().cleanupDeployment(projectData, environmentData, deployment)
+  await HistoryRetentionEnforcer().cleanupDeployment(projectData, environmentData, deployment);
 
   userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
     payload: {
       deployment: id,
-      ...auditLog
-    }
+      ...auditLog,
+    },
   });
 
   return 'success';
@@ -508,11 +516,11 @@ export const updateDeployment: ResolverFn = async (
         priority,
         bulkId,
         bulkName,
-        buildStep
-      }
-    }
+        buildStep,
+      },
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -520,13 +528,13 @@ export const updateDeployment: ResolverFn = async (
 
   const permsDeployment = await query(
     sqlClientPool,
-    Sql.selectPermsForDeployment(id)
+    Sql.selectPermsForDeployment(id),
   );
 
-  const projectId = R.path(['0', 'pid'], permsDeployment)
+  const projectId = R.path(['0', 'pid'], permsDeployment);
   // Check access to modify deployment as it currently stands
   await hasPermission('deployment', 'update', {
-    project: projectId
+    project: projectId,
   });
 
   await query(
@@ -544,9 +552,9 @@ export const updateDeployment: ResolverFn = async (
         priority,
         bulkId,
         bulkName,
-        buildStep
-      }
-    })
+        buildStep,
+      },
+    }),
   );
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
@@ -554,15 +562,15 @@ export const updateDeployment: ResolverFn = async (
   pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-    deployment.environment
+    deployment.environment,
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(env.project);
 
   try {
     // handle retention policy hooks
-    await retentionHelpers(sqlClientPool).postDeploymentProjectPolicyHook(parseInt(projectId.toString(), 10), status)
+    await retentionHelpers(sqlClientPool).postDeploymentProjectPolicyHook(parseInt(projectId.toString(), 10), status);
   } catch (e) {
-    logger.warn(`failed to perform postDeploymentProjectPolicyHook: ${e}`)
+    logger.warn(`failed to perform postDeploymentProjectPolicyHook: ${e}`);
   }
 
   const auditLog: AuditLog = {
@@ -597,10 +605,10 @@ export const updateDeployment: ResolverFn = async (
         priority,
         bulkId,
         bulkName,
-        buildStep
+        buildStep,
       },
       ...auditLog,
-    }
+    },
   });
 
   return deployment;
@@ -609,26 +617,26 @@ export const updateDeployment: ResolverFn = async (
 export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const deployment = await Helpers(
-    sqlClientPool
+    sqlClientPool,
   ).getDeploymentByDeploymentInput(deploymentInput);
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(deployment.environment);
   const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project
+    environment.project,
   );
 
   await hasPermission('deployment', 'cancel', {
-    project: project.id
+    project: project.id,
   });
 
   const data = {
     build: deployment,
     environment,
-    project
+    project,
   };
 
   const auditLog: AuditLog = {
@@ -653,35 +661,35 @@ export const cancelDeployment: ResolverFn = async (
       deploymentInput,
       data: data.build,
       ...auditLog,
-    }
+    },
   });
 
   // check if the deploytarget for this environment is disabled
   const deploytarget = await environmentHelpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
   if (deploytarget[0].disabled) {
     // if it is, proceed to mark the build as cancelled
-    var date = new Date();
-    var completed = convertDateFormat(date.toISOString());
+    const date = new Date();
+    const completed = convertDateFormat(date.toISOString());
     await query(
       sqlClientPool,
       Sql.updateDeployment({
         id: deployment.id,
         patch: {
-          status: "cancelled",
+          status: 'cancelled',
           completed,
           environment: environment.id,
-        }
-      })
+        },
+      }),
     );
 
     // just normal lagoon environment name conversion to lowercase and safeing
-    const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-    var environmentName = makeSafe(environment.name)
-    var overlength = 58 - project.name.length;
-    if ( environmentName.length > overlength ) {
-      var hash = sha1(environmentName).substring(0,4)
-      environmentName = environmentName.substring(0, overlength-5)
-      environmentName = environmentName.concat('-' + hash)
+    const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+    let environmentName = makeSafe(environment.name);
+    const overlength = 58 - project.name.length;
+    if (environmentName.length > overlength) {
+      const hash = sha1(environmentName).substring(0, 4);
+      environmentName = environmentName.substring(0, overlength - 5);
+      environmentName = environmentName.concat(`-${hash}`);
     }
     // then publish a message to the logs system with the build log
     sendToLagoonLogs(
@@ -689,16 +697,17 @@ export const cancelDeployment: ResolverFn = async (
       project.name,
       '',
       `build-logs:builddeploy-kubernetes:${deployment.name}`,
-      { branchName: environmentName,
+      {
+        branchName: environmentName,
         buildName: deployment.name,
-        buildStatus: "cancelled",
-        buildPhase: "cancelled",
-        buildStep: "cancelled",
+        buildStatus: 'cancelled',
+        buildPhase: 'cancelled',
+        buildStep: 'cancelled',
         environmentId: environment.id,
         projectId: project.id,
         remoteId: deployment.remoteId,
-       },
-      `========================================\nCancelled build as deploytarget '${deploytarget[0].name}' is disabled\n========================================\n`
+      },
+      `========================================\nCancelled build as deploytarget '${deploytarget[0].name}' is disabled\n========================================\n`,
     );
     return 'success';
   }
@@ -713,7 +722,7 @@ export const cancelDeployment: ResolverFn = async (
       '',
       'api:cancelDeployment',
       { deploymentId: deployment.id },
-      `Deployment not cancelled, reason: ${error}`
+      `Deployment not cancelled, reason: ${error}`,
     );
     return `Error: ${error.message}`;
   }
@@ -721,21 +730,23 @@ export const cancelDeployment: ResolverFn = async (
 
 export const deployEnvironmentLatest: ResolverFn = async (
   root,
-  { input: {
-    environment: environmentInput,
-    priority,
-    bulkId,
-    bulkName,
-    buildVariables,
-    returnData
-    }
+  {
+    input: {
+      environment: environmentInput,
+      priority,
+      bulkId,
+      bulkName,
+      buildVariables,
+      returnData,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant,
+  },
 ) => {
-
   try {
     await hasPermission('project', 'viewAll');
-  } catch (err) {
+  } catch (_err) {
     // if the user isn't an admin, then they aren't allowed to set these values on deployments
     // the actions-handler service is an admin, so it has permission to do so
     if (bulkId) {
@@ -751,11 +762,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   const environments = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentsByEnvironmentInput(environmentInput);
   const activeEnvironments = R.filter(
     R.propEq('0000-00-00 00:00:00', 'deleted'),
-    environments
+    environments,
   );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -764,128 +775,128 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
   const environment = R.prop(0, activeEnvironments);
   const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project
+    environment.project,
   );
 
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
-    project: project.id
+    project: project.id,
   });
 
-  if (project.deploymentsDisabled == 1){
+  if (project.deploymentsDisabled === 1) {
     throw new Error('Deployments have been disabled for this project');
   }
 
   if (
-    environment.deployType === DeployType.BRANCH ||
-    environment.deployType === DeployType.PROMOTE
+    environment.deployType === DeployType.BRANCH
+    || environment.deployType === DeployType.PROMOTE
   ) {
     if (!environment.deployBaseRef) {
       throw new Error('Cannot deploy: deployBaseRef is empty');
     }
   } else if (environment.deployType === DeployType.PULLREQUEST) {
     if (
-      !environment.deployBaseRef &&
-      !environment.deployHeadRef &&
-      !environment.deployTitle
+      !environment.deployBaseRef
+      && !environment.deployHeadRef
+      && !environment.deployTitle
     ) {
       throw new Error(
-        'Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty'
+        'Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty',
       );
     }
   }
 
   let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
+  let buildType = DeploymentBuildType.BUILD;
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === 'true')) {
     buildName = generateVariableOnlyBuildId();
-    buildType = DeploymentBuildType.VARIABLES
+    buildType = DeploymentBuildType.VARIABLES;
   }
 
-  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
-  let meta: {
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
+  const meta: {
     [key: string]: any;
   } = {
-    projectName: project.name
+    projectName: project.name,
   };
   let deployData: DeployData;
   switch (environment.deployType) {
     case DeployType.BRANCH:
       deployData = {
         type: environment.deployType,
-        buildName: buildName,
+        buildName,
         branchName: environment.deployBaseRef,
-        sourceUser: sourceUser,
+        sourceUser,
         projectName: project.name,
-        buildType: buildType,
+        buildType,
       };
       if (priority) {
-        deployData.buildPriority = priority
+        deployData.buildPriority = priority;
       }
       if (buildVariables) {
-        deployData.buildVariables = encodeJSONBase64(buildVariables)
+        deployData.buildVariables = encodeJSONBase64(buildVariables);
       }
       if (bulkId) {
-        deployData.bulkId = bulkId
+        deployData.bulkId = bulkId;
       }
       if (bulkName) {
-        deployData.bulkName = bulkName
+        deployData.bulkName = bulkName;
       }
       break;
 
     case DeployType.PULLREQUEST:
       deployData = {
         type: environment.deployType,
-        buildName: buildName,
+        buildName,
         branchName: environment.name,
-        sourceUser: sourceUser,
+        sourceUser,
         projectName: project.name,
-        buildType: buildType,
-      }
+        buildType,
+      };
       if (priority) {
-        deployData.buildPriority = priority
+        deployData.buildPriority = priority;
       }
-      let pullrequest: DeployPullrequest = {
+      const pullrequest: DeployPullrequest = {
         title: environment.deployTitle,
         number: environment.name.replace('pr-', ''),
         headBranch: environment.deployHeadRef,
         headSha: `origin/${environment.deployHeadRef}`,
         baseBranch: environment.deployBaseRef,
-        baseSha: `origin/${environment.deployBaseRef}`
-      }
-      deployData.pullrequest = encodeJSONBase64(pullrequest)
+        baseSha: `origin/${environment.deployBaseRef}`,
+      };
+      deployData.pullrequest = encodeJSONBase64(pullrequest);
       if (buildVariables) {
-        deployData.buildVariables = encodeJSONBase64(buildVariables)
+        deployData.buildVariables = encodeJSONBase64(buildVariables);
       }
       if (bulkId) {
-        deployData.bulkId = bulkId
+        deployData.bulkId = bulkId;
       }
       if (bulkName) {
-        deployData.bulkName = bulkName
+        deployData.bulkName = bulkName;
       }
       break;
 
     case DeployType.PROMOTE:
       deployData = {
         type: environment.deployType,
-        buildName: buildName,
+        buildName,
         branchName: environment.name,
-        sourceUser: sourceUser,
+        sourceUser,
         projectName: project.name,
         promoteSourceEnvironment: environment.deployBaseRef,
-        buildType: buildType,
-      }
+        buildType,
+      };
       if (priority) {
-        deployData.buildPriority = priority
+        deployData.buildPriority = priority;
       }
       if (buildVariables) {
-        deployData.buildVariables = encodeJSONBase64(buildVariables)
+        deployData.buildVariables = encodeJSONBase64(buildVariables);
       }
       if (bulkId) {
-        deployData.bulkId = bulkId
+        deployData.bulkId = bulkId;
       }
       if (bulkName) {
-        deployData.bulkName = bulkName
+        deployData.bulkName = bulkName;
       }
       break;
 
@@ -914,7 +925,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     payload: {
       deployData,
       ...auditLog,
-    }
+    },
   });
 
   try {
@@ -931,7 +942,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error(`Error deploying ${environment.name}: ${errorText}`)
+      logger.error(`Error deploying ${environment.name}: ${errorText}`);
       throw new Error(`Error deploying ${environment.name}`);
     }
 
@@ -941,10 +952,10 @@ export const deployEnvironmentLatest: ResolverFn = async (
       '',
       'api:deployEnvironmentLatest',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``
+      `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``,
     );
 
-    if (returnData == true) {
+    if (returnData === true) {
       return deployData.buildName;
     }
     return 'success';
@@ -957,7 +968,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
           '',
           'api:deployEnvironmentLatest',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${environment.name}\`: ${error.message}`
+          `*[${deployData.projectName}]* Deployment skipped \`${environment.name}\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
@@ -968,7 +979,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
           '',
           'api:deployEnvironmentLatest:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`
+          `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`,
         );
         throw new Error(error.message);
     }
@@ -977,68 +988,70 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
 export const deployEnvironmentBranch: ResolverFn = async (
   root,
-  { input: {
-    project: projectInput,
-    branchName,
-    branchRef,
-    priority,
-    bulkId,
-    bulkName,
-    buildVariables,
-    returnData
-    }
+  {
+    input: {
+      project: projectInput,
+      branchName,
+      branchRef,
+      priority,
+      bulkId,
+      bulkName,
+      buildVariables,
+      returnData,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant,
+  },
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput
+    projectInput,
   );
-  const envType =
-    branchName === project.productionEnvironment ? 'production' : 'development';
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: project.id
+    project: project.id,
   });
 
-  if (project.deploymentsDisabled == 1){
+  if (project.deploymentsDisabled === 1) {
     throw new Error('Deployments have been disabled for this project');
   }
 
   let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
+  let buildType = DeploymentBuildType.BUILD;
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === 'true')) {
     buildName = generateVariableOnlyBuildId();
-    buildType = DeploymentBuildType.VARIABLES
+    buildType = DeploymentBuildType.VARIABLES;
   }
-  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
   const deployData: DeployData = {
     type: DeployType.BRANCH,
-    buildName: buildName,
-    branchName: branchName,
-    sourceUser: sourceUser,
+    buildName,
+    branchName,
+    sourceUser,
     projectName: project.name,
-    buildType: buildType,
+    buildType,
   };
   if (priority) {
-    deployData.buildPriority = priority
+    deployData.buildPriority = priority;
   }
   if (branchRef) {
-    deployData.gitSha = branchRef
+    deployData.gitSha = branchRef;
   }
   if (buildVariables) {
-    deployData.buildVariables = encodeJSONBase64(buildVariables)
+    deployData.buildVariables = encodeJSONBase64(buildVariables);
   }
   if (bulkId) {
-    deployData.bulkId = bulkId
+    deployData.bulkId = bulkId;
   }
   if (bulkName) {
-    deployData.bulkName = bulkName
+    deployData.bulkName = bulkName;
   }
 
   const meta = {
     projectName: project.name,
-    branchName: deployData.branchName
+    branchName: deployData.branchName,
   };
 
   const auditLog: AuditLog = {
@@ -1061,7 +1074,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     payload: {
       deployData,
       ...auditLog,
-    }
+    },
   });
 
   try {
@@ -1078,7 +1091,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`);
       throw new Error(`Error deploying ${deployData.branchName}`);
     }
 
@@ -1088,10 +1101,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
       '',
       'api:deployEnvironmentBranch',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
     );
 
-    if (returnData == true) {
+    if (returnData === true) {
       return deployData.buildName;
     }
     return 'success';
@@ -1104,7 +1117,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
           '',
           'api:deployEnvironmentBranch',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
@@ -1115,7 +1128,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
           '',
           'api:deployEnvironmentBranch:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error}`
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error}`,
         );
         throw new Error(error.message);
     }
@@ -1137,66 +1150,67 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       bulkId,
       bulkName,
       buildVariables,
-      returnData
-    }
+      returnData,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant,
+  },
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput
+    projectInput,
   );
-  const envType =
-    branchName === project.productionEnvironment ? 'production' : 'development';
+  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: project.id
+    project: project.id,
   });
 
-  if (project.deploymentsDisabled == 1){
+  if (project.deploymentsDisabled === 1) {
     throw new Error('Deployments have been disabled for this project');
   }
 
   let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
+  let buildType = DeploymentBuildType.BUILD;
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === 'true')) {
     buildName = generateVariableOnlyBuildId();
-    buildType = DeploymentBuildType.VARIABLES
+    buildType = DeploymentBuildType.VARIABLES;
   }
-  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
   const deployData: DeployData = {
     type: DeployType.PULLREQUEST,
-    buildName: buildName,
-    branchName: branchName,
-    sourceUser: sourceUser,
+    buildName,
+    branchName,
+    sourceUser,
     projectName: project.name,
-    buildType: buildType,
-  }
+    buildType,
+  };
   if (priority) {
-    deployData.buildPriority = priority
+    deployData.buildPriority = priority;
   }
   const pullrequest: DeployPullrequest = {
-    title: title,
-    number: number,
+    title,
+    number,
     headBranch: headBranchName,
     headSha: headBranchRef,
     baseBranch: baseBranchName,
-    baseSha: baseBranchRef
-  }
-  deployData.pullrequest = encodeJSONBase64(pullrequest)
+    baseSha: baseBranchRef,
+  };
+  deployData.pullrequest = encodeJSONBase64(pullrequest);
   if (buildVariables) {
-    deployData.buildVariables = encodeJSONBase64(buildVariables)
+    deployData.buildVariables = encodeJSONBase64(buildVariables);
   }
   if (bulkId) {
-    deployData.bulkId = bulkId
+    deployData.bulkId = bulkId;
   }
   if (bulkName) {
-    deployData.bulkName = bulkName
+    deployData.bulkName = bulkName;
   }
   const meta = {
     projectName: project.name,
-    pullrequestTitle: pullrequest.title
+    pullrequestTitle: pullrequest.title,
   };
 
   const auditLog: AuditLog = {
@@ -1218,8 +1232,8 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     event: 'api:deployEnvironmentPullrequest',
     payload: {
       deployData,
-      ...auditLog
-    }
+      ...auditLog,
+    },
   });
 
   try {
@@ -1236,7 +1250,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`);
       throw new Error(`Error deploying ${deployData.branchName}`);
     }
 
@@ -1246,10 +1260,10 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       '',
       'api:deployEnvironmentPullrequest',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
     );
 
-    if (returnData == true) {
+    if (returnData === true) {
       return deployData.buildName;
     }
     return 'success';
@@ -1262,7 +1276,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
           '',
           'api:deployEnvironmentPullrequest',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
@@ -1273,7 +1287,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
           '',
           'api:deployEnvironmentPullrequest:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
         );
         throw new Error(error.message);
     }
@@ -1291,33 +1305,34 @@ export const deployEnvironmentPromote: ResolverFn = async (
       bulkId,
       bulkName,
       buildVariables,
-      returnData
-    }
+      returnData,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant,
+  },
 ) => {
   const destProject = await projectHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getProjectByProjectInput(projectInput);
-  const envType =
-    destinationEnvironment === destProject.productionEnvironment
-      ? 'production'
-      : 'development';
+  const envType = destinationEnvironment === destProject.productionEnvironment
+    ? 'production'
+    : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: destProject.id
+    project: destProject.id,
   });
 
-  if (destProject.deploymentsDisabled == 1){
+  if (destProject.deploymentsDisabled === 1) {
     throw new Error('Deployments have been disabled for this project');
   }
 
   const sourceEnvironments = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
   const activeEnvironments = R.filter(
     R.propEq('0000-00-00 00:00:00', 'deleted'),
-    sourceEnvironments
+    sourceEnvironments,
   );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -1327,44 +1342,44 @@ export const deployEnvironmentPromote: ResolverFn = async (
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
   await hasPermission('environment', 'view', {
-    project: sourceEnvironment.project
+    project: sourceEnvironment.project,
   });
 
   let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
+  let buildType = DeploymentBuildType.BUILD;
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === 'true')) {
     buildName = generateVariableOnlyBuildId();
-    buildType = DeploymentBuildType.VARIABLES
+    buildType = DeploymentBuildType.VARIABLES;
   }
 
-  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
   const deployData: DeployData = {
     type: DeployType.PROMOTE,
-    buildName: buildName,
+    buildName,
     branchName: destinationEnvironment,
-    sourceUser: sourceUser,
+    sourceUser,
     projectName: destProject.name,
     promoteSourceEnvironment: sourceEnvironment.name,
-    buildType: buildType,
-  }
+    buildType,
+  };
   if (priority) {
-    deployData.buildPriority = priority
+    deployData.buildPriority = priority;
   }
   if (buildVariables) {
-    deployData.buildVariables = encodeJSONBase64(buildVariables)
+    deployData.buildVariables = encodeJSONBase64(buildVariables);
   }
   if (bulkId) {
-    deployData.bulkId = bulkId
+    deployData.bulkId = bulkId;
   }
   if (bulkName) {
-    deployData.bulkName = bulkName
+    deployData.bulkName = bulkName;
   }
 
   const meta = {
     projectName: deployData.projectName,
     branchName: deployData.branchName,
-    promoteSourceEnvironment: deployData.promoteSourceEnvironment
+    promoteSourceEnvironment: deployData.promoteSourceEnvironment,
   };
 
   const auditLog: AuditLog = {
@@ -1388,7 +1403,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     payload: {
       deployData,
       ...auditLog,
-    }
+    },
   });
 
   try {
@@ -1405,7 +1420,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
+      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`);
       throw new Error(`Error deploying ${deployData.branchName}`);
     }
 
@@ -1415,10 +1430,10 @@ export const deployEnvironmentPromote: ResolverFn = async (
       '',
       'api:deployEnvironmentPromote',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``,
     );
 
-    if (returnData == true) {
+    if (returnData === true) {
       return deployData.buildName;
     }
     return 'success';
@@ -1431,7 +1446,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
           '',
           'api:deployEnvironmentPromote',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`,
         );
         return `Skipped: ${error.message}`;
 
@@ -1442,7 +1457,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
           '',
           'api:deployEnvironmentPromote:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`,
         );
         throw new Error(error.message);
     }
@@ -1452,19 +1467,21 @@ export const deployEnvironmentPromote: ResolverFn = async (
 export const switchActiveStandby: ResolverFn = async (
   root,
   { input: { project: projectInput } },
-  { sqlClientPool, hasPermission, keycloakGrant, legacyGrant, adminScopes, userActivityLogger }
+  {
+    sqlClientPool, hasPermission, keycloakGrant, legacyGrant, userActivityLogger,
+  },
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput
+    projectInput,
   );
 
   // active/standby really only should be between production environments
-  await hasPermission('environment', `deploy:production`, {
-    project: project.id
+  await hasPermission('environment', 'deploy:production', {
+    project: project.id,
   });
 
   await hasPermission('task', 'view', {
-    project: project.id
+    project: project.id,
   });
 
   if (project.standbyProductionEnvironment == null) {
@@ -1474,14 +1491,14 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       'api:switchActiveStandby',
       '',
-      `Failed to create active to standby task, reason: no standbyProductionEnvironment configured`
+      'Failed to create active to standby task, reason: no standbyProductionEnvironment configured',
     );
-    return `Error: no standbyProductionEnvironment configured`;
+    return 'Error: no standbyProductionEnvironment configured';
   }
-  var environmentStandbyId
-  var environmentProdId
-  var environmentProd
-  var environmentStandby
+  let environmentStandbyId;
+  let environmentProdId;
+  let environmentProd;
+  let environmentStandby;
   // we want the task to show in the standby environment, as this is where the task will be initiated.
   try {
     // maybe the environments have slashes in their names
@@ -1489,29 +1506,29 @@ export const switchActiveStandby: ResolverFn = async (
     const environmentsForProject = await query(
       sqlClientPool,
       environmentSql.selectEnvironmentsByProjectID(
-        project.id, true
-      )
+        project.id, true,
+      ),
     );
     for (const envForProject of environmentsForProject) {
       // check the environments to see if their name when made "safe" matches what is defined in the `production` or `standbyProduction` environment
-      if (makeSafe(envForProject.name) == project.productionEnvironment) {
+      if (makeSafe(envForProject.name) === project.productionEnvironment) {
         const environmentRowsProd = await query(
           sqlClientPool,
           environmentSql.selectEnvironmentByNameAndProject(
             envForProject.name,
-            project.id
-          )
+            project.id,
+          ),
         );
         environmentProd = environmentRowsProd[0];
         environmentProdId = parseInt(environmentProd.id);
       }
-      if (makeSafe(envForProject.name) == project.standbyProductionEnvironment) {
+      if (makeSafe(envForProject.name) === project.standbyProductionEnvironment) {
         const environmentRows = await query(
           sqlClientPool,
           environmentSql.selectEnvironmentByNameAndProject(
             envForProject.name,
-            project.id
-          )
+            project.id,
+          ),
         );
         environmentStandby = environmentRows[0];
         environmentStandbyId = parseInt(environmentStandby.id);
@@ -1522,7 +1539,7 @@ export const switchActiveStandby: ResolverFn = async (
   }
 
   if (environmentStandbyId === undefined || environmentProdId === undefined) {
-    throw new Error(`Unable to determine active standby environments`);
+    throw new Error('Unable to determine active standby environments');
   }
   // construct the data for the misc task
   // set up the task data payload
@@ -1531,30 +1548,30 @@ export const switchActiveStandby: ResolverFn = async (
       id: project.id,
       name: project.name,
       productionEnvironment: project.productionEnvironment,
-      standbyProductionEnvironment: project.standbyProductionEnvironment
+      standbyProductionEnvironment: project.standbyProductionEnvironment,
     },
     productionEnvironment: {
       id: environmentProdId,
       name: environmentProd.name,
-      openshiftProjectName: environmentProd.openshiftProjectName
+      openshiftProjectName: environmentProd.openshiftProjectName,
     },
     environment: {
       id: environmentStandbyId,
       name: environmentStandby.name,
-      openshiftProjectName: environmentStandby.openshiftProjectName
+      openshiftProjectName: environmentStandby.openshiftProjectName,
     },
     task: {
       id: '0',
-      name: 'Active/Standby Switch'
-    }
+      name: 'Active/Standby Switch',
+    },
   };
 
   // try it now
-  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant);
   try {
     // add a task into the environment
-    var date = new Date();
-    var created = convertDateFormat(date.toISOString());
+    const date = new Date();
+    const created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
       TaskStatusType.NEW,
@@ -1590,16 +1607,16 @@ export const switchActiveStandby: ResolverFn = async (
       event: 'api:switchActiveStandby',
       payload: {
         ...auditLog,
-      }
+      },
     });
 
     // queue the task to trigger the migration
     await createMiscTask({ key: 'task:activestandby', data });
 
     // return the task id and remote id
-    var retData = {
+    const retData = {
       id: data.task.id,
-      environment: environmentStandbyId
+      environment: environmentStandbyId,
     };
     return retData;
   } catch (error) {
@@ -1609,7 +1626,7 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       'api:switchActiveStandby',
       data,
-      `Failed to create active to standby task, reason: ${error}`
+      `Failed to create active to standby task, reason: ${error}`,
     );
     return `Error: ${error.message}`;
   }
@@ -1618,10 +1635,11 @@ export const switchActiveStandby: ResolverFn = async (
 export const bulkDeployEnvironmentLatest: ResolverFn = async (
   _root,
   { input: { environments: environmentsInput, buildVariables, name: bulkName } },
-  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger, keycloakUsersGroups }
+  {
+    keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger, keycloakUsersGroups,
+  },
 ) => {
-
-    /*
+  /*
     use the same mechanism for viewing all projects
     bulk deployments can span multiple projects, and anyone with access to a project
     will have the same rbac as `deployment:view` which covers all possible roles for a user
@@ -1632,7 +1650,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
   let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
-  } catch (err) {
+  } catch (_err) {
     if (!keycloakGrant) {
       logger.debug('No grant available for bulkDeployEnvironmentLatest');
       return [];
@@ -1642,7 +1660,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
-  let bulkId = uuid4();
+  const bulkId = uuid4();
 
   if (R.isEmpty(environmentsInput)) {
     throw new Error('You must provide environments');
@@ -1657,13 +1675,13 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
   // do a permission check on each environment being deployed if the user has a keycloak token (ie, if userProjectIds is populated)
   for (const envInput of environmentsInput) {
     if (userProjectIds) {
-      let environmentInput = envInput.environment
+      const environmentInput = envInput.environment;
       const environments = await environmentHelpers(
-        sqlClientPool
+        sqlClientPool,
       ).getEnvironmentsByEnvironmentInput(environmentInput);
       const activeEnvironments = R.filter(
         R.propEq('0000-00-00 00:00:00', 'deleted'),
-        environments
+        environments,
       );
 
       if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -1672,22 +1690,20 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 
       const environment = R.prop(0, activeEnvironments);
       const project = await projectHelpers(sqlClientPool).getProjectById(
-        environment.project
+        environment.project,
       );
       // if this is a keycloak token, check that the environments being deployed the user has access to
       await hasPermission('environment', `deploy:${environment.environmentType}`, {
-        project: project.id
+        project: project.id,
       });
     }
   }
 
   // add the priority field if it doesn't exist
-  let envs = environmentsInput.map(x => ({ priority: 3, ...x}))
+  const envs = environmentsInput.map(x => ({ priority: 3, ...x }));
 
   // sort the environments
-  envs.sort(function(a, b) {
-    return b.priority - a.priority;
-  });
+  envs.sort((a, b) => b.priority - a.priority);
 
   // otherwise if all the access is fine, then send the action to the actions-handler to be processed
   for (const envInput of envs) {
@@ -1696,7 +1712,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     let buildPriority = 3;
     // check if the priority has come through for a specific environment
     if (envInput.priority != null) {
-      buildPriority = envInput.priority
+      buildPriority = envInput.priority;
     }
 
     // check for buildvariables being passed in from the bulk deploy
@@ -1706,23 +1722,23 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     let newBuildVariables = buildVariables || [];
 
     if (envInput.buildVariables != null && buildVariables != null) {
-      newBuildVariables = jsonMerge(buildVariables, envInput.buildVariables, "name")
+      newBuildVariables = jsonMerge(buildVariables, envInput.buildVariables, 'name');
     } else if (envInput.buildVariables != null) {
-      newBuildVariables = envInput.buildVariables
+      newBuildVariables = envInput.buildVariables;
     }
 
     const actionData = {
-      type: "deployEnvironmentLatest",
-      eventType: "bulkDeployment",
+      type: 'deployEnvironmentLatest',
+      eventType: 'bulkDeployment',
       data: {
         ...envInput,
-        bulkId: bulkId,
-        bulkName: bulkName,
+        bulkId,
+        bulkName,
         priority: buildPriority,
-        buildVariables: newBuildVariables
-      }
-    }
-    sendToLagoonActions("deployEnvironmentLatest", actionData)
+        buildVariables: newBuildVariables,
+      },
+    };
+    sendToLagoonActions('deployEnvironmentLatest', actionData);
   }
 
   const auditLog: AuditLog = {
@@ -1734,17 +1750,17 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
   };
   // @TODO: bulk deployments need some thought about audit logs that would be accessible to users
   // create an event for every environment in the deployment would be wasteful, but maybe consolidating by organization only?
-  userActivityLogger(`User performed a bulk deployment`, {
+  userActivityLogger('User performed a bulk deployment', {
     payload: {
-      bulkId: bulkId,
-      bulkName: bulkName,
+      bulkId,
+      bulkName,
       ...auditLog,
-    }
+    },
   });
 
-  return bulkId
+  return bulkId;
 };
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.DEPLOYMENT
+  EVENTS.DEPLOYMENT,
 ]);

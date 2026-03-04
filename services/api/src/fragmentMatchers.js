@@ -6,11 +6,11 @@ const fs = require('fs');
 
 const TOKEN = ''; // set this prior to running
 
-fetch(`http://localhost:3000/graphql`, {
+fetch('http://localhost:3000/graphql', {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${TOKEN}`,
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     variables: {},

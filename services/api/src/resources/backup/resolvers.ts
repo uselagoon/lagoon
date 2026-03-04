@@ -1,13 +1,14 @@
 import * as R from 'ramda';
+import e from 'express';
 import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import { createMiscTask } from '../../commons/tasks';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { getConfigFromEnv, s3Config } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber,
-  EVENTS
+  EVENTS,
 } from '../../clients/pubSub';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -16,10 +17,11 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
-import e from 'express';
 import { logger } from '../../loggers/logger';
 
-const { S3Client, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const {
+  S3Client, HeadObjectCommand, GetObjectCommand, DeleteObjectCommand,
+} = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 // https://{endpoint}/{bucket}/{key}
@@ -27,93 +29,86 @@ const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
 const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
 
 const getS3Client = async (sqlClientPool, projectId, s3Parts, restoreLocation) => {
-    let credentials = await getRestoreLocationS3Creds(sqlClientPool, projectId)
+  const credentials = await getRestoreLocationS3Creds(sqlClientPool, projectId);
 
-    let awsS3Parts;
+  let awsS3Parts;
 
-    if (R.test(awsLinkMatch, restoreLocation)) {
-      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
-    }
+  if (R.test(awsLinkMatch, restoreLocation)) {
+    awsS3Parts = R.match(awsLinkMatch, restoreLocation);
+  }
 
-    // We have to generate a new client every time because the endpoint is parsed
-    // from the s3 url.
-    const URL = require('url').URL;
-    const restoreLocationURL = new URL(restoreLocation);
-    return new S3Client({
-      credentials,
-      forcePathStyle: true,
-      signatureVersion: 'v4',
-      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
-      region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1'
-    });
-}
+  // We have to generate a new client every time because the endpoint is parsed
+  // from the s3 url.
+  const URL = require('url').URL;
+  const restoreLocationURL = new URL(restoreLocation);
+  return new S3Client({
+    credentials,
+    forcePathStyle: true,
+    signatureVersion: 'v4',
+    endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
+    region: awsS3Parts ? R.prop(1, awsS3Parts) : 'us-east-1',
+  });
+};
 
 const getRestoreLocationS3Creds = async (sqlClientPool, projectId) => {
   const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(projectId));
   // Handle custom restore configurations
-  let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => {
-    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
-  })
+  let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => obj.name === 'LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT');
   if (lagoonBaasCustomRestoreEndpoint) {
-    lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
+    lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value;
   }
-  let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => {
-    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
-  })
+  let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => obj.name === 'LAGOON_BAAS_CUSTOM_RESTORE_BUCKET');
   if (lagoonBaasCustomRestoreBucket) {
-    lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
+    lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value;
   }
-  let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => {
-    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
-  })
+  let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => obj.name === 'LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY');
   if (lagoonBaasCustomRestoreAccessKey) {
-    lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
+    lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value;
   }
-  let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => {
-    return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
-  })
+  let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => obj.name === 'LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY');
   if (lagoonBaasCustomRestoreSecretKey) {
-    lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
+    lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value;
   }
 
-  let accessKeyId, secretAccessKey
+  let accessKeyId; let
+    secretAccessKey;
   if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
     // Custom Restore location exists, use these credentials instead
-    accessKeyId = lagoonBaasCustomRestoreAccessKey
-    secretAccessKey = lagoonBaasCustomRestoreSecretKey
+    accessKeyId = lagoonBaasCustomRestoreAccessKey;
+    secretAccessKey = lagoonBaasCustomRestoreSecretKey;
   } else {
     // No Custom Restore location exists, use default credentials
     accessKeyId = getConfigFromEnv(
       'S3_BAAS_ACCESS_KEY_ID',
-      'XXXXXXXXXXXXXXXXXXXX'
+      'XXXXXXXXXXXXXXXXXXXX',
     );
     secretAccessKey = getConfigFromEnv(
       'S3_BAAS_SECRET_ACCESS_KEY',
-      'XXXXXXXXXXXXXXXXXXXX'
+      'XXXXXXXXXXXXXXXXXXXX',
     );
   }
 
-  return {accessKeyId, secretAccessKey};
-}
+  return { accessKeyId, secretAccessKey };
+};
 
 const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, userActivityLogger, restoreSizeOnly = false) => {
   let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  if (rows.length == 0) {
-    return
+  if (rows.length === 0) {
+    return;
   }
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
 
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
-    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
-    const bucket = R.prop(2, s3Parts)
-    const fileKey = R.prop(3, s3Parts)
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation);
+    const bucket = R.prop(2, s3Parts);
+    const fileKey = R.prop(3, s3Parts);
 
     try {
       const headObjectResponse = await s3Client.send(new HeadObjectCommand({
         Bucket: bucket,
-        Key: fileKey
+        Key: fileKey,
       }));
       restoreSize = headObjectResponse.ContentLength ?? restoreSize;
 
@@ -121,7 +116,7 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
         Bucket: bucket,
         Key: fileKey,
       }), {
-        expiresIn: s3Config.signedLinkExpiration
+        expiresIn: s3Config.signedLinkExpiration,
       });
 
       if (!restoreSizeOnly) {
@@ -136,68 +131,66 @@ const getRestoreLocation = async (backupId, restoreLocation, sqlClientPool, user
           if (project.organization) {
             auditLog.organizationId = project.organization;
           }
-          userActivityLogger(`User requested a download link`, {
+          userActivityLogger('User requested a download link', {
             event: 'api:getSignedBackupUrl',
             payload: {
               Bucket: bucket,
               Key: fileKey,
               ...auditLog,
-            }
+            },
           });
         }
       }
 
-      return {restoreLocation: restLoc, restoreSize};
-    } catch(err) {
+      return { restoreLocation: restLoc, restoreSize };
+    } catch (_err) {
       await query(
         sqlClientPool,
         Sql.deleteRestore({
-          backupId
-        })
+          backupId,
+        }),
       );
-      return {restoreLocation: "", restoreSize};
+      return { restoreLocation: '', restoreSize };
     }
   }
 
-  return {restoreLocation, restoreSize};
+  return { restoreLocation, restoreSize };
 };
 
 const deleteRestoreLocation = async (backupId, restoreLocation, sqlClientPool) => {
-  let restoreSize = 0;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  if (rows.length == 0) {
-    return
+  if (rows.length === 0) {
+    return;
   }
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
 
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
-    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation)
-    const bucket = R.prop(2, s3Parts)
-    const fileKey = R.prop(3, s3Parts)
+    const s3Client = await getS3Client(sqlClientPool, project.projectId, s3Parts, restoreLocation);
+    const bucket = R.prop(2, s3Parts);
+    const fileKey = R.prop(3, s3Parts);
 
     try {
-      const headObjectResponse = await s3Client.send(new HeadObjectCommand({
+      await s3Client.send(new HeadObjectCommand({
         Bucket: bucket,
-        Key: fileKey
+        Key: fileKey,
       }));
-      restoreSize = headObjectResponse.ContentLength ?? restoreSize;
 
       // delete the object from the bucket
       await s3Client.send(new DeleteObjectCommand({
         Bucket: bucket,
-        Key: fileKey
+        Key: fileKey,
       }));
-    } catch(err) {
+    } catch (_err) {
       // do nothing
-      logger.warn(`failed to check object reference in s3: ${e}`)
+      logger.warn(`failed to check object reference in s3: ${e}`);
     }
     // in any case, if the restore id is correct, delete the restore id
     await query(
       sqlClientPool,
       Sql.deleteRestore({
-        backupId
-      })
+        backupId,
+      }),
     );
   }
 };
@@ -205,16 +198,16 @@ const deleteRestoreLocation = async (backupId, restoreLocation, sqlClientPool) =
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { limit },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('backup', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -232,37 +225,41 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
 
 export const addBackup: ResolverFn = async (
   root,
-  { input: { id, environment: environmentId, source, backupId, created } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  {
+    input: {
+      id, environment: environmentId, source, backupId, created,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
   await hasPermission('backup', 'add', {
-    project: environment.project
+    project: environment.project,
   });
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertBackup({
         id,
         environment: environmentId,
         source,
         backupId,
-        created
-      })
+        created,
+      }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding backup. Backup already exists.`
+        'Error adding backup. Backup already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
@@ -297,7 +294,7 @@ export const addBackup: ResolverFn = async (
       backupId,
       created,
       ...auditLog,
-    }
+    },
   });
 
   return backup;
@@ -306,15 +303,15 @@ export const addBackup: ResolverFn = async (
 export const deleteBackup: ResolverFn = async (
   root,
   { input: { backupId } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
   await hasPermission('backup', 'delete', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
-  const environment = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
+  const environment = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectById(environment[0].project);
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backup = R.prop(0, rows);
@@ -341,7 +338,7 @@ export const deleteBackup: ResolverFn = async (
     payload: {
       backupId,
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -349,8 +346,14 @@ export const deleteBackup: ResolverFn = async (
 
 export const addRestore: ResolverFn = async (
   root,
-  { input: { id, backupId, status, restoreLocation, created, execute } },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    input: {
+      id, backupId, status, restoreLocation, created, execute,
+    },
+  },
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
@@ -361,30 +364,30 @@ export const addRestore: ResolverFn = async (
     }
   }
   await hasPermission('restore', 'add', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertRestore({
         id,
         backupId,
         status,
         restoreLocation,
-        created
-      })
+        created,
+      }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding restore. Restore already exists.`
+        'Error adding restore. Restore already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
   const restoreData = R.prop(0, rows);
@@ -398,23 +401,23 @@ export const addRestore: ResolverFn = async (
   if (execute === false) {
     try {
       await hasPermission('restore', 'addNoExec', {
-        project: R.path(['0', 'pid'], perms)
+        project: R.path(['0', 'pid'], perms),
       });
       return restoreData;
-    } catch (err) {
+    } catch (_err) {
       // Not allowed to stop execution.
     }
   }
 
   rows = await query(
     sqlClientPool,
-    environmentSql.selectEnvironmentById(backupData.environment)
+    environmentSql.selectEnvironmentById(backupData.environment),
   );
   const environmentData = R.prop(0, rows);
 
   rows = await query(
     sqlClientPool,
-    projectSql.selectProject(environmentData.project)
+    projectSql.selectProject(environmentData.project),
   );
   const projectData = R.prop(0, rows);
 
@@ -422,7 +425,7 @@ export const addRestore: ResolverFn = async (
     backup: backupData,
     restore: restoreData,
     environment: environmentData,
-    project: projectData
+    project: projectData,
   };
 
   const auditLog: AuditLog = {
@@ -449,7 +452,7 @@ export const addRestore: ResolverFn = async (
       backupId,
       data,
       ...auditLog,
-    }
+    },
   });
 
   try {
@@ -461,7 +464,7 @@ export const addRestore: ResolverFn = async (
       '',
       'api:addRestore',
       { restoreId: restoreData.id, backupId },
-      `Restore not initiated, reason: ${error}`
+      `Restore not initiated, reason: ${error}`,
     );
   }
 
@@ -474,10 +477,12 @@ export const updateRestore: ResolverFn = async (
     input: {
       backupId,
       patch,
-      patch: { status, created, restoreLocation }
-    }
+      patch: { status, created, restoreLocation },
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -485,7 +490,7 @@ export const updateRestore: ResolverFn = async (
 
   const permsRestore = await query(
     sqlClientPool,
-    Sql.selectPermsForRestore(backupId)
+    Sql.selectPermsForRestore(backupId),
   );
 
   if (restoreLocation) {
@@ -496,7 +501,7 @@ export const updateRestore: ResolverFn = async (
   }
   // Check access to modify restore as it currently stands
   await hasPermission('restore', 'update', {
-    project: R.path(['0', 'pid'], permsRestore)
+    project: R.path(['0', 'pid'], permsRestore),
   });
 
   await query(
@@ -506,9 +511,9 @@ export const updateRestore: ResolverFn = async (
       patch: {
         status,
         created,
-        restoreLocation
-      }
-    })
+        restoreLocation,
+      },
+    }),
   );
 
   let rows = await query(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
@@ -517,7 +522,7 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
+  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectById(environmentData[0].project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);
@@ -537,62 +542,62 @@ export const updateRestore: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  if (userActivityLogger != undefined) {
+  if (userActivityLogger !== undefined) {
     userActivityLogger(`User updated restore '${backupId}'`, {
-    project: '',
-    event: 'api:updateRestore',
-    payload: {
-      backupId,
-      patch,
-      backupData,
-      ...auditLog,
-    }
-  });
+      project: '',
+      event: 'api:updateRestore',
+      payload: {
+        backupId,
+        patch,
+        backupData,
+        ...auditLog,
+      },
+    });
   }
 
   return restoreData;
 };
-
 
 export const deleteRestore: ResolverFn = async (
   root,
   {
     input: {
       backupId,
-    }
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
-
   let rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  if (rows.length == 0) {
+  if (rows.length === 0) {
     throw new Error(
-      `Unauthorized: You don't have permission to "delete" on "restore"`
+      'Unauthorized: You don\'t have permission to "delete" on "restore"',
     );
   }
   const backupData = R.prop(0, rows);
 
   const permsRestore = await query(
     sqlClientPool,
-    Sql.selectPermsForRestore(backupId)
+    Sql.selectPermsForRestore(backupId),
   );
 
   // Check access to modify restore as it currently stands
   await hasPermission('restore', 'delete', {
-    project: R.path(['0', 'pid'], permsRestore)
+    project: R.path(['0', 'pid'], permsRestore),
   });
 
   rows = await query(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
-  if (rows.length == 0) {
+  if (rows.length === 0) {
     throw new Error(
-      `No restore file found for backup`
+      'No restore file found for backup',
     );
   }
   const restoreData = R.prop(0, rows);
 
   await deleteRestoreLocation(backupId, restoreData.restoreLocation, sqlClientPool);
 
-  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId))
+  const environmentData = await query(sqlClientPool, environmentSql.selectEnvironmentBySnapshotId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectById(environmentData[0].project);
 
   pubSub.publish(EVENTS.BACKUP, backupData);
@@ -612,7 +617,7 @@ export const deleteRestore: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  if (userActivityLogger != undefined) {
+  if (userActivityLogger !== undefined) {
     userActivityLogger(`User deleted restored file for backup '${backupId}'`, {
       project: '',
       event: 'api:deleteRestore',
@@ -620,7 +625,7 @@ export const deleteRestore: ResolverFn = async (
         backupId,
         backupData,
         ...auditLog,
-      }
+      },
     });
   }
 
@@ -630,56 +635,57 @@ export const deleteRestore: ResolverFn = async (
 export const getBackupDownloadLinkByBackupId: ResolverFn = async (
   root,
   { backupId },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger,
+  },
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
   await hasPermission('backup', 'view', {
-    project: R.path(['0', 'pid'], perms)
+    project: R.path(['0', 'pid'], perms),
   });
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectRestoreByBackupId(backupId)
+    Sql.selectRestoreByBackupId(backupId),
   );
-  const row = R.prop(0, rows)
+  const row = R.prop(0, rows);
 
   if (!row || row.restoreLocation == null) {
-    throw new Error(`no restore file available`);
+    throw new Error('no restore file available');
   }
   const backupData = R.prop(0, rows);
   const restoreLoc = await getRestoreLocation(backupId, backupData.restoreLocation, sqlClientPool, userActivityLogger);
   return restoreLoc.restoreLocation;
-}
+};
 
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
   { sqlClientPool, userActivityLogger },
-  info
+  info,
 ) => {
   const rows = await query(
     sqlClientPool,
-    Sql.selectRestoreByBackupId(backupId)
+    Sql.selectRestoreByBackupId(backupId),
   );
-  const row = R.prop(0, rows)
+  const row = R.prop(0, rows);
 
   if (!row || row.restoreLocation == null) {
     return row;
   }
 
-  const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "restoreLocation");
+  const restoreLocationRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === 'restoreLocation');
   if (restoreLocationRequested) {
     // if the restore has a location, determine the signed url and the reported size of the object in Bytes
     const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger);
-    return {...row, restoreLocation: restoreLoc.restoreLocation, restoreSize: restoreLoc.restoreSize};
-  } else {
-    // if the restore does not have a location, return the row as is with restoreSize
-    const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger, true);
-    return {...row, restoreSize: restoreLoc.restoreSize};
+    return { ...row, restoreLocation: restoreLoc.restoreLocation, restoreSize: restoreLoc.restoreSize };
   }
+  // if the restore does not have a location, return the row as is with restoreSize
+  const restoreLoc = await getRestoreLocation(backupId, row.restoreLocation, sqlClientPool, userActivityLogger, true);
+  return { ...row, restoreSize: restoreLoc.restoreSize };
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.BACKUP
+  EVENTS.BACKUP,
 ]);

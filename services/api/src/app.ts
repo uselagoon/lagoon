@@ -20,21 +20,21 @@ app.use(json());
 // Add custom configured logger (morgan through winston).
 app.use(
   morgan('combined', {
-    skip: (req, res) => {
+    skip: (req, _res) => {
       if (req.originalUrl.startsWith('/status')) {
-        return req.originalUrl.startsWith('/status')
+        return req.originalUrl.startsWith('/status');
       }
       if (req.originalUrl.startsWith('/favicon.ico')) {
-        return req.originalUrl.startsWith('/favicon.ico')
+        return req.originalUrl.startsWith('/favicon.ico');
       }
       if (req.originalUrl.startsWith('/.well-known')) {
-        return req.originalUrl.startsWith('/.well-known')
+        return req.originalUrl.startsWith('/.well-known');
       }
     },
     stream: {
-      write: message => logger.info(message.trim())
-    }
-  })
+      write: message => logger.info(message.trim()),
+    },
+  }),
 );
 
 // TODO: Restrict requests to lagoon domains?
@@ -42,7 +42,7 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'apollo-require-preflight']
+  allowedHeaders: ['Content-Type', 'Authorization', 'apollo-require-preflight'],
 }));
 
 app.use(requestMiddleware);
@@ -55,10 +55,10 @@ app.use('/', createRouter());
 export async function configureApp() {
   async function setupGraphQLUpload() {
     try {
-      const { default: graphqlUploadExpress } = await import("graphql-upload/graphqlUploadExpress.mjs");
+      const { default: graphqlUploadExpress } = await import('graphql-upload/graphqlUploadExpress.mjs');
       app.use(graphqlUploadExpress({}) as unknown as express.RequestHandler);
     } catch (error) {
-      logger.error("Failed to load or setup graphql-upload:", error);
+      logger.error('Failed to load or setup graphql-upload:', error);
       throw error;
     }
   }
@@ -69,11 +69,10 @@ export async function configureApp() {
     await apolloServer.start();
     apolloServer.applyMiddleware({
       app,
-      cors: false
+      cors: false,
     });
   } catch (error) {
-    logger.error("Failed to start or apply Apollo Server middleware:", error);
+    logger.error('Failed to start or apply Apollo Server middleware:', error);
     throw error;
   }
-
 }

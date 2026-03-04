@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '../../commons/logs/lagoon-logger';
 import { seedNamespace, createMiscTask } from '../../commons/tasks';
 import { getConfigFromEnv } from '../../util/config';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { isPatchEmpty, query, knex } from '../../util/db';
 import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
@@ -19,10 +19,8 @@ import { logger } from '../../loggers/logger';
 
 // Helper resolver to convert kibUsed to deprecated bytesUsed.
 export const getBytesUsed: ResolverFn = async (
-  envStorage
-) => {
-  return envStorage.kibUsed
-}
+  envStorage,
+) => envStorage.kibUsed;
 
 interface EnvironmentService {
     name: string
@@ -35,11 +33,10 @@ interface EnvironmentService {
 export const getEnvironmentByName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-
-  if (args.includeDeleted == undefined) {
-    args.includeDeleted = true
+  if (args.includeDeleted === undefined) {
+    args.includeDeleted = true;
   }
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByNameAndProjectWithArgs(args.name, args.project, args.includeDeleted));
@@ -54,7 +51,7 @@ export const getEnvironmentByName: ResolverFn = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: args.project
+      project: args.project,
     });
   }
 
@@ -64,12 +61,12 @@ export const getEnvironmentByName: ResolverFn = async (
 export const getEnvironmentById = async (
   eid,
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   // handle dealing with arg or passthrough
-  let environmentId = args.id
+  let environmentId = args.id;
   if (eid) {
-    environmentId = eid.environment
+    environmentId = eid.environment;
   }
   const environment = await Helpers(sqlClientPool).getEnvironmentById(environmentId);
 
@@ -79,7 +76,7 @@ export const getEnvironmentById = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -89,14 +86,16 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes }
+  {
+    sqlClientPool, hasPermission, adminScopes,
+  },
 ) => {
   const { id: pid } = project;
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: pid
+      project: pid,
     });
   }
 
@@ -118,9 +117,9 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 export const getEnvironmentByDeploymentId: ResolverFn = async (
   { id: deployment_id },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentByDeploymentId(deployment_id))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByDeploymentId(deployment_id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -131,7 +130,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -141,9 +140,9 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
 export const getEnvironmentByTaskId: ResolverFn = async (
   { id: task_id },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentByTaskId(task_id))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByTaskId(task_id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -154,7 +153,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -164,9 +163,9 @@ export const getEnvironmentByTaskId: ResolverFn = async (
 export const getEnvironmentByBackupId: ResolverFn = async (
   { id: backup_id },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentByBackupId(backup_id))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByBackupId(backup_id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -177,7 +176,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -187,7 +186,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
 export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   if (args) {
     // set lastDays to args.lastDays, or 60 if undefined
@@ -210,14 +209,14 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
       lastDays,
       claim: args.claim,
       startDate: args.startDate,
-      endDate: args.endDate
-    }))
+      endDate: args.endDate,
+    }));
     return rows;
   }
 
   await hasPermission('environment', 'storage');
 
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentStorageByEnvironmentId(eid));
 
   return rows;
 };
@@ -225,52 +224,51 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
 export const getEnvironmentStorageMonthByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { models, hasPermission }
+  { models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
   return models.EnvironmentModel.environmentStorageMonthByEnvironmentId(
     eid,
-    args.month
+    args.month,
   );
 };
 
 export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { models, hasPermission }
+  { models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
   return models.EnvironmentModel.environmentHoursMonthByEnvironmentId(
     eid,
-    args.month
+    args.month,
   );
 };
 
 export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   { id, openshiftProjectName },
   args,
-  { sqlClientPool, models, hasPermission }
+  { sqlClientPool, models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
   const { name: projectName } = await projectHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getProjectByEnvironmentId(id);
   return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(
     projectName,
     openshiftProjectName,
-    args.month
+    args.month,
   );
 };
 
 export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
-
   const rows = await query(sqlClientPool, Sql.selectEnvironmentByOpenshiftProjectName(args.openshiftProjectName));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -283,7 +281,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
@@ -293,24 +291,27 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
 export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
   root,
   args,
-  ctx
-) =>
-  getEnvironmentByOpenshiftProjectName(
-    root,
-    {
-      ...args,
-      openshiftProjectName: args.kubernetesNamespaceName
-    },
-    ctx
-  );
+  ctx,
+) => getEnvironmentByOpenshiftProjectName(
+  root,
+  {
+    ...args,
+    openshiftProjectName: args.kubernetesNamespaceName,
+  },
+  ctx,
+);
 
 export const getEnvironmentsByKubernetes: ResolverFn = async (
   _,
-  { kubernetes, order, createdAfter, type },
-  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes }
+  {
+    kubernetes, order, createdAfter, type,
+  },
+  {
+    sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups, adminScopes,
+  },
 ) => {
   const openshift = await openshiftHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getOpenshiftByOpenshiftInput(kubernetes);
 
   let userProjectIds: number[];
@@ -318,7 +319,7 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
     userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
-    if (userProjectIds.length == 0) {
+    if (userProjectIds.length === 0) {
       // return an empty result if the user has no project ids
       return [];
     }
@@ -332,18 +333,18 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
     for (const pid of userProjectIds) {
       try {
         await hasPermission('openshift', 'view', {
-          project: pid
+          project: pid,
         });
         projectsWithOpenshiftViewPermission = [
           ...projectsWithOpenshiftViewPermission,
-          pid
+          pid,
         ];
       } catch { }
     }
 
     queryBuilder = queryBuilder.whereIn(
       'project',
-      projectsWithOpenshiftViewPermission
+      projectsWithOpenshiftViewPermission,
     );
   }
 
@@ -368,13 +369,14 @@ export const getEnvironmentsByKubernetes: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
-
   const pid = input.project.toString();
 
   await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
-    project: pid
+    project: pid,
   });
 
   // get the project information
@@ -401,14 +403,14 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   try {
     const curEnv = await Helpers(sqlClientPool).getEnvironmentById(input.id);
-    openshift = curEnv.openshift
+    openshift = curEnv.openshift;
     // set the namespace to whatever the current environment is to ensure it remains unchanged
-    envNamespaceName = curEnv.openshiftProjectName
-  } catch (err) {
+    envNamespaceName = curEnv.openshiftProjectName;
+  } catch (_err) {
     // do nothing
   }
   if (!openshift) {
-    openshift = project.openshift
+    openshift = project.openshift;
   }
 
   // only allow administrators to change the namespace name
@@ -422,13 +424,13 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
   if (project.organization) {
     // if this would be a new environment, check it against the quota
-    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(project.organization)
+    const curEnvs = await organizationHelpers(sqlClientPool).getEnvironmentsByOrganizationId(project.organization);
     if (!curEnvs.map(e => e.name).find(i => i === input.name)) {
       // check the environment quota, this prevents environments being added directly via the api
-      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization)
-      if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment != -1) {
+      const curOrg = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization);
+      if (curEnvs.length >= curOrg.quotaEnvironment && curOrg.quotaEnvironment !== -1) {
         throw new Error(
-          `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`
+          `Environment would exceed organization environment quota: ${curEnvs.length}/${curOrg.quotaEnvironment}`,
         );
       }
     }
@@ -459,7 +461,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       'deployType',
       'environmentType',
     ]),
-    R.mergeDeepRight({ updated: knex.fn.now() }) as any
+    R.mergeDeepRight({ updated: knex.fn.now() }) as any,
   )(input);
 
   const createOrUpdateSql = knex('environment')
@@ -471,8 +473,9 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     })
     .onConflict('id')
     .merge({
-      ...(updateData as any)
-    }).toString();
+      ...(updateData as any),
+    })
+    .toString();
 
   const { insertId } = await query(
     sqlClientPool,
@@ -481,7 +484,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(insertId));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
-    R.path([0], rows)
+    R.path([0], rows),
   ]);
   const environment = withK8s[0];
 
@@ -500,13 +503,13 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User updated environment`, {
+  userActivityLogger('User updated environment', {
     project: '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input,
       ...auditLog,
-    }
+    },
   });
 
   return environment;
@@ -516,11 +519,11 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   _,
   { input },
-  context
+  context,
 ) => {
-  input.kibUsed = input.bytesUsed
+  input.kibUsed = input.bytesUsed;
 
-  return addOrUpdateStorageOnEnvironment(undefined, { input: input }, context);
+  return addOrUpdateStorageOnEnvironment(undefined, { input }, context);
 };
 
 export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
@@ -607,56 +610,56 @@ export const addOrUpdateStorageOnEnvironment: ResolverFn = async (
 export const deleteEnvironment: ResolverFn = async (
   root,
   { input: { project: projectName, name, execute } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
-    projectName
+    projectName,
   );
 
   const projectRows = await query(
     sqlClientPool,
-    projectSql.selectProject(projectId)
+    projectSql.selectProject(projectId),
   );
   const project = projectRows[0];
 
   const environmentRows = await query(
     sqlClientPool,
-    Sql.selectEnvironmentByNameAndProject(name, projectId)
+    Sql.selectEnvironmentByNameAndProject(name, projectId),
   );
   const environment = environmentRows[0];
 
   if (!environment) {
     throw new Error(
-      `Environment "${name}" does not exist in project "${projectId}"`
+      `Environment "${name}" does not exist in project "${projectId}"`,
     );
   }
 
   await hasPermission('environment', `delete:${environment.environmentType}`, {
-    project: projectId
+    project: projectId,
   });
 
   let canDeleteProduction;
   try {
     await hasPermission('environment', 'delete:production', {
-      project: projectId
+      project: projectId,
     });
     canDeleteProduction = true;
-  } catch (err) {
+  } catch (_err) {
     canDeleteProduction = false;
   }
 
-  let removeData: RemoveData = {
+  const removeData: RemoveData = {
     projectName: project.name,
     openshiftProjectName: environment.openshiftProjectName,
     forceDeleteProductionEnvironment: canDeleteProduction,
-    environmentName: name
+    environmentName: name,
   };
 
   const meta: {
     [key: string]: any;
   } = {
     projectName: removeData.projectName,
-    environmentName: environment.name
+    environmentName: environment.name,
   };
 
   // @TODO: this switch can probably be removed, there shouldn't ever be no deploytype on an environment
@@ -672,7 +675,7 @@ export const deleteEnvironment: ResolverFn = async (
         '',
         'api:deleteEnvironment:error',
         meta,
-        `*[${removeData.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``
+        `*[${removeData.projectName}]* Unknown deploy type ${environment.deployType} \`${environment.name}\``,
       );
       return `Error: unknown deploy type ${environment.deployType}`;
   }
@@ -687,12 +690,12 @@ export const deleteEnvironment: ResolverFn = async (
     try {
       // check the permission to delete with noexec, typically platform level only or system call
       await hasPermission('environment', 'deleteNoExec', {
-        project: projectId
+        project: projectId,
       });
       await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
       // mark this env as being deleted
       deleted = true;
-    } catch (err) {
+    } catch (_err) {
       // Not allowed to stop execution, proceed with the remaining process of trying to delete the environment the usual way
     }
   }
@@ -700,7 +703,7 @@ export const deleteEnvironment: ResolverFn = async (
   // if the deploytarget of this environment is marked as disabled or doesn't exist, just delete the environment
   // the removetask will never work if the deploytarget is disabled and the environment will remain undeleted in the api
   const deploytarget = await Helpers(sqlClientPool).getEnvironmentsDeploytarget(environment.openshift);
-  if (deploytarget.length == 0 || deploytarget[0].disabled) {
+  if (deploytarget.length === 0 || deploytarget[0].disabled) {
     // if the deploytarget is disabled, delete the environment
     await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
     // mark this env as being deleted
@@ -728,10 +731,10 @@ export const deleteEnvironment: ResolverFn = async (
     payload: {
       projectName,
       environment,
-      deleted: deleted, // log if the actual deletion took place
+      deleted, // log if the actual deletion took place
       removeData,
       ...auditLog,
-    }
+    },
   });
 
   if (deleted) {
@@ -752,7 +755,7 @@ export const deleteEnvironment: ResolverFn = async (
   );
   if (!response.ok) {
     const errorText = await response.text();
-    logger.error(`Error removing ${environment.name}: ${errorText}`)
+    logger.error(`Error removing ${environment.name}: ${errorText}`);
     throw new Error(`Error removing ${environment.name}`);
   }
 
@@ -762,7 +765,7 @@ export const deleteEnvironment: ResolverFn = async (
     '',
     'api:deleteEnvironment',
     meta,
-    `*[${removeData.projectName}]* Deleting environment \`${environment.name}\``
+    `*[${removeData.projectName}]* Deleting environment \`${environment.name}\``,
   );
 
   return 'success';
@@ -771,7 +774,9 @@ export const deleteEnvironment: ResolverFn = async (
 export const updateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -781,7 +786,7 @@ export const updateEnvironment: ResolverFn = async (
   const curEnv = await Helpers(sqlClientPool).getEnvironmentById(id);
 
   await hasPermission('environment', `update:${curEnv.environmentType}`, {
-    project: curEnv.project
+    project: curEnv.project,
   });
 
   if (input.patch.openshiftProjectName || input.patch.kubernetesNamespaceName) {
@@ -789,18 +794,17 @@ export const updateEnvironment: ResolverFn = async (
       throw new Error('Setting namespace is only available to administrators.');
     }
   }
-  const openshiftProjectName =
-    input.patch.kubernetesNamespaceName || input.patch.openshiftProjectName;
+  const openshiftProjectName = input.patch.kubernetesNamespaceName || input.patch.openshiftProjectName;
 
   const newType = R.pathOr(
     curEnv.environmentType,
     ['patch', 'environmentType'],
-    input
+    input,
   );
   const newProject = R.pathOr(curEnv.project, ['patch', 'project'], input);
 
   await hasPermission('environment', `update:${newType}`, {
-    project: newProject
+    project: newProject,
   });
 
   await query(
@@ -820,9 +824,9 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
-        idleState: input.patch.idleState
-      }
-    })
+        idleState: input.patch.idleState,
+      },
+    }),
   );
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
@@ -834,7 +838,7 @@ export const updateEnvironment: ResolverFn = async (
     resource: {
       id: curEnv.project.toString(),
       type: AuditType.PROJECT,
-      details: project.name
+      details: project.name,
     },
     linkedResource: {
       id: curEnv.id.toString(),
@@ -863,11 +867,11 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         autoIdle: input.patch.autoIdle,
         created: input.patch.created,
-        idleState: input.patch.idleState
+        idleState: input.patch.idleState,
       },
       data: withK8s,
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, withK8s);
@@ -876,7 +880,7 @@ export const updateEnvironment: ResolverFn = async (
 export const getAllEnvironments: ResolverFn = async (
   root,
   { createdAfter, type, order },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   await hasPermission('environment', 'viewAll');
 
@@ -903,13 +907,13 @@ export const getAllEnvironments: ResolverFn = async (
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(
-    environmentId
+    environmentId,
   );
   await hasPermission('environment', `update:${environment.environmentType}`, {
-    project: environment.project
+    project: environment.project,
   });
 
   await query(sqlClientPool, Sql.deleteServices(environmentId));
@@ -917,12 +921,12 @@ export const setEnvironmentServices: ResolverFn = async (
   // remove any duplicates, since there is no other identifying information related to these duplicates don't matter.
   // as this function is also being deprecated its usage over time will eventually drop
   // this means removal of duplicates is an acceptable trade off while the transition takes place
-  var uniq = services.filter((value, index, array) => array.indexOf(value) === index);
+  const uniq = services.filter((value, index, array) => array.indexOf(value) === index);
   for (const service of uniq) {
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -943,22 +947,21 @@ export const setEnvironmentServices: ResolverFn = async (
       environment,
       services,
       ...auditLog,
-    }
+    },
   });
 
   return query(
     sqlClientPool,
-    Sql.selectServicesByEnvironmentId(environmentId)
+    Sql.selectServicesByEnvironmentId(environmentId),
   );
 };
 
 export const userCanSshToEnvironment: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
-  const openshiftProjectName =
-    args.kubernetesNamespaceName || args.openshiftProjectName;
+  const openshiftProjectName = args.kubernetesNamespaceName || args.openshiftProjectName;
 
   const rows = await query(sqlClientPool, Sql.canSshToEnvironment(openshiftProjectName));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
@@ -970,11 +973,11 @@ export const userCanSshToEnvironment: ResolverFn = async (
 
   try {
     await hasPermission('environment', `ssh:${environment.environmentType}`, {
-      project: environment.project
+      project: environment.project,
     });
 
     return environment;
-  } catch (err) {
+  } catch (_err) {
     return null;
   }
 };
@@ -984,16 +987,16 @@ export const userCanSshToEnvironment: ResolverFn = async (
 export const addOrUpdateEnvironmentService: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(
-    input.environment
+    input.environment,
   );
   await hasPermission('environment', `update:${environment.environmentType}`, {
-    project: environment.project
+    project: environment.project,
   });
 
-  let envService: EnvironmentService = {
+  const envService: EnvironmentService = {
     name: input.name,
     type: input.type,
     environment: environment.id,
@@ -1002,7 +1005,7 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
 
   if (input.replicas || input.replicas === 0) {
     // set the replica count if provided
-    envService.replicas = input.replicas
+    envService.replicas = input.replicas;
   }
 
   const createOrUpdateSql = knex('environment_service')
@@ -1011,21 +1014,22 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     })
     .onConflict('id')
     .merge({
-      ...envService
-    }).toString();
+      ...envService,
+    })
+    .toString();
 
   const { insertId } = await query(
     sqlClientPool,
     createOrUpdateSql);
 
-  if (input.containers){
+  if (input.containers) {
     // reset this services containers (delete all and add the current ones if provided)
-    await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
+    await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers);
   }
 
   const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -1045,7 +1049,7 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     payload: {
       environment,
       ...auditLog,
-    }
+    },
   });
 
   // parese the response through the servicecontainer helper
@@ -1056,10 +1060,9 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
 export const deleteEnvironmentService: ResolverFn = async (
   root,
   { input: { name, environment: eid } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentById(eid))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentById(eid));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -1075,12 +1078,12 @@ export const deleteEnvironmentService: ResolverFn = async (
   }
 
   await hasPermission('environment', `delete:${environment.environmentType}`, {
-    project: environment.project
+    project: environment.project,
   });
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
 
-  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -1100,7 +1103,7 @@ export const deleteEnvironmentService: ResolverFn = async (
     payload: {
       service,
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -1111,9 +1114,9 @@ export const deleteEnvironmentService: ResolverFn = async (
 export const getEnvironmentByServiceId: ResolverFn = async (
   { id: service_id },
   args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentByServiceId(service_id))
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentByServiceId(service_id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
@@ -1129,9 +1132,9 @@ export const getEnvironmentByServiceId: ResolverFn = async (
 export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
-  const rows = await Helpers(sqlClientPool).getEnvironmentServices(eid)
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(eid);
   return rows;
 };
 
@@ -1140,11 +1143,11 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
 export const getServiceContainersByServiceId: ResolverFn = async (
   { id: sid },
   args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
   const rows = await query(
     sqlClientPool,
-    Sql.selectContainersByServiceId(sid)
+    Sql.selectContainersByServiceId(sid),
   );
   return await rows;
 };
@@ -1156,18 +1159,18 @@ export const idleOrUnidleEnvironment = async (
       environment,
       project,
       idle,
-      disableAutomaticUnidling
-    }
+      disableAutomaticUnidling,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
-  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
-  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
-  const environmentData = env[0]
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId);
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId);
+  const environmentData = env[0];
   if (!environmentData) {
     throw new Error(
-      `Unauthorized: You don't have permission to "idle" on "environment_state"`
+      'Unauthorized: You don\'t have permission to "idle" on "environment_state"',
     );
   }
   if (disableAutomaticUnidling) {
@@ -1175,8 +1178,8 @@ export const idleOrUnidleEnvironment = async (
       'environment_state',
       `forceScale:${environmentData.environmentType}`,
       {
-        project: projectId
-      }
+        project: projectId,
+      },
     );
   }
   if (idle) {
@@ -1186,8 +1189,8 @@ export const idleOrUnidleEnvironment = async (
           'environment_state',
           `idle:${environmentData.environmentType}`,
           {
-            project: projectId
-          }
+            project: projectId,
+          },
         );
         break;
       default:
@@ -1195,35 +1198,35 @@ export const idleOrUnidleEnvironment = async (
           'environment_state',
           `unidle:${environmentData.environmentType}`,
           {
-            project: projectId
-          }
+            project: projectId,
+          },
         );
         break;
     }
   }
 
-  if (projectData.autoIdle == 0) {
+  if (projectData.autoIdle === 0) {
     // if the project has idling disabled, then don't allow idling or unidling of the environment
     throw new Error(
-      `Project has idling disabled`
+      'Project has idling disabled',
     );
-  } else if (projectData.autoIdle == 1 && environmentData.autoIdle == 0) {
+  } else if (projectData.autoIdle === 1 && environmentData.autoIdle === 0) {
     // if the project has idling enabled, but the environment has it disabled
     // then don't allow idling or unidling of the environment
     throw new Error(
-      `Environment has idling disabled`
+      'Environment has idling disabled',
     );
   }
 
   // don't try idle if the environment is already idled or unidled
-  if (environmentData.idleState != 'active' && idle) {
+  if (environmentData.idleState !== 'active' && idle) {
     throw new Error(
-      `Environment is already idled`
+      'Environment is already idled',
     );
   }
-  if (environmentData.idleState == 'active' && !idle) {
+  if (environmentData.idleState === 'active' && !idle) {
     throw new Error(
-      `Environment is already unidled`
+      'Environment is already unidled',
     );
   }
 
@@ -1231,9 +1234,9 @@ export const idleOrUnidleEnvironment = async (
     environment: environmentData,
     project: projectData,
     idling: {
-      idle: idle,
-      forceScale: disableAutomaticUnidling
-    }
+      idle,
+      forceScale: disableAutomaticUnidling,
+    },
   };
 
   const auditLog: AuditLog = {
@@ -1258,7 +1261,7 @@ export const idleOrUnidleEnvironment = async (
       project: projectData.name,
       environment: environmentData.name,
       ...auditLog,
-    }
+    },
   });
 
   try {
@@ -1271,10 +1274,10 @@ export const idleOrUnidleEnvironment = async (
       '',
       'api:idleOrUnidleEnvironment',
       { environment: environmentData.id },
-      `Environment idle attempt possibly failed, reason: ${error}`
+      `Environment idle attempt possibly failed, reason: ${error}`,
     );
     throw new Error(
-      error.message
+      error.message,
     );
   }
 };
@@ -1286,64 +1289,64 @@ export const stopOrStartEnvironmentService = async (
       environment,
       project,
       serviceName,
-      state
-    }
+      state,
+    },
   },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project)
-  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId)
-  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId)
-  const environmentData = env[0]
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(projectId);
+  const env = await Helpers(sqlClientPool).getEnvironmentByNameAndProject(environment, projectId);
+  const environmentData = env[0];
   if (!environmentData) {
     throw new Error(
-      `Unauthorized: You don't have permission to "restart" on "environment_state"`
+      'Unauthorized: You don\'t have permission to "restart" on "environment_state"',
     );
   }
-  if (environmentData.idleState != 'active') {
+  if (environmentData.idleState !== 'active') {
     throw new Error(
-      `Can't perform action because the environment is idled`
+      'Can\'t perform action because the environment is idled',
     );
   }
   await hasPermission(
     'environment_state',
     `restart:${environmentData.environmentType}`,
     {
-      project: projectId
-    }
+      project: projectId,
+    },
   );
 
-  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environmentData.id)
+  const rows = await Helpers(sqlClientPool).getEnvironmentServices(environmentData.id);
   let serviceExists = false;
   if (rows) {
     for (const service of rows) {
-      if (service.name != serviceName) {
+      if (service.name !== serviceName) {
         continue;
       }
       switch (state) {
         case 'stop':
-          if (service.replicas == 0) {
+          if (service.replicas === 0) {
             throw new Error(
-              `Service ${serviceName} is already stopped`
+              `Service ${serviceName} is already stopped`,
             );
           }
           break;
         case 'start':
           if (service.replicas > 0) {
             throw new Error(
-              `Service ${serviceName} is already running`
+              `Service ${serviceName} is already running`,
             );
           }
           break;
         default:
           break;
       }
-      serviceExists = true
+      serviceExists = true;
     }
   }
   if (!serviceExists) {
     throw new Error(
-      `Service ${serviceName} doesn't exist on environment`
+      `Service ${serviceName} doesn't exist on environment`,
     );
   }
 
@@ -1352,8 +1355,8 @@ export const stopOrStartEnvironmentService = async (
     project: projectData,
     lagoonService: {
       name: serviceName,
-      state: state
-    }
+      state,
+    },
   };
 
   const auditLog: AuditLog = {
@@ -1378,8 +1381,8 @@ export const stopOrStartEnvironmentService = async (
     payload: {
       project: projectData.name,
       environment: environmentData.name,
-      ...auditLog
-    }
+      ...auditLog,
+    },
   });
 
   try {
@@ -1392,10 +1395,10 @@ export const stopOrStartEnvironmentService = async (
       '',
       'api:stopOrStartEnvironmentService',
       { environment: environmentData.id },
-      `Service state change attempt possibly failed, reason: ${error}`
+      `Service state change attempt possibly failed, reason: ${error}`,
     );
     throw new Error(
-      error.message
+      error.message,
     );
   }
 };

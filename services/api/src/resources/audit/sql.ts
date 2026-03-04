@@ -18,17 +18,14 @@ export interface AuditLog {
     organizationId?: number;
   }
 
-  export const Sql = {
-    insertAuditLog: (auditLog: AuditLog) =>
-      knex('audit_log')
-        .insert(auditLog)
-        .toString(),
-    selectAuditLog: () =>
-      knex('audit_log')
-        .toString(),
-    deleteAuditLog: (id: string) =>
-      knex('audit_log')
-        .where('id', id)
-        .delete()
-        .toString(),
-  };
+export const Sql = {
+  insertAuditLog: (auditLog: AuditLog) => knex('audit_log')
+    .insert(auditLog)
+    .toString(),
+  selectAuditLog: () => knex('audit_log')
+    .toString(),
+  deleteAuditLog: (id: string) => knex('audit_log')
+    .where('id', id)
+    .delete()
+    .toString(),
+};

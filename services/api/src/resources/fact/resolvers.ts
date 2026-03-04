@@ -1,12 +1,11 @@
 import * as R from 'ramda';
-import { query } from '../../util/db';
+import crypto from 'crypto';
+import { query, knex } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
-import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
-import crypto from 'crypto';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import { AuditType } from '../../commons/types';
 import { AuditLog } from '../audit/types';
@@ -14,75 +13,71 @@ import { AuditLog } from '../audit/types';
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { keyFacts, limit, summary },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('fact', 'view', {
-      project: environment.project
+      project: environment.project,
     });
   }
 
-
-  var rows = [];
+  let rows = [];
   // If we're summarizing facts, we actually can't pass back fact ids, or limit
-  if(summary) {
+  if (summary) {
     rows = await query(
       sqlClientPool,
       Sql.selectFactsByEnvironmentId({
         environmentId,
         keyFacts,
-        limit: false
-      })
+        limit: false,
+      }),
     );
 
     rows = summarizeFacts(rows);
 
     return R.sort(R.ascend(R.prop('name')), rows);
-
-  } else {
-    rows = await query(
-      sqlClientPool,
-      Sql.selectFactsByEnvironmentId({
-        environmentId,
-        keyFacts,
-        limit
-      })
-    );
-
-    return R.sort(R.descend(R.prop('created')), rows);
   }
+  rows = await query(
+    sqlClientPool,
+    Sql.selectFactsByEnvironmentId({
+      environmentId,
+      keyFacts,
+      limit,
+    }),
+  );
 
+  return R.sort(R.descend(R.prop('created')), rows);
 };
 
 const summarizeFacts = (rows) => {
-  const factSummary = new Map<string, object>();
+  const factSummary = new Map<string, any>();
   rows.forEach(element => {
-    var summaryKey = crypto.createHash('md5')
-    .update(element['name'])
-    .update(element['value'])
-    .update(element['description'])
-    .digest('hex');
+    const summaryKey = crypto.createHash('md5')
+      .update(element.name)
+      .update(element.value)
+      .update(element.description)
+      .digest('hex');
 
-    //clear identifying marks ...
-    element['id'] = null;
-    element['created'] = null;
+    // clear identifying marks ...
+    element.id = null;
+    element.created = null;
 
     const summaryConcat = (head, tail) => {
-      if(head.length > 0) {
-        return `${head}, ${tail}`
+      if (head.length > 0) {
+        return `${head}, ${tail}`;
       }
       return tail;
-    }
+    };
 
-    if(factSummary.has(summaryKey)) {
-      var f = factSummary.get(summaryKey);
-      f['source'] = summaryConcat(f['source'], element['source']);
-      //TODO : after adding service, we need to add csv of the service names here ...
+    if (factSummary.has(summaryKey)) {
+      const f = factSummary.get(summaryKey);
+      f.source = summaryConcat(f.source, element.source);
+      // TODO : after adding service, we need to add csv of the service names here ...
       // f['service'] = summaryConcat(f['service'], element['service']);
       factSummary.set(summaryKey, f);
     } else {
@@ -92,42 +87,42 @@ const summarizeFacts = (rows) => {
   return Array.from(factSummary.values());
 };
 
-
 export const getFactReferencesByFactId: ResolverFn = async (
   { id: fid },
   args,
-  { sqlClientPool }
+  { sqlClientPool },
 ) => {
   const rows = await query(
     sqlClientPool,
-    Sql.selectFactReferencesByFactId(fid)
+    Sql.selectFactReferencesByFactId(fid),
   );
 
   return R.sort(R.descend((r: any) => r.name), rows);
 };
 
-const predicateRHSProcess = (predicate, targetValue) => predicate == 'CONTAINS' ? `%${targetValue}%` : targetValue
+const predicateRHSProcess = (predicate, targetValue) => predicate === 'CONTAINS' ? `%${targetValue}%` : targetValue;
 
-const getSqlPredicate = (predicate) => {
+const _getSqlPredicate = (predicate) => {
   const predicateMap = {
-    'CONTAINS': 'like',
-    'LESS_THAN': '<',
-    'LESS_THAN_OR_EQUALS': '<=',
-    'GREATER_THAN': '>',
-    'GREATER_THAN_OR_EQUALS': '<=',
-    'EQUALS': '=',
+    CONTAINS: 'like',
+    LESS_THAN: '<',
+    LESS_THAN_OR_EQUALS: '<=',
+    GREATER_THAN: '>',
+    GREATER_THAN_OR_EQUALS: '<=',
+    EQUALS: '=',
   };
 
   return predicateMap[predicate];
-}
+};
 
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes },
-  info
+  {
+    sqlClientPool, keycloakGrant, models, keycloakUsersGroups, adminScopes,
+  },
+  _info,
 ) => {
-
   let userProjectIds: number[];
 
   // if the user is not a platform owner or viewer, then perform normal permission check
@@ -140,14 +135,15 @@ export const getProjectsByFactSearch: ResolverFn = async (
   const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, adminScopes);
 
   return { projects: rows, count };
-}
+};
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups, adminScopes }
+  {
+    sqlClientPool, keycloakGrant, models, keycloakUsersGroups, adminScopes,
+  },
 ) => {
-
   let userProjectIds: number[];
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
@@ -159,16 +155,16 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, adminScopes);
 
   return { environments: rows, count };
-}
+};
 
 export const processAddFacts = async (facts, sqlClientPool, hasPermission, adminScopes) => {
   const environments = facts.reduce((environmentList, fact) => {
-    if (fact.environment == undefined) {
+    if (fact.environment === undefined) {
       logger.error(`No environment ID given for fact: ${fact.name}`);
       throw new Error(`No environment ID given for fact: ${fact.name}`);
     }
 
-    let { environment } = fact;
+    const { environment } = fact;
     if (!environmentList.includes(environment)) {
       environmentList.push(environment);
     }
@@ -178,32 +174,34 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission, admin
   // admin bypass to skip heavy haspermission checks
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-    let projectIds = []
+    let projectIds = [];
     for (let i = 0; i < environments.length; i++) {
       const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-        environments[i]
+        environments[i],
       );
       // collect the project ids
-      projectIds.push(env.project)
-    };
+      projectIds.push(env.project);
+    }
 
     // unique the project ids for more efficient permission checks against projects
     projectIds = [...new Set(projectIds)];
 
     for (const pid in projectIds) {
       await hasPermission('fact', 'add', {
-        project: projectIds[pid]
+        project: projectIds[pid],
       });
     }
   }
 
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
-    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
+    const {
+      environment, name, value, source, description, type, category, keyFact, service,
+    } = facts[i];
 
     let insertId: number;
     try {
-       ({insertId} = await query(
+      ({ insertId } = await query(
         sqlClientPool,
         Sql.insertFact({
           environment,
@@ -214,46 +212,50 @@ export const processAddFacts = async (facts, sqlClientPool, hasPermission, admin
           type,
           keyFact,
           category,
-          service
-        })
+          service,
+        }),
       ));
-    } catch(error) {
-      if(error.text.includes("Duplicate entry")){
+    } catch (error) {
+      if (error.text.includes('Duplicate entry')) {
         throw new Error(
-          `Error adding fact. Fact already exists.`
+          'Error adding fact. Fact already exists.',
         );
       } else {
         throw new Error(error.message);
       }
-    };
+    }
 
     const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
     returnFacts.push(R.prop(0, rows));
   }
   return returnFacts;
-}
+};
 
 export const addFact: ResolverFn = async (
   root,
-  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  {
+    input: {
+      _id, environment: environmentId, name, value, source, description, type, category, keyFact, service,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
-  if (environmentId == undefined) {
-    logger.error(`No environment ID given for fact: ${name}`)
-    throw new Error(`No environment ID given for fact: ${name}`)
+  if (environmentId === undefined) {
+    logger.error(`No environment ID given for fact: ${name}`);
+    throw new Error(`No environment ID given for fact: ${name}`);
   }
 
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'add', {
-    project: environment.project
+    project: environment.project,
   });
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertFact({
         environment: environmentId,
@@ -264,25 +266,25 @@ export const addFact: ResolverFn = async (
         type,
         keyFact,
         category,
-        service
+        service,
       }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding fact. Fact already exists.`
+        'Error adding fact. Fact already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectFactByDatabaseId(insertId)
+    Sql.selectFactByDatabaseId(insertId),
   );
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   const auditLog: AuditLog = {
     resource: {
@@ -309,10 +311,10 @@ export const addFact: ResolverFn = async (
         value,
         source,
         description,
-        service
+        service,
       },
       ...auditLog,
-    }
+    },
   });
 
   return R.prop(0, rows);
@@ -321,7 +323,9 @@ export const addFact: ResolverFn = async (
 export const addFacts: ResolverFn = async (
   root,
   { input: { facts } },
-  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
   const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission, adminScopes);
 
@@ -345,12 +349,12 @@ export const addFacts: ResolverFn = async (
     if (project.organization) {
       auditLog.organizationId = project.organization;
     }
-    userActivityLogger(`User added facts to environment'`, {
+    userActivityLogger('User added facts to environment\'', {
       project: '',
       event: 'api:addFacts',
       payload: {
         ...auditLog,
-      }
+      },
     });
   }
 
@@ -360,43 +364,42 @@ export const addFacts: ResolverFn = async (
 export const addFactsByName: ResolverFn = async (
   root,
   { input: { project, environment, facts } },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models, adminScopes }
+  {
+    sqlClientPool, hasPermission, userActivityLogger, adminScopes,
+  },
 ) => {
-
   if (!project || !environment) {
-    throw new Error("Both 'project' and 'environment' require values"); //Presumably this'll be taken care of via the schema, but let's check either way.
+    throw new Error("Both 'project' and 'environment' require values"); // Presumably this'll be taken care of via the schema, but let's check either way.
   }
 
-  let lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
+  const lagoonProject = await projectHelpers(sqlClientPool).getProjectIdByName(project);
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     await hasPermission('environment', 'view', {
-      project: lagoonProject
+      project: lagoonProject,
     });
   }
-  let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
+  const environments = await environmentHelpers(sqlClientPool).getEnvironmentsByProjectId(lagoonProject);
 
-  if (environments.length == 0) {
+  if (environments.length === 0) {
     throw new Error(`No environments found for project '${project}'`);
   }
 
-  let envId = R.reduce((acc, e) => {
-   return e.name === environment ? e.id : acc;
-  }, null, environments);
+  const envId = R.reduce((acc, e) => e.name === environment ? e.id : acc, null, environments);
 
   if (!envId) {
     throw new Error(`No environment '${environment}' found for project '${project}'`);
   }
 
   const returnFacts = await processAddFacts(
-    R.map((fact:object) => {return {environment: envId, ...fact};}, facts),
+    R.map((fact:object) => ({ environment: envId, ...fact }), facts),
     sqlClientPool,
     hasPermission,
     adminScopes,
   );
 
-  let projectData = await projectHelpers(sqlClientPool).getProjectById(lagoonProject);
-  let environmentData = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, lagoonProject);
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(lagoonProject);
+  const environmentData = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(environment, lagoonProject);
 
   const auditLog: AuditLog = {
     resource: {
@@ -414,15 +417,15 @@ export const addFactsByName: ResolverFn = async (
     auditLog.organizationId = projectData.organization;
   }
   userActivityLogger(`User added facts to '${project}:${environment}'`, {
-    project: project,
-    environment: environment,
+    project,
+    environment,
     event: 'api:addFactsByName',
     payload: {
       data: {
-        returnFacts
+        returnFacts,
       },
       ...auditLog,
-    }
+    },
   });
 
   return returnFacts;
@@ -431,17 +434,17 @@ export const addFactsByName: ResolverFn = async (
 export const deleteFact: ResolverFn = async (
   root,
   { input: { environment: environmentId, name } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
@@ -460,16 +463,16 @@ export const deleteFact: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User deleted a fact`, {
+  userActivityLogger('User deleted a fact', {
     project: '',
     event: 'api:deleteFact',
     payload: {
       data: {
         environment: environmentId,
-        name
+        name,
       },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -478,21 +481,21 @@ export const deleteFact: ResolverFn = async (
 export const deleteFactsFromSource: ResolverFn = async (
   root,
   { input: { environment: environmentId, source, service } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(environmentId);
 
-  if(environment == null) {
+  if (environment == null) {
     throw new Error(`Unable to find environment with id: ${environmentId}`);
   }
 
   await hasPermission('fact', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
-  let project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project);
 
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source, service));
 
@@ -511,17 +514,17 @@ export const deleteFactsFromSource: ResolverFn = async (
   if (project.organization) {
     auditLog.organizationId = project.organization;
   }
-  userActivityLogger(`User deleted facts`, {
+  userActivityLogger('User deleted facts', {
     project: '',
     event: 'api:deleteFactsFromSource',
     payload: {
       data: {
         environment: environmentId,
         source,
-        service
+        service,
       },
       ...auditLog,
-    }
+    },
   });
 
   return 'success';
@@ -530,7 +533,7 @@ export const deleteFactsFromSource: ResolverFn = async (
 export const addFactReference: ResolverFn = async (
   root,
   { input: { fid, name } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   const fact = await query(sqlClientPool, Sql.selectFactByDatabaseId(fid));
 
@@ -540,31 +543,31 @@ export const addFactReference: ResolverFn = async (
 
   const environment = await environmentHelpers(sqlClientPool).getEnvironmentById((R.prop(0, fact)).environment);
   await hasPermission('fact', 'add', {
-    project: environment.project
+    project: environment.project,
   });
 
   let insertId: number;
   try {
-     ({insertId} = await query(
+    ({ insertId } = await query(
       sqlClientPool,
       Sql.insertFactReference({
         fid,
-        name
-      })
+        name,
+      }),
     ));
-  } catch(error) {
-    if(error.text.includes("Duplicate entry")){
+  } catch (error) {
+    if (error.text.includes('Duplicate entry')) {
       throw new Error(
-        `Error adding fact reference. Fact reference already exists.`
+        'Error adding fact reference. Fact reference already exists.',
       );
     } else {
       throw new Error(error.message);
     }
-  };
+  }
 
   const rows = await query(
     sqlClientPool,
-    Sql.selectFactReferenceByDatabaseId(insertId)
+    Sql.selectFactReferenceByDatabaseId(insertId),
   );
 
   return R.prop(0, rows);
@@ -573,15 +576,14 @@ export const addFactReference: ResolverFn = async (
 export const deleteFactReference: ResolverFn = async (
   root,
   { input: { factName, referenceName, eid } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
-
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(eid);
 
   await hasPermission('fact', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
   await query(
@@ -594,8 +596,8 @@ export const deleteFactReference: ResolverFn = async (
     {
       fName: factName,
       rName: referenceName,
-      eid
-    }
+      eid,
+    },
   );
 
   return 'success';
@@ -604,19 +606,19 @@ export const deleteFactReference: ResolverFn = async (
 export const deleteAllFactReferencesByFactId: ResolverFn = async (
   root,
   { input: { fid } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission },
 ) => {
   const fact = await query(
     sqlClientPool,
-    Sql.selectFactByDatabaseId(fid)
+    Sql.selectFactByDatabaseId(fid),
   );
 
   const environment = await environmentHelpers(
-    sqlClientPool
+    sqlClientPool,
   ).getEnvironmentById(R.prop(0, fact).environment);
 
   await hasPermission('fact', 'delete', {
-    project: environment.project
+    project: environment.project,
   });
 
   const { affectedRows } = await query(sqlClientPool, Sql.deleteFactReferencesByFactId(fid));
@@ -626,10 +628,7 @@ export const deleteAllFactReferencesByFactId: ResolverFn = async (
   return `Success: ${affectedRows} fact reference/s deleted`;
 };
 
-
-export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes) => {
-  return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool, adminScopes));
-};
+export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes) => R.map(p => R.prop('id', p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool, adminScopes));
 
 const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes: any) => {
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
@@ -639,16 +638,15 @@ const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: numb
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
-}
+};
 
 const getFactFilteredProjectsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes: any) => {
-  let factQuery = knex('project').countDistinct({ count: 'project.id'}).innerJoin('environment', 'environment.project', 'project.id');
+  let factQuery = knex('project').countDistinct({ count: 'project.id' }).innerJoin('environment', 'environment.project', 'project.id');
   factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, adminScopes);
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows[0].count;
-}
-
+};
 
 const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes: any) => {
   let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
@@ -658,47 +656,44 @@ const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: 
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
-}
+};
 
 const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, adminScopes: any) => {
-  let factQuery = knex('environment').countDistinct({ count: 'environment.id'}).innerJoin('project', 'environment.project', 'project.id');
+  let factQuery = knex('environment').countDistinct({ count: 'environment.id' }).innerJoin('project', 'environment.project', 'project.id');
   factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, adminScopes);
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows[0].count;
-}
+};
 
-const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], adminScopes: any, byPassLimits: boolean = false) => {
+const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], adminScopes: any, _byPassLimits: boolean = false) => {
   if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((filter, i) => {
+      const { lhsTarget, name } = filter;
 
-      let { lhsTarget, name } = filter;
-
-      let tabName = `env${i}`;
-      if (lhsTarget == "project") {
+      const tabName = `env${i}`;
+      if (lhsTarget === 'project') {
         switch (name) {
-          case ("id"):
+          case ('id'):
             break;
-          case ("name"):
+          case ('name'):
             break;
           default:
             throw Error(`lhsTarget "${name}" unsupported`);
         }
+      } else if (filterDetails.filterConnective === 'AND') {
+        factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`);
       } else {
-        if (filterDetails.filterConnective == 'AND') {
-          factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`);
-        } else {
-          factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`);
-        }
+        factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`);
       }
     });
 
     const builderFactory = (filter, i) => (builder) => {
-      let { lhsTarget, name, contains } = filter;
-      if (lhsTarget == "PROJECT") {
+      const { lhsTarget, name, contains } = filter;
+      if (lhsTarget === 'PROJECT') {
         builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else {
-        let tabName = `env${i}`;
+        const tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
         builder = builder.andWhere(`${tabName}.value`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       }
@@ -707,14 +702,14 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
 
     factQuery.andWhere(innerBuilder => {
       filterDetails.filters.forEach((filter, i) => {
-        if (filterDetails.filterConnective == 'AND') {
+        if (filterDetails.filterConnective === 'AND') {
           innerBuilder = innerBuilder.andWhere(builderFactory(filter, i));
         } else {
           innerBuilder = innerBuilder.orWhere(builderFactory(filter, i));
         }
       });
       return innerBuilder;
-    })
+    });
   }
 
   if (projectIdSubset && (!adminScopes.platformOwner && !adminScopes.platformViewer)) {
@@ -722,12 +717,12 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   }
 
   return factQuery;
-}
+};
 
 function setQueryLimit(filterDetails: any, factQuery: any) {
   const DEFAULT_RESULTSET_SIZE = 25;
 
-  let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
+  const { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
   factQuery = factQuery.limit(take).offset(skip);
   return factQuery;
 }

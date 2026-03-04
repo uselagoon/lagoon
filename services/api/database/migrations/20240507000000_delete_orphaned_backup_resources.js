@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+exports.up = function (knex) {
   // remove any deleted environment backups that are flagged as deleted
   // or where the environment/project are deleted or no longer exist
   return knex.schema
@@ -15,15 +15,15 @@ exports.up = function(knex) {
     .alterTable('environment_backup', (table) => {
       table.dropColumn('deleted');
     });
-  };
+};
 
-  /**
+/**
    * @param { import("knex").Knex } knex
    * @returns { Promise<void> }
    */
-  exports.down = function(knex) {
-    return knex.schema
+exports.down = function (knex) {
+  return knex.schema
     .alterTable('environment_backup', (table) => {
-        table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+      table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
     });
-  };
+};

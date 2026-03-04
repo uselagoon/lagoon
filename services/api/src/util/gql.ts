@@ -15,4 +15,4 @@ export function gql(
   result += literals[literals.length - 1];
 
   return result;
-};
+}

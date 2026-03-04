@@ -1,6 +1,9 @@
-import winston, { Logger } from 'winston';
-const { addColors, createLogger, format, transports } = require('winston');
+import winston from 'winston';
 import { LagoonLogsTransport } from './lagoonLogsTransport';
+
+const {
+  addColors, createLogger, format, transports,
+} = require('winston');
 
 export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
@@ -61,7 +64,7 @@ const { colors, levels } = {
     user_info: 'cyan',
     user_auth: 'cyan',
     user_action: 'green',
-  }
+  },
 };
 
 addColors(colors);
@@ -69,33 +72,38 @@ addColors(colors);
 export const parseAndCleanMeta = (meta: IMetaLogger) => {
   if (meta) {
     Object.keys(meta).map(key => {
-      if (meta[key] != undefined) {
+      if (meta[key] != null) {
         if (key === 'user') {
-          const { access_token, username, email, iat, iss, sub, aud, source, gitlabId, role, permissions } = meta[key];
+          const {
+            access_token, username, email, iat, iss, sub, aud, source, gitlabId, role, permissions,
+          } = meta[key];
 
           if (access_token) {
-            const { jti, email, email_verified, preferred_username, azp, typ, auth_time, iat, iss, sub, aud, realm_access, scope } = access_token.content;
+            const {
+              jti, email, email_verified, preferred_username, azp, typ, auth_time, iat, iss, sub, aud, realm_access, scope,
+            } = access_token.content;
             meta[key] = {
               ...(sub && { id: sub }),
-              ...(jti && { jti: jti }),
-              ...(preferred_username && { preferred_username: preferred_username }),
-              ...(email && { email: email }),
-              ...(email_verified && { email_verified: email_verified }),
-              ...(azp && { azp: azp }),
-              ...(typ && { typ: typ }),
-              ...(auth_time && { auth_time: auth_time }),
-              ...(iat && { iat: iat }),
-              ...(iss && { iss: iss }),
-              ...(scope && { scope: scope }),
-              ...(aud && { aud: aud }),
-              ...(source && { source: source }),
+              ...(jti && { jti }),
+              ...(preferred_username && { preferred_username }),
+              ...(email && { email }),
+              ...(email_verified && { email_verified }),
+              ...(azp && { azp }),
+              ...(typ && { typ }),
+              ...(auth_time && { auth_time }),
+              ...(iat && { iat }),
+              ...(iss && { iss }),
+              ...(scope && { scope }),
+              ...(aud && { aud }),
+              ...(source && { source }),
               ...(realm_access && { roles: realm_access.roles }),
-              ...(gitlabId && { gitlabId: gitlabId })
-            }
-          }
-          else {
+              ...(gitlabId && { gitlabId }),
+            };
+          } else {
             // Legacy token
-            meta[key] = { id: sub, username, email, role, source, iss, aud, iat, permissions }
+            meta[key] = {
+              id: sub, username, email, role, source, iss, aud, iat, permissions,
+            };
           }
         }
 
@@ -105,8 +113,12 @@ export const parseAndCleanMeta = (meta: IMetaLogger) => {
         }
 
         if (key === 'headers') {
-          const { 'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress } = meta[key];
-          meta[key] = { 'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress }
+          const {
+            'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress,
+          } = meta[key];
+          meta[key] = {
+            'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress,
+          };
         }
       }
     });
@@ -116,22 +128,20 @@ export const parseAndCleanMeta = (meta: IMetaLogger) => {
   return {};
 };
 
-export const findAndRemoveSensitiveFieldsFromNestedObj = (obj, keys) =>  {
-  return (obj !== Object(obj)
-    ? obj
-    : Array.isArray(obj)
+export const findAndRemoveSensitiveFieldsFromNestedObj = (obj, keys) => (obj !== Object(obj)
+  ? obj
+  : Array.isArray(obj)
     ? obj.map((item) => findAndRemoveSensitiveFieldsFromNestedObj(item, keys))
     : Object.keys(obj)
       .filter((k) => !keys.includes(k))
       .reduce(
         (acc, x) => Object.assign(acc, { [x]: findAndRemoveSensitiveFieldsFromNestedObj(obj[x], keys) }),
-        {}
+        {},
       )
-  )
-};
+);
 
 const parseMessage = (info) => {
-  let message, level: string;
+  let message;
   let meta: IMetaLogger;
   if (info.message !== undefined) {
     message = info.message;
@@ -141,17 +151,17 @@ const parseMessage = (info) => {
     meta = {
       user: { ...info.user },
       headers: info.headers ? info.headers : null,
-      payload: info.payload ? info.payload : null
+      payload: info.payload ? info.payload : null,
     };
   }
 
-  level = info.level ? info.level : 'info';
-  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? JSON.stringify(parseAndCleanMeta(meta)) : ''}`
-}
+  const level: string = info.level ? info.level : 'info';
+  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? JSON.stringify(parseAndCleanMeta(meta)) : ''}`;
+};
 
 export const userActivityLogger: IUserActivityLogger = createLogger({
   exitOnError: false,
-  levels: levels,
+  levels,
   format: format.combine(
     format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -161,14 +171,14 @@ export const userActivityLogger: IUserActivityLogger = createLogger({
       level: 'user_action',
       format: format.combine(
         format.colorize(),
-        format.printf(info => parseMessage(info))
+        format.printf(info => parseMessage(info)),
       ),
       handleExceptions: true,
-      json: true
+      json: true,
     }),
     new LagoonLogsTransport({
       level: 'user_action',
-      json: true
-    })
-  ]
+      json: true,
+    }),
+  ],
 });

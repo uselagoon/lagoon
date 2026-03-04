@@ -39,8 +39,7 @@ interface GitlabProject {
     return;
   }
 
-  const allGitlabProjects =
-    (await gitlabApi.getAllProjects()) as GitlabProject[];
+  const allGitlabProjects = (await gitlabApi.getAllProjects()) as GitlabProject[];
   const projectRecords = await query(
     sqlClientPool,
     'SELECT * FROM `project` WHERE name IN (:projects)',
@@ -53,8 +52,7 @@ interface GitlabProject {
     logger.debug(`Processing ${project.name}`);
 
     const gitlabProject = R.find(
-      (findProject: GitlabProject) =>
-        sanitizeGroupName(findProject.path) === project.name,
+      (findProject: GitlabProject) => sanitizeGroupName(findProject.path) === project.name,
     )(allGitlabProjects) as GitlabProject;
 
     // Load default group
@@ -86,8 +84,8 @@ interface GitlabProject {
             '\n',
             R.prop('privateKey', project).toString('openssh'),
           ),
-          public: publickey['publickey'],
-          fingerprint: publickey['sha256fingerprint'],
+          public: publickey.publickey,
+          fingerprint: publickey.sha256fingerprint,
         };
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -155,10 +153,10 @@ interface GitlabProject {
     // Generate new keypair
     const genkey = await genpk();
     const keyPair = {
-      private: genkey['privatekeypem'],
-      public: genkey['publickey'],
-      fingerprint: genkey['sha256fingerprint'],
-      type: genkey['type'],
+      private: genkey.privatekeypem,
+      public: genkey.publickey,
+      fingerprint: genkey.sha256fingerprint,
+      type: genkey.type,
     };
 
     // Save the newly generated key

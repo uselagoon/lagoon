@@ -5,10 +5,9 @@ import * as R from 'ramda';
 const pickNonNil = (
   names: ReadonlyArray<any>,
   obj: { [propName: string]: any },
-): Object =>
-  R.pipe(
-    R.pick(names),
-    R.pickBy(R.complement(R.isNil)),
-  )(obj);
+): Record<string, any> => R.pipe(
+  R.pick(names),
+  R.pickBy(R.complement(R.isNil)),
+)(obj);
 
 export default R.curry(pickNonNil);

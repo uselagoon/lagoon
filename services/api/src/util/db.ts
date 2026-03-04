@@ -2,7 +2,7 @@ import camelcaseKeys from 'camelcase-keys';
 import snakecaseKeys from 'snakecase-keys';
 import * as R from 'ramda';
 import { Pool, Connection } from 'mariadb';
-import { notArray } from '../util/func';
+import { notArray } from './func';
 import snakecase from './snakeCase';
 
 export const knex = require('knex')({
@@ -14,30 +14,30 @@ export const knex = require('knex')({
   parseJsonResponse: response => {
     if (!response || typeof response !== 'object') {
       return response;
-    } else if (Array.isArray(response)) {
+    } if (Array.isArray(response)) {
       return R.map(camelcaseKeys, response);
     }
     return camelcaseKeys(response);
-  }
+  },
 });
 
 // set up the lagoon migrations table
 export const migrate = require('knex')({
   client: 'mysql2',
   connection: {
-    host : process.env.API_DB_HOST || 'api-db',
-    port : process.env.API_DB_PORT || 3306,
-    user : process.env.API_DB_USERNAME || 'api',
-    password : process.env.API_DB_PASSWORD || 'api',
-    database : process.env.API_DB_DATABASE || 'infrastructure'
+    host: process.env.API_DB_HOST || 'api-db',
+    port: process.env.API_DB_PORT || 3306,
+    user: process.env.API_DB_USERNAME || 'api',
+    password: process.env.API_DB_PASSWORD || 'api',
+    database: process.env.API_DB_DATABASE || 'infrastructure',
   },
   pool: {
     min: 2,
-    max: 10
+    max: 10,
   },
   migrations: {
     tableName: 'lagoon_migrations',
-    directory: 'dist/migrations/lagoon/migrations'
+    directory: 'dist/migrations/lagoon/migrations',
   },
 });
 
@@ -67,7 +67,7 @@ export const migrate = require('knex')({
 export const query = async (
   conn: Pool | Connection,
   sql: string,
-  values: Object | any[] = {}
+  values: object | any[] = {},
 ): Promise<any> => {
   const preparedValues = R.when(notArray, snakecaseKeys);
   const rows = await conn.query(
@@ -75,14 +75,14 @@ export const query = async (
       dateStrings: true,
       namedPlaceholders: notArray(values),
       rowsAsArray: false,
-      sql
+      sql,
     },
-    preparedValues(values)
+    preparedValues(values),
   );
   return R.length(rows) > 0 ? R.map(camelcaseKeys, rows) : rows;
 };
 
 export const isPatchEmpty = R.compose(
   R.isEmpty,
-  R.propOr({}, 'patch')
+  R.propOr({}, 'patch'),
 );

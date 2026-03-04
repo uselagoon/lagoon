@@ -9,8 +9,8 @@ const options = {
   baseURL: `${API_HOST}/api/v4/`,
   timeout: 30000,
   headers: {
-    'Private-Token': API_TOKEN
-  }
+    'Private-Token': API_TOKEN,
+  },
 };
 
 const gitlabapi = axios.create(options);
@@ -57,10 +57,9 @@ const getRequest = async (url: string): Promise<any> => {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const errorMessage = error.response?.data?.message ?? error.message;
-        const errorString =
-          typeof errorMessage === 'string'
-            ? errorMessage
-            : JSON.stringify(errorMessage);
+        const errorString = typeof errorMessage === 'string'
+          ? errorMessage
+          : JSON.stringify(errorMessage);
 
         throw new APIError(errorString);
       } else if (error.request) {
@@ -82,10 +81,9 @@ const postRequest = async (url: string, body: any): Promise<any> => {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const errorMessage = error.response?.data?.message ?? error.message;
-        const errorString =
-          typeof errorMessage === 'string'
-            ? errorMessage
-            : JSON.stringify(errorMessage);
+        const errorString = typeof errorMessage === 'string'
+          ? errorMessage
+          : JSON.stringify(errorMessage);
 
         throw new APIError(errorString);
       } else if (error.request) {
@@ -109,8 +107,8 @@ const getAllPagesRequest = async <Type>(url: string): Promise<Type[]> => {
       const response = await gitlabapi.get(url, {
         params: {
           per_page: 100,
-          page
-        }
+          page,
+        },
       });
 
       if (response.data.length === 0) {
@@ -123,10 +121,9 @@ const getAllPagesRequest = async <Type>(url: string): Promise<Type[]> => {
       if (axios.isAxiosError(error)) {
         if (error.response) {
           const errorMessage = error.response?.data?.message ?? error.message;
-          const errorString =
-            typeof errorMessage === 'string'
-              ? errorMessage
-              : JSON.stringify(errorMessage);
+          const errorString = typeof errorMessage === 'string'
+            ? errorMessage
+            : JSON.stringify(errorMessage);
 
           throw new APIError(errorString);
         } else if (error.request) {
@@ -147,8 +144,8 @@ export const getUserByUsername = async (username: string): Promise<User> => {
   try {
     const response = await gitlabapi.get('users', {
       params: {
-        username
-      }
+        username,
+      },
     });
 
     if (response.data.length === 0) {
@@ -160,10 +157,9 @@ export const getUserByUsername = async (username: string): Promise<User> => {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const errorMessage = error.response?.data?.message ?? error.message;
-        const errorString =
-          typeof errorMessage === 'string'
-            ? errorMessage
-            : JSON.stringify(errorMessage);
+        const errorString = typeof errorMessage === 'string'
+          ? errorMessage
+          : JSON.stringify(errorMessage);
 
         throw new APIError(errorString);
       } else if (error.request) {
@@ -178,28 +174,20 @@ export const getUserByUsername = async (username: string): Promise<User> => {
 };
 
 export const getAllGroups = async () => getAllPagesRequest('groups');
-export const getGroup = async (groupId: number): Promise<any> =>
-  getRequest(`groups/${groupId}`);
-export const getGroupMembers = async (groupId: number): Promise<any> =>
-  getRequest(`groups/${groupId}/members`);
-export const getAllProjects = async (): Promise<any> =>
-  getAllPagesRequest('projects');
-export const getProject = async (projectId: number): Promise<any> =>
-  getRequest(`projects/${projectId}`);
-export const getProjectMembers = async (projectId: number): Promise<any> =>
-  getRequest(`projects/${projectId}/members`);
+export const getGroup = async (groupId: number): Promise<any> => getRequest(`groups/${groupId}`);
+export const getGroupMembers = async (groupId: number): Promise<any> => getRequest(`groups/${groupId}/members`);
+export const getAllProjects = async (): Promise<any> => getAllPagesRequest('projects');
+export const getProject = async (projectId: number): Promise<any> => getRequest(`projects/${projectId}`);
+export const getProjectMembers = async (projectId: number): Promise<any> => getRequest(`projects/${projectId}/members`);
 export const getAllUsers = async () => getAllPagesRequest<User>('users');
-export const getUser = async (userId: number): Promise<User> =>
-  getRequest(`users/${userId}`);
-export const getSshKey = async (keyId: number): Promise<Key> =>
-  getRequest(`keys/${keyId}`);
+export const getUser = async (userId: number): Promise<User> => getRequest(`users/${userId}`);
+export const getSshKey = async (keyId: number): Promise<Key> => getRequest(`keys/${keyId}`);
 
 export const addDeployKeyToProject = async (
   projectId: number,
-  key: string
-): Promise<any> =>
-  postRequest(`projects/${projectId}/deploy_keys`, {
-    title: 'Lagoon Project Key',
-    key,
-    can_push: false
-  });
+  key: string,
+): Promise<any> => postRequest(`projects/${projectId}/deploy_keys`, {
+  title: 'Lagoon Project Key',
+  key,
+  can_push: false,
+});

@@ -1,12 +1,10 @@
-import * as R from 'ramda';
-import { ResolverFn } from '../';
+import { ResolverFn } from '..';
 import { knex, query } from '../../util/db';
-
 
 export const getAuditLogs: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, adminScopes }
+  { sqlClientPool, hasPermission, adminScopes },
 ) => {
   // default results limit to 100
   let limit = 100;
@@ -15,7 +13,7 @@ export const getAuditLogs: ResolverFn = async (
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
     if (input.organizationId) {
       await hasPermission('organization', 'view', {
-          organization: input.organizationId,
+        organization: input.organizationId,
       });
     } else {
       await hasPermission('project', 'viewAll');
@@ -39,7 +37,7 @@ export const getAuditLogs: ResolverFn = async (
     }
 
     // limit could be 0
-    if (input.limit != undefined) {
+    if (input.limit !== undefined) {
       limit = input.limit;
     }
 
@@ -60,7 +58,7 @@ export const getAuditLogs: ResolverFn = async (
     }
 
     if (input.resourceDetails) {
-      queryBuilder = queryBuilder.where('resource_details','LIKE',`%${input.resourceDetails}%`);
+      queryBuilder = queryBuilder.where('resource_details', 'LIKE', `%${input.resourceDetails}%`);
     }
 
     if (input.linkedResourceId) {
@@ -72,7 +70,7 @@ export const getAuditLogs: ResolverFn = async (
     }
 
     if (input.linkedResourceDetails) {
-      queryBuilder = queryBuilder.where('linked_resource_details','LIKE',`%${input.linkedResourceDetails}%`);
+      queryBuilder = queryBuilder.where('linked_resource_details', 'LIKE', `%${input.linkedResourceDetails}%`);
     }
 
     if (input.auditEvent) {
@@ -110,5 +108,5 @@ export const getAuditLogs: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
-  return rows
+  return rows;
 };

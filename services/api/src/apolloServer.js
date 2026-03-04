@@ -1,3 +1,5 @@
+import { makeExecutableSchema } from '@graphql-tools/schema';
+
 const R = require('ramda');
 const {
   ApolloServer,
@@ -13,7 +15,7 @@ const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
-  keycloakHasPermission
+  keycloakHasPermission,
 } = require('./util/auth');
 const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
@@ -27,9 +29,6 @@ const User = require('./models/user');
 const Group = require('./models/group');
 const Environment = require('./models/environment');
 
-import { makeExecutableSchema } from '@graphql-tools/schema';
-
-
 let schema;
 let apolloServer;
 
@@ -41,16 +40,16 @@ export const getGrantOrLegacyCredsFromToken = async token => {
       const legacyCredentials = await getCredentialsForLegacyToken(token);
 
       const { sub, iss } = legacyCredentials;
-      const username = sub ? sub : 'unknown';
-      const source = iss ? iss : 'unknown';
+      const username = sub || 'unknown';
+      const source = iss || 'unknown';
       userActivityLogger.user_auth(
         `Authentication granted for '${username}' from '${source}'`,
-        { user: legacyCredentials }
+        { user: legacyCredentials },
       );
 
       return {
         grant: null,
-        legacyCredentials
+        legacyCredentials,
       };
     } catch (e) {
       throw new AuthenticationError(`Legacy token invalid: ${e.message}`);
@@ -63,27 +62,27 @@ export const getGrantOrLegacyCredsFromToken = async token => {
         const {
           azp: source,
           preferred_username,
-          email
+          email,
         } = grant.access_token.content;
-        const username = preferred_username ? preferred_username : 'unknown';
+        const username = preferred_username || 'unknown';
 
         userActivityLogger.user_auth(
           `Authentication granted for '${username} (${
-            email ? email : 'unknown'
+            email || 'unknown'
           })' from '${source}'`,
-          { user: grant ? grant.access_token.content : null }
+          { user: grant ? grant.access_token.content : null },
         );
       }
 
       return {
         grant,
-        legacyCredentials: null
+        legacyCredentials: null,
       };
     } catch (e) {
       throw new AuthenticationError(`Keycloak token invalid: ${e.message}`);
     }
   } else {
-    throw new AuthenticationError(`Bearer token unrecognized`);
+    throw new AuthenticationError('Bearer token unrecognized');
   }
 };
 
@@ -96,38 +95,38 @@ async function initCheck() {
   // Fixes schema creation to allow undefined in resolve
   schema = makeExecutableSchema({
     typeDefs,
-    resolvers: resolvers,
+    resolvers,
     allowUndefinedInResolve: true,
     resolverValidationOptions: {
       requireResolversForArgs: false,
       requireResolversForNonScalar: false,
       requireResolversForAllFields: false,
-    }
+    },
   });
 
   apolloServer = new ApolloServer({
-    schema: schema,
+    schema,
     debug: getConfigFromEnv('NODE_ENV') === 'development',
     introspection: true,
     csrfPrevention: {
-      requestHeaders: ['x-apollo-operation-name', 'apollo-require-preflight', 'content-type']
+      requestHeaders: ['x-apollo-operation-name', 'apollo-require-preflight', 'content-type'],
     },
     cache: 'bounded',
     parseOptions: {
-      maxTokens: 50000
+      maxTokens: 50000,
     },
     context: async ({ req, connection }) => {
       // Websocket requests
       if (connection) {
         // onConnect must always provide connection.context.
         return {
-          ...connection.context
+          ...connection.context,
         };
       }
 
       // HTTP requests
       if (!connection) {
-      const keycloakAdminClient = await getKeycloakAdminClient();
+        const keycloakAdminClient = await getKeycloakAdminClient();
 
         const modelClients = {
           sqlClientPool,
@@ -139,38 +138,38 @@ async function initCheck() {
         let serviceAccount = {};
         // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
         // legacy accounts don't do this
-        let keycloakUsersGroups = []
-        let groupRoleProjectIds = []
-        const keycloakGrant = req.kauth ? req.kauth.grant : null
-        let legacyGrant = req.legacyCredentials ? req.legacyCredentials : null
-        let platformOwner = false
-        let platformViewer = false
+        let keycloakUsersGroups = [];
+        let groupRoleProjectIds = [];
+        const keycloakGrant = req.kauth ? req.kauth.grant : null;
+        const legacyGrant = req.legacyCredentials ? req.legacyCredentials : null;
+        let platformOwner = false;
+        let platformViewer = false;
         if (keycloakGrant) {
           // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
           try {
             keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
             serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
             currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
-            const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
+            const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({ id: currentUser.id });
             for (const role of userRoleMapping) {
-              if (role.name == "platform-owner") {
-                platformOwner = true
+              if (role.name === 'platform-owner') {
+                platformOwner = true;
               }
-              if (role.name == "platform-viewer") {
-                platformViewer = true
+              if (role.name === 'platform-viewer') {
+                platformViewer = true;
               }
             }
             // grab the users project ids and roles in the first request
             groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
             await User.User(modelClients).userLastAccessed(currentUser);
           } catch (e) {
-            logger.error('Error loading user details', e.message );
+            logger.error('Error loading user details', e.message);
           }
         }
         if (legacyGrant) {
           const { role } = legacyGrant;
-          if (role == 'admin') {
-            platformOwner = true
+          if (role === 'admin') {
+            platformOwner = true;
           }
         }
 
@@ -180,8 +179,8 @@ async function initCheck() {
         // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
         // this eliminates a huge number of these by making it available in the apollo context
         const hasPermission = req.kauth
-            ? keycloakHasPermission(req.kauth.grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
-            : legacyHasPermission(req.legacyCredentials)
+          ? keycloakHasPermission(req.kauth.grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
+          : legacyHasPermission(req.legacyCredentials);
 
         return {
           keycloakAdminClient,
@@ -190,41 +189,41 @@ async function initCheck() {
           keycloakGrant,
           legacyGrant,
           userActivityLogger: (message, meta) => {
-            let defaultMeta = {
+            const defaultMeta = {
               user: req.kauth
                 ? req.kauth.grant
                 : req.legacyCredentials
-                ? req.legacyCredentials
-                : null,
-              headers: req.headers
+                  ? req.legacyCredentials
+                  : null,
+              headers: req.headers,
             };
             return userActivityLogger.user_action(message, {
               ...defaultMeta,
-              ...meta
+              ...meta,
             });
           },
           models: {
             UserModel: User.User(modelClients),
             GroupModel: Group.Group(modelClients),
-            EnvironmentModel: Environment.Environment(modelClients)
+            EnvironmentModel: Environment.Environment(modelClients),
           },
           keycloakUsersGroups,
           adminScopes: {
-            platformOwner: platformOwner,
-            platformViewer: platformViewer,
+            platformOwner,
+            platformViewer,
           },
         };
       }
     },
     formatError: error => {
-      logger.error('GraphQL field error `' + error.path + '`: ' + error.message);
+      logger.error(`GraphQL field error \`${error.path}\`: ${error.message}`);
       return {
         message: error.message,
         locations: error.locations,
         path: error.path,
         ...(getConfigFromEnv('NODE_ENV') === 'development'
           ? { extensions: error.extensions }
-          : {})
+          : {}),
       };
     },
     plugins: [
@@ -235,22 +234,21 @@ async function initCheck() {
           const queryString = R.prop('query', request);
           const variables = R.prop('variables', request);
 
-        const queryObject = gqlParse(queryString);
-        const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
-          (init, q, idx) =>
-            idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
-          ''
-        );
+          const queryObject = gqlParse(queryString);
+          const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
+            (init, q, idx) => idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
+            '',
+          );
 
-        // operationName is set by the client and optional. rootFieldName is
-        // set by the API type defs.
-        // operationName would be "getLagoonDemoProjectId" and rootFieldName
-        // would be "getProjectByName" with a query like:
-        // query getLagoonDemoProjectId { getProjectByName(name: "lagoon-demo") { id } }
-              const transactionName = operationName ? operationName : rootFieldName;
-              newrelic.setTransactionName(`graphql (${transactionName})`);
-              newrelic.addCustomAttribute('gqlQuery', queryString);
-              newrelic.addCustomAttribute('gqlVars', JSON.stringify(variables));
+          // operationName is set by the client and optional. rootFieldName is
+          // set by the API type defs.
+          // operationName would be "getLagoonDemoProjectId" and rootFieldName
+          // would be "getProjectByName" with a query like:
+          // query getLagoonDemoProjectId { getProjectByName(name: "lagoon-demo") { id } }
+          const transactionName = operationName || rootFieldName;
+          newrelic.setTransactionName(`graphql (${transactionName})`);
+          newrelic.addCustomAttribute('gqlQuery', queryString);
+          newrelic.addCustomAttribute('gqlVars', JSON.stringify(variables));
 
           return {
             willSendResponse: data => {
@@ -259,14 +257,14 @@ async function initCheck() {
                 'errorCount',
                 R.pipe(
                   R.propOr([], 'errors'),
-                  R.length
-                )(response)
+                  R.length,
+                )(response),
               );
-            }
+            },
           };
-        }
-      }
-    ]
+        },
+      },
+    ],
   });
 }
 
