@@ -651,7 +651,7 @@ const typeDefs = gql`
   type ProjectCloneDestination {
     name: String
     tasks: [Task]
-      deployments: [Deployment]
+    deployments: [Deployment]
   }
 
   """
