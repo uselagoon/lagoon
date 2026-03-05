@@ -2,4 +2,5 @@
 
 exports[`Sql selectEnvironment should create a proper query 1`] = `"select * from \`environment\` where \`id\` = 1"`;
 
-exports[`Sql updateEnvironment should create a proper query 1`] = `"update \`environment\` set \`project\` = 1 where \`id\` = 1"`;
+exports[`Sql updateEnvironment should create a proper query 1`] = `"update \`environment\` set \`project\` = 1, \`updated\` = CURRENT_TIMESTAMP where \`id\` = 1"`;
+

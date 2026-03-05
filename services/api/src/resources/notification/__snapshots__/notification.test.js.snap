@@ -9,10 +9,10 @@ exports[`Sql deleteProjectNotification should create a proper query 1`] = `
       AND nt.name = 'some_slack'"
 `;
 
-exports[`Sql selectAssignedProjectNotificationByName should create proper statement 1`] = `"select \`nt\`.*, \`pn\`.*, 'slack' as type from \`project_notification\` as \`pn\` JOIN notification_slack AS nt ON pn.nid = nt.id AND pn.type = 'slack' where \`nt\`.\`name\` = 'slack_foo'"`;
+exports[`Sql selectAssignedProjectNotificationByName should create proper statement 1`] = `"select \`nt\`.*, \`pn\`.*, 'slack' as orig_type from \`project_notification\` as \`pn\` JOIN notification_slack AS nt ON pn.nid = nt.id AND pn.type = 'slack' and pn.content_type = 'deployment' where \`nt\`.\`name\` = 'slack_foo'"`;
 
 exports[`Sql selectCustomer should create a proper query 1`] = `"select * from \`notification_slack\` where \`name\` = 'n1'"`;
 
-exports[`Sql selectNotificationsByTypeByProjectId should create a proper query 1`] = `"select \`nt\`.*, \`pn\`.\`type\` from \`project_notification\` as \`pn\` JOIN notification_slack AS nt ON pn.nid = nt.id AND pn.type = 'slack' where \`pn\`.\`pid\` = 3"`;
+exports[`Sql selectNotificationsByTypeByProjectId should create a proper query 1`] = `"select \`nt\`.*, \`pn\`.\`type\`, \`pn\`.\`content_type\` as \`content_type\`, \`pn\`.\`notification_severity_threshold\` as \`notification_severity_threshold\` from \`project_notification\` as \`pn\` JOIN notification_slack AS nt ON pn.nid = nt.id AND pn.type = 'slack' AND pn.content_type = 'deployment' where \`pn\`.\`pid\` = 3 and \`pn\`.\`notification_severity_threshold\` >= 0"`;
 
-exports[`Sql updateNotificationSlack should create a proper query 1`] = `"update \`notification_email\` set \`name\` = 'test', \`webhook\` = 'new-webhook' where \`name\` = 'n1'"`;
+exports[`Sql updateNotificationSlack should create a proper query 1`] = `"update \`notification_slack\` set \`name\` = 'test', \`webhook\` = 'new-webhook' where \`name\` = 'n1'"`;
