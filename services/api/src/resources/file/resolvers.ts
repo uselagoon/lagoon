@@ -3,6 +3,7 @@ import { ResolverFn } from '../';
 import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql as taskSql } from '../task/sql';
+import { Sql as projectSql } from '../project/sql';
 import { s3Config } from '../../util/config';
 import { AuditLog } from '../audit/types';
 import { AuditType } from '@lagoon/commons/dist/types';
@@ -246,10 +247,19 @@ export const getProjectCloneFileUploadForm: ResolverFn = async (
   { input: { cloneId, filename } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // TODO: check permissions for project clone file upload
+  // check permissions for project clone file upload
   // the source project is likely the only one that will be uploading files, so the permission check
   // needs to ensure that the user uploading has permission on that project
   // this will generally be the `default-user` of the project calling this when the task to "archive" is run
+  const rows = await query(sqlClientPool, projectSql.selectProjectClone(cloneId));
+  if (rows.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "upload" on "projectclone"`
+    );
+  }
+  await hasPermission('project', 'update', { // TODO: adjust later
+    project: rows[0].sourceProject
+  });
 
   const s3_key = `projectclone/${cloneId}/${filename}`;
   const signedurl = await generatePresignedPostUrl(s3_key)
@@ -274,10 +284,19 @@ export const getDownloadLinkByProjectCloneFileId: ResolverFn = async (
   { cloneId, fileId },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // TODO: check permissions for project clone file download
+  // check permissions for project clone file download
   // the destination project is likely the only one that will be downloading files, so the permission check
   // needs to ensure that the user downloading has permission on that project
   // this will generally be the `default-user` of the project calling this when the task to "restore" a file is run
+  const rows = await query(sqlClientPool, projectSql.selectProjectClone(cloneId));
+  if (rows.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "download" on "projectclone"`
+    );
+  }
+  await hasPermission('project', 'view', { // TODO: adjust later
+    project: rows[0].destinationProject
+  });
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${cloneId}` });
   const response = await s3Client.send(command);
@@ -299,8 +318,17 @@ export const deleteFilesForProjectClone: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // TODO: check permissions for project clone file deletions
+  // check permissions for project clone file deletions
   // not sure on permission usage here, this may never be called by a user generally
+  const rows = await query(sqlClientPool, projectSql.selectProjectClone(id));
+  if (rows.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "delete" on "projectclone"`
+    );
+  }
+  await hasPermission('project', 'delete', { // TODO: adjust later
+    project: rows[0].sourceProject
+  });
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${id}` });
   const response = await s3Client.send(command);
