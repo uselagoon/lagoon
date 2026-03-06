@@ -116,10 +116,11 @@ export const Sql = {
       .where('id', id)
       .del()
       .toString(),
-  updateProjectClone: ({ id, patch }: { id: number, patch: { [key: string]: any } }) =>
+  updateProjectClone: ({ id, status }: { id: number, status: string }) =>
     knex('project_clone')
       .where('id', id)
-      .update(patch)
+      .update('status', status)
+      .update('updated', knex.fn.now())
       .toString(),
   selectTaskOrDeploymentByProjectClone: (cid: number, pid: number, type: string, project: string) =>
     knex('project_clone')

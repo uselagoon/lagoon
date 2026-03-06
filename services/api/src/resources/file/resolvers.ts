@@ -246,16 +246,10 @@ export const getProjectCloneFileUploadForm: ResolverFn = async (
   { input: { cloneId, filename } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // check permissions for project clone file upload
-  // const rowsPerms = await query(
-  //   sqlClientPool,
-  //   taskSql.selectPermsForTask(task)
-  // );
-  // const projectId = R.path(['0', 'pid'], rowsPerms);
-
-  // await hasPermission('task', 'update', {
-  //   project: projectId
-  // });
+  // TODO: check permissions for project clone file upload
+  // the source project is likely the only one that will be uploading files, so the permission check
+  // needs to ensure that the user uploading has permission on that project
+  // this will generally be the `default-user` of the project calling this when the task to "archive" is run
 
   const s3_key = `projectclone/${cloneId}/${filename}`;
   const signedurl = await generatePresignedPostUrl(s3_key)
@@ -280,12 +274,10 @@ export const getDownloadLinkByProjectCloneFileId: ResolverFn = async (
   { cloneId, fileId },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // check permissions for project clone file download
-  // const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(cloneId));
-
-  // await hasPermission('task', 'view', {
-  //   project: R.path(['0', 'pid'], rowsPerms)
-  // });
+  // TODO: check permissions for project clone file download
+  // the destination project is likely the only one that will be downloading files, so the permission check
+  // needs to ensure that the user downloading has permission on that project
+  // this will generally be the `default-user` of the project calling this when the task to "restore" a file is run
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${cloneId}` });
   const response = await s3Client.send(command);
@@ -307,12 +299,8 @@ export const deleteFilesForProjectClone: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  // check permissions for project clone file deletions
-  // const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
-
-  // await hasPermission('task', 'delete', {
-  //   project: R.path(['0', 'pid'], rowsPerms)
-  // });
+  // TODO: check permissions for project clone file deletions
+  // not sure on permission usage here, this may never be called by a user generally
 
   const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${id}` });
   const response = await s3Client.send(command);
