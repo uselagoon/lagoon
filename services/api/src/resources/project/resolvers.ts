@@ -11,6 +11,7 @@ import { Sql as deploymentSql} from '../deployment/sql';
 import { Sql as notificationsSql} from '../notification/sql'
 import * as OS from '../openshift/sql';
 import { Sql as sshKeySql } from '../sshKey/sql';
+import { Sql as envvarSql } from '../env-variables/sql'
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -38,6 +39,12 @@ export interface copyProjectGroups {
 }
 
 export interface copyProjectNotifications {
+  sqlClientPool: Pool
+  sourceProjectId: number
+  destinationProjectId: number
+}
+
+export interface copyProjectVariables {
   sqlClientPool: Pool
   sourceProjectId: number
   destinationProjectId: number
@@ -1247,7 +1254,7 @@ export const cloneProject: ResolverFn = async (
   }
 
   // TODO: copy environment variables (project / environment), groups, metadata
-  if (copyProjectGroups) {
+  if (groups) {
     let data: copyProjectGroups = {
       sqlClientPool: sqlClientPool,
       models: models,
@@ -1257,13 +1264,21 @@ export const cloneProject: ResolverFn = async (
     }
     await copyProjectGroupsFromProject(data)
   }
-  if (copyProjectNotifications) {
+  if (notifications) {
     let data: copyProjectNotifications = {
       sqlClientPool: sqlClientPool,
       sourceProjectId: sourceProject.id,
       destinationProjectId: project.id,
     }
     await copyProjectNotificationsFromProject(data)
+  }
+  if (projectVariables) {
+    let data: copyProjectVariables = {
+      sqlClientPool: sqlClientPool,
+      sourceProjectId: sourceProject.id,
+      destinationProjectId: project.id,
+    }
+    await copyProjectVariablesFromProject(data)
   }
   // TODO: create lagoon-sync advanced task in source environment (archive)
   // ???
@@ -1472,6 +1487,36 @@ export const copyProjectVariables: ResolverFn = async (
 ) => {
   // organization only, or anyone with project update on both projects?
   // TODO: check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', {
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', {
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectVariables = {
+    sqlClientPool: sqlClientPool,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+  }
+  await copyProjectVariablesFromProject(data)
+};
+
+async function copyProjectVariablesFromProject(input: copyProjectVariables) {
+  const sourceVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.sourceProjectId).toString());
+  const destinationVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.destinationProjectId).toString());
+  for (const item of sourceVariables) {
+    const exists = destinationVariables.some(d => d.name === item.name && d.value === item.value && d.scope === item.scope);
+    if (!exists) {
+      delete(item.id)
+      item.project = input.destinationProjectId
+      await query(
+        input.sqlClientPool,
+        envvarSql.insertEnvVariable(item)
+      );
+    }
+  }
 };
 
 
