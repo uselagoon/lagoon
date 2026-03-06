@@ -50,6 +50,12 @@ export interface copyProjectVariables {
   destinationProjectId: number
 }
 
+export interface copyEnvironmentVariables {
+  sqlClientPool: Pool
+  sourceEnvironmentId: number
+  destinationEnvironmentId: number
+}
+
 const isValidGitUrl = value => {
   try {
     GitUrlParse(value)
@@ -1280,7 +1286,17 @@ export const cloneProject: ResolverFn = async (
     }
     await copyProjectVariablesFromProject(data)
   }
-  // TODO: create lagoon-sync advanced task in source environment (archive)
+  if (environmentVariables) {
+    let data: copyEnvironmentVariables = {
+      sqlClientPool: sqlClientPool,
+      sourceEnvironmentId: environmentData.id,
+      destinationEnvironmentId: destinationEnvironmentData.id
+    }
+    await copyEnvironmentVariablesFromProject(data)
+  }
+  if (copyData) {
+    // TODO: create lagoon-sync advanced task in source environment (archive)
+  }
   // ???
   // TODO: profit
   return project;
@@ -1363,13 +1379,13 @@ export const copyProjectGroups: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   // organization only, or anyone with project update on both projects?
-  // TODO: check permission on both projects is required
+  // check permission on both projects is required
   const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
   const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: sourceProjectData[0].id
   });
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: destinationProjectData[0].id
   });
   let data: copyProjectGroups = {
@@ -1426,13 +1442,13 @@ export const copyProjectNotifications: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   // organization only, or anyone with project update on both projects?
-  // TODO: check permission on both projects is required
+  // check permission on both projects is required
   const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
   const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: sourceProjectData[0].id
   });
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: destinationProjectData[0].id
   });
   let data: copyProjectNotifications = {
@@ -1486,13 +1502,13 @@ export const copyProjectVariables: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   // organization only, or anyone with project update on both projects?
-  // TODO: check permission on both projects is required
+  // check permission on both projects is required
   const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
   const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: sourceProjectData[0].id
   });
-  await hasPermission('project', 'update', {
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
     project: destinationProjectData[0].id
   });
   let data: copyProjectVariables = {
@@ -1507,6 +1523,8 @@ async function copyProjectVariablesFromProject(input: copyProjectVariables) {
   const sourceVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.sourceProjectId).toString());
   const destinationVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.destinationProjectId).toString());
   for (const item of sourceVariables) {
+    // this may need some adjusting for better error handling if the destination has variables with the same name with different scopes
+    // but for fresh destinations, this works fine
     const exists = destinationVariables.some(d => d.name === item.name && d.value === item.value && d.scope === item.scope);
     if (!exists) {
       delete(item.id)
@@ -1518,7 +1536,6 @@ async function copyProjectVariablesFromProject(input: copyProjectVariables) {
     }
   }
 };
-
 
 /*
   copyEnvironmentVariables copies environment scoped variables in one environment in a project, to another environment in the same project, or a different project
@@ -1532,7 +1549,53 @@ export const copyEnvironmentVariables: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   // organization only, or anyone with project update on both projects?
-  // TODO: check permission on both projects/environments is required
+  // check permission on both projects/environments is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between environments outside of cloning?
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between environments outside of cloning?
+    project: destinationProjectData[0].id
+  });
+  const sourceEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironment, sourceProjectData[0].id)
+  const sourceEnvData = sourceEnv[0]
+  if (!sourceEnvData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+  const destEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(destinationEnvironment, destinationProjectData[0].id)
+  const destEnvData = destEnv[0]
+  if (!destEnvData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+  let data: copyEnvironmentVariables = {
+    sqlClientPool: sqlClientPool,
+    sourceEnvironmentId: sourceEnvData.id,
+    destinationEnvironmentId: destEnvData.id,
+  }
+  await copyEnvironmentVariablesFromProject(data)
+};
+
+async function copyEnvironmentVariablesFromProject(input: copyEnvironmentVariables) {
+  const sourceVariables = await query(input.sqlClientPool, knex('env_vars').where('environment', input.sourceEnvironmentId).toString());
+  const destinationVariables = await query(input.sqlClientPool, knex('env_vars').where('environment', input.destinationEnvironmentId).toString());
+  for (const item of sourceVariables) {
+    // this may need some adjusting for better error handling if the destination has variables with the same name with different scopes
+    // but for fresh destinations, this works fine
+    const exists = destinationVariables.some(d => d.name === item.name && d.value === item.value && d.scope === item.scope);
+    if (!exists) {
+      delete(item.id)
+      item.environment = input.destinationEnvironmentId
+      await query(
+        input.sqlClientPool,
+        envvarSql.insertEnvVariable(item)
+      );
+    }
+  }
 };
 
 /*
