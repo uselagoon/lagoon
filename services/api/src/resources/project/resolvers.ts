@@ -1264,7 +1264,7 @@ export const cloneProject: ResolverFn = async (
     let data: copyProjectGroups = {
       sqlClientPool: sqlClientPool,
       models: models,
-      sourceProjectId: sourceProject.id,
+      sourceProjectId: pid,
       destinationProjectId: project.id,
       defaultGroupUsers: false
     }
@@ -1273,7 +1273,7 @@ export const cloneProject: ResolverFn = async (
   if (notifications) {
     let data: copyProjectNotifications = {
       sqlClientPool: sqlClientPool,
-      sourceProjectId: sourceProject.id,
+      sourceProjectId: pid,
       destinationProjectId: project.id,
     }
     await copyProjectNotificationsFromProject(data)
@@ -1281,7 +1281,7 @@ export const cloneProject: ResolverFn = async (
   if (projectVariables) {
     let data: copyProjectVariables = {
       sqlClientPool: sqlClientPool,
-      sourceProjectId: sourceProject.id,
+      sourceProjectId: pid,
       destinationProjectId: project.id,
     }
     await copyProjectVariablesFromProject(data)
