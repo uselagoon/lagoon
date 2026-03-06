@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
 import { Sql as deploymentSql} from '../deployment/sql';
+import { Sql as notificationsSql} from '../notification/sql'
 import * as OS from '../openshift/sql';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { Helpers as organizationHelpers } from '../organization/helpers';
@@ -23,8 +24,24 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { deployBranch } from '../deployment/resolvers';
+import { Pool } from 'mariadb';
+import type { Models } from '../../models/user';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
+
+export interface copyProjectGroups {
+  sqlClientPool: Pool
+  models: Models
+  sourceProjectId: number
+  destinationProjectId: number
+  defaultGroupUsers: boolean
+}
+
+export interface copyProjectNotifications {
+  sqlClientPool: Pool
+  sourceProjectId: number
+  destinationProjectId: number
+}
 
 const isValidGitUrl = value => {
   try {
@@ -1230,6 +1247,24 @@ export const cloneProject: ResolverFn = async (
   }
 
   // TODO: copy environment variables (project / environment), groups, metadata
+  if (copyProjectGroups) {
+    let data: copyProjectGroups = {
+      sqlClientPool: sqlClientPool,
+      models: models,
+      sourceProjectId: sourceProject.id,
+      destinationProjectId: project.id,
+      defaultGroupUsers: false
+    }
+    await copyProjectGroupsFromProject(data)
+  }
+  if (copyProjectNotifications) {
+    let data: copyProjectNotifications = {
+      sqlClientPool: sqlClientPool,
+      sourceProjectId: sourceProject.id,
+      destinationProjectId: project.id,
+    }
+    await copyProjectNotificationsFromProject(data)
+  }
   // TODO: create lagoon-sync advanced task in source environment (archive)
   // ???
   // TODO: profit
@@ -1314,6 +1349,54 @@ export const copyProjectGroups: ResolverFn = async (
 ) => {
   // organization only, or anyone with project update on both projects?
   // TODO: check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', {
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', {
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectGroups = {
+    sqlClientPool: sqlClientPool,
+    models: models,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+    defaultGroupUsers: false
+  }
+  await copyProjectGroupsFromProject(data)
+};
+
+async function copyProjectGroupsFromProject(input: copyProjectGroups) {
+  const sourceProjectGroups = await groupHelpers(input.sqlClientPool).selectGroupsByProjectId(input.models, input.sourceProjectId)
+  const destinationProjectGroups = await groupHelpers(input.sqlClientPool).selectGroupsByProjectId(input.models, input.destinationProjectId)
+  const destinationDefaultGroupIdx = destinationProjectGroups.findIndex(el => el.type === "project-default-group")
+  for (const pGroup in sourceProjectGroups) {
+    if (sourceProjectGroups[pGroup].type == "project-default-group") {
+      if (input.defaultGroupUsers) {
+        // add project users to destination project group
+        const group = await input.models.GroupModel.loadGroupById(sourceProjectGroups[pGroup].id);
+        const destinationGroup = await input.models.GroupModel.loadGroupById(destinationProjectGroups[destinationDefaultGroupIdx].id);
+        const defaultGroupMembers = await input.models.GroupModel.getGroupMembership(group);
+        const destinationDefaultGroupMembers = await input.models.GroupModel.getGroupMembership(destinationGroup);
+        for (const user of defaultGroupMembers) {
+          if (!user.user.email.startsWith('default-user@')) {
+            // if user doesn't exist in the project-default group already, don't add them
+            if (destinationDefaultGroupMembers.findIndex(el => el.user.email === user.user.email) == -1) {
+              const kcUser = await input.models.UserModel.loadUserById(user.user.id);
+              await input.models.GroupModel.addUserToGroup(kcUser, destinationGroup, user.role);
+            }
+          }
+        }
+      }
+    } else {
+      // add group to destination project if it doesn't already exist on the destination project
+      if (destinationProjectGroups.findIndex(el => el.name === sourceProjectGroups[pGroup].name) == -1) {
+        const group = await input.models.GroupModel.loadGroupById(sourceProjectGroups[pGroup].id);
+        await input.models.GroupModel.addProjectToGroup(input.destinationProjectId, group);
+      }
+    }
+  }
 };
 
 /*
@@ -1329,8 +1412,36 @@ export const copyProjectNotifications: ResolverFn = async (
 ) => {
   // organization only, or anyone with project update on both projects?
   // TODO: check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', {
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', {
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectNotifications = {
+    sqlClientPool: sqlClientPool,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+  }
+  await copyProjectNotificationsFromProject(data)
 };
 
+async function copyProjectNotificationsFromProject(input: copyProjectNotifications) {
+  const sourceNotifications = await query(input.sqlClientPool, knex('project_notification').where('pid', input.sourceProjectId).toString());
+  const destinationNotifications = await query(input.sqlClientPool, knex('project_notification').where('pid', input.destinationProjectId).toString());
+  for (const item of sourceNotifications) {
+    const exists = destinationNotifications.some(d => d.nid === item.nid && d.type === item.type);
+    if (!exists) {
+      item.pid = input.destinationProjectId
+      await query(
+        input.sqlClientPool,
+        notificationsSql.createProjectNotification({...item, notificationType: item.type})
+      );
+    }
+  }
+};
 
 /*
   copyProjectMetadata will copy the project metadata from one project to another
