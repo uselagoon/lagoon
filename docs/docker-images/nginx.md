@@ -59,9 +59,9 @@ variables](../concepts-advanced/environment-variables.md) are set.
 Some options are configurable via [environment
 variables](../concepts-advanced/environment-variables.md).
 
-| Environment Variable | Default    | Description |
-| :------------------- | :--------- | :--- |
+| Environment Variable | Default    | Description                                                                                                                                                    |
+|:---------------------|:-----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | BASIC_AUTH           | restricted | Set to `off` to disable basic authentication.                                                                                                                  |
 | BASIC_AUTH_USERNAME  | (not set)  | Username for basic authentication.                                                                                                                             |
 | BASIC_AUTH_PASSWORD  | (not set)  | Password for basic authentication (unencrypted).                                                                                                               |
-| FAST_HEALTH_CHECK    | (not set)  | Set to `true` to redirect GET requests from certain user agents (StatusCake, Pingdom, Site25x7, Uptime, nagios) to the lightweight Lagoon service healthcheck. |
+| FAST_HEALTH_CHECK    | (not set)  | Set to `true` to redirect GET requests from certain user agents (StatusCake, Pingdom, Site24x7, Uptime, nagios) to the lightweight Lagoon service healthcheck. |
