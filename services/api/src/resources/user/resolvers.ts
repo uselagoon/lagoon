@@ -121,8 +121,9 @@ export const getAllUsers: ResolverFn = async (
 // query to get all users, with some inputs to limit the search to specific email, id, or gitlabId
 export const getUserByEmail: ResolverFn = async (
   _root,
-  { email },
+  { email},
   { sqlClientPool, models, hasPermission, keycloakGrant, adminScopes },
+  info
 ) => {
 
   let user = await models.UserModel.loadUserByEmail(email);
@@ -138,7 +139,8 @@ export const getUserByEmail: ResolverFn = async (
     await hasPermission('user', 'viewAll');
   }
 
-  if (adminScopes.platformOwner || adminScopes.platformViewer) {
+  const platformRoleRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "platformRoles");
+  if ( platformRoleRequested && (adminScopes.platformOwner || adminScopes.platformViewer)) {
     user = await models.UserModel.enrichUserWithPlatformRoles(user);
   }
 

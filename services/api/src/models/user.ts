@@ -364,11 +364,13 @@ export const User = (clients: {
   };
 
   const enrichUserWithPlatformRoles = async (user: User): Promise<User> => {
-      const roleMappings = await keycloakAdminClient.users.listRealmRoleMappings({ id: user.id });
+      const roleMappings = await keycloakAdminClient.users.listRealmRoleMappings({
+        id: user.id
+      });
       const validRoles = new Set(Object.values(PlatformRole));
       const platformRoles = roleMappings
-      .map(r => r.name)
-      .filter(name => validRoles.has(name)) as [string];
+        .map(r => r.name)
+        .filter((name): name is PlatformRole => validRoles.has(name as PlatformRole));
 
       return { ...user, platformRoles };
   };
