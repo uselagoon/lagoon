@@ -1,0 +1,24 @@
+# https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md
+allow-licenses:
+# default allowed
+- 'Apache-2.0'
+# explicit CNCF allowlist
+- '0BSD'
+- 'BSD-2-Clause'
+- 'BSD-2-Clause-FreeBSD'
+- 'BSD-3-Clause'
+- 'ISC'
+- 'MIT'
+- 'MIT-0'
+- 'OpenSSL'
+- 'OpenSSL-standalone'
+- 'PSF-2.0'
+- 'PostgreSQL'
+- 'Python-2.0'
+- 'Python-2.0.1'
+- 'SSLeay-standalone'
+- 'UPL-1.0'
+- 'X11'
+- 'Zlib'
+# Google's patent licence for Go
+- 'LicenseRef-scancode-google-patent-license-golang'
