@@ -18,15 +18,16 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType, DeploymentSourceType, DeployType } from '@lagoon/commons/dist/types';
+import { AuditType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { deployBranch } from '../deployment/resolvers';
 import { Pool } from 'mariadb';
 import type { Models } from '../../models/user';
+import { addTask } from '@lagoon/commons/dist/api';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -64,6 +65,8 @@ const isValidGitUrl = value => {
     return false
   }
 }
+
+const convertDateFormat = R.init;
 
 export const getPrivateKey: ResolverFn = async (
   project,
@@ -1294,8 +1297,37 @@ export const cloneProject: ResolverFn = async (
     }
     await copyEnvironmentVariablesFromProject(data)
   }
-  if (copyData) {
-    // TODO: create lagoon-sync advanced task in source environment (archive)
+    if (copyData) {
+    const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+    var date = new Date();
+    var created = convertDateFormat(date.toISOString());
+    const sourceTaskData = await addTask('Project Clone Archive', TaskStatusType.NEW, created, environmentData.id, null, null, null, null, '', '', false, sourceUser, TaskSourceType.API);
+
+    const data = {
+      project: {
+        id: sourceProject.id,
+        name: sourceProject.name,
+      },
+      environment: {
+        id: environmentData.id,
+        name: environmentData.name,
+        openshiftProjectName: environmentData.openshiftProjectName
+      },
+      // TODO: Need to determine if we sync all db/files or the user can define what gets copied to the clone.
+      task: {
+        id: '0',
+        name: 'Project Clone Archive'
+      },
+      cloneId: insertId.toString()
+    };
+
+    data.task.id = sourceTaskData.addTask.id.toString()
+
+    // Task reference is added to ProjectClone source tasks\
+    await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: sourceProject.id, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
+
+    // TODO: create lagoon-sync advanced task in source environment (archive) - pending lagoon-sync archive creation
+    await createMiscTask({ key: 'task:projectclone', data });
   }
   // ???
   // TODO: profit
@@ -1327,7 +1359,10 @@ export const updateProjectClone: ResolverFn = async (
         project: '',
         event: 'api:updateProjectClone',
         payload: {
-          data: id,
+          projectCloneDetails: {
+            id: id,
+            status: status,
+          }
         }
       });
     }

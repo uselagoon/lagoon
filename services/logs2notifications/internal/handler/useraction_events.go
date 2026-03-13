@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,10 +18,16 @@ type handleUserActionUser struct {
 type handleUserActionPayload struct {
 	Meta struct {
 		Payload struct {
-			User                   handleUserActionUser    `json:"user"`
-			UserActionEmailDetails *UseractionEmailDetails `json:"userActionEmailDetails,omitempty"`
+			User                   handleUserActionUser           `json:"user"`
+			UserActionEmailDetails *UseractionEmailDetails        `json:"userActionEmailDetails,omitempty"`
+			ProjectCloneDetails    *UserActionProjectCloneDetails `json:"projectCloneDetails,omitempty"`
 		} `json:"payload"`
 	} `json:"meta"`
+}
+
+type UserActionProjectCloneDetails struct {
+	Status  string `json:"status,omitempty"`
+	CloneId string `json:"id,omitempty"`
 }
 
 // These are the basic details that should be piped to the email template
@@ -289,3 +296,51 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 	}
 	return nil
 }
+
+func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []byte) error {
+	var payload handleUserActionPayload
+	if err := json.Unmarshal(rawPayload, &payload); err != nil {
+		return err
+	}
+
+	projectCloneDetails := payload.Meta.Payload.ProjectCloneDetails
+	if projectCloneDetails == nil {
+		return fmt.Errorf("project clone details missing from payload for api:updateProjectClone event")
+	}
+
+	switch projectCloneDetails.Status {
+	case "SOURCE_FILES_UPLOADED":
+		// TODO: Add task reference to destination tasks - need machinery update to support this
+		// addTaskOrDeploymentToProjectClone(projectCloneDetails.CloneId, "destination", "task")
+
+		// TODO: Trigger task to restore source files in the destination environment
+
+	case "SOURCE_FILES_APPLIED":
+		// TODO: Trigger deployment in the destination env
+		// TODO: Add deployment reference to destination env
+		// TODO: If deployment successful, update clone status to COMPLETE
+	default:
+		break
+	}
+
+	return nil
+}
+
+// TODO: Placeholder pending machinery updates to support this
+
+// func (h *Messaging) addTaskOrDeploymentToProjectClone(ctx context.Context, cloneId, project, taskID string) error {
+// 	token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
+// 	if err != nil {
+// 		if h.EnableDebug {
+// 			log.Println(err)
+// 		}
+// 		return err
+// 	}
+// 	l := lclient.New(h.LagoonAPI.Endpoint, "actions-handler", h.LagoonAPI.Version, &token, false)
+// 	err = lagoon.AddTaskOrDeploymentToProjectClone(ctx, cloneId, project, taskID, "destination", "task", l)
+// 	if err != nil {
+// 		log.Println(err)
+// 		return err
+// 	}
+// 	return nil
+// }
