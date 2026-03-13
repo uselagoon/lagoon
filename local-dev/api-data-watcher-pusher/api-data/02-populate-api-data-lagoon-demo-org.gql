@@ -133,6 +133,7 @@ mutation PopulateApi {
       id: 5
       name: "ui-kubernetes-2"
       consoleUrl: "https://localhost:8443/"
+      routerPattern: "${project}.${environment}.ui-2.example.com"
     }
   ) {
     id

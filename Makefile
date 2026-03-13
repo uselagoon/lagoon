@@ -210,8 +210,7 @@ services :=	api \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
-			webhook-handler \
-			webhooks2tasks
+			webhook-handler
 
 service-images += $(services)
 
@@ -225,7 +224,7 @@ $(build-services):
 	$(call scan_image,$(image),)
 
 # Dependencies of Service Images
-build/auth-server build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/webhook-handler build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/$(DATABASE_DOCKERFILE)
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
@@ -320,7 +319,7 @@ compose/configure-webauthn:
 main-test-services = actions-handler broker api-sidecar-handler logs2notifications api api-db api-redis api-sidecar-handler keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
-webhooks-test-services = webhook-handler webhooks2tasks backup-handler
+webhooks-test-services = webhook-handler backup-handler
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -462,7 +461,7 @@ compose-api-logs-development:
 ## CI targets
 
 KUBECTL_VERSION := v1.31.0
-HELM_VERSION := v3.16.1
+HELM_VERSION := v3.19.4
 K3D_VERSION = v5.7.4
 GOJQ_VERSION = v0.12.16
 JWT_VERSION = 6.2.0
@@ -470,7 +469,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = webhook-handler
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby
@@ -685,6 +684,7 @@ ifneq ($(GO_VERSION), $(shell ./local-dev/go/bin/go version 2>/dev/null | sed -n
 	TMPDIR=$$(mktemp -d) \
 		&& curl -sSLo $$TMPDIR/go.tar.gz https://go.dev/dl/go$(GO_VERSION).$(ARCH)-amd64.tar.gz \
 		&& (cd $$TMPDIR && tar -xz --strip-components=1 -f go.tar.gz) && cp -r $$TMPDIR/. ./local-dev/go && rm -rf $$TMPDIR
+	touch local-dev/go/go.mod
 endif
 endif
 
@@ -746,7 +746,7 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/webhook-handler services/actions-handler taskimages/activestandby
 .PHONY: go/test
 go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
@@ -759,7 +759,7 @@ go/test: local-dev/go
 		&& cd ../..; \
 	done
 
-K3D_SERVICES = api api-db api-redis auth-server backup-handler actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests $(TASK_IMAGES)
+K3D_SERVICES = api api-db api-redis auth-server backup-handler actions-handler broker api-sidecar-handler keycloak keycloak-db logs2notifications webhook-handler local-api-data-watcher-pusher local-git ssh tests $(TASK_IMAGES)
 K3D_TESTS = local-api-data-watcher-pusher local-git tests
 K3D_TOOLS = k3d helm kubectl jq stern
 
@@ -767,7 +767,7 @@ K3D_TOOLS = k3d helm kubectl jq stern
 .PHONY: k3d/test
 k3d/test: k3d/setup k3d/install-lagoon k3d/retest
 
-LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server actions-handler api-sidecar-handler logs2notifications webhook-handler
 
 # install lagoon dependencies in a k3d cluster
 .PHONY: k3d/setup
