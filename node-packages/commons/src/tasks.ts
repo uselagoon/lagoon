@@ -1361,6 +1361,21 @@ export const createMiscTask = async function(taskData: any) {
       // environment service is used to handle stop, start, or restarting of a service in an environment
       miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.lagoonService)
       break;
+    case 'deploytarget:task:projectclone':
+      var jsonPayload: any = {
+        projectName: taskData.data.project.name,
+        sourceEnvironment: taskData.data.environment.name,
+        cloneId: taskData.data.cloneId
+      }
+      miscTaskData.advancedTask.JSONPayload = encodeJSONBase64(jsonPayload);
+      let cloneTaskImage = ""
+      if (CI == "true") {
+        cloneTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
+      } else {
+        cloneTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
+      }
+      miscTaskData.advancedTask.runnerImage = cloneTaskImage
+      break;
     default:
       miscTaskData.misc = taskData.data.build
       break;

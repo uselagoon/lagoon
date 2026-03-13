@@ -297,11 +297,18 @@ func (h *Messaging) processMessage(message []byte) {
 		}
 
 		// Here we deal explicitly with a class of 'user_action' events
-		if notification.Meta.Level == "user_action" && !h.DisableUserActionEmail && !h.DisableEmail {
-			err := h.handleUserActionToEmail(notification, message)
-			if err != nil {
-				log.Println(err)
-				break
+		// Handle project copy event updates
+		if notification.Meta.Level == "user_action" {
+			if notification.Meta.Event == "api:updateProjectClone" {
+				if err := h.handleProjectCloneUpdate(ctx, message); err != nil {
+					log.Println(err)
+					break
+				}
+			} else if !h.DisableUserActionEmail && !h.DisableEmail {
+				if err := h.handleUserActionToEmail(notification, message); err != nil {
+					log.Println(err)
+					break
+				}
 			}
 		}
 
