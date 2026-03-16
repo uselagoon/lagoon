@@ -11,9 +11,8 @@ MaxAuthTries ${MAX_AUTH_TRIES:-6}
 
 PermitRootLogin no
 
-# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
-# but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile /dev/null
+# No static authorized keys, they are all handled via AuthorizedKeysCommand
+AuthorizedKeysFile /no_authorized_keys
 
 AuthorizedKeysCommand /authorize.sh %u %f
 AuthorizedKeysCommandUser lagoon
