@@ -1305,7 +1305,7 @@ export const cloneProject: ResolverFn = async (
 
     const data = {
       project: {
-        id: sourceProject.id,
+        id: pid,
         name: sourceProject.name,
       },
       environment: {
@@ -1324,7 +1324,7 @@ export const cloneProject: ResolverFn = async (
     data.task.id = sourceTaskData.addTask.id.toString()
 
     // Task reference is added to ProjectClone source tasks\
-    await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: sourceProject.id, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
+    await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: pid, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
 
     // TODO: create lagoon-sync advanced task in source environment (archive) - pending lagoon-sync archive creation
     await createMiscTask({ key: 'task:projectclone', data });
@@ -1658,7 +1658,8 @@ export const getSourceProjectForCloneProject: ResolverFn = async (
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectProjectById(input.sourceProject));
-  return rows[0]
+  // augment source project with the clone id
+  return { ...rows[0], cloneId: input.id };
 };
 
 export const getDestinationProjectForCloneProject: ResolverFn = async (
@@ -1678,11 +1679,18 @@ async function getDeploymentsOrTasks(sqlClientPool, cloneId, projectId, project,
     .andWhere('type', type)
     .andWhere('pid', projectId)
 
-  const deploymentIdsResult = await query(sqlClientPool, cloneDeployments.toString());
-  const deploymentIds = deploymentIdsResult.map(r => r.tdid);
+  const idsResult = await query(sqlClientPool, cloneDeployments.toString());
+  const ids = idsResult.map(r => r.tdid);
 
+  if (type == "task") {
+    let queryBuilder = knex('task')
+      .whereIn('id', ids)
+      .orderBy('created', 'desc')
+      .orderBy('id', 'desc');
+    return query(sqlClientPool, queryBuilder.toString());
+  }
   let queryBuilder = knex('deployment')
-    .whereIn('id', deploymentIds)
+    .whereIn('id', ids)
     .orderBy('created', 'desc')
     .orderBy('id', 'desc');
 
@@ -1710,5 +1718,6 @@ export const getTasksBySourceProjectForCloneProjectId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  return getDeploymentsOrTasks(sqlClientPool, input.clone, input.id, 'source', 'task')
+  // use the augmented cloneId from source project
+  return getDeploymentsOrTasks(sqlClientPool, input.cloneId, input.id, 'source', 'task')
 };
