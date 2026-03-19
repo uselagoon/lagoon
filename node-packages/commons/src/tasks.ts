@@ -99,6 +99,7 @@ const CI = getConfigFromEnv('CI', 'false');
 const defaultBuildDeployImage = process.env.DEFAULT_BUILD_DEPLOY_IMAGE
 const edgeBuildDeployImage = process.env.EDGE_BUILD_DEPLOY_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
+const overwriteProjectcloneTaskImage = process.env.OVERWRITE_PROJECTCLONE_TASK_IMAGE
 const jwtSecretString = getConfigFromEnv('JWTSECRET', 'super-secret-string');
 const projectSeedString = getConfigFromEnv('PROJECTSEED', 'super-secret-string');
 
@@ -1371,6 +1372,9 @@ export const createMiscTask = async function(taskData: any) {
       let cloneTaskImage = ""
       if (CI == "true") {
         cloneTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
+      } else if (overwriteProjectcloneTaskImage) {
+        // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
+        cloneTaskImage = overwriteProjectcloneTaskImage
       } else {
         cloneTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
       }

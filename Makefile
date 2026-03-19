@@ -82,7 +82,7 @@ BETA_UI_IMAGE_TAG = main
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-359
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
@@ -181,9 +181,10 @@ build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
 
 # task-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
 build/task-activestandby: taskimages/activestandby/Dockerfile
+build/task-projectclone: taskimages/projectclone/Dockerfile
 
 # the `taskimages` are the name of the task directories contained within `taskimages/` in the repostory root
-taskimages := activestandby
+taskimages := activestandby projectclone
 # in the following process, taskimages are prepended with `task-` to make built task images more identifiable
 # use `build/task-<name>` to build it, but the references in the directory structure remain simpler with
 # taskimages/
@@ -470,10 +471,10 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = project-clone
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
-TASK_IMAGES = task-activestandby
+TASK_IMAGES = task-activestandby task-projectclone
 
 # the following can be used to install stable versions of lagoon directly from chart versions
 # rather than the bleeding edge from CHARTS_TREEISH
@@ -746,7 +747,7 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby taskimages/projectclone
 .PHONY: go/test
 go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
@@ -843,6 +844,7 @@ endif
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+		OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
 		CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
@@ -1114,6 +1116,7 @@ endif
 			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+			OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 			IMAGE_REGISTRY=$$(if [ $(USE_STABLE_TESTS) = true ]; then echo 'uselagoon'; else echo "registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"; fi) \
 			SKIP_ALL_DEPS=true \
 			CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
