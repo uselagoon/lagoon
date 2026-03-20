@@ -1348,33 +1348,36 @@ export const updateProjectClone: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
   // updating the project clone status is restricted to platform/system only, not general users
-  if (adminScopes.platformOwner) {
-    const clones = await query(sqlClientPool, Sql.selectProjectClone(id));
-    if (clones.length > 0) {
-      await query(
-        sqlClientPool,
-        Sql.updateProjectClone({id, status})
-      );
-      userActivityLogger(`User updated a project cloning status '${id}'`, {
-        project: '',
-        event: 'api:updateProjectClone',
-        payload: {
-          projectCloneDetails: {
-            id: id,
-            status: status,
-          }
-        }
-      });
-    }
-    const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
-    if (rows.length > 0) {
-      return rows[0]
-    }
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
   }
-  // no clone found for requested id, or no permission to update this status. throw error
-  throw new Error(
-    `Unauthorized: You don't have permission to "" on ""`
+
+  const result = await query(
+    sqlClientPool,
+    Sql.updateProjectClone({id, status})
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error(
+      `No project clone found for ID: ${id}`
+    );
+  }
+
+  userActivityLogger(`User updated a project cloning status '${id}'`, {
+    project: '',
+    event: 'api:updateProjectClone',
+    payload: {
+      projectCloneDetails: {
+        id: id,
+        status: status,
+      }
+    }
+  });
+
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
+  return rows[0]
 };
 
 /*
