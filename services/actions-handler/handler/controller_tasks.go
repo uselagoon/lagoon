@@ -34,7 +34,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	l := lclient.New(m.LagoonAPI.Endpoint, "actions-handler", m.LagoonAPI.Version, &token, false)
 
 	switch message.Meta.Key {
-	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby":
+	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby", "deploytarget:task:projectclone":
 		// if the result is from an active/standby task, handle updating the project here
 		switch message.Meta.JobStatus {
 		case "complete", "succeeded":
@@ -52,41 +52,80 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 				}
 				return err
 			}
-			// decode and unmarshal the result into an activestandby result
-			decodeData, _ := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
-			advTask := &schema.ActiveStandbyResult{}
-			json.Unmarshal(decodeData, advTask)
-			// then prepare the patch operation
-			updateProject := schema.UpdateProjectPatchInput{
-				ProductionEnvironment:        &advTask.ProductionEnvironment,
-				StandbyProductionEnvironment: &advTask.StandbyProductionEnvironment,
-				ProductionRoutes:             &advTask.ProductionRoutes,
-				StandbyRoutes:                &advTask.StandbyRoutes,
-			}
-			switch message.Meta.Key {
-			case "kubernetes:route:migrate", "deploytarget:route:migrate":
-				// the old task had these inverted, so this keeps that inversion in place for now
-				updateProject.ProductionEnvironment = &advTask.StandbyProductionEnvironment
-				updateProject.StandbyProductionEnvironment = &advTask.ProductionEnvironment
-			}
-			// update the project in the api
-			updatedProject, err := lagoon.UpdateProject(ctx, project.ID, updateProject, l)
+			// decode and unmarshal the result into an activestandby or project clone result
+			decodeData, err := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
 			if err != nil {
-				// send the log to the lagoon-logs exchange to be processed
-				m.toLagoonLogs(messageQueue, map[string]interface{}{
-					"severity": "error",
-					"event":    fmt.Sprintf("actions-handler:%s:failed", "updateTask"),
-					"meta":     updatedProject,
-					"message":  err.Error(),
-				})
-				if m.EnableDebug {
-					log.Printf("%sERROR: unable to update project with active/standby result: %v", prefix, err)
-				}
+				log.Printf("%sunable to decode advanced data: %v", prefix, err)
 				return err
 			}
-			// if the project has API defined routes, handle updating those here
-			updateActiveStandbyRoutes(l, message.Meta.Project, *updateProject.ProductionEnvironment, *updateProject.StandbyProductionEnvironment, prefix)
-			log.Printf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success")
+			if message.Meta.Key == "deploytarget:task:projectclone" {
+				type ProjectCloneResult struct {
+					CloneID int    `json:"id"`
+					Status  string `json:"status"`
+				}
+
+				var cloneTask ProjectCloneResult
+				err := json.Unmarshal(decodeData, &cloneTask)
+				if err != nil {
+					log.Printf("%sunable to unmarshal project clone data: %v", prefix, err)
+					return err
+				}
+
+				if cloneTask.Status == "" || cloneTask.CloneID == 0 {
+					log.Printf("%sproject clone data missing status/clone id: status=%v, cloneID=%v", prefix, cloneTask.Status, cloneTask.CloneID)
+					return fmt.Errorf("project clone data missing status/clone id")
+				}
+
+				if err := updateProjectCloneStatus(ctx, l, cloneTask.CloneID, cloneTask.Status, prefix); err != nil {
+					log.Printf("%sERROR: unable to update project clone status: %v", prefix, err)
+					return err
+				}
+
+				log.Printf("%supdated projectClone status: %v id: %v", prefix, cloneTask.Status, cloneTask.CloneID)
+				return nil
+			} else {
+				advTask := &schema.ActiveStandbyResult{}
+				err := json.Unmarshal(decodeData, advTask)
+				if err != nil {
+					log.Printf("%sunable to unmarshal active/standby data: %v", prefix, err)
+					return err
+				}
+				// then prepare the patch operation
+				updateProject := schema.UpdateProjectPatchInput{
+					ProductionEnvironment:        &advTask.ProductionEnvironment,
+					StandbyProductionEnvironment: &advTask.StandbyProductionEnvironment,
+					ProductionRoutes:             &advTask.ProductionRoutes,
+					StandbyRoutes:                &advTask.StandbyRoutes,
+				}
+				switch message.Meta.Key {
+				case "kubernetes:route:migrate", "deploytarget:route:migrate":
+					// the old task had these inverted, so this keeps that inversion in place for now
+					updateProject.ProductionEnvironment = &advTask.StandbyProductionEnvironment
+					updateProject.StandbyProductionEnvironment = &advTask.ProductionEnvironment
+				}
+				// update the project in the api
+				updatedProject, err := lagoon.UpdateProject(ctx, project.ID, updateProject, l)
+				if err != nil {
+					// send the log to the lagoon-logs exchange to be processed
+					m.toLagoonLogs(messageQueue, map[string]interface{}{
+						"severity": "error",
+						"event":    fmt.Sprintf("actions-handler:%s:failed", "updateTask"),
+						"meta":     updatedProject,
+						"message":  err.Error(),
+					})
+					if m.EnableDebug {
+						log.Printf("%sERROR: unable to update project with active/standby result: %v", prefix, err)
+					}
+					return err
+				}
+				// if the project has API defined routes, handle updating those here
+				if err := updateActiveStandbyRoutes(ctx, l, message.Meta.Project, *updateProject.ProductionEnvironment, *updateProject.StandbyProductionEnvironment, prefix); err != nil {
+					log.Printf("%sERROR: unable to update project with active/standby result: %v", prefix, err)
+					return err
+				}
+
+				log.Printf("%supdated project %s with active/standby result: %v", prefix, message.Meta.Project, "success")
+			}
 		}
 	}
 	// continue on to updating the task as normal
@@ -145,7 +184,7 @@ type Route struct {
 updateActiveStandbyRoutes will update routes in the project according to the result
 of the active/standby switch, it calls updateRouteType accordingly
 */
-func updateActiveStandbyRoutes(l *lclient.Client, project, prod, standby, prefix string) {
+func updateActiveStandbyRoutes(ctx context.Context, l *lclient.Client, project, prod, standby, prefix string) error {
 	// get routes of the project
 	raw := fmt.Sprintf(`query pbn{
 		projectByName(name:"%s"){
@@ -160,10 +199,10 @@ func updateActiveStandbyRoutes(l *lclient.Client, project, prod, standby, prefix
 			}
 		}
 	}`, project)
-	rawResp, err := l.ProcessRaw(context.TODO(), raw, nil)
+	rawResp, err := l.ProcessRaw(ctx, raw, nil)
 	if err != nil {
 		log.Printf("%sERROR: unable to update task: %v", prefix, err)
-		return
+		return fmt.Errorf("unable to update task: %v", err)
 	}
 	var p Project
 	d, _ := json.Marshal(rawResp.(map[string]interface{})["projectByName"])
@@ -171,19 +210,20 @@ func updateActiveStandbyRoutes(l *lclient.Client, project, prod, standby, prefix
 	for _, route := range p.APIRoutes {
 		// only patch routes with an environment attached
 		if route.Type == "ACTIVE" && route.Environment != nil {
-			updateRouteType(l, route, prod, project, prefix)
+			updateRouteType(ctx, l, route, prod, project, prefix)
 		}
 		if route.Type == "STANDBY" && route.Environment != nil {
-			updateRouteType(l, route, standby, project, prefix)
+			updateRouteType(ctx, l, route, standby, project, prefix)
 		}
 	}
+	return nil
 }
 
 /*
 updateRouteType will just update which environment the route is attached to
 based on the result of the active/standby task completion
 */
-func updateRouteType(l *lclient.Client, route Route, env, project, prefix string) {
+func updateRouteType(ctx context.Context, l *lclient.Client, route Route, env, project, prefix string) error {
 	raw := fmt.Sprintf(`mutation moveRoute{
 	activeStandbyRouteMove(
 		input:{
@@ -194,9 +234,28 @@ func updateRouteType(l *lclient.Client, route Route, env, project, prefix string
 			id
 		}
 	}`, route.Domain, env, project)
-	_, err := l.ProcessRaw(context.TODO(), raw, nil)
+	_, err := l.ProcessRaw(ctx, raw, nil)
 	if err != nil {
 		log.Printf("%sERROR: unable to update task: %v", prefix, err)
-		return
+		return fmt.Errorf("unable to update route type: %v", err)
 	}
+	return nil
+}
+
+// updates the projectlCloneStatus
+func updateProjectCloneStatus(ctx context.Context, l *lclient.Client, id int, status, prefix string) error {
+	raw := fmt.Sprintf(`mutation updateProjectClone{
+		updateProjectClone(input:{
+			id: "%d"
+			status: "%s"
+		}){
+			id
+		}
+	}`, id, status)
+	_, err := l.ProcessRaw(ctx, raw, nil)
+	if err != nil {
+		log.Printf("%sERROR: unable to update project clone status: %v", prefix, err)
+		return fmt.Errorf("unable to update project clone status: %v", err)
+	}
+	return nil
 }
