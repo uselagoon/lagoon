@@ -133,6 +133,13 @@ const {
   getBytesUsed,
   idleOrUnidleEnvironment,
   stopOrStartEnvironmentService,
+  getServiceVolumemountsByServiceId,
+  getServiceContainerportsByServiceId,
+  getEnvironmentVolumeByName,
+  addOrUpdateEnvironmentVolume,
+  deleteEnvironmentVolume,
+  getEnvironmentVolumesByEnvironmentId,
+  getEnvironmentVolumeSizeByName,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -595,6 +602,7 @@ async function getResolvers() {
       backups: getBackupsByEnvironmentId,
       envVariables: getEnvVarsByEnvironmentId,
       services: getEnvironmentServicesByEnvironmentId,
+      volumes: getEnvironmentVolumesByEnvironmentId,
       problems: getProblemsByEnvironmentId,
       facts: getFactsByEnvironmentId,
       openshift: getOpenshiftByEnvironmentId,
@@ -643,6 +651,16 @@ async function getResolvers() {
     },
     EnvironmentService: {
       containers: getServiceContainersByServiceId,
+    },
+    EnvironmentVolume: {
+      kibUsed: getEnvironmentVolumeSizeByName,
+    },
+    ServiceContainer: {
+      volumes: getServiceVolumemountsByServiceId,
+      ports: getServiceContainerportsByServiceId,
+    },
+    ServiceVolumeMount: {
+      volume: getEnvironmentVolumeByName,
     },
     Deployment: {
       environment: getEnvironmentByDeploymentId,
@@ -898,6 +916,8 @@ async function getResolvers() {
     bulkImportProjectsAndGroupsToOrganization,
     addOrUpdateEnvironmentService,
     deleteEnvironmentService,
+    addOrUpdateEnvironmentVolume,
+    deleteEnvironmentVolume,
     addPlatformRoleToUser,
     removePlatformRoleFromUser,
     createHarborRetentionPolicy,
