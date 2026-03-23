@@ -210,7 +210,7 @@ export const Sql = {
       .where(knex.raw('environment_service.id = ?', id))
       .limit(1)
       .toString(),
-  // sekect all the containers for a particular service
+  // select all the containers for a particular service
   selectContainersByServiceId: (id: number) =>
     knex('environment_service_container')
       .where('service_id', '=', id)
@@ -255,6 +255,136 @@ export const Sql = {
   deleteEnvironmentStorageByEnvironmentIds: (ids: number[]) =>
     knex('environment_storage')
       .whereIn('environment', ids)
+      .delete()
+      .toString(),
+  selectEnvironmentVolumeByName: (name: string, eid: number) =>
+    knex('environment_volume')
+      .where('environment', '=', eid)
+      .andWhere('name', '=', name)
+      .toString(),
+  deleteEnvironmentVolumeById: (id: number) =>
+    knex('environment_volume')
+      .where('id', id)
+      .delete()
+      .toString(),
+  selectVolumesByEnvironmentId: (id: number) =>
+    knex('environment_volume')
+      .where('environment', '=', id)
+      .toString(),
+  deleteVolumes: (id: number) =>
+    knex('environment_volume')
+      .where('environment', '=', id)
+      .delete()
+      .toString(),
+  selectEnvironmentStorageByVolumeName: (id: number, name: string) =>
+    knex('environment_storage')
+      .select('kib_used')
+      .where('environment', '=', id)
+      .andWhere('persistent_storage_claim', '=', name)
+      .limit(1)
+      .toString(),
+  updateEnvironmentService: ({ id, patch }: { id: number, patch: any }) => {
+    return knex('environment_service')
+      .where('id', '=', id)
+      .update(patch)
+      .toString();
+  },
+  // updateEnvironmentVolume: ({ id, patch }: { id: number, patch: any }) => {
+  //   return knex('environment_volume')
+  //     .where('id', '=', id)
+  //     .update(patch)
+  //     .toString();
+  // },
+  selectEnvironmentServiceByEnvironmentIdAndName: (id: number, name: string) =>
+    knex('environment_service')
+      .where('environment', '=', id)
+      .andWhere('name', '=', name)
+      .limit(1)
+      .toString(),
+  selectEnvironmentVolumeById: (id: number) =>
+    knex('environment_volume')
+      .where('id', '=', id)
+      .toString(),
+  // select all the volumemounts for a particular container in a service
+  selectVolumemountsByContainerAndServiceId: (id: number, name: string) =>
+    knex('environment_service_container_volumemount')
+      .where('service_id', '=', id)
+      .andWhere('container_name', '=', name)
+      .toString(),
+  insertServiceContainerVolumemount: (
+    serviceId: number,
+    containerName: string,
+    name: string,
+    path: string,
+  ) =>
+    knex('environment_service_container_volumemount')
+      .insert({
+        serviceId,
+        containerName,
+        name,
+        path,
+      })
+      .onConflict('container_volumemount')
+      .merge({
+        serviceId,
+        containerName,
+        name,
+        path,
+      })
+      .toString(),
+  // select all the volumemounts for a particular container in a service
+  selectPortsByContainerAndServiceId: (id: number, name: string) =>
+    knex('environment_service_container_port')
+      .where('service_id', '=', id)
+      .andWhere('container_name', '=', name)
+      .toString(),
+  insertServiceContainerPort: (
+    serviceId: number,
+    containerName: string,
+    name: string,
+    port: number,
+  ) =>
+    knex('environment_service_container_port')
+      .insert({
+        serviceId,
+        containerName,
+        name,
+        port,
+      })
+      .onConflict('container_port')
+      .merge({
+        serviceId,
+        containerName,
+        name,
+        port,
+      })
+      .toString(),
+  deleteServiceContainersVolumemountsByEnvironmentId: (eid: number) =>
+    knex('environment_service_container_volumemount')
+      .whereIn('service_id', function() {
+        this.select('id')
+            .from('environment_service')
+            .where('environment', eid);
+      })
+      .delete()
+      .toString(),
+  deleteServiceContainersPortsByEnvironmentId: (eid: number) =>
+    knex('environment_service_container_port')
+      .whereIn('service_id', function() {
+        this.select('id')
+            .from('environment_service')
+            .where('environment', eid);
+      })
+      .delete()
+      .toString(),
+  deleteServiceContainersVolumemountsByServiceId: (id: number) =>
+    knex('environment_storage')
+      .where('service_id', '=', id)
+      .delete()
+      .toString(),
+  deleteServiceContainerPortsByServiceId: (ids: number[]) =>
+    knex('environment_storage')
+      .whereIn('service_id', ids)
       .delete()
       .toString(),
 };

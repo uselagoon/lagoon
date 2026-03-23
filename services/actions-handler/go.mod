@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.37
+	github.com/uselagoon/machinery v0.0.38-0.20260610223359-e7378dce5385
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 
@@ -13,7 +13,6 @@ require (
 	github.com/NeowayLabs/wabbit v0.0.0-20210927194032-73ad61d1620e // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/guregu/null v4.0.0+incompatible // indirect
 	github.com/hashicorp/go-version v1.8.0 // indirect
