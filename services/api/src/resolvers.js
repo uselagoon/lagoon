@@ -731,7 +731,7 @@ async function getResolvers() {
       kibUsed: getEnvironmentVolumeSizeByName,
     },
     ServiceContainer: {
-      volumes: getServiceVolumemountsByServiceId,
+      volumemounts: getServiceVolumemountsByServiceId,
       ports: getServiceContainerportsByServiceId,
     },
     ServiceVolumeMount: {
