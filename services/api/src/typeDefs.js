@@ -997,7 +997,10 @@ const typeDefs = gql`
     """
     The requested size of the volume, not the reported size
     """
-    size: String
+    kibRequested: Float
+    """
+    The last reported size of the volume, this is updated by storage calculator jobs
+    """
     kibUsed: Float
     created: String
     updated: String
@@ -2048,7 +2051,7 @@ const typeDefs = gql`
     name: String!
     storageType: String!
     type: String!
-    size: String!
+    kibRequested: Float!
     abandoned: Boolean
   }
 

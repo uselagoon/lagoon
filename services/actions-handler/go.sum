@@ -854,6 +854,8 @@ github.com/uselagoon/machinery v0.0.36-0.20260320091235-6a2aa7adfc04 h1:b39AnEmr
 github.com/uselagoon/machinery v0.0.36-0.20260320091235-6a2aa7adfc04/go.mod h1:UVqIxwF/Q9xO3LQMkQhWeuegpuKcsrxmBa4LE52SiWQ=
 github.com/uselagoon/machinery v0.0.36-0.20260323234934-47038c39b1d8 h1:VqPQytU5yjj403TcD595AM4glQ6BqJpiaxcHoDGQPqg=
 github.com/uselagoon/machinery v0.0.36-0.20260323234934-47038c39b1d8/go.mod h1:UVqIxwF/Q9xO3LQMkQhWeuegpuKcsrxmBa4LE52SiWQ=
+github.com/uselagoon/machinery v0.0.36-0.20260324052503-ad9dc32c888e h1:6FDboQsy6XgqhaOMVyGzUy5gnCAnkj7sQQzGgUy27HE=
+github.com/uselagoon/machinery v0.0.36-0.20260324052503-ad9dc32c888e/go.mod h1:UVqIxwF/Q9xO3LQMkQhWeuegpuKcsrxmBa4LE52SiWQ=
 github.com/vishvananda/netlink v0.0.0-20181108222139-023a6dafdcdf/go.mod h1:+SR5DhBJrl6ZM7CoCKvpw5BKroDKQ+PJqOg65H/2ktk=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netlink v1.1.1-0.20201029203352-d40f9887b852/go.mod h1:twkDnbuQxJYemMlGd4JFIcuhgX83tXhKS2B/PRMpOho=

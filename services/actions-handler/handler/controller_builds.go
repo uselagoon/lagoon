@@ -217,7 +217,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					Name:          mVolume.Name,
 					Type:          mVolume.Type,
 					StorageType:   mVolume.StorageType,
-					Size:          mVolume.Size,
+					KiBRequested:  mVolume.KiBRequested,
 					Abandoned:     &mVolume.Abandoned,
 				}
 				// add or update it
