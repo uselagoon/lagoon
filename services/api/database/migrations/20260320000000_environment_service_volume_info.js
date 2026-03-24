@@ -13,7 +13,7 @@ exports.up = async function(knex) {
         table.string('name', 100).notNullable();
         table.string('storage_type', 100);
         table.string('type', 100);
-        table.string('size', 100);
+        table.bigInteger('kib_requested');
         table.timestamp('created').notNullable().defaultTo(knex.fn.now());
         table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
         table.boolean('abandoned').notNullable().defaultTo(0); // default to false

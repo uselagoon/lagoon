@@ -37,7 +37,7 @@ interface EnvironmentVolume {
     name: string
     storageType: string
     type: string
-    size: string
+    kibRequested: number
     environment: number
     updated: string
     abandoned?: boolean
@@ -1486,7 +1486,7 @@ export const addOrUpdateEnvironmentVolume: ResolverFn = async (
     type: input.type,
     environment: environment.id,
     storageType: input.storageType,
-    size: input.size,
+    kibRequested: input.kibRequested,
     updated: knex.fn.now(),
   };
   if (input.abandoned !== undefined) {
