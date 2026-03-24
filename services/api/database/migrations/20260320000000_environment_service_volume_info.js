@@ -42,10 +42,9 @@ exports.up = async function(knex) {
 exports.down = async function(knex) {
     return knex.schema
     .alterTable('environment_service', (table) => {
-        table.dropColumn('type');
-        table.dropColumn('updated');
-        table.dropColumn('created');
-        table.dropUnique(['name', 'environment'], 'service_environment');
+        table.dropColumn('abandoned');
     })
-    .dropTable('environment_service_container')
+    .dropTable('environment_volume')
+    .dropTable('environment_service_container_volumemount')
+    .dropTable('environment_service_container_port')
 };
