@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.36-0.20260320091235-6a2aa7adfc04
+	github.com/uselagoon/machinery v0.0.36-0.20260323234934-47038c39b1d8
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 

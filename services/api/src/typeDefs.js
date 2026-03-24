@@ -1012,7 +1012,7 @@ const typeDefs = gql`
     """
     Lists the volumes and where they are mounted to the service
     """
-    volumes: [ServiceVolumeMount]
+    volumemounts: [ServiceVolumeMount]
     """
     Lists the ports associated to the service
     """
@@ -2028,7 +2028,7 @@ const typeDefs = gql`
 
   input ServiceContainerInput {
     name: String!
-    volumes: [AddEnvironmentServiceVolumemounts]
+    volumemounts: [AddEnvironmentServiceVolumemounts]
     ports: [AddEnvironmentServicePorts]
   }
 

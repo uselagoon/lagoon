@@ -242,8 +242,8 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					container := schema.ServiceContainerInput{
 						Name: sCon.Name,
 					}
-					for _, vol := range sCon.Volumes {
-						container.Volumes = append(container.Volumes, schema.AddEnvironmentServiceVolumemounts{
+					for _, vol := range sCon.Volumemounts {
+						container.Volumemounts = append(container.Volumemounts, schema.AddEnvironmentServiceVolumemounts{
 							Name: vol.Name,
 							Path: vol.Path,
 						})
