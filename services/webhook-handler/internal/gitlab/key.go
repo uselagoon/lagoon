@@ -18,7 +18,7 @@ type KeyCreateDestroy struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Username  string    `json:"username"`
 	Key       string    `json:"key"`
-	ID        int       `json:"id"`
+	ID        int64     `json:"id"`
 }
 
 func (sh *SystemHook) gitlabSshKeyAdd(b []byte) {

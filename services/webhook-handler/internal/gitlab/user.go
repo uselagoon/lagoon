@@ -21,7 +21,7 @@ type UserCreate struct {
 	EventName string    `json:"event_name"`
 	Name      string    `json:"name"`
 	Username  string    `json:"username"`
-	UserID    int       `json:"user_id"`
+	UserID    int64     `json:"user_id"`
 }
 
 type UserRename struct {
@@ -30,7 +30,7 @@ type UserRename struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
-	UserID      int       `json:"user_id"`
+	UserID      int64     `json:"user_id"`
 	Username    string    `json:"username"`
 	OldUsername string    `json:"old_username"`
 }
@@ -42,7 +42,7 @@ type UserDestroy struct {
 	EventName string    `json:"event_name"`
 	Name      string    `json:"name"`
 	Username  string    `json:"username"`
-	UserID    int       `json:"user_id"`
+	UserID    int64     `json:"user_id"`
 }
 
 type UserAddToGroup struct {
@@ -50,11 +50,11 @@ type UserAddToGroup struct {
 	UpdatedAt    time.Time   `json:"updated_at"`
 	GroupName    string      `json:"group_name"`
 	GroupPath    string      `json:"group_path"`
-	GroupID      int         `json:"group_id"`
+	GroupID      int64       `json:"group_id"`
 	UserUsername string      `json:"user_username"`
 	UserName     string      `json:"user_name"`
 	UserEmail    string      `json:"user_email"`
-	UserID       int         `json:"user_id"`
+	UserID       int64       `json:"user_id"`
 	GroupAccess  string      `json:"group_access"`
 	ExpiresAt    time.Time   `json:"expires_at"`
 	GroupPlan    interface{} `json:"group_plan"`
@@ -66,13 +66,13 @@ type UserRemoveFromGroup struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 	EventName    string    `json:"event_name"`
 	GroupAccess  string    `json:"group_access"`
-	GroupID      int       `json:"group_id"`
+	GroupID      int64     `json:"group_id"`
 	GroupName    string    `json:"group_name"`
 	GroupPath    string    `json:"group_path"`
 	UserEmail    string    `json:"user_email"`
 	UserName     string    `json:"user_name"`
 	UserUsername string    `json:"user_username"`
-	UserID       int       `json:"user_id"`
+	UserID       int64     `json:"user_id"`
 }
 
 type UserAddToTeam struct {
@@ -81,11 +81,11 @@ type UserAddToTeam struct {
 	ProjectName              string    `json:"project_name"`
 	ProjectPath              string    `json:"project_path"`
 	ProjectPathWithNamespace string    `json:"project_path_with_namespace"`
-	ProjectID                int       `json:"project_id"`
+	ProjectID                int64     `json:"project_id"`
 	UserUsername             string    `json:"user_username"`
 	UserName                 string    `json:"user_name"`
 	UserEmail                string    `json:"user_email"`
-	UserID                   int       `json:"user_id"`
+	UserID                   int64     `json:"user_id"`
 	AccessLevel              string    `json:"access_level"`
 	ProjectVisibility        string    `json:"project_visibility"`
 	EventName                string    `json:"event_name"`
@@ -96,14 +96,14 @@ type UserRemoveFromTeam struct {
 	UpdatedAt                time.Time `json:"updated_at"`
 	EventName                string    `json:"event_name"`
 	AccessLevel              string    `json:"access_level"`
-	ProjectID                int       `json:"project_id"`
+	ProjectID                int64     `json:"project_id"`
 	ProjectName              string    `json:"project_name"`
 	ProjectPath              string    `json:"project_path"`
 	ProjectPathWithNamespace string    `json:"project_path_with_namespace"`
 	UserEmail                string    `json:"user_email"`
 	UserName                 string    `json:"user_name"`
 	UserUsername             string    `json:"user_username"`
-	UserID                   int       `json:"user_id"`
+	UserID                   int64     `json:"user_id"`
 	ProjectVisibility        string    `json:"project_visibility"`
 }
 
