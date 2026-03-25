@@ -1,8 +1,7 @@
 {
   "metadata": {
     "name": "lagoon-build-2ik1a",
-    "namespace": "lagoon",
-    "creationTimestamp": null
+    "namespace": "lagoon"
   },
   "spec": {
     "build": {

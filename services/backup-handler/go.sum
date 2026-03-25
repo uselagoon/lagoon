@@ -12,7 +12,5 @@ github.com/matryer/is v1.4.0 h1:sosSmIWwkYITGrxZ25ULNDeKiMNzFSr4V/eqBQP0PeE=
 github.com/matryer/is v1.4.0/go.mod h1:8I/i5uYgLzgsgEloJE1U6xx5HkBQpAZvepWuujKwMRU=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/uselagoon/machinery v0.0.36-0.20260220001712-f1a24d1f8deb h1:/HQOkNcgkYsFI5C9yDHrICjjdUL73dVmYwUb3u+NZqQ=
-github.com/uselagoon/machinery v0.0.36-0.20260220001712-f1a24d1f8deb/go.mod h1:UVqIxwF/Q9xO3LQMkQhWeuegpuKcsrxmBa4LE52SiWQ=
 github.com/uselagoon/machinery v0.0.36-0.20260223222038-8118f3c2cb49 h1:efS638Mq1WMkJZKj+8rUTZq9CY1WP9Qs0dxJqk0OJRM=
 github.com/uselagoon/machinery v0.0.36-0.20260223222038-8118f3c2cb49/go.mod h1:UVqIxwF/Q9xO3LQMkQhWeuegpuKcsrxmBa4LE52SiWQ=
