@@ -14,9 +14,9 @@ WORKDIR /go/src/github.com/uselagoon/lagoon-sync
 RUN git clone https://github.com/uselagoon/lagoon-sync.git . && \
     CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -o /lagoon-sync
 
-# Use distroless as minimal base image to package the binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+# Need to switch to alpine for ssh client
+FROM alpine:3.22
+RUN apk add --no-cache openssh-client && adduser -D -u 65532 nonroot
 WORKDIR /
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/taskimages/projectClone/taskrunner .
 COPY --from=syncer /lagoon-sync /lagoon-sync

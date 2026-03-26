@@ -6,11 +6,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
 
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
+	"github.com/uselagoon/machinery/api/schema"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -24,11 +28,16 @@ type PayloadData struct {
 	CloneId           int    `json:"cloneId"`
 }
 
+type taskData struct {
+	CloneId int    `json:"cloneId"`
+	Status  string `json:"status"`
+}
+
 // We need to annotate the pod with lagoon.sh/taskData + return the job data for the actions-handler
 func addAnnotation(c client.Client, podName, podNamespace string, cloneId int, status string) error {
-	result := map[string]interface{}{
-		"id":     cloneId,
-		"status": status,
+	result := taskData{
+		CloneId: cloneId,
+		Status:  status,
 	}
 
 	jsonData, err := json.Marshal(result)
@@ -153,7 +162,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	l := lclient.New(os.Getenv("LAGOON_CONFIG_API_HOST"), "task-projectclone", "v1.0", &lagoonToken, false)
+	l := lclient.New(os.Getenv("LAGOON_CONFIG_API_HOST")+"/graphql", "task-projectclone", "v1.0", &lagoonToken, false)
 	projectCloneUpload, err := l.ProcessRaw(context.TODO(), raw, nil)
 	if err != nil {
 		fmt.Printf("Task failed to process raw query, error: %v\n", err)
@@ -161,7 +170,80 @@ func main() {
 	}
 	fmt.Printf("*********projectCloneUpload %v*********\n", projectCloneUpload)
 
-	// TODO: Actually upload files to S3 using the form data
+	// TODO: move to machinery - replicates UploadFileForTask
+	projectCloneUploadMap := projectCloneUpload.(map[string]interface{})
+
+	uploadFormBytes, err := json.Marshal(projectCloneUploadMap["getProjectCloneFileUploadForm"])
+	if err != nil {
+		fmt.Printf("Task failed to marshal data, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	var formData schema.FileUploadForm
+	if err := json.Unmarshal(uploadFormBytes, &formData); err != nil {
+		fmt.Printf("Task failed to unmarshal data, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	requestForm := new(bytes.Buffer)
+	writer := multipart.NewWriter(requestForm)
+
+	for name, value := range formData.FormFields {
+		err := writer.WriteField(name, value)
+		if err != nil {
+			fmt.Printf("couldn't write upload form field %s: %v\n", name, err)
+			os.Exit(1)
+		}
+	}
+
+	fileField, err := writer.CreateFormFile("file", "testfile.txt")
+	if err != nil {
+		fmt.Printf("Task couldn't create upload file field, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fd, err := os.Open("/tmp/testfile.txt")
+	if err != nil {
+		fmt.Printf("Task couldn't read file, error: %v\n", err)
+		os.Exit(1)
+	}
+	defer fd.Close()
+
+	_, err = io.Copy(fileField, fd)
+	if err != nil {
+		fmt.Printf("Task couldn't copy file, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	writer.Close()
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", formData.PostUrl, requestForm)
+	if err != nil {
+		fmt.Printf("Task couldn't create HTTP request, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Task couldn't upload file, error: %v\n", err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Task couldn't read S3 upload response, error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		fmt.Printf("Task couldn't upload file (HTTP %d): %s\n", resp.StatusCode, bodyText)
+		os.Exit(1)
+	}
+
+	fmt.Println("*********File uploaded to S3 successfully*********")
 
 	// run the pod annotation
 	if err := addAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "SOURCE_FILES_UPLOADED"); err != nil {

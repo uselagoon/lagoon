@@ -95,9 +95,11 @@ const {
 
 const {
   getFilesByTaskId,
+  getFilesByProjectCloneId,
   uploadFilesForTask,
   getTaskFileUploadForm,
   deleteFilesForTask,
+  deleteFilesForProjectClone,
   getDownloadLink,
   getDownloadLinkByTaskFileId,
   getDownloadLinkByProjectCloneFileId,
@@ -592,6 +594,7 @@ async function getResolvers() {
     ProjectClone: {
       sourceProject: getSourceProjectForCloneProject,
       destinationProject: getDestinationProjectForCloneProject,
+      files: getFilesByProjectCloneId,
     },
     ProjectCloneSource: {
       tasks: getTasksBySourceProjectForCloneProjectId,
@@ -917,6 +920,7 @@ async function getResolvers() {
     setEnvironmentServices,
     uploadFilesForTask,
     deleteFilesForTask,
+    deleteFilesForProjectClone,
     deployEnvironmentLatest,
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,

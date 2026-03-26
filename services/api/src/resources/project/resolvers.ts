@@ -1180,7 +1180,9 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // check if environment exists
+  // check project & env quota's prior to cloning the project
+
+  // check if environment exists + at least one successful deployment
   // TODO: consider pullrequsts/promote type environments (maybe cant clone promote or pullrequest environments initially)
   // maybe throw error for unsupported environment type here?
   const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, pid)
@@ -1193,7 +1195,7 @@ export const cloneProject: ResolverFn = async (
 
   // clone the project schema and create new project from source project
   // remove fields from source that aren't required
-  let newProjectInput = sourceProject
+  let newProjectInput = { ...sourceProject }
   newProjectInput.name = projectName
   delete(newProjectInput.id)
   delete(newProjectInput.privateKey)
@@ -1250,6 +1252,7 @@ export const cloneProject: ResolverFn = async (
   if (envType == 'production') {
     priority = project.productionBuildPriority
   }
+  // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
   const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
   const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
   const destinationEnvironmentData = destinationEnv[0]
@@ -1297,7 +1300,7 @@ export const cloneProject: ResolverFn = async (
     }
     await copyEnvironmentVariablesFromProject(data)
   }
-    if (copyData) {
+  if (copyData) {
     const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
     var date = new Date();
     var created = convertDateFormat(date.toISOString());
@@ -1318,7 +1321,7 @@ export const cloneProject: ResolverFn = async (
         id: '0',
         name: 'Project Clone Archive'
       },
-      cloneId: insertId.toString()
+      cloneId: insertId
     };
 
     data.task.id = sourceTaskData.addTask.id.toString()

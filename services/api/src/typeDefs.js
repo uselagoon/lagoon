@@ -2691,6 +2691,9 @@ const typeDefs = gql`
   input DeleteFilesForTaskInput {
     id: Int!
   }
+  input DeleteFilesForProjectCloneInput {
+    id: Int!
+  }
 
   input EnvKeyValueInput {
     name: String
@@ -3169,6 +3172,7 @@ const typeDefs = gql`
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]   @deprecated(reason: "Use addOrUpdateEnvironmentService or deleteEnvironmentService")
     uploadFilesForTask(input: UploadFilesForTaskInput!): Task @deprecated(reason: "Use getTaskFileUploadForm instead")
     deleteFilesForTask(input: DeleteFilesForTaskInput!): String
+    deleteFilesForProjectClone(input: DeleteFilesForProjectCloneInput!): String
     deployEnvironmentLatest(input: DeployEnvironmentLatestInput!): String
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
