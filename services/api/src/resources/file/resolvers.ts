@@ -98,6 +98,33 @@ export const getFilesByTaskId: ResolverFn = async (
   return [];
 }
 
+export const getFilesByProjectCloneId: ResolverFn = async (
+  { id: cloneId },
+  _args,
+  { sqlClientPool }
+) => {
+  const command = new ListObjectsCommand({ Bucket: bucket, Prefix: `projectclone/${cloneId}` });
+  const response = await s3Client.send(command);
+  if (response.Contents) {
+    let objects = [];
+    let count = 0;
+    for (const obj of response.Contents) {
+      count++;
+      const date = new Date(obj.LastModified);
+      let path = require('path');
+      objects.push({
+        id: count,
+        filename: path.basename(obj.Key),
+        s3Key: obj.Key,
+        // fix the date for lagoon styled dates
+        created: date.toISOString().slice(0, 19).replace('T', ' ')
+      })
+    }
+    return objects;
+  }
+  return [];
+}
+
 export const getTaskFileUploadForm: ResolverFn = async (
   root,
   { input: { task, filename } },

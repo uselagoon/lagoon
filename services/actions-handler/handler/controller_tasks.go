@@ -60,7 +60,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 			}
 			if message.Meta.Key == "deploytarget:task:projectclone" {
 				type ProjectCloneResult struct {
-					CloneID int    `json:"id"`
+					CloneID int    `json:"cloneId"`
 					Status  string `json:"status"`
 				}
 
@@ -246,8 +246,8 @@ func updateRouteType(ctx context.Context, l *lclient.Client, route Route, env, p
 func updateProjectCloneStatus(ctx context.Context, l *lclient.Client, id int, status, prefix string) error {
 	raw := fmt.Sprintf(`mutation updateProjectClone{
 		updateProjectClone(input:{
-			id: "%d"
-			status: "%s"
+			id: %d
+			status: %s
 		}){
 			id
 		}

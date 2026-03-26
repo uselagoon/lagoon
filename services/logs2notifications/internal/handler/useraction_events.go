@@ -27,7 +27,7 @@ type handleUserActionPayload struct {
 
 type UserActionProjectCloneDetails struct {
 	Status  string `json:"status,omitempty"`
-	CloneId string `json:"id,omitempty"`
+	CloneId int    `json:"cloneId,omitempty"`
 }
 
 // These are the basic details that should be piped to the email template
@@ -314,11 +314,12 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 		// addTaskOrDeploymentToProjectClone(projectCloneDetails.CloneId, "destination", "task")
 
 		// TODO: Trigger task to restore source files in the destination environment
-
+		fmt.Println("***SOURCE_FILES_UPLOADED***")
 	case "SOURCE_FILES_APPLIED":
 		// TODO: Trigger deployment in the destination env
 		// TODO: Add deployment reference to destination env
 		// TODO: If deployment successful, update clone status to COMPLETE
+		fmt.Println("***SOURCE_FILES_APPLIED***")
 	default:
 		break
 	}

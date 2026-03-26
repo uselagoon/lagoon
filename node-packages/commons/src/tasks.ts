@@ -1373,7 +1373,7 @@ export const createMiscTask = async function(taskData: any) {
       if (CI == "true") {
         cloneTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
       } else if (overwriteProjectcloneTaskImage) {
-        // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
+        // allow to overwrite the image we use via OVERWRITE_PROJECTCLONE_TASK_IMAGE env variable
         cloneTaskImage = overwriteProjectcloneTaskImage
       } else {
         cloneTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
