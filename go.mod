@@ -9,7 +9,7 @@ require (
 	github.com/drone/go-scm v1.42.0
 	github.com/forPelevin/gomoji v1.4.1
 	github.com/gorilla/mux v1.8.1
-	github.com/uselagoon/machinery v0.0.35
+	github.com/uselagoon/machinery v0.0.36
 	github.com/uselagoon/remote-controller v0.29.1
 	gitlab.com/gitlab-org/api/client-go v1.46.0
 	golang.org/x/crypto v0.49.0

@@ -7,7 +7,7 @@ require (
 	github.com/cheshir/go-mq/v2 v2.0.1
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2
 	github.com/slack-go/slack v0.17.3
-	github.com/uselagoon/machinery v0.0.35
+	github.com/uselagoon/machinery v0.0.36
 	gopkg.in/mail.v2 v2.3.1
 )
 
