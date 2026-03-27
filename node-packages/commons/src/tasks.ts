@@ -1380,6 +1380,24 @@ export const createMiscTask = async function(taskData: any) {
       }
       miscTaskData.advancedTask.runnerImage = cloneTaskImage
       break;
+    case 'deploytarget:task:projectclonerestore':
+      var restoreJsonPayload: any = {
+        projectName: taskData.data.project.name,
+        destinationEnvironment: taskData.data.environment.name,
+        cloneId: taskData.data.cloneId,
+        action: "restore"
+      }
+      miscTaskData.advancedTask.JSONPayload = encodeJSONBase64(restoreJsonPayload);
+      let restoreTaskImage = ""
+      if (CI == "true") {
+        restoreTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
+      } else if (overwriteProjectcloneTaskImage) {
+        restoreTaskImage = overwriteProjectcloneTaskImage
+      } else {
+        restoreTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
+      }
+      miscTaskData.advancedTask.runnerImage = restoreTaskImage
+      break;
     default:
       miscTaskData.misc = taskData.data.build
       break;

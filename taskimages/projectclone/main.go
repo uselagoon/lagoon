@@ -23,9 +23,11 @@ import (
 
 // Placeholder struct until archive cmd is defined
 type PayloadData struct {
-	ProjectName       string `json:"projectName"`
-	SourceEnvironment string `json:"sourceEnvironment"`
-	CloneId           int    `json:"cloneId"`
+	ProjectName            string `json:"projectName"`
+	SourceEnvironment      string `json:"sourceEnvironment,omitempty"`
+	DestinationEnvironment string `json:"destinationEnvironment,omitempty"`
+	CloneId                int    `json:"cloneId"`
+	Action                 string `json:"action,omitempty"` // "archive"/"restore"
 }
 
 type taskData struct {
@@ -130,10 +132,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	// the action will determine fi we're archiving (default) or restoring
+	action := payloadData.Action
+	if action == "" {
+		action = "archive"
+	}
+
+	if action == "restore" {
+		if err := runRestore(kubeClient, podName, podNamespace, payloadData); err != nil {
+			fmt.Printf("Task failed during restore, error was: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		if err := runArchive(kubeClient, podName, podNamespace, payloadData); err != nil {
+			fmt.Printf("Task failed during archive, error was: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	fmt.Println("****Task completed successfully****")
+}
+
+// archive func for action split
+func runArchive(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData) error {
 	// Run lagoon-sync archive
 	if err := runLagoonSyncArchive(payloadData); err != nil {
-		fmt.Printf("Task failed during lagoon-sync archive, error was: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed during lagoon-sync archive, error was: %v\n", err)
 	}
 
 	fmt.Printf("*********Lagoon sync archive completed: %s*********\n", payloadData.ProjectName)
@@ -142,15 +166,13 @@ func main() {
 	// test file creation (placeholder for actual S3 upload)
 	file, err := os.Create("/tmp/testfile.txt")
 	if err != nil {
-		fmt.Printf("Task failed to create test file, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to create test file, error: %v\n", err)
 	}
 	defer file.Close()
 
 	_, err = file.WriteString("This is a test file for project clone.")
 	if err != nil {
-		fmt.Printf("Task failed to write to test file, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to write to test file, error: %v\n", err)
 	}
 
 	// Get upload form from Lagoon API
@@ -158,15 +180,13 @@ func main() {
 
 	lagoonToken, err := getToken()
 	if err != nil {
-		fmt.Printf("Task failed to get token, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to get token, error: %v\n", err)
 	}
 
 	l := lclient.New(os.Getenv("LAGOON_CONFIG_API_HOST")+"/graphql", "task-projectclone", "v1.0", &lagoonToken, false)
 	projectCloneUpload, err := l.ProcessRaw(context.TODO(), raw, nil)
 	if err != nil {
-		fmt.Printf("Task failed to process raw query, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to process raw query, error: %v\n", err)
 	}
 	fmt.Printf("*********projectCloneUpload %v*********\n", projectCloneUpload)
 
@@ -175,14 +195,12 @@ func main() {
 
 	uploadFormBytes, err := json.Marshal(projectCloneUploadMap["getProjectCloneFileUploadForm"])
 	if err != nil {
-		fmt.Printf("Task failed to marshal data, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to marshal data, error: %v\n", err)
 	}
 
 	var formData schema.FileUploadForm
 	if err := json.Unmarshal(uploadFormBytes, &formData); err != nil {
-		fmt.Printf("Task failed to unmarshal data, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task failed to unmarshal data, error: %v\n", err)
 	}
 
 	requestForm := new(bytes.Buffer)
@@ -191,67 +209,72 @@ func main() {
 	for name, value := range formData.FormFields {
 		err := writer.WriteField(name, value)
 		if err != nil {
-			fmt.Printf("couldn't write upload form field %s: %v\n", name, err)
-			os.Exit(1)
+			return fmt.Errorf("couldn't write upload form field %s: %v\n", name, err)
 		}
 	}
 
 	fileField, err := writer.CreateFormFile("file", "testfile.txt")
 	if err != nil {
-		fmt.Printf("Task couldn't create upload file field, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't create upload file field, error: %v\n", err)
 	}
 
 	fd, err := os.Open("/tmp/testfile.txt")
 	if err != nil {
-		fmt.Printf("Task couldn't read file, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't read file, error: %v\n", err)
 	}
 	defer fd.Close()
 
 	_, err = io.Copy(fileField, fd)
 	if err != nil {
-		fmt.Printf("Task couldn't copy file, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't copy file, error: %v\n", err)
 	}
 
 	writer.Close()
 
-	client := &http.Client{}
+	httpClient := &http.Client{}
 	req, err := http.NewRequest("POST", formData.PostUrl, requestForm)
 	if err != nil {
-		fmt.Printf("Task couldn't create HTTP request, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't create HTTP request, error: %v\n", err)
 	}
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		fmt.Printf("Task couldn't upload file, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't upload file, error: %v\n", err)
 	}
 	defer resp.Body.Close()
 
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Task couldn't read S3 upload response, error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't read S3 upload response, error: %v\n", err)
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		fmt.Printf("Task couldn't upload file (HTTP %d): %s\n", resp.StatusCode, bodyText)
-		os.Exit(1)
+		return fmt.Errorf("Task couldn't upload file (HTTP %d): %s", resp.StatusCode, bodyText)
 	}
 
 	fmt.Println("*********File uploaded to S3 successfully*********")
 
 	// run the pod annotation
 	if err := addAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "SOURCE_FILES_UPLOADED"); err != nil {
-		fmt.Printf("pod annotation failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("pod annotation failed: %v\n", err)
 	}
 
-	fmt.Println("****Task completed successfully****")
+	return nil
+}
+
+// restore func for action split
+func runRestore(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData) error {
+	fmt.Printf("*****CloneId %d DestinationEnvironment %s*******", payloadData.CloneId, payloadData.DestinationEnvironment)
+
+	fmt.Println("*********Restore run*********")
+
+	// run the pod annotation
+	if err := addAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "SOURCE_FILES_APPLIED"); err != nil {
+		return fmt.Errorf("pod annotation failed: %w", err)
+	}
+
+	return nil
 }
 
 func runLagoonSyncArchive(data PayloadData) error {

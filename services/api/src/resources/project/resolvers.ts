@@ -1357,10 +1357,7 @@ export const updateProjectClone: ResolverFn = async (
     );
   }
 
-  const result = await query(
-    sqlClientPool,
-    Sql.updateProjectClone({id, status})
-  );
+  const result = await query(sqlClientPool, Sql.updateProjectClone({id, status}));
 
   if (result.affectedRows === 0) {
     throw new Error(
@@ -1382,6 +1379,88 @@ export const updateProjectClone: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
   return rows[0]
 };
+
+/*
+  executeCloneRestoreTask is used to execute the restore task for a project clone
+*/
+export const executeCloneRestoreTask: ResolverFn = async (
+  root,
+  {
+    input: {
+      cloneId
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
+) => {
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
+  }
+
+  // get the relevant project clone details (source & destination etc)
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+
+  const projectClone = rows[0];
+
+  const destProjRows = await query(sqlClientPool, Sql.selectProjectById(projectClone.destinationProject));
+  if (destProjRows.length === 0) {
+    throw new Error(`No destination project found for ID: ${cloneId}`);
+  }
+  const destinationProject = destProjRows[0];
+
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(projectClone.destinationProject));
+  if (destEnvRows.length === 0) {
+    throw new Error(`No destination environment found for ID: ${cloneId}`);
+  }
+  const destEnvironment = destEnvRows[0];
+
+  // same process as cloneProject to trigger the task
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  var date = new Date();
+  var created = convertDateFormat(date.toISOString());
+  const taskData = await addTask('Project Clone Restore', TaskStatusType.NEW, created, destEnvironment.id, null, null, null, null, '', '', false, sourceUser, TaskSourceType.API);
+
+  const data = {
+    project: {
+      id: destinationProject.id,
+      name: destinationProject.name,
+    },
+    environment: {
+      id: destEnvironment.id,
+      name: destEnvironment.name,
+      openshiftProjectName: destEnvironment.openshiftProjectName
+    },
+    task: {
+      id: '0',
+      name: 'Project Clone Restore'
+    },
+    cloneId: cloneId
+  };
+
+  data.task.id = taskData.addTask.id.toString()
+
+  await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: cloneId, pid: projectClone.destinationProject, tdid: taskData.addTask.id, project: "destination", type: "task"}));
+
+  await createMiscTask({ key: 'task:projectclonerestore', data });
+
+  userActivityLogger(`User triggered project clone restore task for clone '${cloneId}'`, {
+    project: destinationProject.name,
+    event: 'api:executeCloneRestoreTask',
+    payload: {
+      cloneId: cloneId,
+      taskId: taskData.addTask.id,
+      destinationProject: destinationProject.name,
+      destinationEnvironment: destEnvironment.name
+    }
+  });
+
+  return taskData.addTask;
+};
+
 
 /*
   cancelProjectClone is used to cancel a project cloning process
