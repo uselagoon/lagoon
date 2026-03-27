@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
+
+	lclient "github.com/uselagoon/machinery/api/lagoon/client"
+	"github.com/uselagoon/machinery/utils/jwt"
 )
 
 type handleUserActionUser struct {
@@ -310,11 +314,27 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 
 	switch projectCloneDetails.Status {
 	case "SOURCE_FILES_UPLOADED":
-		// TODO: Add task reference to destination tasks - need machinery update to support this
-		// addTaskOrDeploymentToProjectClone(projectCloneDetails.CloneId, "destination", "task")
+		// need to trigger the restore task for the clone
+		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
+		if err != nil {
+			return fmt.Errorf("failed to generate token for clone restore task: %w", err)
+		}
 
-		// TODO: Trigger task to restore source files in the destination environment
+		l := lclient.New(h.LagoonAPI.Endpoint, "logs2notifications", h.LagoonAPI.Version, &token, false)
+
+		raw := fmt.Sprintf(`mutation { executeCloneRestoreTask(input: {cloneId: %d}) { id } }`, projectCloneDetails.CloneId)
+
+		_, err = l.ProcessRaw(ctx, raw, nil)
+		if err != nil {
+			return fmt.Errorf("failed to trigger restore task for clone %d: %w", projectCloneDetails.CloneId, err)
+		}
+
+		if h.EnableDebug {
+			log.Printf("Triggered restore task for project clone %d", projectCloneDetails.CloneId)
+		}
+
 		fmt.Println("***SOURCE_FILES_UPLOADED***")
+
 	case "SOURCE_FILES_APPLIED":
 		// TODO: Trigger deployment in the destination env
 		// TODO: Add deployment reference to destination env
@@ -326,22 +346,3 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 
 	return nil
 }
-
-// TODO: Placeholder pending machinery updates to support this
-
-// func (h *Messaging) addTaskOrDeploymentToProjectClone(ctx context.Context, cloneId, project, taskID string) error {
-// 	token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
-// 	if err != nil {
-// 		if h.EnableDebug {
-// 			log.Println(err)
-// 		}
-// 		return err
-// 	}
-// 	l := lclient.New(h.LagoonAPI.Endpoint, "actions-handler", h.LagoonAPI.Version, &token, false)
-// 	err = lagoon.AddTaskOrDeploymentToProjectClone(ctx, cloneId, project, taskID, "destination", "task", l)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return err
-// 	}
-// 	return nil
-// }
