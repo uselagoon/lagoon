@@ -1180,9 +1180,6 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // check project & env quota's prior to cloning the project
-
-  // check if environment exists + at least one successful deployment
   // TODO: consider pullrequsts/promote type environments (maybe cant clone promote or pullrequest environments initially)
   // maybe throw error for unsupported environment type here?
   const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, pid)
@@ -1191,6 +1188,28 @@ export const cloneProject: ResolverFn = async (
     throw new Error(
       `Environment doesn't exist in project`
     );
+  }
+
+  // check project & env quota's prior to cloning the project
+  const organization = await organizationHelpers(sqlClientPool).getOrganizationById(sourceProject.organization);
+  const projectCount = await organizationHelpers(sqlClientPool).getProjectCountByOrganizationId(sourceProject.organization);
+  const environmentCount = await organizationHelpers(sqlClientPool).getEnvironmentCountByOrganizationId(sourceProject.organization);
+
+    if (projectCount >= organization.quotaProject && organization.quotaProject != -1) {
+      throw new Error(
+        `This would exceed this organizations project quota; ${projectCount}/${organization.quotaProject}`
+      );
+    }
+    if (environmentCount >= organization.quotaEnvironment && organization.quotaEnvironment != -1) {
+      throw new Error(
+        `This would exceed this organizations environment quota; ${environmentCount}/${organization.quotaEnvironment}`
+      );
+    }
+
+// check if environment exists + at least one successful deployment
+  const latestDeployment = await query(sqlClientPool, deploymentSql.selectLatestDeploymentForEnvironment(environmentData.id));
+  if (latestDeployment && latestDeployment[0]?.status !== 'complete') {
+    throw new Error('The source environment must have at least one successful deployment');
   }
 
   // clone the project schema and create new project from source project
@@ -1410,12 +1429,14 @@ export const executeCloneRestoreTask: ResolverFn = async (
   if (destProjRows.length === 0) {
     throw new Error(`No destination project found for ID: ${cloneId}`);
   }
+
   const destinationProject = destProjRows[0];
 
   const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(projectClone.destinationProject));
   if (destEnvRows.length === 0) {
     throw new Error(`No destination environment found for ID: ${cloneId}`);
   }
+
   const destEnvironment = destEnvRows[0];
 
   // same process as cloneProject to trigger the task
@@ -1459,6 +1480,101 @@ export const executeCloneRestoreTask: ResolverFn = async (
   });
 
   return taskData.addTask;
+};
+
+
+/*
+  executeCloneDeployment is used to trigger a deployment for a project clone
+*/
+export const executeCloneDeployment: ResolverFn = async (
+  root,
+  {
+    input: {
+      cloneId
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes, keycloakGrant, legacyGrant }
+) => {
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
+  }
+
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+
+  const projectClone = rows[0];
+
+  const destProjRows = await query(sqlClientPool, Sql.selectProjectById(projectClone.destinationProject));
+  if (destProjRows.length === 0) {
+    throw new Error(`No destination project found for clone ID: ${cloneId}`);
+  }
+
+  const destinationProject = destProjRows[0];
+
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(projectClone.destinationProject));
+  if (destEnvRows.length === 0) {
+    throw new Error(`No destination environment found for clone ID: ${cloneId}`);
+  }
+
+  const destEnvironment = destEnvRows[0];
+
+  const envType = destEnvironment.name === destinationProject.productionEnvironment ? 'production' : 'development';
+  const priority = envType === 'production' ? destinationProject.productionBuildPriority : destinationProject.developmentBuildPriority;
+
+  try {
+    const build = await deployBranch(
+      true,
+      destinationProject,
+      destEnvironment.name,
+      null,
+      priority,
+      null,
+      null,
+      null,
+      sqlClientPool,
+      keycloakGrant,
+      legacyGrant,
+      userActivityLogger
+    );
+
+    const buildData = await query(
+      sqlClientPool,
+      deploymentSql.selectDeploymentByNameAndEnvironment(build, destEnvironment.id)
+    );
+
+    if (buildData.length > 0) {
+      // add the deployment reference to the project clone task/deployment table
+      await query(
+        sqlClientPool,
+        Sql.addTaskOrDeploymentToProjectClone({cid: cloneId, pid: destinationProject.id, tdid: buildData[0].id, project: "destination", type: "deployment"})
+      );
+    }
+
+    userActivityLogger(`User triggered project clone deployment for clone '${cloneId}'`, {
+      project: destinationProject.name,
+      event: 'api:executeCloneDeployment',
+      payload: {
+        cloneId: cloneId,
+        buildName: build,
+        destinationProject: destinationProject.name,
+        destinationEnvironment: destEnvironment.name
+      }
+    });
+
+    return build;
+
+  } catch (error) {
+    // can set the clone status to failed if the deployment fails?
+    await query(
+      sqlClientPool,
+      Sql.updateProjectClone({ id: cloneId, status: 'FAILED' })
+    );
+    throw new Error(`Failed to trigger deployment for clone ${cloneId}: ${error.message}`);
+  }
 };
 
 

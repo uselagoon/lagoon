@@ -115,6 +115,13 @@ export const Sql = {
     knex('deployment')
       .where('environment', '=', environment)
       .toString(),
+  selectLatestDeploymentForEnvironment: (environment: number) =>
+    knex('deployment')
+      .where('environment', '=', environment)
+      .orderBy('created', 'desc')
+      .orderBy('id', 'desc')
+      .limit(1)
+      .toString(),
   // same as select, except it deletes all deployments for the environment outside of the requested retain value
   deleteDeploymentHistory: (environment: number, retain: number) =>
     knex('deployment')
