@@ -58,7 +58,7 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 				log.Printf("%sunable to decode advanced data: %v", prefix, err)
 				return err
 			}
-			if message.Meta.Key == "deploytarget:task:projectclone" {
+			if message.Meta.Key == "deploytarget:task:projectclone" || message.Meta.Key == "deploytarget:task:projectclonerestore" {
 				type ProjectCloneResult struct {
 					CloneID int    `json:"cloneId"`
 					Status  string `json:"status"`

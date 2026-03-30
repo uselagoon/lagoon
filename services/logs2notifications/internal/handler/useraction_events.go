@@ -30,8 +30,9 @@ type handleUserActionPayload struct {
 }
 
 type UserActionProjectCloneDetails struct {
-	Status  string `json:"status,omitempty"`
-	CloneId int    `json:"cloneId,omitempty"`
+	Status                 string `json:"status,omitempty"`
+	CloneId                int    `json:"cloneId,omitempty"`
+	DestinationProjectName string `json:"destinationProjectName,omitempty"`
 }
 
 // These are the basic details that should be piped to the email template
@@ -337,9 +338,30 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 
 	case "SOURCE_FILES_APPLIED":
 		// TODO: Trigger deployment in the destination env
-		// TODO: Add deployment reference to destination env
-		// TODO: If deployment successful, update clone status to COMPLETE
+		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
+		if err != nil {
+			return fmt.Errorf("failed to generate token for clone deployment: %w", err)
+		}
+
+		l := lclient.New(h.LagoonAPI.Endpoint, "logs2notifications", h.LagoonAPI.Version, &token, false)
+
+		raw := fmt.Sprintf(`mutation { executeCloneDeployment(input: {cloneId: %d}) }`, projectCloneDetails.CloneId)
+
+		_, err = l.ProcessRaw(ctx, raw, nil)
+		if err != nil {
+			return fmt.Errorf("failed to trigger deployment for clone %d: %w", projectCloneDetails.CloneId, err)
+		}
+
+		if h.EnableDebug {
+			log.Printf("Triggered deployment for project clone %d", projectCloneDetails.CloneId)
+		}
+
 		fmt.Println("***SOURCE_FILES_APPLIED***")
+
+		// TODO: Need to workout how to handle updating the clone status if deployment is successful
+		// options - watch logs here
+		// - in actions-handler run qnew query to get clone by deployment - would have to call on every completed deployment though
+		// - stire the clone ID somewhere accessible by deployments to check? build metadata?
 	default:
 		break
 	}

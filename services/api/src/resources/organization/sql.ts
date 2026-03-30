@@ -82,6 +82,11 @@ export const Sql = {
     knex('project')
       .where('organization', '=', id)
       .toString(),
+  selectOrganizationProjectCount: (id: number) =>
+    knex('project')
+      .count('* as count')
+      .where('organization', '=', id)
+      .toString(),
   selectOrganizationProjectIds: (id: number) =>
     knex('project')
       .select(knex.raw('group_concat(id) as project_ids'))
@@ -90,6 +95,14 @@ export const Sql = {
   selectOrganizationEnvironments: (id: number) =>
     knex('organization')
       .select('e.*')
+      .join('project AS p', 'p.organization', '=', 'organization.id')
+      .join('environment AS e', 'e.project', '=', 'p.id')
+      .where(knex.raw('organization.id = ?', id))
+      .andWhere('e.deleted', '0000-00-00 00:00:00')
+      .toString(),
+  selectOrganizationEnvironmentCount: (id: number) =>
+    knex('organization')
+      .count('* as count')
       .join('project AS p', 'p.organization', '=', 'organization.id')
       .join('environment AS e', 'e.project', '=', 'p.id')
       .where(knex.raw('organization.id = ?', id))
