@@ -1,0 +1,125 @@
+name: Docker Scout for service images
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+    branches:
+      - 'main'
+      - 'docker-scout'
+    paths:
+      - 'services/**'
+      - '!services/api/**'
+      - '.github/workflows/docker-scout-services.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # Step 1: Determine which service directories have changed in this PR.
+  changes:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'image-update')
+    outputs:
+      services: ${{ steps.filter.outputs.services }}
+    steps:
+      -
+        name: Determine changed services
+        id: filter
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SERVICES=$(gh pr view ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --json files \
+            --jq '[.files[].path
+                    | select(startswith("services/") and (startswith("services/api/") | not))
+                    | split("/")[1]
+                  ] | unique | sort')
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
+  # Step 2: Build and run Docker Scout for each changed service image.
+  scout-services:
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: needs.changes.outputs.services != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.services) }}
+    steps:
+      -
+        name: Checkout PR
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: "0"
+          ref: ${{ github.event.pull_request.head.sha }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: |
+            network=host
+      -
+        name: Cache Docker layers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.service }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.service }}-
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build ${{ matrix.service }} image with Docker Bake
+        uses: docker/bake-action@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        with:
+          files: docker-bake.hcl
+          targets: ${{ matrix.service }}
+          push: false
+          load: true
+          set: |
+            *.cache-from=type=local,src=/tmp/.buildx-cache
+            *.cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max
+        env:
+          IMAGE_REPO: lagoon
+          TAG: ci-latest
+      -
+        name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      -
+        name: Docker Scout (${{ matrix.service }})
+        id: docker-scout
+        uses: docker/scout-action@f8c776824083494ab0d56b8105ba2ca85c86e4de # v1.18.2
+        with:
+          command: compare
+          image: lagoon/${{ matrix.service }}:ci-latest
+          to: docker.io/testlagoon/${{ matrix.service }}:main
+          ignore-unchanged: true
+          only-severities: critical,high
+          write-comment: true
+          sarif-file: scout-report-${{ matrix.service }}.sarif
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Security: Upload SARIF results to GitHub Security tab
+      # -
+      #   name: Upload SARIF results
+      #   uses: github/codeql-action/upload-sarif@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.30.5
+      #   if: always()
+      #   with:
+      #     sarif_file: scout-report-${{ matrix.service }}.sarif
+
+      -
+        name: Clean up Docker images
+        if: always()
+        run: |
+          docker image prune -f
+          docker buildx prune -f
