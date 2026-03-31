@@ -18,7 +18,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
+import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
@@ -1273,6 +1273,7 @@ export const cloneProject: ResolverFn = async (
   }
   // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
   const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
+  // const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
   const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
   const destinationEnvironmentData = destinationEnv[0]
   if (destinationEnvironmentData) {
@@ -1538,7 +1539,8 @@ export const executeCloneDeployment: ResolverFn = async (
       sqlClientPool,
       keycloakGrant,
       legacyGrant,
-      userActivityLogger
+      userActivityLogger,
+      // DeploymentSourceType.CLONE
     );
 
     const buildData = await query(

@@ -31,7 +31,7 @@ type handleUserActionPayload struct {
 
 type UserActionProjectCloneDetails struct {
 	Status                 string `json:"status,omitempty"`
-	CloneId                int    `json:"cloneId,omitempty"`
+	CloneId                int    `json:"id,omitempty"`
 	DestinationProjectName string `json:"destinationProjectName,omitempty"`
 }
 
@@ -314,7 +314,7 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 	}
 
 	switch projectCloneDetails.Status {
-	case "SOURCE_FILES_UPLOADED":
+	case "source_files_uploaded":
 		// need to trigger the restore task for the clone
 		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 		if err != nil {
@@ -336,7 +336,7 @@ func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []b
 
 		fmt.Println("***SOURCE_FILES_UPLOADED***")
 
-	case "SOURCE_FILES_APPLIED":
+	case "source_files_applied":
 		// TODO: Trigger deployment in the destination env
 		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 		if err != nil {
