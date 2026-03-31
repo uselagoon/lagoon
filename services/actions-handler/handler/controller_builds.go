@@ -12,7 +12,6 @@ import (
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/jwt"
-	machinerystrings "github.com/uselagoon/machinery/utils/strings"
 )
 
 func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
@@ -152,30 +151,6 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			return err
 		}
 		log.Printf("%supdated environment", prefix)
-		// @TODO START @DEPRECATED this should be removed when the `setEnvironmentServices` mutation gets removed from the API
-		if message.Meta.Services != nil { // @DEPRECATED
-			existingServices := []string{}
-			for _, s := range updateEnvironment.Services {
-				existingServices = append(existingServices, s.Name)
-			}
-			if !machinerystrings.SlicesEqual(existingServices, message.Meta.Services) {
-				setServices, err := lagoon.SetEnvironmentServices(ctx, environmentID, message.Meta.Services, l)
-				if err != nil {
-					// send the log to the lagoon-logs exchange to be processed
-					m.toLagoonLogs(messageQueue, map[string]interface{}{
-						"severity": "error",
-						"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
-						"meta":     setServices,
-						"message":  err.Error(),
-					})
-					if m.EnableDebug {
-						log.Printf("%sERROR: unable to update environment services - %v", prefix, err)
-					}
-					return err
-				}
-				log.Printf("%supdated environment services - %v", prefix, strings.Join(message.Meta.Services, ","))
-			}
-		} // END @DEPRECATED
 		// services now provide additional information
 		if message.Meta.EnvironmentServices != nil {
 			// collect all the errors as this process runs through
@@ -208,13 +183,87 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					}
 				}
 			}
+			for _, eVolume := range environment.Volumes {
+				exists := false
+				for _, mVolume := range message.Meta.EnvironmentVolumes {
+					if eVolume.Name == mVolume.Name {
+						exists = true
+					}
+				}
+				// remove any that don't exist in the environment anymore
+				if !exists {
+					// delete it
+					v2del := schema.DeleteEnvironmentVolumeInput{EnvironmentID: environmentID, Name: eVolume.Name}
+					setServices, err := lagoon.DeleteEnvironmentVolume(ctx, v2del, l)
+					if err != nil {
+						// send the log to the lagoon-logs exchange to be processed
+						m.toLagoonLogs(messageQueue, map[string]interface{}{
+							"severity": "error",
+							"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+							"meta":     setServices,
+							"message":  err.Error(),
+						})
+						if m.EnableDebug {
+							log.Printf("%sERROR: unable to delete environment volume - %v", prefix, err)
+						}
+						errs = append(errs, err)
+					}
+				}
+			}
 			// then update all the existing services
+			for _, mVolume := range message.Meta.EnvironmentVolumes {
+				v2add := schema.AddEnvironmentVolumeInput{
+					EnvironmentID: environmentID,
+					Name:          mVolume.Name,
+					Type:          mVolume.Type,
+					StorageType:   mVolume.StorageType,
+					KiBRequested:  mVolume.KiBRequested,
+					Abandoned:     &mVolume.Abandoned,
+				}
+				// add or update it
+				setServices, err := lagoon.AddOrUpdateEnvironmentVolume(ctx, v2add, l)
+				if err != nil {
+					// send the log to the lagoon-logs exchange to be processed
+					m.toLagoonLogs(messageQueue, map[string]interface{}{
+						"severity": "error",
+						"event":    fmt.Sprintf("actions-handler:%s:failed", "updateDeployment"),
+						"meta":     setServices,
+						"message":  err.Error(),
+					})
+					if m.EnableDebug {
+						log.Printf("%sERROR: unable to update environment volumes - %v", prefix, err)
+					}
+					errs = append(errs, err)
+				}
+			}
 			for _, mService := range message.Meta.EnvironmentServices {
 				containers := []schema.ServiceContainerInput{}
 				for _, sCon := range mService.Containers {
-					containers = append(containers, schema.ServiceContainerInput(sCon))
+					container := schema.ServiceContainerInput{
+						Name: sCon.Name,
+					}
+					for _, vol := range sCon.Volumemounts {
+						container.Volumemounts = append(container.Volumemounts, schema.AddEnvironmentServiceVolumemounts{
+							Name: vol.Name,
+							Path: vol.Path,
+						})
+					}
+					for _, port := range sCon.Ports {
+						container.Ports = append(container.Ports, schema.AddEnvironmentServicePorts{
+							Name: port.Name,
+							Port: port.Port,
+						})
+					}
+					containers = append(containers, container)
 				}
-				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers, Replicas: &mService.Replicas}
+				s2add := schema.AddEnvironmentServiceInput{
+					EnvironmentID: environmentID,
+					Name:          mService.Name,
+					Type:          mService.Type,
+					Containers:    containers,
+					Replicas:      &mService.Replicas,
+					Abandoned:     &mService.Abandoned,
+				}
 				// add or update it
 				setServices, err := lagoon.AddOrUpdateEnvironmentService(ctx, s2add, l)
 				if err != nil {
