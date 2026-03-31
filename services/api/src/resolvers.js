@@ -423,7 +423,8 @@ async function getResolvers() {
     },
     DeploymentSourceType: {
       API: 'api',
-      WEBHOOK: 'webhook'
+      WEBHOOK: 'webhook',
+      // CLONE: 'clone'
     },
     DeploymentBuildType: {
       BUILD: 'build',
