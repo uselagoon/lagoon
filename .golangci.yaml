@@ -1,0 +1,9 @@
+version: "2"
+run:
+  timeout: 180s
+linters:
+  enable:
+  - gocritic
+  exclusions:
+    presets:
+    - std-error-handling

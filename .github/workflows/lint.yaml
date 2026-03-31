@@ -1,0 +1,45 @@
+name: lint
+on:
+  pull_request:
+    branches:
+    - main
+  merge_group:
+    types:
+    - checks_requested
+permissions: {}
+jobs:
+  find-go-modules:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.find-modules.outputs.dirs }}
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - id: find-modules
+      run: |
+        echo "dirs=$(find . -mindepth 2 -name go.mod -printf '%h\n' | jq -cRn '[inputs]')" >> "$GITHUB_OUTPUT"
+  lint-go:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: find-go-modules
+    strategy:
+      matrix:
+        dir: ${{ fromJson(needs.find-go-modules.outputs.dirs) }}
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version: stable
+    - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+      with:
+        working-directory: ${{ matrix.dir }}
+  lint-actions:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: docker://rhysd/actionlint:1.7.0@sha256:601d6faeefa07683a4a79f756f430a1850b34d575d734b1d1324692202bf312e # v1.7.0
+      with:
+        args: -color
