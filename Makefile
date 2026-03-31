@@ -1028,7 +1028,7 @@ k3d/get-lagoon-cli-details:
 .PHONY: k3d/seed-data
 k3d/seed-data: k3d/generate-user-keys
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
-	export LAGOON_LEGACY_ADMIN=$$(docker run \
+	export LAGOON_LEGACY_ADMIN=$$(docker run --rm \
 		-e JWTSECRET="$$($(KUBECTL) get secret -n lagoon-core lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
 		-e JWTAUDIENCE=api.dev \
 		-e JWTUSER=localadmin \
