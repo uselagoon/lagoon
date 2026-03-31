@@ -14,7 +14,8 @@ COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /home /home
 
 RUN chmod g+w /etc/passwd \
-    && mkdir -p /home
+    && mkdir -p /home \
+    && touch /no_authorized_keys && chmod 444 /no_authorized_keys
 
 ENV TMPDIR=/tmp \
     TMP=/tmp \
