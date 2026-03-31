@@ -1,37 +1,66 @@
 # Local Development Environments
 
-Even though Lagoon has only a hard dependency on Docker and [Docker Compose](https://docs.docker.com/compose/) \(which is mostly shipped with Docker\) there are some things which are nice for local development that are not included in Docker:
+!!! note inline end
+    You do not need to _install_ Lagoon locally to _use_ it locally! Lagoon is the system that **deploys** your local dev environment to your production environment, it's **not** the environment itself.
 
-* An HTTP reverse proxy for nice URLs and HTTPS offloading.
-* A DNS system so we don't have to remember IP addresses.
-* SSH agents to use SSH keys within containers.
-* A system that receives and displays mail locally.
+Local dev environments can be used to shorten the development cycle for applications by not requiring full deployments anytime a code change needs testing. Lagoon deploys standard Docker images, which can be run locally with just [Docker](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/).
 
-???+ warning
-    You do not need to _install_ Lagoon locally to _use_ it locally! That sounds confusing but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
+Docker lacks features that provide for a nice local development experience, so advanced local dev products have been created to provide, among other things:
 
-## pygmy, DDEV, or Lando - the choice is yours
+* Reverse proxy for memorable URLs and HTTPS support.
+* DNS service to resolve local URLs.
+* SSH agent to use SSH keys within containers.
+* Mail service to intercept and display emails locally.
 
-### pygmy
+Some local dev products, listed below, have enhanced support for Lagoon.
 
-Lagoon has traditionally worked best with `pygmy` , which is a preconfigured system of the above tools and works out of the box with Lagoon. It lives at [https://github.com/pygmystack/pygmy](https://github.com/pygmystack/pygmy)
+## Drupal
 
-`pygmy` is written in Golang, so to install it, run:
+### [Pygmy Stack](https://pygmystack.github.io/pygmy/)
 
-```bash title="Install with HomeBrew"
-brew tap pygmystack/pygmy && brew install pygmy
-```
+The Pygmy Stack is an open source, minimal `cli` tool on top of Docker that runs Lagoon Docker images and provides the previouly mentioned local dev features. Recommended for those that prefer mimicking production environments over features.
 
-For detailed usage or installation info on pygmy, see its [documentation](https://pygmystack.github.io/pygmy/).
+Lagoon integration:
 
-### Lando
+ - Runs same Docker images locally as are running in Lagoon.
+ - Automatic settings from Lagoon config files.
 
-Lagoon is well-integrated with Lando! For more information, please see the documentation at [https://docs.lando.dev/config/lagoon.html](https://docs.lando.dev/config/lagoon.html) to get yourself up and running.
+Read more about `pygmy` [usage](https://pygmystack.github.io/pygmy/usage/) or [installation](https://pygmystack.github.io/pygmy/installation/).
 
-Lando's workflow for Lagoon will be familiar to users of Lando, and will also be the easiest way for Lagoon newcomers to get up and running. Pygmy presents a closer integration with Docker, which will lend itself better to more complex scenarios and use cases but will also require a deeper understanding.
+### [Lando](https://lando.dev/)
 
-### DDEV
+Lando is an open source, advanced `cli` tool for local dev environments and DevOps. It's customizable via plugins and config. Recommended for those that want to mimick production environments with extra features, and don't mind the complexity that comes with that.
 
-Lagoon is also supported on DDEV! Check out their documentation to get started: [https://ddev.readthedocs.io/en/stable/users/providers/lagoon/](https://ddev.readthedocs.io/en/stable/users/providers/lagoon/).
+Lagoon integration:
 
-We have previously evaluated adding support for other systems like [Docksal](https://docksal.io/) and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and while we may add support for these in the future, our current focus is on supporting our current tools.
+ - Runs some of the same Docker images locally as are running in Lagoon.
+ - Automatic settings from Lagoon config files.
+ - `lando push/pull` can sync with a Lagoon environment.
+ - Lagoon `cli` and `lagoon-sync` included.
+
+ [Read more about the Lando Lagoon plugin](https://docs.lando.dev/plugins/lagoon/).
+
+### [DDEV](https://ddev.com/)
+
+DDEV is an open source, advanced `cli` and `tui` for Docker-based PHP development environments. It has a large feature set and an extensive set of add-ons. Recommended for those that prefer ease of use over production similarity, and a large community.
+
+Lagoon integration:
+
+ - `ddev push/pull` can sync with a Lagoon environment.
+ - Lagoon `cli` and `lagoon-sync` included.
+
+[Read more about the DDEV and Lagoon integration](https://docs.ddev.com/en/stable/users/providers/lagoon/).
+
+### Other
+
+Other local dev systems like [Docksal](https://docksal.io/) or [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/) don't have explicit Lagoon support, but may still work using standard `ssh` and/or `rsync`.
+
+## Laravel
+
+### [Sail](https://laravel.com/docs/sail)
+
+Laravel Sail is a light-weight command-line interface for interacting with Laravel's default Docker development environment. Sail provides a great starting point for building a Laravel application using PHP, MySQL, and Redis without requiring prior Docker experience.
+
+Lagoon integration:
+
+ - [`sailonlagoon`](https://github.com/uselagoon/sailonlagoon) simplifies the process of Lagoonizing Laravel Sail projects.
