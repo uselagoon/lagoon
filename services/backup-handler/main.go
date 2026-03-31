@@ -20,19 +20,6 @@ var (
 )
 
 func main() {
-	// we want all of these vars, else fail
-	if len(os.Getenv("RABBITMQ_ADDRESS")) == 0 {
-		log.Fatalln("RABBITMQ_ADDRESS not set")
-	}
-	if len(os.Getenv("RABBITMQ_PORT")) == 0 {
-		log.Fatalln("RABBITMQ_PORT not set")
-	}
-	if len(os.Getenv("RABBITMQ_USERNAME")) == 0 {
-		log.Fatalln("RABBITMQ_USERNAME not set")
-	}
-	if len(os.Getenv("RABBITMQ_PASSWORD")) == 0 {
-		log.Fatalln("RABBITMQ_PASSWORD not set")
-	}
 	if len(os.Getenv("JWT_SECRET")) == 0 {
 		log.Fatalln("JWT_SECRET not set")
 	}
@@ -56,14 +43,6 @@ func main() {
 	}
 
 	// configure the backup handler settings
-	broker := handler.RabbitBroker{
-		Hostname:     os.Getenv("RABBITMQ_ADDRESS"),
-		Username:     os.Getenv("RABBITMQ_USERNAME"),
-		Password:     os.Getenv("RABBITMQ_PASSWORD"),
-		Port:         os.Getenv("RABBITMQ_PORT"),
-		QueueName:    "lagoon-webhooks:queue",
-		ExchangeName: "lagoon-webhooks",
-	}
 	graphQL := handler.LagoonAPI{
 		Endpoint:        os.Getenv("GRAPHQL_ENDPOINT"),
 		TokenSigningKey: os.Getenv("JWT_SECRET"),
@@ -74,7 +53,7 @@ func main() {
 	}
 
 	// set up the backup handler
-	backupHandler, err := handler.NewBackupHandler(broker, graphQL)
+	backupHandler, err := handler.NewBackupHandler(graphQL)
 	if err != nil {
 		panic(err)
 	}

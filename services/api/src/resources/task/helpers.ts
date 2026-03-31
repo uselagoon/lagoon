@@ -11,6 +11,8 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { TaskSourceType } from '@lagoon/commons/dist/types';
 import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
+import { getConfigFromEnv } from '../../util/config';
+import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
   const getTaskById = async (TaskID: number) => {
@@ -120,11 +122,35 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
 
       taskData.id = taskData.id.toString();
 
+      const routerPatternVarsInput = {
+        projectName: projectData.name,
+        environmentId: environmentData.id
+      }
+      const response = await fetch(
+        `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/routerpatternvariables`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          // @ts-ignore
+          body: new URLSearchParams(routerPatternVarsInput).toString(),
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`)
+        throw new Error(`Error getting variables for task ${environmentData.name}`);
+      }
+      const resp = JSON.parse(await response.text())
+      // logger.info(`AAAAAAA1 ${resp.envVars}`)
+
       try {
         await createTaskTask({
           task: taskData,
           project: projectData,
-          environment: environmentData
+          environment: environmentData,
+          envVars: resp.envVars,
         });
       } catch (error) {
         sendToLagoonLogs(
@@ -234,11 +260,34 @@ export const Helpers = (sqlClientPool: Pool, hasPermission, adminScopes) => {
         }
       }
 
+      const routerPatternVarsInput = {
+        projectName: projectData.name,
+        environmentId: environmentData.id
+      }
+      const response = await fetch(
+        `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/routerpatternvariables`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          // @ts-ignore
+          body: new URLSearchParams(routerPatternVarsInput).toString(),
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(`Error getting variables for task ${environmentData.name}: ${errorText}`)
+        throw new Error(`Error getting variables for task ${environmentData.name}`);
+      }
+      const resp = JSON.parse(await response.text())
+
       try {
         await createMiscTask(
           {
             key: ADVANCED_TASK_EVENT_TYPE,
-            data: jobSpec
+            data: jobSpec,
+            envVars: resp.envVars,
           }
         )
       } catch (error) {

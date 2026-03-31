@@ -1,34 +1,40 @@
-ARG LAGOON_GIT_BRANCH
-ARG IMAGE_REPO
+# build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-# STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder AS yarn-workspace-builder
+FROM golang:1.25-alpine3.22 AS builder
 
-# STAGE 2: specific service Image
-FROM ${UPSTREAM_REPO:-uselagoon}/node-22:${UPSTREAM_TAG:-latest}
+WORKDIR /workspace
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY internal/messaging internal/messaging
+COPY internal/lagoon internal/lagoon
+COPY internal/events internal/events
+COPY services/webhook-handler/cmd/ services/webhook-handler/cmd/
+COPY services/webhook-handler/internal/server services/webhook-handler/internal/server
+COPY services/webhook-handler/internal/gitlab services/webhook-handler/internal/gitlab
+
+# compile
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o webhook-handler services/webhook-handler/cmd/main.go
+
+# put the binary into container
+# use the commons image to get entrypoints
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
 
-# Copying generated node_modules from the first stage
-COPY --from=yarn-workspace-builder /app /app
+WORKDIR /app/
 
-# Setting the workdir to the service, all following commands will run from here
-WORKDIR /app/services/webhook-handler/
+# bring the webhook-handler binary from the builder
+COPY --from=builder /workspace/webhook-handler .
 
-# Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
-COPY --from=yarn-workspace-builder /app/.env.defaults .
-
-# Copying files from our service
-COPY . .
-
-# Verify that all dependencies have been installed via the yarn-workspace-builder
-RUN yarn check --verify-tree
-
-# Making sure we run in production
-ENV NODE_ENV production
-
-RUN yarn build
-
-CMD ["yarn", "start"]
+ENV LAGOON=webhook-handler
+# set defaults
+ENV JWT_SECRET=super-secret-string \
+    JWT_AUDIENCE=api.dev \
+    GRAPHQL_ENDPOINT="http://api:3000/graphql" \
+    RABBITMQ_ADDRESS=broker \
+    RABBITMQ_PORT=5672 \
+    RABBITMQ_USERNAME=guest \
+    RABBITMQ_PASSWORD=guest
+CMD ["/app/webhook-handler"]
