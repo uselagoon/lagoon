@@ -6,11 +6,11 @@
 
     <groupId>net.cake.keycloak.custom</groupId>
     <artifactId>custom-protocol-mapper</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <properties>
-        <keycloak.version>26.3.1</keycloak.version>
+        <keycloak.version>26.4.7</keycloak.version>
     </properties>
 
     <dependencies>
@@ -58,6 +58,19 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.smallrye</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <version>3.2.2</version>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                        <goals>
+                            <goal>jandex</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
