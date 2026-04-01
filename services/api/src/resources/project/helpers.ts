@@ -7,7 +7,7 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Sql as backupSql } from '../backup/sql';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as routeHelpers } from '../routes/helpers';
-// import { logger } from '../../loggers/logger';
+import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const checkOrgProjectViewPermission = async (hasPermission, pid, adminScopes) => {
@@ -122,6 +122,58 @@ export const Helpers = (sqlClientPool: Pool) => {
     return Boolean(organization.featureApiRoutes);
   };
 
+  const addProjectRestrictions = async (projectId: number, restrictions: string[]) => {
+    let result = await query(sqlClientPool, Sql.selectProjectRestrictions(projectId));
+    let rs = [];
+    if (result[0].restrictions) {
+      const r = JSON.parse(result[0].restrictions);
+      rs = [...new Set([...r, ...restrictions])];
+    } else{
+      rs = [...restrictions]
+    }
+    await query(sqlClientPool, Sql.updateProjectRestrictions(projectId, JSON.stringify(rs)));
+  };
+
+  const removeProjectRestrictions = async (projectId: number, restrictions: string[]) => {
+    let result = await query(sqlClientPool, Sql.selectProjectRestrictions(projectId));
+    let rs = [];
+    if (result[0].restrictions) {
+      const r = JSON.parse(result[0].restrictions);
+      rs = r.filter(item => !restrictions.includes(item));
+    }
+    await query(sqlClientPool, Sql.updateProjectRestrictions(projectId, JSON.stringify(rs)));
+  }
+
+  const getProjectRestrictions = async (projectId: number) => {
+    const restrictions = await query(sqlClientPool, Sql.selectProjectRestrictions(projectId));
+    return JSON.parse(restrictions[0].restrictions)
+  };
+
+  const hasProjectRestriction = async (restriction: string, projectId: number, adminScopes) => {
+    if (adminScopes.platformOwner) {
+      return
+    }
+    const project = await getProjectById(projectId);
+    if (project.restrictions) {
+      const r = JSON.parse(project.restrictions)
+      if (r.includes(restriction)) {
+        switch (restriction) {
+          case 'no_tasks':
+            throw new Error('Tasks have been disabled for this project');
+          case 'no_deployments':
+            throw new Error('Tasks have been disabled for this project');
+          case 'no_environment_variables':
+            throw new Error('Modifying environment variables is disabled for this project');
+          case 'no_project_variables':
+            throw new Error('Modifying project variables is disabled for this project');
+          default:
+            throw new Error('Error checking restrictions for project');
+        }
+      }
+    }
+  };
+
+
   return {
     checkOrgProjectViewPermission,
     checkOrgProjectUpdatePermission,
@@ -132,6 +184,10 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectByEnvironmentId,
     getProjectByOrganizationId,
     checkApiRoutesFeature,
+    getProjectRestrictions,
+    addProjectRestrictions,
+    removeProjectRestrictions,
+    hasProjectRestriction,
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(
         sqlClientPool,
