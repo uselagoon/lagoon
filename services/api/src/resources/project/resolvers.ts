@@ -1180,14 +1180,18 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // TODO: consider pullrequsts/promote type environments (maybe cant clone promote or pullrequest environments initially)
-  // maybe throw error for unsupported environment type here?
   const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, pid)
   const environmentData = env[0]
   if (!environmentData) {
     throw new Error(
       `Environment doesn't exist in project`
     );
+  }
+
+  // maybe throw error for unsupported environment type here?
+  // consider pullrequsts/promote type environments (maybe cant clone promote or pullrequest environments initially)
+  if (environmentData.deployType != 'branch') {
+    throw new Error(`Only environments with deploymentType 'branch' can be cloned`);
   }
 
   // check project & env quota's prior to cloning the project
@@ -1243,8 +1247,6 @@ export const cloneProject: ResolverFn = async (
   );
   project.clone = insertId
 
-  // TODO: copy things like groups, variables, notifications, etc..
-
   const auditLog: AuditLog = {
     resource: {
       id: project.id.toString(),
@@ -1284,7 +1286,7 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // TODO: copy environment variables (project / environment), groups, metadata
+  // copy environment variables (project / environment), groups, metadata
   if (groups) {
     let data: copyProjectGroups = {
       sqlClientPool: sqlClientPool,
@@ -1345,10 +1347,10 @@ export const cloneProject: ResolverFn = async (
 
     data.task.id = sourceTaskData.addTask.id.toString()
 
-    // Task reference is added to ProjectClone source tasks\
+    // Task reference is added to ProjectClone source tasks
     await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: pid, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
 
-    // TODO: create lagoon-sync advanced task in source environment (archive) - pending lagoon-sync archive creation
+    // Create lagoon-sync advanced task in source environment (archive) - pending lagoon-sync archive creation
     await createMiscTask({ key: 'task:projectclone', data });
   }
   // ???
