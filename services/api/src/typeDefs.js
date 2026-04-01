@@ -141,6 +141,7 @@ const typeDefs = gql`
   enum DeploymentSourceType {
     API
     WEBHOOK
+    CLONE
   }
 
   enum TaskSourceType {

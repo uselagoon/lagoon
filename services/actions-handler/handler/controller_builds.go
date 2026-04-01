@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -132,6 +133,54 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			updateEnvironmentPatch.Routes = &routes
 		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
+
+		if buildStatus == "complete" {
+			if deployment.DeploymentSourceType == "CLONE" {
+				type cloneData struct {
+					Clone struct {
+						ID int `json:"id"`
+					} `json:"clone"`
+				}
+				projectRaw := fmt.Sprintf(`query getProjectCloneDetails{
+					projectByName(name: "%s"){
+						id
+						clone {
+							id
+						}
+					}
+				}`, message.Meta.Project)
+
+				projectData, err := l.ProcessRaw(ctx, projectRaw, nil)
+				if err != nil {
+					log.Printf("%sERROR: unable to get project clone info: %v", prefix, err)
+					// return err
+				}
+				var project cloneData
+				data, _ := json.Marshal(projectData.(map[string]interface{})["projectByName"])
+				if err := json.Unmarshal(data, &project); err != nil {
+					log.Printf("%sERROR: unable to unmarshal clone data: %v", prefix, err)
+					return nil
+				}
+
+				raw := fmt.Sprintf(`mutation updateProjectClone{
+					updateProjectClone(input:{
+						id: %d
+						status: COMPLETE
+					}){
+						id
+					}
+				}`, project.Clone.ID)
+
+				_, err = l.ProcessRaw(ctx, raw, nil)
+				if err != nil {
+					log.Printf("%sERROR: unable to update clone status: %v", prefix, err)
+					// return err
+				}
+
+				fmt.Println("****status updated to completed****", project.Clone.ID)
+			}
+		}
+
 	}
 	// only update the api with the status etc on pending, complete, failed, or cancelled
 	// reduce calls to the api

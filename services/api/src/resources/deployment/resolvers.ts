@@ -991,8 +991,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   await deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
 };
 
-// export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
-export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger ) {
+export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
   let buildName = generateBuildId();
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
@@ -1006,8 +1005,7 @@ export async function deployBranch(returnData, project, branchName, branchRef, p
     bulkId: bulkId,
     bulkName: bulkName,
     buildVariables: buildVariables,
-    // sourceType: deploySourceType,
-    sourceType: DeploymentSourceType.API,
+    sourceType: deploySourceType,
     sourceUser: sourceUser
   };
 
