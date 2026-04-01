@@ -1272,8 +1272,7 @@ export const cloneProject: ResolverFn = async (
     priority = project.productionBuildPriority
   }
   // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
-  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
-  // const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
+  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
   const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
   const destinationEnvironmentData = destinationEnv[0]
   if (destinationEnvironmentData) {
@@ -1540,7 +1539,7 @@ export const executeCloneDeployment: ResolverFn = async (
       keycloakGrant,
       legacyGrant,
       userActivityLogger,
-      // DeploymentSourceType.CLONE
+      DeploymentSourceType.CLONE
     );
 
     const buildData = await query(
