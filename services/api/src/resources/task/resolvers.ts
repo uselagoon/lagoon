@@ -269,6 +269,9 @@ export const addTask: ResolverFn = async (
     execute = true;
   }
 
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', envPerm.project, adminScopes)
+
   let taskName = generateTaskName()
 
   sourceUser ??= await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -590,6 +593,8 @@ export const taskDrushArchiveDump: ResolverFn = async (
     'cli'
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', envPerm.project, adminScopes)
 
   const command = String.raw`
 cat << 'EOF' | sh
@@ -689,6 +694,8 @@ export const taskDrushSqlDump: ResolverFn = async (
     'cli'
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', envPerm.project, adminScopes)
 
   const command = String.raw`
 cat << 'EOF' | sh
@@ -870,6 +877,8 @@ export const taskDrushCron: ResolverFn = async (
     'cli'
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(envPerm.project);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', envPerm.project, adminScopes)
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const taskData = await Helpers(sqlClientPool, hasPermission, adminScopes).addTask({
@@ -956,6 +965,8 @@ export const taskDrushSqlSync: ResolverFn = async (
     'cli'
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(sourceEnvironment.project);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', sourceEnvironment.project, adminScopes)
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
@@ -1048,6 +1059,8 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     'cli'
   );
   const project = await projectHelpers(sqlClientPool).getProjectById(sourceEnvironment.project);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', sourceEnvironment.project, adminScopes)
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \

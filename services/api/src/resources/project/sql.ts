@@ -163,6 +163,16 @@ export const Sql = {
     q.where('e.id', environmentId);
     return q.toString();
   },
+  selectProjectRestrictions: (pid: number) =>
+    knex('project')
+      .select('restrictions')
+      .where('id', '=', pid)
+      .toString(),
+  updateProjectRestrictions: (pid: number, restrictions: string) =>
+    knex('project')
+      .where('id', '=', pid)
+      .update('restrictions', restrictions)
+      .toString(),
   updateProject: ({
     id,
     patch

@@ -680,7 +680,8 @@ export const updateProject: ResolverFn = async (
         developmentEnvironmentsLimit,
         organization,
         buildImage,
-        sharedBaasBucket
+        sharedBaasBucket,
+        restrictions
       }
     }
   },
@@ -694,6 +695,11 @@ export const updateProject: ResolverFn = async (
   if (deploymentsDisabled) {
     if (!adminScopes.platformOwner) {
       throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+  if (restrictions) {
+    if (!adminScopes.platformOwner) {
+      throw new Error('Project restrictions are only available to administrators.');
     }
   }
 
@@ -873,7 +879,8 @@ export const updateProject: ResolverFn = async (
         developmentEnvironmentsLimit,
         organization,
         buildImage,
-        sharedBaasBucket
+        sharedBaasBucket,
+        restrictions: JSON.stringify(restrictions)
       }
     })
   );
@@ -1233,6 +1240,9 @@ export const cloneProject: ResolverFn = async (
   let project = await createProject(newProjectInput, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes)
   // TODO: may need to consider deploytarget configuration cloning
 
+  // disable deployments, tasks, and other user interactions
+  await Helpers(sqlClientPool).addProjectRestrictions(project.id, ['no_deployments','no_tasks','no_project_variables','no_environment_variables'])
+
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertProjectClone({
@@ -1378,12 +1388,20 @@ export const updateProjectClone: ResolverFn = async (
     );
   }
 
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${id}`);
+  }
   const result = await query(sqlClientPool, Sql.updateProjectClone({id, status}));
 
   if (result.affectedRows === 0) {
     throw new Error(
       `No project clone found for ID: ${id}`
     );
+  }
+  if (status == "complete") {
+    // remove restrictions on complete cloning
+    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables'])
   }
 
   userActivityLogger(`User updated a project cloning status '${id}'`, {
@@ -1397,7 +1415,6 @@ export const updateProjectClone: ResolverFn = async (
     }
   });
 
-  const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
   return rows[0]
 };
 
@@ -1924,4 +1941,12 @@ export const getTasksBySourceProjectForCloneProjectId: ResolverFn = async (
 ) => {
   // use the augmented cloneId from source project
   return getDeploymentsOrTasks(sqlClientPool, input.cloneId, input.id, 'source', 'task')
+};
+
+export const getRestrictionsByProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  return await Helpers(sqlClientPool).getProjectRestrictions(input.id);
 };

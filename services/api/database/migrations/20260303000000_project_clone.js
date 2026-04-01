@@ -6,6 +6,7 @@ exports.up = async function(knex) {
     return knex.schema
     .alterTable('project', (table) => {
         table.integer('clone');
+        table.text('restrictions'); // is enum slice in API
     })
     .createTable('project_clone', function (table) {
         table.increments('id').notNullable().primary();
@@ -35,6 +36,7 @@ exports.down = async function(knex) {
     return knex.schema
     .alterTable('project', (table) => {
         table.dropColumn('clone');
+        table.dropColumn('restrictions');
     })
     .dropTable('project_clone')
     .dropTable('project_clone_task_deployments')

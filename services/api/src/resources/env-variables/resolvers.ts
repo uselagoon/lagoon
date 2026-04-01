@@ -149,7 +149,7 @@ export const deleteEnvVariableByName: ResolverFn = async (
       name,
     },
   },
-  { sqlClientPool, hasPermission, userActivityLogger },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
 ) => {
   const envVarType = getEnvVarType({
     organization: orgName,
@@ -209,6 +209,8 @@ export const deleteEnvVariableByName: ResolverFn = async (
       await hasPermission('env_var', 'project:delete', {
         project: project.id,
       });
+      // check if project has restriction
+      await projectHelpers(sqlClientPool).hasProjectRestriction('no_project_variables', project.id, adminScopes)
       resource = {
         id: project.id.toString(),
         type: AuditType.PROJECT,
@@ -247,7 +249,8 @@ export const deleteEnvVariableByName: ResolverFn = async (
             project: project.id,
           },
         );
-
+        // check if project has restriction
+        await projectHelpers(sqlClientPool).hasProjectRestriction('no_environment_variables', project.id, adminScopes)
         resource = {
           id: environment.id.toString(),
           type: AuditType.ENVIRONMENT,
@@ -317,7 +320,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       value,
     },
   },
-  { sqlClientPool, hasPermission, userActivityLogger },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
 ) => {
   if (name.trim().length == 0) {
     throw new Error('A variable name must be provided.');
@@ -372,6 +375,8 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       await hasPermission('env_var', 'project:add', {
         project: project.id,
       });
+      // check if project has restriction
+      await projectHelpers(sqlClientPool).hasProjectRestriction('no_project_variables', project.id, adminScopes)
       resource = {
         id: project.id.toString(),
         type: AuditType.PROJECT,
@@ -400,6 +405,8 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
           project: project.id,
         },
       );
+      // check if project has restriction
+      await projectHelpers(sqlClientPool).hasProjectRestriction('no_environment_variables', project.id, adminScopes)
       resource = {
         id: environment.id.toString(),
         type: AuditType.ENVIRONMENT,
@@ -557,7 +564,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
 };
 
 // Deprecated
-export const addEnvVariable: ResolverFn = async (obj, args, context) => {
+export const addEnvVariable: ResolverFn = async (obj, args, { sqlClientPool, hasPermission, userActivityLogger, adminScopes }) => {
   const {
     input: { type }
   } = args;
@@ -567,9 +574,9 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   }
 
   if (type === 'project') {
-    return addEnvVariableToProject(obj, args, context);
+    return addEnvVariableToProject(obj, args, { sqlClientPool, hasPermission, userActivityLogger, adminScopes });
   } else if (type === 'environment') {
-    return addEnvVariableToEnvironment(obj, args, context);
+    return addEnvVariableToEnvironment(obj, args, { sqlClientPool, hasPermission, userActivityLogger, adminScopes });
   }
 };
 
@@ -577,13 +584,15 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
 const addEnvVariableToProject = async (
   root,
   { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   await hasPermission('env_var', 'project:add', {
     project: `${typeId}`
   });
   const project =
     await projectHelpers(sqlClientPool).getProjectByProjectInput({id: typeId});
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_project_variables', typeId, adminScopes)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -632,7 +641,7 @@ const addEnvVariableToProject = async (
 const addEnvVariableToEnvironment = async (
   root,
   { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -646,6 +655,8 @@ const addEnvVariableToEnvironment = async (
     }
   );
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment.id);
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_environment_variables', environment.project, adminScopes)
 
   const { insertId } = await query(
     sqlClientPool,
@@ -695,7 +706,7 @@ const addEnvVariableToEnvironment = async (
 export const deleteEnvVariable: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForEnvVariable(id));
 
@@ -719,6 +730,8 @@ export const deleteEnvVariable: ResolverFn = async (
   } else if (envVar.project) {
     const project =
       await projectHelpers(sqlClientPool).getProjectById(envVar.project);
+    // check if project has restriction
+    await projectHelpers(sqlClientPool).hasProjectRestriction('no_project_variables', envVar.project, adminScopes)
     resource = {
       id: project.id.toString(),
       type: AuditType.PROJECT,
@@ -732,6 +745,8 @@ export const deleteEnvVariable: ResolverFn = async (
       await environmentHelpers(sqlClientPool).getEnvironmentById(envVar.environment);
     const project =
       await projectHelpers(sqlClientPool).getProjectById(environment.project);
+    // check if project has restriction
+    await projectHelpers(sqlClientPool).hasProjectRestriction('no_environment_variables', environment.project, adminScopes)
     resource = {
       id: environment.id.toString(),
       type: AuditType.ENVIRONMENT,
