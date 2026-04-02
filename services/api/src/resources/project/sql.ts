@@ -123,7 +123,7 @@ export const Sql = {
       .update('updated', knex.fn.now())
       .toString(),
   selectTaskOrDeploymentByProjectClone: (cid: number, pid: number, type: string, project: string) =>
-    knex('project_clone')
+    knex('project_clone_task_deployments')
       .where('cid', '=', cid)
       .andWhere('pid', '=', pid)
       .andWhere('type', '=', type)

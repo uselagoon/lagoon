@@ -1286,12 +1286,12 @@ export const cloneProject: ResolverFn = async (
     priority = project.productionBuildPriority
   }
   // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
-  const deployVars: string[] = [];
+  const deployVars: {name: string, value: string}[] = [];
   if (disablePreRollout !== false) {
-    deployVars.push('LAGOON_PREROLLOUT_DISABLED=true');
+    deployVars.push({name: 'LAGOON_PREROLLOUT_DISABLED', value: 'true'});
   }
   if (disablePostRollout !== false) {
-    deployVars.push('LAGOON_POSTROLLOUT_DISABLED=true');
+    deployVars.push({name: 'LAGOON_POSTROLLOUT_DISABLED', value: 'true'});
   }
   const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, deployVars, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
   const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
@@ -1418,6 +1418,20 @@ export const updateProjectClone: ResolverFn = async (
     await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables']);
   } else if (firstDepSFU) {
     await executeCloneRestoreTask(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  } else if (status === 'first_deployment_complete') {
+    // copydata check - if false skips to complete. Was getting stuck at FIRST_DEPLOYMENT_COMPLETE waiting for source_files_uploaded
+    const sourceTasks = await query(
+      sqlClientPool,
+      knex('project_clone_task_deployments')
+        .where('cid', id)
+        .andWhere('project', 'source')
+        .andWhere('type', 'task')
+        .toString()
+    );
+    if (sourceTasks.length === 0) {
+      await query(sqlClientPool, Sql.updateProjectClone({ id, status: 'complete' }));
+      await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables']);
+    }
   } else if (status === 'source_files_applied') {
     await executeCloneDeployment(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
   }
