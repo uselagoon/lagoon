@@ -1,14 +1,9 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
-
-	lclient "github.com/uselagoon/machinery/api/lagoon/client"
-	"github.com/uselagoon/machinery/utils/jwt"
 )
 
 type handleUserActionUser struct {
@@ -22,17 +17,10 @@ type handleUserActionUser struct {
 type handleUserActionPayload struct {
 	Meta struct {
 		Payload struct {
-			User                   handleUserActionUser           `json:"user"`
-			UserActionEmailDetails *UseractionEmailDetails        `json:"userActionEmailDetails,omitempty"`
-			ProjectCloneDetails    *UserActionProjectCloneDetails `json:"projectCloneDetails,omitempty"`
+			User                   handleUserActionUser    `json:"user"`
+			UserActionEmailDetails *UseractionEmailDetails `json:"userActionEmailDetails,omitempty"`
 		} `json:"payload"`
 	} `json:"meta"`
-}
-
-type UserActionProjectCloneDetails struct {
-	Status                 string `json:"status,omitempty"`
-	CloneId                int    `json:"id,omitempty"`
-	DestinationProjectName string `json:"destinationProjectName,omitempty"`
 }
 
 // These are the basic details that should be piped to the email template
@@ -299,72 +287,5 @@ func (h *Messaging) removeAdminFromOrganization(valuesStruct UseractionEmailDeta
 	if err != nil {
 		return fmt.Errorf("error sending email when removing user %s and from organization %s: %v", valuesStruct.Email, valuesStruct.OrganizationName, err)
 	}
-	return nil
-}
-
-func (h *Messaging) handleProjectCloneUpdate(ctx context.Context, rawPayload []byte) error {
-	var payload handleUserActionPayload
-	if err := json.Unmarshal(rawPayload, &payload); err != nil {
-		return err
-	}
-
-	projectCloneDetails := payload.Meta.Payload.ProjectCloneDetails
-	if projectCloneDetails == nil {
-		return fmt.Errorf("project clone details missing from payload for api:updateProjectClone event")
-	}
-
-	switch projectCloneDetails.Status {
-	case "source_files_uploaded":
-		// need to trigger the restore task for the clone
-		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
-		if err != nil {
-			return fmt.Errorf("failed to generate token for clone restore task: %w", err)
-		}
-
-		l := lclient.New(h.LagoonAPI.Endpoint, "logs2notifications", h.LagoonAPI.Version, &token, false)
-
-		raw := fmt.Sprintf(`mutation { executeCloneRestoreTask(input: {cloneId: %d}) { id } }`, projectCloneDetails.CloneId)
-
-		_, err = l.ProcessRaw(ctx, raw, nil)
-		if err != nil {
-			return fmt.Errorf("failed to trigger restore task for clone %d: %w", projectCloneDetails.CloneId, err)
-		}
-
-		if h.EnableDebug {
-			log.Printf("Triggered restore task for project clone %d", projectCloneDetails.CloneId)
-		}
-
-		fmt.Println("***SOURCE_FILES_UPLOADED***")
-
-	case "source_files_applied":
-		// TODO: Trigger deployment in the destination env
-		token, err := jwt.GenerateAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
-		if err != nil {
-			return fmt.Errorf("failed to generate token for clone deployment: %w", err)
-		}
-
-		l := lclient.New(h.LagoonAPI.Endpoint, "logs2notifications", h.LagoonAPI.Version, &token, false)
-
-		raw := fmt.Sprintf(`mutation { executeCloneDeployment(input: {cloneId: %d}) }`, projectCloneDetails.CloneId)
-
-		_, err = l.ProcessRaw(ctx, raw, nil)
-		if err != nil {
-			return fmt.Errorf("failed to trigger deployment for clone %d: %w", projectCloneDetails.CloneId, err)
-		}
-
-		if h.EnableDebug {
-			log.Printf("Triggered deployment for project clone %d", projectCloneDetails.CloneId)
-		}
-
-		fmt.Println("***SOURCE_FILES_APPLIED***")
-
-		// TODO: Need to workout how to handle updating the clone status if deployment is successful
-		// options - watch logs here
-		// - in actions-handler run qnew query to get clone by deployment - would have to call on every completed deployment though
-		// - stire the clone ID somewhere accessible by deployments to check? build metadata?
-	default:
-		break
-	}
-
 	return nil
 }

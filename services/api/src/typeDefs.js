@@ -627,6 +627,7 @@ const typeDefs = gql`
     PENDING
     INCOMPATIBLE_REQUIREMENTS
     SOURCE_FILES_UPLOADED
+    FIRST_DEPLOYMENT_COMPLETE
     SOURCE_FILES_APPLIED
     CANCELLED
     FAILED
@@ -2832,6 +2833,8 @@ const typeDefs = gql`
     name: String
     environmentVariables: Boolean
     copyData: Boolean
+    disablePreRollout: Boolean
+    disablePostRollout: Boolean
   }
 
   input UpdateProjectCloneInput {

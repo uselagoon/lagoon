@@ -1160,6 +1160,8 @@ export const cloneProject: ResolverFn = async (
         name: sourceEnvironmentName,
         environmentVariables,
         copyData,
+        disablePreRollout,
+        disablePostRollout,
       }
     }
   },
@@ -1284,7 +1286,14 @@ export const cloneProject: ResolverFn = async (
     priority = project.productionBuildPriority
   }
   // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
-  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, null, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
+  const deployVars: string[] = [];
+  if (disablePreRollout !== false) {
+    deployVars.push('LAGOON_PREROLLOUT_DISABLED=true');
+  }
+  if (disablePostRollout !== false) {
+    deployVars.push('LAGOON_POSTROLLOUT_DISABLED=true');
+  }
+  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, deployVars, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
   const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
   const destinationEnvironmentData = destinationEnv[0]
   if (destinationEnvironmentData) {
@@ -1379,7 +1388,7 @@ export const updateProjectClone: ResolverFn = async (
       status
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
 ) => {
   // updating the project clone status is restricted to platform/system only, not general users
   if (!adminScopes.platformOwner) {
@@ -1392,6 +1401,7 @@ export const updateProjectClone: ResolverFn = async (
   if (rows.length === 0) {
     throw new Error(`No project clone found for ID: ${id}`);
   }
+  const prevStatus = rows[0].status
   const result = await query(sqlClientPool, Sql.updateProjectClone({id, status}));
 
   if (result.affectedRows === 0) {
@@ -1399,9 +1409,17 @@ export const updateProjectClone: ResolverFn = async (
       `No project clone found for ID: ${id}`
     );
   }
-  if (status == "complete") {
+
+  // simplifies the switch + combines the restore status'
+  const firstDepSFU = (status === 'first_deployment_complete' && prevStatus === 'source_files_uploaded') || (status === 'source_files_uploaded' && prevStatus === 'first_deployment_complete');
+
+  if (status === 'complete') {
     // remove restrictions on complete cloning
-    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables'])
+    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables']);
+  } else if (firstDepSFU) {
+    await executeCloneRestoreTask(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  } else if (status === 'source_files_applied') {
+    await executeCloneDeployment(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
   }
 
   userActivityLogger(`User updated a project cloning status '${id}'`, {

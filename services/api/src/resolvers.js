@@ -552,6 +552,7 @@ async function getResolvers() {
       PENDING: 'pending',
       INCOMPATIBLE_REQUIREMENTS: 'incompatible_requirements',
       SOURCE_FILES_UPLOADED: 'source_files_uploaded',
+      FIRST_DEPLOYMENT_COMPLETE: 'first_deployment_complete',
       SOURCE_FILES_APPLIED: 'source_files_applied',
       CANCELLED: 'cancelled',
       FAILED: 'failed',
