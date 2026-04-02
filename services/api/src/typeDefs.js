@@ -1505,6 +1505,7 @@ const typeDefs = gql`
     """
     retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
     metadata: JSON
+    clone: ProjectClone
   }
 
   """

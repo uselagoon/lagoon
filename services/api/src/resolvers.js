@@ -685,6 +685,7 @@ async function getResolvers() {
       groupCount: getGroupCountByOrganizationProject,
       notifications: getNotificationsForOrganizationProjectId,
       retentionPolicies: getRetentionPoliciesByProjectId,
+      clone: getProjectCloneByProject,
     },
     OrgEnvironment: {
       project: getProjectById,
