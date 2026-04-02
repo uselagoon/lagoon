@@ -35,6 +35,12 @@ type taskData struct {
 	Status  string `json:"status"`
 }
 
+const (
+	dockerComposeYamlCMName                 = "docker-compose-yaml"  // the configMap we read the docker-compose.yml details from
+	dockerComposeYamlCMKey                  = "post-deploy"          // key that contains the docker-compose.yml details we're interested in
+	dockerComposeYamlFilenameOnDiskTemplate = "docker-compose-*.yml" // this is used to template out a docker-compose.yml file
+)
+
 // We need to annotate the pod with lagoon.sh/taskData + return the job data for the actions-handler
 func addAnnotation(c client.Client, podName, podNamespace string, cloneId int, status string) error {
 	result := taskData{
@@ -129,6 +135,32 @@ func main() {
 	kubeClient, err := client.New(config, client.Options{})
 	if err != nil {
 		fmt.Printf("Task failed creating the kubernetes client, error was: %v\n", err)
+		os.Exit(1)
+	}
+
+	// grab the docker-compose-yaml, write it to a temporary directory
+	dcyTempFile, err := os.CreateTemp("/tmp", dockerComposeYamlFilenameOnDiskTemplate)
+	if err != nil {
+		fmt.Printf("Task failed creating the docker-compose-yaml temp file: %v\n", err)
+		os.Exit(1)
+	}
+	defer os.Remove(dcyTempFile.Name())
+
+	dockerComposeYamlData, err := getDockerCompose(kubeClient, podNamespace)
+
+	if err != nil {
+		fmt.Printf("Task failed pulling the docker-compose-yaml configmap data: %v\n", err)
+		os.Exit(1)
+	}
+
+	_, err = dcyTempFile.Write([]byte(dockerComposeYamlData))
+	if err != nil {
+		fmt.Printf("Task failed writing docker-compose-yaml configmap data to file '%v': %v\n", dcyTempFile.Name(), err)
+		os.Exit(1)
+	}
+
+	if err = dcyTempFile.Close(); err != nil {
+		fmt.Printf("Task failed closing docker-compose-yaml configmap file '%v': %v\n", dcyTempFile.Name(), err)
 		os.Exit(1)
 	}
 
@@ -275,6 +307,24 @@ func runRestore(kubeClient client.Client, podName, podNamespace string, payloadD
 	}
 
 	return nil
+}
+
+func getDockerCompose(c client.Client, podNamespace string) (string, error) {
+
+	cm := corev1.ConfigMap{}
+	if err := c.Get(context.TODO(), types.NamespacedName{
+		Namespace: podNamespace,
+		Name:      dockerComposeYamlCMName,
+	}, &cm); err != nil {
+		return "", fmt.Errorf("task failed to get the docker-compose ConfigMap: %w", err)
+	}
+
+	data, ok := cm.Data[dockerComposeYamlCMKey]
+	if !ok {
+		return "", fmt.Errorf("unable to find key %q in configmap %q", dockerComposeYamlCMKey, dockerComposeYamlCMName)
+	}
+
+	return data, nil
 }
 
 func runLagoonSyncArchive(data PayloadData) error {
