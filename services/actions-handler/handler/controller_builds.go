@@ -138,7 +138,12 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			if deployment.DeploymentSourceType == "CLONE" {
 				type cloneData struct {
 					Clone struct {
-						ID int `json:"id"`
+						ID                 int `json:"id"`
+						DestinationProject struct {
+							Deployments []struct {
+								Name string `json:"name"`
+							} `json:"deployments"`
+						} `json:"destinationProject"`
 					} `json:"clone"`
 				}
 				projectRaw := fmt.Sprintf(`query getProjectCloneDetails{
@@ -146,6 +151,11 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 						id
 						clone {
 							id
+							destinationProject{
+								deployments{
+									name
+								}
+							}
 						}
 					}
 				}`, message.Meta.Project)
@@ -162,14 +172,19 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					return nil
 				}
 
+				cloneStatus := "COMPLETE"
+				switch len(project.Clone.DestinationProject.Deployments) {
+				case 1:
+					cloneStatus = "FIRST_DEPLOYMENT_COMPLETE"
+				}
 				raw := fmt.Sprintf(`mutation updateProjectClone{
-					updateProjectClone(input:{
-						id: %d
-						status: COMPLETE
-					}){
-						id
-					}
-				}`, project.Clone.ID)
+						updateProjectClone(input:{
+							id: %d
+							status: %s
+						}){
+							id
+						}
+					}`, project.Clone.ID, cloneStatus)
 
 				_, err = l.ProcessRaw(ctx, raw, nil)
 				if err != nil {
@@ -177,7 +192,8 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					// return err
 				}
 
-				fmt.Println("****status updated to completed****", project.Clone.ID)
+				fmt.Println("****status updated to ****", cloneStatus, project.Clone.ID)
+
 			}
 		}
 
