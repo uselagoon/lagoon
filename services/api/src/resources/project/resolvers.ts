@@ -1411,15 +1411,19 @@ export const updateProjectClone: ResolverFn = async (
   }
 
   // simplifies the switch + combines the restore status'
-  const firstDepSFU = (status === 'first_deployment_complete' && prevStatus === 'source_files_uploaded') || (status === 'source_files_uploaded' && prevStatus === 'first_deployment_complete');
+  const firstDepAndSourceFilesUp = (status === 'first_deployment_complete' && prevStatus === 'source_files_uploaded') || (status === 'source_files_uploaded' && prevStatus === 'first_deployment_complete');
+  const restrictions = ['no_deployments','no_tasks','no_project_variables','no_environment_variables']
 
   if (status === 'complete') {
     // remove restrictions on complete cloning
-    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables']);
-  } else if (firstDepSFU) {
+    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, restrictions);
+
+  } else if (firstDepAndSourceFilesUp) {
+    // if both status have triggered then we can trigger the resotre
     await executeCloneRestoreTask(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+
   } else if (status === 'first_deployment_complete') {
-    // copydata check - if false skips to complete. Was getting stuck at FIRST_DEPLOYMENT_COMPLETE waiting for source_files_uploaded
+    // copydata check - if false skips to complete.
     const sourceTasks = await query(
       sqlClientPool,
       knex('project_clone_task_deployments')
@@ -1428,10 +1432,13 @@ export const updateProjectClone: ResolverFn = async (
         .andWhere('type', 'task')
         .toString()
     );
+
     if (sourceTasks.length === 0) {
       await query(sqlClientPool, Sql.updateProjectClone({ id, status: 'complete' }));
-      await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, ['no_deployments','no_tasks','no_project_variables','no_environment_variables']);
+      await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, restrictions);
+
     }
+
   } else if (status === 'source_files_applied') {
     await executeCloneDeployment(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
   }
