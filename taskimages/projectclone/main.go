@@ -39,6 +39,7 @@ const (
 	dockerComposeYamlCMName                 = "docker-compose-yaml"  // the configMap we read the docker-compose.yml details from
 	dockerComposeYamlCMKey                  = "post-deploy"          // key that contains the docker-compose.yml details we're interested in
 	dockerComposeYamlFilenameOnDiskTemplate = "docker-compose-*.yml" // this is used to template out a docker-compose.yml file
+	archiveFileName                         = "archive.tar.gz"       // name of the archive file we're going to be reading/writing from
 )
 
 // We need to annotate the pod with lagoon.sh/taskData + return the job data for the actions-handler
@@ -171,12 +172,12 @@ func main() {
 	}
 
 	if action == "restore" {
-		if err := runRestore(kubeClient, podName, podNamespace, payloadData); err != nil {
+		if err := runRestore(kubeClient, podName, podNamespace, payloadData, dcyTempFile.Name()); err != nil {
 			fmt.Printf("Task failed during restore, error was: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
-		if err := runArchive(kubeClient, podName, podNamespace, payloadData); err != nil {
+		if err := runArchive(kubeClient, podName, podNamespace, payloadData, dcyTempFile.Name()); err != nil {
 			fmt.Printf("Task failed during archive, error was: %v\n", err)
 			os.Exit(1)
 		}
@@ -186,29 +187,17 @@ func main() {
 }
 
 // archive func for action split
-func runArchive(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData) error {
+func runArchive(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData, dockerComposeFile string) error {
+
 	// Run lagoon-sync archive
-	if err := runLagoonSyncArchive(payloadData); err != nil {
+	if err := runLagoonSyncArchive(payloadData, dockerComposeFile, fmt.Sprintf("/tmp/%v", archiveFileName)); err != nil {
 		return fmt.Errorf("Task failed during lagoon-sync archive, error was: %v\n", err)
 	}
 
 	fmt.Printf("*********Lagoon sync archive completed: %s*********\n", payloadData.ProjectName)
 
-	// TODO: Upload archived files to S3
-	// test file creation (placeholder for actual S3 upload)
-	file, err := os.Create("/tmp/testfile.txt")
-	if err != nil {
-		return fmt.Errorf("Task failed to create test file, error: %v\n", err)
-	}
-	defer file.Close()
-
-	_, err = file.WriteString("This is a test file for project clone.")
-	if err != nil {
-		return fmt.Errorf("Task failed to write to test file, error: %v\n", err)
-	}
-
 	// Get upload form from Lagoon API
-	raw := fmt.Sprintf(`query { getProjectCloneFileUploadForm(input: {cloneId: %d, filename: "testfile.txt"}) {postUrl formFields }}`, payloadData.CloneId)
+	raw := fmt.Sprintf(`query { getProjectCloneFileUploadForm(input: {cloneId: %d, filename: "%v"}) {postUrl formFields }}`, payloadData.CloneId, archiveFileName)
 
 	lagoonToken, err := getToken()
 	if err != nil {
@@ -250,7 +239,7 @@ func runArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 		return fmt.Errorf("Task couldn't create upload file field, error: %v\n", err)
 	}
 
-	fd, err := os.Open("/tmp/testfile.txt")
+	fd, err := os.Open(fmt.Sprintf("/tmp/%v", archiveFileName))
 	if err != nil {
 		return fmt.Errorf("Task couldn't read file, error: %v\n", err)
 	}
@@ -296,7 +285,7 @@ func runArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 }
 
 // restore func for action split
-func runRestore(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData) error {
+func runRestore(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData, dockerComposeFile string) error {
 	fmt.Printf("*****CloneId %d DestinationEnvironment %s*******", payloadData.CloneId, payloadData.DestinationEnvironment)
 
 	fmt.Println("*********Restore run*********")
@@ -327,18 +316,31 @@ func getDockerCompose(c client.Client, podNamespace string) (string, error) {
 	return data, nil
 }
 
-func runLagoonSyncArchive(data PayloadData) error {
+func runLagoonSyncArchive(data PayloadData, dockerComposeFile, archiveOutputFileName string) error {
 
-	// cmd := exec.Command("/lagoon-sync", "archive")
-	// cmd.Env = append(os.Environ(),
-	// 	fmt.Sprintf("PROJECT_NAME=%s", data.ProjectName),
-	// 	fmt.Sprintf("ENVIRONMENT_NAME=%s", data.SourceEnvironment),
-	// 	fmt.Sprintf("CLONE_ID=%s", data.CloneId),
-	// )
+	args := []string{
+		"archive",
+		fmt.Sprintf("--docker-compose-file=%v", dockerComposeFile),
+		"--override-volume=/volumes/",
+		fmt.Sprintf("--archive-output=%v", archiveOutputFileName),
+	}
 
-	// if err := cmd.Run(); err != nil {
-	// 	return fmt.Errorf("lagoon-sync archive failed: %w", err)
-	// }
+	cmd := exec.Command("/lagoon-sync", args...)
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("PROJECT_NAME=%s", data.ProjectName),
+		fmt.Sprintf("ENVIRONMENT_NAME=%s", data.SourceEnvironment),
+		fmt.Sprintf("CLONE_ID=%s", data.CloneId),
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("lagoon-sync stderr: %s\n", stderr.String())
+		return fmt.Errorf("lagoon-sync archive failed: %w", err)
+	}
+	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
 
 	fmt.Printf("*********Lagoon sync archive run: %s*********\n", data.ProjectName)
 
