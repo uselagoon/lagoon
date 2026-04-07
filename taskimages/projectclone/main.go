@@ -202,8 +202,7 @@ func runArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 
 	fmt.Printf("*********Lagoon sync archive completed: %s*********\n", payloadData.ProjectName)
 
-	// Get upload form from Lagoon API
-	raw := fmt.Sprintf(`query { getProjectCloneFileUploadForm(input: {cloneId: %d, filename: "%v"}) {postUrl formFields }}`, payloadData.CloneId, archiveFileName)
+	filesToUpload := []string{fmt.Sprintf("/tmp/%v", archiveFileName)}
 
 	lagoonToken, err := getToken()
 	if err != nil {
@@ -358,9 +357,14 @@ func runRestore(kubeClient client.Client, podName, podNamespace string, payloadD
 			return fmt.Errorf("failed to download file %s: %w", file.Filename, err)
 		}
 		fmt.Printf("*********Downloaded file %s to %s*********", file.Filename, dest)
-	}
 
-	// TODO: run lagoon-sync restore with the downloaded files
+		// we assume this file is a lagoon-archive for now
+		err = runLagoonSyncExtract(payloadData, dest)
+		if err != nil {
+			return fmt.Errorf("failed to lagoon-archive extract file %s: %w", file.Filename, err)
+		}
+
+	}
 
 	// run the pod annotation
 	if err := addAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "SOURCE_FILES_APPLIED"); err != nil {
@@ -393,7 +397,7 @@ func runLagoonSyncArchive(data PayloadData, dockerComposeFile, archiveOutputFile
 	args := []string{
 		"archive",
 		fmt.Sprintf("--docker-compose-file=%v", dockerComposeFile),
-		"--override-volume=/volumes/",
+		"--override-volume=/storage/",
 		fmt.Sprintf("--archive-output=%v", archiveOutputFileName),
 	}
 

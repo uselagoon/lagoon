@@ -40,8 +40,8 @@ WORKDIR /
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/taskimages/projectClone/taskrunner .
 COPY --from=syncer /lagoon-sync /lagoon-sync
 COPY .lagoon.yml /home/nonroot/.lagoon.yml
-RUN mkdir /volumes && echo "volumes not mounted" > /volumes/README \
-    && chown -R nonroot:nonroot /volumes /home/nonroot
+RUN mkdir /storage && echo "storage not mounted" > /storage/README \
+    && chown -R nonroot:nonroot /storage /home/nonroot
 USER nonroot:nonroot
 
 ENTRYPOINT ["/taskrunner"]
