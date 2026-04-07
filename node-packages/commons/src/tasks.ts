@@ -1385,7 +1385,8 @@ export const createMiscTask = async function(taskData: any) {
         projectName: taskData.data.project.name,
         destinationEnvironment: taskData.data.environment.name,
         cloneId: taskData.data.cloneId,
-        action: "restore"
+        action: "restore",
+        files: taskData.data.files
       }
       miscTaskData.advancedTask.JSONPayload = encodeJSONBase64(restoreJsonPayload);
       let restoreTaskImage = ""

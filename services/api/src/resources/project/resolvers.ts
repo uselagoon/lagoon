@@ -28,6 +28,7 @@ import { deployBranch } from '../deployment/resolvers';
 import { Pool } from 'mariadb';
 import type { Models } from '../../models/user';
 import { addTask } from '@lagoon/commons/dist/api';
+import { getFilesByProjectCloneId } from '../file/resolvers';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -1497,6 +1498,11 @@ export const executeCloneRestoreTask: ResolverFn = async (
 
   const destEnvironment = destEnvRows[0];
 
+  const cloneFiles = await getFilesByProjectCloneId({ id: cloneId }, {}, { sqlClientPool } as any);
+  if (!cloneFiles || cloneFiles.length === 0) {
+    throw new Error(`No files found for project clone ID: ${cloneId}`);
+  }
+
   // same process as cloneProject to trigger the task
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   var date = new Date();
@@ -1517,7 +1523,8 @@ export const executeCloneRestoreTask: ResolverFn = async (
       id: '0',
       name: 'Project Clone Restore'
     },
-    cloneId: cloneId
+    cloneId: cloneId,
+    files: cloneFiles.map((file: any) => ({ id: file.id, filename: file.filename }))
   };
 
   data.task.id = taskData.addTask.id.toString()
