@@ -296,6 +296,15 @@ func (h *Messaging) processMessage(message []byte) {
 			}
 		}
 
+		// Here we deal explicitly with a class of 'user_action' events
+		if notification.Meta.Level == "user_action" && !h.DisableUserActionEmail && !h.DisableEmail {
+			err := h.handleUserActionToEmail(notification, message)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+		}
+
 	}
 }
 
