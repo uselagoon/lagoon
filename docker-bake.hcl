@@ -11,6 +11,10 @@ variable "LAGOON_VERSION" {
   default = "development"
 }
 
+variable "LAGOON_SYNC_GIT_BRANCH" {
+  default = "main"
+}
+
 variable "UPSTREAM_REPO" {
   default = "uselagoon"
 }
@@ -325,6 +329,9 @@ target "task-projectclone" {
     "org.opencontainers.image.title": "lagoon-core/task-projectclone - the projectclone task image for Lagoon"
   }
   tags = ["${IMAGE_REPO}/task-projectclone:${TAG}"]
+  args = {
+    LAGOON_SYNC_GIT_BRANCH = "${LAGOON_SYNC_GIT_BRANCH}"
+  }
 }
 
 target "local-api-data-watcher-pusher" {
