@@ -85,6 +85,9 @@ BETA_UI_IMAGE_TAG = pr-145
 OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-359
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
+# LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
+LAGOON_SYNC_GIT_BRANCH = feature-archive
+
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
 USE_CALICO_CNI ?= false
@@ -141,7 +144,7 @@ endif
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -345,14 +348,14 @@ webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test
 
 .PHONY: publish-testlagoon-images
 publish-testlagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
 
 .PHONY: publish-uselagoon-images
 publish-uselagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 .PHONY: clean
 clean:
