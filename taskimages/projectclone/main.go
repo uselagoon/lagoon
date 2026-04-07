@@ -405,7 +405,7 @@ func runLagoonSyncArchive(data PayloadData, dockerComposeFile, archiveOutputFile
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("PROJECT_NAME=%s", data.ProjectName),
 		fmt.Sprintf("ENVIRONMENT_NAME=%s", data.SourceEnvironment),
-		fmt.Sprintf("CLONE_ID=%s", data.CloneId),
+		fmt.Sprintf("CLONE_ID=%d", data.CloneId),
 	)
 
 	var stdout, stderr bytes.Buffer
@@ -434,7 +434,7 @@ func runLagoonSyncExtract(data PayloadData, archiveInputFileName string) error {
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("PROJECT_NAME=%s", data.ProjectName),
 		fmt.Sprintf("ENVIRONMENT_NAME=%s", data.SourceEnvironment),
-		fmt.Sprintf("CLONE_ID=%s", data.CloneId),
+		fmt.Sprintf("CLONE_ID=%d", data.CloneId),
 	)
 
 	var stdout, stderr bytes.Buffer
