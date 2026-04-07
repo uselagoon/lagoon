@@ -82,7 +82,6 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 				}
 
 				log.Printf("%supdated projectClone status: %v id: %v", prefix, cloneTask.Status, cloneTask.CloneID)
-				return nil
 			} else {
 				advTask := &schema.ActiveStandbyResult{}
 				err := json.Unmarshal(decodeData, advTask)
