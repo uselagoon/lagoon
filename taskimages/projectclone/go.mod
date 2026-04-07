@@ -1,4 +1,4 @@
-module github.com/uselagoon/lagoon/taskimages/projectClone
+module github.com/uselagoon/lagoon/taskimages/projectclone
 
 go 1.25
 
