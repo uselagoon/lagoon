@@ -347,6 +347,35 @@ func runLagoonSyncArchive(data PayloadData, dockerComposeFile, archiveOutputFile
 	return nil
 }
 
+func runLagoonSyncExtract(data PayloadData, archiveInputFileName string) error {
+
+	args := []string{
+		"extract",
+		fmt.Sprintf("--archive-input=%v", archiveInputFileName),
+	}
+
+	cmd := exec.Command("/lagoon-sync", args...)
+	cmd.Env = append(os.Environ(),
+		fmt.Sprintf("PROJECT_NAME=%s", data.ProjectName),
+		fmt.Sprintf("ENVIRONMENT_NAME=%s", data.SourceEnvironment),
+		fmt.Sprintf("CLONE_ID=%s", data.CloneId),
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("lagoon-sync stderr: %s\n", stderr.String())
+		return fmt.Errorf("lagoon-sync extract failed: %w", err)
+	}
+	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
+
+	fmt.Printf("*********Lagoon sync extract run: %s*********\n", data.ProjectName)
+
+	return nil
+}
+
 func getToken() (string, error) {
 	cmd := exec.Command("ssh",
 		"-p", os.Getenv("LAGOON_CONFIG_TOKEN_PORT"),
