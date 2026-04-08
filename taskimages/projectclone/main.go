@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	lclient "github.com/uselagoon/machinery/api/lagoon/client"
 	"github.com/uselagoon/machinery/api/schema"
@@ -46,6 +47,7 @@ const (
 	dockerComposeYamlCMKey                  = "post-deploy"          // key that contains the docker-compose.yml details we're interested in
 	dockerComposeYamlFilenameOnDiskTemplate = "docker-compose-*.yml" // this is used to template out a docker-compose.yml file
 	archiveFileName                         = "archive.tar.gz"       // name of the archive file we're going to be reading/writing from
+	waitForK8sDelay                         = 5 * time.Second        // delay before attempting to connect to any external services
 )
 
 // We need to annotate the pod with lagoon.sh/taskData + return the job data for the actions-handler
@@ -177,6 +179,10 @@ func main() {
 		action = "archive"
 	}
 
+	// Here we introduce a short delay - in some cases, k8s isn't ready to allow us to access
+	// services from the task pod
+	time.Sleep(waitForK8sDelay)
+
 	if action == "restore" {
 		if err := runRestore(kubeClient, podName, podNamespace, payloadData, dcyTempFile.Name()); err != nil {
 			fmt.Printf("Task failed during restore, error was: %v\n", err)
@@ -196,6 +202,7 @@ func main() {
 func runArchive(kubeClient client.Client, podName, podNamespace string, payloadData PayloadData, dockerComposeFile string) error {
 
 	// Run lagoon-sync archive
+
 	if err := runLagoonSyncArchive(payloadData, dockerComposeFile, fmt.Sprintf("/tmp/%v", archiveFileName)); err != nil {
 		return fmt.Errorf("Task failed during lagoon-sync archive, error was: %v\n", err)
 	}
@@ -413,11 +420,12 @@ func runLagoonSyncArchive(data PayloadData, dockerComposeFile, archiveOutputFile
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
+		fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
 		fmt.Printf("lagoon-sync stderr: %s\n", stderr.String())
 		return fmt.Errorf("lagoon-sync archive failed: %w", err)
 	}
-	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
 
+	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
 	fmt.Printf("*********Lagoon sync archive run: %s*********\n", data.ProjectName)
 
 	return nil
@@ -442,6 +450,7 @@ func runLagoonSyncExtract(data PayloadData, archiveInputFileName string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
+		fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
 		fmt.Printf("lagoon-sync stderr: %s\n", stderr.String())
 		return fmt.Errorf("lagoon-sync extract failed: %w", err)
 	}
