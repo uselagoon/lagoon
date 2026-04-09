@@ -19,6 +19,7 @@ RUN git clone https://github.com/uselagoon/lagoon-sync.git . && \
 # Need to switch to alpine for ssh client
 FROM alpine:3.22
 RUN apk add --no-cache openssh-client && adduser -D -u 65532 nonroot
+RUN adduser -D -u 10000 -G root -h /tmp lagoon
 RUN apk add --no-cache bash \
         coreutils \
         findutils \
@@ -43,7 +44,9 @@ COPY --from=syncer /lagoon-sync /lagoon-sync
 COPY .lagoon.yml /home/nonroot/.lagoon.yml
 COPY .my.cnf /home/nonroot/.my.cnf
 RUN mkdir /storage && echo "storage not mounted" > /storage/README \
-    && chown -R nonroot:nonroot /storage /home/nonroot
-USER nonroot:nonroot
+    && chown -R nonroot:nonroot /home/nonroot \
+    && chown -R 10000:0 /storage \
+    && chmod -R g+w /storage
+USER lagoon
 
 ENTRYPOINT ["/taskrunner"]

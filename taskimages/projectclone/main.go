@@ -446,6 +446,7 @@ func runLagoonSyncExtract(data PayloadData, archiveInputFileName string) error {
 	)
 
 	var stdout, stderr bytes.Buffer
+	cmd.Stdin = strings.NewReader("n\n")
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
@@ -462,21 +463,46 @@ func runLagoonSyncExtract(data PayloadData, archiveInputFileName string) error {
 }
 
 func getToken() (string, error) {
+	// now we're runnig the pod as 1000 the sshkey is rejected.
+	// this pattern copies the sshkey to a temp file & sets chmod 0400 to fix the ssh perm issue
+	sshKeyData, err := os.ReadFile("/var/run/secrets/lagoon/ssh/ssh-privatekey")
+	if err != nil {
+		return "", fmt.Errorf("ssh key error: %v", err)
+	}
+	tmpKey, err := os.CreateTemp("", "ssh-key-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpKey.Name())
+
+	_, keyErr := tmpKey.Write(sshKeyData)
+	if keyErr != nil {
+		return "", fmt.Errorf("failed to write temp key: %v", keyErr)
+	}
+
+	if err := tmpKey.Chmod(0400); err != nil {
+		return "", fmt.Errorf("failed to chmod temp key: %v", err)
+	}
+
+	tmpKey.Close()
+
 	cmd := exec.Command("ssh",
 		"-p", os.Getenv("LAGOON_CONFIG_TOKEN_PORT"),
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "UserKnownHostsFile=/dev/null",
-		"-i", "/var/run/secrets/lagoon/ssh/ssh-privatekey",
+		"-i", tmpKey.Name(),
 		fmt.Sprintf("lagoon@%s", os.Getenv("LAGOON_CONFIG_TOKEN_HOST")),
 		"token",
 	)
 
-	var out bytes.Buffer
+	var out, errOut bytes.Buffer
 	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	cmd.Env = append(os.Environ(), "HOME=/tmp")
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("ssh token cmd failed: %v", err)
+		return "", fmt.Errorf("ssh token cmd failed: %v, stderr: %s", err, errOut.String())
 	}
 
 	token := strings.TrimSpace(out.String())
