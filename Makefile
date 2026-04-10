@@ -83,7 +83,7 @@ BETA_UI_IMAGE_TAG = pr-145
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
 OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-359
-OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
+OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
 
 # LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
 LAGOON_SYNC_GIT_BRANCH = feature-archive
@@ -830,6 +830,7 @@ ifneq ($(INSTALL_STABLE_CORE),true)
 endif
 	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
 	&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+	&& $(MAKE) k3d/push-remote-controller-image \
 	&& cd lagoon-charts.k3d.lagoon \
 	&& $(MAKE) install-lagoon \
 		INSTALL_UNAUTHENTICATED_REGISTRY=$(INSTALL_UNAUTHENTICATED_REGISTRY) \
@@ -843,9 +844,9 @@ endif
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
 		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		INSIGHTS_HANDLER_IMAGE_REPO=$(INSIGHTS_HANDLER_IMAGE_REPO) INSIGHTS_HANDLER_IMAGE_TAG=$(INSIGHTS_HANDLER_IMAGE_TAG) \
-		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
-		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
-		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
+		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(CI_BUILD_TAG)" \
+		OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(CI_BUILD_TAG) \
+		OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/remote-controller" \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
 		OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
@@ -957,19 +958,40 @@ k3d/push-images:
 k3d/push-local-build-image:
 	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& docker tag lagoon/build-deploy-image:local $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
+		&& docker tag lagoon/build-deploy-image:local $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG)
 
 # pull, retag, then push the stable version of the build image to the k3d cluster registry.
 .PHONY: k3d/push-stable-build-image
 k3d/push-stable-build-image:
 	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
 		&& docker pull $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker tag $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)
+		&& docker tag $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG)
+
+.PHONY: k3d/push-remote-controller-image
+k3d/push-remote-controller-image:
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
+		&& docker pull $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) \
+		&& docker tag $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) $$IMAGE_REGISTRY/remote-controller:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/remote-controller:$(CI_BUILD_TAG) \
+		&& $(KUBECTL) -n lagoon rollout restart deployment/lagoon-build-deploy || true
+
+# use this to be able to rebuild, push, and then restart the service inside localstack
+# KINDTYPE can be used to change to a statefulset if required
+# must provide `SERVICE=<name>`, eg `make k3d/rebuild-restart-service SERVICE=api` to rebuild the api container and restart it in local-stack
+KINDTYPE = deployment
+.PHONY: k3d/rebuild-restart-service
+k3d/rebuild-restart-service:
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+		$(MAKE) build/$(SERVICE) && \
+		$(MAKE) k3d/push-images IMAGES=$(SERVICE) && \
+		$(KUBECTL) -n lagoon-core rollout restart $(KINDTYPE)/lagoon-core-$(SERVICE)
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-details
