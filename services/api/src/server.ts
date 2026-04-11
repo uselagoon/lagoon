@@ -41,14 +41,15 @@ export const createServer = async () => {
 
       try {
         const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(authToken);
-        return { grant, legacyCredentials };
+        (req.raw as any)._sseAuth = { grant, legacyCredentials };
+        return true; // just signal success; data is on the request
       } catch (e) {
         logger.error(`SSE auth failed: ${e.message}`);
         throw new AuthenticationError('Auth token invalid.');
       }
     },
     context: async (req, params) => {
-      const { grant: keycloakGrant, legacyCredentials: legacyGrant } = req.context || {};
+      const { grant: keycloakGrant, legacyCredentials: legacyGrant } = (req.raw as any)._sseAuth || {};
 
       const keycloakAdminClient = await getKeycloakAdminClient();
       const modelClients = { sqlClientPool, keycloakAdminClient, esClient };
