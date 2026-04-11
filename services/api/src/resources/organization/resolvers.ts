@@ -12,6 +12,10 @@ import { Helpers as groupHelpers } from '../group/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import validator from 'validator';
 import { AuditLog } from '../audit/types';
+import {
+  EVENTS,
+  createOrganizationFilteredSubscriber
+} from '../../clients/pubSub';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -1499,3 +1503,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
 
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
 }
+
+export const organizationProjectSubscriber = createOrganizationFilteredSubscriber([
+  EVENTS.ORGPROJECT
+]);

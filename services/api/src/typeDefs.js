@@ -3333,6 +3333,8 @@ const typeDefs = gql`
     backupChanged(environment: Int!): Backup
     deploymentChanged(environment: Int!): Deployment
     taskChanged(environment: Int!): Task
+    projectCloneChanged(project: String!): ProjectClone
+    organizationProjectChanged(organization: String!): OrgProject
   }
 `;
 
