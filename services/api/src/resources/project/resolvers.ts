@@ -29,6 +29,11 @@ import { Pool } from 'mariadb';
 import type { Models } from '../../models/user';
 import { addTask } from '@lagoon/commons/dist/api';
 import { getFilesByProjectCloneId } from '../file/resolvers';
+import {
+  pubSub,
+  EVENTS,
+  createProjectFilteredSubscriber
+} from '../../clients/pubSub';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -1260,6 +1265,11 @@ export const cloneProject: ResolverFn = async (
   );
   project.clone = insertId
 
+  // handle publishing events to queues as requried
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(project.clone));
+  pubSub.publish(EVENTS.PROJECTCLONE, rows[0]);
+  pubSub.publish(EVENTS.ORGPROJECT, project);
+
   const auditLog: AuditLog = {
     resource: {
       id: project.id.toString(),
@@ -1398,7 +1408,7 @@ export const updateProjectClone: ResolverFn = async (
     );
   }
 
-  const rows = await query(sqlClientPool, Sql.selectProjectClone(id));
+  let rows = await query(sqlClientPool, Sql.selectProjectClone(id));
   if (rows.length === 0) {
     throw new Error(`No project clone found for ID: ${id}`);
   }
@@ -1410,6 +1420,8 @@ export const updateProjectClone: ResolverFn = async (
       `No project clone found for ID: ${id}`
     );
   }
+  // retrieve the project clone again after updating
+  rows = await query(sqlClientPool, Sql.selectProjectClone(id));
 
   // simplifies the switch + combines the restore status'
   const firstDepAndSourceFilesUp = (status === 'first_deployment_complete' && prevStatus === 'source_files_uploaded') || (status === 'source_files_uploaded' && prevStatus === 'first_deployment_complete');
@@ -1455,7 +1467,12 @@ export const updateProjectClone: ResolverFn = async (
     }
   });
 
-  return rows[0]
+  // handle publishing events to queues as requried
+  pubSub.publish(EVENTS.PROJECTCLONE, rows[0]);
+  const destProject = await Helpers(sqlClientPool).getProjectById(rows[0].destinationProject);
+  pubSub.publish(EVENTS.ORGPROJECT, destProject);
+
+  return rows[0];
 };
 
 /*
@@ -1996,3 +2013,7 @@ export const getRestrictionsByProject: ResolverFn = async (
 ) => {
   return await Helpers(sqlClientPool).getProjectRestrictions(input.id);
 };
+
+export const projectCloneSubscriber = createProjectFilteredSubscriber([
+  EVENTS.PROJECTCLONE
+]);

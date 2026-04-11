@@ -223,6 +223,7 @@ const {
   getTasksByDestinationProjectForCloneProjectId,
   getTasksBySourceProjectForCloneProjectId,
   getRestrictionsByProject,
+  projectCloneSubscriber,
 } = require('./resources/project/resolvers');
 
 const {
@@ -301,7 +302,8 @@ const {
   removeUserFromOrganizationGroups,
   checkBulkImportProjectsAndGroupsToOrganization,
   bulkImportProjectsAndGroupsToOrganization,
-  getOrganizationByProject
+  getOrganizationByProject,
+  organizationProjectSubscriber,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -998,7 +1000,9 @@ async function getResolvers() {
   Subscription: {
     backupChanged: backupSubscriber,
     deploymentChanged: deploymentSubscriber,
-    taskChanged: taskSubscriber
+    taskChanged: taskSubscriber,
+    projectCloneChanged: projectCloneSubscriber,
+    organizationProjectChanged: organizationProjectSubscriber,
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
