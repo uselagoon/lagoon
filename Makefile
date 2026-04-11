@@ -142,9 +142,11 @@ endif
 ####### Functions
 #######
 
+DOCKER_BUILD_CACHE=
+
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl $(DOCKER_BUILD_CACHE) --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
