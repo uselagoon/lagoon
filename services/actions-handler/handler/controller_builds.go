@@ -134,19 +134,18 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
 
-		if buildStatus == "complete" {
-			if deployment.DeploymentSourceType == "CLONE" {
-				type cloneData struct {
-					Clone struct {
-						ID                 int `json:"id"`
-						DestinationProject struct {
-							Deployments []struct {
-								Name string `json:"name"`
-							} `json:"deployments"`
-						} `json:"destinationProject"`
-					} `json:"clone"`
-				}
-				projectRaw := fmt.Sprintf(`query getProjectCloneDetails{
+		if deployment.DeploymentSourceType == "CLONE" {
+			type cloneData struct {
+				Clone struct {
+					ID                 int `json:"id"`
+					DestinationProject struct {
+						Deployments []struct {
+							Name string `json:"name"`
+						} `json:"deployments"`
+					} `json:"destinationProject"`
+				} `json:"clone"`
+			}
+			projectRaw := fmt.Sprintf(`query getProjectCloneDetails{
 					projectByName(name: "%s"){
 						id
 						clone {
@@ -160,24 +159,30 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 					}
 				}`, message.Meta.Project)
 
-				projectData, err := l.ProcessRaw(ctx, projectRaw, nil)
-				if err != nil {
-					log.Printf("%sERROR: unable to get project clone info: %v", prefix, err)
-					// return err
-				}
-				var project cloneData
-				data, _ := json.Marshal(projectData.(map[string]interface{})["projectByName"])
-				if err := json.Unmarshal(data, &project); err != nil {
-					log.Printf("%sERROR: unable to unmarshal clone data: %v", prefix, err)
-					return nil
-				}
+			projectData, err := l.ProcessRaw(ctx, projectRaw, nil)
+			if err != nil {
+				log.Printf("%sERROR: unable to get project clone info: %v", prefix, err)
+				// return err
+			}
+			var project cloneData
+			data, _ := json.Marshal(projectData.(map[string]interface{})["projectByName"])
+			if err := json.Unmarshal(data, &project); err != nil {
+				log.Printf("%sERROR: unable to unmarshal clone data: %v", prefix, err)
+				return nil
+			}
 
-				cloneStatus := "COMPLETE"
-				switch len(project.Clone.DestinationProject.Deployments) {
-				case 1:
+			cloneStatus := ""
+			// handle all clone status', not just complete
+			switch buildStatus {
+			case "failed", "cancelled":
+				cloneStatus = strings.ToUpper(buildStatus)
+			case "complete":
+				cloneStatus = "COMPLETE"
+				if len(project.Clone.DestinationProject.Deployments) == 1 {
 					cloneStatus = "FIRST_DEPLOYMENT_COMPLETE"
 				}
-				raw := fmt.Sprintf(`mutation updateProjectClone{
+			}
+			raw := fmt.Sprintf(`mutation updateProjectClone{
 						updateProjectClone(input:{
 							id: %d
 							status: %s
@@ -186,15 +191,14 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 						}
 					}`, project.Clone.ID, cloneStatus)
 
-				_, err = l.ProcessRaw(ctx, raw, nil)
-				if err != nil {
-					log.Printf("%sERROR: unable to update clone status: %v", prefix, err)
-					// return err
-				}
-
-				fmt.Println("****status updated to ****", cloneStatus, project.Clone.ID)
-
+			_, err = l.ProcessRaw(ctx, raw, nil)
+			if err != nil {
+				log.Printf("%sERROR: unable to update clone status: %v", prefix, err)
+				// return err
 			}
+
+			fmt.Println("****status updated to ****", cloneStatus, project.Clone.ID)
+
 		}
 
 	}
