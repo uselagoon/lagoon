@@ -97,9 +97,15 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   // if the user is not a platform owner or viewer, then perform normal permission check
   if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-    await hasPermission('environment', 'view', {
-      project: pid
-    });
+    if (project.organization != null) {
+      try {
+        await hasPermission('environment', 'view', { project: pid });
+      } catch (err) {
+        await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, pid, adminScopes);
+      }
+    } else {
+      await hasPermission('environment', 'view', { project: pid });
+    }
   }
 
   let filterEnvironments = false;
