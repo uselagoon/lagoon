@@ -1506,6 +1506,21 @@ const typeDefs = gql`
     retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
     metadata: JSON
     clone: ProjectClone
+    restrictions: [Restriction]
+    environments(
+      """
+      Filter by Environment Type
+      """
+      type: EnvType
+      """
+      Include deleted Environments (by default deleted environment are hidden)
+      """
+      includeDeleted: Boolean
+      """
+      Filter environments by fact matching
+      """
+      factFilter: FactFilterInput
+    ): [OrgEnvironment]
   }
 
   """
