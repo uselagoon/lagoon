@@ -688,6 +688,8 @@ async function getResolvers() {
       notifications: getNotificationsForOrganizationProjectId,
       retentionPolicies: getRetentionPoliciesByProjectId,
       clone: getProjectCloneByProject,
+      restrictions: getRestrictionsByProject,
+      environments: getEnvironmentsByProjectId,
     },
     OrgEnvironment: {
       project: getProjectById,
