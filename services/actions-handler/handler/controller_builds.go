@@ -162,7 +162,6 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			projectData, err := l.ProcessRaw(ctx, projectRaw, nil)
 			if err != nil {
 				log.Printf("%sERROR: unable to get project clone info: %v", prefix, err)
-				// return err
 			}
 			var project cloneData
 			data, _ := json.Marshal(projectData.(map[string]interface{})["projectByName"])
@@ -194,11 +193,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			_, err = l.ProcessRaw(ctx, raw, nil)
 			if err != nil {
 				log.Printf("%sERROR: unable to update clone status: %v", prefix, err)
-				// return err
 			}
-
-			fmt.Printf("****status updated to **** %s %d\n", cloneStatus, project.Clone.ID)
-
 		}
 
 	}

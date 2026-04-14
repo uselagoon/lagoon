@@ -1203,8 +1203,6 @@ export const cloneProject: ResolverFn = async (
     );
   }
 
-  // maybe throw error for unsupported environment type here?
-  // consider pullrequsts/promote type environments (maybe cant clone promote or pullrequest environments initially)
   if (environmentData.deployType != 'branch') {
     throw new Error(`Only environments with deploymentType 'branch' can be cloned`);
   }
@@ -1296,7 +1294,7 @@ export const cloneProject: ResolverFn = async (
   if (envType == 'production') {
     priority = project.productionBuildPriority
   }
-  // TODO: if deployment fails the created project is not cleaned up and can't be used in for subsequent clones
+
   const deployVars: {name: string, value: string}[] = [];
   if (disablePreRollout !== false) {
     deployVars.push({name: 'LAGOON_PREROLLOUT_DISABLED', value: 'true'});
@@ -1367,7 +1365,6 @@ export const cloneProject: ResolverFn = async (
         name: environmentData.name,
         openshiftProjectName: environmentData.openshiftProjectName
       },
-      // TODO: Need to determine if we sync all db/files or the user can define what gets copied to the clone.
       task: {
         id: '0',
         name: 'Project Clone Archive'
@@ -1380,11 +1377,10 @@ export const cloneProject: ResolverFn = async (
     // Task reference is added to ProjectClone source tasks
     await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: pid, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
 
-    // Create lagoon-sync advanced task in source environment (archive) - pending lagoon-sync archive creation
+    // Create lagoon-sync advanced task in source environment (archive)
     await createMiscTask({ key: 'task:projectclone', data });
   }
-  // ???
-  // TODO: profit
+
   return project;
 };
 
