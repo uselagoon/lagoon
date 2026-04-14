@@ -17,10 +17,6 @@ import (
 
 // RunRestore downloads archive files and extracts them
 func RunRestore(kubeClient client.Client, podName, podNamespace string, payloadData types.PayloadData, dockerComposeFile string) (err error) {
-	fmt.Printf("*****CloneId %d DestinationEnvironment %s*******", payloadData.CloneId, payloadData.DestinationEnvironment)
-
-	fmt.Println("*********Restore run*********")
-
 	defer func() {
 		if err != nil {
 			k8s.AddAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "FAILED")
@@ -39,7 +35,6 @@ func RunRestore(kubeClient client.Client, podName, podNamespace string, payloadD
 	l := lclient.New(os.Getenv("LAGOON_CONFIG_API_HOST")+"/graphql", "task-projectclone", "v1.0", &lagoonToken, false)
 
 	for _, file := range payloadData.Files {
-		fmt.Printf("*********Downloading file: %s (id: %d)*********", file.Filename, file.ID)
 
 		raw := fmt.Sprintf("query { getDownloadLinkByProjectCloneFileId(cloneId: %d, fileId: %d) }", payloadData.CloneId, file.ID)
 		cloneDownloadLink, err := l.ProcessRaw(context.TODO(), raw, nil)
@@ -57,7 +52,6 @@ func RunRestore(kubeClient client.Client, podName, podNamespace string, payloadD
 		if err = downloadFile(downloadURL, dest); err != nil {
 			return fmt.Errorf("failed to download file %s: %w", file.Filename, err)
 		}
-		fmt.Printf("*********Downloaded file %s to %s*********", file.Filename, dest)
 
 		// we assume this file is a lagoon-archive for now
 		err = runLagoonSyncExtract(payloadData, dest)
@@ -97,8 +91,6 @@ func runLagoonSyncExtract(data types.PayloadData, archiveInputFileName string) e
 		return fmt.Errorf("lagoon-sync extract failed: %w", err)
 	}
 	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
-
-	fmt.Printf("*********Lagoon sync extract run: %s*********\n", data.ProjectName)
 
 	return nil
 }

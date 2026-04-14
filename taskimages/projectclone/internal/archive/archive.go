@@ -27,12 +27,10 @@ func RunArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 			k8s.AddAnnotation(kubeClient, podName, podNamespace, payloadData.CloneId, "FAILED")
 		}
 	}()
-	// Run lagoon-sync archive
+
 	if err = runLagoonSyncArchive(payloadData, dockerComposeFile, fmt.Sprintf("/tmp/%v", archiveFileName)); err != nil {
 		return fmt.Errorf("Task failed during lagoon-sync archive, error was: %v\n", err)
 	}
-
-	fmt.Printf("*********Lagoon sync archive completed: %s*********\n", payloadData.ProjectName)
 
 	filesToUpload := []string{fmt.Sprintf("/tmp/%v", archiveFileName)}
 
@@ -45,7 +43,6 @@ func RunArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 
 	for _, filePath := range filesToUpload {
 		filename := filePath[strings.LastIndex(filePath, "/")+1:]
-		fmt.Printf("*********Uploading file: %s*********", filename)
 
 		// Get upload form from Lagoon API
 		raw := fmt.Sprintf(`query { getProjectCloneFileUploadForm(input: {cloneId: %d, filename: "%s"}) {postUrl formFields }}`, payloadData.CloneId, filename)
@@ -53,7 +50,6 @@ func RunArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 		if err != nil {
 			return fmt.Errorf("Task failed to process raw query, error: %v\n", err)
 		}
-		fmt.Printf("*********projectCloneUpload %v*********\n", projectCloneUpload)
 
 		// TODO: move to machinery - replicates UploadFileForTask
 		projectCloneUploadMap := projectCloneUpload.(map[string]interface{})
@@ -72,7 +68,6 @@ func RunArchive(kubeClient client.Client, podName, podNamespace string, payloadD
 			return err
 		}
 
-		fmt.Printf("*********File %s uploaded to S3 successfully*********\n", filename)
 	}
 
 	// run the pod annotation
@@ -109,7 +104,6 @@ func runLagoonSyncArchive(data types.PayloadData, dockerComposeFile, archiveOutp
 	}
 
 	fmt.Printf("lagoon-sync stdout: %s\n", stdout.String())
-	fmt.Printf("*********Lagoon sync archive run: %s*********\n", data.ProjectName)
 
 	return nil
 }
