@@ -197,7 +197,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 				// return err
 			}
 
-			fmt.Println("****status updated to ****", cloneStatus, project.Clone.ID)
+			fmt.Printf("****status updated to **** %s %d\n", cloneStatus, project.Clone.ID)
 
 		}
 

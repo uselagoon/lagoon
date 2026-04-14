@@ -36,14 +36,17 @@ func (m *Messenger) handleTask(ctx context.Context, messageQueue *mq.MessageQueu
 	switch message.Meta.Key {
 	case "deploytarget:task:projectclone", "deploytarget:task:projectclonerestore":
 		// handle project clone status updates for both success and failure
-		decodeData, err := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
-		if err != nil {
-			log.Printf("%sunable to decode advanced data: %v", prefix, err)
-			return err
-		}
-		if err := updateProjectCloneStatus(ctx, l, prefix, decodeData); err != nil {
-			log.Printf("%sERROR: unable to update project clone status: %v", prefix, err)
-			return err
+		switch message.Meta.JobStatus {
+		case "complete", "succeeded", "failed":
+			decodeData, err := base64.StdEncoding.DecodeString(message.Meta.AdvancedData)
+			if err != nil {
+				log.Printf("%sunable to decode advanced data: %v", prefix, err)
+				return err
+			}
+			if err := updateProjectCloneStatus(ctx, l, prefix, decodeData); err != nil {
+				log.Printf("%sERROR: unable to update project clone status: %v", prefix, err)
+				return err
+			}
 		}
 	case "kubernetes:route:migrate", "deploytarget:route:migrate", "deploytarget:task:activestandby":
 		// if the result is from an active/standby task, handle updating the project here
