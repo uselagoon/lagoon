@@ -994,7 +994,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   // check if project has restriction
   await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
 
-  await deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
+  return await deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
 };
 
 export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
