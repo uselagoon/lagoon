@@ -6,4 +6,6 @@ fi
 
 ls -d -- git/*
 
+git config --global --add safe.directory '*'
+
 exec /usr/sbin/runsvdir /etc/service
