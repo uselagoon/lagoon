@@ -9,6 +9,7 @@ export interface HarborRetentionRule {
     name: string
     pattern: string
     latestPulled: number
+    latestPushed: number
 }
 
 export interface HistoryRetentionPolicy {
@@ -71,6 +72,9 @@ export const RetentionPolicy = () => {
             }
             if (typeof rule.latestPulled != "number") {
                 throw new Error(`${rule.name}: latestPulled must be a number`);
+            }
+            if (typeof rule.latestPushed != "number") {
+                throw new Error(`${rule.name}: latestPushed must be a number`);
             }
         }
         if (typeof c.schedule != "string") {
