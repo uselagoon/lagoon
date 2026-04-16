@@ -26,6 +26,7 @@ exports.up = async function(knex) {
         table.integer('tdid');
         table.primary(['cid', 'tdid']);
     })
+    .raw("ALTER TABLE deployment MODIFY COLUMN source_type ENUM('api', 'webhook', 'clone')");
 };
 
 /**
@@ -40,4 +41,5 @@ exports.down = async function(knex) {
     })
     .dropTable('project_clone')
     .dropTable('project_clone_task_deployments')
+    .raw("ALTER TABLE deployment MODIFY COLUMN source_type ENUM('api', 'webhook')");
 };
