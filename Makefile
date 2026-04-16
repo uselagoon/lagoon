@@ -86,7 +86,7 @@ OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-359
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
 
 # LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
-LAGOON_SYNC_GIT_BRANCH = feature-archive-benskiptest
+LAGOON_SYNC_GIT_BRANCH = feature-archive
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
