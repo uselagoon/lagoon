@@ -19,6 +19,8 @@ RUN rm /etc/nginx/http.d/default.conf && mkdir -p /run/nginx \
       && ssh-keygen -A \
       && sed -E -i.bak -e 's/[# ]+UsePAM.*/UsePAM yes/g' /etc/ssh/sshd_config
 
+RUN chmod -R o+rX /git
+
 USER git
 
 RUN mkdir -m 700 /git/.ssh && \
@@ -44,7 +46,8 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/tasks.git && \
 	git --bare init /git/image-cache.git && \
 	git --bare init /git/generic.git && \
-	git --bare init /git/bulk.git
+	git --bare init /git/bulk.git && \
+	git --bare init /git/project-clone.git
 
 USER root
 
