@@ -32,12 +32,14 @@ And the decoded `miscResource` payload is structured like this, based on the typ
                 {
                     "name": "all branches, excluding pullrequests",
                     "pattern": "[^pr\\-]*/*",
-                    "latestPulled": 3
+                    "latestPulled": 3,
+                    "latestPushed": 3
                 },
                 {
                     "name": "pullrequests",
                     "pattern": "pr-*",
-                    "latestPulled": 1
+                    "latestPulled": 1,
+                    "latestPushed": 1
                 }
             ],
             "schedule": "3 3 * * 3"
