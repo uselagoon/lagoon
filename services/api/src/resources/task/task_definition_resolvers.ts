@@ -589,6 +589,9 @@ export const invokeRegisteredTask = async (
     project: environmentDetails.project
   });
 
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_tasks', environmentDetails.project, adminScopes)
+
   switch (task.type) {
       case TaskRegistration.TYPE_STANDARD:
 

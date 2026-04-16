@@ -2,6 +2,7 @@
 webhook_url: "$WEBHOOK_PROTOCOL://$WEBHOOK_HOST:$WEBHOOK_PORT"
 graphql_url: "$API_PROTOCOL://$API_HOST:$API_PORT/graphql"
 localgit_url: "ssh://git@$GIT_HOST:$GIT_PORT/git"
+localgit_http_url: "http://$GIT_HOST:8080/git"
 ssh_host: "$SSH_HOST"
 ssh_auth_port: "$SSH_PORT"
 ssh_portal_host: "$SSH_PORTAL_HOST"

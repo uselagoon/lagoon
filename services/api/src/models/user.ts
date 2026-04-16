@@ -4,11 +4,18 @@ import { sqlClientPool } from '../clients/sqlClient';
 import pickNonNil from '../util/pickNonNil';
 import { query } from '../util/db';
 import { toNumber } from '../util/func';
-import { Group, GroupType, KeycloakLagoonGroup } from './group';
+import { Group, GroupModel, GroupType, KeycloakLagoonGroup } from './group';
 import { Sql } from '../resources/user/sql';
 import { getConfigFromEnv } from '../util/config';
 import { Helpers as groupHelpers } from '../resources/group/helpers';
 import { logger } from '../loggers/logger';
+import { EnvironmentModel } from './environment';
+
+export interface Models {
+  UserModel: UserModel;
+  GroupModel: GroupModel;
+  EnvironmentModel: EnvironmentModel;
+}
 
 interface IUserAttributes {
   comment?: [string];

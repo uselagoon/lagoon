@@ -86,6 +86,64 @@ export const Sql = {
       .where('e.project', '=', id)
       .andWhere('e.deleted', '0000-00-00 00:00:00')
       .toString(),
+  selectProjectClone: (id: number) =>
+    knex('project_clone')
+      .where('id', '=', id)
+      .toString(),
+  insertProjectClone: ({
+    sourceProject,
+    destinationProject,
+    status,
+  }: {
+    sourceProject: number,
+    destinationProject: number,
+    status: string,
+  }) =>
+    knex('project_clone')
+      .insert({
+        sourceProject,
+        destinationProject,
+        status,
+      })
+      .toString(),
+  addProjectCloneToProject: (id: number, clone: number) =>
+    knex('project')
+      .where('id', id)
+      .update('clone', clone)
+      .toString(),
+  deleteProjectClone: (id: number) =>
+    knex('project_clone')
+      .where('id', id)
+      .del()
+      .toString(),
+  updateProjectClone: ({ id, status }: { id: number, status: string }) =>
+    knex('project_clone')
+      .where('id', id)
+      .update('status', status)
+      .update('updated', knex.fn.now())
+      .toString(),
+  selectTaskOrDeploymentByProjectClone: (cid: number, pid: number, type: string, project: string) =>
+    knex('project_clone_task_deployments')
+      .where('cid', '=', cid)
+      .andWhere('pid', '=', pid)
+      .andWhere('type', '=', type)
+      .andWhere('project', '=', project)
+      .toString(),
+  addTaskOrDeploymentToProjectClone: ({cid, pid, tdid, project, type} : {cid: number, pid: number, tdid: number, project: string, type: string}) =>
+    knex('project_clone_task_deployments')
+      .insert({
+        cid,
+        project,
+        type,
+        pid,
+        tdid
+      })
+      .toString(),
+  deleteProjectCloneTaskDeployments: (cid: number) =>
+    knex('project_clone_task_deployments')
+      .where('cid', cid)
+      .del()
+      .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')
       .select(
@@ -105,6 +163,16 @@ export const Sql = {
     q.where('e.id', environmentId);
     return q.toString();
   },
+  selectProjectRestrictions: (pid: number) =>
+    knex('project')
+      .select('restrictions')
+      .where('id', '=', pid)
+      .toString(),
+  updateProjectRestrictions: (pid: number, restrictions: string) =>
+    knex('project')
+      .where('id', '=', pid)
+      .update('restrictions', restrictions)
+      .toString(),
   updateProject: ({
     id,
     patch

@@ -99,6 +99,7 @@ const CI = getConfigFromEnv('CI', 'false');
 const defaultBuildDeployImage = process.env.DEFAULT_BUILD_DEPLOY_IMAGE
 const edgeBuildDeployImage = process.env.EDGE_BUILD_DEPLOY_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
+const overwriteProjectcloneTaskImage = process.env.OVERWRITE_PROJECTCLONE_TASK_IMAGE
 const jwtSecretString = getConfigFromEnv('JWTSECRET', 'super-secret-string');
 const projectSeedString = getConfigFromEnv('PROJECTSEED', 'super-secret-string');
 
@@ -1360,6 +1361,43 @@ export const createMiscTask = async function(taskData: any) {
     case 'deploytarget:environment:service':
       // environment service is used to handle stop, start, or restarting of a service in an environment
       miscTaskData.misc.miscResource = encodeJSONBase64(taskData.data.lagoonService)
+      break;
+    case 'deploytarget:task:projectclone':
+      var jsonPayload: any = {
+        projectName: taskData.data.project.name,
+        sourceEnvironment: taskData.data.environment.name,
+        cloneId: taskData.data.cloneId
+      }
+      miscTaskData.advancedTask.JSONPayload = encodeJSONBase64(jsonPayload);
+      let cloneTaskImage = ""
+      if (CI == "true") {
+        cloneTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
+      } else if (overwriteProjectcloneTaskImage) {
+        // allow to overwrite the image we use via OVERWRITE_PROJECTCLONE_TASK_IMAGE env variable
+        cloneTaskImage = overwriteProjectcloneTaskImage
+      } else {
+        cloneTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
+      }
+      miscTaskData.advancedTask.runnerImage = cloneTaskImage
+      break;
+    case 'deploytarget:task:projectclonerestore':
+      var restoreJsonPayload: any = {
+        projectName: taskData.data.project.name,
+        destinationEnvironment: taskData.data.environment.name,
+        cloneId: taskData.data.cloneId,
+        action: "restore",
+        files: taskData.data.files
+      }
+      miscTaskData.advancedTask.JSONPayload = encodeJSONBase64(restoreJsonPayload);
+      let restoreTaskImage = ""
+      if (CI == "true") {
+        restoreTaskImage = "172.17.0.1:5000/lagoon/task-projectclone:latest"
+      } else if (overwriteProjectcloneTaskImage) {
+        restoreTaskImage = overwriteProjectcloneTaskImage
+      } else {
+        restoreTaskImage = `uselagoon/task-projectclone:${getConfigFromEnv('LAGOON_VERSION', 'unknown')}`
+      }
+      miscTaskData.advancedTask.runnerImage = restoreTaskImage
       break;
     default:
       miscTaskData.misc = taskData.data.build
