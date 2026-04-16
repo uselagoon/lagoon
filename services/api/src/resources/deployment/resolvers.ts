@@ -262,6 +262,31 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
   return query(sqlClientPool, queryBuilder.toString());
 };
 
+export const getLatestDeploymentByEnvironmentId: ResolverFn = async (
+  { id: eid },
+  _args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(eid);
+
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    await hasPermission('deployment', 'view', {
+      project: environment.project
+    });
+  }
+
+  const rows = await query(sqlClientPool, Sql.selectLatestDeploymentForEnvironment(environment.id));
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const deployment = rows[0];
+
+  return deployment;
+};
+
 export const getDeploymentByRemoteId: ResolverFn = async (
   _root,
   { id },
