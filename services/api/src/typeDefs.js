@@ -929,6 +929,7 @@ const typeDefs = gql`
     The idle state of the environment
     """
     idleState: IdleState
+    latestDeployment: Deployment
   }
 
   type EnvironmentPendingChanges {
