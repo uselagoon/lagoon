@@ -14,7 +14,24 @@ mutation addProject {
     id
   }
 
-  CiAddGroup: addGroupsToProject(
+  CiAddGroup: addGroup(
+    input: {
+      name: "ci-org-group"
+    }
+  ) {
+    id
+  }
+
+  CiAddGroupToOrg: addExistingGroupToOrganization(
+    input: {
+      name: "ci-org-group"
+      organization: 2
+    }
+  ) {
+    id
+  }
+
+  CiAddGroupToProject: addGroupsToProject(
     input: {
       project: {
         name: "{{ project }}"

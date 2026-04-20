@@ -36,6 +36,29 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 
+- name: "{{ testname }} - add project variable to {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    envName: "clone-project-var"
+    envValue: "clone-project-var-value"
+    envScope: RUNTIME
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/add-project-variable.yaml
+
+- name: "{{ testname }} - add environment variable to {{ project }} {{ branch }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+    envName: "clone-env-var"
+    envValue: "clone-env-var-value"
+    envScope: RUNTIME
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/add-environment-variable.yaml
+
 - name: "{{ testname }} - api clone project {{ project }} environment {{ branch }}"
   hosts: localhost
   serial: 1
@@ -83,9 +106,34 @@
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
 # check if groups copied
-# TODO
+- name: "{{ testname }} - check if {{ destProject }} has group ci-org-group"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ destProject }}"
+    group: "ci-org-group"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-project-groups.yaml
+
 # check if envvars copied
-# TODO
+- name: "{{ testname }} - check if {{ destProject }} has project variable clone-project-var"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ destProject }}"
+    envName: "clone-project-var"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-project-vars.yaml
+
+- name: "{{ testname }} - check if {{ destProject }} {{ branch }} has environment variable clone-env-var"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ destProject }}"
+    branch: "{{ branch }}"
+    envName: "clone-env-var"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/api/get-environment-vars.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ destProject }}, which should remove all resources"
   hosts: localhost
