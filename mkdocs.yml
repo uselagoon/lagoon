@@ -106,16 +106,6 @@ nav:
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
   - Retention Policies: using-lagoon-advanced/retention-policies.md
   - Blackfire: using-lagoon-advanced/blackfire.md
-  - Harbor:
-    - Using Harbor: using-lagoon-advanced/using-harbor/README.md
-    - Security Scanning: using-lagoon-advanced/using-harbor/security-scanning.md
-    - Harbor Settings: using-lagoon-advanced/using-harbor/harbor-settings/README.md
-    - Harbor-Core: using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md
-    - Harbor-Database: using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md
-    - Harbor-Jobservice: using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md
-    - Harbor-Trivy: using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md
-    - HarborRegistry: using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md
-    - HarborRegistryCtl: using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md
 - Interacting with Lagoon:
   - Using the UI: interacting/lagoon-ui.md
   - Working with Orgs: interacting/organizations.md
@@ -316,9 +306,6 @@ plugins:
             Setting up Xdebug with Lagoon: LagoonでのXdebugの設定
             Custom Tasks: カスタムタスク
             DeployTarget Configs: DeployTargetの設定
-            Using Harbor: Harborの使用
-            Security Scanning: セキュリティスキャン
-            Harbor Settings: Harborの設定
             Interacting with Lagoon: Lagoonとの連携
             Using the UI: UIの使用
             Working with Orgs: 組織との連携
@@ -374,15 +361,6 @@ plugins:
         'lagoon/administering-lagoon/feature-flags.md': 'concepts-advanced/feature-flags.md'
         'lagoon/administering-lagoon/graphql-queries.md': 'interacting/graphql-queries.md'
         'lagoon/administering-lagoon/rbac.md': 'interacting/rbac.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-core.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-database.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harborregistry.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md'
-        'lagoon/administering-lagoon/using_harbor/harbor-settings/README.md': 'using-lagoon-advanced/using-harbor/harbor-settings/README.md'
-        'lagoon/administering-lagoon/using_harbor/README.md': 'using-lagoon-advanced/using-harbor/README.md'
-        'lagoon/administering-lagoon/using_harbor/security_scanning.md': 'using-lagoon-advanced/using-harbor/security-scanning.md'
         'lagoon/contributing-to-lagoon/api-debugging.md': 'contributing-to-lagoon/api-debugging.md'
         'lagoon/contributing-to-lagoon/code-of-conduct.md': 'code-of-conduct.md'
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
@@ -459,15 +437,6 @@ plugins:
         'administering-lagoon/feature-flags.md': 'concepts-advanced/feature-flags.md'
         'administering-lagoon/graphql-queries.md': 'interacting/graphql-queries.md'
         'administering-lagoon/rbac.md': 'interacting/rbac.md'
-        'administering-lagoon/using_harbor/harbor-settings/harbor-core.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-core.md'
-        'administering-lagoon/using_harbor/harbor-settings/harbor-database.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-database.md'
-        'administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice.md'
-        'administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy.md'
-        'administering-lagoon/using_harbor/harbor-settings/harborregistry.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harborregistry.md'
-        'administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md': 'using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl.md'
-        'administering-lagoon/using_harbor/harbor-settings/README.md': 'using-lagoon-advanced/using-harbor/harbor-settings/README.md'
-        'administering-lagoon/using_harbor/README.md': 'using-lagoon-advanced/using-harbor/README.md'
-        'administering-lagoon/using_harbor/security_scanning.md': 'using-lagoon-advanced/using-harbor/security-scanning.md'
         'drupal/services/mariadb.md': 'applications/drupal/services/mariadb.md'
         'drupal/services/nginx.md': 'applications/drupal/services/nginx.md'
         'drupal/services/php-cli.md': 'applications/drupal/services/php-cli.md'
