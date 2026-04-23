@@ -1446,6 +1446,7 @@ const typeDefs = gql`
     """
     retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
     featureApiRoutes: Boolean @deprecated(reason: "Beta API routes feature flag, will be generally available in a future release and this feature gate will be removed")
+    featureProjectClone: Boolean @deprecated(reason: "Beta project clone feature flag, will be generally available in a future release and this feature gate will be removed")
   }
 
   input AddOrganizationInput {
@@ -1462,6 +1463,10 @@ const typeDefs = gql`
     @deprecated(reason: "Beta API routes feature flag, will be generally available in a future release and this feature gate will be removed")
     """
     featureApiRoutes: Boolean
+    """
+    @deprecated(reason: "Beta project clone feature flag, will be generally available in a future release and this feature gate will be removed")
+    """
+    featureProjectClone: Boolean
   }
 
   input DeleteOrganizationInput {
@@ -1481,6 +1486,10 @@ const typeDefs = gql`
     @deprecated(reason: "Beta API routes feature flag, will be generally available in a future release and this feature gate will be removed")
     """
     featureApiRoutes: Boolean
+    """
+    @deprecated(reason: "Beta project clone feature flag, will be generally available in a future release and this feature gate will be removed")
+    """
+    featureProjectClone: Boolean
   }
 
   input UpdateOrganizationInput {

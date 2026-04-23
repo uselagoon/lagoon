@@ -26,6 +26,9 @@ exports.up = async function(knex) {
         table.integer('tdid');
         table.primary(['cid', 'tdid']);
     })
+    .alterTable('organization', function (table) {
+        table.boolean('feature_project_clone').defaultTo(0); // disable project clone feature by default, future release of lagoon will remove this when project clone becomes generally available
+    })
     .raw("ALTER TABLE deployment MODIFY COLUMN source_type ENUM('api', 'webhook', 'clone')");
 };
 
@@ -38,6 +41,9 @@ exports.down = async function(knex) {
     .alterTable('project', (table) => {
         table.dropColumn('clone');
         table.dropColumn('restrictions');
+    })
+    .alterTable('organization', function (table) {
+        table.dropColumn('feature_project_clone');
     })
     .dropTable('project_clone')
     .dropTable('project_clone_task_deployments')
