@@ -237,9 +237,9 @@ export const updateOrganization: ResolverFn = async (
     // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
     // this feature will become generally available in a future version and this flag will not
     // be required
-    if (input.patch.featureApiRoutes) {
+    if (input.patch.featureApiRoutes || input.patch.featureProjectClone) {
       if (!adminScopes.platformOwner) {
-        throw new Error('Setting the api routes feature is only available to platform administrators.');
+        throw new Error('Setting the api routes feature or project clone feature is only available to platform administrators.');
       }
     }
 
