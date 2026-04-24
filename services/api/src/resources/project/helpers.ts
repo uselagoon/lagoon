@@ -121,6 +121,14 @@ export const Helpers = (sqlClientPool: Pool) => {
     }
     return Boolean(organization.featureApiRoutes);
   };
+  const checkProjectCloneFeature = async (organizationId: number) => {
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(organizationId);
+    if (!organization) {
+      // projects not in an organization cant use project cloning
+      return false;
+    }
+    return Boolean(organization.featureProjectClone);
+  };
 
   const addProjectRestrictions = async (projectId: number, restrictions: string[]) => {
     let result = await query(sqlClientPool, Sql.selectProjectRestrictions(projectId));
@@ -184,6 +192,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectByEnvironmentId,
     getProjectByOrganizationId,
     checkApiRoutesFeature,
+    checkProjectCloneFeature,
     getProjectRestrictions,
     addProjectRestrictions,
     removeProjectRestrictions,
