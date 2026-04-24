@@ -19,6 +19,19 @@ mutation PopulateApi {
     quotaNotification
   }
 
+  UIOrganization1Update: updateOrganization(input: {
+    id: 1
+    patch:{
+      featureApiRoutes: true
+      featureProjectClone: true
+    }
+  }) {
+    id
+    name
+    featureApiRoutes
+    featureProjectClone
+  }
+
   UIOrganizationUser: addUser(
     input: {
       email: "orguser@example.com"

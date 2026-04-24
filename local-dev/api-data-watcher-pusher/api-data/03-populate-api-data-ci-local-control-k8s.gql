@@ -209,7 +209,7 @@ mutation PopulateApi {
     id: 2
     name: "lagoon-ci-organization"
     friendlyName: "Lagoon CI Organization"
-    description: "An organization for testing in CI"
+    description: "An organization for testing in CI, no quotas"
   }) {
     id
     name
@@ -217,6 +217,19 @@ mutation PopulateApi {
     quotaEnvironment
     quotaGroup
     quotaNotification
+  }
+
+  UIOrganization2Update: updateOrganization(input: {
+    id: 2
+    patch:{
+      featureApiRoutes: true
+      featureProjectClone: true
+    }
+  }) {
+    id
+    name
+    featureApiRoutes
+    featureProjectClone
   }
 
   AddUIKubernetesToOrganization2: addDeployTargetToOrganization(input:{
