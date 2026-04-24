@@ -1197,7 +1197,7 @@ export const cloneProject: ResolverFn = async (
 
   // this is used to set the beta feature flag on a project from the organization
   // this feature will eventually be made generally available and the feature flag will be removed
-  if (await Helpers(sqlClientPool).checkApiRoutesFeature(sourceProject.organization) === false) {
+  if (await Helpers(sqlClientPool).checkProjectCloneFeature(sourceProject.organization) === false) {
     throw Error(`This feature is currently unavailable`)
   }
 
