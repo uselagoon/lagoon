@@ -28,7 +28,7 @@ import { deployBranch } from '../deployment/resolvers';
 import { Pool } from 'mariadb';
 import type { Models } from '../../models/user';
 import { addTask } from '@lagoon/commons/dist/api';
-import { getFilesByProjectCloneId } from '../file/resolvers';
+import { deleteFilesForProjectClone, getFilesByProjectCloneId } from '../file/resolvers';
 import {
   pubSub,
   EVENTS,
@@ -1432,7 +1432,9 @@ export const updateProjectClone: ResolverFn = async (
   if (status === 'complete') {
     // remove restrictions on complete cloning
     await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, restrictions);
-
+    await deleteFilesForProjectClone(root, { input: { id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  } else if (status === 'failed') {
+    await deleteFilesForProjectClone(root, { input: { id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
   } else if (firstDepAndSourceFilesUp) {
     // if both status have triggered then we can trigger the resotre
     await executeCloneRestoreTask(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
