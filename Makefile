@@ -82,7 +82,7 @@ BETA_UI_IMAGE_TAG = pr-145
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-359
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
 
 # LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
