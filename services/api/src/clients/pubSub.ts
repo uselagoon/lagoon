@@ -9,7 +9,6 @@ import { Sql as orgSql } from '../resources/organization/sql';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { ResolverFn } from '../resources';
 import { config } from './redisClient';
-import { logger } from '../loggers/logger';
 
 export const EVENTS = {
   DEPLOYMENT: 'api.subscription.deployment',
@@ -134,7 +133,6 @@ const createOrganizationSubscribe = (events): ResolverFn => async (
           throw new ForbiddenError('Organization not found.');
         }
 
-        logger.info(`AAAA2 ${JSON.stringify(rows[0])} ${o}`)
         if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
           // This will throw ForbiddenError if denied, killing the subscription immediately
           await hasPermission('organization', 'view', {
