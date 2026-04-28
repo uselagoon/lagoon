@@ -127,7 +127,7 @@ export const getCredentialsForLegacyToken = async (token: string): Promise<Legac
 
     // First check if the iat is _before_ now, with some tolerance for clock drift
     if (iat > (nowSeconds + clockSkew)) {
-      const msg = `Legacy token (sub:${sub}; iss:${iss}) iat ${(iat)} is issued before ${nowDate}`;
+      const msg = `Legacy token (sub:${sub}; iss:${iss}) iat ${(iat)} is issued before ${nowSeconds}`;
       throw new Error(msg);
     }
 
