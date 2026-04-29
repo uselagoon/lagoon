@@ -32,6 +32,17 @@ interface EnvironmentService {
     environment: number
     updated: string
     replicas?: number
+    abandoned?: boolean
+}
+
+interface EnvironmentVolume {
+    name: string
+    storageType: string
+    type: string
+    kibRequested: number
+    environment: number
+    updated: string
+    abandoned?: boolean
 }
 
 export const getEnvironmentByName: ResolverFn = async (
@@ -995,31 +1006,38 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
     environment: environment.id,
     updated: knex.fn.now(),
   };
+  if (input.abandoned !== undefined) {
+    envService.abandoned = input.abandoned
+  }
 
   if (input.replicas || input.replicas === 0) {
     // set the replica count if provided
     envService.replicas = input.replicas
   }
 
-  const createOrUpdateSql = knex('environment_service')
-    .insert({
-      ...envService,
-    })
-    .onConflict('id')
-    .merge({
-      ...envService
-    }).toString();
+  const existService = await query(sqlClientPool, Sql.selectEnvironmentServiceByEnvironmentIdAndName(environment.id, input.name));
+  let serviceId;
+  if (existService.length == 1) {
+    serviceId = existService[0].id;
+    await query(sqlClientPool, Sql.updateEnvironmentService({id: serviceId, patch: envService}))
+  } else {
+    const createOrUpdateSql = knex('environment_service')
+      .insert({
+        ...envService,
+      })
+      .toString();
 
-  const { insertId } = await query(
-    sqlClientPool,
-    createOrUpdateSql);
-
+    const { insertId } = await query(
+      sqlClientPool,
+      createOrUpdateSql);
+    serviceId = insertId;
+  }
   if (input.containers){
     // reset this services containers (delete all and add the current ones if provided)
-    await Helpers(sqlClientPool).resetServiceContainers(insertId, input.containers)
+    await Helpers(sqlClientPool).resetServiceContainers(serviceId, input.containers)
   }
 
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(insertId));
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentServiceById(serviceId));
 
   const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
@@ -1037,7 +1055,7 @@ export const addOrUpdateEnvironmentService: ResolverFn = async (
   };
   userActivityLogger(`User updated environment '${environment.name}' service '${input.name}`, {
     project: '',
-    event: 'api:updateEnvironmentService',
+    event: 'api:addOrUpdateEnvironmentService',
     payload: {
       environment,
       ...auditLog,
@@ -1075,6 +1093,8 @@ export const deleteEnvironmentService: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteEnvironmentServiceById(service.id));
+  await query(sqlClientPool, Sql.deleteServiceContainersVolumemountsByServiceId(service.id));
+  await query(sqlClientPool, Sql.deleteServiceContainerPortsByServiceId(service.id));
 
   const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
 
@@ -1134,15 +1154,56 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
 // this is only ever called by the services resolver, which is called by the environment resolver
 // no need to do additional permission checks at this time
 export const getServiceContainersByServiceId: ResolverFn = async (
-  { id: sid },
+  input,
   args,
   { sqlClientPool }
 ) => {
   const rows = await query(
     sqlClientPool,
-    Sql.selectContainersByServiceId(sid)
+    Sql.selectContainersByServiceId(input.id)
   );
-  return await rows;
+    return rows.map(row => ({
+      ...row,
+      eid: input.environment,
+      serviceId: input.id,
+    }));
+};
+
+// this is only ever called by the service containers resolver, which is called by the environment resolver
+// no need to do additional permission checks at this time
+export const getServiceVolumemountsByServiceId: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectVolumemountsByContainerAndServiceId(input.serviceId, input.name)
+  );
+  if (rows) {
+    return rows.map(row => ({
+      ...row,
+      eid: input.eid,
+    }));
+  }
+  return [];
+};
+
+// this is only ever called by the service containers resolver, which is called by the environment resolver
+// no need to do additional permission checks at this time
+export const getServiceContainerportsByServiceId: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectPortsByContainerAndServiceId(input.serviceId, input.name)
+  );
+  if (rows) {
+    return rows;
+  }
+  return [];
 };
 
 export const idleOrUnidleEnvironment = async (
@@ -1395,3 +1456,162 @@ export const stopOrStartEnvironmentService = async (
     );
   }
 };
+
+// this is used to add or update a volume on an environment
+// this extends the capabalities of the environment and allows for additional visibility of what exists in an environment
+export const addOrUpdateEnvironmentVolume: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const environment = await Helpers(sqlClientPool).getEnvironmentById(
+    input.environment
+  );
+  await hasPermission('environment', `update:${environment.environmentType}`, {
+    project: environment.project
+  });
+
+  let envVolume: EnvironmentVolume = {
+    name: input.name,
+    type: input.type,
+    environment: environment.id,
+    storageType: input.storageType,
+    kibRequested: input.kibRequested,
+    updated: knex.fn.now(),
+  };
+  if (input.abandoned !== undefined) {
+    envVolume.abandoned = input.abandoned
+  }
+
+  const createOrUpdateSql = knex('environment_volume')
+    .insert({
+      ...envVolume,
+    })
+    .onConflict('id')
+    .merge({
+      ...envVolume
+    }).toString();
+
+  const { insertId } = await query(
+    sqlClientPool,
+    createOrUpdateSql);
+
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentVolumeById(insertId));
+
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
+  userActivityLogger(`User updated environment '${environment.name}' volume '${input.name}`, {
+    project: '',
+    event: 'api:addOrUpdateEnvironmentVolume',
+    payload: {
+      environment,
+      ...auditLog,
+    }
+  });
+
+  return R.prop(0, rows);
+};
+
+// delete an environment service from the environment
+export const deleteEnvironmentVolume: ResolverFn = async (
+  root,
+  { input: { name, environment: eid } },
+  { sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentById(eid))
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
+
+  if (!environment) {
+    return null;
+  }
+
+  const volumes = await query(sqlClientPool, Sql.selectEnvironmentVolumeByName(name, eid));
+  const volume = volumes[0];
+
+  if (!volume) {
+    return null;
+  }
+
+  await hasPermission('environment', `delete:${environment.environmentType}`, {
+    project: environment.project
+  });
+
+  await query(sqlClientPool, Sql.deleteEnvironmentVolumeById(volume.id));
+
+  const project = await projectHelpers(sqlClientPool).getProjectById(environment.project)
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+    linkedResource: {
+      id: environment.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+  };
+  userActivityLogger(`User deleted environment '${environment.name}' volume '${volume.name}`, {
+    project: '',
+    event: 'api:deleteEnvironmentVolume',
+    payload: {
+      volume,
+      ...auditLog,
+    }
+  });
+
+  return 'success';
+};
+
+// no need to do additional permission checks at this time as it isn't a directly callable resolver
+export const getEnvironmentVolumesByEnvironmentId: ResolverFn = async (
+  { id: eid },
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await Helpers(sqlClientPool).getEnvironmentVolumes(eid)
+  return rows;
+};
+
+// no need to do additional permission checks at this time as it isn't a directly callable resolver
+export const getEnvironmentVolumeByName: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectEnvironmentVolumeByName(input.name, input.eid)
+  );
+  return rows[0];
+};
+
+// no need to do additional permission checks at this time as it isn't a directly callable resolver
+export const getEnvironmentVolumeSizeByName: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool}
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectEnvironmentStorageByVolumeName(input.environment, input.name)
+  );
+  if (rows.length > 0 && rows[0].kibUsed) {
+    return rows[0].kibUsed;
+  }
+  return 0;
+}

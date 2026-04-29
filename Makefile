@@ -51,7 +51,7 @@ UPSTREAM_TAG ?= latest
 # latest is the most current release
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_REPO = uselagoon/build-deploy-image
-BUILD_DEPLOY_IMAGE_TAG ?= edge
+BUILD_DEPLOY_IMAGE_TAG ?= pr-485
 
 # UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
 # only works for installations where INSTALL_STABLE_CORE=false
@@ -82,7 +82,7 @@ BETA_UI_IMAGE_TAG = main
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-361
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always

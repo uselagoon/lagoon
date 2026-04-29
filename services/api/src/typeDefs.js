@@ -910,6 +910,7 @@ const typeDefs = gql`
     tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
+    volumes: [EnvironmentVolume]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
@@ -970,13 +971,72 @@ const typeDefs = gql`
     name: String
     type: String
     containers: [ServiceContainer]
+    """
+    The last reported number of replicas that a service had
+    """
     replicas: Int
     created: String
     updated: String
+    """
+    Abandoned indicates if the service is no longer referenced by the deployed environments configuration
+    """
+    abandoned: Boolean
+  }
+
+  type EnvironmentVolume {
+    id: Int
+    name: String
+    """
+    The type of storage, will generally be bulk, or block
+    """
+    storageType: String
+    """
+    The service type or volume type for the volume
+    """
+    type: String
+    """
+    The requested size of the volume, not the reported size
+    """
+    kibRequested: Float
+    """
+    The last reported size of the volume, this is updated by storage calculator jobs
+    """
+    kibUsed: Float
+    created: String
+    updated: String
+    """
+    Abandoned indicates if the volume is no longer referenced by the deployed environments configuration
+    """
+    abandoned: Boolean
   }
 
   type ServiceContainer {
     name: String
+    """
+    Lists the volumes and where they are mounted to the service
+    """
+    volumemounts: [ServiceVolumeMount]
+    """
+    Lists the ports associated to the service
+    """
+    ports: [ServiceContainerPort]
+  }
+
+  type ServiceVolumeMount {
+    name: String
+    """
+    This is the environment volume reference
+    """
+    volume: EnvironmentVolume
+    """
+    This is the path the volume is mounted within the container
+    """
+    path: String
+  }
+
+  type ServiceContainerPort {
+    name: String
+    port: Int
   }
 
   type Backup {
@@ -1484,6 +1544,7 @@ const typeDefs = gql`
     route: String
     routes: String
     services: [EnvironmentService]
+    volumes: [EnvironmentVolume]
     openshift: Openshift
     kubernetes: Kubernetes
   }
@@ -1965,13 +2026,41 @@ const typeDefs = gql`
     type: String!
     containers: [ServiceContainerInput]
     replicas: Int
+    abandoned: Boolean
   }
 
   input ServiceContainerInput {
     name: String!
+    volumemounts: [AddEnvironmentServiceVolumemounts]
+    ports: [AddEnvironmentServicePorts]
+  }
+
+  input AddEnvironmentServiceVolumemounts {
+    name: String!
+    path: String!
+  }
+
+  input AddEnvironmentServicePorts {
+    name: String!
+    port: Int!
+  }
+
+  input AddEnvironmentVolumeInput {
+    id: Int
+    environment: Int!
+    name: String!
+    storageType: String!
+    type: String!
+    kibRequested: Float!
+    abandoned: Boolean
   }
 
   input DeleteEnvironmentServiceInput {
+    name: String!
+    environment: Int!
+  }
+
+  input DeleteEnvironmentVolumeInput {
     name: String!
     environment: Int!
   }
@@ -3163,6 +3252,8 @@ const typeDefs = gql`
     bulkImportProjectsAndGroupsToOrganization(input: AddProjectToOrganizationInput, detachNotification: Boolean): ProjectGroupsToOrganization
     addOrUpdateEnvironmentService(input: AddEnvironmentServiceInput!): EnvironmentService
     deleteEnvironmentService(input: DeleteEnvironmentServiceInput!): String
+    addOrUpdateEnvironmentVolume(input: AddEnvironmentVolumeInput!): EnvironmentVolume
+    deleteEnvironmentVolume(input: DeleteEnvironmentVolumeInput!): String
     addPlatformRoleToUser(user: UserInput!, role: PlatformRole!): User
     removePlatformRoleFromUser(user: UserInput!, role: PlatformRole!): User
     """
