@@ -1,0 +1,38 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: basic
+      lagoon.volumes.files.path: /app/files/
+      lagoon.service.usecomposeports: true
+    ports:
+      - "8080:8080"
+    volumes:
+       - files:/app/files
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USERNAME=lagoon
+      - MYSQL_PASSWORD=lagoon
+      - MYSQL_PORT=3306
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USERNAME=lagoon
+      - POSTGRES_PASSWORD=lagoon
+    depends_on:
+      - mysql
+      - postgres
+  mysql:
+    image: uselagoon/mysql-8.4:latest
+    labels:
+      lagoon.type: mariadb
+  postgres:
+    image: uselagoon/postgres-16:latest
+    labels:
+      lagoon.type: postgres
+
+volumes:
+  files:
+    labels:
+      lagoon.type: persistent

@@ -14,7 +14,8 @@ export enum DeployType {
 
 export enum DeploymentSourceType {
   API = 'api',
-  WEBHOOK = 'webhook'
+  WEBHOOK = 'webhook',
+  CLONE = 'clone'
 }
 
 export enum DeploymentBuildType {

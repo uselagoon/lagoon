@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -14,6 +15,70 @@ import (
 	"github.com/uselagoon/machinery/utils/jwt"
 	machinerystrings "github.com/uselagoon/machinery/utils/strings"
 )
+
+func handleCloneDeployment(ctx context.Context, message *schema.LagoonMessage, l *lclient.Client, prefix string, buildStatus string) {
+	type cloneData struct {
+		Clone struct {
+			ID                 int `json:"id"`
+			DestinationProject struct {
+				Deployments []struct {
+					Name string `json:"name"`
+				} `json:"deployments"`
+			} `json:"destinationProject"`
+		} `json:"clone"`
+	}
+	projectRaw := fmt.Sprintf(`query getProjectCloneDetails{
+		projectByName(name: "%s"){
+			id
+			clone {
+				id
+				destinationProject{
+					deployments{
+						name
+					}
+				}
+			}
+		}
+	}`, message.Meta.Project)
+
+	projectData, err := l.ProcessRaw(ctx, projectRaw, nil)
+	if err != nil {
+		log.Printf("%sERROR: unable to get project clone info: %v", prefix, err)
+		return
+	}
+	var project cloneData
+	data, _ := json.Marshal(projectData.(map[string]interface{})["projectByName"])
+	if err := json.Unmarshal(data, &project); err != nil {
+		log.Printf("%sERROR: unable to unmarshal clone data: %v", prefix, err)
+		return
+	}
+
+	cloneStatus := ""
+	// handle all clone status', not just complete
+	switch buildStatus {
+	case "failed", "cancelled":
+		cloneStatus = strings.ToUpper(buildStatus)
+	case "complete":
+		cloneStatus = "COMPLETE"
+		if len(project.Clone.DestinationProject.Deployments) == 1 {
+			cloneStatus = "FIRST_DEPLOYMENT_COMPLETE"
+		}
+	}
+	raw := fmt.Sprintf(`mutation updateProjectClone{
+			updateProjectClone(input:{
+				id: %d
+				status: %s
+			}){
+				id
+			}
+		}`, project.Clone.ID, cloneStatus)
+
+	_, err = l.ProcessRaw(ctx, raw, nil)
+	if err != nil {
+		log.Printf("%sERROR: unable to update clone status: %v", prefix, err)
+		return
+	}
+}
 
 func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQueue, message *schema.LagoonMessage, messageID string) error {
 	if message.Meta.BuildName == "" {
@@ -132,6 +197,10 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			updateEnvironmentPatch.Routes = &routes
 		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
+
+		if deployment.DeploymentSourceType == "CLONE" {
+			handleCloneDeployment(ctx, message, l, prefix, buildStatus)
+		}
 	}
 	// only update the api with the status etc on pending, complete, failed, or cancelled
 	// reduce calls to the api

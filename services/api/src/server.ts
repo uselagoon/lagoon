@@ -41,14 +41,15 @@ export const createServer = async () => {
 
       try {
         const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(authToken);
-        return { grant, legacyCredentials };
+        (req.raw as any)._sseAuth = { grant, legacyCredentials };
+        return true; // just signal success; data is on the request
       } catch (e) {
         logger.error(`SSE auth failed: ${e.message}`);
         throw new AuthenticationError('Auth token invalid.');
       }
     },
     context: async (req, params) => {
-      const { grant: keycloakGrant, legacyCredentials: legacyGrant } = req.context || {};
+      const { grant: keycloakGrant, legacyCredentials: legacyGrant } = (req.raw as any)._sseAuth || {};
 
       const keycloakAdminClient = await getKeycloakAdminClient();
       const modelClients = { sqlClientPool, keycloakAdminClient, esClient };
@@ -144,6 +145,11 @@ export const createServer = async () => {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, apollo-require-preflight');
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
       try {
         await sseHandler(req, res);
       } catch (error: any) {

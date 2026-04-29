@@ -7,17 +7,61 @@ import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
+import { Sql as deploymentSql} from '../deployment/sql';
+import { Sql as notificationsSql} from '../notification/sql'
 import * as OS from '../openshift/sql';
 import { Sql as sshKeySql } from '../sshKey/sql';
+import { Sql as envvarSql } from '../env-variables/sql'
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
+import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType } from '@lagoon/commons/dist/types';
+import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { createMiscTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { deployBranch } from '../deployment/resolvers';
+import { Pool } from 'mariadb';
+import type { Models } from '../../models/user';
+import { addTask } from '@lagoon/commons/dist/api';
+import { deleteFilesForProjectClone, getFilesByProjectCloneId } from '../file/resolvers';
+import {
+  pubSub,
+  EVENTS,
+  createProjectFilteredSubscriber
+} from '../../clients/pubSub';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
+
+export interface copyProjectGroups {
+  sqlClientPool: Pool
+  models: Models
+  sourceProjectId: number
+  destinationProjectId: number
+  defaultGroupUsers: boolean
+}
+
+export interface copyProjectNotifications {
+  sqlClientPool: Pool
+  sourceProjectId: number
+  destinationProjectId: number
+}
+
+export interface copyProjectVariables {
+  sqlClientPool: Pool
+  sourceProjectId: number
+  destinationProjectId: number
+}
+
+export interface copyEnvironmentVariables {
+  sqlClientPool: Pool
+  sourceEnvironmentId: number
+  destinationEnvironmentId: number
+}
 
 const isValidGitUrl = value => {
   try {
@@ -27,6 +71,8 @@ const isValidGitUrl = value => {
     return false
   }
 }
+
+const convertDateFormat = R.init;
 
 export const getPrivateKey: ResolverFn = async (
   project,
@@ -227,7 +273,6 @@ export const addProject = async (
   { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes }
 ) => {
 
-  // Add the user who submitted this request to the project
   let userAlreadyHasAccess = false;
   if (adminScopes.platformOwner) {
     userAlreadyHasAccess = true
@@ -277,6 +322,35 @@ export const addProject = async (
       );
     }
   }
+
+  const project = await createProject(input, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes)
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  userActivityLogger(`User added a project '${project.name}'`, {
+    project: '',
+    event: 'api:addProject',
+    payload: {
+      input,
+      data: project,
+      ...auditLog,
+    }
+  });
+
+  return project;
+};
+
+async function createProject(input, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes ) {
+    // Add the user who submitted this request to the project
+
   if (input.name.trim().length == 0) {
     throw new Error(
       'A project name must be provided!'
@@ -476,29 +550,8 @@ export const addProject = async (
       );
     }
   }
-
-  const auditLog: AuditLog = {
-    resource: {
-      id: project.id.toString(),
-      type: AuditType.PROJECT,
-      details: project.name,
-    },
-  };
-  if (project.organization) {
-    auditLog.organizationId = project.organization;
-  }
-  userActivityLogger(`User added a project '${project.name}'`, {
-    project: '',
-    event: 'api:addProject',
-    payload: {
-      input,
-      data: project,
-      ...auditLog,
-    }
-  });
-
   return project;
-};
+}
 
 export const deleteProject: ResolverFn = async (
   _root,
@@ -633,7 +686,8 @@ export const updateProject: ResolverFn = async (
         developmentEnvironmentsLimit,
         organization,
         buildImage,
-        sharedBaasBucket
+        sharedBaasBucket,
+        restrictions
       }
     }
   },
@@ -647,6 +701,11 @@ export const updateProject: ResolverFn = async (
   if (deploymentsDisabled) {
     if (!adminScopes.platformOwner) {
       throw new Error('Disabling deployments is only available to administrators.');
+    }
+  }
+  if (restrictions) {
+    if (!adminScopes.platformOwner) {
+      throw new Error('Project restrictions are only available to administrators.');
     }
   }
 
@@ -826,7 +885,8 @@ export const updateProject: ResolverFn = async (
         developmentEnvironmentsLimit,
         organization,
         buildImage,
-        sharedBaasBucket
+        sharedBaasBucket,
+        restrictions: JSON.stringify(restrictions)
       }
     })
   );
@@ -1085,3 +1145,879 @@ export const getFeatureApiRoutes: ResolverFn = async (
 ) => {
   return Helpers(sqlClientPool).checkApiRoutesFeature(input.organization);
 };
+
+/*
+  cloneProject can be used to clone a project within an organization
+  an organization owner or admin will be able to initiate the process
+*/
+export const cloneProject: ResolverFn = async (
+  root,
+  { input:
+    {
+      projectName: projectName,
+      sourceProject: {
+        name: sourceProjectName,
+        metadata,
+        projectVariables,
+        notifications,
+        groups,
+      },
+      sourceEnvironment: {
+        name: sourceEnvironmentName,
+        environmentVariables,
+        copyData,
+        disablePreRollout,
+        disablePostRollout,
+      }
+    }
+  },
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger, adminScopes, legacyGrant }
+) => {
+  const pid = await Helpers(sqlClientPool).getProjectIdByName(sourceProjectName);
+  const sourceProject = await Helpers(sqlClientPool).getProjectById(pid);
+
+  let userAlreadyHasAccess = false;
+  if (adminScopes.platformOwner) {
+    userAlreadyHasAccess = true
+  }
+
+  // if the project is in an organization then check the organization delete project permission
+  // otherwise fall back to the non-organization permission check
+  if (sourceProject.organization != null) {
+    // TODO: change to `cloneProject` permission
+    await hasPermission('organization', 'addProject', {
+      organization: sourceProject.organization
+    });
+  } else {
+    // project is not in an organization and cannot be cloned
+    throw new Error(
+      `Unauthorized: You don't have permission to "cloneProject" on "organization"`
+    );
+  }
+
+  // this is used to set the beta feature flag on a project from the organization
+  // this feature will eventually be made generally available and the feature flag will be removed
+  if (await Helpers(sqlClientPool).checkProjectCloneFeature(sourceProject.organization) === false) {
+    throw Error(`This feature is currently unavailable`)
+  }
+
+  const env = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, pid)
+  const environmentData = env[0]
+  if (!environmentData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+
+  if (environmentData.deployType != 'branch') {
+    throw new Error(`Only environments with deploymentType 'branch' can be cloned`);
+  }
+
+  // check project & env quota's prior to cloning the project
+  const organization = await organizationHelpers(sqlClientPool).getOrganizationById(sourceProject.organization);
+  const projectCount = await organizationHelpers(sqlClientPool).getProjectCountByOrganizationId(sourceProject.organization);
+  const environmentCount = await organizationHelpers(sqlClientPool).getEnvironmentCountByOrganizationId(sourceProject.organization);
+
+    if (projectCount >= organization.quotaProject && organization.quotaProject != -1) {
+      throw new Error(
+        `This would exceed this organizations project quota; ${projectCount}/${organization.quotaProject}`
+      );
+    }
+    if (environmentCount >= organization.quotaEnvironment && organization.quotaEnvironment != -1) {
+      throw new Error(
+        `This would exceed this organizations environment quota; ${environmentCount}/${organization.quotaEnvironment}`
+      );
+    }
+
+// check if environment exists + at least one successful deployment
+  const latestDeployment = await query(sqlClientPool, deploymentSql.selectLatestDeploymentForEnvironment(environmentData.id));
+  if (latestDeployment && latestDeployment[0]?.status !== 'complete') {
+    throw new Error('The source environment must have at least one successful deployment');
+  }
+
+  // clone the project schema and create new project from source project
+  // remove fields from source that aren't required
+  let newProjectInput = { ...sourceProject }
+  newProjectInput.name = projectName
+  delete(newProjectInput.id)
+  delete(newProjectInput.privateKey)
+  delete(newProjectInput.created)
+  delete(newProjectInput.kubernetes) // keeps `openshift`
+  delete(newProjectInput.buildImage)
+  delete(newProjectInput.standbyRoutes)
+  delete(newProjectInput.productionRoutes)
+  delete(newProjectInput.sharedBaasBucket)
+  delete(newProjectInput.deploymentsDisabled)
+  delete(newProjectInput.metadata)
+  let project = await createProject(newProjectInput, userAlreadyHasAccess, sqlClientPool, models, keycloakGrant, adminScopes)
+  // TODO: may need to consider deploytarget configuration cloning
+
+  // disable deployments, tasks, and other user interactions
+  await Helpers(sqlClientPool).addProjectRestrictions(project.id, ['no_deployments','no_tasks','no_project_variables','no_environment_variables'])
+
+  const { insertId } = await query(
+    sqlClientPool,
+    Sql.insertProjectClone({
+      destinationProject: project.id,
+      sourceProject: pid,
+      status: 'pending'
+    })
+  );
+  await query(
+    sqlClientPool,
+    Sql.addProjectCloneToProject(project.id, insertId)
+  );
+  project.clone = insertId
+
+  // handle publishing events to queues as requried
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(project.clone));
+  pubSub.publish(EVENTS.PROJECTCLONE, rows[0]);
+  pubSub.publish(EVENTS.ORGPROJECT, project);
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: project.id.toString(),
+      type: AuditType.PROJECT,
+      details: project.name,
+    },
+  };
+  if (project.organization) {
+    auditLog.organizationId = project.organization;
+  }
+  userActivityLogger(`User cloned a project '${project.name}'`, {
+    project: '',
+    event: 'api:cloneProject',
+    payload: {
+      data: project,
+      ...auditLog,
+    }
+  });
+
+  // execute deployment for new environment
+  const envType =
+    sourceEnvironmentName === project.productionEnvironment ? 'production' : 'development';
+  let priority = project.developmentBuildPriority
+  if (envType == 'production') {
+    priority = project.productionBuildPriority
+  }
+
+  const deployVars: {name: string, value: string}[] = [];
+  if (disablePreRollout !== false) {
+    deployVars.push({name: 'LAGOON_PREROLLOUT_DISABLED', value: 'true'});
+  }
+  if (disablePostRollout !== false) {
+    deployVars.push({name: 'LAGOON_POSTROLLOUT_DISABLED', value: 'true'});
+  }
+  const build = await deployBranch(true, project, sourceEnvironmentName, null, priority, null, null, deployVars, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, DeploymentSourceType.CLONE);
+  const destinationEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironmentName, project.id)
+  const destinationEnvironmentData = destinationEnv[0]
+  if (destinationEnvironmentData) {
+    const buildData = await query(sqlClientPool, deploymentSql.selectDeploymentByNameAndEnvironment(build, destinationEnvironmentData.id))
+    // add the deployment reference to the project clone task/deployment table
+    await query(
+      sqlClientPool,
+      Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: project.id, tdid: buildData[0].id, project: "destination", type: "deployment"})
+    );
+  }
+
+  // copy environment variables (project / environment), groups, metadata
+  if (groups) {
+    let data: copyProjectGroups = {
+      sqlClientPool: sqlClientPool,
+      models: models,
+      sourceProjectId: pid,
+      destinationProjectId: project.id,
+      defaultGroupUsers: false
+    }
+    await copyProjectGroupsFromProject(data)
+  }
+  if (notifications) {
+    let data: copyProjectNotifications = {
+      sqlClientPool: sqlClientPool,
+      sourceProjectId: pid,
+      destinationProjectId: project.id,
+    }
+    await copyProjectNotificationsFromProject(data)
+  }
+  if (projectVariables) {
+    let data: copyProjectVariables = {
+      sqlClientPool: sqlClientPool,
+      sourceProjectId: pid,
+      destinationProjectId: project.id,
+    }
+    await copyProjectVariablesFromProject(data)
+  }
+  if (environmentVariables) {
+    let data: copyEnvironmentVariables = {
+      sqlClientPool: sqlClientPool,
+      sourceEnvironmentId: environmentData.id,
+      destinationEnvironmentId: destinationEnvironmentData.id
+    }
+    await copyEnvironmentVariablesFromProject(data)
+  }
+  if (copyData) {
+    const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+    var date = new Date();
+    var created = convertDateFormat(date.toISOString());
+    const sourceTaskData = await addTask('Project Clone Archive', TaskStatusType.NEW, created, environmentData.id, null, null, null, null, '', '', false, sourceUser, TaskSourceType.API);
+
+    const data = {
+      project: {
+        id: pid,
+        name: sourceProject.name,
+      },
+      environment: {
+        id: environmentData.id,
+        name: environmentData.name,
+        openshiftProjectName: environmentData.openshiftProjectName
+      },
+      task: {
+        id: '0',
+        name: 'Project Clone Archive'
+      },
+      cloneId: insertId
+    };
+
+    data.task.id = sourceTaskData.addTask.id.toString()
+
+    // Task reference is added to ProjectClone source tasks
+    await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: insertId, pid: pid, tdid: sourceTaskData.addTask.id, project: "source", type: "task"}));
+
+    // Create lagoon-sync advanced task in source environment (archive)
+    await createMiscTask({ key: 'task:projectclone', data });
+  }
+
+  return project;
+};
+
+/*
+  updateProjectClone is used to update the status of a project cloning process
+*/
+export const updateProjectClone: ResolverFn = async (
+  root,
+  {
+    input: {
+      id,
+      status
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
+) => {
+  // updating the project clone status is restricted to platform/system only, not general users
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
+  }
+
+  let rows = await query(sqlClientPool, Sql.selectProjectClone(id));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${id}`);
+  }
+  const prevStatus = rows[0].status
+  const result = await query(sqlClientPool, Sql.updateProjectClone({id, status}));
+
+  if (result.affectedRows === 0) {
+    throw new Error(
+      `No project clone found for ID: ${id}`
+    );
+  }
+  // retrieve the project clone again after updating
+  rows = await query(sqlClientPool, Sql.selectProjectClone(id));
+
+  // simplifies the switch + combines the restore status'
+  const firstDepAndSourceFilesUp = (status === 'first_deployment_complete' && prevStatus === 'source_files_uploaded') || (status === 'source_files_uploaded' && prevStatus === 'first_deployment_complete');
+  const restrictions = ['no_deployments','no_tasks','no_project_variables','no_environment_variables']
+
+  if (status === 'complete') {
+    // remove restrictions on complete cloning
+    await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, restrictions);
+    await deleteFilesForProjectClone(root, { input: { id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  } else if (status === 'failed') {
+    await deleteFilesForProjectClone(root, { input: { id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  } else if (firstDepAndSourceFilesUp) {
+    // if both status have triggered then we can trigger the resotre
+    await executeCloneRestoreTask(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+
+  } else if (status === 'first_deployment_complete') {
+    // copydata check - if false skips to complete.
+    const sourceTasks = await query(
+      sqlClientPool,
+      knex('project_clone_task_deployments')
+        .where('cid', id)
+        .andWhere('project', 'source')
+        .andWhere('type', 'task')
+        .toString()
+    );
+
+    if (sourceTasks.length === 0) {
+      await query(sqlClientPool, Sql.updateProjectClone({ id, status: 'complete' }));
+      await Helpers(sqlClientPool).removeProjectRestrictions(rows[0].destinationProject, restrictions);
+
+    }
+
+  } else if (status === 'source_files_applied') {
+    await executeCloneDeployment(root, { input: { cloneId: id } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  }
+
+  userActivityLogger(`User updated a project cloning status '${id}'`, {
+    project: '',
+    event: 'api:updateProjectClone',
+    payload: {
+      projectCloneDetails: {
+        id: id,
+        status: status,
+      }
+    }
+  });
+
+  // handle publishing events to queues as requried
+  pubSub.publish(EVENTS.PROJECTCLONE, rows[0]);
+  const destProject = await Helpers(sqlClientPool).getProjectById(rows[0].destinationProject);
+  pubSub.publish(EVENTS.ORGPROJECT, destProject);
+
+  return rows[0];
+};
+
+/*
+  executeCloneRestoreTask is used to execute the restore task for a project clone
+*/
+export const executeCloneRestoreTask: ResolverFn = async (
+  root,
+  {
+    input: {
+      cloneId
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
+) => {
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
+  }
+
+  // get the relevant project clone details (source & destination etc)
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+
+  const projectClone = rows[0];
+
+  const destProjRows = await query(sqlClientPool, Sql.selectProjectById(projectClone.destinationProject));
+  if (destProjRows.length === 0) {
+    throw new Error(`No destination project found for ID: ${cloneId}`);
+  }
+
+  const destinationProject = destProjRows[0];
+
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(projectClone.destinationProject));
+  if (destEnvRows.length === 0) {
+    throw new Error(`No destination environment found for ID: ${cloneId}`);
+  }
+
+  const destEnvironment = destEnvRows[0];
+
+  const cloneFiles = await getFilesByProjectCloneId({ id: cloneId }, {}, { sqlClientPool } as any);
+  if (!cloneFiles || cloneFiles.length === 0) {
+    throw new Error(`No files found for project clone ID: ${cloneId}`);
+  }
+
+  // same process as cloneProject to trigger the task
+  const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
+  var date = new Date();
+  var created = convertDateFormat(date.toISOString());
+  const taskData = await addTask('Project Clone Restore', TaskStatusType.NEW, created, destEnvironment.id, null, null, null, null, '', '', false, sourceUser, TaskSourceType.API);
+
+  const data = {
+    project: {
+      id: destinationProject.id,
+      name: destinationProject.name,
+    },
+    environment: {
+      id: destEnvironment.id,
+      name: destEnvironment.name,
+      openshiftProjectName: destEnvironment.openshiftProjectName
+    },
+    task: {
+      id: '0',
+      name: 'Project Clone Restore'
+    },
+    cloneId: cloneId,
+    files: cloneFiles.map((file: any) => ({ id: file.id, filename: file.filename }))
+  };
+
+  data.task.id = taskData.addTask.id.toString()
+
+  await query(sqlClientPool, Sql.addTaskOrDeploymentToProjectClone({cid: cloneId, pid: projectClone.destinationProject, tdid: taskData.addTask.id, project: "destination", type: "task"}));
+
+  await createMiscTask({ key: 'task:projectclonerestore', data });
+
+  userActivityLogger(`User triggered project clone restore task for clone '${cloneId}'`, {
+    project: destinationProject.name,
+    event: 'api:executeCloneRestoreTask',
+    payload: {
+      cloneId: cloneId,
+      taskId: taskData.addTask.id,
+      destinationProject: destinationProject.name,
+      destinationEnvironment: destEnvironment.name
+    }
+  });
+
+  return taskData.addTask;
+};
+
+
+/*
+  executeCloneDeployment is used to trigger a deployment for a project clone
+*/
+export const executeCloneDeployment: ResolverFn = async (
+  root,
+  {
+    input: {
+      cloneId
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes, keycloakGrant, legacyGrant }
+) => {
+  if (!adminScopes.platformOwner) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "" on ""`
+    );
+  }
+
+  const rows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (rows.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+
+  const projectClone = rows[0];
+
+  const destProjRows = await query(sqlClientPool, Sql.selectProjectById(projectClone.destinationProject));
+  if (destProjRows.length === 0) {
+    throw new Error(`No destination project found for clone ID: ${cloneId}`);
+  }
+
+  const destinationProject = destProjRows[0];
+
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(projectClone.destinationProject));
+  if (destEnvRows.length === 0) {
+    throw new Error(`No destination environment found for clone ID: ${cloneId}`);
+  }
+
+  const destEnvironment = destEnvRows[0];
+
+  const envType = destEnvironment.name === destinationProject.productionEnvironment ? 'production' : 'development';
+  const priority = envType === 'production' ? destinationProject.productionBuildPriority : destinationProject.developmentBuildPriority;
+
+  try {
+    const build = await deployBranch(
+      true,
+      destinationProject,
+      destEnvironment.name,
+      null,
+      priority,
+      null,
+      null,
+      null,
+      sqlClientPool,
+      keycloakGrant,
+      legacyGrant,
+      userActivityLogger,
+      DeploymentSourceType.CLONE
+    );
+
+    const buildData = await query(
+      sqlClientPool,
+      deploymentSql.selectDeploymentByNameAndEnvironment(build, destEnvironment.id)
+    );
+
+    if (buildData.length > 0) {
+      // add the deployment reference to the project clone task/deployment table
+      await query(
+        sqlClientPool,
+        Sql.addTaskOrDeploymentToProjectClone({cid: cloneId, pid: destinationProject.id, tdid: buildData[0].id, project: "destination", type: "deployment"})
+      );
+    }
+
+    userActivityLogger(`User triggered project clone deployment for clone '${cloneId}'`, {
+      project: destinationProject.name,
+      event: 'api:executeCloneDeployment',
+      payload: {
+        cloneId: cloneId,
+        buildName: build,
+        destinationProject: destinationProject.name,
+        destinationEnvironment: destEnvironment.name
+      }
+    });
+
+    return build;
+
+  } catch (error) {
+    // can set the clone status to failed if the deployment fails?
+    await query(
+      sqlClientPool,
+      Sql.updateProjectClone({ id: cloneId, status: 'FAILED' })
+    );
+    throw new Error(`Failed to trigger deployment for clone ${cloneId}: ${error.message}`);
+  }
+};
+
+
+/*
+  cancelProjectClone is used to cancel a project cloning process
+  the created project and anything associated to the cloned project will be removed
+*/
+export const cancelProjectClone: ResolverFn = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        name,
+      }
+    }
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // delete cloned environment
+  // delete any uploaded files
+  // delete any tasks in the source environment
+  // delete the ProjectClone reference
+  // delete cloned project
+};
+
+/*
+  copyProjectGroups can be used to copy group associations from one project to another
+  it will not copy project default groups, optionally copy users access in the project default
+  only available for projects within an organization
+*/
+export const copyProjectGroups: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // organization only, or anyone with project update on both projects?
+  // check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectGroups = {
+    sqlClientPool: sqlClientPool,
+    models: models,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+    defaultGroupUsers: false
+  }
+  await copyProjectGroupsFromProject(data)
+};
+
+async function copyProjectGroupsFromProject(input: copyProjectGroups) {
+  const sourceProjectGroups = await groupHelpers(input.sqlClientPool).selectGroupsByProjectId(input.models, input.sourceProjectId)
+  const destinationProjectGroups = await groupHelpers(input.sqlClientPool).selectGroupsByProjectId(input.models, input.destinationProjectId)
+  const destinationDefaultGroupIdx = destinationProjectGroups.findIndex(el => el.type === "project-default-group")
+  for (const pGroup in sourceProjectGroups) {
+    if (sourceProjectGroups[pGroup].type == "project-default-group") {
+      if (input.defaultGroupUsers) {
+        // add project users to destination project group
+        const group = await input.models.GroupModel.loadGroupById(sourceProjectGroups[pGroup].id);
+        const destinationGroup = await input.models.GroupModel.loadGroupById(destinationProjectGroups[destinationDefaultGroupIdx].id);
+        const defaultGroupMembers = await input.models.GroupModel.getGroupMembership(group);
+        const destinationDefaultGroupMembers = await input.models.GroupModel.getGroupMembership(destinationGroup);
+        for (const user of defaultGroupMembers) {
+          if (!user.user.email.startsWith('default-user@')) {
+            // if user doesn't exist in the project-default group already, don't add them
+            if (destinationDefaultGroupMembers.findIndex(el => el.user.email === user.user.email) == -1) {
+              const kcUser = await input.models.UserModel.loadUserById(user.user.id);
+              await input.models.GroupModel.addUserToGroup(kcUser, destinationGroup, user.role);
+            }
+          }
+        }
+      }
+    } else {
+      // add group to destination project if it doesn't already exist on the destination project
+      if (destinationProjectGroups.findIndex(el => el.name === sourceProjectGroups[pGroup].name) == -1) {
+        const group = await input.models.GroupModel.loadGroupById(sourceProjectGroups[pGroup].id);
+        await input.models.GroupModel.addProjectToGroup(input.destinationProjectId, group);
+      }
+    }
+  }
+};
+
+/*
+  copyProjectNotifications will copy the project notifications association for a project from another project
+  only available for projects within an organization
+*/
+export const copyProjectNotifications: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // organization only, or anyone with project update on both projects?
+  // check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectNotifications = {
+    sqlClientPool: sqlClientPool,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+  }
+  await copyProjectNotificationsFromProject(data)
+};
+
+async function copyProjectNotificationsFromProject(input: copyProjectNotifications) {
+  const sourceNotifications = await query(input.sqlClientPool, knex('project_notification').where('pid', input.sourceProjectId).toString());
+  const destinationNotifications = await query(input.sqlClientPool, knex('project_notification').where('pid', input.destinationProjectId).toString());
+  for (const item of sourceNotifications) {
+    const exists = destinationNotifications.some(d => d.nid === item.nid && d.type === item.type);
+    if (!exists) {
+      item.pid = input.destinationProjectId
+      await query(
+        input.sqlClientPool,
+        notificationsSql.createProjectNotification({...item, notificationType: item.type})
+      );
+    }
+  }
+};
+
+/*
+  copyProjectMetadata will copy the project metadata from one project to another
+  only available for projects within an organization
+*/
+export const copyProjectMetadata: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // organization only, or anyone with project update on both projects?
+  // TODO: check permission on both projects is required
+};
+
+
+/*
+  copyProjectVariables copies project scoped variables in one project to another
+  only available for projects within an organization
+*/
+export const copyProjectVariables: ResolverFn = async (
+  root,
+  {
+    sourceProject, destinationProject
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // organization only, or anyone with project update on both projects?
+  // check permission on both projects is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between projects outside of cloning?
+    project: destinationProjectData[0].id
+  });
+  let data: copyProjectVariables = {
+    sqlClientPool: sqlClientPool,
+    sourceProjectId: sourceProjectData[0].id,
+    destinationProjectId: destinationProjectData[0].id,
+  }
+  await copyProjectVariablesFromProject(data)
+};
+
+async function copyProjectVariablesFromProject(input: copyProjectVariables) {
+  const sourceVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.sourceProjectId).toString());
+  const destinationVariables = await query(input.sqlClientPool, knex('env_vars').where('project', input.destinationProjectId).toString());
+  for (const item of sourceVariables) {
+    // this may need some adjusting for better error handling if the destination has variables with the same name with different scopes
+    // but for fresh destinations, this works fine
+    const exists = destinationVariables.some(d => d.name === item.name && d.value === item.value && d.scope === item.scope);
+    if (!exists) {
+      delete(item.id)
+      item.project = input.destinationProjectId
+      await query(
+        input.sqlClientPool,
+        envvarSql.insertEnvVariable(item)
+      );
+    }
+  }
+};
+
+/*
+  copyEnvironmentVariables copies environment scoped variables in one environment in a project, to another environment in the same project, or a different project
+  only available for projects within an organization
+*/
+export const copyEnvironmentVariables: ResolverFn = async (
+  root,
+  {
+    sourceProject, sourceEnvironment, destinationProject, destinationEnvironment
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+) => {
+  // organization only, or anyone with project update on both projects?
+  // check permission on both projects/environments is required
+  const sourceProjectData = await query(sqlClientPool, Sql.selectProjectByName(sourceProject));
+  const destinationProjectData = await query(sqlClientPool, Sql.selectProjectByName(destinationProject));
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between environments outside of cloning?
+    project: sourceProjectData[0].id
+  });
+  await hasPermission('project', 'update', { // TODO: which permission should be allowed to copy between environments outside of cloning?
+    project: destinationProjectData[0].id
+  });
+  const sourceEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(sourceEnvironment, sourceProjectData[0].id)
+  const sourceEnvData = sourceEnv[0]
+  if (!sourceEnvData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+  const destEnv = await environmentHelpers(sqlClientPool).getEnvironmentByNameAndProject(destinationEnvironment, destinationProjectData[0].id)
+  const destEnvData = destEnv[0]
+  if (!destEnvData) {
+    throw new Error(
+      `Environment doesn't exist in project`
+    );
+  }
+  let data: copyEnvironmentVariables = {
+    sqlClientPool: sqlClientPool,
+    sourceEnvironmentId: sourceEnvData.id,
+    destinationEnvironmentId: destEnvData.id,
+  }
+  await copyEnvironmentVariablesFromProject(data)
+};
+
+async function copyEnvironmentVariablesFromProject(input: copyEnvironmentVariables) {
+  const sourceVariables = await query(input.sqlClientPool, knex('env_vars').where('environment', input.sourceEnvironmentId).toString());
+  const destinationVariables = await query(input.sqlClientPool, knex('env_vars').where('environment', input.destinationEnvironmentId).toString());
+  for (const item of sourceVariables) {
+    // this may need some adjusting for better error handling if the destination has variables with the same name with different scopes
+    // but for fresh destinations, this works fine
+    const exists = destinationVariables.some(d => d.name === item.name && d.value === item.value && d.scope === item.scope);
+    if (!exists) {
+      delete(item.id)
+      item.environment = input.destinationEnvironmentId
+      await query(
+        input.sqlClientPool,
+        envvarSql.insertEnvVariable(item)
+      );
+    }
+  }
+};
+
+/*
+  getProjectCloneByProject is a field resolver
+  it has no permission checks as it isn't called directly
+  used to retrieve the status of a project clone
+*/
+export const getProjectCloneByProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool }
+) => {
+  // check if projectclone exists for project
+  if (input.clone) {
+    const rows = await query(sqlClientPool, Sql.selectProjectClone(input.clone));
+    if (rows.length > 0) {
+      return rows[0]
+    }
+  }
+  return null; // return null if no cloning data for project
+};
+export const getSourceProjectForCloneProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectProjectById(input.sourceProject));
+  // augment source project with the clone id
+  return { ...rows[0], cloneId: input.id };
+};
+
+export const getDestinationProjectForCloneProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectProjectById(input.destinationProject));
+  return rows[0]
+};
+
+async function getDeploymentsOrTasks(sqlClientPool, cloneId, projectId, project, type) {
+  let cloneDeployments = knex('project_clone_task_deployments')
+    .pluck('tdid')
+    .where('cid', cloneId)
+    .andWhere('project', project)
+    .andWhere('type', type)
+    .andWhere('pid', projectId)
+
+  const idsResult = await query(sqlClientPool, cloneDeployments.toString());
+  const ids = idsResult.map(r => r.tdid);
+
+  if (type == "task") {
+    let queryBuilder = knex('task')
+      .whereIn('id', ids)
+      .orderBy('created', 'desc')
+      .orderBy('id', 'desc');
+    return query(sqlClientPool, queryBuilder.toString());
+  }
+  let queryBuilder = knex('deployment')
+    .whereIn('id', ids)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
+
+  return query(sqlClientPool, queryBuilder.toString());
+}
+
+export const getDeploymentsByDestinationProjectForCloneProjectId: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  return getDeploymentsOrTasks(sqlClientPool, input.clone, input.id, 'destination', 'deployment')
+};
+
+export const getTasksByDestinationProjectForCloneProjectId: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  return getDeploymentsOrTasks(sqlClientPool, input.clone, input.id, 'destination', 'task')
+};
+
+export const getTasksBySourceProjectForCloneProjectId: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  // use the augmented cloneId from source project
+  return getDeploymentsOrTasks(sqlClientPool, input.cloneId, input.id, 'source', 'task')
+};
+
+export const getRestrictionsByProject: ResolverFn = async (
+  input,
+  args,
+  { sqlClientPool, hasPermission, adminScopes }
+) => {
+  return await Helpers(sqlClientPool).getProjectRestrictions(input.id);
+};
+
+export const projectCloneSubscriber = createProjectFilteredSubscriber([
+  EVENTS.PROJECTCLONE
+]);

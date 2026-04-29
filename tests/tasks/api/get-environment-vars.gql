@@ -1,0 +1,11 @@
+query getEnvVariablesByProjectEnvironmentName {
+  getEnvVariablesByProjectEnvironmentName(
+    input: {
+      project: "{{ project }}"
+      environment: "{{ branch }}"
+    }
+  ) {
+    name
+    value
+  }
+}

@@ -58,7 +58,7 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
 BETA_UI_IMAGE_REPO = uselagoon/beta-ui
-BETA_UI_IMAGE_TAG = main
+BETA_UI_IMAGE_TAG = pr-145
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
@@ -83,7 +83,10 @@ BETA_UI_IMAGE_TAG = main
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
 OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
-OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=
+OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
+
+# LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
+LAGOON_SYNC_GIT_BRANCH = v0.10.0
 
 # To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
 # disabled for use with k3d, as the cluster needs it on creation.
@@ -139,9 +142,11 @@ endif
 ####### Functions
 #######
 
+DOCKER_BUILD_CACHE=
+
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --load $(1)
+docker_build = PLATFORMS=$(PLATFORM_ARCH) IMAGE_REPO=$(CI_BUILD_TAG) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl $(DOCKER_BUILD_CACHE) --builder $(CI_BUILD_TAG) --load $(1)
 
 docker_buildx_create = 	docker buildx create --name $(CI_BUILD_TAG) || echo  -e '$(CI_BUILD_TAG) builder already present\n'
 
@@ -181,9 +186,10 @@ build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
 
 # task-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
 build/task-activestandby: taskimages/activestandby/Dockerfile
+build/task-projectclone: taskimages/projectclone/Dockerfile
 
 # the `taskimages` are the name of the task directories contained within `taskimages/` in the repostory root
-taskimages := activestandby
+taskimages := activestandby projectclone
 # in the following process, taskimages are prepended with `task-` to make built task images more identifiable
 # use `build/task-<name>` to build it, but the references in the directory structure remain simpler with
 # taskimages/
@@ -344,14 +350,14 @@ webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test
 
 .PHONY: publish-testlagoon-images
 publish-testlagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/testlagoon TAG=$(BRANCH_NAME) LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 # tag and push all images
 
 .PHONY: publish-uselagoon-images
 publish-uselagoon-images:
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
-	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=$(LAGOON_VERSION) LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
+	PLATFORMS=$(PUBLISH_PLATFORM_ARCH) DATABASE_VENDOR=$(DATABASE_VENDOR) DATABASE_DOCKERFILE=$(DATABASE_DOCKERFILE) IMAGE_REPO=docker.io/uselagoon TAG=latest LAGOON_VERSION=$(LAGOON_VERSION) LAGOON_SYNC_GIT_BRANCH=$(LAGOON_SYNC_GIT_BRANCH) docker buildx bake -f docker-bake.hcl --builder $(CI_BUILD_TAG) --push
 
 .PHONY: clean
 clean:
@@ -473,7 +479,7 @@ TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kuber
 CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
-TASK_IMAGES = task-activestandby
+TASK_IMAGES = task-activestandby task-projectclone
 
 # the following can be used to install stable versions of lagoon directly from chart versions
 # rather than the bleeding edge from CHARTS_TREEISH
@@ -746,7 +752,7 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby
+GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/actions-handler taskimages/activestandby taskimages/projectclone
 .PHONY: go/test
 go/test: local-dev/go
 	for service in $(GO_SERVICES); do \
@@ -826,6 +832,7 @@ ifneq ($(INSTALL_STABLE_CORE),true)
 endif
 	export KUBECONFIG="$$(realpath kubeconfig.k3d.$(CI_BUILD_TAG))" \
 	&& export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+	&& $(MAKE) k3d/push-remote-controller-image \
 	&& cd lagoon-charts.k3d.lagoon \
 	&& $(MAKE) install-lagoon \
 		INSTALL_UNAUTHENTICATED_REGISTRY=$(INSTALL_UNAUTHENTICATED_REGISTRY) \
@@ -839,10 +846,11 @@ endif
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
 		SSHPORTAL_IMAGE_REPO=$(SSHPORTAL_IMAGE_REPO) SSHPORTAL_IMAGE_TAG=$(SSHPORTAL_IMAGE_TAG) \
 		INSIGHTS_HANDLER_IMAGE_REPO=$(INSIGHTS_HANDLER_IMAGE_REPO) INSIGHTS_HANDLER_IMAGE_TAG=$(INSIGHTS_HANDLER_IMAGE_TAG) \
-		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
-		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
-		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
+		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(CI_BUILD_TAG)" \
+		OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(CI_BUILD_TAG) \
+		OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/remote-controller" \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+		OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
 		CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
@@ -952,19 +960,40 @@ k3d/push-images:
 k3d/push-local-build-image:
 	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& docker tag lagoon/build-deploy-image:local $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
+		&& docker tag lagoon/build-deploy-image:local $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG)
 
 # pull, retag, then push the stable version of the build image to the k3d cluster registry.
 .PHONY: k3d/push-stable-build-image
 k3d/push-stable-build-image:
 	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
 		&& docker pull $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker tag $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG) \
-		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)
+		&& docker tag $(BUILD_DEPLOY_IMAGE_REPO):$(BUILD_DEPLOY_IMAGE_TAG) $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/build-deploy-image:$(CI_BUILD_TAG)
+
+.PHONY: k3d/push-remote-controller-image
+k3d/push-remote-controller-image:
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
+		&& docker pull $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) \
+		&& docker tag $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) $$IMAGE_REGISTRY/remote-controller:$(CI_BUILD_TAG) \
+		&& docker push $$IMAGE_REGISTRY/remote-controller:$(CI_BUILD_TAG) \
+		&& $(KUBECTL) -n lagoon rollout restart deployment/lagoon-build-deploy || true
+
+# use this to be able to rebuild, push, and then restart the service inside localstack
+# KINDTYPE can be used to change to a statefulset if required
+# must provide `SERVICE=<name>`, eg `make k3d/rebuild-restart-service SERVICE=api` to rebuild the api container and restart it in local-stack
+KINDTYPE = deployment
+.PHONY: k3d/rebuild-restart-service
+k3d/rebuild-restart-service:
+	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
+		$(MAKE) build/$(SERVICE) && \
+		$(MAKE) k3d/push-images IMAGES=$(SERVICE) && \
+		$(KUBECTL) -n lagoon-core rollout restart $(KINDTYPE)/lagoon-core-$(SERVICE)
 
 # Use k3d/get-lagoon-details to retrieve information related to accessing the local k3d deployed lagoon and its services
 .PHONY: k3d/get-lagoon-details
@@ -1114,6 +1143,7 @@ endif
 			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
+			OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 			IMAGE_REGISTRY=$$(if [ $(USE_STABLE_TESTS) = true ]; then echo 'uselagoon'; else echo "registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library"; fi) \
 			SKIP_ALL_DEPS=true \
 			CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
