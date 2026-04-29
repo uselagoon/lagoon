@@ -806,8 +806,8 @@ k3d/checkout-charts: k3d/generate-ca
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
 		&& mkdir -p certs \
-		&& test -f $$(mkcert -CAROOT)/rootCA.pem && cp $$(mkcert -CAROOT)/* certs/. || cp ../local-dev/certificates/* certs/.
-
+		&& CAROOT="$$(mkcert -CAROOT)" \
+		&& test -f "$$CAROOT/rootCA.pem" && cp "$$CAROOT"/* certs/. || cp ../local-dev/certificates/* certs/.
 
 # this just installs lagoon-core, lagoon-remote, and lagoon-build-deploy
 # doing this allows for lagoon to be installed with a known stable chart version with the INSTALL_STABLE_X overrides
