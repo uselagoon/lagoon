@@ -212,7 +212,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			for _, mService := range message.Meta.EnvironmentServices {
 				containers := []schema.ServiceContainerInput{}
 				for _, sCon := range mService.Containers {
-					containers = append(containers, schema.ServiceContainerInput(sCon))
+					containers = append(containers, schema.ServiceContainerInput{Name: sCon.Name})
 				}
 				s2add := schema.AddEnvironmentServiceInput{EnvironmentID: environmentID, Name: mService.Name, Type: mService.Type, Containers: containers, Replicas: &mService.Replicas}
 				// add or update it

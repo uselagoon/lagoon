@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.35-0.20260212022116-7af8f9ae841a
+	github.com/uselagoon/machinery v0.0.36
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 
@@ -24,7 +24,3 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 )
-
-// for local development usage
-// replace github.com/uselagoon/machinery v0.0.4 => ../../../../uselagoon/machinery
-// go get github.com/uselagoon/machinery@main since idling pr is merged now
