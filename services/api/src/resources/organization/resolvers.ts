@@ -11,6 +11,7 @@ import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import validator from 'validator';
+import { validateKey, generatePrivateKey as genpk } from '../../util/func';
 import { AuditLog } from '../audit/types';
 import {
   EVENTS,
@@ -1502,6 +1503,158 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   }
 
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
+}
+
+export const generateOrganizationKey: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectOrganizationByName(input.organization));
+  const orgResult = rows[0];
+
+  if (!orgResult) {
+    return null;
+  }
+  const orgKeys = await query(sqlClientPool, Sql.selectOrganizationKeys(orgResult.id));
+  if (orgKeys.length >= orgResult.quotaKeys && orgResult.quotaKeys != -1) {
+    throw new Error(
+      `This would exceed this organizations key quota; ${orgKeys.length}/${orgResult.quotaKeys}`
+    );
+  }
+
+  // @TODO: new `addKey` permission to organization owner/admin role
+  await hasPermission('organization', 'view', {
+    organization: orgResult.id,
+  });
+
+  const genkey = await genpk()
+  const keyPair = {
+    private: genkey['privatekeypem'],
+    public: genkey['publickey'],
+    fingerprint: genkey['sha256fingerprint'],
+    type: genkey['type']
+  };
+
+  const { insertId } = await query(
+    sqlClientPool,
+    Sql.createOrganizationKey({
+      name: input.name,
+      organization: orgResult.id,
+      privateKey: keyPair.private
+    })
+  );
+  const orgKey = await query(
+    sqlClientPool,
+    Sql.selectOrganizationKey(insertId)
+  );
+  return orgKey[0]
+};
+
+export const getOrganizationKeys: ResolverFn = async (
+  organization,
+  _args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectOrganizationKeys(organization.id));
+  return rows;
+};
+
+
+export const getProjectsByOrganizationKey: ResolverFn = async (
+  key,
+  _args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(sqlClientPool, Sql.selectProjectsByOrganizationKey(key.id));
+  return rows;
+};
+
+export const getOrganizationPublicKey: ResolverFn = async (
+  key,
+  _args,
+  { sqlClientPool }
+) => {
+  try {
+    const orgKey = await query(
+      sqlClientPool,
+      Sql.selectOrganizationKey(key.id)
+    );
+    const publickey = await validateKey(R.prop('privateKey', orgKey[0]), "private")
+    return publickey['publickey']
+  } catch (err) {
+    return null;
+  }
+};
+
+export const updateOrganizationKey: ResolverFn = async (
+  _root,
+  input,
+  { sqlClientPool, hasPermission }
+) => {
+  const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
+  if (orgkey.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "updateKey" on "organization"`
+    );
+  }
+  const rows = await query(sqlClientPool, Sql.selectOrganization(orgkey[0].organization));
+  const orgResult = rows[0];
+
+  if (!orgResult) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "updateKey" on "organization"`
+    );
+  }
+
+  // @TODO: new `updateKey` permission to organization owner/admin role
+  await hasPermission('organization', 'view', {
+    organization: orgResult.id,
+  });
+
+  await query(sqlClientPool, Sql.updateOrganizationKey(input.id, input.comment));
+
+  const orgKey = await query(
+    sqlClientPool,
+    Sql.selectOrganizationKey(input.id)
+  );
+  return orgKey[0]
+}
+
+export const deleteOrganizationKey: ResolverFn = async (
+  _root,
+  input,
+  { sqlClientPool, hasPermission }
+) => {
+  const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
+  if (orgkey.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "deleteKey" on "organization"`
+    );
+  }
+  const rows = await query(sqlClientPool, Sql.selectOrganization(orgkey[0].organization));
+  const orgResult = rows[0];
+
+  if (!orgResult) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "deleteKey" on "organization"`
+    );
+  }
+
+  // @TODO: new `deleteKey` permission to organization owner/admin role
+  await hasPermission('organization', 'view', {
+    organization: orgResult.id,
+  });
+
+  const keyProjects = await query(sqlClientPool, Sql.selectProjectsByOrganizationKey(input.id));
+  if (keyProjects.length > 0) {
+    throw new Error(
+      `This key has ${keyProjects.length} projects assigned, remove the key from projects to delete this key`
+    );
+  }
+  await query(sqlClientPool, Sql.deleteOrganizationKey(input.id));
+
+  return 'success';
 }
 
 export const organizationProjectSubscriber = createOrganizationFilteredSubscriber([

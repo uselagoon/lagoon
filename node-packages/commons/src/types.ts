@@ -98,7 +98,8 @@ export interface DeployData {
   sourceType: DeploymentSourceType,
   sourceUser?: string,
   buildType?: DeploymentBuildType,
-  type: DeployType;
+  type: DeployType,
+  orgKey?: string
 }
 
 export interface RemoveData {

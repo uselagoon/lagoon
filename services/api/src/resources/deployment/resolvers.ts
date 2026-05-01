@@ -23,6 +23,7 @@ import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
+import { Sql as orgSql } from '../organization/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
 import { generateBuildId, generateVariableOnlyBuildId } from '@lagoon/commons/dist/util/lagoon';
@@ -893,6 +894,14 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
     default:
       throw new Error(`Error: Unknown deploy type ${environment.deployType}`);
+  }
+
+  if (project.organizationKey) {
+      const orgKey = await query(
+        sqlClientPool,
+        orgSql.selectOrganizationKey(project.organizationKey)
+      );
+    deployData.orgKey = orgKey[0].privateKey
   }
 
   const auditLog: AuditLog = {

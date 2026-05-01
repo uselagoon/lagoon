@@ -619,6 +619,12 @@ export const getControllerBuildData = async function(deployTarget: any, deployDa
       },
     }
   };
+  // if the project has an orgkey, ship it too
+  if (deployData.orgKey) {
+    // would be good to get this from the api or apidb, without having to publicly (API wise) expose the private key endpoint
+    // but might be the only way to do this?
+    buildDeployData.spec.project.organizationKey = encodeBase64(deployData.orgKey.replace(/\\n/g, "\n"))
+  }
   return buildDeployData;
 }
 

@@ -687,7 +687,8 @@ export const updateProject: ResolverFn = async (
         organization,
         buildImage,
         sharedBaasBucket,
-        restrictions
+        restrictions,
+        organizationKey,
       }
     }
   },
@@ -744,6 +745,11 @@ export const updateProject: ResolverFn = async (
         'Only lowercase characters, numbers and dashes allowed for name!'
       );
     }
+  }
+
+  if (organizationKey) {
+    // check if user can patch the project organization key
+    throw new Error('Setting the organization key is only available to organization owner or admin.');
   }
 
   // if the name is provided in a patch, check that the user trying to rename the project is an admin.
@@ -886,7 +892,8 @@ export const updateProject: ResolverFn = async (
         organization,
         buildImage,
         sharedBaasBucket,
-        restrictions: JSON.stringify(restrictions)
+        restrictions: JSON.stringify(restrictions),
+        organizationKey,
       }
     })
   );

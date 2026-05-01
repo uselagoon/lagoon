@@ -155,4 +155,42 @@ export const Sql = {
       .andWhere('dtid', '=', dtid)
       .delete()
       .toString(),
+  createOrganizationKey: (input) => {
+    const {
+      id,
+      name,
+      organization,
+      privateKey
+    } = input;
+    return knex('organization_key').insert({
+      id,
+      name,
+      organization,
+      privateKey,
+      created: knex.fn.now(),
+    }).toString();
+  },
+  selectOrganizationKey: (id: number) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .toString(),
+  selectOrganizationKeys: (oid: number) =>
+    knex('organization_key')
+      .select('id', 'name', 'created')
+      .where('organization', '=', oid)
+      .toString(),
+  selectProjectsByOrganizationKey: (id: number) =>
+    knex('project')
+      .where('organization_key', '=', id)
+      .toString(),
+  updateOrganizationKey: (id: number, comment: string) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .update('comment', comment)
+      .toString(),
+  deleteOrganizationKey: (id: number) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .delete()
+      .toString(),
 };
