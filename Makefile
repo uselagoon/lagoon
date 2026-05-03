@@ -837,7 +837,7 @@ endif
 	&& $(MAKE) install-lagoon \
 		INSTALL_UNAUTHENTICATED_REGISTRY=$(INSTALL_UNAUTHENTICATED_REGISTRY) \
 		INSTALL_LAGOON_DEPENDENCIES=false DOCKER_NETWORK=$(DOCKER_NETWORK) \
-		TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
+		TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
 		UI_IMAGE_REPO=$(UI_IMAGE_REPO) UI_IMAGE_TAG=$(UI_IMAGE_TAG) \
 		BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) \
@@ -1138,7 +1138,7 @@ else
 endif
 	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& cd lagoon-charts.k3d.lagoon \
-		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(TEST_IMAGE_TAG) DISABLE_CORE_HARBOR=true \
+		&& $(MAKE) fill-test-ci-values DOCKER_NETWORK=$(DOCKER_NETWORK) TESTS=$(TESTS) IMAGE_TAG=$(TEST_IMAGE_TAG) \
 			HELM=$(HELM) KUBECTL=$(KUBECTL) \
 			JQ=$(JQ) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/build-deploy-image:$(BUILD_DEPLOY_IMAGE_TAG)" \
