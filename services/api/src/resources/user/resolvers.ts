@@ -115,18 +115,18 @@ export const getAllUsers: ResolverFn = async (
     });
     return filteredByGitlab;
   }
-
   return users;
 };
 
 // query to get all users, with some inputs to limit the search to specific email, id, or gitlabId
 export const getUserByEmail: ResolverFn = async (
   _root,
-  { email },
-  { sqlClientPool, models, hasPermission, keycloakGrant },
+  { email},
+  { sqlClientPool, models, hasPermission, keycloakGrant, adminScopes },
+  info
 ) => {
 
-  const user = await models.UserModel.loadUserByEmail(email);
+  let user = await models.UserModel.loadUserByEmail(email);
   if (keycloakGrant) {
     if (keycloakGrant.access_token.content.sub == user.id) {
       await hasPermission('ssh_key', 'view:user', {
@@ -137,6 +137,11 @@ export const getUserByEmail: ResolverFn = async (
     }
   } else {
     await hasPermission('user', 'viewAll');
+  }
+
+  const platformRoleRequested = info.fieldNodes[0].selectionSet.selections.find(item => item.name.value === "platformRoles");
+  if ( platformRoleRequested && (adminScopes.platformOwner || adminScopes.platformViewer)) {
+    user = await models.UserModel.enrichUserWithPlatformRoles(user);
   }
 
   return user;

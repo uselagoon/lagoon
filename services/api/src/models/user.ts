@@ -93,6 +93,7 @@ export interface UserModel {
   transformKeycloakUsers: (keycloakUsers: UserRepresentation[]) => Promise<User[]>;
   getFullUserDetails: (userInput: User) => Promise<Object>;
   fetchUserTwoFactor: (user: User) => Promise<boolean>;
+  enrichUserWithPlatformRoles: (user: User) => Promise<User>;
 }
 
 // these match the names of the roles created in keycloak
@@ -367,6 +368,18 @@ export const User = (clients: {
 
     // @ts-ignore
     return await loadUserById(userId);
+  };
+
+  const enrichUserWithPlatformRoles = async (user: User): Promise<User> => {
+      const roleMappings = await keycloakAdminClient.users.listRealmRoleMappings({
+        id: user.id
+      });
+      const validRoles = new Set(Object.values(PlatformRole));
+      const platformRoles = roleMappings
+        .map(r => r.name)
+        .filter((name): name is PlatformRole => validRoles.has(name as PlatformRole));
+
+      return { ...user, platformRoles };
   };
 
   const loadUserByIdOrEmail = async (userInput: UserEdit): Promise<User> => {
@@ -1048,5 +1061,6 @@ const getAllProjectsIdsForUser = async (
     transformKeycloakUsers,
     getFullUserDetails,
     fetchUserTwoFactor,
+    enrichUserWithPlatformRoles,
   };
 };
