@@ -1,5 +1,4 @@
 import { query } from '../../../util/db';
-import * as R from 'ramda';
 
 export class ArgumentBase {
     async validateInput(input): Promise<boolean> {
@@ -38,11 +37,18 @@ export class EnvironmentSourceArgument extends ArgumentBase {
     }
 
     protected async loadEnvNames() {
-        const rows = await query(
-            this.sqlClientPool,
-            `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${this.environmentId}`
+        const rows = await query(this.sqlClientPool,
+            `SELECT name
+            FROM environment
+            WHERE deleted = "0000-00-00 00:00:00"
+            AND project = (
+                SELECT project
+                FROM environment
+                WHERE id = :envid
+            )`,
+            { envid: this.environmentId }
           );
-        this.environmentNameList = R.pluck('name')(rows);
+        this.environmentNameList = rows.map(row => row.name);
     }
 
     /**
@@ -79,11 +85,19 @@ export class OtherEnvironmentSourceNamesArgument extends ArgumentBase {
     }
 
     protected async loadEnvNames() {
-        const rows = await query(
-            this.sqlClientPool,
-            `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${this.environmentId} and e.id != ${this.environmentId}`
+        const rows = await query(this.sqlClientPool,
+            `SELECT name
+            FROM environment
+            WHERE deleted = "0000-00-00 00:00:00"
+            AND id != :envid
+            AND project = (
+                SELECT project
+                FROM environment
+                WHERE id = :envid
+            )`,
+            { envid: this.environmentId }
           );
-        this.environmentNameList = R.pluck('name')(rows);
+        this.environmentNameList = rows.map(row => row.name);
     }
 
     /**
