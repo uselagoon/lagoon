@@ -4,16 +4,10 @@
 
 API interactions in Lagoon are done via GraphQL. In order to authenticate to the API, you need a JWT (JSON Web Token), which will authenticate you against the API via your SSH public key.
 
-To generate this token, use the remote shell via the `token` command:
+To generate this token, use the [Lagoon CLI](https://uselagoon.github.io/lagoon-cli/)'s `get token` command:
 
 ```bash title="Get token"
-ssh -p [PORT] -t lagoon@[HOST] token
-```
-
-{{ defaults.name }} connection string:
-
-```bash title="Get {{ defaults.name }} token"
-ssh -p {{ defaults.sshport }} -t lagoon@{{ defaults.sshhostname }} token
+lagoon get token
 ```
 
 This will return a long string, which is the JWT token.

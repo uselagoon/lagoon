@@ -54,34 +54,50 @@ A general example of using the Lagoon API via GraphQL to add an SSH key to a use
 
 ## SSH into a pod
 
-!!! Note
-    The easiest way to SSH into a pod is to use the [Lagoon CLI](https://github.com/uselagoon/lagoon-cli).
+The recommended way to SSH into a pod is to use the [Lagoon CLI](https://uselagoon.github.io/lagoon-cli/).
+The `lagoon ssh` command automatically queries the Lagoon API to determine the optimal SSH endpoint to connect to, and takes care of setting the relevant SSH options.
 
-    The instructions below only apply if you want to use the regular `ssh` client, or other advanced use cases.
-
-### Connection
-
-Connecting is straightforward and follows the following pattern:
-
-```bash title="SSH"
-ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}[PROJECT-ENVIRONMENT-NAME]@[HOST]
+```bash title="Lagoon CLI SSH"
+lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME]
 ```
 
-* `HOST` - The remote shell SSH endpoint host (for example `{{ defaults.sshhostname }}`).
-* `PROJECT-ENVIRONMENT-NAME` - The environment you want to connect to. This is most commonly in the pattern `PROJECTNAME-ENVIRONMENT`.
-
-As an example:
-
-```bash title="SSH example"
-ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}drupal-example-main@{{ defaults.sshhostname }}
-```
-
-This will connect you to a `cli` pod in the environment `main` of the project `drupal-example`.
+You can find more details in the [Lagoon CLI SSH documentation](https://uselagoon.github.io/lagoon-cli/commands/lagoon_ssh/).
 
 ### Pod/Service, Container Definition
 
 By default the remote shell will try to connect you to the first container in the pod of the service type `cli`.
-If you would like to connect to another service you can specify it using a `service=[SERVICE-NAME]` argument to the SSH command.
+If you would like to connect to another service you can specify it using the `-s` argument to the Lagoon CLI command.
+
+```bash title="SSH to another service example"
+lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME] -s [SERVICE-NAME]
+```
+
+If your pod/service contains multiple containers, Lagoon will connect you to the first defined container. You can also define the specific container to connect to via the `-c` argument:
+
+```bash title="Define container"
+lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME] -s [SERVICE-NAME] -c [CONTAINER-NAME]
+```
+
+For example, to connect to the `php` container within the `nginx` pod:
+
+```bash title="SSH to php container"
+lagoon ssh -p drupal-example -e main -s nginx -c php
+```
+
+## Copying files and advanced SSH usage
+
+For advanced use cases like copying files using tools such as `scp` or `rsync` where the Lagoon CLI's capabilities may not directly apply, you will need the underlying raw `ssh` connection details. 
+
+You can get the required `ssh` command and connection string by adding the `--conn-string` flag to your `lagoon ssh` command:
+
+```bash title="Get SSH connection string"
+lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME] --conn-string
+```
+
+This command should return a connection string, for example: `ssh -t -p 32222 projectname-environment@ssh.lagoon.example.com`
+
+You can then use these details with the usual SSH-compatible tools.
+
 
 !!! Note
     When you run the [`ssh` client](https://man7.org/linux/man-pages/man1/ssh.1.html) command with just a `USER@HOST` argument, it will assume that you want an interactive session and allocate a [pty](https://www.man7.org/linux/man-pages/man7/pty.7.html).
@@ -89,54 +105,34 @@ If you would like to connect to another service you can specify it using a `serv
 
     However, when you provide an argument to the `ssh` client command, it assumes that you want a non-interactive session (e.g. just run a command and return) and will not allocate a pty.
 
-    **So when providing an argument such as `service=[SERVICE-NAME]`, if you want an interactive shell session you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.**
-
-```bash title="SSH to another service example"
-ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME]
-```
-
-If your pod/service contains multiple containers, Lagoon will connect you to the first defined container. You can also define the specific container to connect to via:
-
-```bash title="Define container"
-ssh {% if defaults.sshport != 22 %}-p [PORT] {% endif %}-t [PROJECT-ENVIRONMENT-NAME]@[HOST] service=[SERVICE-NAME] container=[CONTAINER-NAME]
-```
-
-For example, to connect to the `php` container within the `nginx` pod:
-
-```bash title="SSH to php container"
-ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-t drupal-example-main@{{ defaults.sshhostname }} service=nginx container=php
-```
-
-## Copying files
-
-The common case of copying a file into your `cli` pod can be achieved with the usual SSH-compatible tools.
+    So when providing an argument such as `service=[SERVICE-NAME]` to an `ssh` command that **you expect to give you an interactive shell** , you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.
 
 ### scp
 
 ```bash title="Copy file with scp"
-scp {% if defaults.sshport != 22 %}-P {{ defaults.sshport }} {% endif %}[local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
+scp -P [PORT] [local_path] [project_name]-[environment_name]@[HOST]:[remote_path]
 ```
 
 ### rsync
 
 ```bash title="Copy files with rsync"
-rsync {% if defaults.sshport != 22 %}--rsh='ssh -p {{ defaults.sshport }}'{% else %}--rsh=ssh{% endif %} [local_path] [project_name]-[environment_name]@{{ defaults.sshhostname }}:[remote_path]
+rsync --rsh='ssh -p [PORT]' [local_path] [project_name]-[environment_name]@[HOST]:[remote_path]
 ```
 
 ### tar
 
 ```bash
-ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}[project_name]-[environment_name]@{{ defaults.sshhostname }} tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh -p [PORT] [project_name]-[environment_name]@[HOST] tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
-### Specifying non-CLI pod/service
+### Specifying non-CLI pod/service for file copying
 
-In the rare case that you need to specify a non-CLI service you can specify the `service=...` and/or `container=...` arguments in the copy command.
+In the case that you need to specify a non-CLI service as a file copy source/target, you can append `service=...` and/or `container=...` arguments to the SSH connection string provided by the `--conn-string` flag.
 
 Piping `tar` through the `ssh` connection is the simplest method, and can be used to copy a file or directory using the usual `tar` flags:
 
 ```bash
-ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}[project_name]-[environment_name]@{{ defaults.sshhostname }} service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
+ssh -p [PORT] [project_name]-[environment_name]@[HOST] service=solr tar -zcf - [remote_path] | tar -zxf - -C /tmp/
 ```
 
 You can also use `rsync` with a wrapper script to reorder the arguments to `ssh` in the manner required by Lagoon's SSH service:
@@ -145,13 +141,13 @@ You can also use `rsync` with a wrapper script to reorder the arguments to `ssh`
 #!/usr/bin/env sh
 svc=$1 user=$3 host=$4
 shift 4
-exec ssh {% if defaults.sshport != 22 %}-p {{ defaults.sshport }} {% endif %}-l "$user" "$host" "$svc" "$@"
+exec ssh -p [PORT] -l "$user" "$host" "$svc" "$@"
 ```
 
 Put that in an executable shell script `rsh.sh` and specify the `service=...` in the `rsync` command:
 
 ```bash title="rsync to non-CLI pod"
-rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@{{ defaults.sshhostname }}:/tmp/foo
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@[HOST]:/tmp/foo
 ```
 
 The script could also be adjusted to also handle a `container=...` argument.
