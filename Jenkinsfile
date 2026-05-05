@@ -7,7 +7,7 @@ pipeline {
     SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2F','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
     SAFEBRANCH_AND_BUILDNUMBER = (env.SAFEBRANCH_NAME+env.BUILD_NUMBER).replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase();
     CI_BUILD_TAG = 'lagoon'.concat(env.SAFEBRANCH_AND_BUILDNUMBER.drop(env.SAFEBRANCH_AND_BUILDNUMBER.length()-26));
-    NPROC = "6"
+    NPROC = "${sh(script:'getconf _NPROCESSORS_ONLN', returnStdout: true).trim()}"
     SKIP_IMAGE_PUBLISH = credentials('SKIP_IMAGE_PUBLISH')
   }
 
@@ -193,7 +193,7 @@ pipeline {
       steps {
         retry(3) {
           timeout(time: 30, unit: 'MINUTES') {
-            sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+            sh script: "make -j6 -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
           }
         }
         retry(3) {
