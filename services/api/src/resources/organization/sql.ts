@@ -188,6 +188,16 @@ export const Sql = {
       .where('id', '=', id)
       .update('comment', comment)
       .toString(),
+  addOrganizationKeyToProject: (id: number, project: number) =>
+    knex('project')
+      .where('id', '=', project)
+      .update('organization_key', id)
+      .toString(),
+  removeOrganizationKeyFromProject: (project: number) =>
+    knex('project')
+      .where('id', '=', project)
+      .update('organization_key', null)
+      .toString(),
   deleteOrganizationKey: (id: number) =>
     knex('organization_key')
       .where('id', '=', id)

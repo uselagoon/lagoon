@@ -1505,7 +1505,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
 }
 
-export const generateOrganizationKey: ResolverFn = async (
+export const addOrganizationKey: ResolverFn = async (
   _root,
   { input },
   { sqlClientPool, hasPermission }
@@ -1523,8 +1523,7 @@ export const generateOrganizationKey: ResolverFn = async (
     );
   }
 
-  // @TODO: new `addKey` permission to organization owner/admin role
-  await hasPermission('organization', 'view', {
+  await hasPermission('organization', 'addKey', {
     organization: orgResult.id,
   });
 
@@ -1570,7 +1569,7 @@ export const getProjectsByOrganizationKey: ResolverFn = async (
   return rows;
 };
 
-export const getOrganizationPublicKey: ResolverFn = async (
+export const getOrganizationKeyPublicKey: ResolverFn = async (
   key,
   _args,
   { sqlClientPool }
@@ -1585,6 +1584,110 @@ export const getOrganizationPublicKey: ResolverFn = async (
   } catch (err) {
     return null;
   }
+};
+
+export const getOrganizationKeyPrivateKey: ResolverFn = async (
+  key,
+  _args,
+  { sqlClientPool, adminScopes }
+) => {
+  if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "view:privateKey" on "organization"`
+    );
+  }
+  try {
+    const orgKey = await query(
+      sqlClientPool,
+      Sql.selectOrganizationKey(key.id)
+    );
+    return orgKey[0].privateKey
+  } catch (err) {
+    return null;
+  }
+};
+
+export const addOrganizationKeyToProject: ResolverFn = async (
+  _root,
+  input,
+  { hasPermission, sqlClientPool }
+) => {
+  const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
+  if (orgkey.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "updateKey" on "organization"`
+    );
+  }
+  const rows = await query(sqlClientPool, Sql.selectOrganization(orgkey[0].organization));
+  const orgResult = rows[0];
+  await hasPermission('organization', 'updateKey', {
+    organization: orgResult.id,
+  });
+  const project = await projectHelpers(sqlClientPool).getProjectByName(input.project);
+  if (project && project.organization == orgResult.id) {
+    await query(sqlClientPool, Sql.addOrganizationKeyToProject(input.id, project.id));
+    const orgKey = await query(
+      sqlClientPool,
+      Sql.selectOrganizationKey(input.id)
+    );
+    return orgKey[0]
+  } else {
+    throw new Error(
+      `No project found matching this name in the organization`
+    );
+  }
+};
+
+export const removeOrganizationKeyFromProject: ResolverFn = async (
+  _root,
+  input,
+  { hasPermission, sqlClientPool }
+) => {
+  const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
+  if (orgkey.length == 0) {
+    throw new Error(
+      `Unauthorized: You don't have permission to "updateKey" on "organization"`
+    );
+  }
+  const rows = await query(sqlClientPool, Sql.selectOrganization(orgkey[0].organization));
+  const orgResult = rows[0];
+  await hasPermission('organization', 'updateKey', {
+    organization: orgResult.id,
+  });
+  const project = await projectHelpers(sqlClientPool).getProjectByName(input.project);
+  if (project && project.organization == orgResult.id) {
+    await query(sqlClientPool, Sql.removeOrganizationKeyFromProject(project.id));
+    const orgKey = await query(
+      sqlClientPool,
+      Sql.selectOrganizationKey(input.id)
+    );
+    return orgKey[0]
+  } else {
+    throw new Error(
+      `No project found matching this name in the organization`
+    );
+  }
+};
+
+export const getOrganizationKeyByProjectName: ResolverFn = async (
+  _root,
+  input,
+  { hasPermission, sqlClientPool, adminScopes }
+) => {
+  const project = await projectHelpers(sqlClientPool).getProjectByName(input.project);
+  if (!project) {
+    // no project handle same as projectByName and return null??
+    return null;
+  }
+  // check if user can view the project at all
+  // privateKey requests are restricted to platform only under dedicated `privateKey` resolver
+  await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, project.id, adminScopes)
+
+  const orgKey = await query(
+    sqlClientPool,
+    Sql.selectOrganizationKey(project.organizationKey)
+  );
+  return orgKey[0]
 };
 
 export const updateOrganizationKey: ResolverFn = async (
@@ -1607,8 +1710,7 @@ export const updateOrganizationKey: ResolverFn = async (
     );
   }
 
-  // @TODO: new `updateKey` permission to organization owner/admin role
-  await hasPermission('organization', 'view', {
+  await hasPermission('organization', 'updateKey', {
     organization: orgResult.id,
   });
 
@@ -1641,8 +1743,7 @@ export const deleteOrganizationKey: ResolverFn = async (
     );
   }
 
-  // @TODO: new `deleteKey` permission to organization owner/admin role
-  await hasPermission('organization', 'view', {
+  await hasPermission('organization', 'deleteKey', {
     organization: orgResult.id,
   });
 

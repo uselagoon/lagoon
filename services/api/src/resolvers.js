@@ -304,12 +304,16 @@ const {
   bulkImportProjectsAndGroupsToOrganization,
   getOrganizationByProject,
   organizationProjectSubscriber,
-  getOrganizationPublicKey,
-  generateOrganizationKey,
+  addOrganizationKey,
   getOrganizationKeys,
+  getOrganizationKeyPublicKey,
+  getOrganizationKeyPrivateKey,
   getProjectsByOrganizationKey,
   deleteOrganizationKey,
   updateOrganizationKey,
+  getOrganizationKeyByProjectName,
+  addOrganizationKeyToProject,
+  removeOrganizationKeyFromProject,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -690,7 +694,8 @@ async function getResolvers() {
       keys: getOrganizationKeys,
     },
     OrganizationKey: {
-      publicKey: getOrganizationPublicKey,
+      publicKey: getOrganizationKeyPublicKey,
+      privateKey: getOrganizationKeyPrivateKey,
       projects: getProjectsByOrganizationKey,
     },
     OrgProject: {
@@ -847,6 +852,7 @@ async function getResolvers() {
     getTaskFileUploadForm,
     getDownloadLinkByProjectCloneFileId,
     getProjectCloneFileUploadForm,
+    getOrganizationKeyByProjectName,
   },
   Mutation: {
     addProblem,
@@ -1009,9 +1015,11 @@ async function getResolvers() {
     copyProjectMetadata,
     copyProjectVariables,
     copyEnvironmentVariables,
-    generateOrganizationKey,
+    addOrganizationKey,
     updateOrganizationKey,
     deleteOrganizationKey,
+    addOrganizationKeyToProject,
+    removeOrganizationKeyFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,

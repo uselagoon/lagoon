@@ -896,14 +896,6 @@ export const deployEnvironmentLatest: ResolverFn = async (
       throw new Error(`Error: Unknown deploy type ${environment.deployType}`);
   }
 
-  if (project.organizationKey) {
-      const orgKey = await query(
-        sqlClientPool,
-        orgSql.selectOrganizationKey(project.organizationKey)
-      );
-    deployData.orgKey = orgKey[0].privateKey
-  }
-
   const auditLog: AuditLog = {
     resource: {
       id: project.id.toString(),
