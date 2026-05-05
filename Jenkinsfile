@@ -191,9 +191,9 @@ pipeline {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
       }
       steps {
-        retry(3) {
-          timeout(time: 30, unit: 'MINUTES') {
-            sh script: "make -j4 -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+        retry(2) {
+          timeout(time: 60, unit: 'MINUTES') {
+            sh script: "make -j2 -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
           }
         }
         retry(3) {
