@@ -1540,6 +1540,7 @@ export const addOrganizationKey: ResolverFn = async (
     Sql.createOrganizationKey({
       name: input.name,
       organization: orgResult.id,
+      comment: input.comment,
       privateKey: keyPair.private
     })
   );

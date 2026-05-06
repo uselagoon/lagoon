@@ -159,6 +159,7 @@ export const Sql = {
     const {
       id,
       name,
+      comment,
       organization,
       privateKey
     } = input;
@@ -166,6 +167,7 @@ export const Sql = {
       id,
       name,
       organization,
+      comment,
       privateKey,
       created: knex.fn.now(),
     }).toString();
@@ -176,7 +178,7 @@ export const Sql = {
       .toString(),
   selectOrganizationKeys: (oid: number) =>
     knex('organization_key')
-      .select('id', 'name', 'created')
+      .select('id', 'name', 'created', 'comment')
       .where('organization', '=', oid)
       .toString(),
   selectProjectsByOrganizationKey: (id: number) =>
