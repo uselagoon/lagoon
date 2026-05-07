@@ -217,7 +217,8 @@ export const Sql = {
       developmentEnvironmentsLimit = 5,
       organization,
       buildImage,
-      sharedBaasBucket
+      sharedBaasBucket,
+      organizationKey
     } = input;
 
     return knex('project').insert({
@@ -247,7 +248,8 @@ export const Sql = {
     developmentEnvironmentsLimit,
     organization,
     buildImage,
-    sharedBaasBucket
+    sharedBaasBucket,
+    organizationKey
   }).toString();
  }
 };
