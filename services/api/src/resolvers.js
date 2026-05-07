@@ -421,6 +421,7 @@ async function getResolvers() {
       USER: 'user',
       VARIABLE: 'variable',
       FILE: 'file',
+      DEPLOYKEY: 'deploykey',
     },
     AuditSource: {
       API: 'api',

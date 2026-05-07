@@ -62,6 +62,7 @@ export enum AuditType {
   USER = 'user',
   VARIABLE = 'variable',
   FILE = 'file',
+  DEPLOYKEY = 'deploykey',
 }
 
 export enum RouteType {

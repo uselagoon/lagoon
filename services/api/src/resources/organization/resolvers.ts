@@ -1508,7 +1508,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
 export const addOrganizationKey: ResolverFn = async (
   _root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectOrganizationByName(input.organization));
   const orgResult = rows[0];
@@ -1544,6 +1544,26 @@ export const addOrganizationKey: ResolverFn = async (
       privateKey: keyPair.private
     })
   );
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: insertId.toString(),
+      type: AuditType.DEPLOYKEY,
+      details: input.name,
+    }
+  };
+  userActivityLogger(`User added an organization key ${input.name}`, {
+    project: '',
+    organization: orgResult.id,
+    event: 'api:addOrganizationKey',
+    payload: {
+      data: {
+        input
+      },
+      ...auditLog,
+    }
+  });
+
   const orgKey = await query(
     sqlClientPool,
     Sql.selectOrganizationKey(insertId)
@@ -1611,7 +1631,7 @@ export const getOrganizationKeyPrivateKey: ResolverFn = async (
 export const addOrganizationKeyToProject: ResolverFn = async (
   _root,
   input,
-  { hasPermission, sqlClientPool }
+  { hasPermission, sqlClientPool, userActivityLogger }
 ) => {
   const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
   if (orgkey.length == 0) {
@@ -1631,6 +1651,31 @@ export const addOrganizationKeyToProject: ResolverFn = async (
       sqlClientPool,
       Sql.selectOrganizationKey(input.id)
     );
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: input.id.toString(),
+        type: AuditType.DEPLOYKEY,
+        details: R.prop(0, rows).name,
+      },
+      linkedResource: {
+        id: project.id.toString(),
+        type: AuditType.PROJECT,
+        details: input.project,
+      }
+    };
+    userActivityLogger(`User added organization key ${input.name} to project ${input.project}`, {
+      project: '',
+      organization: orgResult.id,
+      event: 'api:addOrganizationKeyToProject',
+      payload: {
+        data: {
+          input
+        },
+        ...auditLog,
+      }
+    });
+
     return orgKey[0]
   } else {
     throw new Error(
@@ -1642,7 +1687,7 @@ export const addOrganizationKeyToProject: ResolverFn = async (
 export const removeOrganizationKeyFromProject: ResolverFn = async (
   _root,
   input,
-  { hasPermission, sqlClientPool }
+  { hasPermission, sqlClientPool, userActivityLogger }
 ) => {
   const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
   if (orgkey.length == 0) {
@@ -1662,6 +1707,31 @@ export const removeOrganizationKeyFromProject: ResolverFn = async (
       sqlClientPool,
       Sql.selectOrganizationKey(input.id)
     );
+
+    const auditLog: AuditLog = {
+      resource: {
+        id: input.id.toString(),
+        type: AuditType.DEPLOYKEY,
+        details: R.prop(0, rows).name,
+      },
+      linkedResource: {
+        id: project.id.toString(),
+        type: AuditType.PROJECT,
+        details: input.project,
+      }
+    };
+    userActivityLogger(`User removed organization key ${input.name} from project ${input.project}`, {
+      project: '',
+      organization: orgResult.id,
+      event: 'api:removeOrganizationKeyFromProject',
+      payload: {
+        data: {
+          input
+        },
+        ...auditLog,
+      }
+    });
+
     return orgKey[0]
   } else {
     throw new Error(
@@ -1694,7 +1764,7 @@ export const getOrganizationKeyByProjectName: ResolverFn = async (
 export const updateOrganizationKey: ResolverFn = async (
   _root,
   input,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
   if (orgkey.length == 0) {
@@ -1717,6 +1787,25 @@ export const updateOrganizationKey: ResolverFn = async (
 
   await query(sqlClientPool, Sql.updateOrganizationKey(input.id, input.comment));
 
+  const auditLog: AuditLog = {
+    resource: {
+      id: input.id.toString(),
+      type: AuditType.DEPLOYKEY,
+      details: input.name,
+    }
+  };
+  userActivityLogger(`User updated organization key ${input.name}`, {
+    project: '',
+    organization: orgResult.id,
+    event: 'api:updateOrganizationKey',
+    payload: {
+      data: {
+        input
+      },
+      ...auditLog,
+    }
+  });
+
   const orgKey = await query(
     sqlClientPool,
     Sql.selectOrganizationKey(input.id)
@@ -1727,7 +1816,7 @@ export const updateOrganizationKey: ResolverFn = async (
 export const deleteOrganizationKey: ResolverFn = async (
   _root,
   input,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const orgkey = await query(sqlClientPool, Sql.selectOrganizationKey(input.id));
   if (orgkey.length == 0) {
@@ -1755,6 +1844,25 @@ export const deleteOrganizationKey: ResolverFn = async (
     );
   }
   await query(sqlClientPool, Sql.deleteOrganizationKey(input.id));
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: input.id.toString(),
+      type: AuditType.DEPLOYKEY,
+      details: input.name,
+    }
+  };
+  userActivityLogger(`User deleted organization key ${input.name}`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:deleteOrganizationKey',
+    payload: {
+      data: {
+        input
+      },
+      ...auditLog,
+    }
+  });
 
   return 'success';
 }

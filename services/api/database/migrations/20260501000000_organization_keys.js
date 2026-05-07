@@ -19,6 +19,8 @@ exports.up = async function(knex) {
     .alterTable('project', (table) => {
         table.integer('organization_key');
     })
+    .raw(`ALTER TABLE audit_log MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow', 'file', 'deploykey');`)
+    .raw(`ALTER TABLE audit_log MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow', 'file', 'deploykey');`);
 };
 
 /**
@@ -33,5 +35,7 @@ exports.down = async function(knex) {
     })
     .alterTable('project', (table) => {
         table.dropColumn('organization_key');
-    });
+    })
+    .raw(`ALTER TABLE audit_log MODIFY resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow', 'file');`)
+    .raw(`ALTER TABLE audit_log MODIFY linked_resource_type ENUM('backup', 'bulkdeployment', 'deployment', 'deploytarget', 'deploytargetconfig', 'environment', 'group', 'notification', 'organization', 'project', 'sshkey', 'task', 'user', 'variable', 'workflow', 'file');`);
 };

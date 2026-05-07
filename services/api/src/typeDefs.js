@@ -1634,6 +1634,7 @@ const typeDefs = gql`
     USER
     VARIABLE
     FILE
+    DEPLOYKEY
   }
 
   input AuditLogInput {
