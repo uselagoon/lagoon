@@ -59,6 +59,14 @@
   tasks:
   - ansible.builtin.include_tasks: ../../tasks/api/add-environment-variable.yaml
 
+- name: "{{ testname }} - wait for 10 seconds to give deployment update time to complete"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "10"
+  tasks:
+  - ansible.builtin.include_tasks: ../../tasks/pause.yaml
+
 - name: "{{ testname }} - api clone project {{ project }} environment {{ branch }}"
   hosts: localhost
   serial: 1
