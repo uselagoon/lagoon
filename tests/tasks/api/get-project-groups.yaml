@@ -1,0 +1,19 @@
+- name: "{{ testname }} - POST api check for group {{ group }} on project {{ project }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check for group {{ group }} on project {{ project }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-project-groups.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.projectByName.groups | selectattr("name", "equalto", group) | list | length > 0
+      retries: 1
+      delay: 0
+    - name: "{{ testname }} - POST api check for group {{ group }} on project {{ project }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

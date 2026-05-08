@@ -730,7 +730,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
 
   try {
@@ -774,6 +774,9 @@ export const deployEnvironmentLatest: ResolverFn = async (
   if (project.deploymentsDisabled == 1){
     throw new Error('Deployments have been disabled for this project');
   }
+
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
 
   if (
     environment.deployType === DeployType.BRANCH ||
@@ -988,7 +991,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -1004,6 +1007,13 @@ export const deployEnvironmentBranch: ResolverFn = async (
     throw new Error('Deployments have been disabled for this project');
   }
 
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
+
+  return await deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger)
+};
+
+export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
   let buildName = generateBuildId();
   let buildType = DeploymentBuildType.BUILD
   // change the buildname to a variables only name if the build variable for lagoon variables only is found
@@ -1017,6 +1027,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     buildName: buildName,
     branchName: branchName,
     sourceUser: sourceUser,
+    sourceType: deploySourceType,
     projectName: project.name,
     buildType: buildType,
   };
@@ -1120,7 +1131,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
         throw new Error(error.message);
     }
   }
-};
+}
 
 export const deployEnvironmentPullrequest: ResolverFn = async (
   root,
@@ -1140,7 +1151,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -1156,6 +1167,9 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   if (project.deploymentsDisabled == 1){
     throw new Error('Deployments have been disabled for this project');
   }
+
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
 
   let buildName = generateBuildId();
   let buildType = DeploymentBuildType.BUILD
@@ -1294,7 +1308,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       returnData
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant }
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, legacyGrant, adminScopes }
 ) => {
   const destProject = await projectHelpers(
     sqlClientPool
@@ -1311,6 +1325,9 @@ export const deployEnvironmentPromote: ResolverFn = async (
   if (destProject.deploymentsDisabled == 1){
     throw new Error('Deployments have been disabled for this project');
   }
+
+  // check if project has restriction
+  await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', destProject.id, adminScopes)
 
   const sourceEnvironments = await environmentHelpers(
     sqlClientPool

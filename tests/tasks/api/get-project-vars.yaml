@@ -1,0 +1,19 @@
+- name: "{{ testname }} - POST api check project {{ project }} has envvar {{ envName }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check project {{ project }} has envvar {{ envName }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-project-vars.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.projectByName.envVariables | selectattr("name", "equalto", envName) | list | length > 0
+      retries: 1
+      delay: 0
+    - name: "{{ testname }} - POST api check project {{ project }} has envvar {{ envName }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

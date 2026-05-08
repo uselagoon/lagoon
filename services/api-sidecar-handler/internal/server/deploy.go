@@ -23,6 +23,7 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 	buildName := r.Form.Get("buildName")
 	branchName := r.Form.Get("branchName")
 	sourceUser := r.Form.Get("sourceUser")
+	sourceType := r.Form.Get("sourceType")
 	projectName := r.Form.Get("projectName")
 	promoteSourceEnvironment := r.Form.Get("promoteSourceEnvironment")
 	gitSHA := r.Form.Get("gitSha")
@@ -88,6 +89,10 @@ func (s *Server) deployEnvironment(w http.ResponseWriter, r *http.Request) {
 		BulkName:                 bulkName,
 		BuildVariables:           buildVars,
 		BuildType:                lagoon.DeploymentBuildType(strings.ToUpper(buildType)),
+	}
+	if sourceType != "" {
+		// set to whatever sourcetype comes in through the payload
+		deployData.SourceType = lagoon.SourceType(strings.ToUpper(sourceType))
 	}
 	if priority != 0 {
 		deployData.BuildPriority = &priority

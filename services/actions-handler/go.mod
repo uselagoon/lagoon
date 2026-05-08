@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/cheshir/go-mq/v2 v2.0.1
-	github.com/uselagoon/machinery v0.0.36
+	github.com/uselagoon/machinery v0.0.37-0.20260508042518-7e4113f9f311
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 
@@ -24,3 +24,5 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 )
+
+// go get github.com/uselagoon/machinery@main for now until project cloning and v0.0.37 of machinery is ready for release

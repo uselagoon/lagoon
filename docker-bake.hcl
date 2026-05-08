@@ -11,6 +11,10 @@ variable "LAGOON_VERSION" {
   default = "development"
 }
 
+variable "LAGOON_SYNC_GIT_BRANCH" {
+  default = "main"
+}
+
 variable "UPSTREAM_REPO" {
   default = "uselagoon"
 }
@@ -68,6 +72,7 @@ group "default" {
     "logs2notifications",
     "ssh",
     "task-activestandby",
+    "task-projectclone",
     "tests",
     "webhook-handler"
   ]
@@ -80,6 +85,7 @@ group "go-services" {
     "api-sidecar-handler",
     "logs2notifications",
     "task-activestandby",
+    "task-projectclone",
     "webhook-handler"
   ]
 }
@@ -142,6 +148,7 @@ group "prod-images" {
     "logs2notifications",
     "ssh",
     "task-activestandby",
+    "task-projectclone",
     "tests",
     "webhook-handler"
   ]
@@ -297,6 +304,18 @@ target "task-activestandby" {
     "org.opencontainers.image.title": "lagoon-core/task-activestandby - the active/standby task image for Lagoon"
   }
   tags = ["${IMAGE_REPO}/task-activestandby:${TAG}"]
+}
+
+target "task-projectclone" {
+  inherits = ["default"]
+  context = "taskimages/projectclone"
+  labels = {
+    "org.opencontainers.image.title": "lagoon-core/task-projectclone - the projectclone task image for Lagoon"
+  }
+  tags = ["${IMAGE_REPO}/task-projectclone:${TAG}"]
+  args = {
+    LAGOON_SYNC_GIT_BRANCH = "${LAGOON_SYNC_GIT_BRANCH}"
+  }
 }
 
 target "local-api-data-watcher-pusher" {

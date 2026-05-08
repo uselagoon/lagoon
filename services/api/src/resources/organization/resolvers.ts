@@ -12,6 +12,10 @@ import { Helpers as groupHelpers } from '../group/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import validator from 'validator';
 import { AuditLog } from '../audit/types';
+import {
+  EVENTS,
+  createOrganizationFilteredSubscriber
+} from '../../clients/pubSub';
 
 const isValidName = value => {
   if (validator.matches(value, /[^0-9a-z-]/)) {
@@ -233,9 +237,9 @@ export const updateOrganization: ResolverFn = async (
     // if the beta feature flag for api routes is being updated, check if permission to enable this flag is set
     // this feature will become generally available in a future version and this flag will not
     // be required
-    if (input.patch.featureApiRoutes) {
+    if (input.patch.featureApiRoutes || input.patch.featureProjectClone) {
       if (!adminScopes.platformOwner) {
-        throw new Error('Setting the api routes feature is only available to platform administrators.');
+        throw new Error('Setting the api routes feature or project clone feature is only available to platform administrators.');
       }
     }
 
@@ -1499,3 +1503,7 @@ export const bulkImportProjectsAndGroupsToOrganization: ResolverFn = async (
 
   return { projects: projectsToMove, groups: groupsToMove, otherOrgProjects: projectsInOtherOrgs, otherOrgGroups: groupsInOtherOrgs };
 }
+
+export const organizationProjectSubscriber = createOrganizationFilteredSubscriber([
+  EVENTS.ORGPROJECT
+]);

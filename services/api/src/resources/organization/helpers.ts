@@ -18,9 +18,17 @@ export const Helpers = (sqlClientPool: Pool) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationProjects(id));
     return rows;
   };
+  const getProjectCountByOrganizationId = async (id: number) => {
+    const rows = await query(sqlClientPool, Sql.selectOrganizationProjectCount(id));
+    return rows[0]?.count || 0;
+  };
   const getEnvironmentsByOrganizationId = async (id: number) => {
     const rows = await query(sqlClientPool, Sql.selectOrganizationEnvironments(id));
     return rows;
+  };
+  const getEnvironmentCountByOrganizationId = async (id: number) => {
+    const rows = await query(sqlClientPool, Sql.selectOrganizationEnvironmentCount(id));
+    return rows[0]?.count || 0;
   };
   const getNotificationsByTypeForOrganizationId = async (id: number, type: string) => {
     let input = {id: id, type: type}
@@ -67,10 +75,12 @@ export const Helpers = (sqlClientPool: Pool) => {
   return {
     getOrganizationById,
     getProjectsByOrganizationId,
+    getProjectCountByOrganizationId,
     getDeployTargetsByOrganizationId,
     getNotificationsForOrganizationId,
     getNotificationsByTypeForOrganizationId,
     getEnvironmentsByOrganizationId,
+    getEnvironmentCountByOrganizationId,
     getOrganizationByName,
     getOrganizationByOrganizationInput: async (organizationInput, scope: string, resource: string) => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));

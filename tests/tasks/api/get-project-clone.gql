@@ -1,0 +1,9 @@
+query projectByName {
+  projectByName(
+    name: "{{ destProject }}"
+  ){
+    clone {
+    	status
+    }
+  }
+}

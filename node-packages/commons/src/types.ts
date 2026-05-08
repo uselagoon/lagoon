@@ -14,7 +14,8 @@ export enum DeployType {
 
 export enum DeploymentSourceType {
   API = 'api',
-  WEBHOOK = 'webhook'
+  WEBHOOK = 'webhook',
+  CLONE = 'clone'
 }
 
 export enum DeploymentBuildType {
@@ -89,6 +90,7 @@ export interface DeployData {
   repoUrl?: string,
   gitSha?: string,
   sourceUser?: string,
+  sourceType?: string,
   buildType?: DeploymentBuildType,
   type: DeployType;
 }

@@ -1,0 +1,40 @@
+- name: "{{ testname }} - POST api clone project with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api clone project with target environment {{ branch }} on project {{ project }} to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./clone-project.gql") }}'
+      register: apiresponse
+
+    - name: "{{ testname }} - POST api clone project with target project {{ project }} to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - fail:
+        msg: "error creating project clone"
+      when: apiresponse.json.data.cloneProject.clone.status is not defined
+
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check project clone completes {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-project-clone.gql") }}'
+      register: apiresponse
+      until:
+        - apiresponse.json.data.projectByName.clone.status == "COMPLETE"
+      retries: 60
+      delay: 10
+
+    - name: "{{ testname }} - POST api trigger project clone to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

@@ -45,6 +45,7 @@ type SourceType string
 const (
 	SourceWebhook SourceType = "WEBHOOK"
 	SourceAPI     SourceType = "API"
+	SourceCLONE   SourceType = "CLONE"
 )
 
 type BuildMetaData struct {

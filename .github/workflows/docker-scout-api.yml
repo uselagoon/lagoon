@@ -7,16 +7,18 @@ on:
       - 'docker-scout'
     paths:
       - 'yarn.lock'
+      - 'node-packages/**'
       - 'services/api/**'
-      - '.github/workflows/docker-scout.yml'
+      - '.github/workflows/docker-scout-api.yml'
   pull_request:
     branches:
       - 'main'
       - 'docker-scout'
     paths:
       - 'yarn.lock'
+      - 'node-packages/**'
       - 'services/api/**'
-      - '.github/workflows/docker-scout.yml'
+      - '.github/workflows/docker-scout-api.yml'
 
 # Security: Restrict permissions to minimum required
 permissions:

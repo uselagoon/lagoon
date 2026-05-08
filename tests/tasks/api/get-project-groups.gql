@@ -1,0 +1,7 @@
+query getProjectGroups {
+  projectByName(name: "{{ project }}") {
+    groups {
+      name
+    }
+  }
+}

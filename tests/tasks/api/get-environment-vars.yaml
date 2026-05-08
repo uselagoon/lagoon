@@ -1,0 +1,19 @@
+- name: "{{ testname }} - POST api check for environment variable {{ envName }} on project {{ project }} environment {{ branch }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api check for environment variable {{ envName }} on project {{ project }} environment {{ branch }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-environment-vars.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.getEnvVariablesByProjectEnvironmentName | selectattr("name", "equalto", envName) | list | length > 0
+      retries: 1
+      delay: 0
+    - name: "{{ testname }} - POST api check for environment variable {{ envName }} on project {{ project }} environment {{ branch }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

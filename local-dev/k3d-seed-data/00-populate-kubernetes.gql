@@ -218,6 +218,19 @@ mutation PopulateApi {
     quotaNotification
   }
 
+  UIOrganization1Update: updateOrganization(input: {
+    id: 1
+    patch:{
+      featureApiRoutes: true
+      featureProjectClone: true
+    }
+  }) {
+    id
+    name
+    featureApiRoutes
+    featureProjectClone
+  }
+
   UIOrganizationUser: addUser(
     input: {
       email: "orguser@example.com"
@@ -326,6 +339,54 @@ mutation PopulateApi {
     }) {
       id
     }
+
+  UIOrganization2: addOrganization(input: {
+    id: 2
+    name: "lagoon-ci-organization"
+    friendlyName: "Lagoon CI Organization"
+    description: "An organization for testing in CI, no quotas"
+  }) {
+    id
+    name
+    quotaProject
+    quotaEnvironment
+    quotaGroup
+    quotaNotification
+  }
+
+  UIOrganization2Update: updateOrganization(input: {
+    id: 2
+    patch:{
+      featureApiRoutes: true
+      featureProjectClone: true
+    }
+  }) {
+    id
+    name
+    quotaProject
+    quotaEnvironment
+    quotaGroup
+    quotaNotification
+  }
+
+  AddUIKubernetesToOrganization2: addDeployTargetToOrganization(input:{
+    deployTarget: 2001
+    organization: 2
+  }) {
+    id
+  }
+
+  UIOrganization2AddViewer: addAdminToOrganization(input: {user: {email: "orgviewer@example.com"}, organization: {id: 2}, role: VIEWER}) {
+    id
+  }
+
+  UIOrganization2AddAdmin: addAdminToOrganization(input: {user: {email: "orgadmin@example.com"}, organization: {id: 2}, role: ADMIN}) {
+    id
+  }
+
+  UIOrganization2AddOwner: addAdminToOrganization(input: {user: {email: "orgowner@example.com"}, organization: {id: 2}, role: OWNER}) {
+    id
+  }
 
   UIProject2: addProject(
     input: {

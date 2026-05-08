@@ -1,0 +1,39 @@
+mutation {
+	cloneProject(input:{
+  	projectName: "{{ destProject }}"
+    sourceProject:{
+    	name: "{{ project }}"
+      notifications: true
+      groups: true
+      projectVariables: true
+    }
+    sourceEnvironment:{
+    	name: "{{ branch }}"
+      environmentVariables: true
+      copyData: true
+    }
+  }){
+  	id
+    name
+    clone {
+    	id
+      status
+      created
+      sourceProject{
+      	name
+        tasks{
+        	name
+        }
+      }
+      destinationProject{
+      	name
+        deployments{
+        	name
+        }
+        tasks{
+        	name
+        }
+      }
+    }
+  }
+}
