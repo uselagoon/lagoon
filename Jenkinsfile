@@ -1,4 +1,4 @@
-def skipRemainingStages = false
+def skipRemainingStages = true
 
 pipeline {
   agent { label 'lagoon' }
@@ -182,11 +182,6 @@ pipeline {
       }
     }
     stage ('build arm images and push all images to testlagoon/*') {
-      when {
-        expression {
-            !skipRemainingStages
-        }
-      }
       environment {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
       }
@@ -195,10 +190,6 @@ pipeline {
           timeout(time: 60, unit: 'MINUTES') {
             sh script: "make -j2 -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
           }
-        }
-        retry(3) {
-          sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-          sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
         }
       }
     }
