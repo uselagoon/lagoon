@@ -1,9 +1,11 @@
 # Stage: Build the custom token mapper
-FROM maven:3.9.9-eclipse-temurin-21-alpine as builder
+# Force amd64 so Maven always runs natively - the output is JVM bytecode and is
+# architecture-neutral, so the resulting JAR works in both amd64 and arm64 images.
+# Running under QEMU arm64 emulation causes TLS handshake failures when Maven
+# tries to connect to Maven Central, which this avoids entirely.
+FROM --platform=linux/amd64 maven:3.9.9-eclipse-temurin-21-alpine as builder
 COPY custom-mapper/. .
-# Use /dev/urandom as entropy source to prevent TLS handshake failures under
-# QEMU arm64 emulation, where /dev/random can block or produce spurious errors.
-RUN MAVEN_OPTS="-Djava.security.egd=file:/dev/./urandom" mvn clean compile package
+RUN mvn clean compile package
 
 # Stage: Install package dependencies
 FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
