@@ -1,7 +1,9 @@
 # Stage: Build the custom token mapper
 FROM maven:3.9.9-eclipse-temurin-21-alpine as builder
 COPY custom-mapper/. .
-RUN mvn clean compile package
+# Use /dev/urandom as entropy source to prevent TLS handshake failures under
+# QEMU arm64 emulation, where /dev/random can block or produce spurious errors.
+RUN MAVEN_OPTS="-Djava.security.egd=file:/dev/./urandom" mvn clean compile package
 
 # Stage: Install package dependencies
 FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
