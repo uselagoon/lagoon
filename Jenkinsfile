@@ -188,7 +188,7 @@ pipeline {
       steps {
         retry(4) {
           timeout(time: 60, unit: 'MINUTES') {
-            sh script: "make -j2 -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+            sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
           }
         }
       }
