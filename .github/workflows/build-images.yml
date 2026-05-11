@@ -1,0 +1,127 @@
+name: Build and Publish Images
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'testing-gha/**'
+    tags:
+      - 'v*'
+
+# Targets per trigger:
+#   PRs & testing/* branches → docker.io/testlagoon:<branch-tag>  (multi-arch)
+#   main branch              → docker.io/testlagoon:main + :latest (multi-arch)
+#   tags (v*)               → docker.io/uselagoon:<tag> + :latest  (multi-arch)
+#                             ghcr.io/uselagoon:<tag> + :latest     (multi-arch)
+
+permissions:
+  contents: read
+  packages: write  # required for GHCR pushes on tags
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0  # needed for git describe to find tags
+
+      - name: Compute image tag and version
+        id: meta
+        run: |
+          LAGOON_VERSION=$(git describe --tags --exact-match 2>/dev/null || echo development)
+          LAGOON_SYNC_GIT_BRANCH=$(grep '^LAGOON_SYNC_GIT_BRANCH ' Makefile | awk '{print $NF}')
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            RAW="${{ github.head_ref }}"
+          else
+            RAW="${{ github.ref_name }}"
+          fi
+          # Sanitise: lowercase, replace non-alphanumeric (except . _ -) with -, truncate to 128
+          BRANCH_TAG=$(echo "$RAW" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | cut -c1-128)
+
+          echo "lagoon_version=$LAGOON_VERSION" >> "$GITHUB_OUTPUT"
+          echo "lagoon_sync_git_branch=$LAGOON_SYNC_GIT_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "branch_tag=$BRANCH_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3  # pin to SHA for production use
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── PRs and testing/* branches ──────────────────────────────────────────
+      # Cache is keyed per-branch; also falls back to main's cache so PRs get a
+      # warm start even on first run. Cache is written back after each build.
+      - name: Push to testlagoon (PR / testing branch)
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/testing-gha/')
+        env:
+          PLATFORMS: linux/amd64,linux/arm64
+          IMAGE_REPO: docker.io/testlagoon
+          TAG: ${{ steps.meta.outputs.branch_tag }}
+          LAGOON_VERSION: ${{ steps.meta.outputs.lagoon_version }}
+          LAGOON_SYNC_GIT_BRANCH: ${{ steps.meta.outputs.lagoon_sync_git_branch }}
+        run: |
+          docker buildx bake -f docker-bake.hcl \
+            --set "*.cache-from=type=gha,scope=lagoon-${{ steps.meta.outputs.branch_tag }}" \
+            --set "*.cache-from=type=gha,scope=lagoon-main" \
+            --set "*.cache-to=type=gha,scope=lagoon-${{ steps.meta.outputs.branch_tag }},mode=max" \
+            --push
+
+      # ── main branch — always builds fresh, no cache ─────────────────────────
+      - name: Push to testlagoon (main branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          PLATFORMS: linux/amd64,linux/arm64
+          IMAGE_REPO: docker.io/testlagoon
+          LAGOON_VERSION: ${{ steps.meta.outputs.lagoon_version }}
+          LAGOON_SYNC_GIT_BRANCH: ${{ steps.meta.outputs.lagoon_sync_git_branch }}
+        run: |
+          for TAG in main latest; do
+            TAG="$TAG" docker buildx bake -f docker-bake.hcl --push
+          done
+
+      # ── Tags — always build fresh, no cache ──────────────────────────────────
+      # Build once and push to docker.io/uselagoon. Then use imagetools create to
+      # copy the already-built multi-arch manifests to ghcr.io/uselagoon —
+      # no second build, guaranteed identical digests across both registries.
+      - name: Push to uselagoon DockerHub and GHCR (tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          PLATFORMS: linux/amd64,linux/arm64
+          IMAGE_REPO: docker.io/uselagoon
+          LAGOON_VERSION: ${{ steps.meta.outputs.lagoon_version }}
+          LAGOON_SYNC_GIT_BRANCH: ${{ steps.meta.outputs.lagoon_sync_git_branch }}
+        run: |
+          for TAG in "${{ github.ref_name }}" latest; do
+            IMAGE_REPO=docker.io/uselagoon TAG="$TAG" \
+              docker buildx bake -f docker-bake.hcl --push
+
+            # Mirror every pushed manifest to GHCR — imagetools create copies the
+            # manifest list directly, so digests are identical to DockerHub.
+            IMAGE_REPO=docker.io/uselagoon TAG="$TAG" \
+              docker buildx bake -f docker-bake.hcl --print 2>/dev/null \
+              | jq -r '.target[].tags[]' \
+              | while IFS= read -r src; do
+                  dest="${src/docker.io\/uselagoon/ghcr.io\/uselagoon}"
+                  docker buildx imagetools create --tag "$dest" "$src"
+                done
+          done
