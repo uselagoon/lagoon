@@ -1072,69 +1072,6 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/triggering-deployments/"/>
     </url>
     <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
-    </url>
-    <url>
         <loc>https://docs.lagoon.sh/using-lagoon-the-basics/</loc>
         <lastmod>2026-05-13</lastmod>
         <changefreq>daily</changefreq>
@@ -1999,69 +1936,6 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/triggering-deployments/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/triggering-deployments/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/security-scanning/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/security-scanning/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-core/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-database/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-jobservice/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harbor-trivy/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistry/"/>
-    </url>
-    <url>
-        <loc>https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/</loc>
-        <lastmod>2026-05-13</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/using-lagoon-advanced/using-harbor/harbor-settings/harborregistryctl/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/using-lagoon-the-basics/</loc>
