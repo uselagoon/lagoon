@@ -2419,19 +2419,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pygmy-ddev-or-lando-the-choice-is-yours" class="md-nav__link">
+  <a href="#drupal" class="md-nav__link">
     <span class="md-ellipsis">
-      pygmy, DDEV, or Lando - the choice is yours
+      Drupal
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="pygmy, DDEV, or Lando - the choice is yours">
+    <nav class="md-nav" aria-label="Drupal">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pygmy" class="md-nav__link">
+  <a href="#pygmy-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      pygmy
+      Pygmy Stack
     </span>
   </a>
   
@@ -2450,6 +2450,39 @@
   <a href="#ddev" class="md-nav__link">
     <span class="md-ellipsis">
       DDEV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#laravel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Laravel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Laravel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sail
     </span>
   </a>
   
@@ -5151,19 +5184,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pygmy-ddev-or-lando-the-choice-is-yours" class="md-nav__link">
+  <a href="#drupal" class="md-nav__link">
     <span class="md-ellipsis">
-      pygmy, DDEV, or Lando - the choice is yours
+      Drupal
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="pygmy, DDEV, or Lando - the choice is yours">
+    <nav class="md-nav" aria-label="Drupal">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pygmy" class="md-nav__link">
+  <a href="#pygmy-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      pygmy
+      Pygmy Stack
     </span>
   </a>
   
@@ -5182,6 +5215,39 @@
   <a href="#ddev" class="md-nav__link">
     <span class="md-ellipsis">
       DDEV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#laravel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Laravel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Laravel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sail
     </span>
   </a>
   
@@ -5217,30 +5283,55 @@
 
 
 <h1 id="local-development-environments">Local Development Environments<a class="headerlink" href="#local-development-environments" title="Permanent link">#</a></h1>
-<p>Even though Lagoon has only a hard dependency on Docker and <a href="https://docs.docker.com/compose/">Docker Compose</a> (which is mostly shipped with Docker) there are some things which are nice for local development that are not included in Docker:</p>
+<div class="admonition note inline end">
+<p class="admonition-title">Note</p>
+<p>You do not need to <em>install</em> Lagoon locally to <em>use</em> it locally! Lagoon is the system that <strong>deploys</strong> your local dev environment to your production environment, it's <strong>not</strong> the environment itself.</p>
+</div>
+<p>Local dev environments can be used to shorten the development cycle for applications by not requiring full deployments anytime a code change needs testing. Lagoon deploys standard Docker images, which can be run locally with just <a href="https://docs.docker.com/engine/">Docker</a> and <a href="https://docs.docker.com/compose/">Docker Compose</a>.</p>
+<p>Docker lacks features that provide for a nice local development experience, so advanced local dev products have been created to provide, among other things:</p>
 <ul>
-<li>An HTTP reverse proxy for nice URLs and HTTPS offloading.</li>
-<li>A DNS system so we don't have to remember IP addresses.</li>
-<li>SSH agents to use SSH keys within containers.</li>
-<li>A system that receives and displays mail locally.</li>
+<li>Reverse proxy for memorable URLs and HTTPS support.</li>
+<li>DNS service to resolve local URLs.</li>
+<li>SSH agent to use SSH keys within containers.</li>
+<li>Mail service to intercept and display emails locally.</li>
 </ul>
-<details class="warning" open="open">
-<summary>Warning</summary>
-<p>You do not need to <em>install</em> Lagoon locally to <em>use</em> it locally! That sounds confusing but follow the documentation. Lagoon is the system that <strong>deploys</strong> your local development environment to your production environment, it's <strong>not</strong> the environment itself.</p>
-</details>
-<h2 id="pygmy-ddev-or-lando-the-choice-is-yours">pygmy, DDEV, or Lando - the choice is yours<a class="headerlink" href="#pygmy-ddev-or-lando-the-choice-is-yours" title="Permanent link">#</a></h2>
-<h3 id="pygmy">pygmy<a class="headerlink" href="#pygmy" title="Permanent link">#</a></h3>
-<p>Lagoon has traditionally worked best with <code>pygmy</code> , which is a preconfigured system of the above tools and works out of the box with Lagoon. It lives at <a href="https://github.com/pygmystack/pygmy">https://github.com/pygmystack/pygmy</a></p>
-<p><code>pygmy</code> is written in Golang, so to install it, run:</p>
-<div class="language-bash highlight"><span class="filename">Install with HomeBrew</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>brew<span class="w"> </span>tap<span class="w"> </span>pygmystack/pygmy<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>brew<span class="w"> </span>install<span class="w"> </span>pygmy
-</span></code></pre></div>
-<p>For detailed usage or installation info on pygmy, see its <a href="https://pygmystack.github.io/pygmy/">documentation</a>.</p>
-<h3 id="lando">Lando<a class="headerlink" href="#lando" title="Permanent link">#</a></h3>
-<p>Lagoon is well-integrated with Lando! For more information, please see the documentation at <a href="https://docs.lando.dev/config/lagoon.html">https://docs.lando.dev/config/lagoon.html</a> to get yourself up and running.</p>
-<p>Lando's workflow for Lagoon will be familiar to users of Lando, and will also be the easiest way for Lagoon newcomers to get up and running. Pygmy presents a closer integration with Docker, which will lend itself better to more complex scenarios and use cases but will also require a deeper understanding.</p>
-<h3 id="ddev">DDEV<a class="headerlink" href="#ddev" title="Permanent link">#</a></h3>
-<p>Lagoon is also supported on DDEV! Check out their documentation to get started: <a href="https://ddev.readthedocs.io/en/stable/users/providers/lagoon/">https://ddev.readthedocs.io/en/stable/users/providers/lagoon/</a>.</p>
-<p>We have previously evaluated adding support for other systems like <a href="https://docksal.io/">Docksal</a> and <a href="https://wodby.com/docs/stacks/drupal/local/">Docker4Drupal</a>, and while we may add support for these in the future, our current focus is on supporting our current tools.</p>
+<p>Some local dev products, listed below, have enhanced support for Lagoon.</p>
+<h2 id="drupal">Drupal<a class="headerlink" href="#drupal" title="Permanent link">#</a></h2>
+<h3 id="pygmy-stack"><a href="https://pygmystack.github.io/pygmy/">Pygmy Stack</a><a class="headerlink" href="#pygmy-stack" title="Permanent link">#</a></h3>
+<p>The Pygmy Stack is an open source, minimal <code>cli</code> tool on top of Docker that runs Lagoon Docker images and provides the previouly mentioned local dev features. Recommended for those that prefer mimicking production environments over features.</p>
+<p>Lagoon integration:</p>
+<ul>
+<li>Runs same Docker images locally as are running in Lagoon.</li>
+<li>Automatic settings from Lagoon config files.</li>
+</ul>
+<p>Read more about <code>pygmy</code> <a href="https://pygmystack.github.io/pygmy/usage/">usage</a> or <a href="https://pygmystack.github.io/pygmy/installation/">installation</a>.</p>
+<h3 id="lando"><a href="https://lando.dev/">Lando</a><a class="headerlink" href="#lando" title="Permanent link">#</a></h3>
+<p>Lando is an open source, advanced <code>cli</code> tool for local dev environments and DevOps. It's customizable via plugins and config. Recommended for those that want to mimick production environments with extra features, and don't mind the complexity that comes with that.</p>
+<p>Lagoon integration:</p>
+<ul>
+<li>Runs some of the same Docker images locally as are running in Lagoon.</li>
+<li>Automatic settings from Lagoon config files.</li>
+<li><code>lando push/pull</code> can sync with a Lagoon environment.</li>
+<li>Lagoon <code>cli</code> and <code>lagoon-sync</code> included.</li>
+</ul>
+<p><a href="https://docs.lando.dev/plugins/lagoon/">Read more about the Lando Lagoon plugin</a>.</p>
+<h3 id="ddev"><a href="https://ddev.com/">DDEV</a><a class="headerlink" href="#ddev" title="Permanent link">#</a></h3>
+<p>DDEV is an open source, advanced <code>cli</code> and <code>tui</code> for Docker-based PHP development environments. It has a large feature set and an extensive set of add-ons. Recommended for those that prefer ease of use and a large community over production similarity.</p>
+<p>Lagoon integration:</p>
+<ul>
+<li><code>ddev push/pull</code> can sync with a Lagoon environment.</li>
+<li>Lagoon <code>cli</code> and <code>lagoon-sync</code> included.</li>
+</ul>
+<p><a href="https://docs.ddev.com/en/stable/users/providers/lagoon/">Read more about the DDEV and Lagoon integration</a>.</p>
+<h3 id="other">Other<a class="headerlink" href="#other" title="Permanent link">#</a></h3>
+<p>Other local dev systems like <a href="https://docksal.io/">Docksal</a> or <a href="https://wodby.com/docs/stacks/drupal/local/">Docker4Drupal</a> don't have explicit Lagoon support, but may still work using standard <code>ssh</code> and/or <code>rsync</code>.</p>
+<h2 id="laravel">Laravel<a class="headerlink" href="#laravel" title="Permanent link">#</a></h2>
+<h3 id="sail"><a href="https://laravel.com/docs/sail">Sail</a><a class="headerlink" href="#sail" title="Permanent link">#</a></h3>
+<p>Laravel Sail is a light-weight command-line interface for interacting with Laravel's default Docker development environment. Sail provides a great starting point for building a Laravel application using PHP, MySQL, and Redis without requiring prior Docker experience.</p>
+<p>Lagoon integration:</p>
+<ul>
+<li><a href="https://github.com/uselagoon/sailonlagoon"><code>sailonlagoon</code></a> simplifies the process of Lagoonizing Laravel Sail projects.</li>
+</ul>
 
 
 
