@@ -194,6 +194,8 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 			for _, backup := range addBackups {
 				b.addToMessageQueue(backup)
 			}
+		} else if backupData.BackupMetrics.Folder != "" {
+			// Skip progess webhook
 		} else {
 			// if we get something that we don't know how to handle, spit out what it is so we can check it in the logs
 			backupJSON, err := json.Marshal(backupData)
