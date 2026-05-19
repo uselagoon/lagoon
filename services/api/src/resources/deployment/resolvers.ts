@@ -23,7 +23,6 @@ import { HistoryRetentionEnforcer } from '../retentionpolicy/history';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
-import { Sql as orgSql } from '../organization/sql';
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 import sha1 from 'sha1';
 import { generateBuildId, generateVariableOnlyBuildId } from '@lagoon/commons/dist/util/lagoon';
