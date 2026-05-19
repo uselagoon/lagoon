@@ -121,6 +121,8 @@ func (b *BackupHandler) WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 			// if we get this far, then the payload data from the webhook should only have snapshots that are new or exist in the api
 			b.processBackups(ctx, backupData, backupsEnv.Backups, backupsEnv)
+		} else if backupData.BackupMetrics.Folder != "" {
+			// Skip progess webhook
 		} else {
 			// if we get something that we don't know how to handle, spit out what it is so we can check it in the logs
 			backupJSON, err := json.Marshal(backupData)

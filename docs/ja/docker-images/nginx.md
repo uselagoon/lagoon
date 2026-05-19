@@ -56,9 +56,9 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 いくつかのオプションは[環境変数](../concepts-advanced/environment-variables.md)を使用して設定できます。
 
-| 環境変数 | デフォルト    | 説明 |
-| :------------------- | :--------- | :--- |
-| BASIC_AUTH           | restricted | ベーシック認証を無効にするには `off` に設定します                               |
-| BASIC_AUTH_USERNAME  | (設定なし)  | ベーシック認証のユーザーネーム                               |
-| BASIC_AUTH_PASSWORD  | (設定なし)  | ベーシック認証のパスワード(非暗号化)                               |
-| FAST_HEALTH_CHECK    | (設定なし)  | 特定のユーザーエージェント(StatusCake、Pingdom、Site25x7、Uptime、nagios)からのGETリクエストは、軽量なLagoonサービスヘルスチェックにリダイレクトするには、`true`に設定します。 |
+| 環境変数                | デフォルト      | 説明                                                                                                                 |
+|:--------------------|:-----------|:-------------------------------------------------------------------------------------------------------------------|
+| BASIC_AUTH          | restricted | ベーシック認証を無効にするには `off` に設定します                                                                                       |
+| BASIC_AUTH_USERNAME | (設定なし)     | ベーシック認証のユーザーネーム                                                                                                    |
+| BASIC_AUTH_PASSWORD | (設定なし)     | ベーシック認証のパスワード(非暗号化)                                                                                                |
+| FAST_HEALTH_CHECK   | (設定なし)     | 特定のユーザーエージェント(StatusCake、Pingdom、Site24x7、Uptime、nagios)からのGETリクエストは、軽量なLagoonサービスヘルスチェックにリダイレクトするには、`true`に設定します。 |
