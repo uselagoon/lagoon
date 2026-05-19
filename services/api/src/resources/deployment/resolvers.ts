@@ -799,12 +799,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
     }
   }
 
-  let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
-  // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
     buildName = generateVariableOnlyBuildId();
     buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
   }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -854,7 +855,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
         headSha: `origin/${environment.deployHeadRef}`,
         baseBranchName: environment.deployBaseRef,
         baseSha: `origin/${environment.deployBaseRef}`,
-        branchName: environment.name
+        branchName: environment.name,
+        buildType
       };
       meta = {
         ...meta,
@@ -881,7 +883,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
         sourceType: DeploymentSourceType.API,
         sourceUser: sourceUser,
         branchName: environment.name,
-        promoteSourceEnvironment: environment.deployBaseRef
+        promoteSourceEnvironment: environment.deployBaseRef,
+        buildType
       };
       meta = {
         ...meta,
@@ -998,7 +1001,15 @@ export const deployEnvironmentBranch: ResolverFn = async (
 };
 
 export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
-  let buildName = generateBuildId();
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
+  }
+
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
 
   const deployData = {
@@ -1012,7 +1023,8 @@ export async function deployBranch(returnData, project, branchName, branchRef, p
     bulkName: bulkName,
     buildVariables: buildVariables,
     sourceType: deploySourceType,
-    sourceUser: sourceUser
+    sourceUser: sourceUser,
+    buildType
   };
 
   const meta = {
@@ -1124,7 +1136,14 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   // check if project has restriction
   await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
 
-  let buildName = generateBuildId();
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
+  }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
@@ -1143,7 +1162,8 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     bulkName: bulkName,
     buildVariables: buildVariables,
     sourceType: DeploymentSourceType.API,
-    sourceUser: sourceUser
+    sourceUser: sourceUser,
+    buildType
   };
 
   const meta = {
@@ -1270,7 +1290,14 @@ export const deployEnvironmentPromote: ResolverFn = async (
     project: sourceEnvironment.project
   });
 
-  let buildName = generateBuildId();
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
+    buildName = generateVariableOnlyBuildId();
+    buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
+  }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData = {
@@ -1284,7 +1311,8 @@ export const deployEnvironmentPromote: ResolverFn = async (
     bulkName: bulkName,
     buildVariables: buildVariables,
     sourceType: DeploymentSourceType.API,
-    sourceUser: sourceUser
+    sourceUser: sourceUser,
+    buildType
   };
 
   const meta = {
