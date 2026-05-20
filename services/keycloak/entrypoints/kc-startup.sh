@@ -25,4 +25,5 @@ shopt -s failglob
     --hostname-backchannel-dynamic true \
     --hostname-strict ${KC_HOSTNAME_STRICT:-false} \
     --hostname ${KEYCLOAK_FRONTEND_URL} \
-    --hostname-admin ${KEYCLOAK_FRONTEND_URL}
+    --hostname-admin ${KEYCLOAK_FRONTEND_URL} \
+    --cache ${KC_DISTRIBUTED_CACHE:-local}
