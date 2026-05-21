@@ -1423,6 +1423,27 @@ const typeDefs = gql`
     organizationRole: OrganizationRole
   }
 
+  type OrganizationKey {
+    id: Int
+    name: String
+    publicKey: String
+    privateKey: String @deprecated(reason: "Direct private key retrieval will may be removed in a future release. Currently admin only")
+    projects: [OrgProject]
+    comment: String
+    created: String
+  }
+
+  input AddOrganizationKeyInput {
+    organization: String!
+    name: String!
+    comment: String
+  }
+
+  input UpdateOrganizationKeyInput {
+    id: Int!
+    comment: String!
+  }
+
   type Organization {
     id: Int
     name: String
@@ -1445,6 +1466,7 @@ const typeDefs = gql`
     retentionPolicies are the available retention policies to an organization
     """
     retentionPolicies(type: RetentionPolicyType): [RetentionPolicy]
+    keys: [OrganizationKey]
     featureApiRoutes: Boolean @deprecated(reason: "Beta API routes feature flag, will be generally available in a future release and this feature gate will be removed")
     featureProjectClone: Boolean @deprecated(reason: "Beta project clone feature flag, will be generally available in a future release and this feature gate will be removed")
   }
@@ -1612,6 +1634,7 @@ const typeDefs = gql`
     USER
     VARIABLE
     FILE
+    DEPLOYKEY
   }
 
   input AuditLogInput {
@@ -1915,6 +1938,7 @@ const typeDefs = gql`
     getTaskFileUploadForm(input: GetTaskFileUploadFormInput!): TaskFileUploadForm
     getDownloadLinkByProjectCloneFileId(cloneId: Int!, fileId: Int!): String
     getProjectCloneFileUploadForm(input: GetProjectCloneFileUploadFormInput!): TaskFileUploadForm
+    getOrganizationKeyByProjectName(project: String!): OrganizationKey
   }
 
   type ProjectGroupsToOrganization {
@@ -3351,6 +3375,11 @@ const typeDefs = gql`
     copyProjectMetadata(sourceProject: String!, destinationProject: String!): String
     copyProjectVariables(sourceProject: String!, destinationProject: String!): String
     copyEnvironmentVariables(sourceProject: String!, sourceEnvironment: String!, destinationProject: String!, destinationEnvironment: String!): String
+    addOrganizationKey(input: AddOrganizationKeyInput!): OrganizationKey
+    updateOrganizationKey(id: Int!, comment: String!): OrganizationKey
+    deleteOrganizationKey(id: Int!): String
+    addOrganizationKeyToProject(id: Int!, project: String!): OrganizationKey
+    removeOrganizationKeyFromProject(id: Int!, project: String!): OrganizationKey
   }
 
   type Subscription {

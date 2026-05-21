@@ -155,4 +155,54 @@ export const Sql = {
       .andWhere('dtid', '=', dtid)
       .delete()
       .toString(),
+  createOrganizationKey: (input) => {
+    const {
+      id,
+      name,
+      comment,
+      organization,
+      privateKey
+    } = input;
+    return knex('organization_key').insert({
+      id,
+      name,
+      organization,
+      comment,
+      privateKey,
+      created: knex.fn.now(),
+    }).toString();
+  },
+  selectOrganizationKey: (id: number) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .toString(),
+  selectOrganizationKeys: (oid: number) =>
+    knex('organization_key')
+      .select('id', 'name', 'created', 'comment')
+      .where('organization', '=', oid)
+      .toString(),
+  selectProjectsByOrganizationKey: (id: number) =>
+    knex('project')
+      .where('organization_key', '=', id)
+      .toString(),
+  updateOrganizationKey: (id: number, comment: string) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .update('comment', comment)
+      .toString(),
+  addOrganizationKeyToProject: (id: number, project: number) =>
+    knex('project')
+      .where('id', '=', project)
+      .update('organization_key', id)
+      .toString(),
+  removeOrganizationKeyFromProject: (project: number) =>
+    knex('project')
+      .where('id', '=', project)
+      .update('organization_key', null)
+      .toString(),
+  deleteOrganizationKey: (id: number) =>
+    knex('organization_key')
+      .where('id', '=', id)
+      .delete()
+      .toString(),
 };

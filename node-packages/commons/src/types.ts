@@ -62,6 +62,7 @@ export enum AuditType {
   USER = 'user',
   VARIABLE = 'variable',
   FILE = 'file',
+  DEPLOYKEY = 'deploykey',
 }
 
 export enum RouteType {
@@ -98,7 +99,8 @@ export interface DeployData {
   sourceType: DeploymentSourceType,
   sourceUser?: string,
   buildType?: DeploymentBuildType,
-  type: DeployType;
+  type: DeployType,
+  orgKey?: string
 }
 
 export interface RemoveData {
