@@ -51,7 +51,7 @@ UPSTREAM_TAG ?= latest
 # latest is the most current release
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_REPO = uselagoon/build-deploy-image
-BUILD_DEPLOY_IMAGE_TAG ?= pr-503
+BUILD_DEPLOY_IMAGE_TAG ?= edge
 
 # UI_IMAGE_REPO and UI_IMAGE_TAG are an easy way to override the UI image used
 # only works for installations where INSTALL_STABLE_CORE=false
@@ -82,7 +82,7 @@ BETA_UI_IMAGE_TAG = pr-161
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-377
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=main
 OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
 
 # LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
@@ -476,7 +476,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = organization-key
+CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby task-projectclone
