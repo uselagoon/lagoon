@@ -2917,6 +2917,7 @@ const typeDefs = gql`
     """
     pattern: String
     latestPulled: Int
+    latestPushed: Int
   }
 
   """
@@ -3007,6 +3008,7 @@ const typeDefs = gql`
     name: String!
     pattern: String!
     latestPulled: Int!
+    latestPushed: Int
   }
 
   """
