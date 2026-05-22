@@ -397,6 +397,35 @@ function add_org_keys {
 EOF
 }
 
+function add_project_clone_permissions {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local manage_project_clones=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Manage+Project+Clones --config $CONFIG_PATH)
+
+
+  if [ "$manage_project_clones" != "[ ]" ]; then
+      echo "Project clone permissions already configured"
+      return 0
+  fi
+
+  echo adding permissions for project cloning
+
+  ORGANIZATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"updateNotification"},{"name":"addUser"},{"name":"add"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"addOwner"},{"name":"updateOrganization"},{"name":"update"},{"name":"viewUser"},{"name":"viewAll"},{"name":"updateProject"},{"name":"delete"},{"name":"viewProject"},{"name":"addNotification"},{"name":"viewUsers"},{"name":"view"},{"name":"viewGroup"},{"name":"deleteProject"},{"name":"removeGroup"},{"name":"addViewer"},{"name":"addProject"},{"name":"addGroup"},{"name":"addEnvVar"},{"name":"deleteEnvVar"},{"name":"viewEnvVar"},{"name":"addKey"},{"name":"updateKey"},{"name":"deleteKey"},{"name":"cloneProject:add"},{"name":"cloneProject:cancel"}]'
+
+  # Create "Manage Project Clone" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Manage Project Clones",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "AFFIRMATIVE",
+    "resources": ["organization"],
+    "scopes": ["cloneProject:add","cloneProject:cancel"],
+    "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+  }
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -442,6 +471,7 @@ function configure_keycloak {
     add_retentionpolicy_permissions
     environment_service_idling_state_permissions
     add_org_keys
+    add_project_clone_permissions
 
     # always run last
     sync_client_secrets

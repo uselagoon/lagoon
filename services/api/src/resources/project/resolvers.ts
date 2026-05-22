@@ -1185,7 +1185,7 @@ export const cloneProject: ResolverFn = async (
   // otherwise fall back to the non-organization permission check
   if (sourceProject.organization != null) {
     // TODO: change to `cloneProject` permission
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'cloneProject:add', {
       organization: sourceProject.organization
     });
   } else {
@@ -1682,6 +1682,8 @@ export const cancelProjectClone: ResolverFn = async (
   },
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
 ) => {
+  // TODO
+  // permission check - cloneProject:cancel
   // delete cloned environment
   // delete any uploaded files
   // delete any tasks in the source environment
