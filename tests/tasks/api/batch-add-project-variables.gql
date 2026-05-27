@@ -1,0 +1,22 @@
+mutation batchAddEnvVariables {
+  addOrUpdateEnvVariablesByName(
+    input: {
+      project: "{{ project }}"
+      variables: {{ variables | to_json }}
+    }
+  ) {
+    successCount
+    failureCount
+    results {
+      name
+      success
+      error
+      envVariable {
+        id
+        scope
+        name
+        value
+      }
+    }
+  }
+}
