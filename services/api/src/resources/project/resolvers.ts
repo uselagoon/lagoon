@@ -1673,22 +1673,137 @@ export const cancelProjectClone: ResolverFn = async (
   root,
   {
     input: {
-      id,
-      patch,
-      patch: {
-        name,
-      }
+      cloneId,
+      organization: organizationId
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
 ) => {
   // TODO
   // permission check - cloneProject:cancel
-  // delete cloned environment
+  await hasPermission('organization', 'cloneProject:cancel', {
+    organization: organizationId
+  });
+
+  const cloneData = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (cloneData.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+  const sourceProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].sourceProject);
+  const destProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].destinationProject);
+  const sourceEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].sourceProject));
+  const sourceEnv = sourceEnvRows[0];
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].destinationProject));
+
+  const activeStatuses = new Set(['running', 'queued', 'new', 'pending']);
+
+  console.log('Clone Data:********************', cloneData)
+  // cancel any active tasks/deployments before cleanup
+  const sourceTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, sourceProject.id, 'source', 'task');
+  const destTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'task');
+  const destDeployments = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'deployment');
+
+  if (sourceTasks?.length <= 0) {
+    console.log('No tasks to delete for source env');
+  } else {
+    let filteredTasks = sourceTasks?.filter((task: any) => activeStatuses.has(task.status));
+    if (filteredTasks?.length > 0) {
+      for (const task of filteredTasks) {
+        try {
+          await createMiscTask({ key: 'task:cancel', data: {
+            task: { id: task.id.toString(), name: task.name, taskName: task.taskName, service: task.service },
+            environment: sourceEnv,
+            project: sourceProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { taskId: task.id }, `Task not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  if (destTasks?.length <= 0) {
+    console.log('No tasks to delete for destination env');
+  } else {
+    let filteredTasks = destTasks?.filter((task: any) => activeStatuses.has(task.status))
+    if (filteredTasks?.length > 0) {
+      for (const task of filteredTasks) {
+        try {
+          await createMiscTask({ key: 'task:cancel', data: {
+            task: { id: task.id.toString(), name: task.name, taskName: task.taskName, service: task.service },
+            environment: destEnvRows[0],
+            project: destProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { taskId: task.id }, `Task not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  if (destDeployments?.length <= 0) {
+    console.log('No deployments to delete for destination env');
+  } else {
+    let filteredDeployments = destDeployments?.filter((deployment: any) => activeStatuses.has(deployment.status));
+    if (filteredDeployments?.length > 0) {
+      for (const deployment of filteredDeployments) {
+        try {
+          await createMiscTask({ key: 'build:cancel', data: {
+            build: deployment,
+            environment: destEnvRows[0],
+            project: destProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { deploymentId: deployment.id }, `Deployment not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  // update clone status + subscriptions
+  await query(sqlClientPool, Sql.updateProjectClone({ id: cloneId, status: 'cancelled' }));
+  const updatedCloneRows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (updatedCloneRows.length > 0) {
+    pubSub.publish(EVENTS.PROJECTCLONE, updatedCloneRows[0]);
+    pubSub.publish(EVENTS.ORGPROJECT, destProject);
+  }
+    console.log('update clone status + subscriptions');
   // delete any uploaded files
-  // delete any tasks in the source environment
+  await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+  // delete cloned environment
+  if (destEnvRows?.length > 0) {
+    await query(sqlClientPool, Sql.deleteEnvironment(destEnvRows[0].id, cloneData[0].destinationProject));
+  }
+  console.log('delete cloned environment + uploaded files');
+  // delete clone task/deployment associations
+  await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
+    console.log('delete clone task/deployment associations');
   // delete the ProjectClone reference
+  await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
+    console.log('delete ProjectClone reference');
   // delete cloned project
+  await query(sqlClientPool, Sql.deleteProject(cloneData[0].destinationProject));
+  console.log('delete cloned project');
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: cloneId.toString(),
+      type: AuditType.PROJECT,
+      details: destProject.name,
+    },
+    organizationId: organizationId
+  };
+
+  userActivityLogger(`User cancelled a project clone for project '${destProject.name}'`, {
+    project: '',
+    event: 'api:cancelProjectClone',
+    payload: {
+      data: destProject,
+      ...auditLog,
+    }
+  });
+
+  return 'success';
 };
 
 /*

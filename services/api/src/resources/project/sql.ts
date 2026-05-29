@@ -144,6 +144,12 @@ export const Sql = {
       .where('cid', cid)
       .del()
       .toString(),
+  deleteEnvironment: (environmentId: number, projectId: number) =>
+    knex('environment')
+      .where('id', environmentId)
+      .andWhere('project', projectId)
+      .andWhere('deleted', '0000-00-00 00:00:00')
+      .update({ deleted: knex.fn.now() }).toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')
       .select(
