@@ -797,12 +797,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
     }
   }
 
-  let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
-  // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
     buildName = generateVariableOnlyBuildId();
     buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
   }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -1014,13 +1015,15 @@ export const deployEnvironmentBranch: ResolverFn = async (
 };
 
 export async function deployBranch(returnData, project, branchName, branchRef, priority, bulkId, bulkName, buildVariables, sqlClientPool, keycloakGrant, legacyGrant, userActivityLogger, deploySourceType = DeploymentSourceType.API) {
-  let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
-  // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
     buildName = generateVariableOnlyBuildId();
     buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
   }
+
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData: DeployData = {
     type: DeployType.BRANCH,
@@ -1171,19 +1174,22 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   // check if project has restriction
   await projectHelpers(sqlClientPool).hasProjectRestriction('no_deployments', project.id, adminScopes)
 
-  let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
-  // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
     buildName = generateVariableOnlyBuildId();
     buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
   }
+
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
   const deployData: DeployData = {
     type: DeployType.PULLREQUEST,
     buildName: buildName,
     branchName: branchName,
     sourceUser: sourceUser,
+    sourceType: DeploymentSourceType.API,
     projectName: project.name,
     buildType: buildType,
   }
@@ -1347,12 +1353,13 @@ export const deployEnvironmentPromote: ResolverFn = async (
     project: sourceEnvironment.project
   });
 
-  let buildName = generateBuildId();
-  let buildType = DeploymentBuildType.BUILD
-  // change the buildname to a variables only name if the build variable for lagoon variables only is found
-  if (buildVariables && buildVariables.find(e => e.name === 'LAGOON_VARIABLES_ONLY' && e.value === "true")) {
+  let buildName: string, buildType: DeploymentBuildType
+  if (Helpers(sqlClientPool).isVariableOnlyDeployment(buildVariables)) {
     buildName = generateVariableOnlyBuildId();
     buildType = DeploymentBuildType.VARIABLES
+  } else {
+    buildName = generateBuildId();
+    buildType = DeploymentBuildType.BUILD
   }
 
   const sourceUser = await Helpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -1361,6 +1368,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     buildName: buildName,
     branchName: destinationEnvironment,
     sourceUser: sourceUser,
+    sourceType: DeploymentSourceType.API,
     projectName: destProject.name,
     promoteSourceEnvironment: sourceEnvironment.name,
     buildType: buildType,

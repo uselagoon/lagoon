@@ -1038,6 +1038,22 @@ fragment on Task {
 }
 `);
 
+export const getOrganizationKeyByProjectName = (
+  projectName: string
+): Promise<any[]> =>
+  graphqlapi.query(
+    `query getOrganizationKeyByProjectName($projectName: String!) {
+      getOrganizationKeyByProjectName(project: $projectName) {
+        id
+        name
+        privateKey
+        publicKey
+      }
+    }
+  `,
+  { projectName }
+);
+
 export const sanitizeGroupName = pipe(
   replace(/[^a-zA-Z0-9-]/g, '-'),
   toLower

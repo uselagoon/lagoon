@@ -166,6 +166,12 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 			},
 		},
 	}
+	// check for organization key for project
+	orgKey, _ := l.OrganizationKeyByProjectName(deployData.Project.Name)
+	if orgKey != nil && orgKey.PrivateKey != "" {
+		buildPayload.Spec.Project.OrganizationKey = []byte(orgKey.PrivateKey)
+	}
+
 	if deployData.Project.OrganizationDetails != nil {
 		buildPayload.Spec.Project.Organization = &lagooncrd.Organization{
 			Name: deployData.Project.OrganizationDetails.Name,

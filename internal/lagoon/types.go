@@ -89,3 +89,10 @@ type APIRoute struct {
 type APIRoutes struct {
 	Routes []APIRoute `json:"routes"`
 }
+
+type OrganizationKey struct {
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	PrivateKey string `json:"privateKey"`
+	PublicKey  string `json:"publicKey"`
+}

@@ -423,3 +423,28 @@ func (l *LagoonAPI) EnvironmentByID(id int) (*schema.Environment, error) {
 	json.Unmarshal(rb, &environment)
 	return &environment, nil
 }
+
+// ideally, the privatekey would only be retrievable from the api-db
+func (l *LagoonAPI) OrganizationKeyByProjectName(projectName string) (*OrganizationKey, error) {
+	lc, _ := GetClient(*l)
+	query := `query getOrganizationKeyByProjectName($projectName: String!) {
+		getOrganizationKeyByProjectName(project: $projectName) {
+			id
+			name
+			privateKey
+			publicKey
+		}
+	}`
+	result, err := lc.ProcessRaw(context.Background(), query, map[string]interface{}{
+		"projectName": projectName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	// r, _ := json.Marshal(result)
+	// fmt.Println("AAAA", string(r))
+	rb, _ := json.Marshal(result.(map[string]interface{})["getOrganizationKeyByProjectName"])
+	orgKey := OrganizationKey{}
+	json.Unmarshal(rb, &orgKey)
+	return &orgKey, nil
+}

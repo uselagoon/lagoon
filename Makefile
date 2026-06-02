@@ -58,7 +58,7 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
 BETA_UI_IMAGE_REPO = uselagoon/beta-ui
-BETA_UI_IMAGE_TAG = pr-145
+BETA_UI_IMAGE_TAG = pr-161
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
@@ -674,7 +674,7 @@ endif
 endif
 
 GO = $(realpath ./local-dev/go/bin/go)
-GO_VERSION := 1.25.4
+GO_VERSION := 1.26.1
 
 .PHONY: local-dev/go
 local-dev/go:

@@ -5,6 +5,11 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 
+interface EnvKeyValueInput {
+  name: string
+  value: string
+}
+
 export const Helpers = (sqlClientPool: Pool) => {
   const getDeploymentById = async (deploymentID: number) => {
     const rows = await query(
@@ -97,6 +102,15 @@ export const Helpers = (sqlClientPool: Pool) => {
         ]
       // @ts-ignore
       ])(deploymentInput);
+    },
+    isVariableOnlyDeployment: (buildVars: (EnvKeyValueInput | null)[] | null | undefined): boolean => {
+      if (!Array.isArray(buildVars)) {
+        return false
+      }
+
+      return buildVars.some(({name, value}) =>
+        name.toUpperCase() === 'LAGOON_VARIABLES_ONLY' && value.toUpperCase() === "TRUE"
+      )
     }
   };
 };

@@ -1300,6 +1300,15 @@
               },
               {
                 "name": "viewEnvVar"
+              },
+              {
+                "name": "addKey"
+              },
+              {
+                "name": "updateKey"
+              },
+              {
+                "name": "deleteKey"
               }
             ]
           },
@@ -1946,6 +1955,17 @@
             "config": {
               "resources": "[\"organization\"]",
               "scopes": "[\"addEnvVar\",\"deleteEnvVar\",\"viewEnvVar\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
+          },
+          {
+            "name": "Manage Organization Keys",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"addKey\",\"updateKey\",\"deleteKey\"]",
               "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
           },
@@ -3294,6 +3314,15 @@
           },
           {
             "name": "forceScale:development"
+          },
+          {
+            "name": "addKey"
+          },
+          {
+            "name": "updateKey"
+          },
+          {
+            "name": "deleteKey"
           }
         ],
         "decisionStrategy": "UNANIMOUS"
