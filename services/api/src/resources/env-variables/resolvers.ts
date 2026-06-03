@@ -1076,7 +1076,6 @@ export const addOrUpdateEnvVariablesByName: ResolverFn = async (
   const auditLog: AuditLog = {
     resource: target.resource,
     linkedResource: {
-      id: target.resource.id,
       type: AuditType.VARIABLE,
       details:
         `batch addOrUpdate: scope=${target.envVarType} ` +
