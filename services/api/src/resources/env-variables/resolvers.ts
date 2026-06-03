@@ -984,21 +984,26 @@ const deleteEnvVarRowByNameForTarget = async (
   target: EnvVarBatchTarget,
   name: string,
 ) => {
+  const trimmedName = (name || '').trim();
+  if (trimmedName.length === 0) {
+    throw new Error('A variable name must be provided.');
+  }
+
   let rows: any[] = [];
   if (target.envVarType === EnvVarType.ORGANIZATION) {
     rows = await query(
       sqlClientPool,
-      Sql.selectEnvVarByNameAndOrgId(name, target.organizationId),
+      Sql.selectEnvVarByNameAndOrgId(trimmedName, target.organizationId),
     );
   } else if (target.envVarType === EnvVarType.PROJECT) {
     rows = await query(
       sqlClientPool,
-      Sql.selectEnvVarByNameAndProjectId(name, target.projectId),
+      Sql.selectEnvVarByNameAndProjectId(trimmedName, target.projectId),
     );
   } else if (target.envVarType === EnvVarType.ENVIRONMENT) {
     rows = await query(
       sqlClientPool,
-      Sql.selectEnvVarByNameAndEnvironmentId(name, target.environmentId),
+      Sql.selectEnvVarByNameAndEnvironmentId(trimmedName, target.environmentId),
     );
   }
 
