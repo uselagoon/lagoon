@@ -30,5 +30,5 @@
       - "BATCH_VAR_DOES_NOT_EXIST"
     # Idempotent delete: missing entries still count as success.
     expectedSuccessCount: 4
-  tasks:
+    expectedFailureCount: 0
     - ansible.builtin.include_tasks: ../../tasks/api/batch-delete-project-variables.yaml
