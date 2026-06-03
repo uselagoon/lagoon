@@ -12,9 +12,10 @@ const envVarsConfig = {
   // Maximum number of variables/names accepted by the batch env-var
   // mutations (addOrUpdateEnvVariablesByName / deleteEnvVariablesByName).
   // Override at runtime with the BATCH_ENV_VARS_LIMIT environment variable.
-  batchLimit: process.env.BATCH_ENV_VARS_LIMIT
-    ? parseInt(process.env.BATCH_ENV_VARS_LIMIT, 10)
-    : 20,
+  batchLimit: (() => {
+    const parsed = parseInt(process.env.BATCH_ENV_VARS_LIMIT ?? '', 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 20;
+  })(),
 };
 
 export { envVarsConfig };
