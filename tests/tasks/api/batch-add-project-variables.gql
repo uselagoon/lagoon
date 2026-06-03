@@ -2,7 +2,11 @@ mutation batchAddEnvVariables {
   addOrUpdateEnvVariablesByName(
     input: {
       project: "{{ project }}"
-      variables: {{ variables | to_json }}
+      variables: [
+{% for v in variables %}
+        { name: {{ v.name | to_json }}, value: {{ v.value | to_json }}, scope: {{ v.scope }} }{% if not loop.last %},{% endif %}
+{% endfor %}
+      ]
     }
   ) {
     successCount
