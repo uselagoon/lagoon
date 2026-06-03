@@ -22,3 +22,8 @@
       when:
         - expectedSuccessCount is defined
         - apiresponse.json.data.deleteEnvVariablesByName.successCount != expectedSuccessCount
+    - fail:
+        msg: "expected failureCount {{ expectedFailureCount }} but got {{ apiresponse.json.data.deleteEnvVariablesByName.failureCount }}"
+      when:
+        - expectedFailureCount is defined
+        - apiresponse.json.data.deleteEnvVariablesByName.failureCount != expectedFailureCount
