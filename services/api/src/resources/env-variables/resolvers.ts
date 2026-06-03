@@ -1160,7 +1160,6 @@ export const deleteEnvVariablesByName: ResolverFn = async (
   const auditLog: AuditLog = {
     resource: target.resource,
     linkedResource: {
-      id: target.resource.id,
       type: AuditType.VARIABLE,
       details:
         `batch delete: scope=${target.envVarType} ` +
