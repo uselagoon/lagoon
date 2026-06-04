@@ -22,7 +22,7 @@ import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType } from 
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createMiscTask } from '@lagoon/commons/dist/tasks';
+import { createMiscTask, createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { deployBranch } from '../deployment/resolvers';
 import { Pool } from 'mariadb';
@@ -1679,8 +1679,6 @@ export const cancelProjectClone: ResolverFn = async (
   },
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
 ) => {
-  // TODO
-  // permission check - cloneProject:cancel
   await hasPermission('organization', 'cloneProject:cancel', {
     organization: organizationId
   });
@@ -1689,22 +1687,26 @@ export const cancelProjectClone: ResolverFn = async (
   if (cloneData.length === 0) {
     throw new Error(`No project clone found for ID: ${cloneId}`);
   }
+
+  const inactiveStatuses = new Set(['complete']);
+  if (!cloneData[0].status || inactiveStatuses.has(cloneData[0].status)) {
+    throw new Error(`Only actively running or failed clones can be cancelled`);
+  }
+
   const sourceProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].sourceProject);
   const destProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].destinationProject);
   const sourceEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].sourceProject));
   const sourceEnv = sourceEnvRows[0];
   const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].destinationProject));
 
-  const activeStatuses = new Set(['running', 'queued', 'new', 'pending']);
-
-  console.log('Clone Data:********************', cloneData)
   // cancel any active tasks/deployments before cleanup
   const sourceTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, sourceProject.id, 'source', 'task');
   const destTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'task');
   const destDeployments = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'deployment');
+  const activeStatuses = new Set(['new', 'pending', 'running', 'queued', 'active']);
 
   if (sourceTasks?.length <= 0) {
-    console.log('No tasks to delete for source env');
+    logger.debug('No tasks to delete for source env');
   } else {
     let filteredTasks = sourceTasks?.filter((task: any) => activeStatuses.has(task.status));
     if (filteredTasks?.length > 0) {
@@ -1723,7 +1725,7 @@ export const cancelProjectClone: ResolverFn = async (
   }
 
   if (destTasks?.length <= 0) {
-    console.log('No tasks to delete for destination env');
+    logger.debug('No tasks to delete for destination env');
   } else {
     let filteredTasks = destTasks?.filter((task: any) => activeStatuses.has(task.status))
     if (filteredTasks?.length > 0) {
@@ -1742,7 +1744,7 @@ export const cancelProjectClone: ResolverFn = async (
   }
 
   if (destDeployments?.length <= 0) {
-    console.log('No deployments to delete for destination env');
+    logger.debug('No deployments to delete for destination env');
   } else {
     let filteredDeployments = destDeployments?.filter((deployment: any) => activeStatuses.has(deployment.status));
     if (filteredDeployments?.length > 0) {
@@ -1767,23 +1769,49 @@ export const cancelProjectClone: ResolverFn = async (
     pubSub.publish(EVENTS.PROJECTCLONE, updatedCloneRows[0]);
     pubSub.publish(EVENTS.ORGPROJECT, destProject);
   }
-    console.log('update clone status + subscriptions');
   // delete any uploaded files
   await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
   // delete cloned environment
   if (destEnvRows?.length > 0) {
-    await query(sqlClientPool, Sql.deleteEnvironment(destEnvRows[0].id, cloneData[0].destinationProject));
+    const destEnv = destEnvRows[0];
+    try {
+      await createRemoveTask({
+        projectName: destProject.name,
+        type: destEnv.deployType,
+        openshiftProjectName: destEnv.openshiftProjectName,
+        branch: destEnv.name,
+        forceDeleteProductionEnvironment: true,
+      });
+    } catch (err) {
+      logger.warn(`Could not send remove task for ${destProject.name}: ${err.message}`);
+    }
+    await environmentHelpers(sqlClientPool).deleteEnvironment(destEnv.name, destEnv.id, cloneData[0].destinationProject);
   }
-  console.log('delete cloned environment + uploaded files');
   // delete clone task/deployment associations
   await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
-    console.log('delete clone task/deployment associations');
   // delete the ProjectClone reference
   await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
-    console.log('delete ProjectClone reference');
   // delete cloned project
-  await query(sqlClientPool, Sql.deleteProject(cloneData[0].destinationProject));
-  console.log('delete cloned project');
+  await Helpers(sqlClientPool).deleteProjectById(cloneData[0].destinationProject);
+
+  try {
+    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, cloneData[0].destinationProject);
+    await models.GroupModel.removeProjectFromGroups(cloneData[0].destinationProject, projectGroups);
+  } catch (err) {
+    logger.error(`Could not remove project from groups for ${destProject.name}: ${err.message}`);
+  }
+  try {
+    const group = await models.GroupModel.loadSparseGroupByName(`project-${destProject.name}`);
+    await models.GroupModel.deleteGroup(group.id);
+  } catch (err) {
+    logger.error(`Could not delete default group for ${destProject.name}: ${err.message}`);
+  }
+  try {
+    const user = await models.UserModel.loadUserByEmail(`default-user@${destProject.name}`);
+    await models.UserModel.deleteUser(user.id);
+  } catch (err) {
+    logger.error(`Could not delete default user for ${destProject.name}: ${err.message}`);
+  }
 
   const auditLog: AuditLog = {
     resource: {
