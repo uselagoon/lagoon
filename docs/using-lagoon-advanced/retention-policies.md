@@ -2,7 +2,7 @@
 
 Retention policies are a way for Lagoon platform operators to be able to define how long certain items are retained for. General users aren't able to create or modify them.
 
-Currently, Lagoon has support for 2 main policy types
+Currently, Lagoon has support for 2 main policy types:
 
 * Harbor - Used to define how long images are retained in Harbor after they're no longer used.
 * History - Used to define how much history for environment deployments and tasks are kept. This includes removing logs and any files associated to those deployments and tasks.
@@ -28,13 +28,16 @@ Different policy types will have different methods of enforcement. See enforceme
 
 This policy type is for managing how many images pushed to Harbor are retained. This is a simplified version of what Harbor offers that will work for images that Lagoon pushes into projects.
 
-The configuration options for Harbor retention policies are
-* enabled - the state of the policy
-* rules - a list of rules to apply (or based)
-  * name - the name of the rule
-  * pattern - the pattern to use, this is based on doublestar path pattern matching and globbing (Harbor uses this https://github.com/bmatcuk/doublestar#patterns)
-  * latestPulled - the number of images to retain for this rule
-* schedule - how often to run this retention policy in Harbor (this schedule is executed by Harbor, not lagoon)
+The configuration options for Harbor retention policies are:
+
+* `enabled` - the state of the policy
+* `rules` - a list of rules to apply
+  * `name` - the name of the rule
+  * `pattern` - the pattern to match images
+    * Images are named using format `environment/service`, for example `main/cli` or `pr-256/php`
+    * Patterns are based on [doublestar path pattern matching and globbing](https://github.com/bmatcuk/doublestar#patterns)
+  * `latestPulled` - the number of images to retain for this rule
+* `schedule` - how often to run this retention policy in Harbor (this schedule is executed by Harbor, not lagoon)
 
 !!! Note
     Changing a policy from `enabled: true` to `enabled: false` will remove the policy from anything it may be associated to. This can be used to set a global (or organization) policy and allow an organization (or project) policy to disable it.
@@ -111,12 +114,13 @@ mutation addPolicyLink{
 
 This policy type will trim down the number of items that are retained in an environments history.
 
-The configuration options for history are
-* enabled - the state of the policy
-* deploymentType - can be one of `COUNT`, `DAYS`, `MONTHS`
-* deploymentHistory - depending on the type selected, will retain deployments (logs, status, etc...) to this number accordingly
-* taskType - can be one of `COUNT`, `DAYS`, `MONTHS`
-* taskHistory - depending on the type selected, will retain task history (logs, status, etc...) to this number accordingly
+The configuration options for history are:
+
+* `enabled` - the state of the policy
+* `deploymentType` - can be one of `COUNT`, `DAYS`, `MONTHS`
+* `deploymentHistory` - depending on the type selected, will retain deployments (logs, status, etc...) to this number accordingly
+* `taskType` - can be one of `COUNT`, `DAYS`, `MONTHS`
+* `taskHistory` - depending on the type selected, will retain task history (logs, status, etc...) to this number accordingly
 
 !!! Note
     There is a variable `ENABLE_SAVED_HISTORY_EXPORT` that is `false` by default. Setting this to `true` will export data for any deleted environments to the s3 files bucket before the environment is deleted. This exports the current `project`, `environment`, and the associated environments `task` and `deployment` history at the time of deletion. The path of this file will be `history/${projectname}-${projectid}/${environmentname}-${environmentid}/history-${unixtimestamp}.json`.
