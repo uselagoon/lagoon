@@ -36,11 +36,11 @@ _These guidelines have been adapted from [Drupal Diversity & Inclusion’s Parti
 9.  Sharing content from inside Lagoon spaces must only be done with explicit consent. Any sharing must also be carefully considered, and without harassment or intent to harm any Participants.
   * This forum should be considered public. Assume that anyone can and may read anything posted here.
   * When sharing any Lagoon content, permission from all Participants must be obtained first. This applies whether content is quoted, summarized, or screenshotted. This includes sharing in any public medium: on Twitter, in a blog post, in an article, on a podcast, etc. These spaces are where the discussion and work in progress is taking place. Removing snippets of a conversation takes away context. This can distort and discourage discussion, especially when this is done without the goal of driving the Lagoon project forward.
-  * As stated above, if you take screenshots and post them to social media or other forums, you must get permission from the person that posted it. When getting permission, include the option of removing identifying information. Permission is still needed even if identifying information is removed. This includes any content from Discord, Github, or any other Lagoon medium.
+  * As stated above, if you take screenshots and post them to social media or other forums, you must get permission from the person that posted it. When getting permission, include the option of removing identifying information. Permission is still needed even if identifying information is removed. This includes any content from GitHub or any other Lagoon medium.
   * If you want to share something, just ask! “Hey, is it ok to share this on Twitter? I’m happy to credit you!”
-  * If it is necessary for a participant to take a screenshot to report harassing behavior to Lagoon moderators, this may be done without obtaining permission. It is not, however, acceptable to take screenshots to publicly or privately shame an individual. Again, this applies only to reporting harassing behavior.
+  * If it is necessary for a participant to take a screenshot to report harassing behavior to Lagoon maintainers, this may be done without obtaining permission. It is not, however, acceptable to take screenshots to publicly or privately shame an individual. Again, this applies only to reporting harassing behavior.
 10. Address complaints between one another in the space when safe and appropriate.
-  * When safe, try to clarify and engage in the space where the conflict happened. For example, in the Discord channel.
+  * When safe, try to clarify and engage in the space where the conflict happened.
   * Ping admins or Community Manager (Alanna) when conflict is escalating.
   * Ask for help.
   * If the topic of conflict is off-topic for Lagoon, move the conversation to a more appropriate channel.

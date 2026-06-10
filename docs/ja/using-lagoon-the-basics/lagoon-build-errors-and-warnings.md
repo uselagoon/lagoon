@@ -4,7 +4,7 @@
 
 例えば、Lagoonチームが `.lagoon.yml` の設定を変更し、ユーザーが変更すべきことがある場合、警告が表示されます。ユーザーは、それを破壊的な変更になる前に修正できるようになります。これは可能な限り早期に解決するべきであり、将来のLagoonのリリースではエラーを処理できないかもしれませんが、ビルドを停止することはありません。
 
-これらのエラーの解決方法がわからない場合は、Lagoonの管理者に連絡するか、[Lagoonコミュニティ](../community/discord.md)で質問してください。
+これらのエラーの解決方法がわからない場合は、Lagoonの管理者に連絡するか、該当する[uselagoonリポジトリ](https://github.com/orgs/uselagoon/repositories)にIssueを作成するか、[GitHub Discussion](https://github.com/uselagoon/lagoon/discussions)で質問してください。
 
 ## Docker Composeのエラー { #docker-compose-errors }
 

@@ -28,7 +28,7 @@ Lagoonをあなたのローカルマシン上で動かす方法について、Ki
 
 他の例のドキュメンテーションを改善するために私たちを手伝ってください – 私たちは完全なものを期待していませんが、 原稿、整理、役立つリソースへのリンク、明確な声明は全て超素晴らしいです。
 
-何か質問がある場合は、[Discord](https://discord.gg/te5hHe95JE)で私たちに連絡してください！
+何か質問がある場合は、該当する[uselagoonリポジトリ](https://github.com/orgs/uselagoon/repositories)にIssueを作成するか、[GitHub Discussion](https://github.com/uselagoon/lagoon/discussions)を利用してください。
 
 ## セキュリティの問題を見つけました 🔓 { #i-found-a-security-issue }
 
@@ -47,7 +47,7 @@ Lagoonをあなたのローカルマシン上で動かす方法について、Ki
 
 素敵です！ [問題](https://github.com/uselagoon/lagoon/issues)を作成していただければ、私たちはそれを検討することを喜びます。 それが実装されることを保証することはできません。 しかし、私たちは常にLagoonに何をもたらすことができるかのアイデアを聞くことに興味があります。
 
-別の良い方法は、あなたのアイデアについてDiscord経由で私たちと話すこともです。 . [今日参加してください](https://discord.gg/te5hHe95JE)！
+あなたのアイデアについては、[GitHub Discussion](https://github.com/uselagoon/lagoon/discussions)で共有するのも良い方法です。
 
 ## 私はいくつかのコードを書きました { #i-wrote-some-code }
 
