@@ -7,7 +7,6 @@ If you have any questions or want to contribute to Lagoon, you can check out the
 - Contribution docs: https://docs.lagoon.sh/contributing/
 - Issue queue: https://github.com/uselagoon/lagoon/issues
 - GitHub discussions: https://github.com/uselagoon/lagoon/discussions
-- Slack channel: Drupal Slack (https://www.drupal.org/community/contributor-guide/reference-information/talk/tools/slack) #Lagoon
 - Website: https://lagoon.sh
 - Blog: https://dev.to/uselagoon
 - Discord: https://discord.gg/te5hHe95JE
@@ -17,8 +16,6 @@ If you have any questions or want to contribute to Lagoon, you can check out the
 The Lagoon core team is responsible for the priorization, creation, development and delivery of Lagoon features.
 They are responsible for the development, testing and release processes.
 
-- Toby Bellwood
-- Davit Darsavelidze
 - Chris Goodwin
 - Ben Jackson
 - Blaize Kaye
@@ -43,9 +40,10 @@ They suggest and review features, develop integrations and tools, and work close
 The Lagoon team would also like to acknowledge the massive contributions from everyone over the years to help get Lagoon to where we are today. ❤️
 
 ## Lagoon Alumni
-
+- Toby Bellwood
 - Alanna Burke
 - Tim Clifford
+- Davit Darsavelidze
 - Tyler Ward
 
 ## Scope of the Lagoon team
