@@ -1,10 +1,10 @@
 # Retention Policies
 
-Retention policies are a way for Lagoon platform operators to be able to define how long certain items are retained for. General users aren't able to create or modify them.
+Retention policies allow Lagoon platform operators to define the number of certain items to keep, and to clean up the rest. General users aren't able to create or modify them.
 
 Currently, Lagoon has support for 2 main policy types:
 
-* Harbor - Used to define how long images are retained in Harbor after they're no longer used.
+* Harbor - Used to define how many images are retained in Harbor.
 * History - Used to define how much history for environment deployments and tasks are kept. This includes removing logs and any files associated to those deployments and tasks.
 
 !!! Info
@@ -26,7 +26,7 @@ Different policy types will have different methods of enforcement. See enforceme
 
 ## Harbor Policies
 
-This policy type is for managing how many images pushed to Harbor are retained. This is a simplified version of what Harbor offers that will work for images that Lagoon pushes into projects.
+This policy type is for managing how many images in Harbor are retained. This is a simplified version of what Harbor offers that will work for images that Lagoon builds for projects.
 
 The configuration options for Harbor retention policies are:
 
@@ -36,7 +36,8 @@ The configuration options for Harbor retention policies are:
   * `pattern` - the pattern to match images
     * Images are named using format `environment/service`, for example `main/cli` or `pr-256/php`
     * Patterns are based on [doublestar path pattern matching and globbing](https://github.com/bmatcuk/doublestar#patterns)
-  * `latestPulled` - the number of images to retain for this rule
+  * `latestPulled` - keep this number of last pulled images
+  * `latestPushed` - keep this number of last pushed images
 * `schedule` - how often to run this retention policy in Harbor (this schedule is executed by Harbor, not lagoon)
 
 !!! Note
@@ -48,7 +49,7 @@ When a Harbor policy is linked, unlinked, or updated, a message is sent to any a
 
 For example, if a Harbor policy is linked to a scope, a hook is executed which will work out, based on the scope, which DeployTargets need to be informed of the new policy.
 
-If there exists a global scoped Harbor policy, and a new organization based policy is created and linked to an organization. The policy enforcer will work out which DeployTargets any projects within that organization need to be informed of this new policy and send messages to them so they update the policy in their respective Harbors.
+If there exists a global scoped Harbor policy, and a new organization based policy is created and linked to an organization, the policy enforcer will work out which DeployTargets any projects within that organization need to be informed of this new policy and send messages to them so they update the policy in their respective Harbors.
 If the organization based policy is removed from the organization, then the enforcer will send a message to all of the projects in that organization again to inform them to revert back to the global policy. The same actions are performed if the policy would be applied to a project scope.
 
 ### Creating a Harbor policy
