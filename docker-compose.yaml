@@ -88,9 +88,7 @@ services:
     environment:
       - KEYCLOAK_FRONTEND_URL=${KEYCLOAK_FRONTEND_URL:-http://172.17.0.1:8088/auth}
       - NODE_ENV=development
-      - DISABLE_CORE_HARBOR=true
       - CI=${CI:-true}
-      - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - S3_FILES_HOST=http://172.17.0.1:9000
       - S3_BAAS_ACCESS_KEY_ID=minio
       - S3_BAAS_SECRET_ACCESS_KEY=minio123

@@ -304,6 +304,16 @@ const {
   bulkImportProjectsAndGroupsToOrganization,
   getOrganizationByProject,
   organizationProjectSubscriber,
+  addOrganizationKey,
+  getOrganizationKeys,
+  getOrganizationKeyPublicKey,
+  getOrganizationKeyPrivateKey,
+  getProjectsByOrganizationKey,
+  deleteOrganizationKey,
+  updateOrganizationKey,
+  getOrganizationKeyByProjectName,
+  addOrganizationKeyToProject,
+  removeOrganizationKeyFromProject,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -411,6 +421,7 @@ async function getResolvers() {
       USER: 'user',
       VARIABLE: 'variable',
       FILE: 'file',
+      DEPLOYKEY: 'deploykey',
     },
     AuditSource: {
       API: 'api',
@@ -681,6 +692,12 @@ async function getResolvers() {
       notifications: getNotificationsByOrganizationId,
       envVariables: getEnvVarsByOrganizationId,
       retentionPolicies: getRetentionPoliciesByOrganizationId,
+      keys: getOrganizationKeys,
+    },
+    OrganizationKey: {
+      publicKey: getOrganizationKeyPublicKey,
+      privateKey: getOrganizationKeyPrivateKey,
+      projects: getProjectsByOrganizationKey,
     },
     OrgProject: {
       groups: getGroupsByOrganizationsProject,
@@ -836,6 +853,7 @@ async function getResolvers() {
     getTaskFileUploadForm,
     getDownloadLinkByProjectCloneFileId,
     getProjectCloneFileUploadForm,
+    getOrganizationKeyByProjectName,
   },
   Mutation: {
     addProblem,
@@ -998,6 +1016,11 @@ async function getResolvers() {
     copyProjectMetadata,
     copyProjectVariables,
     copyEnvironmentVariables,
+    addOrganizationKey,
+    updateOrganizationKey,
+    deleteOrganizationKey,
+    addOrganizationKeyToProject,
+    removeOrganizationKeyFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,

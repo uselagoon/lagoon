@@ -119,7 +119,18 @@ export const getCredentialsForLegacyToken = async (token: string): Promise<Legac
   // check the expiration on legacy tokens, reject them if necessary
   const maxExpiry = getConfigFromEnv('LEGACY_EXPIRY_MAX', '3600') // 1hour default
   const rejectLegacyExpiry = getConfigFromEnv('LEGACY_EXPIRY_REJECT', 'false') // don't reject intially, just log
+  // Give some tolerance to the calculations around `iat` below
+  const clockSkew = parseInt(getConfigFromEnv('LEGACY_TOKEN_CLOCK_SKEW_TOLERANCE_SECONDS', '60'));
+  const nowDate = Date.now();
+  const nowSeconds = Math.floor(nowDate / 1000);
   if (exp && iat) {
+
+    // First check if the iat is _before_ now, with some tolerance for clock drift
+    if (iat > (nowSeconds + clockSkew)) {
+      const msg = `Legacy token (sub:${sub}; iss:${iss}) iat ${(iat)} is issued before ${nowSeconds}`;
+      throw new Error(msg);
+    }
+
     if ((exp-iat) > parseInt(maxExpiry)) {
       const msg = `Legacy token (sub:${sub}; iss:${iss}) expiry ${(exp-iat)} is greater than ${parseInt(maxExpiry)}`
       logger.warn(msg);

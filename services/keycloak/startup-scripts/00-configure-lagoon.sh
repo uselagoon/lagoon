@@ -367,6 +367,36 @@ EOF
 EOF
 }
 
+function add_org_keys {
+  local api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  local manage_org_keys=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission?name=Manage+Organization+Keys --config $CONFIG_PATH)
+
+
+  if [ "$manage_org_keys" != "[ ]" ]; then
+      echo "Organization keys already configured"
+      return 0
+  fi
+
+  echo adding permissions for organization keys
+
+  # Add scopes to organization resource
+  ORGANIZATION_RESOURCE_ID=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"updateNotification"},{"name":"addUser"},{"name":"add"},{"name":"removeNotification"},{"name":"viewNotification"},{"name":"addOwner"},{"name":"updateOrganization"},{"name":"update"},{"name":"viewUser"},{"name":"viewAll"},{"name":"updateProject"},{"name":"delete"},{"name":"viewProject"},{"name":"addNotification"},{"name":"viewUsers"},{"name":"view"},{"name":"viewGroup"},{"name":"deleteProject"},{"name":"removeGroup"},{"name":"addViewer"},{"name":"addProject"},{"name":"addGroup"},{"name":"addEnvVar"},{"name":"deleteEnvVar"},{"name":"viewEnvVar"},{"name":"addKey"},{"name":"updateKey"},{"name":"deleteKey"}]'
+
+  # Create "Manage Organization Keys" permission
+  /opt/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+  {
+    "name": "Manage Organization Keys",
+    "type": "scope",
+    "logic": "POSITIVE",
+    "decisionStrategy": "AFFIRMATIVE",
+    "resources": ["organization"],
+    "scopes": ["addKey","updateKey","deleteKey"],
+    "policies": ["[Lagoon] User is admin of organization","[Lagoon] User is owner of organization","[Lagoon] Users role for realm is Platform Organization Owner","[Lagoon] Users role for realm is Platform Owner"]
+  }
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -411,6 +441,7 @@ function configure_keycloak {
     #post 2.30.0+ migrations after this point
     add_retentionpolicy_permissions
     environment_service_idling_state_permissions
+    add_org_keys
 
     # always run last
     sync_client_secrets

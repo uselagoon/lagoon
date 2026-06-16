@@ -1305,6 +1305,26 @@ fragment on Task {
 }
 `);
 
+// this is going to have to be re-done when moving to webhook-handler rewrite
+// not bothering with types for now.
+// ideally, the privatekey would only be retrievable from the api-db
+// but that can be saved for the webhook-handler rewrite, rather than duping effort here
+export const getOrganizationKeyByProjectName = (
+  projectName: string
+): Promise<any[]> =>
+  graphqlapi.query(
+    `query getOrganizationKeyByProjectName($projectName: String!) {
+      getOrganizationKeyByProjectName(project: $projectName) {
+        id
+        name
+        privateKey
+        publicKey
+      }
+    }
+  `,
+  { projectName }
+);
+
 export const sanitizeGroupName = pipe(
   replace(/[^a-zA-Z0-9-]/g, '-'),
   toLower
