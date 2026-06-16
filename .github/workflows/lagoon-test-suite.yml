@@ -90,7 +90,7 @@ jobs:
       - name: Delete any remnant clusters
         run: ./local-dev/k3d cluster delete --all
 
-      - name: Setup stable cluster & smoke-test
+      - name: Setup stable cluster
         run: |
           make k3d/stable-local-stack \
             INSTALL_SEED_DATA=false \
@@ -98,6 +98,15 @@ jobs:
             LAGOON_CORE_USE_HTTPS=false \
             INSTALL_PROMETHEUS=false \
             INSTALL_AERGIA=false
+
+      - name: Start log collector (test-suite-0)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
+          echo $! > stern-0.pid
+          echo "Log collector started (PID $(cat stern-0.pid))"
 
       - name: Run stable smoke-test
         run: |
@@ -110,11 +119,11 @@ jobs:
             INSTALL_PROMETHEUS=false \
             INSTALL_AERGIA=false
 
-      - name: Collect cluster logs (test-suite-0)
+      - name: Stop log collector and print logs
+        if: always()
         run: |
-          timeout 100 ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' -t
+          kill $(cat stern-0.pid) 2>/dev/null || true
+          cat test-suite-0.txt
 
       # - name: Upload test-suite-0 logs
       #   if: always()
@@ -134,18 +143,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start log collector (test-suite-1)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt 2>&1 &
+          echo $! > stern-1.pid
+          echo "Log collector started (PID $(cat stern-1.pid))"
+
       - name: Run first test suite
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
             TESTS=[api,api-routes,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] \
             BRANCH_NAME="${SAFEBRANCH_NAME}"
 
-      - name: Collect logs (test-suite-1)
+      - name: Stop log collector and print logs
         if: always()
         run: |
-          timeout 100 ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t
+          kill $(cat stern-1.pid) 2>/dev/null || true
+          cat test-suite-1.txt
 
       # - name: Upload test-suite-1 logs
       #   if: always()
@@ -165,18 +182,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start log collector (test-suite-2)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt 2>&1 &
+          echo $! > stern-2.pid
+          echo "Log collector started (PID $(cat stern-2.pid))"
+
       - name: Run second test suite
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
             TESTS=[bulk-deployment,image-cache,services,services-2,ssh-legacy,tasks,project-clone] \
             BRANCH_NAME="${SAFEBRANCH_NAME}"
 
-      - name: Collect logs (test-suite-2)
+      - name: Stop log collector and print logs
         if: always()
         run: |
-          timeout 100 ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t
+          kill $(cat stern-2.pid) 2>/dev/null || true
+          cat test-suite-2.txt
 
       # - name: Upload test-suite-2 logs
       #   if: always()
@@ -196,18 +221,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start log collector (test-suite-3)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt 2>&1 &
+          echo $! > stern-3.pid
+          echo "Log collector started (PID $(cat stern-3.pid))"
+
       - name: Run third test suite
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
             TESTS=[gitlab,github,bitbucket,python,drush] \
             BRANCH_NAME="${SAFEBRANCH_NAME}"
 
-      - name: Collect logs (test-suite-3)
+      - name: Stop log collector and print logs
         if: always()
         run: |
-          timeout 100 ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t
+          kill $(cat stern-3.pid) 2>/dev/null || true
+          cat test-suite-3.txt
 
       # - name: Upload test-suite-3 logs
       #   if: always()
