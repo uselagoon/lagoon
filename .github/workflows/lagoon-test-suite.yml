@@ -39,37 +39,25 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-  build:
-    name: Build images
+  setup-cluster:
+    name: Setup cluster and run tests
     runs-on: ubuntu-latest
     needs: [check-skip]
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-    steps:
-      - uses: actions/checkout@v4
-
-      # - name: Print env
-      #   run: env
-
-      # - name: Build images
-      #   run: make -j$(getconf _NPROCESSORS_ONLN) -O build
-
-      # - name: Run Go tests
-      #   run: make go/test
-
-      # - name: Show Trivy scan results
-      #   run: cat scan.txt
-
-  setup-cluster:
-    name: Setup test cluster
-    runs-on: ubuntu-latest
-    needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Run Go tests
+        run: make go/test
+
+      - name: Build images
+        run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/amd64
+
+      - name: Show Trivy scan results
+        run: cat scan.txt
 
       - name: Configure k3d
         run: make local-dev-tools
@@ -132,17 +120,6 @@ jobs:
       #     name: test-suite-0-logs
       #     path: test-suite-0.txt
 
-  test-suite-1:
-    name: Run first test suite
-    runs-on: ubuntu-latest
-    needs: [check-skip, setup-cluster]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Start log collector (test-suite-1)
         run: |
           while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
@@ -170,17 +147,6 @@ jobs:
       #   with:
       #     name: test-suite-1-logs
       #     path: test-suite-1.txt
-
-  test-suite-2:
-    name: Run second test suite
-    runs-on: ubuntu-latest
-    needs: [check-skip, setup-cluster]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Start log collector (test-suite-2)
         run: |
@@ -210,17 +176,6 @@ jobs:
       #     name: test-suite-2-logs
       #     path: test-suite-2.txt
 
-  test-suite-3:
-    name: Run third test suite
-    runs-on: ubuntu-latest
-    needs: [check-skip, setup-cluster]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Start log collector (test-suite-3)
         run: |
           while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
@@ -249,3 +204,5 @@ jobs:
       #     name: test-suite-3-logs
       #     path: test-suite-3.txt
 
+      - name: Build arm images
+        run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/arm64
