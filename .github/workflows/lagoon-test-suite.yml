@@ -74,9 +74,19 @@ jobs:
       - name: Configure k3d
         run: make local-dev-tools
 
-      - name: Delete any remnant clusters
-        run: ./local-dev/k3d cluster delete --all
+      - name: Setup ca
+        run: |
+          make k3d/generate-ca
 
+      - name: Trust internal registry CA
+        run: |
+          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
+          sudo update-ca-certificates
+
+          # Also tell Docker about it
+          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
+          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
+          sudo systemctl reload docker || true
       - name: Setup stable cluster & smoke-test
         run: |
           make k3d/stable-local-stack \
