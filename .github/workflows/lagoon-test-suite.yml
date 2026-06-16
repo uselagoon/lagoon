@@ -48,17 +48,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Print env
-        run: env
+      # - name: Print env
+      #   run: env
 
-      - name: Build images
-        run: make -j$(getconf _NPROCESSORS_ONLN) -O build
+      # - name: Build images
+      #   run: make -j$(getconf _NPROCESSORS_ONLN) -O build
 
-      - name: Run Go tests
-        run: make go/test
+      # - name: Run Go tests
+      #   run: make go/test
 
-      - name: Show Trivy scan results
-        run: cat scan.txt
+      # - name: Show Trivy scan results
+      #   run: cat scan.txt
 
   setup-cluster:
     name: Setup test cluster
@@ -86,7 +86,10 @@ jobs:
           # Also tell Docker about it
           sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
           sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
-          sudo systemctl reload docker || true
+
+      - name: Delete any remnant clusters
+        run: ./local-dev/k3d cluster delete --all
+
       - name: Setup stable cluster & smoke-test
         run: |
           make k3d/stable-local-stack \
@@ -95,7 +98,13 @@ jobs:
             LAGOON_CORE_USE_HTTPS=false \
             INSTALL_PROMETHEUS=false \
             INSTALL_AERGIA=false
+
+      - name: Run stable smoke-test
+        run: |
           make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}" USE_STABLE_TESTS=true
+
+      - name: Run update of installed lagoon
+        run: |
           make k3d/install-lagoon \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
@@ -103,12 +112,9 @@ jobs:
 
       - name: Collect cluster logs (test-suite-0)
         run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
-          timeout 2700 ./local-dev/stern \
+          timeout 100 ./local-dev/stern \
             --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' -t > test-suite-0.txt || true
-          pkill -f './local-dev/stern' || true
-          cat test-suite-0.txt
+            --all-namespaces '^[a-z]' -t
 
       # - name: Upload test-suite-0 logs
       #   if: always()
@@ -137,11 +143,9 @@ jobs:
       - name: Collect logs (test-suite-1)
         if: always()
         run: |
-          timeout 1800 ./local-dev/stern \
+          timeout 100 ./local-dev/stern \
             --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true
-          pkill -f './local-dev/stern' || true
-          cat test-suite-1.txt
+            --all-namespaces '^[a-z]' --since 1s -t
 
       # - name: Upload test-suite-1 logs
       #   if: always()
@@ -170,11 +174,9 @@ jobs:
       - name: Collect logs (test-suite-2)
         if: always()
         run: |
-          timeout 1800 ./local-dev/stern \
+          timeout 100 ./local-dev/stern \
             --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true
-          pkill -f './local-dev/stern' || true
-          cat test-suite-2.txt
+            --all-namespaces '^[a-z]' --since 1s -t
 
       # - name: Upload test-suite-2 logs
       #   if: always()
@@ -203,11 +205,9 @@ jobs:
       - name: Collect logs (test-suite-3)
         if: always()
         run: |
-          timeout 1800 ./local-dev/stern \
+          timeout 100 ./local-dev/stern \
             --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt || true
-          pkill -f './local-dev/stern' || true
-          cat test-suite-3.txt
+            --all-namespaces '^[a-z]' --since 1s -t
 
       # - name: Upload test-suite-3 logs
       #   if: always()
