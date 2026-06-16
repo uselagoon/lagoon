@@ -48,6 +48,12 @@ jobs:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
     steps:
+      # Continue after getting a shell via: `touch continue`
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 1
+        continue-on-error: true
+
       - uses: actions/checkout@v4
 
       - name: Run Go tests
