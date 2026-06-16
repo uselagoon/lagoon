@@ -1,0 +1,208 @@
+name: Lagoon Test Suite
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+
+permissions:
+   contents: read
+
+jobs:
+  check-skip:
+    name: Check if docs-only
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      safe_branch: ${{ steps.vars.outputs.safe_branch }}
+      ci_build_tag: ${{ steps.vars.outputs.ci_build_tag }}
+    steps:
+      - name: Compute branch variables
+        id: vars
+        run: |
+          RAW="${{ github.head_ref || github.ref_name }}"
+          SAFEBRANCH=$(echo "$RAW" | sed 's|%2F|-|g' | sed 's|[^A-Za-z0-9]|-|g' | tr '[:upper:]' '[:lower:]')
+          RUNNUM="${{ github.run_number }}"
+          COMBINED=$(echo "${SAFEBRANCH}${RUNNUM}" | sed 's|%2f||g' | sed 's|[^A-Za-z0-9]||g' | tr '[:upper:]' '[:lower:]')
+          TAG="lagoon$(echo "$COMBINED" | rev | cut -c1-26 | rev)"
+          echo "safe_branch=$SAFEBRANCH" >> "$GITHUB_OUTPUT"
+          echo "ci_build_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Check for docs-only branch
+        id: check
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          if echo "$BRANCH" | grep -qE '^docs/'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Docs only update, no build needed."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build images
+    runs-on: ubuntu-latest
+    needs: [check-skip]
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Print env
+        run: env
+
+      - name: Build images
+        run: make -j$(getconf _NPROCESSORS_ONLN) -O build
+
+      - name: Run Go tests
+        run: make go/test
+
+      - name: Show Trivy scan results
+        run: cat scan.txt
+
+  setup-cluster:
+    name: Setup test cluster
+    runs-on: ubuntu-latest
+    needs: [check-skip, build]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure k3d
+        run: make local-dev-tools
+
+      - name: Delete any remnant clusters
+        run: ./local-dev/k3d cluster delete --all
+
+      - name: Setup stable cluster & smoke-test
+        run: |
+          make k3d/stable-local-stack \
+            INSTALL_SEED_DATA=false \
+            BRANCH_NAME="${SAFEBRANCH_NAME}" \
+            LAGOON_CORE_USE_HTTPS=false \
+            INSTALL_PROMETHEUS=false \
+            INSTALL_AERGIA=false
+          make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}" USE_STABLE_TESTS=true
+          make k3d/install-lagoon \
+            BRANCH_NAME="${SAFEBRANCH_NAME}" \
+            INSTALL_PROMETHEUS=false \
+            INSTALL_AERGIA=false
+
+      - name: Collect cluster logs (test-suite-0)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          timeout 2700 ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' -t > test-suite-0.txt || true
+          pkill -f './local-dev/stern' || true
+          cat test-suite-0.txt
+
+      # - name: Upload test-suite-0 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-0-logs
+      #     path: test-suite-0.txt
+
+  test-suite-1:
+    name: Run first test suite
+    runs-on: ubuntu-latest
+    needs: [check-skip, setup-cluster]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run first test suite
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
+            TESTS=[api,api-routes,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables] \
+            BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Collect logs (test-suite-1)
+        if: always()
+        run: |
+          timeout 1800 ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true
+          pkill -f './local-dev/stern' || true
+          cat test-suite-1.txt
+
+      # - name: Upload test-suite-1 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-1-logs
+      #     path: test-suite-1.txt
+
+  test-suite-2:
+    name: Run second test suite
+    runs-on: ubuntu-latest
+    needs: [check-skip, setup-cluster]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run second test suite
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
+            TESTS=[bulk-deployment,image-cache,services,services-2,ssh-legacy,tasks,project-clone] \
+            BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Collect logs (test-suite-2)
+        if: always()
+        run: |
+          timeout 1800 ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true
+          pkill -f './local-dev/stern' || true
+          cat test-suite-2.txt
+
+      # - name: Upload test-suite-2 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-2-logs
+      #     path: test-suite-2.txt
+
+  test-suite-3:
+    name: Run third test suite
+    runs-on: ubuntu-latest
+    needs: [check-skip, setup-cluster]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run third test suite
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
+            TESTS=[gitlab,github,bitbucket,python,drush] \
+            BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Collect logs (test-suite-3)
+        if: always()
+        run: |
+          timeout 1800 ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt || true
+          pkill -f './local-dev/stern' || true
+          cat test-suite-3.txt
+
+      # - name: Upload test-suite-3 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-3-logs
+      #     path: test-suite-3.txt
+
