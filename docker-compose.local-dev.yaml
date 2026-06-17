@@ -45,4 +45,4 @@ services:
       - "./local-dev/keycloak:/lagoon/keycloak"
   local-api-data-watcher-pusher:
     volumes:
-      - ./local-dev/api-data-watcher-pusher:/home
+      - ./local-dev/api-data-watcher-pusher:/app

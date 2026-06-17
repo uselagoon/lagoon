@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # inject variables from environment into the GQL template
-envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /home/api-data/03-populate-api-data-ci-local-control-k8s.gql | sponge /home/api-data/03-populate-api-data-ci-local-control-k8s.gql
+envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /app/api-data/03-populate-api-data-ci-local-control-k8s.gql | sponge /app/api-data/03-populate-api-data-ci-local-control-k8s.gql
 
-populate_demo_lagoon_gql_file_path="/home/api-data/01-populate-api-data-lagoon-demo.gql"
-populate_demo_lagoon_org_gql_file_path="/home/api-data/02-populate-api-data-lagoon-demo-org.gql"
-populate_ci_local_control_k8s_gql_file_path="/home/api-data/03-populate-api-data-ci-local-control-k8s.gql"
-sample_task_file_path="/home/minio-data/task-files/sample-task-file.txt"
+populate_demo_lagoon_gql_file_path="/app/api-data/01-populate-api-data-lagoon-demo.gql"
+populate_demo_lagoon_org_gql_file_path="/app/api-data/02-populate-api-data-lagoon-demo-org.gql"
+populate_ci_local_control_k8s_gql_file_path="/app/api-data/03-populate-api-data-ci-local-control-k8s.gql"
+sample_task_file_path="/app/minio-data/task-files/sample-task-file.txt"
 
 wait_for_services() {
     echo "waiting for ${API_HOST:-api}:${API_PORT:-3000}"
@@ -17,7 +17,7 @@ wait_for_services() {
 send_graphql_query() {
     local file_path=${1}
 
-    API_ADMIN_JWT_TOKEN=$(/home/create_jwt.py)
+    API_ADMIN_JWT_TOKEN=$(/app/create_jwt.py)
 
     bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
@@ -31,16 +31,16 @@ send_graphql_query() {
 }
 
 update_minio_files() {
-	mcli config host add local-minio ${MINIO_SERVER_URL-http://local-minio:9000} ${MINIO_ROOT_USER:-minio} ${MINIO_ROOT_PASSWORD:-minio123}
-	mcli cp --recursive /home/minio-data/lagoon-files/ local-minio/lagoon-files
-	mcli cp --recursive /home/minio-data/restores/ local-minio/restores
+	mcli alias set local-minio ${MINIO_SERVER_URL-http://local-minio:9000} ${MINIO_ROOT_USER:-minio} ${MINIO_ROOT_PASSWORD:-minio123}
+	mcli cp --recursive /app/minio-data/lagoon-files/ local-minio/lagoon-files
+	mcli cp --recursive /app/minio-data/restores/ local-minio/restores
 }
 
 send_task_data() {
     local task_id=${1}
     local file_path=${2}
 
-    API_ADMIN_JWT_TOKEN=$(/home/create_jwt.py)
+    API_ADMIN_JWT_TOKEN=$(/app/create_jwt.py)
 
     bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
