@@ -425,6 +425,93 @@ jobs:
       #     name: test-suite-4-logs
       #     path: test-suite-4.txt
 
+
+  setup-cluster-5:
+    name: Setup cluster 5 and run tests
+    runs-on: ubuntu-latest
+    needs: [check-skip]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+    steps:
+      # Continue after getting a shell via: `touch continue`
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 1
+        continue-on-error: true
+
+      - uses: actions/checkout@v4
+
+      - name: Configure local-dev tools
+        run: make local-dev-tools
+
+      - name: Setup and trust local-stack CA
+        run: |
+          make k3d/generate-ca
+          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
+          sudo update-ca-certificates
+
+          # Also tell Docker about it
+          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
+          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
+          ./local-dev/k3d cluster delete --all
+
+      - name: Setup cluster
+        run: |
+          make k3d/local-stack \
+            INSTALL_SEED_DATA=false \
+            BRANCH_NAME="${SAFEBRANCH_NAME}" \
+            INSTALL_PROMETHEUS=false \
+            INSTALL_AERGIA=false
+
+      - name: Start log collector (test-suite-0)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
+          echo $! > stern-0.pid
+          echo "Log collector started (PID $(cat stern-0.pid))"
+
+      - name: Run smoke-test (nginx)
+        run: |
+          make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Stop log collector and print logs
+        if: always()
+        run: |
+          kill $(cat stern-0.pid) 2>/dev/null || true
+          cat test-suite-0.txt
+
+      - name: Start log collector (test-suite-4)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-4.txt 2>&1 &
+          echo $! > stern-3.pid
+          echo "Log collector started (PID $(cat stern-3.pid))"
+
+      - name: Run ssh-legacy test suite
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
+            TESTS=[ssh-legacy] \
+            BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Stop log collector and print logs
+        if: always()
+        run: |
+          kill $(cat stern-3.pid) 2>/dev/null || true
+          cat test-suite-4.txt
+
+      # - name: Upload test-suite-4 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-4-logs
+      #     path: test-suite-4.txt
+
   go-test:
     name: Test Go
     runs-on: ubuntu-latest
