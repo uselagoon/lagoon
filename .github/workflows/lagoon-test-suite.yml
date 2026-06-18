@@ -545,13 +545,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Snapshot pre-build images
+        run: docker images -q > /tmp/before.txt
+
       - name: Build images
         run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/amd64
-        - name: Build images
 
       - name: Save lagoon images
         run: |
-          IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '^(testlagoon|uselagoon)/')
+          IMAGES=$(comm -13 <(sort /tmp/before.txt) <(docker images -q | sort) | uniq)
           echo "Saving images: $IMAGES"
           docker save $IMAGES -o images.tar
 
