@@ -9,6 +9,7 @@ import { Sql } from './sql';
 import { Sql as SshKeySql} from '../sshKey/sql';
 import { Sql as deploymentSql} from '../deployment/sql';
 import { Sql as notificationsSql} from '../notification/sql'
+import { Sql as deployTargetConfigSql} from '../deploytargetconfig/sql'
 import * as OS from '../openshift/sql';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { Sql as envvarSql } from '../env-variables/sql'
@@ -1233,6 +1234,12 @@ export const cloneProject: ResolverFn = async (
   const latestDeployment = await query(sqlClientPool, deploymentSql.selectLatestDeploymentForEnvironment(environmentData.id));
   if (latestDeployment && latestDeployment[0]?.status !== 'complete') {
     throw new Error('The source environment must have at least one successful deployment');
+  }
+
+// check if the project has deploytarget configurations - not currently supported for cloning
+  const deployTargetConfigs = await query(sqlClientPool, deployTargetConfigSql.selectDeployTargetConfigsByProjectId(sourceProject.id));
+  if (deployTargetConfigs && deployTargetConfigs.length > 0) {
+    throw new Error('Cloning projects with deploytarget configurations is not currently supported');
   }
 
   // clone the project schema and create new project from source project
