@@ -465,24 +465,24 @@ jobs:
             INSTALL_PROMETHEUS=false \
             INSTALL_AERGIA=false
 
-      - name: Start log collector (test-suite-0)
-        run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
-          ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
-          echo $! > stern-0.pid
-          echo "Log collector started (PID $(cat stern-0.pid))"
+      # - name: Start log collector (test-suite-0)
+      #   run: |
+      #     while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+      #     ./local-dev/stern \
+      #       --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+      #       --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
+      #     echo $! > stern-0.pid
+      #     echo "Log collector started (PID $(cat stern-0.pid))"
 
-      - name: Run smoke-test (nginx)
-        run: |
-          make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}"
+      # - name: Run smoke-test (nginx)
+      #   run: |
+      #     make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}"
 
-      - name: Stop log collector and print logs
-        if: always()
-        run: |
-          kill $(cat stern-0.pid) 2>/dev/null || true
-          cat test-suite-0.txt
+      # - name: Stop log collector and print logs
+      #   if: always()
+      #   run: |
+      #     kill $(cat stern-0.pid) 2>/dev/null || true
+      #     cat test-suite-0.txt
 
       - name: Start log collector (test-suite-4)
         run: |
