@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} AS commons
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -30,7 +30,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y curl build-essential ssh curl vim jq python3-jwt
 
 ENV LAGOON=ssh \
-    KUBECTL_VERSION=v1.25.0 \
+    KUBECTL_VERSION=v1.35.3 \
     TZ=UTC
 
 RUN architecture=$(case $(uname -m) in x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
