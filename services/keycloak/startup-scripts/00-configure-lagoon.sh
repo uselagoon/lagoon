@@ -7,7 +7,6 @@ set -eo pipefail
 #####################
 
 function is_keycloak_running {
-    curl -s -w "%{http_code}" http://localhost:8080/auth/admin/realms
     local http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/auth/admin/realms)
     if [[ $http_code -eq 401 ]]; then
         return 0

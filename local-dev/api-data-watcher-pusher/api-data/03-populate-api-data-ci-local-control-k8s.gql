@@ -51,6 +51,19 @@ mutation PopulateApi {
     id
   }
 
+
+  CiCustomerSshKeyEd25519: addUserSSHPublicKey(
+    input: {
+      name: "sshkey-ci-customer-user-ed25519"
+      publicKey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRrqOg8P2M8enNKH0R/YbaV4Edvh1P21YS6Ops4Mi25"
+      user: {
+        email: "ci-customer-user-rsa@example.com"
+      }
+    }
+  ) {
+    id
+  }
+
   ### Add Users to Groups
   CiCustomerUserAddRsa: addUserToGroup(
     input: {

@@ -1,5 +1,5 @@
 # Stage: Build the custom token mapper
-FROM maven:3.9.14-eclipse-temurin-21-alpine as builder
+FROM maven:3.9.16-eclipse-temurin-21-alpine as builder
 COPY custom-mapper/. .
 RUN mvn clean compile package
 
@@ -20,7 +20,7 @@ COPY javascript /tmp/lagoon-scripts
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
 # Stage: Build the keycloak image
-FROM quay.io/keycloak/keycloak:26.4.7
+FROM quay.io/keycloak/keycloak:26.6.3
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
@@ -87,7 +87,7 @@ ENV TMPDIR=/tmp \
 
 VOLUME /opt/keycloak/data
 
-RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.1.1/keycloak-home-idp-discovery.jar
+RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.2.1/keycloak-home-idp-discovery.jar
 
 COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
@@ -102,6 +102,7 @@ COPY --from=builder /target/custom-protocol-mapper-1.1.1.jar /opt/keycloak/provi
 COPY lagoon-realm-base-import.json /lagoon/seed/lagoon-realm-base-import.json
 
 RUN /opt/keycloak/bin/kc.sh build
+
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["start"]
