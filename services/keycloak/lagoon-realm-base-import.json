@@ -726,6 +726,7 @@
       "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
+      "attributes": {},
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
