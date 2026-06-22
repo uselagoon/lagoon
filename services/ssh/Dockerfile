@@ -65,7 +65,8 @@ RUN fix-permissions /home/token.sh
 RUN fix-permissions /home/grant.sh
 
 RUN fix-permissions /etc/ssh/ && \
-    fix-permissions /run/
+    fix-permissions /run/ && \
+    fix-permissions /etc/libnss-ato.conf
 
 RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
 
