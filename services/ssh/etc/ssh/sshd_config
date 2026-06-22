@@ -16,7 +16,6 @@ AuthorizedKeysFile /no_authorized_keys
 
 AuthorizedKeysCommand /authorize.sh %u %f
 AuthorizedKeysCommandUser lagoon
-AllowUsers *
 
 HostbasedAuthentication no
 
