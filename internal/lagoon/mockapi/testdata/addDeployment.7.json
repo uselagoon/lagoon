@@ -1,0 +1,17 @@
+{
+    "data": {
+        "addDeployment": {
+            "completed": null,
+            "created": "2025-08-06 01:01:11",
+            "environment": {
+                "name": "pr-3"
+            },
+            "id": 46,
+            "name": "lagoon-build-abcdefg",
+            "remoteId": null,
+            "started": null,
+            "status": "new",
+            "uiLink": "https://ui.example.com/projects/demo-project7/demo-project7-pr-3/deployments/lagoon-build-abcdefg"
+        }
+    }
+}

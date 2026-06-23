@@ -6,6 +6,7 @@ mutation PopulateApi {
       id: 4
       name: "ui-kubernetes"
       consoleUrl: "https://localhost:8443/"
+      routerPattern: "${project}.${environment}.ui-1.example.com"
     }
   ) {
     id

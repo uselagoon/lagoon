@@ -1,0 +1,110 @@
+{
+    "data": {
+        "allProjects": [
+            {
+                "autoIdle": 1,
+                "branches": "true",
+                "buildImage": null,
+                "pullrequests": "^(?!WIP:).+",
+                "deployTargetConfigs": [],
+                "deploymentsDisabled": 0,
+                "developmentBuildPriority": 5,
+                "developmentEnvironmentsLimit": 5,
+                "envVariables": [
+                    {
+                        "name": "SSMTP_MAILHUB",
+                        "scope": "runtime",
+                        "value": "mxout.lagoon.svc:25"
+                    }
+                ],
+                "environments": [
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 5,
+                        "name": "dev",
+                        "kubernetesNamespaceName": "demo-project1-dev",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    },
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "production",
+                        "id": 3,
+                        "name": "main",
+                        "kubernetesNamespaceName": "demo-project1-main",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    },
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 6,
+                        "name": "pr-3",
+                        "kubernetesNamespaceName": "demo-project1-pr-3",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    },
+                    {
+                        "autoIdle": 1,
+                        "environmentType": "development",
+                        "id": 4,
+                        "name": "staging",
+                        "kubernetesNamespaceName": "demo-project1-staging",
+                        "openshift": {
+                            "buildImage": null,
+                            "disabled": false,
+                            "id": 2001,
+                            "monitoringConfig": null,
+                            "name": "ci-local-control-k8s",
+                            "routerPattern": "${project}.${environment}.example.com",
+                            "sharedBaasBucketName": null
+                        }
+                    }
+                ],
+                "gitUrl": "git@github.com:amazeeio/lagoon-nginx-example.git",
+                "id": 18,
+                "name": "demo-project1",
+                "openshift": {
+                    "buildImage": null,
+                    "disabled": false,
+                    "id": 2001,
+                    "monitoringConfig": null,
+                    "name": "ci-local-control-k8s",
+                    "routerPattern": "${project}.${environment}.example.com",
+                    "sharedBaasBucketName": null
+                },
+                "organizationDetails": null,
+                "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nSNIPKEY\n-----END OPENSSH PRIVATE KEY-----\n",
+                "productionBuildPriority": 6,
+                "productionEnvironment": "main",
+                "routerPattern": null,
+                "sharedBaasBucket": true,
+                "standbyProductionEnvironment": null,
+                "storageCalc": 1,
+                "subfolder": null
+            }
+        ]
+    }
+}

@@ -1,0 +1,110 @@
+{
+    "eventKey": "repo:refs_changed",
+    "date": "2025-09-01T00:29:15+0000",
+    "actor": {
+        "name": "exampleuser",
+        "emailAddress": "user@example.com",
+        "active": true,
+        "displayName": "Example User",
+        "id": 3,
+        "slug": "exampleuser",
+        "type": "NORMAL",
+        "links": {
+            "self": [
+                {
+                    "href": "http://localhost:7990/users/exampleuser"
+                }
+            ]
+        }
+    },
+    "repository": {
+        "slug": "testrepo",
+        "id": 1,
+        "name": "testrepo",
+        "hierarchyId": "34319d1467d40bfffa18",
+        "scmId": "git",
+        "state": "AVAILABLE",
+        "statusMessage": "Available",
+        "forkable": true,
+        "project": {
+            "key": "TES",
+            "id": 1,
+            "name": "testproject",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+                "self": [
+                    {
+                        "href": "http://localhost:7990/projects/TES"
+                    }
+                ]
+            }
+        },
+        "public": false,
+        "archived": false,
+        "links": {
+            "clone": [
+                {
+                    "href": "ssh://git@localhost:7999/tes/testrepo.git",
+                    "name": "ssh"
+                },
+                {
+                    "href": "http://localhost:7990/scm/tes/testrepo.git",
+                    "name": "http"
+                }
+            ],
+            "self": [
+                {
+                    "href": "http://localhost:7990/projects/TES/repos/testrepo/browse"
+                }
+            ]
+        }
+    },
+    "changes": [
+        {
+            "ref": {
+                "id": "refs/heads/test-branch",
+                "displayId": "test-branch",
+                "type": "BRANCH"
+            },
+            "refId": "refs/heads/test-branch",
+            "fromHash": "0000000000000000000000000000000000000000",
+            "toHash": "8de94010c2f935534ab26158332cc119e4064f6e",
+            "type": "ADD"
+        }
+    ],
+    "commits": [
+        {
+            "id": "8de94010c2f935534ab26158332cc119e4064f6e",
+            "displayId": "8de94010c2f",
+            "author": {
+                "name": "exampleuser",
+                "emailAddress": "user@example.com"
+            },
+            "authorTimestamp": 1756686536000,
+            "committer": {
+                "name": "exampleuser",
+                "emailAddress": "user@example.com"
+            },
+            "committerTimestamp": 1756686536000,
+            "message": "readme",
+            "parents": []
+        }
+    ],
+    "toCommit": {
+        "id": "8de94010c2f935534ab26158332cc119e4064f6e",
+        "displayId": "8de94010c2f",
+        "author": {
+            "name": "exampleuser",
+            "emailAddress": "user@example.com"
+        },
+        "authorTimestamp": 1756686536000,
+        "committer": {
+            "name": "exampleuser",
+            "emailAddress": "user@example.com"
+        },
+        "committerTimestamp": 1756686536000,
+        "message": "readme",
+        "parents": []
+    }
+}

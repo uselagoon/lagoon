@@ -25,5 +25,4 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 )
 
-// for local development usage
-// replace github.com/uselagoon/machinery v0.0.37 => ../../../../code/machinery
+// go get github.com/uselagoon/machinery@main for now until project cloning and v0.0.37 of machinery is ready for release
