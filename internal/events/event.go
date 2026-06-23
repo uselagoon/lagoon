@@ -35,8 +35,7 @@ func (e *Events) findProjectsByGitURL(gitType, event, uuid, gitURL string) ([]sc
 	}
 	resultProjects := []schema.Project{}
 	for _, project := range *projects {
-		one := uint(1)
-		if project.DeploymentsDisabled == nil || project.DeploymentsDisabled != &one {
+		if project.DeploymentsDisabled == nil || *project.DeploymentsDisabled != 1 {
 			resultProjects = append(resultProjects, project)
 		}
 	}

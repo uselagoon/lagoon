@@ -65,6 +65,12 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.4.json")
 				case variables["name"].(string) == "deploy/production":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.5.json")
+				case variables["name"].(string) == "dev-push":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.6.json")
+				case variables["name"].(string) == "pr-3":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.7.json")
+				case variables["name"].(string) == "promotemain":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.8.json")
 				}
 			}
 			if strings.Contains(request, "addDeployment") {
@@ -79,6 +85,12 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/addDeployment.4.json")
 				case variables["environment"].(float64) == 14:
 					a, _ = f.ReadFile("testdata/addDeployment.5.json")
+				case variables["environment"].(float64) == 15:
+					a, _ = f.ReadFile("testdata/addDeployment.6.json")
+				case variables["environment"].(float64) == 16:
+					a, _ = f.ReadFile("testdata/addDeployment.7.json")
+				case variables["environment"].(float64) == 17:
+					a, _ = f.ReadFile("testdata/addDeployment.8.json")
 				}
 			}
 			if strings.Contains(request, "projectByName") {

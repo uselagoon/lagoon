@@ -53,7 +53,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 	}
 
 	if len(project.DeployTargetConfigs) > 0 {
-		errs := []string{}
+		var errs []string
 		for _, dtc := range project.DeployTargetConfigs {
 			switch dtc.Pullrequests {
 			case "true":
