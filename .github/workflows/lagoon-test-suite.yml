@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   check-skip:
@@ -393,6 +392,9 @@ jobs:
     name: Build (${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
     needs: [check-skip]
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -412,57 +414,87 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          name: lagoon
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and populate cache
         env:
-          LAGOON_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-          DOCKER_BUILD_CACHE: >-
-            --set "*.cache-to=type=registry,ref=ghcr.io/${{ github.repository }}:buildcache-${{ github.sha }}-${{ matrix.platform_safe }}-{{.Target}},mode=max"
-            --set "*.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:buildcache-${{ github.sha }}-${{ matrix.platform_safe }}-{{.Target}}"
-            --set "*.output=type=cacheonly"
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
         run: |
-          make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }}
+          make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
+            LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
-  # publish-uselagoon:
-  #   name: Publish to uselagoon
-  #   needs: [build]
-  #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-  #   runs-on: ubuntu-latest
+      - name: Delete untagged buildcache package versions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const versions = await github.paginate(
+              github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg,
+              {
+                package_type: 'container',
+                package_name: 'lagoon',
+                org: context.repo.owner,
+              }
+            );
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+            for (const version of versions) {
+              const tags = version.metadata?.container?.tags ?? [];
+              if (tags.length === 0) {
+                console.log(`Deleting untagged version ${version.id} (${version.name})`);
+                await github.rest.packages.deletePackageVersionForOrg({
+                  package_type: 'container',
+                  package_name: 'lagoon',
+                  org: context.repo.owner,
+                  package_version_id: version.id,
+                });
+              }
+            }
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+  publish-uselagoon:
+    name: Publish to uselagoon (ghcr.io)
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
-  #     - name: Log in to GHCR
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Publish multi-arch to ghcr.io/uselagoon (versioned tag)
-  #       env:
-  #         LAGOON_VERSION: ${{ github.ref_name }}
-  #       run: |
-  #         docker buildx bake \
-  #           --file docker-bake.hcl \
-  #           --set "*.platform=linux/amd64,linux/arm64" \
-  #           --set "*.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:buildcache-${{ github.sha }}-linux-amd64-{{.Target}}" \
-  #           --set "*.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:buildcache-${{ github.sha }}-linux-arm64-{{.Target}}" \
-  #           --push \
-  #           default \
-  #           IMAGE_REPO=ghcr.io/uselagoon \
-  #           TAG=${{ github.ref_name }} \
-  #           LAGOON_VERSION=${LAGOON_VERSION}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          name: lagoon
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 8
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish multi-arch to ghcr.io/uselagoon
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+        run: |
+          make publish-uselagoon-images-pr \
+            CI_BUILD_TAG=lagoon \
+            PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
+            LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
+            CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
