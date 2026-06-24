@@ -42,11 +42,12 @@ jobs:
   setup-cluster:
     name: Setup cluster and run tests
     runs-on: ubuntu-latest
-    needs: [check-skip]
+    needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
     steps:
       # Continue after getting a shell via: `touch continue`
       - name: Setup tmate session
@@ -97,7 +98,8 @@ jobs:
           make k3d/install-lagoon \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false
+            INSTALL_AERGIA=false \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
       - name: Stop log collector and print logs
         if: always()
@@ -143,11 +145,12 @@ jobs:
   setup-cluster-2:
     name: Setup cluster 2 and run tests
     runs-on: ubuntu-latest
-    needs: [check-skip]
+    needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
     steps:
       # Continue after getting a shell via: `touch continue`
       - name: Setup tmate session
@@ -177,7 +180,8 @@ jobs:
             INSTALL_SEED_DATA=false \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false
+            INSTALL_AERGIA=false \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
       - name: Start log collector (test-suite-2)
         run: |
@@ -210,11 +214,12 @@ jobs:
   setup-cluster-3:
     name: Setup cluster 3 and run tests
     runs-on: ubuntu-latest
-    needs: [check-skip]
+    needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
     steps:
       # Continue after getting a shell via: `touch continue`
       - name: Setup tmate session
@@ -244,7 +249,8 @@ jobs:
             INSTALL_SEED_DATA=false \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false
+            INSTALL_AERGIA=false \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
       - name: Start log collector (test-suite-3)
         run: |
@@ -277,11 +283,12 @@ jobs:
   setup-cluster-4:
     name: Setup cluster 4 and run tests
     runs-on: ubuntu-latest
-    needs: [check-skip]
+    needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
+      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
     steps:
       # Continue after getting a shell via: `touch continue`
       - name: Setup tmate session
@@ -311,7 +318,8 @@ jobs:
             INSTALL_SEED_DATA=false \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false
+            INSTALL_AERGIA=false \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
       - name: Start log collector (test-suite-4)
         run: |
@@ -433,32 +441,6 @@ jobs:
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
             DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
-      - name: Delete untagged buildcache package versions
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const versions = await github.paginate(
-              github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg,
-              {
-                package_type: 'container',
-                package_name: 'lagoon',
-                org: context.repo.owner,
-              }
-            );
-
-            for (const version of versions) {
-              const tags = version.metadata?.container?.tags ?? [];
-              if (tags.length === 0) {
-                console.log(`Deleting untagged version ${version.id} (${version.name})`);
-                await github.rest.packages.deletePackageVersionForOrg({
-                  package_type: 'container',
-                  package_name: 'lagoon',
-                  org: context.repo.owner,
-                  package_version_id: version.id,
-                });
-              }
-            }
-
   publish-uselagoon:
     name: Publish to uselagoon (ghcr.io)
     needs: [build]
@@ -498,3 +480,41 @@ jobs:
             PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
             CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
+
+  cleanup-cache:
+    name: Cleanup GHCR
+    needs: [build, publish-uselagoon]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        package:
+          - lagoon/api
+          - lagoon/api-db
+          - lagoon/api-redis
+          - lagoon/actions-handler
+          - lagoon/auth-server
+          - lagoon/backup-handler
+          - lagoon/broker
+          - lagoon/api-sidecar-handler
+          - lagoon/keycloak-db
+          - lagoon/keycloak
+          - lagoon/local-api-data-watcher-pusher
+          - lagoon/local-git
+          - lagoon/logs2notifications
+          - lagoon/ssh
+          - lagoon/task-activestandby
+          - lagoon/task-projectclone
+          - lagoon/tests
+          - lagoon/webhook-handler
+          - lagoon #for buildcache tags
+    steps:
+      - name: Cleanup untagged and unreferenced versions for ${{ matrix.package }}
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: ${{ matrix.package }}
+          delete-untagged: true
+          delete-partial-images: false  # keeps per-arch digests referenced by a multi-arch manifest
