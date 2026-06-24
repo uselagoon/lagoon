@@ -5108,10 +5108,10 @@
 
 
 <h1 id="retention-policies">Retention Policies<a class="headerlink" href="#retention-policies" title="Permanent link">#</a></h1>
-<p>Retention policies are a way for Lagoon platform operators to be able to define how long certain items are retained for. General users aren't able to create or modify them.</p>
-<p>Currently, Lagoon has support for 2 main policy types</p>
+<p>Retention policies allow Lagoon platform operators to define the number of certain items to keep, and to clean up the rest. General users aren't able to create or modify them.</p>
+<p>Currently, Lagoon has support for 2 main policy types:</p>
 <ul>
-<li>Harbor - Used to define how long images are retained in Harbor after they're no longer used.</li>
+<li>Harbor - Used to define how many images are retained in Harbor.</li>
 <li>History - Used to define how much history for environment deployments and tasks are kept. This includes removing logs and any files associated to those deployments and tasks.</li>
 </ul>
 <div class="admonition info">
@@ -5126,14 +5126,23 @@
 <p>A policy of one type can only be applied to a scope at a single time. For example, if a <code>Harbor</code> policy is applied to the global scope, then you cannot add another <code>Harbor</code> policy to the global scope.</p>
 <p>Different policy types will have different methods of enforcement. See enforcement for each policy type below.</p>
 <h2 id="harbor-policies">Harbor Policies<a class="headerlink" href="#harbor-policies" title="Permanent link">#</a></h2>
-<p>This policy type is for managing how many images pushed to Harbor are retained. This is a simplified version of what Harbor offers that will work for images that Lagoon pushes into projects.</p>
-<p>The configuration options for Harbor retention policies are
-* enabled - the state of the policy
-* rules - a list of rules to apply (or based)
-  * name - the name of the rule
-  * pattern - the pattern to use, this is based on doublestar path pattern matching and globbing (Harbor uses this https://github.com/bmatcuk/doublestar#patterns)
-  * latestPulled - the number of images to retain for this rule
-* schedule - how often to run this retention policy in Harbor (this schedule is executed by Harbor, not lagoon)</p>
+<p>This policy type is for managing how many images in Harbor are retained. This is a simplified version of what Harbor offers that will work for images that Lagoon builds for projects.</p>
+<p>The configuration options for Harbor retention policies are:</p>
+<ul>
+<li><code>enabled</code> - the state of the policy</li>
+<li><code>rules</code> - a list of rules to apply<ul>
+<li><code>name</code> - the name of the rule</li>
+<li><code>pattern</code> - the pattern to match images<ul>
+<li>Images are named using format <code>environment/service</code>, for example <code>main/cli</code> or <code>pr-256/php</code></li>
+<li>Patterns are based on <a href="https://github.com/bmatcuk/doublestar#patterns">doublestar path pattern matching and globbing</a></li>
+</ul>
+</li>
+<li><code>latestPulled</code> - keep this number of last pulled images</li>
+<li><code>latestPushed</code> - keep this number of last pushed images</li>
+</ul>
+</li>
+<li><code>schedule</code> - how often to run this retention policy in Harbor (this schedule is executed by Harbor, not lagoon)</li>
+</ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Changing a policy from <code>enabled: true</code> to <code>enabled: false</code> will remove the policy from anything it may be associated to. This can be used to set a global (or organization) policy and allow an organization (or project) policy to disable it.</p>
@@ -5141,7 +5150,7 @@
 <h3 id="enforcement">Enforcement<a class="headerlink" href="#enforcement" title="Permanent link">#</a></h3>
 <p>When a Harbor policy is linked, unlinked, or updated, a message is sent to any associated DeployTargets (Kubernetes) to pass on to the Harbor defined in that DeployTarget.</p>
 <p>For example, if a Harbor policy is linked to a scope, a hook is executed which will work out, based on the scope, which DeployTargets need to be informed of the new policy.</p>
-<p>If there exists a global scoped Harbor policy, and a new organization based policy is created and linked to an organization. The policy enforcer will work out which DeployTargets any projects within that organization need to be informed of this new policy and send messages to them so they update the policy in their respective Harbors.
+<p>If there exists a global scoped Harbor policy, and a new organization based policy is created and linked to an organization, the policy enforcer will work out which DeployTargets any projects within that organization need to be informed of this new policy and send messages to them so they update the policy in their respective Harbors.
 If the organization based policy is removed from the organization, then the enforcer will send a message to all of the projects in that organization again to inform them to revert back to the global policy. The same actions are performed if the policy would be applied to a project scope.</p>
 <h3 id="creating-a-harbor-policy">Creating a Harbor policy<a class="headerlink" href="#creating-a-harbor-policy" title="Permanent link">#</a></h3>
 <div class="language-text highlight"><span class="filename">Text Only</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mutation createHarborPolicy {
@@ -5198,12 +5207,14 @@ If the organization based policy is removed from the organization, then the enfo
 </span></code></pre></div></p>
 <h2 id="history-policies">History Policies<a class="headerlink" href="#history-policies" title="Permanent link">#</a></h2>
 <p>This policy type will trim down the number of items that are retained in an environments history.</p>
-<p>The configuration options for history are
-* enabled - the state of the policy
-* deploymentType - can be one of <code>COUNT</code>, <code>DAYS</code>, <code>MONTHS</code>
-* deploymentHistory - depending on the type selected, will retain deployments (logs, status, etc...) to this number accordingly
-* taskType - can be one of <code>COUNT</code>, <code>DAYS</code>, <code>MONTHS</code>
-* taskHistory - depending on the type selected, will retain task history (logs, status, etc...) to this number accordingly</p>
+<p>The configuration options for history are:</p>
+<ul>
+<li><code>enabled</code> - the state of the policy</li>
+<li><code>deploymentType</code> - can be one of <code>COUNT</code>, <code>DAYS</code>, <code>MONTHS</code></li>
+<li><code>deploymentHistory</code> - depending on the type selected, will retain deployments (logs, status, etc...) to this number accordingly</li>
+<li><code>taskType</code> - can be one of <code>COUNT</code>, <code>DAYS</code>, <code>MONTHS</code></li>
+<li><code>taskHistory</code> - depending on the type selected, will retain task history (logs, status, etc...) to this number accordingly</li>
+</ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>There is a variable <code>ENABLE_SAVED_HISTORY_EXPORT</code> that is <code>false</code> by default. Setting this to <code>true</code> will export data for any deleted environments to the s3 files bucket before the environment is deleted. This exports the current <code>project</code>, <code>environment</code>, and the associated environments <code>task</code> and <code>deployment</code> history at the time of deletion. The path of this file will be <code>history/${projectname}-${projectid}/${environmentname}-${environmentid}/history-${unixtimestamp}.json</code>.</p>
