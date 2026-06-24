@@ -57,6 +57,13 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure local-dev tools
         run: make local-dev-tools
 
@@ -160,6 +167,13 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure local-dev tools
         run: make local-dev-tools
 
@@ -229,6 +243,13 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure local-dev tools
         run: make local-dev-tools
 
@@ -297,6 +318,13 @@ jobs:
         continue-on-error: true
 
       - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure local-dev tools
         run: make local-dev-tools
