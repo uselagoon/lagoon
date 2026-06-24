@@ -40,6 +40,10 @@ variable "CACHE_TAG" {
   default = ""
 }
 
+variable "CACHE_TAG_PUSH" {
+  default = ""
+}
+
 target "default"{
   platforms = ["${PLATFORMS}"]
   dockerfile = "Dockerfile"
@@ -179,8 +183,8 @@ target "api" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-api" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-api" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-api", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-api", mode = "max" }
   ] : []
 }
 
@@ -196,8 +200,8 @@ target "api-db" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-api-db" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-api-db" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-api-db", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-api-db", mode = "max" }
   ] : []
 }
 
@@ -212,8 +216,8 @@ target "api-redis" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-api-redis" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-api-redis" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-api-redis", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-api-redis", mode = "max" }
   ] : []
 }
 
@@ -228,8 +232,8 @@ target "actions-handler" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-actions-handler" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-actions-handler" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-actions-handler", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-actions-handler", mode = "max" }
   ] : []
 }
 
@@ -247,8 +251,8 @@ target "auth-server" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-auth-server" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-auth-server" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-auth-server", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-auth-server", mode = "max" }
   ] : []
 }
 
@@ -263,8 +267,8 @@ target "backup-handler" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-backup-handler" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-backup-handler" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-backup-handler", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-backup-handler", mode = "max" }
   ] : []
 }
 
@@ -279,8 +283,8 @@ target "broker" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-broker" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-broker" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-broker", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-broker", mode = "max" }
   ] : []
 }
 
@@ -296,8 +300,8 @@ target "api-sidecar-handler" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-api-sidecar-handler" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-api-sidecar-handler" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-api-sidecar-handler", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-api-sidecar-handler", mode = "max" }
   ] : []
 }
 
@@ -312,8 +316,8 @@ target "keycloak" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-keycloak" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-keycloak" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-keycloak", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-keycloak", mode = "max" }
   ] : []
 }
 
@@ -329,8 +333,8 @@ target "keycloak-db" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-keycloak-db" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-keycloak-db" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-keycloak-db", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-keycloak-db", mode = "max" }
   ] : []
 }
 
@@ -345,8 +349,8 @@ target "logs2notifications" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-logs2notifications" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-logs2notifications" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-logs2notifications", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-logs2notifications", mode = "max" }
   ] : []
 }
 
@@ -362,8 +366,8 @@ target "ssh" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-ssh" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-ssh" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-ssh", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-ssh", mode = "max" }
   ] : []
 }
 
@@ -378,8 +382,8 @@ target "tests" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-tests" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-tests" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-tests", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-tests", mode = "max" }
   ] : []
 }
 
@@ -395,8 +399,8 @@ target "webhook-handler" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-webhook-handler" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-webhook-handler" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-webhook-handler", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-webhook-handler", mode = "max" }
   ] : []
 }
 
@@ -411,8 +415,8 @@ target "task-activestandby" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-task-activestandby" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-task-activestandby" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-task-activestandby", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-task-activestandby", mode = "max" }
   ] : []
 }
 
@@ -430,8 +434,8 @@ target "task-projectclone" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-task-projectclone" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-task-projectclone" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-task-projectclone", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-task-projectclone", mode = "max" }
   ] : []
 }
 
@@ -446,8 +450,8 @@ target "local-api-data-watcher-pusher" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-local-api-data-watcher-pusher" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-local-api-data-watcher-pusher" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-local-api-data-watcher-pusher", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-local-api-data-watcher-pusher", mode = "max" }
   ] : []
 }
 
@@ -462,7 +466,7 @@ target "local-git" {
     { type = "registry", ref = "${CACHE_TAG}-linux-amd64-local-git" },
     { type = "registry", ref = "${CACHE_TAG}-linux-arm64-local-git" }
   ] : []
-  cache-to = CACHE_TAG != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
-    { type = "registry", ref = "${CACHE_TAG}-${replace(PLATFORMS, "/", "-")}-local-git", mode = "max" }
+  cache-to = CACHE_TAG_PUSH != "" && PLATFORMS != "linux/amd64,linux/arm64" ? [
+    { type = "registry", ref = "${CACHE_TAG_PUSH}-${replace(PLATFORMS, "/", "-")}-local-git", mode = "max" }
   ] : []
 }

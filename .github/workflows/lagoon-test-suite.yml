@@ -464,6 +464,7 @@ jobs:
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
           CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+          CACHE_TAG_PUSH: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
