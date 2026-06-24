@@ -304,33 +304,30 @@ jobs:
     if: always()
     permissions:
       packages: write
-    strategy:
-      matrix:
-        package:
-          - lagoon/api
-          - lagoon/api-db
-          - lagoon/api-redis
-          - lagoon/actions-handler
-          - lagoon/auth-server
-          - lagoon/backup-handler
-          - lagoon/broker
-          - lagoon/api-sidecar-handler
-          - lagoon/keycloak-db
-          - lagoon/keycloak
-          - lagoon/local-api-data-watcher-pusher
-          - lagoon/local-git
-          - lagoon/logs2notifications
-          - lagoon/ssh
-          - lagoon/task-activestandby
-          - lagoon/task-projectclone
-          - lagoon/tests
-          - lagoon/webhook-handler
-          - lagoon #for buildcache tags
     steps:
       - name: Cleanup untagged and unreferenced versions for ${{ matrix.package }}
         uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          package: ${{ matrix.package }}
+          packages: |
+            lagoon/api,
+            lagoon/api-db,
+            lagoon/api-redis,
+            lagoon/actions-handler,
+            lagoon/auth-server,
+            lagoon/backup-handler,
+            lagoon/broker,
+            lagoon/api-sidecar-handler,
+            lagoon/keycloak-db,
+            lagoon/keycloak,
+            lagoon/local-api-data-watcher-pusher,
+            lagoon/local-git,
+            lagoon/logs2notifications,
+            lagoon/ssh,
+            lagoon/task-activestandby,
+            lagoon/task-projectclone,
+            lagoon/tests,
+            lagoon/webhook-handler,
+            lagoon
           delete-untagged: true
           delete-partial-images: false  # keeps per-arch digests referenced by a multi-arch manifest
