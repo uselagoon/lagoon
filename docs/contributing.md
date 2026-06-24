@@ -28,7 +28,7 @@ Bonus points for anyone that helps contribute to tests for any of these examples
 
 Help us to document our other examples better – we’re not expecting a full manuscript, but tidy-ups, links to helpful resources and clarifying statements are all super-awesome.
 
-If you have any questions, reach out to us on [Discord](https://discord.gg/te5hHe95JE)!
+If you have any questions, open an issue in the appropriate [uselagoon repository](https://github.com/orgs/uselagoon/repositories) or start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions).
 
 ## I found a security issue 🔓
 
@@ -47,7 +47,7 @@ We're always interested in fixing issues, therefore issue reports are very welco
 
 Cool! Create an [issue](https://github.com/uselagoon/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
 
-Another good way is also to talk to us via Discord about your idea. [Join today](https://discord.gg/te5hHe95JE)!
+Another good way is to start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions) about your idea.
 
 ## I wrote some code
 

@@ -161,4 +161,4 @@ We suggest only exposing web services (NGINX/Varnish/Node.js) in your deployed e
 
 ## I have a question that isn't answered here
 
-You should contact {{ defaults.helpstring }} for any hosting-related enquiries, but you can also reach out to the Lagoon team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).
+You should contact {{ defaults.helpstring }} for any hosting-related enquiries. For project questions, open an issue in the appropriate [uselagoon repository](https://github.com/orgs/uselagoon/repositories) or start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions).

@@ -36,7 +36,9 @@ If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](co
 
 Questions? Ideas? Meet the maintainers and contributors.
 
-Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE](https://discord.gg/te5hHe95JE)
+For bugs and support requests, open an issue in the appropriate [uselagoon repository](https://github.com/orgs/uselagoon/repositories).
+
+For non-support questions and ideas, start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions).
 
 ## A couple of things about Lagoon
 
