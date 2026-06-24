@@ -190,18 +190,18 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/discord/"/>
     </url>
     <url>
-        <loc>https://docs.lagoon.sh/community/moderation/</loc>
-        <lastmod>2026-06-24</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/moderation/"/>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/moderation/"/>
-    </url>
-    <url>
         <loc>https://docs.lagoon.sh/community/participation/</loc>
         <lastmod>2026-06-24</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/participation/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/participation/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/community/support/</loc>
+        <lastmod>2026-06-24</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/support/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/support/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/concepts-advanced/</loc>
@@ -1317,18 +1317,18 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/discord/"/>
     </url>
     <url>
-        <loc>https://docs.lagoon.sh/ja/community/moderation/</loc>
-        <lastmod>2026-06-24</lastmod>
-        <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/moderation/"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/moderation/"/>
-    </url>
-    <url>
         <loc>https://docs.lagoon.sh/ja/community/participation/</loc>
         <lastmod>2026-06-24</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/participation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/participation/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/ja/community/support/</loc>
+        <lastmod>2026-06-24</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/community/support/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/community/support/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/concepts-advanced/</loc>
