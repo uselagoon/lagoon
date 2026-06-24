@@ -40,7 +40,7 @@ jobs:
           fi
 
   setup-cluster:
-    name: Setup cluster and run tests
+    name: Setup tests
     runs-on: ubuntu-latest
     needs: [check-skip, build]
     if: needs.check-skip.outputs.skip == 'false'
@@ -48,6 +48,14 @@ jobs:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
       CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+    strategy:
+      matrix:
+        tests:
+          - api,api-routes,deploytarget,active-standby-kubernetes
+          - features-kubernetes,features-kubernetes-2,features-variables
+          - bulk-deployment,image-cache,services,services-2,tasks,project-clone
+          - gitlab,github,bitbucket
+          - python,drush,ssh-legacy
     steps:
       # Continue after getting a shell via: `touch continue`
       - name: Setup tmate session
@@ -56,6 +64,11 @@ jobs:
         continue-on-error: true
 
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          name: lagoon
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -85,7 +98,10 @@ jobs:
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             LAGOON_CORE_USE_HTTPS=false \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false
+            INSTALL_AERGIA=false \
+            PLATFORM_ARCH=linux/amd64 \
+            LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
       - name: Start log collector (test-suite-0)
         run: |
@@ -105,8 +121,7 @@ jobs:
           make k3d/install-lagoon \
             BRANCH_NAME="${SAFEBRANCH_NAME}" \
             INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false \
-            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
+            INSTALL_AERGIA=false
 
       - name: Stop log collector and print logs
         if: always()
@@ -130,10 +145,10 @@ jobs:
           echo $! > stern-1.pid
           echo "Log collector started (PID $(cat stern-1.pid))"
 
-      - name: Run first test suite (api,api-routes,deploytarget,active-standby-kubernetes)
+      - name: Run first test suite (${{ matrix.tests }})
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
-            TESTS=[api,api-routes,deploytarget,active-standby-kubernetes] \
+            TESTS=[${{ matrix.tests }}] \
             BRANCH_NAME="${SAFEBRANCH_NAME}"
 
       - name: Stop log collector and print logs
@@ -148,234 +163,6 @@ jobs:
       #   with:
       #     name: test-suite-1-logs
       #     path: test-suite-1.txt
-
-  setup-cluster-2:
-    name: Setup cluster 2 and run tests
-    runs-on: ubuntu-latest
-    needs: [check-skip, build]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
-    steps:
-      # Continue after getting a shell via: `touch continue`
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
-        timeout-minutes: 1
-        continue-on-error: true
-
-      - uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure local-dev tools
-        run: make local-dev-tools
-
-      - name: Setup and trust local-stack CA
-        run: |
-          make k3d/generate-ca
-          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
-          sudo update-ca-certificates
-
-          # Also tell Docker about it
-          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
-          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
-          ./local-dev/k3d cluster delete --all
-
-      - name: Setup cluster
-        run: |
-          make k3d/local-stack \
-            INSTALL_SEED_DATA=false \
-            BRANCH_NAME="${SAFEBRANCH_NAME}" \
-            INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false \
-            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
-
-      - name: Start log collector (test-suite-2)
-        run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
-          ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt 2>&1 &
-          echo $! > stern-1.pid
-          echo "Log collector started (PID $(cat stern-1.pid))"
-
-      - name: Run first test suite (features-kubernetes,features-kubernetes-2,features-variables)
-        run: |
-          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
-            TESTS=[features-kubernetes,features-kubernetes-2,features-variables] \
-            BRANCH_NAME="${SAFEBRANCH_NAME}"
-
-      - name: Stop log collector and print logs
-        if: always()
-        run: |
-          kill $(cat stern-1.pid) 2>/dev/null || true
-          cat test-suite-2.txt
-
-      # - name: Upload test-suite-2 logs
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-suite-2-logs
-      #     path: test-suite-2.txt
-
-  setup-cluster-3:
-    name: Setup cluster 3 and run tests
-    runs-on: ubuntu-latest
-    needs: [check-skip, build]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
-    steps:
-      # Continue after getting a shell via: `touch continue`
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
-        timeout-minutes: 1
-        continue-on-error: true
-
-      - uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure local-dev tools
-        run: make local-dev-tools
-
-      - name: Setup and trust local-stack CA
-        run: |
-          make k3d/generate-ca
-          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
-          sudo update-ca-certificates
-
-          # Also tell Docker about it
-          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
-          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
-          ./local-dev/k3d cluster delete --all
-
-      - name: Setup cluster
-        run: |
-          make k3d/local-stack \
-            INSTALL_SEED_DATA=false \
-            BRANCH_NAME="${SAFEBRANCH_NAME}" \
-            INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false \
-            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
-
-      - name: Start log collector (test-suite-3)
-        run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
-          ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt 2>&1 &
-          echo $! > stern-2.pid
-          echo "Log collector started (PID $(cat stern-2.pid))"
-
-      - name: Run second test suite (bulk-deployment,image-cache,services,services-2,tasks,project-clone)
-        run: |
-          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
-            TESTS=[bulk-deployment,image-cache,services,services-2,tasks,project-clone] \
-            BRANCH_NAME="${SAFEBRANCH_NAME}"
-
-      - name: Stop log collector and print logs
-        if: always()
-        run: |
-          kill $(cat stern-2.pid) 2>/dev/null || true
-          cat test-suite-3.txt
-
-      # - name: Upload test-suite-3 logs
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-suite-3-logs
-      #     path: test-suite-3.txt
-
-  setup-cluster-4:
-    name: Setup cluster 4 and run tests
-    runs-on: ubuntu-latest
-    needs: [check-skip, build]
-    if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
-    steps:
-      # Continue after getting a shell via: `touch continue`
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
-        timeout-minutes: 1
-        continue-on-error: true
-
-      - uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure local-dev tools
-        run: make local-dev-tools
-
-      - name: Setup and trust local-stack CA
-        run: |
-          make k3d/generate-ca
-          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
-          sudo update-ca-certificates
-
-          # Also tell Docker about it
-          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
-          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
-          ./local-dev/k3d cluster delete --all
-
-      - name: Setup cluster
-        run: |
-          make k3d/local-stack \
-            INSTALL_SEED_DATA=false \
-            BRANCH_NAME="${SAFEBRANCH_NAME}" \
-            INSTALL_PROMETHEUS=false \
-            INSTALL_AERGIA=false \
-            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
-
-      - name: Start log collector (test-suite-4)
-        run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
-          ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
-            --all-namespaces '^[a-z]' --since 1s -t > test-suite-4.txt 2>&1 &
-          echo $! > stern-3.pid
-          echo "Log collector started (PID $(cat stern-3.pid))"
-
-      - name: Run third test suite (gitlab,github,bitbucket,python,drush,ssh-legacy)
-        run: |
-          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
-            TESTS=[gitlab,github,bitbucket,python,drush,ssh-legacy] \
-            BRANCH_NAME="${SAFEBRANCH_NAME}"
-
-      - name: Stop log collector and print logs
-        if: always()
-        run: |
-          kill $(cat stern-3.pid) 2>/dev/null || true
-          cat test-suite-4.txt
-
-      # - name: Upload test-suite-4 logs
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-suite-4-logs
-      #     path: test-suite-4.txt
 
   go-test:
     name: Test Go
