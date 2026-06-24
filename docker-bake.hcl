@@ -57,6 +57,7 @@ target "default"{
     UPSTREAM_TAG = "${UPSTREAM_TAG}"
     DATABASE_VENDOR = "${DATABASE_VENDOR}"
   }
+  attest = []
 }
 
 group "default" {
