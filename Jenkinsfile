@@ -181,27 +181,6 @@ pipeline {
         }
       }
     }
-    stage ('build arm images and push all images to testlagoon/*') {
-      when {
-        expression {
-            !skipRemainingStages
-        }
-      }
-      environment {
-        PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
-      }
-      steps {
-        retry(3) {
-          timeout(time: 30, unit: 'MINUTES') {
-            sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
-          }
-        }
-        retry(3) {
-          sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-          sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64,linux/amd64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
-        }
-      }
-    }
     stage ('push images to testlagoon/* with :latest tag') {
        when {
         branch 'main'
@@ -217,7 +196,7 @@ pipeline {
       }
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-        sh script: "make -O publish-testlagoon-images BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
+        sh script: "make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/amd64 BRANCH_NAME=latest", label: "Publishing built amd64 images with :latest tag"
       }
     }
     stage ('deploy to test environment') {
@@ -239,6 +218,28 @@ pipeline {
         }
       }
     }
+    // stage ('build arm images and push to testlagoon/*') {
+    //   when {
+    //     expression {
+    //         !skipRemainingStages
+    //     }
+    //   }
+    //   environment {
+    //     PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
+    //   }
+    //   steps {
+    //     retry(3) {
+    //       timeout(time: 30, unit: 'MINUTES') {
+    //         sh script: "make -j$NPROC -O build PLATFORM_ARCH=linux/arm64", label: "Building arm images"
+    //       }
+    //     }
+    //     retry(3) {
+    //       sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+    //       sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built arm64 images to testlagoon/*"
+    //       sh script: "timeout 12m make -O publish-testlagoon-images PUBLISH_PLATFORM_ARCH=linux/arm64 BRANCH_NAME=latest", label: "Publishing built arm64 images with :latest tag"
+    //     }
+    //   }
+    // }
     stage ('push images to uselagoon/*') {
       when {
         buildingTag()
