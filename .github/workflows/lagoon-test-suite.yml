@@ -21,7 +21,6 @@ jobs:
     outputs:
       skip: ${{ steps.check.outputs.skip }}
       safe_branch: ${{ steps.vars.outputs.safe_branch }}
-      ci_build_tag: ${{ steps.vars.outputs.ci_build_tag }}
       cache_tag: ${{ steps.vars.outputs.cache_tag }}
     steps:
       - name: Compute branch variables
@@ -33,7 +32,6 @@ jobs:
           COMBINED=$(echo "${SAFEBRANCH}${RUNNUM}" | sed 's|%2f||g' | sed 's|[^A-Za-z0-9]||g' | tr '[:upper:]' '[:lower:]')
           TAG="lagoon$(echo "$COMBINED" | rev | cut -c1-26 | rev)"
           echo "safe_branch=$SAFEBRANCH" >> "$GITHUB_OUTPUT"
-          echo "ci_build_tag=$TAG" >> "$GITHUB_OUTPUT"
 
           # cache tag based on event type
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -61,7 +59,6 @@ jobs:
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
       CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
     strategy:
       matrix:
@@ -120,9 +117,9 @@ jobs:
 
       - name: Start log collector (test-suite-0)
         run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          while [ ! -f ./kubeconfig.k3d.lagoon ]; do sleep 1; done
           ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --kubeconfig ./kubeconfig.k3d.lagoon \
             --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
           echo $! > stern-0.pid
           echo "Log collector started (PID $(cat stern-0.pid))"
@@ -153,9 +150,9 @@ jobs:
 
       - name: Start log collector (test-suite-1)
         run: |
-          while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done
+          while [ ! -f ./kubeconfig.k3d.lagoon ]; do sleep 1; done
           ./local-dev/stern \
-            --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} \
+            --kubeconfig ./kubeconfig.k3d.lagoon \
             --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt 2>&1 &
           echo $! > stern-1.pid
           echo "Log collector started (PID $(cat stern-1.pid))"
@@ -184,9 +181,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-skip]
     if: needs.check-skip.outputs.skip == 'false'
-    env:
-      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -200,7 +194,6 @@ jobs:
     if: needs.check-skip.outputs.skip == 'false'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
-      CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
       CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
     steps:
       - uses: actions/checkout@v4
@@ -322,7 +315,6 @@ jobs:
           CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
         run: |
           make publish-uselagoon-images-pr \
-            CI_BUILD_TAG=lagoon \
             PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
             CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
@@ -334,7 +326,6 @@ jobs:
           CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
         run: |
           make publish-uselagoon-images-pr \
-            CI_BUILD_TAG=lagoon \
             PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
             LAGOON_VERSION=${{ github.ref_name }} \
             CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
