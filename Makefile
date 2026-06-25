@@ -58,7 +58,7 @@ BUILD_DEPLOY_IMAGE_TAG ?= edge
 UI_IMAGE_REPO = uselagoon/ui
 UI_IMAGE_TAG = main
 BETA_UI_IMAGE_REPO = uselagoon/beta-ui
-BETA_UI_IMAGE_TAG = pr-161
+BETA_UI_IMAGE_TAG = main
 
 # The two variables below are an easy way to override the insights-handler image used in the local stack lagoon-core
 # only works for installations where ENABLE_INSIGHTS=true and INSTALL_STABLE_CORE=false
@@ -475,7 +475,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = webhook-handler
+CHARTS_TREEISH = main
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby task-projectclone
