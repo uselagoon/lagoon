@@ -1,6 +1,12 @@
 name: Lagoon Test Suite
 
 on:
+  push:
+    branches:
+      # - 'main'
+      - 'action-test-suite' # for testing
+    # tags:
+    #   - 'v*.*.*'
   pull_request:
     branches:
       - '**'
@@ -16,6 +22,7 @@ jobs:
       skip: ${{ steps.check.outputs.skip }}
       safe_branch: ${{ steps.vars.outputs.safe_branch }}
       ci_build_tag: ${{ steps.vars.outputs.ci_build_tag }}
+      cache_tag: ${{ steps.vars.outputs.cache_tag }}
     steps:
       - name: Compute branch variables
         id: vars
@@ -27,6 +34,14 @@ jobs:
           TAG="lagoon$(echo "$COMBINED" | rev | cut -c1-26 | rev)"
           echo "safe_branch=$SAFEBRANCH" >> "$GITHUB_OUTPUT"
           echo "ci_build_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          # cache tag based on event type
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CACHE_TAG="ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}"
+          else
+            CACHE_TAG="ghcr.io/uselagoon/buildcache:main"
+          fi
+          echo "cache_tag=$CACHE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check for docs-only branch
         id: check
@@ -47,7 +62,7 @@ jobs:
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+      CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
     strategy:
       matrix:
         tests:
@@ -186,7 +201,7 @@ jobs:
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+      CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -205,7 +220,7 @@ jobs:
       - name: Build images
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
         run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/amd64 \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
             DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
@@ -214,7 +229,6 @@ jobs:
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
         run: make scan-images \
-            CI_BUILD_TAG=${{ needs.check-skip.outputs.ci_build_tag }} \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }}
 
       - name: Show Trivy results
@@ -265,8 +279,8 @@ jobs:
       - name: Build and populate cache
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
-          CACHE_TAG_PUSH: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+          CACHE_TAG_PUSH: ${{ needs.check-skip.outputs.cache_tag }}
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
@@ -301,15 +315,28 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish multi-arch to ghcr.io/uselagoon
+      - name: Publish multi-arch to ghcr.io/uselagoon (PR)
+        if: github.event_name == 'pull_request'
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
         run: |
           make publish-uselagoon-images-pr \
             CI_BUILD_TAG=lagoon \
             PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
+            CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
+
+      - name: Publish multi-arch to ghcr.io/uselagoon (main/tag)
+        if: github.event_name != 'pull_request'
+        env:
+          LAGOON_VERSION: ${{ github.ref_name }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+        run: |
+          make publish-uselagoon-images-pr \
+            CI_BUILD_TAG=lagoon \
+            PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
+            LAGOON_VERSION=${{ github.ref_name }} \
             CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
 
   cleanup-cache:
@@ -352,6 +379,7 @@ jobs:
     name: Deploy to test environment (no-op)
     needs: [build, publish-uselagoon, test-suite, go-test]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
