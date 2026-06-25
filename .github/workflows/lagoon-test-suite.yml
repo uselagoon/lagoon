@@ -1,12 +1,11 @@
 name: Lagoon Test Suite
 
 on:
-  push:
-    branches:
-      # - 'main'
-      - 'action-test-suite' # for testing
-    # tags:
-    #   - 'v*.*.*'
+  # push:
+  #   branches:
+  #     - 'main'
+  #   tags:
+  #     - 'v*.*.*'
   pull_request:
     branches:
       - '**'
