@@ -47,7 +47,7 @@ jobs:
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+      CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
     strategy:
       matrix:
         tests:
@@ -186,7 +186,7 @@ jobs:
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CI_BUILD_TAG: ${{ needs.check-skip.outputs.ci_build_tag }}
-      CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+      CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -205,7 +205,7 @@ jobs:
       - name: Build images
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
         run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/amd64 \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
             DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
@@ -265,8 +265,8 @@ jobs:
       - name: Build and populate cache
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
-          CACHE_TAG_PUSH: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
+          CACHE_TAG_PUSH: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
         run: |
           make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
             LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
@@ -304,7 +304,7 @@ jobs:
       - name: Publish multi-arch to ghcr.io/uselagoon
         env:
           LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
-          CACHE_TAG: ghcr.io/${{ github.repository }}:buildcache-pr${{ github.event.pull_request.number }}
+          CACHE_TAG: ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}
         run: |
           make publish-uselagoon-images-pr \
             CI_BUILD_TAG=lagoon \
@@ -343,7 +343,8 @@ jobs:
             lagoon/task-projectclone,
             lagoon/tests,
             lagoon/webhook-handler,
-            lagoon
+            lagoon,
+            buildcache
           delete-untagged: true
           delete-partial-images: false  # keeps per-arch digests referenced by a multi-arch manifest
 
