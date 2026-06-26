@@ -190,7 +190,7 @@ jobs:
     name: Scan built images
     runs-on: ubuntu-latest
     needs: [check-skip, build]
-    if: needs.check-skip.outputs.skip == 'false'
+    if: needs.check-skip.outputs.skip == 'false' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
       CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
