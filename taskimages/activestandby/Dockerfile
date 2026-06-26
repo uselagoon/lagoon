@@ -4,8 +4,11 @@ FROM golang:1.25-alpine3.22 AS builder
 COPY . /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/
 WORKDIR /go/src/github.com/uselagoon/lagoon/taskimages/activestandby/
 
+ARG TARGETOS
+ARG TARGETARCH
+
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o taskrunner .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o taskrunner .
 
 # Use distroless as minimal base image to package the binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
