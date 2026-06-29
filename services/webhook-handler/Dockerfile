@@ -1,7 +1,7 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:1.26-alpine3.22 AS builder
+FROM --platform=linux/amd64 golang:1.26-alpine3.22 AS builder
 
 WORKDIR /workspace
 COPY go.mod go.mod
@@ -14,7 +14,10 @@ COPY services/webhook-handler/internal/server services/webhook-handler/internal/
 COPY services/webhook-handler/internal/gitlab services/webhook-handler/internal/gitlab
 
 # compile
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o webhook-handler services/webhook-handler/cmd/main.go
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o webhook-handler services/webhook-handler/cmd/main.go
 
 # put the binary into container
 # use the commons image to get entrypoints
