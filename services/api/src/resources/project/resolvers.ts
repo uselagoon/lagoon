@@ -1674,26 +1674,28 @@ export const cancelProjectClone: ResolverFn = async (
   {
     input: {
       cloneId,
-      organization: organizationId
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
 ) => {
-  await hasPermission('organization', 'cloneProject:cancel', {
-    organization: organizationId
-  });
 
   const cloneData = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
   if (cloneData.length === 0) {
     throw new Error(`No project clone found for ID: ${cloneId}`);
   }
 
+  const sourceProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].sourceProject);
+
+  await hasPermission('organization', 'cloneProject:cancel', {
+    organization: sourceProject.organization
+  });
+
+
   const inactiveStatuses = new Set(['complete']);
   if (!cloneData[0].status || inactiveStatuses.has(cloneData[0].status)) {
     throw new Error(`Only actively running or failed clones can be cancelled`);
   }
 
-  const sourceProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].sourceProject);
   const destProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].destinationProject);
   const sourceEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].sourceProject));
   const sourceEnv = sourceEnvRows[0];
@@ -1819,7 +1821,7 @@ export const cancelProjectClone: ResolverFn = async (
       type: AuditType.PROJECT,
       details: destProject.name,
     },
-    organizationId: organizationId
+    organizationId: sourceProject.organization
   };
 
   userActivityLogger(`User cancelled a project clone for project '${destProject.name}'`, {

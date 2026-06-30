@@ -2901,7 +2901,6 @@ const typeDefs = gql`
 
   input CancelProjectCloneInput {
     cloneId: Int!
-    organization: Int!
   }
 
   """
