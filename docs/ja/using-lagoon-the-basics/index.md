@@ -2,7 +2,7 @@
 
 このセクションでは、Lagoonの基本的な特徴と機能について説明します。これらに慣れている方は、[Lagoonの高度な使い方](../using-lagoon-advanced/index.md)に進んでください。
 
-ヘルプが必要な場合は、Lagoonの管理者に連絡するか、私たちの[Discord](../community/discord.md)でコミュニティのメンバーとメンテナに問い合わせてください。
+ヘルプが必要な場合は、Lagoonの管理者に連絡するか、該当する[uselagoonリポジトリ](https://github.com/orgs/uselagoon/repositories)にIssueを作成するか、[GitHub Discussion](https://github.com/uselagoon/lagoon/discussions)を利用してください。
 
 ## 必要条件
 

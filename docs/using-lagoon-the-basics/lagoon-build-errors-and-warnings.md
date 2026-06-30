@@ -4,7 +4,7 @@ Newer releases of Lagoon have the capability to identify potential issues with t
 
 For example, if the Lagoon team makes a change to a setting in `lagoon.yml`, and there’s something that users need to change, the warning will mention it, so users will be able to change it before it becomes a breaking change. They should be resolved ASAP wherever possible, as future releases of Lagoon may not be able to handle the errors, but they shouldn't stop your build.
 
-If you aren't sure how to resolve these errors, please reach out to {{ defaults.helpstring }}, or ask a question in the [Lagoon community](../community/discord.md).
+If you aren't sure how to resolve these errors, please reach out to {{ defaults.helpstring }}, open an issue in the appropriate [uselagoon repository](https://github.com/orgs/uselagoon/repositories), or start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions).
 
 ## Docker Compose Errors
 

@@ -1,0 +1,17 @@
+{
+    "data": {
+        "addDeployment": {
+            "completed": null,
+            "created": "2025-08-06 01:01:11",
+            "environment": {
+                "name": "deploy/production"
+            },
+            "id": 44,
+            "name": "lagoon-build-a1ki2",
+            "remoteId": null,
+            "started": null,
+            "status": "new",
+            "uiLink": "https://ui.example.com/projects/demo-project2/demo-project2-deploy-production/deployments/lagoon-build-a1ki2"
+        }
+    }
+}

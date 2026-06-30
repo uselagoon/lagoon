@@ -74,8 +74,7 @@ group "default" {
     "task-activestandby",
     "task-projectclone",
     "tests",
-    "webhook-handler",
-    "webhooks2tasks"
+    "webhook-handler"
   ]
 }
 
@@ -86,7 +85,8 @@ group "go-services" {
     "api-sidecar-handler",
     "logs2notifications",
     "task-activestandby",
-    "task-projectclone"
+    "task-projectclone",
+    "webhook-handler"
   ]
 }
 
@@ -94,8 +94,6 @@ group "js-services" {
   targets = [
     "api",
     "auth-server",
-    "webhook-handler",
-    "webhooks2tasks",
   ]
 }
 
@@ -152,8 +150,7 @@ group "prod-images" {
     "task-activestandby",
     "task-projectclone",
     "tests",
-    "webhook-handler",
-    "webhooks2tasks"
+    "webhook-handler"
   ]
 }
 
@@ -235,7 +232,8 @@ target "broker" {
 
 target "api-sidecar-handler" {
   inherits = ["default"]
-  context = "services/api-sidecar-handler"
+  context = ""
+  dockerfile = "services/api-sidecar-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/api-sidecar-handler - the api-sidecar-handler service for Lagoon"
   }
@@ -291,26 +289,12 @@ target "tests" {
 
 target "webhook-handler" {
   inherits = ["default"]
-  context = "services/webhook-handler"
-  contexts = {
-    "lagoon/yarn-workspace-builder": "target:yarn-workspace-builder"
-  }
+  context = ""
+  dockerfile = "services/webhook-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/webhook-handler - the webhook-handler service for Lagoon"
   }
   tags = ["${IMAGE_REPO}/webhook-handler:${TAG}"]
-}
-
-target "webhooks2tasks" {
-  inherits = ["default"]
-  context = "services/webhooks2tasks"
-  contexts = {
-    "lagoon/yarn-workspace-builder": "target:yarn-workspace-builder"
-  }
-  labels = {
-    "org.opencontainers.image.title": "lagoon-core/webhooks2tasks - the webhooks2tasks service for Lagoon"
-  }
-  tags = ["${IMAGE_REPO}/webhooks2tasks:${TAG}"]
 }
 
 target "task-activestandby" {
