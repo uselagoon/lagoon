@@ -18,11 +18,11 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
+import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType, RemoveData } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { createMiscTask, createRemoveTask } from '@lagoon/commons/dist/tasks';
+import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { deployBranch } from '../deployment/resolvers';
 import { Pool } from 'mariadb';
@@ -34,6 +34,7 @@ import {
   EVENTS,
   createProjectFilteredSubscriber
 } from '../../clients/pubSub';
+import { getConfigFromEnv } from '../../util/config';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -1674,6 +1675,7 @@ export const cancelProjectClone: ResolverFn = async (
   {
     input: {
       cloneId,
+      deleteResources = false,
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
@@ -1773,47 +1775,64 @@ export const cancelProjectClone: ResolverFn = async (
   }
   // delete any uploaded files
   await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
-  // delete cloned environment
-  if (destEnvRows?.length > 0) {
-    const destEnv = destEnvRows[0];
-    try {
-      await createRemoveTask({
+
+  if (deleteResources) {
+    // delete cloned environment
+    if (destEnvRows?.length > 0) {
+      const destEnv = destEnvRows[0];
+
+      const removeData: RemoveData = {
         projectName: destProject.name,
-        type: destEnv.deployType,
         openshiftProjectName: destEnv.openshiftProjectName,
-        branch: destEnv.name,
         forceDeleteProductionEnvironment: true,
-      });
-    } catch (err) {
-      logger.warn(`Could not send remove task for ${destProject.name}: ${err.message}`);
+        environmentName: destEnv.name,
+      };
+
+      const response = await fetch(
+        `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/remove`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          // @ts-ignore
+          body: new URLSearchParams(removeData).toString(),
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(`Error removing ${destEnv.name}: ${errorText}`)
+        throw new Error(`Error removing ${destEnv.name}`);
+      }
+      await environmentHelpers(sqlClientPool).deleteEnvironment(destEnv.name, destEnv.id, cloneData[0].destinationProject);
     }
-    await environmentHelpers(sqlClientPool).deleteEnvironment(destEnv.name, destEnv.id, cloneData[0].destinationProject);
+    // delete cloned project
+    await Helpers(sqlClientPool).deleteProjectById(cloneData[0].destinationProject);
+
+    try {
+      const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, cloneData[0].destinationProject);
+      await models.GroupModel.removeProjectFromGroups(cloneData[0].destinationProject, projectGroups);
+    } catch (err) {
+      logger.error(`Could not remove project from groups for ${destProject.name}: ${err.message}`);
+    }
+    try {
+      const group = await models.GroupModel.loadSparseGroupByName(`project-${destProject.name}`);
+      await models.GroupModel.deleteGroup(group.id);
+    } catch (err) {
+      logger.error(`Could not delete default group for ${destProject.name}: ${err.message}`);
+    }
+    try {
+      const user = await models.UserModel.loadUserByEmail(`default-user@${destProject.name}`);
+      await models.UserModel.deleteUser(user.id);
+    } catch (err) {
+      logger.error(`Could not delete default user for ${destProject.name}: ${err.message}`);
+    }
   }
+
   // delete clone task/deployment associations
   await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
   // delete the ProjectClone reference
   await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
-  // delete cloned project
-  await Helpers(sqlClientPool).deleteProjectById(cloneData[0].destinationProject);
-
-  try {
-    const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, cloneData[0].destinationProject);
-    await models.GroupModel.removeProjectFromGroups(cloneData[0].destinationProject, projectGroups);
-  } catch (err) {
-    logger.error(`Could not remove project from groups for ${destProject.name}: ${err.message}`);
-  }
-  try {
-    const group = await models.GroupModel.loadSparseGroupByName(`project-${destProject.name}`);
-    await models.GroupModel.deleteGroup(group.id);
-  } catch (err) {
-    logger.error(`Could not delete default group for ${destProject.name}: ${err.message}`);
-  }
-  try {
-    const user = await models.UserModel.loadUserByEmail(`default-user@${destProject.name}`);
-    await models.UserModel.deleteUser(user.id);
-  } catch (err) {
-    logger.error(`Could not delete default user for ${destProject.name}: ${err.message}`);
-  }
 
   const auditLog: AuditLog = {
     resource: {

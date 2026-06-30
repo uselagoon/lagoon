@@ -2901,6 +2901,7 @@ const typeDefs = gql`
 
   input CancelProjectCloneInput {
     cloneId: Int!
+    deleteResources: Boolean
   }
 
   """
