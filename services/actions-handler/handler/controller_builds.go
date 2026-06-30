@@ -197,8 +197,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue *mq.MessageQue
 			updateEnvironmentPatch.Routes = &routes
 		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
-
-		if deployment.DeploymentSourceType == "CLONE" {
+		if deployment.DeploymentSourceType == schema.SourceTypeClone {
 			handleCloneDeployment(ctx, message, l, prefix, buildStatus)
 		}
 	}

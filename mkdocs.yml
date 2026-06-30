@@ -144,9 +144,8 @@ nav:
   - Releasing: contributing-to-lagoon/releasing.md
 - Community:
   - Code of Conduct: code-of-conduct.md
-  - Discord: community/discord.md
+  - Community Support: community/support.md
   - Participation Guidelines: community/participation.md
-  - Moderation Guidelines: community/moderation.md
 - Resources:
   - FAQ: resources/faq.md
   - Glossary: resources/glossary.md
@@ -339,8 +338,8 @@ plugins:
             API Debugging: APIデバッグ
             Releasing: リリース
             Community: コミュニティ
+            Community Support: コミュニティサポート
             Participation Guidelines: 参加ガイドライン
-            Moderation Guidelines: モデレーションガイドライン
             Resources: リソース
             Glossary: 用語集
             Tutorials, Webinars, and Videos: チュートリアル、ウェビナー、ビデオ
@@ -361,6 +360,10 @@ plugins:
         'lagoon/administering-lagoon/feature-flags.md': 'concepts-advanced/feature-flags.md'
         'lagoon/administering-lagoon/graphql-queries.md': 'interacting/graphql-queries.md'
         'lagoon/administering-lagoon/rbac.md': 'interacting/rbac.md'
+        'community/moderation.md': 'community/support.md'
+        'ja/community/moderation.md': 'ja/community/support.md'
+        'lagoon/community/discord.md': 'community/support.md'
+        'lagoon/community/moderation.md': 'community/support.md'
         'lagoon/contributing-to-lagoon/api-debugging.md': 'contributing-to-lagoon/api-debugging.md'
         'lagoon/contributing-to-lagoon/code-of-conduct.md': 'code-of-conduct.md'
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'

@@ -1,0 +1,16 @@
+{
+    "data": {
+        "addOrUpdateEnvironment": {
+            "autoIdle": 1,
+            "deployType": "branch",
+            "envVariables": [],
+            "environmentType": "development",
+            "id": 15,
+            "name": "dev-push",
+            "openshiftProjectName": "demo-project7-dev-push",
+            "project": {
+                "name": "demo-project7"
+            }
+        }
+    }
+}

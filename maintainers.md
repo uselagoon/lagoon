@@ -9,7 +9,6 @@ If you have any questions or want to contribute to Lagoon, you can check out the
 - GitHub discussions: https://github.com/uselagoon/lagoon/discussions
 - Website: https://lagoon.sh
 - Blog: https://dev.to/uselagoon
-- Discord: https://discord.gg/te5hHe95JE
 
 ## Lagoon core team
 

@@ -1,0 +1,17 @@
+{
+    "data": {
+        "addDeployment": {
+            "completed": null,
+            "created": "2025-08-06 01:01:11",
+            "environment": {
+                "name": "dev-push"
+            },
+            "id": 45,
+            "name": "lagoon-build-abcdefg",
+            "remoteId": null,
+            "started": null,
+            "status": "new",
+            "uiLink": "https://ui.example.com/projects/demo-project7/demo-project7-dev-push/deployments/lagoon-build-abcdefg"
+        }
+    }
+}

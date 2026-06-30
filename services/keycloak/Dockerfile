@@ -1,5 +1,5 @@
 # Stage: Build the custom token mapper
-FROM maven:3.9.16-eclipse-temurin-21-alpine as builder
+FROM --platform=linux/amd64 maven:3.9.14-eclipse-temurin-21-alpine as builder
 COPY custom-mapper/. .
 RUN mvn clean compile package
 

@@ -1,13 +1,16 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:1.25-alpine3.22 AS builder
+FROM --platform=linux/amd64 golang:1.25-alpine3.22 AS builder
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/actions-handler/
 
 # compile
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o actions-handler .
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o actions-handler .
 
 # put the binary into container
 # use the commons image to get entrypoints
