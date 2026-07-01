@@ -19,7 +19,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as deploymentHelpers } from '../deployment/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
-import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType } from '@lagoon/commons/dist/types';
+import { AuditType, DeploymentSourceType, TaskSourceType, TaskStatusType, RemoveData } from '@lagoon/commons/dist/types';
 import GitUrlParse from 'git-url-parse';
 import { AuditLog, AuditResource } from '../audit/types';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
@@ -35,6 +35,7 @@ import {
   EVENTS,
   createProjectFilteredSubscriber
 } from '../../clients/pubSub';
+import { getConfigFromEnv } from '../../util/config';
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -1186,7 +1187,7 @@ export const cloneProject: ResolverFn = async (
   // otherwise fall back to the non-organization permission check
   if (sourceProject.organization != null) {
     // TODO: change to `cloneProject` permission
-    await hasPermission('organization', 'addProject', {
+    await hasPermission('organization', 'cloneProject:add', {
       organization: sourceProject.organization
     });
   } else {
@@ -1680,20 +1681,185 @@ export const cancelProjectClone: ResolverFn = async (
   root,
   {
     input: {
-      id,
-      patch,
-      patch: {
-        name,
-      }
+      cloneId,
+      deleteResources = false,
     }
   },
-  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes }
+  { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
 ) => {
-  // delete cloned environment
+
+  const cloneData = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (cloneData.length === 0) {
+    throw new Error(`No project clone found for ID: ${cloneId}`);
+  }
+
+  const sourceProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].sourceProject);
+
+  await hasPermission('organization', 'cloneProject:cancel', {
+    organization: sourceProject.organization
+  });
+
+
+  const inactiveStatuses = new Set(['complete']);
+  if (!cloneData[0].status || inactiveStatuses.has(cloneData[0].status)) {
+    throw new Error(`Only actively running or failed clones can be cancelled`);
+  }
+
+  const destProject = await Helpers(sqlClientPool).getProjectById(cloneData[0].destinationProject);
+  const sourceEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].sourceProject));
+  const sourceEnv = sourceEnvRows[0];
+  const destEnvRows = await query(sqlClientPool, Sql.selectEnvironmentsByProjectId(cloneData[0].destinationProject));
+
+  // cancel any active tasks/deployments before cleanup
+  const sourceTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, sourceProject.id, 'source', 'task');
+  const destTasks = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'task');
+  const destDeployments = await getDeploymentsOrTasks(sqlClientPool, cloneId, cloneData[0].destinationProject, 'destination', 'deployment');
+  const activeStatuses = new Set(['new', 'pending', 'running', 'queued', 'active']);
+
+  if (sourceTasks?.length <= 0) {
+    logger.debug('No tasks to delete for source env');
+  } else {
+    let filteredTasks = sourceTasks?.filter((task: any) => activeStatuses.has(task.status));
+    if (filteredTasks?.length > 0) {
+      for (const task of filteredTasks) {
+        try {
+          await createMiscTask({ key: 'task:cancel', data: {
+            task: { id: task.id.toString(), name: task.name, taskName: task.taskName, service: task.service },
+            environment: sourceEnv,
+            project: sourceProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { taskId: task.id }, `Task not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  if (destTasks?.length <= 0) {
+    logger.debug('No tasks to delete for destination env');
+  } else {
+    let filteredTasks = destTasks?.filter((task: any) => activeStatuses.has(task.status))
+    if (filteredTasks?.length > 0) {
+      for (const task of filteredTasks) {
+        try {
+          await createMiscTask({ key: 'task:cancel', data: {
+            task: { id: task.id.toString(), name: task.name, taskName: task.taskName, service: task.service },
+            environment: destEnvRows[0],
+            project: destProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { taskId: task.id }, `Task not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  if (destDeployments?.length <= 0) {
+    logger.debug('No deployments to delete for destination env');
+  } else {
+    let filteredDeployments = destDeployments?.filter((deployment: any) => activeStatuses.has(deployment.status));
+    if (filteredDeployments?.length > 0) {
+      for (const deployment of filteredDeployments) {
+        try {
+          await createMiscTask({ key: 'build:cancel', data: {
+            build: deployment,
+            environment: destEnvRows[0],
+            project: destProject
+          }});
+        } catch (e) {
+          sendToLagoonLogs('error', '', '', 'api:cancelProjectClone', { deploymentId: deployment.id }, `Deployment not cancelled: ${e}`);
+        }
+      }
+    }
+  }
+
+  // update clone status + subscriptions
+  await query(sqlClientPool, Sql.updateProjectClone({ id: cloneId, status: 'cancelled' }));
+  const updatedCloneRows = await query(sqlClientPool, Sql.selectProjectClone(cloneId));
+  if (updatedCloneRows.length > 0) {
+    pubSub.publish(EVENTS.PROJECTCLONE, updatedCloneRows[0]);
+    pubSub.publish(EVENTS.ORGPROJECT, destProject);
+  }
   // delete any uploaded files
-  // delete any tasks in the source environment
+  await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+
+  if (deleteResources) {
+    // delete cloned environment
+    if (destEnvRows?.length > 0) {
+      const destEnv = destEnvRows[0];
+
+      const removeData: RemoveData = {
+        projectName: destProject.name,
+        openshiftProjectName: destEnv.openshiftProjectName,
+        forceDeleteProductionEnvironment: true,
+        environmentName: destEnv.name,
+      };
+
+      const response = await fetch(
+        `http://${getConfigFromEnv('SIDECAR_HANDLER_HOST', 'localhost')}:3333/environment/remove`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          // @ts-ignore
+          body: new URLSearchParams(removeData).toString(),
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(`Error removing ${destEnv.name}: ${errorText}`)
+        throw new Error(`Error removing ${destEnv.name}`);
+      }
+      await environmentHelpers(sqlClientPool).deleteEnvironment(destEnv.name, destEnv.id, cloneData[0].destinationProject);
+    }
+    // delete cloned project
+    await Helpers(sqlClientPool).deleteProjectById(cloneData[0].destinationProject);
+
+    try {
+      const projectGroups = await groupHelpers(sqlClientPool).selectGroupsByProjectId(models, cloneData[0].destinationProject);
+      await models.GroupModel.removeProjectFromGroups(cloneData[0].destinationProject, projectGroups);
+    } catch (err) {
+      logger.error(`Could not remove project from groups for ${destProject.name}: ${err.message}`);
+    }
+    try {
+      const group = await models.GroupModel.loadSparseGroupByName(`project-${destProject.name}`);
+      await models.GroupModel.deleteGroup(group.id);
+    } catch (err) {
+      logger.error(`Could not delete default group for ${destProject.name}: ${err.message}`);
+    }
+    try {
+      const user = await models.UserModel.loadUserByEmail(`default-user@${destProject.name}`);
+      await models.UserModel.deleteUser(user.id);
+    } catch (err) {
+      logger.error(`Could not delete default user for ${destProject.name}: ${err.message}`);
+    }
+  }
+
+  // delete clone task/deployment associations
+  await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
   // delete the ProjectClone reference
-  // delete cloned project
+  await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
+
+  const auditLog: AuditLog = {
+    resource: {
+      id: cloneId.toString(),
+      type: AuditType.PROJECT,
+      details: destProject.name,
+    },
+    organizationId: sourceProject.organization
+  };
+
+  userActivityLogger(`User cancelled a project clone for project '${destProject.name}'`, {
+    project: '',
+    event: 'api:cancelProjectClone',
+    payload: {
+      data: destProject,
+      ...auditLog,
+    }
+  });
+
+  return 'success';
 };
 
 /*

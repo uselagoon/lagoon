@@ -1309,6 +1309,12 @@
               },
               {
                 "name": "deleteKey"
+              },
+              {
+                "name": "cloneProject:add"
+              },
+              {
+                "name": "cloneProject:cancel"
               }
             ]
           },
@@ -2991,6 +2997,17 @@
               "scopes": "[\"forceScale:production\",\"forceScale:development\"]",
               "applyPolicies": "[\"[Lagoon] Users role for realm is Platform Viewer\",\"[Lagoon] Users role for realm is Platform Owner\"]"
             }
+          },
+          {
+            "name": "Manage Project Clones",
+            "type": "scope",
+            "logic": "POSITIVE",
+            "decisionStrategy": "AFFIRMATIVE",
+            "config": {
+              "resources": "[\"organization\"]",
+              "scopes": "[\"cloneProject:add\",\"cloneProject:cancel\"]",
+              "applyPolicies": "[\"[Lagoon] User is admin of organization\",\"[Lagoon] User is owner of organization\",\"[Lagoon] Users role for realm is Platform Organization Owner\",\"[Lagoon] Users role for realm is Platform Owner\"]"
+            }
           }
         ],
         "scopes": [
@@ -3323,6 +3340,12 @@
           },
           {
             "name": "deleteKey"
+          },
+          {
+            "name": "cloneProject:add"
+          },
+          {
+            "name": "cloneProject:cancel"
           }
         ],
         "decisionStrategy": "UNANIMOUS"

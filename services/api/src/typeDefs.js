@@ -2899,6 +2899,11 @@ const typeDefs = gql`
     cloneId: Int!
   }
 
+  input CancelProjectCloneInput {
+    cloneId: Int!
+    deleteResources: Boolean
+  }
+
   """
   HarborRetentionPolicyConfiguration is the type for harbor retention policies configuration
   """
@@ -3371,7 +3376,7 @@ const typeDefs = gql`
     updateProjectClone(input: UpdateProjectCloneInput): ProjectClone
     executeCloneRestoreTask(input: ExecuteCloneRestoreTaskInput!): Task
     executeCloneDeployment(input: ExecuteCloneDeploymentInput!): String
-    cancelProjectClone(id: Int!): String
+    cancelProjectClone(input: CancelProjectCloneInput!): String
     copyProjectGroups(sourceProject: String!, destinationProject: String!): String
     copyProjectNotifications(sourceProject: String!, destinationProject: String!): String
     copyProjectMetadata(sourceProject: String!, destinationProject: String!): String
