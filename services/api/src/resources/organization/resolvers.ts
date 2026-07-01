@@ -573,7 +573,6 @@ export const getGroupRolesByUserIdAndOrganization: ResolverFn =async (
   return null
 }
 
-// list all groups by organization id
 export const getGroupByNameAndOrganizationId: ResolverFn = async (
   _,
   { name, organization },
