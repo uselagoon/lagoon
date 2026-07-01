@@ -73,7 +73,7 @@ export const RetentionPolicy = () => {
             if (typeof rule.latestPulled != "number") {
                 throw new Error(`${rule.name}: latestPulled must be a number`);
             }
-            if (typeof rule.latestPushed != "number") {
+            if (rule.latestPushed && typeof rule.latestPushed != "number") {
                 throw new Error(`${rule.name}: latestPushed must be a number`);
             }
         }
