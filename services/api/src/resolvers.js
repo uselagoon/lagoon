@@ -224,6 +224,7 @@ const {
   getTasksBySourceProjectForCloneProjectId,
   getRestrictionsByProject,
   projectCloneSubscriber,
+  cancelProjectClone,
 } = require('./resources/project/resolvers');
 
 const {
@@ -1021,6 +1022,7 @@ async function getResolvers() {
     deleteOrganizationKey,
     addOrganizationKeyToProject,
     removeOrganizationKeyFromProject,
+    cancelProjectClone,
   },
   Subscription: {
     backupChanged: backupSubscriber,
