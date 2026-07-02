@@ -970,7 +970,16 @@ export const taskDrushSqlSync: ResolverFn = async (
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
-  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  if drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then \
+    if drush pm:list --status=enabled --format=list 2>/dev/null | grep -q '^drupal_integrations$'; then \
+      LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; \
+    else \
+      echo "Warning: drupal_integrations module is not installed or enabled. See https://github.com/amazeeio/drupal-integrations - falling back to legacy alias detection."; \
+      if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi; \
+    fi; \
+  else \
+    if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi; \
+  fi && \
   drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
@@ -1064,7 +1073,16 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
-  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  if drush status --fields=bootstrap 2>/dev/null | grep -q "Successful"; then \
+    if drush pm:list --status=enabled --format=list 2>/dev/null | grep -q '^drupal_integrations$'; then \
+      LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; \
+    else \
+      echo "Warning: drupal_integrations module is not installed or enabled. See https://github.com/amazeeio/drupal-integrations - falling back to legacy alias detection."; \
+      if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi; \
+    fi; \
+  else \
+    if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi; \
+  fi && \
   drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`;
 
   const sourceUser = await deploymentHelpers(sqlClientPool).getSourceUser(keycloakGrant, legacyGrant)
