@@ -353,6 +353,8 @@ const {
   deleteEnvVariable,
   addOrUpdateEnvVariableByName,
   deleteEnvVariableByName,
+  addOrUpdateEnvVariablesByName,
+  deleteEnvVariablesByName,
   getEnvVariablesByProjectEnvironmentName,
 } = require('./resources/env-variables/resolvers');
 
@@ -929,6 +931,8 @@ async function getResolvers() {
     deleteEnvVariable,
     addOrUpdateEnvVariableByName,
     deleteEnvVariableByName,
+    addOrUpdateEnvVariablesByName,
+    deleteEnvVariablesByName,
     addTask,
     addAdvancedTaskDefinition,
     updateAdvancedTaskDefinition,

@@ -8,6 +8,7 @@ import { Helpers as orgHelpers } from '../organization/helpers';
 import { AuditType } from '@lagoon/commons/dist/types';
 import { AuditLog, AuditResource } from '../audit/types';
 import {logger} from "../../loggers/logger";
+import { envVarsConfig } from '../../util/config';
 
 export enum EnvVarType {
   ORGANIZATION = 'organization',
@@ -780,4 +781,410 @@ export const deleteEnvVariable: ResolverFn = async (
   });
 
   return 'success';
+};
+
+// ---------------------------------------------------------------------------
+// Batch env variable resolvers
+//
+// These mutations operate on multiple variables for a single target
+// (organization, project, or environment). They share the same target
+// resolution / permission / project-restriction checks as the singular
+// resolvers above, but those checks fail-fast for the whole batch. Per-entry
+// errors (validation, DB constraint, etc.) are caught and reported back via
+// EnvVariableBatchResult, so a partial failure is observable to the caller.
+// ---------------------------------------------------------------------------
+
+type EnvVarBatchTarget = {
+  envVarType: EnvVarType;
+  envVarTypeName: string;
+  resource: AuditResource;
+  orgId?: number;
+  // Exactly one of these is populated based on envVarType:
+  organizationId?: number;
+  projectId?: number;
+  environmentId?: number;
+};
+
+type EnvVarBatchEntryResult = {
+  name: string;
+  success: boolean;
+  envVariable: any | null;
+  error: string | null;
+};
+
+type EnvVarBatchResult = {
+  successCount: number;
+  failureCount: number;
+  results: EnvVarBatchEntryResult[];
+};
+
+// Resolves the (single) target of a batch env-var operation and runs the
+// corresponding hasPermission and hasProjectRestriction checks. Throws on
+// any whole-batch failure (target not found, permission denied, restriction
+// violation, invalid target combo).
+const resolveEnvVarBatchTarget = async (
+  input: { organization?: string; project?: string; environment?: string },
+  action: 'add' | 'delete',
+  ctx: { sqlClientPool: any; hasPermission: any; adminScopes: any },
+): Promise<EnvVarBatchTarget> => {
+  const { sqlClientPool, hasPermission, adminScopes } = ctx;
+  const { organization: orgName, project: projectName, environment: environmentName } = input;
+
+  const envVarType = getEnvVarType({
+    organization: orgName,
+    project: projectName,
+    environment: environmentName,
+  });
+
+  if (envVarType instanceof Error) {
+    throw envVarType;
+  }
+
+  if (envVarType === EnvVarType.ORGANIZATION) {
+    const org = await orgHelpers(sqlClientPool).getOrganizationByName(orgName);
+    if (!org) {
+      throw new Error(`Organization '${orgName}' not found`);
+    }
+    await hasPermission(
+      'organization',
+      action === 'add' ? 'addEnvVar' : 'deleteEnvVar',
+      { organization: org.id },
+    );
+    return {
+      envVarType,
+      envVarTypeName: orgName,
+      resource: {
+        id: org.id.toString(),
+        type: AuditType.ORGANIZATION,
+        details: org.name,
+      },
+      orgId: org.id,
+      organizationId: org.id,
+    };
+  }
+
+  // PROJECT or ENVIRONMENT — both need the project resolved first.
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput({
+    name: projectName,
+  });
+  if (!project) {
+    throw new Error(`Project '${projectName}' not found`);
+  }
+
+  if (envVarType === EnvVarType.PROJECT) {
+    await hasPermission(
+      'env_var',
+      action === 'add' ? 'project:add' : 'project:delete',
+      { project: project.id },
+    );
+    await projectHelpers(sqlClientPool).hasProjectRestriction(
+      'no_project_variables',
+      project.id,
+      adminScopes,
+    );
+    return {
+      envVarType,
+      envVarTypeName: projectName,
+      resource: {
+        id: project.id.toString(),
+        type: AuditType.PROJECT,
+        details: project.name,
+      },
+      orgId: project.organization || undefined,
+      projectId: project.id,
+    };
+  }
+
+  // ENVIRONMENT
+  const environmentRows = await query(
+    sqlClientPool,
+    Sql.selectEnvironmentByNameAndProject(environmentName, project.id),
+  );
+  const environment = environmentRows[0];
+  if (!environment) {
+    // For parity with the singular delete resolver: fall back to a project
+    // permission check so we don't leak environment existence to callers
+    // who can't see the project.
+    await hasPermission('project', 'view', { project: project.id });
+    throw new Error(`environment ${environmentName} doesn't exist`);
+  }
+  await hasPermission(
+    'env_var',
+    action === 'add'
+      ? `environment:add:${environment.environmentType}`
+      : `environment:delete:${environment.environmentType}`,
+    { project: project.id },
+  );
+  await projectHelpers(sqlClientPool).hasProjectRestriction(
+    'no_environment_variables',
+    project.id,
+    adminScopes,
+  );
+  return {
+    envVarType,
+    envVarTypeName: environmentName,
+    resource: {
+      id: environment.id.toString(),
+      type: AuditType.ENVIRONMENT,
+      details: environment.name,
+    },
+    orgId: project.organization || undefined,
+    projectId: project.id,
+    environmentId: environment.id,
+  };
+};
+
+// Upserts a single env var row for an already-resolved target. Mirrors the
+// behavior of addOrUpdateEnvVariableByName but takes a pre-resolved target
+// so we can loop without re-resolving for each entry.
+const upsertEnvVarRowForTarget = async (
+  sqlClientPool: any,
+  target: EnvVarBatchTarget,
+  entry: { name: string; value: string; scope?: string },
+) => {
+  if (!entry.name || entry.name.trim().length === 0) {
+    throw new Error('A variable name must be provided.');
+  }
+  if (entry.scope === 'internal_container_registry') {
+    throw new Error(
+      'Variable scope "internal_container_registry" is deprecated & can no longer be set.',
+    );
+  }
+
+  const updateData: any = {
+    name: entry.name.trim(),
+    value: entry.value,
+    scope: entry.scope,
+    updated: knex.fn.now(),
+  };
+
+  if (target.envVarType === EnvVarType.ORGANIZATION) {
+    updateData.organization = target.organizationId;
+  } else if (target.envVarType === EnvVarType.PROJECT) {
+    updateData.project = target.projectId;
+  } else if (target.envVarType === EnvVarType.ENVIRONMENT) {
+    updateData.environment = target.environmentId;
+  }
+
+  const createOrUpdateSql = knex('env_vars')
+    .insert({ ...updateData })
+    .onConflict('id')
+    .merge({ ...updateData })
+    .toString();
+
+  const { insertId } = await query(sqlClientPool, createOrUpdateSql);
+  const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
+  return R.prop(0, rows);
+};
+
+// Looks up an env var by name within an already-resolved target and deletes
+// it. Idempotent: if the row doesn't exist, returns null without throwing.
+const deleteEnvVarRowByNameForTarget = async (
+  sqlClientPool: any,
+  target: EnvVarBatchTarget,
+  name: string,
+) => {
+  const trimmedName = (name || '').trim();
+  if (trimmedName.length === 0) {
+    throw new Error('A variable name must be provided.');
+  }
+
+  let rows: any[] = [];
+  if (target.envVarType === EnvVarType.ORGANIZATION) {
+    rows = await query(
+      sqlClientPool,
+      Sql.selectEnvVarByNameAndOrgId(trimmedName, target.organizationId),
+    );
+  } else if (target.envVarType === EnvVarType.PROJECT) {
+    rows = await query(
+      sqlClientPool,
+      Sql.selectEnvVarByNameAndProjectId(trimmedName, target.projectId),
+    );
+  } else if (target.envVarType === EnvVarType.ENVIRONMENT) {
+    rows = await query(
+      sqlClientPool,
+      Sql.selectEnvVarByNameAndEnvironmentId(trimmedName, target.environmentId),
+    );
+  }
+
+  const row = rows[0];
+  if (!row) {
+    return null; // idempotent
+  }
+  await query(sqlClientPool, Sql.deleteEnvVariable(row.id));
+  return row;
+};
+
+const enforceBatchSize = (size: number, fieldName: string) => {
+  if (size === 0) {
+    throw new Error(`'${fieldName}' must contain at least one entry.`);
+  }
+  if (size > envVarsConfig.batchLimit) {
+    throw new Error(
+      `Batch size ${size} exceeds the maximum of ${envVarsConfig.batchLimit}. ` +
+        `Split your request into smaller batches.`,
+    );
+    // TODO: When request exceeds BATCH_ENV_VARS_LIMIT, server-side chunking
+    // could iterate the batch in fixed-size groups and combine results into
+    // a single EnvVariableBatchResult. For now we reject oversize batches
+    // and require the client to split. See uselagoon/lagoon#4092.
+  }
+};
+
+export const addOrUpdateEnvVariablesByName: ResolverFn = async (
+  root,
+  {
+    input: {
+      project: projectName,
+      environment: environmentName,
+      organization: orgName,
+      variables,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
+): Promise<EnvVarBatchResult> => {
+  enforceBatchSize(variables ? variables.length : 0, 'variables');
+
+  const target = await resolveEnvVarBatchTarget(
+    { organization: orgName, project: projectName, environment: environmentName },
+    'add',
+    { sqlClientPool, hasPermission, adminScopes },
+  );
+
+  const results: EnvVarBatchEntryResult[] = [];
+  for (const entry of variables) {
+    try {
+      const row = await upsertEnvVarRowForTarget(sqlClientPool, target, entry);
+      results.push({
+        name: entry.name,
+        success: true,
+        envVariable: row,
+        error: null,
+      });
+    } catch (err) {
+      logger.warn(
+        `Batch upsert env var '${entry.name}' failed for ${target.envVarType} ` +
+          `'${target.envVarTypeName}': ${err.message}`,
+      );
+      results.push({
+        name: entry.name,
+        success: false,
+        envVariable: null,
+        error: err.message,
+      });
+    }
+  }
+
+  const successCount = results.filter(r => r.success).length;
+  const failureCount = results.length - successCount;
+
+  const auditLog: AuditLog = {
+    resource: target.resource,
+    linkedResource: {
+      type: AuditType.VARIABLE,
+      details:
+        `batch addOrUpdate: scope=${target.envVarType} ` +
+        `count=${results.length} success=${successCount} failure=${failureCount} ` +
+        `names=[${variables.map(v => v.name).join(',')}]`,
+    },
+  };
+  if (target.orgId) {
+    auditLog.organizationId = target.orgId;
+  }
+  userActivityLogger(
+    `User batch added/updated environment variables on ${target.envVarType} '${target.envVarTypeName}'`,
+    {
+      project: projectName,
+      event: 'api:addOrUpdateEnvVariablesByName',
+      payload: {
+        envVarType: target.envVarType,
+        envVarTypeName: target.envVarTypeName,
+        count: results.length,
+        successCount,
+        failureCount,
+        ...auditLog,
+      },
+    },
+  );
+
+  return { successCount, failureCount, results };
+};
+
+export const deleteEnvVariablesByName: ResolverFn = async (
+  root,
+  {
+    input: {
+      project: projectName,
+      environment: environmentName,
+      organization: orgName,
+      names,
+    },
+  },
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes },
+): Promise<EnvVarBatchResult> => {
+  enforceBatchSize(names ? names.length : 0, 'names');
+
+  const target = await resolveEnvVarBatchTarget(
+    { organization: orgName, project: projectName, environment: environmentName },
+    'delete',
+    { sqlClientPool, hasPermission, adminScopes },
+  );
+
+  const results: EnvVarBatchEntryResult[] = [];
+  for (const name of names) {
+    try {
+      await deleteEnvVarRowByNameForTarget(sqlClientPool, target, name);
+      results.push({
+        name,
+        success: true,
+        envVariable: null,
+        error: null,
+      });
+    } catch (err) {
+      logger.warn(
+        `Batch delete env var '${name}' failed for ${target.envVarType} ` +
+          `'${target.envVarTypeName}': ${err.message}`,
+      );
+      results.push({
+        name,
+        success: false,
+        envVariable: null,
+        error: err.message,
+      });
+    }
+  }
+
+  const successCount = results.filter(r => r.success).length;
+  const failureCount = results.length - successCount;
+
+  const auditLog: AuditLog = {
+    resource: target.resource,
+    linkedResource: {
+      type: AuditType.VARIABLE,
+      details:
+        `batch delete: scope=${target.envVarType} ` +
+        `count=${results.length} success=${successCount} failure=${failureCount} ` +
+        `names=[${names.join(',')}]`,
+    },
+  };
+  if (target.orgId) {
+    auditLog.organizationId = target.orgId;
+  }
+  userActivityLogger(
+    `User batch deleted environment variables on ${target.envVarType} '${target.envVarTypeName}'`,
+    {
+      project: projectName,
+      event: 'api:deleteEnvVariablesByName',
+      payload: {
+        envVarType: target.envVarType,
+        envVarTypeName: target.envVarTypeName,
+        count: results.length,
+        successCount,
+        failureCount,
+        ...auditLog,
+      },
+    },
+  );
+
+  return { successCount, failureCount, results };
 };

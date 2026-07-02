@@ -1,0 +1,29 @@
+- name: "{{ testname }} - POST api batch deleteEnvVariablesByName for project {{ project }} to {{ graphql_url }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api batch deleteEnvVariablesByName for project {{ project }} to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./batch-delete-project-variables.gql") }}'
+      register: apiresponse
+    - name: "{{ testname }} - debug batch deleteEnvVariablesByName response"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - fail:
+        msg: "error batch deleting environment variables: {{ apiresponse.json }}"
+      when: apiresponse.json.data.deleteEnvVariablesByName.successCount is not defined
+    - fail:
+        msg: "expected successCount {{ expectedSuccessCount }} but got {{ apiresponse.json.data.deleteEnvVariablesByName.successCount }}"
+      when:
+        - expectedSuccessCount is defined
+        - apiresponse.json.data.deleteEnvVariablesByName.successCount != expectedSuccessCount
+    - fail:
+        msg: "expected failureCount {{ expectedFailureCount }} but got {{ apiresponse.json.data.deleteEnvVariablesByName.failureCount }}"
+      when:
+        - expectedFailureCount is defined
+        - apiresponse.json.data.deleteEnvVariablesByName.failureCount != expectedFailureCount

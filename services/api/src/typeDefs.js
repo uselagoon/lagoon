@@ -1095,6 +1095,19 @@ const typeDefs = gql`
     updated: String
   }
 
+  type EnvVariableBatchEntryResult {
+    name: String!
+    success: Boolean!
+    envVariable: EnvKeyValue
+    error: String
+  }
+
+  type EnvVariableBatchResult {
+    successCount: Int!
+    failureCount: Int!
+    results: [EnvVariableBatchEntryResult!]!
+  }
+
   type Task {
     id: Int
     name: String
@@ -2730,6 +2743,26 @@ const typeDefs = gql`
     environment: String
   }
 
+  input EnvVariableEntryInput {
+    name: String!
+    value: String!
+    scope: EnvVariableScope
+  }
+
+  input EnvVariablesByNameInput {
+    organization: String
+    project: String
+    environment: String
+    variables: [EnvVariableEntryInput!]!
+  }
+
+  input DeleteEnvVariablesByNameInput {
+    organization: String
+    project: String
+    environment: String
+    names: [String!]!
+  }
+
   input SetEnvironmentServicesInput {
     environment: Int!
     services: [String]!
@@ -3211,6 +3244,8 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
     addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
     deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
+    addOrUpdateEnvVariablesByName(input: EnvVariablesByNameInput!): EnvVariableBatchResult!
+    deleteEnvVariablesByName(input: DeleteEnvVariablesByNameInput!): EnvVariableBatchResult!
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition

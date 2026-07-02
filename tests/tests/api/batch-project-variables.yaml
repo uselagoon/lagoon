@@ -1,0 +1,34 @@
+- name: "Batch add project variables for {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    variables:
+      - name: "BATCH_VAR_ONE"
+        value: "one"
+        scope: BUILD
+      - name: "BATCH_VAR_TWO"
+        value: "two"
+        scope: RUNTIME
+      - name: "BATCH_VAR_THREE"
+        value: "three"
+        scope: GLOBAL
+    expectedSuccessCount: 3
+    expectedFailureCount: 0
+  tasks:
+    - ansible.builtin.include_tasks: ../../tasks/api/batch-add-project-variables.yaml
+
+- name: "Batch delete project variables for {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    names:
+      - "BATCH_VAR_ONE"
+      - "BATCH_VAR_TWO"
+      - "BATCH_VAR_THREE"
+      - "BATCH_VAR_DOES_NOT_EXIST"
+    # Idempotent delete: missing entries still count as success.
+    expectedSuccessCount: 4
+    expectedFailureCount: 0
+    - ansible.builtin.include_tasks: ../../tasks/api/batch-delete-project-variables.yaml

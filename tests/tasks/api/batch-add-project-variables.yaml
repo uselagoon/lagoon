@@ -1,0 +1,29 @@
+- name: "{{ testname }} - POST api batch addOrUpdateEnvVariablesByName for project {{ project }} to {{ graphql_url }}"
+  block:
+    - ansible.builtin.include_tasks: admin-token.yaml
+    - name: "{{ testname }} - POST api batch addOrUpdateEnvVariablesByName for project {{ project }} to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./batch-add-project-variables.gql") }}'
+      register: apiresponse
+    - name: "{{ testname }} - debug batch addOrUpdateEnvVariablesByName response"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - fail:
+        msg: "error batch adding environment variables: {{ apiresponse.json }}"
+      when: apiresponse.json.data.addOrUpdateEnvVariablesByName.successCount is not defined
+    - fail:
+        msg: "expected successCount {{ expectedSuccessCount }} but got {{ apiresponse.json.data.addOrUpdateEnvVariablesByName.successCount }}"
+      when:
+        - expectedSuccessCount is defined
+        - apiresponse.json.data.addOrUpdateEnvVariablesByName.successCount != expectedSuccessCount
+    - fail:
+        msg: "expected failureCount {{ expectedFailureCount }} but got {{ apiresponse.json.data.addOrUpdateEnvVariablesByName.failureCount }}"
+      when:
+        - expectedFailureCount is defined
+        - apiresponse.json.data.addOrUpdateEnvVariablesByName.failureCount != expectedFailureCount

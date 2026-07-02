@@ -1,0 +1,16 @@
+mutation batchDeleteEnvVariables {
+  deleteEnvVariablesByName(
+    input: {
+      project: "{{ project }}"
+      names: {{ names | to_json }}
+    }
+  ) {
+    successCount
+    failureCount
+    results {
+      name
+      success
+      error
+    }
+  }
+}
