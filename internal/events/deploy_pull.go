@@ -21,7 +21,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 		if env.Name == deployData.UnsafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
-		if project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName {
+		if project.StandbyProductionEnvironment != "" && (project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName) {
 			activeStandby = &env.DeployTarget
 		}
 	}
