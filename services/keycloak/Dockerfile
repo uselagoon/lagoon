@@ -20,7 +20,7 @@ COPY javascript /tmp/lagoon-scripts
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
 # Stage: Build the keycloak image
-FROM quay.io/keycloak/keycloak:26.4.7
+FROM quay.io/keycloak/keycloak:26.6.3
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
@@ -83,11 +83,12 @@ ENV TMPDIR=/tmp \
     LAGOON_DB_PASSWORD=api \
     LAGOON_DB_HOST=api-db \
     LAGOON_DB_PORT=3306 \
-    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
+    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true" \
+    KC_SPI_LOGIN_PROTOCOL__OPENID_CONNECT__ALLOW_TOKEN_INTROSPECTION_WITHOUT_AUDIENCE_CHECK=true
 
 VOLUME /opt/keycloak/data
 
-RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.1.1/keycloak-home-idp-discovery.jar
+RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.2.1/keycloak-home-idp-discovery.jar
 
 COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
@@ -102,6 +103,7 @@ COPY --from=builder /target/custom-protocol-mapper-1.1.1.jar /opt/keycloak/provi
 COPY lagoon-realm-base-import.json /lagoon/seed/lagoon-realm-base-import.json
 
 RUN /opt/keycloak/bin/kc.sh build
+
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
 CMD ["start"]
