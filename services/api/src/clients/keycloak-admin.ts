@@ -29,6 +29,11 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
     realmName: config.realm,
   });
 
+  const tokenProviderClient = new KeycloakAdminClient({
+    baseUrl: `${config.origin}/auth`,
+    realmName: 'master', // auth against the `master` realm
+  });
+
   /**
    * Use a custom token provider that can automatically refresh expired tokens.
    */
@@ -46,13 +51,7 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
         logger.debug('keycloakAdminClient: refreshing expired token');
       }
 
-      // Always auth against master realm.
-      const curRealm = keycloakAdminClient.realmName;
-      keycloakAdminClient.setConfig({
-        realmName: 'master',
-      });
-
-      await keycloakAdminClient.auth({
+      await tokenProviderClient.auth({
         grantType: 'client_credentials',
         clientId: 'admin-api',
         clientSecret: getConfigFromEnv(
@@ -61,10 +60,7 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
         ),
       });
 
-      keycloakAdminClient.setConfig({
-        realmName: curRealm,
-      });
-
+      keycloakAdminClient.accessToken = tokenProviderClient.accessToken;
       return keycloakAdminClient.accessToken;
     },
   });
