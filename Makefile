@@ -1001,7 +1001,7 @@ k3d/push-stable-build-image:
 .PHONY: k3d/push-remote-controller-image
 k3d/push-remote-controller-image:
 	@export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
-		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
+		export IMAGE_REGISTRY="registry.$$($(KUBECTL) -n $(INGRESS_CONTROLLER_NAMESPACE) get services $(INGRESS_CONTROLLER_SERVICE) -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		&& [ $(INSTALL_UNAUTHENTICATED_REGISTRY) = false ] && docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY || true \
 		&& docker pull $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) \
 		&& docker tag $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY):$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) $$IMAGE_REGISTRY/remote-controller:$(CI_BUILD_TAG) \
