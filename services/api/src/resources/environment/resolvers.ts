@@ -277,7 +277,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   { sqlClientPool, hasPermission, adminScopes }
 ) => {
 
-  const rows = await query(sqlClientPool, Sql.selectEnvironmentByOpenshiftProjectName(args.openshiftProjectName));
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentsByOpenshiftProjectName(args.openshiftProjectName));
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
@@ -966,7 +966,7 @@ export const userCanSshToEnvironment: ResolverFn = async (
   const openshiftProjectName =
     args.kubernetesNamespaceName || args.openshiftProjectName;
 
-  const rows = await query(sqlClientPool, Sql.canSshToEnvironment(openshiftProjectName));
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentsByOpenshiftProjectName(openshiftProjectName));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
 
