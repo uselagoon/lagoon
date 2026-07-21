@@ -905,6 +905,52 @@ export const getAllEnvironments: ResolverFn = async (
   return withK8s;
 };
 
+const PAGE_LIMIT = 5;
+
+export const getAllEnvironmentsPaginated: ResolverFn = async (
+  root,
+  { createdAfter, type, order, limit, offset },
+  { sqlClientPool, hasPermission }
+) => {
+  await hasPermission('environment', 'viewAll');
+
+  let queryBuilder = knex('environment').where('deleted', '0000-00-00 00:00:00');
+
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
+
+  if (type) {
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
+  }
+
+  if (order) {
+    queryBuilder = queryBuilder.orderBy(order);
+  }
+
+  const baseQuery = queryBuilder.clone();
+
+  queryBuilder = queryBuilder.orderBy('id', 'asc');
+
+  if (limit != null) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
+
+  if (offset != null) {
+    queryBuilder = queryBuilder.offset(offset);
+  }
+
+  const [rows, countResult] = await Promise.all([
+    query(sqlClientPool, queryBuilder.toString()),
+    query(sqlClientPool, baseQuery.count('id as count').toString()),
+  ]);
+
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const totalCount = parseInt(countResult[0]?.count ?? '0', 10);
+
+  return { environments: withK8s, totalCount };
+};
+
 // @deprecated in favor of addOrUpdateEnvironmentService and deleteEnvironmentService, will eventually be removed
 export const setEnvironmentServices: ResolverFn = async (
   root,

@@ -1751,6 +1751,22 @@ const typeDefs = gql`
     filename: String!
   }
 
+  """
+  Paginated project resp
+  """
+  type ProjectsResponse {
+    projects: [Project!]!
+    totalCount: Int!
+  }
+
+  """
+  Paginated environment resp
+  """
+  type EnvironmentsResponse {
+    environments: [Environment!]!
+    totalCount: Int!
+  }
+
   type Query {
     """
     Returns the current user
@@ -1847,6 +1863,16 @@ const typeDefs = gql`
     """
     allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType, buildImage: Boolean): [Project]
     """
+    Returns all Project Objects matching given filters (all if no filter defined) - paginated via offset + limit.
+    """
+    allProjectsPaginated(
+      limit: Int
+      offset: Int
+      createdAfter: String
+      gitUrl: String
+      buildImage: Boolean
+    ): ProjectsResponse
+    """
     Returns all Project Objects matching metadata filters
     """
     projectsByMetadata(metadata: [MetadataKeyValue]): [Project]
@@ -1862,6 +1888,15 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Environment Objects matching given filters (all if no filter defined) - paginated via offset + limit.
+    """
+    allEnvironmentsPaginated(
+      limit: Int
+      offset: Int
+      createdAfter: String
+      type: EnvType
+    ): EnvironmentsResponse
     """
     Returns all Problems matching given filter (all if no filter defined)
     """

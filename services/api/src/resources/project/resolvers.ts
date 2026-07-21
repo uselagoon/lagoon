@@ -155,6 +155,71 @@ export const getAllProjects: ResolverFn = async (
   return withK8s;
 };
 
+const PAGE_LIMIT = 20;
+
+export const getAllProjectsPaginated: ResolverFn = async (
+  root,
+  { limit, offset, createdAfter, gitUrl, buildImage },
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
+) => {
+  let userProjectIds: number[] | undefined;
+  const filters = { userProjectIds, createdAfter, gitUrl, buildImage };
+
+  try {
+    // admin check, if passed then pre-set authz
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    // else user
+    if (!keycloakGrant) {
+      logger.debug('No grant available for getAllProjectsPaginated');
+      return [];
+    }
+    // get the project ids from the users groups
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser(keycloakGrant.access_token.content.sub, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
+  }
+
+  let queryBuilder = knex('project');
+
+  if (createdAfter) {
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
+  }
+
+  if (gitUrl) {
+    queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
+  }
+
+  if (buildImage) {
+    queryBuilder = queryBuilder.andWhereNot('build_image', '');
+  }
+
+  if (userProjectIds) {
+    queryBuilder = queryBuilder.whereIn('id', userProjectIds);
+  }
+
+  const baseQuery = queryBuilder.clone();
+
+  queryBuilder = queryBuilder.orderBy('id', 'asc');
+
+  if (limit != null) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
+
+  if (offset != null) {
+    queryBuilder = queryBuilder.offset(offset);
+  }
+
+  const [rows, countResult] = await Promise.all([
+    query(sqlClientPool, queryBuilder.toString()),
+    query(sqlClientPool, baseQuery.count('id as count').toString()),
+  ]);
+
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  const totalCount = parseInt(countResult[0]?.count ?? '0', 10);
+
+  return { projects: withK8s, totalCount };
+};
+
 export const getProjectByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
