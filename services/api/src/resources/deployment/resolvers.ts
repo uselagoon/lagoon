@@ -851,7 +851,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       }
       let pullrequest: DeployPullrequest = {
         title: environment.deployTitle,
-        number: environment.name.replace('pr-', ''),
+        number: parseInt(environment.name.replace('pr-', '')),
         headBranch: environment.deployHeadRef,
         headSha: `origin/${environment.deployHeadRef}`,
         baseBranch: environment.deployBaseRef,
@@ -1198,7 +1198,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   }
   const pullrequest: DeployPullrequest = {
     title: title,
-    number: number,
+    number: parseInt(number),
     headBranch: headBranchName,
     headSha: headBranchRef,
     baseBranch: baseBranchName,
