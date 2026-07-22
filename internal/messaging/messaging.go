@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"encoding/json"
 	"log"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -9,6 +10,7 @@ import (
 type Messaging interface {
 	Publish(queue string, message []byte) error
 	SendToLagoonTasks(routingKey string, build []byte) error
+	SendToLagoonLogs(uuid, project, event string, meta any)
 }
 
 type Messenger struct {
@@ -75,4 +77,18 @@ func (m *Messenger) SendToLagoonTasks(routingKey string, build []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (m *Messenger) SendToLagoonLogs(uuid, project, event string, meta any) {
+	msgData := map[string]any{
+		"severity": "info",
+		"event":    event,
+		"meta":     meta,
+		"uuid":     uuid,
+		"project":  project,
+	}
+	msg, _ := json.Marshal(msgData)
+	if err := m.Publish("lagoon-logs", msg); err != nil {
+		log.Println("unable to send message to lagoon-logs", err.Error())
+	}
 }

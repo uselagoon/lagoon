@@ -34,3 +34,7 @@ func (m *MessengerMock) SendToLagoonTasks(routingKey string, data []byte) error 
 	}
 	return nil
 }
+
+func (m *MessengerMock) SendToLagoonLogs(uuid, project, event string, meta any) {
+	log.Println("[MOCK] sent message to lagoon-logs", project, event)
+}

@@ -20,7 +20,6 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 	if gitType == "github" {
 		return nil, fmt.Errorf("unsupported event")
 	}
-
 	var projects []schema.Project
 	var bulkID, bulkName string
 	var err error
@@ -59,7 +58,16 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 		var resp []byte
 		var err error
 		buildName := lagoon.GenerateBuildName()
+		handledEvent := fmt.Sprintf("%s:%s:handled", gitType, event)
+		meta := BranchMetadata{
+			ProjectName:  project.Name,
+			Branch:       branchName,
+			RepoFullName: fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name),
+			RepoURL:      scmWebhook.Repo.Link,
+			BranchName:   branchName,
+		}
 		if scmWebhook.Action == scm.ActionDelete || scmWebhook.Action == scm.ActionClose {
+			handledEvent = fmt.Sprintf("%s:delete:handled", gitType)
 			err = e.CreateRemoveTask(project, branchName, false)
 		} else {
 			deployData := lagoon.DeployData{
@@ -79,6 +87,9 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 			}
 			resp, err = e.CreateDeployTask(project, deployData)
 		}
+		fmt.Println("MOCKOBRANCH", handledEvent)
+		// send the message to lagoon-logs to be handled by notifications
+		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, meta)
 		if err != nil {
 			errs++
 			response.Error = err
