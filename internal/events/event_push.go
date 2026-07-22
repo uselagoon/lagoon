@@ -53,10 +53,6 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 	if scmWebhook.Sender.Login != "" {
 		sourceUser = scmWebhook.Sender.Login
 	}
-	skip := skipDeploy(scmWebhook.Commit.Message)
-	if skip {
-		return nil, fmt.Errorf("skipped by skip commit message")
-	}
 
 	var resps []Response
 	errs := 0
@@ -70,23 +66,49 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 		if deletion {
 			err = e.CreateRemoveTask(project, branchName, false)
 		} else {
-			deployData := lagoon.DeployData{
-				GitType:               gitType,
-				BuildName:             buildName,
-				UnsafeEnvironmentName: branchName,
-				SourceUser:            sourceUser,
-				Project:               project,
-				SourceType:            lagoon.SourceWebhook,
-				DeployType:            schema.Branch,
-				BulkType:              lagoon.BulkDeploy,
-				GitSHA:                scmWebhook.After,
-				BuildType:             lagoon.BuildDeployment,
+			skip := skipDeploy(scmWebhook.Commit.Message)
+			handledEvent := fmt.Sprintf("%s:push:handled", gitType)
+			if skip {
+				err = fmt.Errorf("skipped by skip commit message")
+				handledEvent = fmt.Sprintf("%s:push:skipped", gitType)
+			} else {
+				deployData := lagoon.DeployData{
+					GitType:               gitType,
+					BuildName:             buildName,
+					UnsafeEnvironmentName: branchName,
+					SourceUser:            sourceUser,
+					Project:               project,
+					SourceType:            lagoon.SourceWebhook,
+					DeployType:            schema.Branch,
+					BulkType:              lagoon.BulkDeploy,
+					GitSHA:                scmWebhook.Commit.Sha,
+					BuildType:             lagoon.BuildDeployment,
+				}
+				if bulkID != "" {
+					deployData.BulkID = bulkID
+					deployData.BulkName = bulkName
+				}
+				resp, err = e.CreateDeployTask(project, deployData)
 			}
-			if bulkID != "" {
-				deployData.BulkID = bulkID
-				deployData.BulkName = bulkName
+			pushmeta := PushMetadata{
+				ProjectName:  project.Name,
+				Branch:       branchName,
+				SHA:          scmWebhook.Commit.Sha,
+				RepoFullName: fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name),
+				RepoURL:      scmWebhook.Repo.Link,
+				BranchName:   branchName,
+				CommitURL:    scmWebhook.Commit.Link,
+				Event:        handledEvent,
 			}
-			resp, err = e.CreateDeployTask(project, deployData)
+
+			if len(scmWebhook.Commit.Sha) > 7 {
+				pushmeta.ShortSHA = scmWebhook.Commit.Sha[:7]
+			} else {
+				pushmeta.ShortSHA = scmWebhook.Commit.Sha
+			}
+			fmt.Println("MOCKOPUSH", handledEvent)
+			// send the message to lagoon-logs to be handled by notifications
+			e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pushmeta)
 		}
 		if err != nil {
 			errs++
