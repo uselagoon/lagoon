@@ -20,7 +20,7 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 		}
 		if !exists {
 			if project.OrganizationDetails.QuotaEnvironment != -1 && len(project.OrganizationDetails.Environments) >= project.OrganizationDetails.QuotaEnvironment {
-				return nil, fmt.Errorf("exceed environment quota")
+				return nil, fmt.Errorf("%s: exceed environment quota", project.Name)
 			}
 		}
 	}
@@ -44,7 +44,7 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 				}
 			}
 			if !exists {
-				return nil, fmt.Errorf("exceed production limit")
+				return nil, fmt.Errorf("%s: exceed production limit", project.Name)
 			}
 		}
 	} else {
@@ -62,7 +62,7 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 				}
 			}
 			if !exists {
-				return nil, fmt.Errorf("exceed development limit")
+				return nil, fmt.Errorf("%s: exceed development limit", project.Name)
 			}
 		}
 	}

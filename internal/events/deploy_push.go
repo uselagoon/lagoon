@@ -27,7 +27,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 
 	if deployTarget != nil && activeStandby != nil {
 		if deployTarget.ID != activeStandby.ID {
-			return nil, fmt.Errorf("environments must be on same deploytarget")
+			return nil, fmt.Errorf("%s: environments must be on same deploytarget", project.Name)
 		}
 	}
 
@@ -57,7 +57,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return lagoon.BuildToBytes(buildData), nil
 			case "false":
-				errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s branches disabled", dtc.DeployTarget.Name))
+				errs = append(errs, fmt.Sprintf("%s: deployment not allowed on deploytargetconfig %s branches disabled", project.Name, dtc.DeployTarget.Name))
 				continue
 			default:
 				re := regexp2.MustCompile(dtc.Branches, 0)
@@ -71,7 +71,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 					return lagoon.BuildToBytes(buildData), nil
 				} else {
-					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s didn't match branches regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
+					errs = append(errs, fmt.Sprintf("%s: deployment not allowed on deploytargetconfig %s didn't match branches regex pattern for deploytargetconfig", project.Name, dtc.DeployTarget.Name))
 					continue
 				}
 			}
@@ -91,7 +91,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 			e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 			return lagoon.BuildToBytes(buildData), nil
 		case "false":
-			return nil, fmt.Errorf("deployments disabled for project branches")
+			return nil, fmt.Errorf("%s: deployments disabled for project branches", project.Name)
 		default:
 			re := regexp2.MustCompile(project.Branches, 0)
 			if match, _ := re.MatchString(deployData.UnsafeEnvironmentName); match {
@@ -104,7 +104,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return lagoon.BuildToBytes(buildData), nil
 			} else {
-				return nil, fmt.Errorf("didn't match regex pattern for project")
+				return nil, fmt.Errorf("%s: didn't match regex pattern for project", project.Name)
 			}
 		}
 	}

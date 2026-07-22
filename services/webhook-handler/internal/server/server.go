@@ -143,6 +143,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		e := events.New(s.LagoonAPI, s.Messaging)
 		if webhook != nil {
 			var response []events.Response
+			var repositoryUrl, repositoryName string
 			var err error
 			switch scmWebhook := webhook.(type) {
 			case *scm.PushHook:
@@ -152,21 +153,29 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
 					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
 				}
+				repositoryUrl = scmWebhook.Repo.Clone
+				repositoryName = fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name)
 				response, err = e.HandlePush(gitType, event, reqUUID, scmWebhook)
 			case *scm.BranchHook:
 				if gitType == "bitbucket" {
 					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
 					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
 				}
+				repositoryUrl = scmWebhook.Repo.Clone
+				repositoryName = fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name)
 				response, err = e.HandleBranch(gitType, event, reqUUID, scmWebhook)
 			case *scm.PullRequestHook:
 				if gitType == "bitbucket" {
 					scmWebhook.Repo.Clone = scmWebhook.Repo.Link
 					scmWebhook.Repo.CloneSSH = events.BitBucketGitURL(scmWebhook.Repo.Link, fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name))
 				}
+				repositoryUrl = scmWebhook.Repo.Clone
+				repositoryName = fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name)
 				response, err = e.HandlePull(gitType, event, reqUUID, scmWebhook)
 			case *scm.TagHook:
 				// future?
+				repositoryUrl = scmWebhook.Repo.Clone
+				repositoryName = fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name)
 				respondWithError(w, http.StatusBadRequest, "tags events are currently unsupported")
 				return
 			}
@@ -178,9 +187,9 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 							errs = append(errs, i.Error.Error())
 						}
 					}
-					log.Println("Errors:", strings.Join(errs, ";"))
+					log.Printf("errors: (%s:%s): %s\n", repositoryUrl, repositoryName, strings.Join(errs, ";"))
 				} else {
-					log.Println("Error:", err)
+					log.Printf("error: (%s:%s): %v\n", repositoryUrl, repositoryName, err)
 				}
 				respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
 				return
