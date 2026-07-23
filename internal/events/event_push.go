@@ -106,7 +106,6 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 			} else {
 				pushmeta.ShortSHA = scmWebhook.Commit.Sha
 			}
-			fmt.Println("MOCKOPUSH", handledEvent)
 			// send the message to lagoon-logs to be handled by notifications
 			e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pushmeta)
 		}

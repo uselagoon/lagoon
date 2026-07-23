@@ -87,7 +87,6 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 			}
 			resp, err = e.CreateDeployTask(project, deployData)
 		}
-		fmt.Println("MOCKOBRANCH", handledEvent)
 		// send the message to lagoon-logs to be handled by notifications
 		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, meta)
 		if err != nil {
