@@ -23,10 +23,6 @@ func (s *Server) removeEnvironment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if !fdpe {
-		log.Printf("%s is defined as the production environment for %s, refusing to remove.", environmentName, projectName)
-		return
-	}
 	e := events.New(s.LagoonAPI, s.Messaging)
 	project, err := e.LagoonAPI.ProjectByName(projectName)
 	if err != nil {
