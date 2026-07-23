@@ -52,10 +52,6 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		}
 		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
 			err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number), false)
-			// handledEvent = fmt.Sprintf("%s:pull_request:%s:handled", gitType, scmWebhook.Action)
-			// if gitType == "gitlab" {
-			// 	handledEvent = fmt.Sprintf("%s:merge_request:%s:handled", gitType, scmWebhook.Action)
-			// }
 		} else {
 			deployData := lagoon.DeployData{
 				GitType:               gitType,
@@ -102,7 +98,6 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 			RepoURL:           scmWebhook.Repo.Link,
 		}
 		// send the message to lagoon-logs to be handled by notifications
-		fmt.Println("MOCKOPR", handledEvent, "|", event, "|", scmWebhook.Action)
 		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pullmeta)
 		if err != nil {
 			errs++
