@@ -99,7 +99,7 @@ export interface DeployData {
 
 export interface DeployPullrequest {
   title: string,
-  number: string,
+  number: number,
   headBranch: string,
   headSha: string,
   baseBranch: string,
