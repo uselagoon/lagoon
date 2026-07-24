@@ -637,18 +637,16 @@ export const deleteEnvironment: ResolverFn = async (
     );
   }
 
+  let canDeleteProduction = false;
   await hasPermission('environment', `delete:${environment.environmentType}`, {
     project: projectId
   });
-
-  let canDeleteProduction;
-  try {
-    await hasPermission('environment', 'delete:production', {
-      project: projectId
-    });
+  // rather than do a second permission check specifically for production
+  // if the permission check above succeeds on `production` types
+  // just set the value if the environment type is production
+  // the permission check above will fail before this if the user doesn't have permission to do this action anyway
+  if (environment.environmentType == "production") {
     canDeleteProduction = true;
-  } catch (err) {
-    canDeleteProduction = false;
   }
 
   let removeData: RemoveData = {
