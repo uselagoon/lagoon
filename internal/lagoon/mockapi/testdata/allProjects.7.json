@@ -21,9 +21,9 @@
                     {
                         "autoIdle": 1,
                         "environmentType": "development",
-                        "id": 5,
+                        "id": 1,
                         "name": "dev",
-                        "kubernetesNamespaceName": "demo-project1-dev",
+                        "kubernetesNamespaceName": "demo-project3-dev",
                         "openshift": {
                             "buildImage": null,
                             "disabled": false,
@@ -38,8 +38,8 @@
                         "autoIdle": 1,
                         "environmentType": "production",
                         "id": 3,
-                        "name": "main",
-                        "kubernetesNamespaceName": "demo-project1-main",
+                        "name": "main-right",
+                        "kubernetesNamespaceName": "demo-project3-main-right",
                         "openshift": {
                             "buildImage": null,
                             "disabled": false,
@@ -52,26 +52,10 @@
                     },
                     {
                         "autoIdle": 1,
-                        "environmentType": "development",
-                        "id": 6,
-                        "name": "pr-3",
-                        "kubernetesNamespaceName": "demo-project1-pr-3",
-                        "openshift": {
-                            "buildImage": null,
-                            "disabled": false,
-                            "id": 2001,
-                            "monitoringConfig": null,
-                            "name": "ci-local-control-k8s",
-                            "routerPattern": "${project}.${environment}.example.com",
-                            "sharedBaasBucketName": null
-                        }
-                    },
-                    {
-                        "autoIdle": 1,
-                        "environmentType": "development",
+                        "environmentType": "production",
                         "id": 4,
-                        "name": "staging",
-                        "kubernetesNamespaceName": "demo-project1-staging",
+                        "name": "main-left",
+                        "kubernetesNamespaceName": "demo-project3-main-left",
                         "openshift": {
                             "buildImage": null,
                             "disabled": false,
@@ -83,9 +67,9 @@
                         }
                     }
                 ],
-                "gitUrl": "git@bitbucket.org:aio-test/test.git",
-                "id": 18,
-                "name": "demo-project1",
+                "gitUrl": "git@eiki0ov6thae:root/example-project.git",
+                "id": 190,
+                "name": "demo-project3",
                 "openshift": {
                     "buildImage": null,
                     "disabled": false,
@@ -98,10 +82,10 @@
                 "organizationDetails": null,
                 "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nSNIPKEY\n-----END OPENSSH PRIVATE KEY-----\n",
                 "productionBuildPriority": 6,
-                "productionEnvironment": "main",
+                "productionEnvironment": "main-left",
                 "routerPattern": null,
                 "sharedBaasBucket": true,
-                "standbyProductionEnvironment": null,
+                "standbyProductionEnvironment": "main-right",
                 "storageCalc": 1,
                 "subfolder": null
             }

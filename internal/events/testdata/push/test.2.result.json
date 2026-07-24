@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "name": "lagoon-build-abcdefg",
+    "namespace": "lagoon"
+  },
+  "spec": {
+    "build": {
+      "type": "branch",
+      "priority": 6
+    },
+    "project": {
+      "id": 190,
+      "name": "demo-project3",
+      "environment": "main-left",
+      "environmentId": 71,
+      "uiLink": "https://ui.example.com/projects/demo-project3/demo-project3-main-left/deployments/lagoon-build-abcdefg",
+      "gitUrl": "git@eiki0ov6thae:root/example-project.git",
+      "routerPattern": "${project}.${environment}.example.com",
+      "environmentType": "production",
+      "productionEnvironment": "main-left",
+      "standbyEnvironment": "main-right",
+      "deployTarget": "ci-local-control-k8s",
+      "projectSecret": "9ab2c8b527bfd0444a805fdb4ea1c23065a6599f57423dc4abd969d1cc3eaf3c",
+      "key": "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KU05JUEtFWQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K",
+      "monitoring": {},
+      "variables": {
+        "environment": "W3sic2NvcGUiOiJpbnRlcm5hbF9zeXN0ZW0iLCJuYW1lIjoiTEFHT09OX1NZU1RFTV9DT1JFX1ZFUlNJT04iLCJ2YWx1ZSI6InVua25vd24ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUk9VVEVSX1BBVFRFUk4iLCJ2YWx1ZSI6IiR7cHJvamVjdH0uJHtlbnZpcm9ubWVudH0uZXhhbXBsZS5jb20ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUFJPSkVDVF9TSEFSRURfQlVDS0VUIiwidmFsdWUiOiJjaS1sb2NhbC1jb250cm9sLWs4cyJ9XQ=="
+      },
+      "environmentIdling": 1,
+      "projectIdling": 1,
+      "storageCalculator": 1
+    },
+    "branch": {
+      "name": "main-left"
+    },
+    "pullrequest": {},
+    "promote": {},
+    "gitReference": "abcdefg123456"
+  },
+  "status": {}
+}

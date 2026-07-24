@@ -1,0 +1,117 @@
+{
+    "data": {
+        "projectByName": {
+            "autoIdle": 1,
+            "branches": "true",
+            "buildImage": null,
+            "pullrequests": "true",
+            "deployTargetConfigs": [
+                {
+                    "id": 1,
+                    "deployTarget": {
+                        "buildImage": null,
+                        "disabled": false,
+                        "id": 2002,
+                        "monitoringConfig": null,
+                        "name": "ci-fake-k8s",
+                        "routerPattern": "${project}.${environment}.example.com",
+                        "sharedBaasBucketName": null
+                    },
+                    "branches": "^(develop|staging|test)$",
+                    "pullrequests": "false",
+                    "weight": 1
+                },
+                {
+                    "id": 2,
+                    "deployTarget": {
+                        "buildImage": null,
+                        "disabled": false,
+                        "id": 2001,
+                        "monitoringConfig": null,
+                        "name": "ci-local-control-k8s",
+                        "routerPattern": "${project}.${environment}.example.com",
+                        "sharedBaasBucketName": null
+                    },
+                    "branches": "true",
+                    "pullrequests": "false",
+                    "weight": 1
+                }
+            ],
+            "deploymentsDisabled": 0,
+            "developmentBuildPriority": 5,
+            "developmentEnvironmentsLimit": 5,
+            "envVariables": [],
+            "environments": [
+                {
+                    "autoIdle": 1,
+                    "environmentType": "development",
+                    "id": 80,
+                    "name": "dev",
+                    "kubernetesNamespaceName": "demo-project4-dev",
+                    "openshift": {
+                        "buildImage": null,
+                        "disabled": false,
+                        "id": 2001,
+                        "monitoringConfig": null,
+                        "name": "ci-local-control-k8s",
+                        "routerPattern": "${project}.${environment}.example.com",
+                        "sharedBaasBucketName": null
+                    }
+                },
+                {
+                    "autoIdle": 1,
+                    "environmentType": "production",
+                    "id": 81,
+                    "name": "main-right",
+                    "kubernetesNamespaceName": "demo-project4-main-right",
+                    "openshift": {
+                        "buildImage": null,
+                        "disabled": false,
+                        "id": 2001,
+                        "monitoringConfig": null,
+                        "name": "ci-local-control-k8s",
+                        "routerPattern": "${project}.${environment}.example.com",
+                        "sharedBaasBucketName": null
+                    }
+                },
+                {
+                    "autoIdle": 1,
+                    "environmentType": "production",
+                    "id": 82,
+                    "name": "main/left",
+                    "kubernetesNamespaceName": "demo-project4-main-left",
+                    "openshift": {
+                        "buildImage": null,
+                        "disabled": false,
+                        "id": 2001,
+                        "monitoringConfig": null,
+                        "name": "ci-local-control-k8s",
+                        "routerPattern": "${project}.${environment}.example.com",
+                        "sharedBaasBucketName": null
+                    }
+                }
+            ],
+            "gitUrl": "git@eiki0ov6thae:root/example-project.git",
+            "id": 191,
+            "name": "demo-project4",
+            "openshift": {
+                "buildImage": null,
+                "disabled": false,
+                "id": 2001,
+                "monitoringConfig": null,
+                "name": "ci-local-control-k8s",
+                "routerPattern": "${project}.${environment}.example.com",
+                "sharedBaasBucketName": null
+            },
+            "organizationDetails": null,
+            "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nSNIPKEY\n-----END OPENSSH PRIVATE KEY-----\n",
+            "productionBuildPriority": 6,
+            "productionEnvironment": "main/left",
+            "routerPattern": null,
+            "sharedBaasBucket": true,
+            "standbyProductionEnvironment": "main-right",
+            "storageCalc": 1,
+            "subfolder": null
+        }
+    }
+}

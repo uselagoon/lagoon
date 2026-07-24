@@ -1,0 +1,16 @@
+{
+    "data": {
+        "addOrUpdateEnvironment": {
+            "autoIdle": 1,
+            "deployType": "branch",
+            "envVariables": [],
+            "environmentType": "production",
+            "id": 81,
+            "name": "main-right",
+            "openshiftProjectName": "demo-project4-main-right",
+            "project": {
+                "name": "demo-project4"
+            }
+        }
+    }
+}

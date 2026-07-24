@@ -16,8 +16,12 @@ import (
 func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.LagoonBuild, error) {
 	// shorten and make safe the environment name from the branch and project
 	environmentName := namespace.ShortenEnvironment(deployData.Project.Name, namespace.MakeSafe(deployData.UnsafeEnvironmentName))
+	// make the production and standby environments "safe" for comparing against the "safe" environment name coming in
+	safeProductionEnvironment := namespace.ShortenEnvironment(deployData.Project.Name, namespace.MakeSafe(deployData.Project.ProductionEnvironment))
+	safeStandbyProductionEnvironment := namespace.ShortenEnvironment(deployData.Project.Name, namespace.MakeSafe(deployData.Project.StandbyProductionEnvironment))
+
 	environmentType := schema.DevelopmentEnv
-	if deployData.Project.ProductionEnvironment == environmentName || deployData.Project.StandbyProductionEnvironment == environmentName {
+	if safeProductionEnvironment == environmentName || safeStandbyProductionEnvironment == environmentName {
 		environmentType = schema.ProductionEnv
 	}
 
@@ -184,4 +188,15 @@ func (l *LagoonAPI) GetControllerBuildData(deployData DeployData) (*lagooncrd.La
 func BuildToBytes(buildPayload *lagooncrd.LagoonBuild) []byte {
 	buildPayloadBytes, _ := json.Marshal(buildPayload)
 	return buildPayloadBytes
+}
+
+func matchesConfiguredEnv(projectName, unsafeName, configuredName string) bool {
+	if configuredName == "" {
+		return false
+	}
+	if unsafeName == configuredName {
+		return true
+	}
+	safeName := namespace.ShortenEnvironment(projectName, namespace.MakeSafe(unsafeName))
+	return safeName == configuredName
 }

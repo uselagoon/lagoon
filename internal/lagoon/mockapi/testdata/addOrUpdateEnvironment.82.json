@@ -4,12 +4,12 @@
             "autoIdle": 1,
             "deployType": "branch",
             "envVariables": [],
-            "environmentType": "development",
-            "id": 15,
-            "name": "dev-push",
-            "openshiftProjectName": "demo-project1-dev-push",
+            "environmentType": "production",
+            "id": 82,
+            "name": "main/left",
+            "openshiftProjectName": "demo-project4-main-left",
             "project": {
-                "name": "demo-project1"
+                "name": "demo-project4"
             }
         }
     }

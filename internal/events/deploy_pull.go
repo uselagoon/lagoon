@@ -14,14 +14,21 @@ import (
 )
 
 func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData) ([]byte, error) {
-	// get deploytargets for environment if the environment already exists
+	var counterpart string
+	switch {
+	case matchesConfiguredEnv(project.Name, deployData.UnsafeEnvironmentName, project.ProductionEnvironment):
+		counterpart = project.StandbyProductionEnvironment
+	case matchesConfiguredEnv(project.Name, deployData.UnsafeEnvironmentName, project.StandbyProductionEnvironment):
+		counterpart = project.ProductionEnvironment
+	}
+
 	var deployTarget *schema.DeployTarget
 	var activeStandby *schema.DeployTarget
 	for _, env := range project.Environments {
 		if env.Name == deployData.UnsafeEnvironmentName {
 			deployTarget = &env.DeployTarget
 		}
-		if project.StandbyProductionEnvironment != "" && (project.StandbyProductionEnvironment == deployData.UnsafeEnvironmentName || project.ProductionEnvironment == deployData.UnsafeEnvironmentName) {
+		if counterpart != "" && matchesConfiguredEnv(project.Name, env.Name, counterpart) {
 			activeStandby = &env.DeployTarget
 		}
 	}

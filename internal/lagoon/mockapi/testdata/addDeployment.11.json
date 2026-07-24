@@ -4,14 +4,14 @@
             "completed": null,
             "created": "2025-08-06 01:01:11",
             "environment": {
-                "name": "dev-push"
+                "name": "main/right"
             },
-            "id": 45,
+            "id": 46,
             "name": "lagoon-build-abcdefg",
             "remoteId": null,
             "started": null,
             "status": "new",
-            "uiLink": "https://ui.example.com/projects/demo-project1/demo-project1-dev-push/deployments/lagoon-build-abcdefg"
+            "uiLink": "https://ui.example.com/projects/demo-project4/demo-project4-main-right/deployments/lagoon-build-abcdefg"
         }
     }
 }

@@ -77,3 +77,14 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 	}
 	return nil, fmt.Errorf("")
 }
+
+func matchesConfiguredEnv(projectName, unsafeName, configuredName string) bool {
+	if configuredName == "" {
+		return false
+	}
+	if unsafeName == configuredName {
+		return true
+	}
+	safeName := namespace.ShortenEnvironment(projectName, namespace.MakeSafe(unsafeName))
+	return safeName == configuredName
+}
