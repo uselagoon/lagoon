@@ -80,7 +80,7 @@ func (e *Events) deployPull(project schema.Project, deployData lagoon.DeployData
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 					return lagoon.BuildToBytes(buildData), nil
 				} else {
-					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetg %s didn't match pullrequest title regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
+					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytarget %s didn't match pullrequest title regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
 					continue
 				}
 			}

@@ -645,7 +645,7 @@ export const deleteEnvironment: ResolverFn = async (
   // if the permission check above succeeds on `production` types
   // just set the value if the environment type is production
   // the permission check above will fail before this if the user doesn't have permission to do this action anyway
-  if (environment.environmentType == "production") {
+  if (environment.environmentType === "production") {
     canDeleteProduction = true;
   }
 

@@ -58,6 +58,14 @@ const s3Client = new S3Client({
 
 const convertDateFormat = R.init;
 
+export function safeParse(str) {
+  try {
+    return JSON.parse(str)
+  } catch {
+    return null
+  }
+}
+
 export const getBuildLog: ResolverFn = async (
   { remoteId, environment, name, status },
   _args,
@@ -935,9 +943,9 @@ export const deployEnvironmentLatest: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      const errJSON = JSON.parse(errorText)
-      logger.error(`Error deploying ${environment.name}: ${errorText}`)
-      throw new Error(`Error deploying ${environment.name}: ${errJSON.error}`);
+      const message = safeParse(errorText)?.error ?? errorText ?? 'Unknown error'
+      logger.error(`Error deploying ${environment.name}: ${message}`)
+      throw new Error(`Error deploying ${environment.name}: ${message}`)
     }
 
     sendToLagoonLogs(
@@ -1093,9 +1101,9 @@ export async function deployBranch(returnData, project, branchName, branchRef, p
     );
     if (!response.ok) {
       const errorText = await response.text();
-      const errJSON = JSON.parse(errorText)
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
-      throw new Error(`Error deploying ${deployData.branchName}: ${errJSON.error}`);
+      const message = safeParse(errorText)?.error ?? errorText ?? 'Unknown error'
+      logger.error(`Error deploying ${deployData.branchName}: ${message}`)
+      throw new Error(`Error deploying ${deployData.branchName}: ${message}`)
     }
 
     sendToLagoonLogs(
@@ -1258,9 +1266,9 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      const errJSON = JSON.parse(errorText)
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
-      throw new Error(`Error deploying ${deployData.branchName}: ${errJSON.error}`);
+      const message = safeParse(errorText)?.error ?? errorText ?? 'Unknown error'
+      logger.error(`Error deploying ${deployData.branchName}: ${message}`)
+      throw new Error(`Error deploying ${deployData.branchName}: ${message}`)
     }
 
     sendToLagoonLogs(
@@ -1433,9 +1441,9 @@ export const deployEnvironmentPromote: ResolverFn = async (
     );
     if (!response.ok) {
       const errorText = await response.text();
-      const errJSON = JSON.parse(errorText)
-      logger.error(`Error deploying ${deployData.branchName}: ${errorText}`)
-      throw new Error(`Error deploying ${deployData.branchName}: ${errJSON.error}`);
+      const message = safeParse(errorText)?.error ?? errorText ?? 'Unknown error'
+      logger.error(`Error deploying ${deployData.branchName}: ${message}`)
+      throw new Error(`Error deploying ${deployData.branchName}: ${message}`)
     }
 
     sendToLagoonLogs(
