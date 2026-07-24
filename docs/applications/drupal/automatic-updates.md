@@ -23,7 +23,7 @@ The following update methods been disabled by Lagoon.
 ## Drupal Automatic Updates
 
 The [Automatic Updates](https://www.drupal.org/project/automatic_updates)
-contrib module is disabled by and it will also be disabled when it moves
+contrib module is disabled by Lagoon. The module will also be disabled when it moves
 into Drupal core.
 
 ## Drush
