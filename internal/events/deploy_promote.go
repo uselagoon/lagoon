@@ -22,7 +22,7 @@ func (e *Events) deployPromote(project schema.Project, deployData lagoon.DeployD
 	}
 
 	if !foundEnvironment {
-		return nil, fmt.Errorf("no existing environment to promote from that contains a valid deploytarget")
+		return nil, fmt.Errorf("%s: no existing environment to promote from that contains a valid deploytarget", project.Name)
 	}
 
 	if deployTarget != nil {
