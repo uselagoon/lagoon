@@ -74,11 +74,27 @@ export const Helpers = (sqlClientPool: Pool) => {
             eid
           )
         );
+        await query(
+          sqlClientPool,
+          Sql.deleteServiceContainersVolumemountsByEnvironmentId(
+            eid
+          )
+        );
+        await query(
+          sqlClientPool,
+          Sql.deleteServiceContainersPortsByEnvironmentId(
+            eid
+          )
+        );
         // clean up services
         // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
         await query(
           sqlClientPool,
           Sql.deleteServices(eid)
+        );
+        await query(
+          sqlClientPool,
+          Sql.deleteVolumes(eid)
         );
         // Here we clean up insights attached to the environment
         // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment facts`)
@@ -229,6 +245,15 @@ export const Helpers = (sqlClientPool: Pool) => {
       );
       return rows;
     },
+    getEnvironmentVolumes: async (eid: number) => {
+      const rows = await query(
+        sqlClientPool,
+        Sql.selectVolumesByEnvironmentId(
+          eid
+        )
+      );
+      return rows;
+    },
     resetServiceContainers: async (serviceId: number, containers: any) => {
       await query(
         sqlClientPool,
@@ -239,6 +264,24 @@ export const Helpers = (sqlClientPool: Pool) => {
           sqlClientPool,
           Sql.insertServiceContainer(serviceId, container.name)
         );
+        if (container.volumes) {
+          for (const vol of container.volumes) {
+            // save volumes mounted to this container
+            await query(
+              sqlClientPool,
+              Sql.insertServiceContainerVolumemount(serviceId, container.name, vol.name, vol.path)
+            );
+          }
+        }
+        if (container.ports) {
+          for (const port of container.ports) {
+            // save ports used by this container
+            await query(
+              sqlClientPool,
+              Sql.insertServiceContainerPort(serviceId, container.name, port.name, port.port)
+            );
+          }
+        }
       }
     },
   };
