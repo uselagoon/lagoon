@@ -47,9 +47,6 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		var err error
 		buildName := lagoon.GenerateBuildName()
 		handledEvent := fmt.Sprintf("%s:%s:%s:handled", gitType, event, scmWebhook.Action)
-		if gitType == "gitlab" {
-			handledEvent = fmt.Sprintf("%s:%s:%s:handled", gitType, event, scmWebhook.Action)
-		}
 		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
 			err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number), false)
 		} else {

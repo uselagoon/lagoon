@@ -133,13 +133,18 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		client = gitlab.NewDefault()
 		isGit = true
 		gitType = "gitlab"
-		eventBody := map[string]interface{}{}
-		_ = json.Unmarshal(body, &eventBody)
-		value, ok := eventBody["object_kind"]
-		if !ok {
-			event = eventBody["event_name"].(string)
+		eventBody := map[string]any{}
+		if err := json.Unmarshal(body, &eventBody); err != nil {
+			respondWithError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+		if v, ok := eventBody["object_kind"].(string); ok && v != "" {
+			event = v
+		} else if v, ok := eventBody["event_name"].(string); ok && v != "" {
+			event = v
 		} else {
-			event = value.(string)
+			respondWithError(w, http.StatusBadRequest, "unable to determine gitlab event type")
+			return
 		}
 		reqUUID = r.Header.Get("X-Gitlab-Event-UUID")
 	}

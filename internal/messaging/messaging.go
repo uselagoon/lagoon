@@ -87,7 +87,11 @@ func (m *Messenger) SendToLagoonLogs(uuid, project, event string, meta any) {
 		"uuid":     uuid,
 		"project":  project,
 	}
-	msg, _ := json.Marshal(msgData)
+	msg, err := json.Marshal(msgData)
+	if err != nil {
+		log.Println("unable to marshal message for lagoon-logs", err.Error())
+		return
+	}
 	if err := m.Publish("lagoon-logs", msg); err != nil {
 		log.Println("unable to send message to lagoon-logs", err.Error())
 	}
