@@ -51,6 +51,8 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/allProjects.5.json")
 				case variables["gitUrl"].(string) == "git@bitbucket.org:aio-test/test.git":
 					a, _ = f.ReadFile("testdata/allProjects.6.json")
+				case variables["gitUrl"].(string) == "git@eiki0ov6thae:root/example-project.git":
+					a, _ = f.ReadFile("testdata/allProjects.7.json")
 				}
 			}
 			if strings.Contains(request, "addOrUpdateEnvironment") {
@@ -71,6 +73,14 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.7.json")
 				case variables["name"].(string) == "promotemain":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.8.json")
+				case variables["name"].(string) == "main-left":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.71.json")
+				case variables["name"].(string) == "main-right":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.72.json")
+				case variables["name"].(string) == "main/right":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.81.json")
+				case variables["name"].(string) == "main/left":
+					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.82.json")
 				}
 			}
 			if strings.Contains(request, "addDeployment") {
@@ -91,6 +101,14 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/addDeployment.7.json")
 				case variables["environment"].(float64) == 17:
 					a, _ = f.ReadFile("testdata/addDeployment.8.json")
+				case variables["environment"].(float64) == 71:
+					a, _ = f.ReadFile("testdata/addDeployment.9.json")
+				case variables["environment"].(float64) == 72:
+					a, _ = f.ReadFile("testdata/addDeployment.10.json")
+				case variables["environment"].(float64) == 81:
+					a, _ = f.ReadFile("testdata/addDeployment.11.json")
+				case variables["environment"].(float64) == 82:
+					a, _ = f.ReadFile("testdata/addDeployment.12.json")
 				}
 			}
 			if strings.Contains(request, "projectByName") {
@@ -100,6 +118,10 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/projectByName.1.json")
 				case variables["name"].(string) == "demo-project2":
 					a, _ = f.ReadFile("testdata/projectByName.2.json")
+				case variables["name"].(string) == "demo-project3":
+					a, _ = f.ReadFile("testdata/projectByName.3.json")
+				case variables["name"].(string) == "demo-project4":
+					a, _ = f.ReadFile("testdata/projectByName.4.json")
 				}
 			}
 			if strings.Contains(request, "environmentById") {

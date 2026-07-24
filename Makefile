@@ -755,6 +755,7 @@ endif
 GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/webhook-handler services/actions-handler taskimages/activestandby taskimages/projectclone
 .PHONY: go/test
 go/test: local-dev/go
+	$(GO) clean -testcache && $(GO) test -v ./internal/...
 	for service in $(GO_SERVICES); do \
 		echo "test $$service" \
 		&& cd "$$service" \
