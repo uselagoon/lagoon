@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -103,15 +104,16 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		reqUUID = r.Header.Get("X-Request-UUID")
 	}
 	if r.Header.Get("X-Gitlab-Event") != "" {
+		defer r.Body.Close()
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+		r.Body = io.NopCloser(bytes.NewReader(body))
 		if r.Header.Get("X-Gitlab-Event") == "System Hook" {
 			// drone scm doesn't process gitlab system hooks that we need
 			// handle them ourselves here
-			defer r.Body.Close()
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				respondWithError(w, http.StatusBadRequest, "invalid request body")
-				return
-			}
 			// Ensure the system hook came from gitlab
 			if r.Header.Get("X-Gitlab-Token") == "" || r.Header.Get("X-Gitlab-Token") != s.GitlabAPI.GitlabSystemHookToken {
 				respondWithError(w, http.StatusBadRequest, "gitlab system hook secret verification failed")
@@ -131,7 +133,19 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 		client = gitlab.NewDefault()
 		isGit = true
 		gitType = "gitlab"
-		event = r.Header.Get("X-Gitlab-Event")
+		eventBody := map[string]any{}
+		if err := json.Unmarshal(body, &eventBody); err != nil {
+			respondWithError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+		if v, ok := eventBody["object_kind"].(string); ok && v != "" {
+			event = v
+		} else if v, ok := eventBody["event_name"].(string); ok && v != "" {
+			event = v
+		} else {
+			respondWithError(w, http.StatusBadRequest, "unable to determine gitlab event type")
+			return
+		}
 		reqUUID = r.Header.Get("X-Gitlab-Event-UUID")
 	}
 	if isGit {

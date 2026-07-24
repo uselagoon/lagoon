@@ -117,8 +117,10 @@ func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, proj
 		ThemeColor: color,
 		Sections: []MicrosoftTeamsSection{
 			{
-				ActivityText:  message,
-				ActivityImage: emoji,
+				ActivityText: message,
+				// This doesn't work in teams apparently, removing for now
+				// 'Post_card_in_a_chat_or_channel_1' failed: Invalid image URI
+				// ActivityImage: emoji,
 			},
 		},
 	}
@@ -153,29 +155,56 @@ var microsoftTeamsEvent = map[string]EventMap{
 	"gitlab:merge_request:opened:handled":          {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
 	"bitbucket:pullrequest:created:opened:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack
 	"bitbucket:pullrequest:created:handled":        {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in teams
+	"gitea:pull_request:opened:handled":            {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"gogs:pull_request:opened:handled":             {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"stash:pr:opened:opened:handled":               {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
 
 	"github:pull_request:synchronize:handled":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
 	"gitlab:merge_request:updated:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
 	"bitbucket:pullrequest:updated:opened:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
 	"bitbucket:pullrequest:updated:handled":        {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
 
+	"bitbucket:pullrequest:updated:synchronized:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+	"gitlab:merge_request:synchronized:handled":          {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+
 	"github:pull_request:closed:handled":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"bitbucket:pullrequest:fulfilled:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"bitbucket:pullrequest:rejected:handled":  {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
 	"gitlab:merge_request:closed:handled":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
 
+	"bitbucket:pullrequest:fulfilled:merged:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pullrequest:rejected:closed:handled":  {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"gitlab:merge_request:merged:handled":            {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"gitea:pull_request:closed:handled":              {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"gogs:pull_request:closed:handled":               {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"stash:pr:declined:closed:handled":               {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"stash:pr:merged:merged:handled":                 {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+
 	"github:delete:handled":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
 	"gitlab:remove:handled":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
 	"bitbucket:delete:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
 	"api:deleteEnvironment":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
+	"gitlab:delete:handled":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
+	"gitea:delete:handled":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
+	"gogs:delete:handled":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
+	"stash:delete:handled":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
 
 	"github:push:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
 	"bitbucket:repo:push:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
 	"gitlab:push:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
 
+	"bitbucket:push:handled":          {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"gitea:push:handled":              {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"gogs:push:handled":               {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"stash:push:handled":              {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"stash:repo:refs_changed:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+
 	"github:push:skipped":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
 	"gitlab:push:skipped":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
 	"bitbucket:push:skipped": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"gitea:push:skipped":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"gogs:push:skipped":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"stash:push:skipped":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
 
 	"api:deployEnvironmentLatest": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deployEnvironment"},
 	"api:deployEnvironmentBranch": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deployEnvironment"},
