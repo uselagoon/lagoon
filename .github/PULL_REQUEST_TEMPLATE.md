@@ -11,7 +11,7 @@
 
 # Database Migrations
 
-- [ ] If your PR contains a database migation, it **MUST** be the latest in date order alphabetically
+- [ ] If your PR contains a database migration, it **MUST** be the latest in date order alphabetically
 
 # Description
 
