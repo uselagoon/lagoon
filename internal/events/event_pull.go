@@ -46,6 +46,7 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 		var resp []byte
 		var err error
 		buildName := lagoon.GenerateBuildName()
+		handledEvent := fmt.Sprintf("%s:%s:%s:handled", gitType, event, scmWebhook.Action)
 		if scmWebhook.PullRequest.Closed || scmWebhook.Action == scm.ActionClose {
 			err = e.CreateRemoveTask(project, fmt.Sprintf("pr-%d", scmWebhook.PullRequest.Number), false)
 		} else {
@@ -85,6 +86,16 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 			}
 			resp, err = e.CreateDeployTask(project, deployData)
 		}
+		pullmeta := PullMetadata{
+			ProjectName:       project.Name,
+			PullrequestTitle:  scmWebhook.PullRequest.Title,
+			PullrequestNumber: scmWebhook.PullRequest.Number,
+			PullrequestURL:    scmWebhook.PullRequest.Link,
+			RepoName:          fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name),
+			RepoURL:           scmWebhook.Repo.Link,
+		}
+		// send the message to lagoon-logs to be handled by notifications
+		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pullmeta)
 		if err != nil {
 			errs++
 			response.Error = err
