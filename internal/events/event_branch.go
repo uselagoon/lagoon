@@ -87,11 +87,12 @@ func (e *Events) HandleBranch(gitType, event, uuid string, scmWebhook *scm.Branc
 			}
 			resp, err = e.CreateDeployTask(project, deployData)
 		}
-		// send the message to lagoon-logs to be handled by notifications
-		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, meta)
 		if err != nil {
 			errs++
 			response.Error = err
+		} else {
+			// send the message to lagoon-logs to be handled by notifications
+			e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, meta)
 		}
 		response.Response = string(resp)
 		resps = append(resps, response)

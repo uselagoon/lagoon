@@ -107,7 +107,9 @@ func (e *Events) HandlePush(gitType, event, uuid string, scmWebhook *scm.PushHoo
 				pushmeta.ShortSHA = scmWebhook.Commit.Sha
 			}
 			// send the message to lagoon-logs to be handled by notifications
-			e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pushmeta)
+			if err == nil {
+				e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pushmeta)
+			}
 		}
 		if err != nil {
 			errs++

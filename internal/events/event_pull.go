@@ -94,11 +94,12 @@ func (e *Events) HandlePull(gitType, event, uuid string, scmWebhook *scm.PullReq
 			RepoName:          fmt.Sprintf("%s/%s", scmWebhook.Repo.Namespace, scmWebhook.Repo.Name),
 			RepoURL:           scmWebhook.Repo.Link,
 		}
-		// send the message to lagoon-logs to be handled by notifications
-		e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pullmeta)
 		if err != nil {
 			errs++
 			response.Error = err
+		} else {
+			// send the message to lagoon-logs to be handled by notifications
+			e.Messaging.SendToLagoonLogs(uuid, project.Name, handledEvent, pullmeta)
 		}
 		response.Response = string(resp)
 		resps = append(resps, response)
