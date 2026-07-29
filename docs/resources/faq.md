@@ -131,7 +131,7 @@ Run the following command to get your SSH connection details:
 lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME] --conn-string
 ```
 
-This will return the SSH connection string, which contains the user, host, and port needed for your SFTP client.
+This will return an `ssh ...` connection string; use the user/host/port values from that output in your SFTP client configuration.
 
 You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/uselagoon/lagoon-sync](https://github.com/uselagoon/lagoon-sync)
 
