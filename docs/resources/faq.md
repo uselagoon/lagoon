@@ -123,13 +123,15 @@ Once you've added a runtime environment variable to your production environment 
 
 ## How do I SFTP files to/from my Lagoon environment?
 
-For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:
+For cloud hosting customers, you can SFTP to your Lagoon environment by using the connection string details provided by the Lagoon CLI.
 
-* Server Hostname: `{{ defaults.sshhostname }}`
-* Port: {{ defaults.sshport }}
-* Username: &lt;Project-Environment-Name&gt;
+Run the following command to get your SSH connection details:
 
-Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _`PROJECTNAME-ENVIRONMENT`_.
+```bash title="Get SSH connection string"
+lagoon ssh -p [PROJECT-NAME] -e [ENVIRONMENT-NAME] --conn-string
+```
+
+This will return an `ssh ...` connection string; use the user/host/port values from that output in your SFTP client configuration.
 
 You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/uselagoon/lagoon-sync](https://github.com/uselagoon/lagoon-sync)
 
