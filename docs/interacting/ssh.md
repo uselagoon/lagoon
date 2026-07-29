@@ -101,11 +101,11 @@ You can then use these details with the usual SSH-compatible tools.
 
 !!! Note
     When you run the [`ssh` client](https://man7.org/linux/man-pages/man1/ssh.1.html) command with just a `USER@HOST` argument, it will assume that you want an interactive session and allocate a [pty](https://www.man7.org/linux/man-pages/man7/pty.7.html).
-    This give you a regular shell environment where you can enter commands at a prompt, send interrupts using `^C` etc.
+    This gives you a regular shell environment where you can enter commands at a prompt, send interrupts using `^C` etc.
 
     However, when you provide an argument to the `ssh` client command, it assumes that you want a non-interactive session (e.g. just run a command and return) and will not allocate a pty.
 
-    So when providing an argument such as `service=[SERVICE-NAME]` to an `ssh` command that **you expect to give you an interactive shell** , you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.
+    So when providing an argument such as `service=[SERVICE-NAME]` to an `ssh` command that **you expect to give you an interactive shell**, you need to tell the `ssh` client to not "auto-detect" if it needs a pty and just allocate one anyway using the `-t` flag.
 
 ### scp
 
