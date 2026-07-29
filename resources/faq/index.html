@@ -5445,13 +5445,11 @@
 <h2 id="how-do-i-get-my-new-environment-variable-to-show-up">How do I get my new environment variable to show up?<a class="headerlink" href="#how-do-i-get-my-new-environment-variable-to-show-up" title="Permanent link">#</a></h2>
 <p>Once you've added a runtime environment variable to your production environment via GraphQL, then all you need to do a deploy in order to get your change to show up on your environment.</p>
 <h2 id="how-do-i-sftp-files-tofrom-my-lagoon-environment">How do I SFTP files to/from my Lagoon environment?<a class="headerlink" href="#how-do-i-sftp-files-tofrom-my-lagoon-environment" title="Permanent link">#</a></h2>
-<p>For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:</p>
-<ul>
-<li>Server Hostname: <code>ssh.example.com</code></li>
-<li>Port: 22</li>
-<li>Username: &lt;Project-Environment-Name&gt;</li>
-</ul>
-<p>Your username is going to be the name of the environment you are connecting to, most commonly in the pattern <em><code>PROJECTNAME-ENVIRONMENT</code></em>.</p>
+<p>For cloud hosting customers, you can SFTP to your Lagoon environment by using the connection string details provided by the Lagoon CLI.</p>
+<p>Run the following command to get your SSH connection details:</p>
+<div class="language-bash highlight"><span class="filename">Get SSH connection string</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>lagoon<span class="w"> </span>ssh<span class="w"> </span>-p<span class="w"> </span><span class="o">[</span>PROJECT-NAME<span class="o">]</span><span class="w"> </span>-e<span class="w"> </span><span class="o">[</span>ENVIRONMENT-NAME<span class="o">]</span><span class="w"> </span>--conn-string
+</span></code></pre></div>
+<p>This will return an <code>ssh ...</code> connection string; use the user/host/port values from that output in your SFTP client configuration.</p>
 <p>You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: <a href="https://github.com/uselagoon/lagoon-sync">https://github.com/uselagoon/lagoon-sync</a></p>
 <p>Authentication also happens automatically via SSH Public &amp; Private Key Authentication.</p>
 <h2 id="i-dont-want-to-use-lets-encrypt-i-have-an-ssl-certificate-i-would-like-to-install">I don't want to use Let's Encrypt. I have an SSL certificate I would like to install<a class="headerlink" href="#i-dont-want-to-use-lets-encrypt-i-have-an-ssl-certificate-i-would-like-to-install" title="Permanent link">#</a></h2>
