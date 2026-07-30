@@ -51,7 +51,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "github",
 			event:        "push",
 			webhook:      "github/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -67,7 +67,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "github",
 			event:        "push",
 			webhook:      "github/push-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -99,7 +99,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "github",
 			event:        "pull_request",
 			webhook:      "github/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -148,7 +148,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitlab",
 			event:        "Push Hook",
 			webhook:      "gitlab/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -164,7 +164,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitlab",
 			event:        "Push Hook",
 			webhook:      "gitlab/push-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -188,7 +188,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitlab",
 			event:        "Merge Request Hook",
 			webhook:      "gitlab/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -237,7 +237,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitea",
 			event:        "push",
 			webhook:      "gitea/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -253,7 +253,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitea",
 			event:        "delete",
 			webhook:      "gitea/branch-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -269,7 +269,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gitea",
 			event:        "pull_request",
 			webhook:      "gitea/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -310,7 +310,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "stash",
 			event:        "repo:refs_changed",
 			webhook:      "stash/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -326,7 +326,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "stash",
 			event:        "repo:refs_changed",
 			webhook:      "stash/push-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -350,7 +350,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "stash",
 			event:        "pr:opened",
 			webhook:      "stash/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -391,7 +391,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gogs",
 			event:        "push",
 			webhook:      "gogs/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -407,7 +407,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gogs",
 			event:        "delete",
 			webhook:      "gogs/branch-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -423,7 +423,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "gogs",
 			event:        "pull_request",
 			webhook:      "gogs/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -464,7 +464,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "bitbucket",
 			event:        "repo:push",
 			webhook:      "bitbucket/push-skipped",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -480,7 +480,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "bitbucket",
 			event:        "repo:push",
 			webhook:      "bitbucket/push-delete-prod",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{
@@ -512,7 +512,7 @@ func TestWebhookEvents(t *testing.T) {
 			gitType:      "bitbucket",
 			event:        "pullrequest:created",
 			webhook:      "bitbucket/pr-open-skip",
-			wantCode:     400,
+			wantCode:     200,
 			wantResponse: "invalid.json",
 		},
 		{

@@ -181,7 +181,9 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				response, err = e.HandlePull(gitType, event, reqUUID, scmWebhook)
 			case *scm.TagHook:
 				// future?
-				respondWithError(w, http.StatusBadRequest, "tags events are currently unsupported")
+				// respond with 200 code, even though this is an error
+				// this is to prevent some git solutions from disabling webhooks
+				respondWithJSON(w, http.StatusOK, map[string]string{"error": "tags events are currently unsupported"})
 				return
 			}
 			if err != nil {
@@ -196,7 +198,9 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				} else {
 					log.Println("Error:", err)
 				}
-				respondWithError(w, http.StatusBadRequest, "invalid resquest payload")
+				// respond with 200 code, even though this is an error
+				// this is to prevent some git solutions from disabling webhooks
+				respondWithJSON(w, http.StatusOK, map[string]string{"error": "invalid resquest payload"})
 				return
 			}
 			if s.VerboseResponse {
