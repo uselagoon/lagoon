@@ -5,3 +5,4 @@ mkdocs-git-revision-date-localized-plugin
 mkdocs-awesome-pages-plugin
 mkdocs-markdownextradata-plugin
 mkdocs-static-i18n
+mkdocs-llms-source
