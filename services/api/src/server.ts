@@ -14,7 +14,7 @@ import { Environment } from './models/environment';
 import { keycloakGrantManager } from './clients/keycloakClient';
 import { keycloakHasPermission, legacyHasPermission } from './util/auth';
 import R from 'ramda';
-import { AuthenticationError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 const { useServer } = require('graphql-ws/lib/use/ws');
 const { createHandler } = require('graphql-sse/lib/use/http');
 
@@ -34,7 +34,9 @@ export const createServer = async () => {
 
       if (!authHeader) {
         logger.error('SSE: No authorization header');
-        throw new AuthenticationError('Auth token missing.');
+        throw new GraphQLError('Auth token missing.', {
+          extensions: { code: 'UNAUTHENTICATED' }
+        });
       }
 
       const authToken = authHeader.replace('Bearer ', '').replace('bearer ', '');
@@ -45,7 +47,9 @@ export const createServer = async () => {
         return true; // just signal success; data is on the request
       } catch (e) {
         logger.error(`SSE auth failed: ${e.message}`);
-        throw new AuthenticationError('Auth token invalid.');
+        throw new GraphQLError('Auth token invalid.', {
+          extensions: { code: 'UNAUTHENTICATED' }
+        });
       }
     },
     context: async (req, params) => {
@@ -74,7 +78,9 @@ export const createServer = async () => {
           await User(modelClients).userLastAccessed(currentUser);
         } catch (e) {
           logger.error('Error loading user details for SSE subscription', e.message);
-          throw new AuthenticationError('Failed to load user context for SSE subscription');
+          throw new GraphQLError('Failed to load user context for SSE subscription', {
+            extensions: { code: 'UNAUTHENTICATED' }
+          });
         }
       }
 
@@ -196,6 +202,9 @@ try {
           }
         } catch (e) {
           logger.error(`WebSocket auth failed: ${e.message}`);
+          throw new GraphQLError(`WebSocket auth failed: ${e.message}`, {
+            extensions: { code: 'UNAUTHENTICATED' }
+          });
         }
 
         const keycloakAdminClient = await getKeycloakAdminClient();
@@ -221,7 +230,9 @@ try {
             await User(modelClients).userLastAccessed(currentUser);
           } catch (e) {
             logger.error('Error loading user details for subscription', e.message);
-            throw new AuthenticationError('Failed to load user context for subscription');
+            throw new GraphQLError('Failed to load user context for subscription', {
+              extensions: { code: 'UNAUTHENTICATED' }
+            });
           }
         }
 
@@ -255,7 +266,9 @@ try {
         const token = R.prop('authToken', ctx.connectionParams);
         if (!token) {
           logger.error('WebSocket onConnect: No auth token found in connection parameters');
-          throw new AuthenticationError('Auth token missing.');
+          throw new GraphQLError('Auth token missing.', {
+            extensions: { code: 'UNAUTHENTICATED' }
+          });
         }
 
         try {

@@ -1,7 +1,7 @@
 import { path } from 'ramda';
 import { withFilter } from 'graphql-subscriptions';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
-import { ForbiddenError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { Sql as projectSql } from '../resources/project/sql';
@@ -90,7 +90,9 @@ const createProjectSubscribe = (events): ResolverFn => async (
 
         const p = path([0, 'id'], rows);
         if (!p) {
-          throw new ForbiddenError('Project not found.');
+          throw new GraphQLError('Project not found.', {
+            extensions: { code: 'FORBIDDEN' }
+          });
         }
 
         await projectHelpers(sqlClientPool).checkOrgProjectViewPermission(hasPermission, p, adminScopes)
@@ -130,11 +132,13 @@ const createOrganizationSubscribe = (events): ResolverFn => async (
 
         const o = path([0, 'id'], rows);
         if (!o) {
-          throw new ForbiddenError('Organization not found.');
+          throw new GraphQLError('Organization not found.', {
+            extensions: { code: 'FORBIDDEN' }
+          });
         }
 
         if (!adminScopes.platformOwner && !adminScopes.platformViewer) {
-          // This will throw ForbiddenError if denied, killing the subscription immediately
+          // This will throw GraphQLError if denied, killing the subscription immediately
           await hasPermission('organization', 'view', {
             organization: o,
           });
