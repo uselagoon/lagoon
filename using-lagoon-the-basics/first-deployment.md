@@ -1,0 +1,61 @@
+# First Deployment
+
+![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
+
+!!! Note
+    If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](../applications/drupal/first-deployment-of-drupal.md).
+
+## 1. Make sure you are ready
+
+In order to make your first deployment a successful one, please make sure that your project is Lagoonized and that you have set up the project in Lagoon. If not, or you're not sure, or that doesn't sound familiar, don't worry, go back and follow the [Step-by-Step Guides](setup-project.md) which show you how this works, and then come back and deploy!
+
+## 2. Push
+
+With Lagoon, you create a new deployment by pushing into a branch that is configured to be deployed.
+
+If you don't have any new code to push, don't worry! Run:
+
+```bash title="Git push"
+git commit --allow-empty -m "go, go! Power Rangers!"
+git push
+```
+
+This will trigger a push, and your Git hosting will inform Lagoon about this push via the configured webhook.
+
+If all is correct, you should see a notification in your configured chat system. \(Contact {{ defaults.helpstring }} for this\):
+
+![Slack notification that a push has been made in a Lagoonized repository.](../images/first_deployment_slack_start.jpg)
+
+This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](../concepts-basics/build-and-deploy-process.md).
+
+You can also check your Lagoon UI to see the progress of any deployment. \(Contact {{ defaults.helpstring }} for this\).
+
+## 3. It's done
+
+As soon as Lagoon is done building and deploying it will send a second notification to the chat system, here an example:
+
+![Slack notification of a successful Lagoon build and deployment.](../images/first_deployment_slack_2nd_success.jpg)
+
+It tells you:
+
+* Which project has been deployed.
+* Which branch and Git SHA have been deployed.
+* A link to the full logs of the build and deployment.
+* Links to all routes \(URLs\) where the environment can be reached.
+
+You can also quickly tell what kind of notification it is by the emoji at the beginning - whether it's just info that the build has started, a success, or fail.
+
+That's it! We hope that wasn't too hard - making devOps accessible is what we are striving for!
+
+## But wait, how about other branches or the production environment?
+
+That's the beauty of Lagoon: it's exactly the same! Just push the name of the branch and that one will be deployed.
+
+## Failure? Don't worry
+
+Did the deployment fail? Oh no! But we're here to help:
+
+1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../applications/drupal/first-deployment-of-drupal.md), which explains why this happens.
+2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
+3. If you can't figure it out, just ask {{ defaults.helpstring }}, they are here to help!
+4. Reach out in your support channel, open an issue in the appropriate [uselagoon repository](https://github.com/orgs/uselagoon/repositories), or start a [GitHub Discussion](https://github.com/uselagoon/lagoon/discussions).

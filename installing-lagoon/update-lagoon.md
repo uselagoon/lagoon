@@ -1,0 +1,52 @@
+# Updating
+
+1. Download newest charts using Helm.
+
+    ```bash title="Download newest charts"
+    helm repo update
+    ```
+
+2. Check with `helm diff` for changes ([https://github.com/databus23/helm-diff](https://github.com/databus23/helm-diff)).
+
+    ```bash title="Check for changes"
+    helm diff upgrade --install --create-namespace --namespace lagoon-core \
+        -f values.yml lagoon-core lagoon/lagoon-core
+    ```
+
+3. [Back up](#database-backups) the Lagoon databases prior to any Helm actions.
+   We also suggest scaling the API to a single pod, to aid the database migration scripts running in the initContainers.
+
+4. Run the upgrade using Helm.
+
+    ```bash title="Run upgrade"
+    helm upgrade --install --create-namespace --namespace lagoon-core \
+        -f values.yaml lagoon-core lagoon/lagoon-core
+    ```
+
+5. Re-scale the API pods back to their original level.
+
+Check [https://github.com/uselagoon/lagoon/releases](https://github.com/uselagoon/lagoon/releases) for additional upgrades.
+
+## Database Backups
+
+You may want to back up the databases before upgrading Lagoon Core, the following will create backups you can use to restore from if required. You can delete them afterwards.
+
+### API DB
+
+```bash title="Back up API DB"
+kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
+    sh -c 'mysqldump --max-allowed-packet=500M --events \
+    --routines --quick --add-locks --no-autocommit \
+    --single-transaction infrastructure | gzip -9 > \
+    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).infrastructure.sql.gz'
+```
+
+### Keycloak DB
+
+```bash title="Back up Keycloak DB"
+kubectl --namespace lagoon-core exec -it lagoon-core-keycloak-db-0 -- \
+    sh -c 'mysqldump --max-allowed-packet=500M --events \
+    --routines --quick --add-locks --no-autocommit \
+    --single-transaction keycloak | gzip -9 > \
+    /var/lib/mysql/backup/$(date +%Y-%m-%d_%H%M%S).keycloak.sql.gz'
+```
