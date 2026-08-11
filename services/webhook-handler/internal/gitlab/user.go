@@ -225,7 +225,7 @@ func (sh *SystemHook) gitlabUserGroupAdd(b []byte) {
 	groupRole := &schema.UserGroupRoleInput{
 		UserEmail: glUser.Email,
 		GroupName: sanitizeGroupName(group.FullPath),
-		GroupRole: schema.GroupRole(w.GroupAccess),
+		GroupRole: schema.GroupRole(strings.ToUpper(w.GroupAccess)),
 	}
 	lGroup := schema.Group{}
 	err = lc.AddUserToGroup(context.Background(), groupRole, &lGroup)
