@@ -117,7 +117,7 @@ func (sh *SystemHook) gitlabUserCreate(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	data, _ := json.Marshal(b)
@@ -136,10 +136,10 @@ func (sh *SystemHook) gitlabUserCreate(b []byte) {
 	lUser := schema.User{}
 	err = lc.AddUser(context.Background(), user, &lUser)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not add user, reason:", err)
 		return
 	}
-	log.Println(lUser)
+	log.Printf("Added user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
 }
 
 func (sh *SystemHook) gitlabUserUpdate(b []byte) {
@@ -152,7 +152,7 @@ func (sh *SystemHook) gitlabUserUpdate(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	data, _ := json.Marshal(b)
@@ -176,10 +176,10 @@ func (sh *SystemHook) gitlabUserUpdate(b []byte) {
 	lUser := schema.User{}
 	err = lc.UpdateUser(context.Background(), user, &lUser)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not update user, reason:", err)
 		return
 	}
-	log.Println(lUser)
+	log.Printf("Updated user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
 }
 
 func (sh *SystemHook) gitlabUserDelete(b []byte) {
@@ -187,7 +187,7 @@ func (sh *SystemHook) gitlabUserDelete(b []byte) {
 	_ = json.Unmarshal(b, &w)
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	user := &schema.DeleteUserInput{
@@ -198,10 +198,10 @@ func (sh *SystemHook) gitlabUserDelete(b []byte) {
 	lUser := schema.User{}
 	err = lc.DeleteUser(context.Background(), user, &lUser)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not delete user, reason:", err)
 		return
 	}
-	log.Println(lUser)
+	log.Printf("Delete user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
 }
 
 func (sh *SystemHook) gitlabUserGroupAdd(b []byte) {
@@ -219,21 +219,21 @@ func (sh *SystemHook) gitlabUserGroupAdd(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	groupRole := &schema.UserGroupRoleInput{
 		UserEmail: glUser.Email,
 		GroupName: sanitizeGroupName(group.FullPath),
-		GroupRole: schema.GroupRole(w.GroupAccess),
+		GroupRole: schema.GroupRole(strings.ToUpper(w.GroupAccess)),
 	}
 	lGroup := schema.Group{}
 	err = lc.AddUserToGroup(context.Background(), groupRole, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not add user to group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Added user %v to group %v with role %v", glUser.Email, lGroup.Name, strings.ToUpper(w.GroupAccess))
 }
 
 func (sh *SystemHook) gitlabUserGroupRemove(b []byte) {
@@ -251,7 +251,7 @@ func (sh *SystemHook) gitlabUserGroupRemove(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	groupRole := &schema.UserGroupInput{
@@ -261,10 +261,10 @@ func (sh *SystemHook) gitlabUserGroupRemove(b []byte) {
 	lGroup := schema.Group{}
 	err = lc.RemoveUserFromGroup(context.Background(), groupRole, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not remove user from group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Removed user %v from group %v", glUser.Email, lGroup.Name)
 }
 
 func (sh *SystemHook) gitlabUserProjectAdd(b []byte) {
@@ -277,21 +277,21 @@ func (sh *SystemHook) gitlabUserProjectAdd(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	groupRole := &schema.UserGroupRoleInput{
 		UserEmail: glUser.Email,
 		GroupName: fmt.Sprintf("project-%s", w.ProjectPath),
-		GroupRole: schema.GroupRole(w.AccessLevel),
+		GroupRole: schema.GroupRole(strings.ToUpper(w.AccessLevel)),
 	}
 	lGroup := schema.Group{}
 	err = lc.AddUserToGroup(context.Background(), groupRole, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not add user to project group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Added user %v to group %v with role %v", glUser.Email, lGroup.Name, strings.ToUpper(w.AccessLevel))
 }
 
 func (sh *SystemHook) gitlabUserProjectRemove(b []byte) {
@@ -304,7 +304,7 @@ func (sh *SystemHook) gitlabUserProjectRemove(b []byte) {
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
 	if err != nil {
-		log.Printf("ERROR1: %v", err)
+		log.Println("Could not create client, reason:", err)
 		return
 	}
 	groupRole := &schema.UserGroupInput{
@@ -314,8 +314,8 @@ func (sh *SystemHook) gitlabUserProjectRemove(b []byte) {
 	lGroup := schema.Group{}
 	err = lc.RemoveUserFromGroup(context.Background(), groupRole, &lGroup)
 	if err != nil {
-		log.Printf("ERROR2: %v", err)
+		log.Println("Could not remove user from project group, reason:", err)
 		return
 	}
-	log.Println(lGroup)
+	log.Printf("Removed user %v from group %v", glUser.Email, lGroup.Name)
 }
