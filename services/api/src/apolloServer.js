@@ -1,8 +1,4 @@
 const R = require('ramda');
-const {
-  ApolloServer,
-  AuthenticationError,
-} = require('apollo-server-express');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
 const { decode } = require('jsonwebtoken');
@@ -26,7 +22,8 @@ const { keycloakGrantManager } = require('./clients/keycloakClient');
 const User = require('./models/user');
 const Group = require('./models/group');
 const Environment = require('./models/environment');
-
+import { ApolloServer } from '@apollo/server';
+import { GraphQLError } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 
@@ -53,7 +50,9 @@ export const getGrantOrLegacyCredsFromToken = async token => {
         legacyCredentials
       };
     } catch (e) {
-      throw new AuthenticationError(`Legacy token invalid: ${e.message}`);
+      throw new GraphQLError(`Legacy token invalid: ${e.message}`, {
+        extensions: { code: 'UNAUTHENTICATED' }
+      });
     }
   } else if (isKeycloakToken(decodedToken)) {
     try {
@@ -80,10 +79,14 @@ export const getGrantOrLegacyCredsFromToken = async token => {
         legacyCredentials: null
       };
     } catch (e) {
-      throw new AuthenticationError(`Keycloak token invalid: ${e.message}`);
+      throw new GraphQLError(`Keycloak token invalid: ${e.message}`, {
+        extensions: { code: 'UNAUTHENTICATED' }
+      });
     }
   } else {
-    throw new AuthenticationError(`Bearer token unrecognized`);
+    throw new GraphQLError(`Bearer token unrecognized`, {
+      extensions: { code: 'UNAUTHENTICATED' }
+    });
   }
 };
 
@@ -107,114 +110,10 @@ async function initCheck() {
 
   apolloServer = new ApolloServer({
     schema: schema,
-    debug: getConfigFromEnv('NODE_ENV') === 'development',
+    includeStacktraceInErrorResponses: getConfigFromEnv('NODE_ENV') === 'development',
     introspection: true,
-    csrfPrevention: {
-      requestHeaders: ['x-apollo-operation-name', 'apollo-require-preflight', 'content-type']
-    },
-    cache: 'bounded',
     parseOptions: {
       maxTokens: 50000
-    },
-    context: async ({ req, connection }) => {
-      // Websocket requests
-      if (connection) {
-        // onConnect must always provide connection.context.
-        return {
-          ...connection.context
-        };
-      }
-
-      // HTTP requests
-      if (!connection) {
-      const keycloakAdminClient = await getKeycloakAdminClient();
-
-        const modelClients = {
-          sqlClientPool,
-          keycloakAdminClient,
-          esClient,
-        };
-
-        let currentUser = {};
-        let serviceAccount = {};
-        // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
-        // legacy accounts don't do this
-        let keycloakUsersGroups = []
-        let groupRoleProjectIds = []
-        const keycloakGrant = req.kauth ? req.kauth.grant : null
-        let legacyGrant = req.legacyCredentials ? req.legacyCredentials : null
-        let platformOwner = false
-        let platformViewer = false
-        if (keycloakGrant) {
-          // get all the users keycloak groups, do this early to reduce the number of times this is called otherwise
-          try {
-            keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
-            serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
-            currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
-            const userRoleMapping = await keycloakAdminClient.users.listRealmRoleMappings({id: currentUser.id})
-            for (const role of userRoleMapping) {
-              if (role.name == "platform-owner") {
-                platformOwner = true
-              }
-              if (role.name == "platform-viewer") {
-                platformViewer = true
-              }
-            }
-            // grab the users project ids and roles in the first request
-            groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser.id, keycloakUsersGroups);
-            await User.User(modelClients).userLastAccessed(currentUser);
-          } catch (e) {
-            logger.error('Error loading user details', e.message );
-          }
-        }
-        if (legacyGrant) {
-          const { role } = legacyGrant;
-          if (role == 'admin') {
-            platformOwner = true
-          }
-        }
-
-        // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
-        // this reduces the number of `viewAll` permission look ups that could potentially occur during subfield resolvers for non admin users
-        // every `hasPermission` check adds a delay, and if you're a member of a group that has a lot of projects and environments, hasPermissions is costly when we perform
-        // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
-        // this eliminates a huge number of these by making it available in the apollo context
-        const hasPermission = req.kauth
-            ? keycloakHasPermission(req.kauth.grant, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
-            : legacyHasPermission(req.legacyCredentials)
-
-        return {
-          keycloakAdminClient,
-          sqlClientPool,
-          hasPermission,
-          keycloakGrant,
-          legacyGrant,
-          userActivityLogger: (message, meta) => {
-            let defaultMeta = {
-              user: req.kauth
-                ? req.kauth.grant
-                : req.legacyCredentials
-                ? req.legacyCredentials
-                : null,
-              headers: req.headers
-            };
-            return userActivityLogger.user_action(message, {
-              ...defaultMeta,
-              ...meta
-            });
-          },
-          models: {
-            UserModel: User.User(modelClients),
-            GroupModel: Group.Group(modelClients),
-            EnvironmentModel: Environment.Environment(modelClients)
-          },
-          keycloakUsersGroups,
-          adminScopes: {
-            platformOwner: platformOwner,
-            platformViewer: platformViewer,
-          },
-        };
-      }
     },
     formatError: error => {
       logger.error('GraphQL field error `' + error.path + '`: ' + error.message);
@@ -256,13 +155,13 @@ async function initCheck() {
 
           return {
             willSendResponse: data => {
-              const { response } = data;
+              const requestContext = data;
               newrelic.addCustomAttribute(
                 'errorCount',
                 R.pipe(
-                  R.propOr([], 'errors'),
+                  R.pathOr([], ['body', 'singleResult', 'errors']),
                   R.length
-                )(response)
+                )(requestContext)
               );
             }
           };
