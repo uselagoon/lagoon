@@ -345,7 +345,7 @@ export const getDeploymentUrl: ResolverFn = async (
 
   const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
-  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/environment/deployments/${deployment.name}`;
+  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
 
 export const addDeployment: ResolverFn = async (
