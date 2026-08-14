@@ -869,7 +869,7 @@ endif
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=$(OVERRIDE_REMOTE_CONTROLLER_IMAGETAG)') \
 		$$([ $(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY) ] && echo 'OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=$(OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY)') \
 		OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE="registry.$$($(KUBECTL) -n $(INGRESS_CONTROLLER_NAMESPACE) get services $(INGRESS_CONTROLLER_SERVICE) -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-activestandby:$(SAFE_BRANCH_NAME)" \
-		OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n $(INGRESS_CONTROLLER_NAMESPACE) get services $(INGRESS_CONTROLLER_SERVICE)-o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
+		OVERRIDE_PROJECTCLONE_TASK_IMAGE="registry.$$($(KUBECTL) -n $(INGRESS_CONTROLLER_NAMESPACE) get services $(INGRESS_CONTROLLER_SERVICE) -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library/task-projectclone:$(SAFE_BRANCH_NAME)" \
 		IMAGE_REGISTRY="registry.$$($(KUBECTL) -n $(INGRESS_CONTROLLER_NAMESPACE) get services $(INGRESS_CONTROLLER_SERVICE) -o jsonpath='{.status.loadBalancer.ingress[0].ip}').nip.io/library" \
 		SKIP_INSTALL_REGISTRY=true \
 		CORE_DATABASE_VENDOR=$(DATABASE_VENDOR) \
