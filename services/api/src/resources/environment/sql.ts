@@ -175,18 +175,13 @@ export const Sql = {
         .as('subquery');
       })
       .toString(),
-  selectEnvironmentByOpenshiftProjectName: (openshiftProjectName: string) =>
-    knex('environment AS e')
-      .select('e.*')
-      .join('project', 'e.project', '=', 'project.id')
-      .where(knex.raw('e.openshift_project_name = ?', openshiftProjectName))
-      .andWhere('e.deleted', '0000-00-00 00:00:00')
-      .toString(),
-  canSshToEnvironment: (openshiftProjectName: string) =>
-    knex('environment AS e')
-      .select('e.*')
-      .join('project', 'e.project', '=', 'project.id')
-      .where(knex.raw('e.openshift_project_name = ?', openshiftProjectName))
+  selectEnvironmentsByOpenshiftProjectName: (openshiftProjectName: string) =>
+    knex('environment')
+      .where({
+        'openshift_project_name': openshiftProjectName,
+        'deleted': '0000-00-00 00:00:00',
+      })
+      .orderBy('created', 'desc')
       .toString(),
   selectEnvironmentServiceById: (id: number) =>
     knex('environment_service')
