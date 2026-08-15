@@ -2,4 +2,6 @@ title: Releases
 order: desc
 nav:
   - Policy: policy.md
-  - ...
+  - ... | regex=2.(?:1[8-9]|[2-9]\d|[1-9]\d{2,}).*.md
+  - Archived Releases:
+    - ... | **/*.md
