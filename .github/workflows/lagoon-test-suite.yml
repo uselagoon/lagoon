@@ -1,0 +1,388 @@
+name: Lagoon Test Suite
+
+on:
+  # push:
+  #   branches:
+  #     - 'main'
+  #   tags:
+  #     - 'v*.*.*'
+  pull_request:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  check-skip:
+    name: Check if docs-only
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      safe_branch: ${{ steps.vars.outputs.safe_branch }}
+      cache_tag: ${{ steps.vars.outputs.cache_tag }}
+    steps:
+      - name: Compute branch variables
+        id: vars
+        run: |
+          RAW="${{ github.head_ref || github.ref_name }}"
+          SAFEBRANCH=$(echo "$RAW" | sed 's|%2F|-|g' | sed 's|[^A-Za-z0-9]|-|g' | tr '[:upper:]' '[:lower:]')
+          RUNNUM="${{ github.run_number }}"
+          COMBINED=$(echo "${SAFEBRANCH}${RUNNUM}" | sed 's|%2f||g' | sed 's|[^A-Za-z0-9]||g' | tr '[:upper:]' '[:lower:]')
+          TAG="lagoon$(echo "$COMBINED" | rev | cut -c1-26 | rev)"
+          echo "safe_branch=$SAFEBRANCH" >> "$GITHUB_OUTPUT"
+
+          # cache tag based on event type
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CACHE_TAG="ghcr.io/uselagoon/buildcache:pr${{ github.event.pull_request.number }}"
+          else
+            CACHE_TAG="ghcr.io/uselagoon/buildcache:main"
+          fi
+          echo "cache_tag=$CACHE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Check for docs-only branch
+        id: check
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          if echo "$BRANCH" | grep -qE '^docs/'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Docs only update, no build needed."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  test-suite:
+    name: Run tests
+    runs-on: ubuntu-latest
+    needs: [check-skip, build]
+    if: needs.check-skip.outputs.skip == 'false'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+    strategy:
+      matrix:
+        tests:
+          - api,api-routes,deploytarget,active-standby-kubernetes
+          - features-kubernetes,features-kubernetes-2,features-variables
+          - bulk-deployment,image-cache,services,services-2,tasks,project-clone
+          - gitlab,github,bitbucket
+          - python,drush,ssh-legacy
+    steps:
+      # Continue after getting a shell via: `touch continue`
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3
+        timeout-minutes: 1
+        continue-on-error: true
+
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          name: lagoon
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure local-dev tools
+        run: make local-dev-tools
+
+      - name: Setup and trust local-stack CA
+        run: |
+          make k3d/generate-ca
+          sudo cp local-dev/certificates/rootCA.pem /usr/local/share/ca-certificates/internal-registry.crt
+          sudo update-ca-certificates
+
+          # Also tell Docker about it
+          sudo mkdir -p /etc/docker/certs.d/registry.172.18.0.240.nip.io
+          sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
+          ./local-dev/k3d cluster delete --all
+
+      - name: Setup stable cluster
+        run: |
+          make k3d/stable-local-stack \
+            INSTALL_SEED_DATA=false \
+            BRANCH_NAME="${SAFEBRANCH_NAME}" \
+            LAGOON_CORE_USE_HTTPS=false \
+            INSTALL_PROMETHEUS=false \
+            INSTALL_AERGIA=false \
+            PLATFORM_ARCH=linux/amd64
+
+      - name: Start log collector (test-suite-0)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.lagoon ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.lagoon \
+            --all-namespaces '^[a-z]' -t > test-suite-0.txt 2>&1 &
+          echo $! > stern-0.pid
+          echo "Log collector started (PID $(cat stern-0.pid))"
+
+      - name: Run stable smoke-test (nginx)
+        run: |
+          make k3d/retest TESTS=[nginx] BRANCH_NAME="${SAFEBRANCH_NAME}" USE_STABLE_TESTS=true
+
+      - name: Run update of installed lagoon
+        run: |
+          make k3d/install-lagoon \
+            BRANCH_NAME="${SAFEBRANCH_NAME}" \
+            INSTALL_PROMETHEUS=false \
+            INSTALL_AERGIA=false \
+            CI_BUILD_TAG=lagoon \
+            LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+
+      - name: Stop log collector and print logs
+        if: always()
+        run: |
+          kill $(cat stern-0.pid) 2>/dev/null || true
+          cat test-suite-0.txt
+
+      # - name: Upload test-suite-0 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-0-logs
+      #     path: test-suite-0.txt
+
+      - name: Start log collector (test-suite-1)
+        run: |
+          while [ ! -f ./kubeconfig.k3d.lagoon ]; do sleep 1; done
+          ./local-dev/stern \
+            --kubeconfig ./kubeconfig.k3d.lagoon \
+            --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt 2>&1 &
+          echo $! > stern-1.pid
+          echo "Log collector started (PID $(cat stern-1.pid))"
+
+      - name: Run first test suite (${{ matrix.tests }})
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) k3d/retest \
+            TESTS=[${{ matrix.tests }}] \
+            BRANCH_NAME="${SAFEBRANCH_NAME}"
+
+      - name: Stop log collector and print logs
+        if: always()
+        run: |
+          kill $(cat stern-1.pid) 2>/dev/null || true
+          cat test-suite-1.txt
+
+      # - name: Upload test-suite-1 logs
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-suite-1-logs
+      #     path: test-suite-1.txt
+
+  go-test:
+    name: Run go test
+    runs-on: ubuntu-latest
+    needs: [check-skip]
+    if: needs.check-skip.outputs.skip == 'false'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run Go tests
+        run: make go/test
+
+  scan-images:
+    name: Scan built images
+    runs-on: ubuntu-latest
+    needs: [check-skip, build]
+    if: needs.check-skip.outputs.skip == 'false' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      SAFEBRANCH_NAME: ${{ needs.check-skip.outputs.safe_branch }}
+      CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          name: lagoon
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build images
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+        run: make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=linux/amd64 \
+            CI_BUILD_TAG=lagoon \
+            LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+
+      - name: Run scan routines
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+        run: make scan-images \
+            CI_BUILD_TAG=lagoon \
+            LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+
+      - name: Show Trivy results
+        run: find ./scans/*trivy* -type f | xargs tail -n +1
+
+      - name: Show Grype results
+        run: find ./scans/*grype* -type f | xargs tail -n +1
+
+      - name: Show Syft SBOM results
+        run: find ./scans/*syft* -type f | xargs tail -n +1
+
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    needs: [check-skip]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            platform_safe: linux-amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            platform_safe: linux-arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          name: lagoon
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and populate cache
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+          CACHE_TAG_PUSH: ${{ needs.check-skip.outputs.cache_tag }}
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
+            CI_BUILD_TAG=lagoon \
+            LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }} \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
+
+  publish-uselagoon:
+    name: Publish to uselagoon (ghcr.io)
+    needs: [check-skip, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          name: lagoon
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 8
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish multi-arch to ghcr.io/uselagoon (PR)
+        if: github.event_name == 'pull_request'
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+        run: |
+          make publish-uselagoon-images-pr \
+            CI_BUILD_TAG=lagoon \
+            PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
+            LAGOON_VERSION=pr-${{ github.event.pull_request.number }} \
+            CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
+
+      - name: Publish multi-arch to ghcr.io/uselagoon (main/tag)
+        if: github.event_name != 'pull_request'
+        env:
+          LAGOON_VERSION: ${{ github.ref_name }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+        run: |
+          make publish-uselagoon-images-pr \
+            CI_BUILD_TAG=lagoon \
+            PUBLISH_PLATFORM_ARCH=linux/amd64,linux/arm64 \
+            LAGOON_VERSION=${{ github.ref_name }} \
+            CI_IMAGE_REPO=ghcr.io/${{ github.repository }}
+
+  cleanup-cache:
+    name: Cleanup GHCR
+    needs: [check-skip, build, publish-uselagoon]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      packages: write
+    steps:
+      - name: Cleanup untagged and unreferenced versions
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          packages: |
+            lagoon/api,
+            lagoon/api-db,
+            lagoon/api-redis,
+            lagoon/actions-handler,
+            lagoon/auth-server,
+            lagoon/backup-handler,
+            lagoon/broker,
+            lagoon/api-sidecar-handler,
+            lagoon/keycloak-db,
+            lagoon/keycloak,
+            lagoon/local-api-data-watcher-pusher,
+            lagoon/local-git,
+            lagoon/logs2notifications,
+            lagoon/ssh,
+            lagoon/task-activestandby,
+            lagoon/task-projectclone,
+            lagoon/tests,
+            lagoon/webhook-handler,
+            lagoon,
+            buildcache
+          delete-untagged: true
+          delete-partial-images: false  # keeps per-arch digests referenced by a multi-arch manifest
+
+  deploy-to-test:
+    name: Deploy to test environment (no-op)
+    needs: [check-skip, build, publish-uselagoon, test-suite, go-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Trigger test environment deployment
+        # env:
+        #   TOKEN: ${{ secrets.GITLAB_DEPLOY_TOKEN }}
+        run: |
+          echo "Trigger test environment deployment"
+
+# output=$(curl -s -X POST -F token=$TOKEN -F ref=main https://git.amazeeio.cloud/api/v4/projects/345/trigger/pipeline); echo "$output"; echo "$output" | grep -q "project_id" || exit 1
