@@ -2,7 +2,6 @@ import express from 'express';
 import morgan from 'morgan';
 import compression from 'compression';
 import cors from 'cors';
-import { json } from 'body-parser';
 import { logger } from './loggers/logger';
 import { createRouter } from './routes';
 import { authMiddleware } from './authMiddleware';
@@ -15,7 +14,7 @@ export const app = express();
 app.use(compression());
 
 // Automatically decode json.
-app.use(json());
+app.use(express.json());
 
 // Add custom configured logger (morgan through winston).
 app.use(

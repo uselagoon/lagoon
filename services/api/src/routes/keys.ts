@@ -1,4 +1,3 @@
-import bodyParser from 'body-parser';
 import { Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
 import { logger } from '../loggers/logger';
@@ -73,4 +72,4 @@ const getKeyByFingerprint = async (fingerprint: string): Promise<SshKey | null> 
   return rows[0];
 }
 
-export default [bodyParser.json(), keysRoute];
+export default [keysRoute];
