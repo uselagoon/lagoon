@@ -23,8 +23,7 @@ type MicrosoftTeamsData struct {
 
 // MicrosoftTeamsSection .
 type MicrosoftTeamsSection struct {
-	ActivityText  string `json:"activityText"`
-	ActivityImage string `json:"activityImage"`
+	ActivityText string `json:"activityText"`
 }
 
 // SendToMicrosoftTeams .
@@ -118,9 +117,6 @@ func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, proj
 		Sections: []MicrosoftTeamsSection{
 			{
 				ActivityText: message,
-				// This doesn't work in teams apparently, removing for now
-				// 'Post_card_in_a_chat_or_channel_1' failed: Invalid image URI
-				// ActivityImage: emoji,
 			},
 		},
 	}
