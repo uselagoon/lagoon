@@ -1781,6 +1781,9 @@ export const cancelProjectClone: ResolverFn = async (
     pubSub.publish(EVENTS.ORGPROJECT, destProject);
   }
 
+  const restrictions = ['no_deployments','no_tasks','no_project_variables','no_environment_variables']
+  await Helpers(sqlClientPool).removeProjectRestrictions(destProject.id, restrictions);
+
   if (cleanupClone) {
     await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
 
