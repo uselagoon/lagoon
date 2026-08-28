@@ -1232,16 +1232,16 @@ export const cloneProject: ResolverFn = async (
     }
 
 // check if environment exists + at least one successful deployment
-//   const latestDeployment = await query(sqlClientPool, deploymentSql.selectLatestDeploymentForEnvironment(environmentData.id));
-//   if (latestDeployment && latestDeployment[0]?.status !== 'complete') {
-//     throw new Error('The source environment must have at least one successful deployment');
-//   }
+  const latestDeployment = await query(sqlClientPool, deploymentSql.selectLatestDeploymentForEnvironment(environmentData.id));
+  if (latestDeployment && latestDeployment[0]?.status !== 'complete') {
+    throw new Error('The source environment must have at least one successful deployment');
+  }
 
-// // check if the project has deploytarget configurations - not currently supported for cloning
-//   const deployTargetConfigs = await query(sqlClientPool, deployTargetConfigSql.selectDeployTargetConfigsByProjectId(sourceProject.id));
-//   if (deployTargetConfigs && deployTargetConfigs.length > 0) {
-//     throw new Error('Cloning projects with deploytarget configurations is not currently supported');
-//   }
+// check if the project has deploytarget configurations - not currently supported for cloning
+  const deployTargetConfigs = await query(sqlClientPool, deployTargetConfigSql.selectDeployTargetConfigsByProjectId(sourceProject.id));
+  if (deployTargetConfigs && deployTargetConfigs.length > 0) {
+    throw new Error('Cloning projects with deploytarget configurations is not currently supported');
+  }
 
   // clone the project schema and create new project from source project
   // remove fields from source that aren't required
