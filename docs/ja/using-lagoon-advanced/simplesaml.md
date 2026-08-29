@@ -14,7 +14,7 @@ composer req simplesamlphp/simplesamlphp
 
 ### SimpleSAMLphpの設定を変更する
 
-`vendor/simplesamlphp/simplesamlphp/config-templates`から`authsources.php`と`config.php`を`vendor`ディレクトリ外の`conf/simplesamlphp`のような場所にコピーします。また、`vendor/simplesamlphp/simplesamlphp/metadata-templates`から`saml20-idp-remote.php`も必要です。
+`vendor/simplesamlphp/simplesamlphp/config`から`authsources.php.dist`と`config.php.dist`を`vendor`ディレクトリ外の`conf/simplesamlphp`のような場所にコピーし、ファイル名から`.dist`の接尾辞を取り除きます。また、`vendor/simplesamlphp/simplesamlphp/metadata`から`saml20-idp-remote.php.dist`も必要です。
 
 `config.php`でLagoonに以下の値を設定します:
 
@@ -34,12 +34,20 @@ SimpleSAMLphpにアクセスするための基本URLパス:
     getenv('MARIADB_PORT'),
     getenv('MARIADB_DATABASE'),
   ]),
+  'store.sql.username'            => getenv('MARIADB_USERNAME'),
+  'store.sql.password'            => getenv('MARIADB_PASSWORD'),
+```
+
+SimpleSAMLphpはシークレットソルトをデフォルト値から変更することを必須としているため、これを設定します。`MARIADB_HOST`は環境ごとに一意なUUIDであるため、この値の元として便利です:
+
+```php title="config.php"
+  'secretsalt' => getenv('MARIADB_HOST'),
 ```
 
 他の設定はお好みで設定してください。
 
 * ログと証明書のパスを確認します
-* SimpleSAMLphpダッシュボードを保護します
+* `auth.adminpassword`をデフォルト値の`123`から変更して、SimpleSAMLphpダッシュボードを保護します。ここで使用するハッシュ値は`vendor/simplesamlphp/simplesamlphp/bin/pwgen.php`で生成できます
 * ロギングのレベルを設定します
 * `technicalcontact`と`timezone`を設定します
 
@@ -127,7 +135,7 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
 
 ```bash title="location_prepend_simplesamlphp.conf"
 location ^~ /simplesaml {
-    alias /app/vendor/simplesamlphp/simplesaml php/www;
+    alias /app/vendor/simplesamlphp/simplesamlphp/public;
 
     location ~ ^(?<prefix>/simplesaml)(?<phpfile>.+?\.php)(?<pathinfo>/.*)?$ {
         include          fastcgi_params;
