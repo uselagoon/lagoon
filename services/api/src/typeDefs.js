@@ -2990,7 +2990,7 @@ const typeDefs = gql`
 
   input CancelProjectCloneInput {
     cloneId: Int!
-    deleteResources: Boolean
+    cleanupClone: Boolean!
   }
 
   """
@@ -3467,7 +3467,7 @@ const typeDefs = gql`
     updateProjectClone(input: UpdateProjectCloneInput): ProjectClone
     executeCloneRestoreTask(input: ExecuteCloneRestoreTaskInput!): Task
     executeCloneDeployment(input: ExecuteCloneDeploymentInput!): String
-    cancelProjectClone(input: CancelProjectCloneInput!): String
+    cancelProjectClone(input: CancelProjectCloneInput!): ProjectClone
     copyProjectGroups(sourceProject: String!, destinationProject: String!): String
     copyProjectNotifications(sourceProject: String!, destinationProject: String!): String
     copyProjectMetadata(sourceProject: String!, destinationProject: String!): String

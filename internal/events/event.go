@@ -28,6 +28,47 @@ type Response struct {
 	Error    error  `json:"error,omitempty"`
 }
 
+type PullMetadata struct {
+	ProjectName       string `json:"projectName"`
+	PullrequestTitle  string `json:"pullrequestTitle"`
+	PullrequestNumber int    `json:"pullrequestNumber"`
+	PullrequestURL    string `json:"pullrequestUrl"`
+	RepoName          string `json:"repoName"`
+	RepoURL           string `json:"repoUrl"`
+}
+
+type PushMetadata struct {
+	ProjectName  string `json:"projectName"`
+	Branch       string `json:"branch"`
+	SHA          string `json:"sha"`
+	ShortSHA     string `json:"shortSha"`
+	RepoFullName string `json:"repoFullName"`
+	RepoURL      string `json:"repoUrl"`
+	BranchName   string `json:"branchName"`
+	CommitURL    string `json:"commitUrl"`
+	Event        string `json:"event"`
+}
+
+type BranchMetadata struct {
+	ProjectName  string `json:"projectName"`
+	Branch       string `json:"branch"`
+	SHA          string `json:"sha"`
+	ShortSHA     string `json:"shortSha"`
+	RepoFullName string `json:"repoFullName"`
+	RepoURL      string `json:"repoUrl"`
+	BranchName   string `json:"branchName"`
+	CommitURL    string `json:"commitUrl"`
+	Event        string `json:"event"`
+}
+
+type LagoonLog struct {
+	Severity string `json:"severity"`
+	Project  string `json:"project"`
+	UUID     string `json:"uuid"`
+	Meta     any    `json:"meta"`
+	Level    string `json:"level"`
+}
+
 func (e *Events) findProjectsByGitURL(gitType, event, uuid, gitURL string) ([]schema.Project, string, string, error) {
 	projects, err := e.LagoonAPI.AllProjectByGitURL(gitURL)
 	if err != nil {

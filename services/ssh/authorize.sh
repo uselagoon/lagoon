@@ -20,6 +20,10 @@ api=$API_HOST
 ssh_username=$1
 ssh_fingerprint=$2
 
+if [[ ! "$ssh_username" =~ ^[A-Za-z0-9-]+$ ]]; then
+    exit 1
+fi
+
 data="{\"fingerprint\": \"$ssh_fingerprint\"}"
 keys=$(wget --header "Content-Type: application/json" --header "$bearer" $api/keys --post-data "$data" -q --content-on-error -O -)
 

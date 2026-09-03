@@ -238,6 +238,10 @@ plugins:
       lang:
       - en
       - ja
+  - llms-source:
+      description: >-
+        Documentation for Lagoon, the open source application delivery
+        platform for Kubernetes.
   - awesome-pages
   - markdownextradata: {}
   - i18n:

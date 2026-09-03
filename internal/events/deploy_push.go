@@ -57,7 +57,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 				e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 				return lagoon.BuildToBytes(buildData), nil
 			case "false":
-				errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s branches disabled", dtc.DeployTarget.Name))
+				errs = append(errs, fmt.Sprintf("deployment not allowed on deploytarget %s branches disabled", dtc.DeployTarget.Name))
 				continue
 			default:
 				re := regexp2.MustCompile(dtc.Branches, 0)
@@ -71,7 +71,7 @@ func (e *Events) deployPush(project schema.Project, deployData lagoon.DeployData
 					e.Messaging.SendToLagoonTasks(fmt.Sprintf("%s:builddeploy", deployData.DeployTarget.Name), lagoon.BuildToBytes(buildData))
 					return lagoon.BuildToBytes(buildData), nil
 				} else {
-					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytargetconfig %s didn't match branches regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
+					errs = append(errs, fmt.Sprintf("deployment not allowed on deploytarget %s didn't match branches regex pattern for deploytargetconfig", dtc.DeployTarget.Name))
 					continue
 				}
 			}

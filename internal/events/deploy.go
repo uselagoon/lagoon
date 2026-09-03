@@ -50,7 +50,7 @@ func (e *Events) CreateDeployTask(project schema.Project, deployData lagoon.Depl
 	} else {
 		devEnvs := []schema.EnvironmentConfig{}
 		for _, env := range project.Environments {
-			if env.EnvironmentType == schema.DevelopmentEnv {
+			if string(env.EnvironmentType) == strings.ToLower(string(schema.DevelopmentEnv)) {
 				devEnvs = append(devEnvs, env)
 			}
 		}
