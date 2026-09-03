@@ -913,6 +913,7 @@ export const getAllEnvironmentsPaginated: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('environment', 'viewAll');
+  limit = limit != null ? limit : PAGE_LIMIT;
 
   let queryBuilder = knex('environment').where('deleted', '0000-00-00 00:00:00');
 
@@ -931,10 +932,7 @@ export const getAllEnvironmentsPaginated: ResolverFn = async (
   const baseQuery = queryBuilder.clone();
 
   queryBuilder = queryBuilder.orderBy('id', 'asc');
-
-  if (limit != null) {
-    queryBuilder = queryBuilder.limit(limit);
-  }
+  queryBuilder = queryBuilder.limit(limit);
 
   if (offset != null) {
     queryBuilder = queryBuilder.offset(offset);

@@ -163,7 +163,7 @@ export const getAllProjectsPaginated: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[] | undefined;
-  const filters = { userProjectIds, createdAfter, gitUrl, buildImage };
+  limit = limit != null ? limit : PAGE_LIMIT;
 
   try {
     // admin check, if passed then pre-set authz
@@ -200,10 +200,7 @@ export const getAllProjectsPaginated: ResolverFn = async (
   const baseQuery = queryBuilder.clone();
 
   queryBuilder = queryBuilder.orderBy('id', 'asc');
-
-  if (limit != null) {
-    queryBuilder = queryBuilder.limit(limit);
-  }
+  queryBuilder = queryBuilder.limit(limit);
 
   if (offset != null) {
     queryBuilder = queryBuilder.offset(offset);
