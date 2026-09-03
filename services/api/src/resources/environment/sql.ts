@@ -289,12 +289,6 @@ export const Sql = {
       .update(patch)
       .toString();
   },
-  // updateEnvironmentVolume: ({ id, patch }: { id: number, patch: any }) => {
-  //   return knex('environment_volume')
-  //     .where('id', '=', id)
-  //     .update(patch)
-  //     .toString();
-  // },
   selectEnvironmentServiceByEnvironmentIdAndName: (id: number, name: string) =>
     knex('environment_service')
       .where('environment', '=', id)
@@ -378,12 +372,12 @@ export const Sql = {
       .delete()
       .toString(),
   deleteServiceContainersVolumemountsByServiceId: (id: number) =>
-    knex('environment_storage')
+    knex('environment_service_container_volumemount')
       .where('service_id', '=', id)
       .delete()
       .toString(),
   deleteServiceContainerPortsByServiceId: (ids: number[]) =>
-    knex('environment_storage')
+    knex('environment_service_container_port')
       .whereIn('service_id', ids)
       .delete()
       .toString(),
