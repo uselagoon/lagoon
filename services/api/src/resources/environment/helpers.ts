@@ -264,8 +264,8 @@ export const Helpers = (sqlClientPool: Pool) => {
           sqlClientPool,
           Sql.insertServiceContainer(serviceId, container.name)
         );
-        if (container.volumes) {
-          for (const vol of container.volumes) {
+        if (container.volumemounts) {
+          for (const vol of container.volumemounts) {
             // save volumes mounted to this container
             await query(
               sqlClientPool,
