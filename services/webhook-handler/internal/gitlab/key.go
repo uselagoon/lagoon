@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
@@ -13,12 +12,13 @@ import (
 )
 
 type KeyCreateDestroy struct {
-	EventName string    `json:"event_name"`
-	CreatedAt string    `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Username  string    `json:"username"`
-	Key       string    `json:"key"`
-	ID        int64     `json:"id"`
+	EventName string `json:"event_name"`
+	// unused
+	// CreatedAt string    `json:"created_at"`
+	// UpdatedAt time.Time `json:"updated_at"`
+	Username string `json:"username"`
+	Key      string `json:"key"`
+	ID       int64  `json:"id"`
 }
 
 func (sh *SystemHook) gitlabSshKeyAdd(b []byte) {
