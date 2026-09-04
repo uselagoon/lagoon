@@ -981,6 +981,13 @@
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.33.1/"/>
     </url>
     <url>
+        <loc>https://docs.lagoon.sh/releases/2.33.2/</loc>
+        <lastmod>2026-09-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.33.2/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.33.2/"/>
+    </url>
+    <url>
         <loc>https://docs.lagoon.sh/releases/policy/</loc>
         <lastmod>2026-09-04</lastmod>
         <changefreq>daily</changefreq>
@@ -2279,6 +2286,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.33.1/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.33.1/"/>
+    </url>
+    <url>
+        <loc>https://docs.lagoon.sh/ja/releases/2.33.2/</loc>
+        <lastmod>2026-09-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://docs.lagoon.sh/ja/releases/2.33.2/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.lagoon.sh/releases/2.33.2/"/>
     </url>
     <url>
         <loc>https://docs.lagoon.sh/ja/releases/policy/</loc>

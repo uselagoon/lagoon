@@ -184,6 +184,7 @@ This file is an index of documentation pages. For all content in a single file, 
 - [2.32.0](https://docs.lagoon.sh/releases/2.32.0.md)
 - [2.33.0](https://docs.lagoon.sh/releases/2.33.0.md)
 - [2.33.1](https://docs.lagoon.sh/releases/2.33.1.md)
+- [2.33.2](https://docs.lagoon.sh/releases/2.33.2.md)
 - [Policy](https://docs.lagoon.sh/releases/policy.md)
 
 ## Using lagoon advanced
