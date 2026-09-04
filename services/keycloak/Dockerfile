@@ -20,7 +20,7 @@ COPY javascript /tmp/lagoon-scripts
 RUN cd /tmp/lagoon-scripts && zip -r ../lagoon-scripts.jar *
 
 # Stage: Build the keycloak image
-FROM quay.io/keycloak/keycloak:26.6.3
+FROM quay.io/keycloak/keycloak:26.7.2
 COPY --from=ubi-micro-build /mnt/rootfs /
 
 ARG LAGOON_VERSION
@@ -88,7 +88,7 @@ ENV TMPDIR=/tmp \
 
 VOLUME /opt/keycloak/data
 
-RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.2.1/keycloak-home-idp-discovery.jar
+RUN curl -sSLo /opt/keycloak/providers/keycloak-home-idp-discovery.jar https://github.com/sventorben/keycloak-home-idp-discovery/releases/download/v26.2.2/keycloak-home-idp-discovery.jar
 
 COPY entrypoints/kc-startup.sh /lagoon/kc-startup.sh
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
