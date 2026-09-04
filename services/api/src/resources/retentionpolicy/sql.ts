@@ -59,6 +59,10 @@ export const Sql = {
       .where(knex.raw('retention_policy_reference.scope = ?', scope))
       .andWhere(knex.raw('rp.id = ?', id))
       .toString(),
+  selectRetentionPolicyLinksByPolicyID: (id: number) =>
+    knex('retention_policy_reference')
+      .where('retention_policy', '=', id)
+      .toString(),
   selectScopeIDsByRetentionPolicyTypeExcludingPolicyID: (type: string, scope: string, policyId: number) =>
     knex('retention_policy as rp')
       .select(knex.raw('group_concat(rpr.id) as scope_ids'))
