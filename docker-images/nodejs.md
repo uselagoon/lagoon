@@ -4,17 +4,18 @@ The [Lagoon `Node.js` Docker image](https://github.com/uselagoon/lagoon-images/t
 
 ## Supported Versions
 
-We ship 2 versions of Node.js images: the normal `node:version` image and the `node:version-builder`.
+We ship 2 versions of Node.js images: the normal `node-version` image and the `node-version-builder`.
 
 The builder variant of those images comes with additional tooling that is needed when you build Node.js apps (such as the build libraries, npm and Yarn). For a full list check out their [Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder).
 
-* 12 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-12`
-* 14 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-14`
-* 16 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-16`
-* 18 \(available for compatibility only, no longer officially supported\) - `uselagoon/node-18`
-* 20 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/20.Dockerfile) (Security Support until April 2026) - `uselagoon/node-20`
+* 12 (available for compatibility only, no longer officially supported) - `uselagoon/node-12`
+* 14 (available for compatibility only, no longer officially supported) - `uselagoon/node-14`
+* 16 (available for compatibility only, no longer officially supported) - `uselagoon/node-16`
+* 18 (available for compatibility only, no longer officially supported) - `uselagoon/node-18`
+* 20 (available for compatibility only, no longer officially supported) - `uselagoon/node-20`
 * 22 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/22.Dockerfile) (Security Support until April 2027) - `uselagoon/node-22`
 * 24 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/24.Dockerfile) (Security Support until April 2028) - `uselagoon/node-24`
+* 26 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node/26.Dockerfile) (Security Support until April 2029) - `uselagoon/node-26`
 
 !!! Tip
     We stop updating EOL Node.js images usually with the Lagoon release that comes after the officially communicated EOL date: [https://nodejs.org/en/about/releases/](https://nodejs.org/en/about/releases/).
