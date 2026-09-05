@@ -55,7 +55,7 @@
     "jsonwebtoken": "^8.0.1",
     "keycloak-connect": "^26.1.1",
     "knex": "^3.0.1",
-    "mariadb": "^3.4.5",
+    "mariadb": "^3.5.3",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",
     "mysql2": "^3.15.3",
