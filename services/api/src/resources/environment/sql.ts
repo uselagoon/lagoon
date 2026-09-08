@@ -376,9 +376,9 @@ export const Sql = {
       .where('service_id', '=', id)
       .delete()
       .toString(),
-  deleteServiceContainerPortsByServiceId: (ids: number[]) =>
+  deleteServiceContainerPortsByServiceId: (id: number) =>
     knex('environment_service_container_port')
-      .whereIn('service_id', ids)
+      .where('service_id', '=', id)
       .delete()
       .toString(),
 };
