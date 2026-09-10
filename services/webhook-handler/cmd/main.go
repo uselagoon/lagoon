@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -96,6 +97,10 @@ func main() {
 	gitlabSystemHookToken = variables.GetEnv("GITLAB_SYSTEM_HOOK_TOKEN", "")
 	gitlabAPIToken = variables.GetEnv("GITLAB_API_TOKEN", "")
 	gitlabAPIHost = variables.GetEnv("GITLAB_API_HOST", "")
+	defaultGitlabProjectUpdateExclusions := []string{"lagoon-ignore"}
+	// support for additional optional topics
+	excludeGitlabProjectUpdateTopicVar := variables.GetEnv("GITLAB_EXCLUDE_UPDATE_TOPICS", "")
+	excludeGitlabProjectUpdateTopics := append(defaultGitlabProjectUpdateExclusions, strings.Split(excludeGitlabProjectUpdateTopicVar, ",")...)
 
 	// lagoon
 	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
@@ -183,9 +188,10 @@ func main() {
 	srv := server.Server{
 		Messaging: msg,
 		GitlabAPI: syshook.GitlabAPI{
-			GitlabAPIHost:         gitlabAPIHost,
-			GitlabAPIToken:        gitlabAPIToken,
-			GitlabSystemHookToken: gitlabSystemHookToken,
+			GitlabAPIHost:              gitlabAPIHost,
+			GitlabAPIToken:             gitlabAPIToken,
+			GitlabSystemHookToken:      gitlabSystemHookToken,
+			ExcludeProjectUpdateTopics: excludeGitlabProjectUpdateTopics,
 		},
 		LagoonAPI: lagoon.LagoonAPI{
 			Endpoint:        lagoonAPIHost,

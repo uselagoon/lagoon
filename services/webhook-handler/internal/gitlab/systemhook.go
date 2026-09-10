@@ -14,9 +14,10 @@ import (
 
 // GitlabAPI .
 type GitlabAPI struct {
-	GitlabAPIHost         string
-	GitlabAPIToken        string
-	GitlabSystemHookToken string
+	GitlabAPIHost              string
+	GitlabAPIToken             string
+	GitlabSystemHookToken      string
+	ExcludeProjectUpdateTopics []string
 }
 
 type SystemHook struct {
@@ -24,10 +25,11 @@ type SystemHook struct {
 	LagoonAPI lagoon.LagoonAPI
 	Messaging messaging.Messaging
 	Logger    *slog.Logger
+	GitlabAPI GitlabAPI
 }
 
-func New(api, token string, lapi lagoon.LagoonAPI, m messaging.Messaging) (SystemHook, error) {
-	git, err := gitlab.NewClient(token, gitlab.WithBaseURL(api))
+func New(gitlabapi GitlabAPI, lapi lagoon.LagoonAPI, m messaging.Messaging) (SystemHook, error) {
+	git, err := gitlab.NewClient(gitlabapi.GitlabAPIToken, gitlab.WithBaseURL(gitlabapi.GitlabAPIHost))
 	if err != nil {
 		return SystemHook{}, fmt.Errorf("failed to create gitlab: %v", err)
 	}
@@ -36,6 +38,7 @@ func New(api, token string, lapi lagoon.LagoonAPI, m messaging.Messaging) (Syste
 		LagoonAPI: lapi,
 		Messaging: m,
 		Logger:    lapi.Logger,
+		GitlabAPI: gitlabapi,
 	}, nil
 }
 
@@ -84,4 +87,17 @@ func sanitizeGroupName(in string) string {
 		strings.ToLower(in),
 		"$1-$2",
 	)
+}
+
+func hasExcludedTopic(topics, excludeTopics []string) bool {
+	excludeSet := make(map[string]struct{}, len(excludeTopics))
+	for _, t := range excludeTopics {
+		excludeSet[t] = struct{}{}
+	}
+	for _, t := range topics {
+		if _, found := excludeSet[t]; found {
+			return true
+		}
+	}
+	return false
 }
