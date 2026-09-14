@@ -9,6 +9,7 @@ import (
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type ProjectCreate struct {
@@ -69,6 +70,7 @@ type ProjectDestroy struct {
 func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	var w ProjectCreate
 	_ = json.Unmarshal(b, &w)
+	ctx := context.Background()
 	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
 	if err != nil {
 		log.Println("Could not get project, reason:", err)
@@ -88,11 +90,41 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	}
 	json.Unmarshal(data, agi)
 	project := schema.Project{}
-	err = lc.AddProject(context.Background(), agi, &project)
+	err = lc.AddProject(ctx, agi, &project)
 	if err != nil {
 		log.Println("Could not add project, reason:", err)
 		return
 	}
+
+	projectKey := schema.Project{}
+	err = lc.ProjectKeyByName(ctx, project.Name, false, &projectKey)
+	if err != nil {
+		log.Println("Could not get project key, reason:", err)
+	} else {
+		keyTitle := "Lagoon Project Key"
+		canPush := false
+		sh.client.DeployKeys.AddDeployKey(w.ProjectID, &gitlab.AddDeployKeyOptions{
+			Title:   &keyTitle,
+			Key:     &projectKey.PublicKey,
+			CanPush: &canPush,
+		})
+	}
+	gtpi := &schema.ProjectGroupsInput{
+		Project: schema.ProjectInput{
+			Name: project.Name,
+		},
+		Groups: []schema.GroupInput{
+			{
+				Name: sanitizeGroupName(glProject.Namespace.FullPath),
+			},
+		},
+	}
+	projectwGroup := schema.Project{}
+	if err := lc.AddGroupsToProject(ctx, gtpi, &projectwGroup); err != nil {
+		log.Println("Could not add group to project, reason:", err)
+		return
+	}
+
 	log.Printf("Created project %v", project.Name)
 }
 
