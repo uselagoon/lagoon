@@ -17,6 +17,7 @@ type GitlabAPI struct {
 	GitlabAPIHost              string
 	GitlabAPIToken             string
 	GitlabSystemHookToken      string
+	DefaultDeployTargetID      uint
 	ExcludeProjectUpdateTopics []string
 }
 

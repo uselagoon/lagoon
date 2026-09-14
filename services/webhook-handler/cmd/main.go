@@ -37,6 +37,7 @@ var (
 	jwtAudience           string
 	jwtSubject            string
 	jwtIssuer             string
+	defaultDeployTarget   int
 	debug                 bool
 )
 
@@ -77,6 +78,9 @@ func main() {
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "webhook-handler",
 		"The jwt audience.")
 
+	flag.IntVar(&defaultDeployTarget, "default-deploy-target", 1,
+		"The ID of the deploytarget to use when creating projects from gitlab systemhooks.")
+
 	flag.BoolVar(&debug, "debug", false,
 		"Flag to enable debug logging.")
 
@@ -101,6 +105,7 @@ func main() {
 	// support for additional optional topics
 	excludeGitlabProjectUpdateTopicVar := variables.GetEnv("GITLAB_EXCLUDE_UPDATE_TOPICS", "")
 	excludeGitlabProjectUpdateTopics := append(defaultGitlabProjectUpdateExclusions, strings.Split(excludeGitlabProjectUpdateTopicVar, ",")...)
+	defaultDeployTargetID := variables.GetEnvInt("DEFAULT_DEPLOYTARGET_ID", defaultDeployTarget)
 
 	// lagoon
 	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
@@ -192,6 +197,7 @@ func main() {
 			GitlabAPIToken:             gitlabAPIToken,
 			GitlabSystemHookToken:      gitlabSystemHookToken,
 			ExcludeProjectUpdateTopics: excludeGitlabProjectUpdateTopics,
+			DefaultDeployTargetID:      uint(defaultDeployTargetID),
 		},
 		LagoonAPI: lagoon.LagoonAPI{
 			Endpoint:        lagoonAPIHost,

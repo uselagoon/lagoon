@@ -67,8 +67,6 @@ type ProjectDestroy struct {
 	ProjectVisibility  string `json:"project_visibility"`
 }
 
-var deployTargetID uint = 1
-
 func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	var w ProjectCreate
 	_ = json.Unmarshal(b, &w)
@@ -88,7 +86,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 		Name:                  glProject.Path,
 		GitURL:                glProject.SSHURLToRepo,
 		ProductionEnvironment: "main",
-		Openshift:             deployTargetID,
+		Openshift:             sh.GitlabAPI.DefaultDeployTargetID,
 	}
 	json.Unmarshal(data, agi)
 	project := schema.Project{}
@@ -98,6 +96,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 		return
 	}
 
+	// get the project key to add to the gitlab repository
 	projectKey := schema.Project{}
 	err = lc.ProjectKeyByName(ctx, project.Name, false, &projectKey)
 	if err != nil {
@@ -105,6 +104,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	} else {
 		keyTitle := "Lagoon Project Key"
 		canPush := false
+		// add the project key to the gitlab repository
 		sh.client.DeployKeys.AddDeployKey(w.ProjectID, &gitlab.AddDeployKeyOptions{
 			Title:   &keyTitle,
 			Key:     &projectKey.PublicKey,
@@ -122,6 +122,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 			},
 		},
 	}
+	// add the group to the project
 	projectwGroup := schema.Project{}
 	if err := lc.AddGroupsToProject(ctx, gtpi, &projectwGroup); err != nil {
 		log.Printf("Could not add group %s to project %s, reason: %v", sanitizeGroupName(glProject.Namespace.FullPath), glProject.Path, err)
@@ -178,7 +179,7 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 			GitURL:                gitURL,
 			ProductionEnvironment: productionEnvironment,
 			// TODO: figure out openshift id
-			Openshift: deployTargetID,
+			Openshift: sh.GitlabAPI.DefaultDeployTargetID,
 		}
 		addedProject := schema.Project{}
 		if err := lc.AddProject(ctx, agi, &addedProject); err != nil {
@@ -248,7 +249,6 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 			log.Printf("Could not add group %s to project %s, reason: %v", newGroupName, projectName, err)
 		}
 	}
-
 	log.Printf("Updated project %v", projectName)
 }
 
