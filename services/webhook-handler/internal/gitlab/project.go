@@ -75,7 +75,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	ctx := context.Background()
 	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
 	if err != nil {
-		log.Println("Could not get project, reason:", err)
+		log.Printf("Could not get project info from Gitlab for project id %d, reason: %v", w.ProjectID, err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
@@ -94,14 +94,14 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	project := schema.Project{}
 	err = lc.AddProject(ctx, agi, &project)
 	if err != nil {
-		log.Println("Could not add project, reason:", err)
+		log.Printf("Could not add project %s, reason: %v", glProject.Path, err)
 		return
 	}
 
 	projectKey := schema.Project{}
 	err = lc.ProjectKeyByName(ctx, project.Name, false, &projectKey)
 	if err != nil {
-		log.Println("Could not get project key, reason:", err)
+		log.Printf("Could not get project %s public key, reason: %v", glProject.Path, err)
 	} else {
 		keyTitle := "Lagoon Project Key"
 		canPush := false
@@ -110,6 +110,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 			Key:     &projectKey.PublicKey,
 			CanPush: &canPush,
 		})
+		log.Printf("Added project %s public key as deploy key on gitlab project", glProject.Path)
 	}
 	gtpi := &schema.ProjectGroupsInput{
 		Project: schema.ProjectInput{
@@ -123,7 +124,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	}
 	projectwGroup := schema.Project{}
 	if err := lc.AddGroupsToProject(ctx, gtpi, &projectwGroup); err != nil {
-		log.Println("Could not add group to project, reason:", err)
+		log.Printf("Could not add group %s to project %s, reason: %v", sanitizeGroupName(glProject.Namespace.FullPath), glProject.Path, err)
 		return
 	}
 
@@ -136,13 +137,13 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 
 	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
 	if err != nil {
-		log.Println("Could not get project info from Gitlab, reason:", err)
+		log.Printf("Could not get project info from Gitlab for project id %d, reason: %v", w.ProjectID, err)
 		return
 	}
 
 	// check project topics against excluded topics
 	if hasExcludedTopic(glProject.Topics, sh.GitlabAPI.ExcludeProjectUpdateTopics) {
-		log.Println("Ignoring project update as has topic in exclusion list")
+		log.Printf("Ignoring project update for project %s as has topic in exclusion list", glProject.Path)
 		return
 	}
 
@@ -181,7 +182,7 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 		}
 		addedProject := schema.Project{}
 		if err := lc.AddProject(ctx, agi, &addedProject); err != nil {
-			log.Println("Could not add project, reason:", err)
+			log.Printf("Could not add project %s, reason: %v", projectName, err)
 			return
 		}
 		gtpi := &schema.ProjectGroupsInput{
@@ -195,7 +196,7 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 			},
 		}
 		if err := lc.AddGroupsToProject(ctx, gtpi, &addedProject); err != nil {
-			log.Println("Could not add group to project, reason:", err)
+			log.Printf("Could not add group %s to project %s, reason: %v", sanitizeGroupName(glProject.Namespace.FullPath), glProject.Path, err)
 			return
 		}
 
@@ -208,7 +209,7 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 		}
 		err = lc.UpdateProject(ctx, uint(project.ID), upi, &project)
 		if err != nil {
-			log.Println("Could not update project, reason:", err)
+			log.Printf("Could not update project %s, reason: %v", projectName, err)
 			return
 		}
 	}
@@ -267,7 +268,7 @@ func (sh *SystemHook) gitlabProjectDelete(b []byte) {
 
 	groupProjects := []schema.Group{}
 	if err := lc.GroupProjects(ctx, groupName, &groupProjects); err != nil {
-		log.Println("Could not get group projects, reason:", err)
+		log.Printf("Could not get group %s projects, reason: %v", groupName, err)
 		return
 	}
 
@@ -283,7 +284,7 @@ func (sh *SystemHook) gitlabProjectDelete(b []byte) {
 
 	if projectExists {
 		if err := lc.DeleteProject(ctx, projectName, nil); err != nil {
-			log.Println("Could not delete project, reason:", err)
+			log.Printf("Could not delete project %s, reason: %v", projectName, err)
 			return
 		}
 		log.Printf("Deleted project %v", projectName)
