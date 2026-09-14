@@ -67,6 +67,8 @@ type ProjectDestroy struct {
 	ProjectVisibility  string `json:"project_visibility"`
 }
 
+var deployTargetID uint = 1
+
 func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	var w ProjectCreate
 	_ = json.Unmarshal(b, &w)
@@ -86,7 +88,7 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 		Name:                  glProject.Path,
 		GitURL:                glProject.SSHURLToRepo,
 		ProductionEnvironment: "main",
-		Openshift:             2001,
+		Openshift:             deployTargetID,
 	}
 	json.Unmarshal(data, agi)
 	project := schema.Project{}
@@ -168,15 +170,14 @@ func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 	if err != nil {
 		// project doesn't exist, or failed to get, so create it
 
-		// TODO: figure out openshift id
-		openshift := uint(1)
 		productionEnvironment := "master"
 
 		agi := &schema.AddProjectInput{
 			Name:                  projectName,
 			GitURL:                gitURL,
 			ProductionEnvironment: productionEnvironment,
-			Openshift:             openshift,
+			// TODO: figure out openshift id
+			Openshift: deployTargetID,
 		}
 		addedProject := schema.Project{}
 		if err := lc.AddProject(ctx, agi, &addedProject); err != nil {
