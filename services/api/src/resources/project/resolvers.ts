@@ -1682,7 +1682,7 @@ export const cancelProjectClone: ResolverFn = async (
   {
     input: {
       cloneId,
-      deleteResources = false,
+      cleanupClone = false,
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant }
@@ -1780,11 +1780,13 @@ export const cancelProjectClone: ResolverFn = async (
     pubSub.publish(EVENTS.PROJECTCLONE, updatedCloneRows[0]);
     pubSub.publish(EVENTS.ORGPROJECT, destProject);
   }
-  // delete any uploaded files
-  await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
 
-  if (deleteResources) {
-    // delete cloned environment
+  const restrictions = ['no_deployments','no_tasks','no_project_variables','no_environment_variables']
+  await Helpers(sqlClientPool).removeProjectRestrictions(destProject.id, restrictions);
+
+  if (cleanupClone) {
+    await deleteFilesForProjectClone(root, { input: { id: cloneId } }, { sqlClientPool, hasPermission, userActivityLogger, models, adminScopes, keycloakGrant, legacyGrant });
+
     if (destEnvRows?.length > 0) {
       const destEnv = destEnvRows[0];
 
@@ -1834,12 +1836,12 @@ export const cancelProjectClone: ResolverFn = async (
     } catch (err) {
       logger.error(`Could not delete default user for ${destProject.name}: ${err.message}`);
     }
-  }
 
   // delete clone task/deployment associations
-  await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
+    await query(sqlClientPool, Sql.deleteProjectCloneTaskDeployments(cloneId));
   // delete the ProjectClone reference
-  await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
+    await query(sqlClientPool, Sql.deleteProjectClone(cloneId));
+  }
 
   const auditLog: AuditLog = {
     resource: {
@@ -1850,16 +1852,17 @@ export const cancelProjectClone: ResolverFn = async (
     organizationId: sourceProject.organization
   };
 
-  userActivityLogger(`User cancelled a project clone for project '${destProject.name}'`, {
+  const actionType = cleanupClone ? 'cancelled and cleaned up' : 'cancelled';
+  userActivityLogger(`User ${actionType} a project clone for project '${destProject.name}'`, {
     project: '',
     event: 'api:cancelProjectClone',
     payload: {
-      data: destProject,
+      data: { ...destProject, cleanupClone },
       ...auditLog,
     }
   });
 
-  return 'success';
+  return updatedCloneRows.length > 0 ? updatedCloneRows[0] : null;
 };
 
 /*

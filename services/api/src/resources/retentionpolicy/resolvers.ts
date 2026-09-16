@@ -137,10 +137,16 @@ const updateRetentionPolicy = async (sqlClientPool, hasPermission, userActivityL
 
   if (retpol.configuration != row.configuration) {
     // if a policy is updated, and the configuration is not the same as before the update
-    // then run postRetentionPolicyUpdateHook to make sure that the policy enforcer does
-    // any policy updates for any impacted projects
-    const policyEnabled = input.patch.enabled
-    await Helpers(sqlClientPool).postRetentionPolicyUpdateHook(retpol.type, retpol.id, null, !policyEnabled)
+    // then run the appropriate hook for each scope linked to the policy
+    const policyLinks = await query(sqlClientPool, Sql.selectRetentionPolicyLinksByPolicyID(retpol.id))
+    for (const policyLink of policyLinks) {
+      if (policyLink.scope == "global") {
+        const policyEnabled = input.patch.enabled
+        await Helpers(sqlClientPool).postRetentionPolicyUpdateHook(retpol.type, retpol.id, null, !policyEnabled)
+      } else {
+        await Helpers(sqlClientPool).postRetentionPolicyLinkHook(policyLink.id, policyLink.scope, retpol.type, retpol.id)
+      }
+    }
   }
 
   return { ...row, configuration: {type: row.type, ...JSON.parse(row.configuration)} };
