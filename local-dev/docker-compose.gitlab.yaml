@@ -10,7 +10,13 @@ services:
     volumes:
       - config:/etc/gitlab
       - data:/var/opt/gitlab
+    networks:
+      - k3d
 
 volumes:
   config:
   data:
+
+networks:
+  k3d:
+    external: true
