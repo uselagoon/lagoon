@@ -121,9 +121,10 @@ func (sh *SystemHook) gitlabUserCreate(b []byte) {
 		return
 	}
 	data, _ := json.Marshal(b)
+	gluID := uint(glUser.ID)
 	user := &schema.AddUserInput{
 		Email:    glUser.Email,
-		GitlabID: uint(glUser.ID),
+		GitlabID: &gluID,
 	}
 	name := strings.Split(glUser.Name, " ")
 	if len(name) > 1 {
@@ -139,7 +140,7 @@ func (sh *SystemHook) gitlabUserCreate(b []byte) {
 		log.Println("Could not add user, reason:", err)
 		return
 	}
-	log.Printf("Added user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
+	log.Printf("Added user %v, gitlab id %v", lUser.Email, glUser.ID)
 }
 
 func (sh *SystemHook) gitlabUserUpdate(b []byte) {
@@ -179,7 +180,7 @@ func (sh *SystemHook) gitlabUserUpdate(b []byte) {
 		log.Println("Could not update user, reason:", err)
 		return
 	}
-	log.Printf("Updated user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
+	log.Printf("Updated user %v, gitlab id %v", lUser.Email, glUser.ID)
 }
 
 func (sh *SystemHook) gitlabUserDelete(b []byte) {
@@ -201,7 +202,7 @@ func (sh *SystemHook) gitlabUserDelete(b []byte) {
 		log.Println("Could not delete user, reason:", err)
 		return
 	}
-	log.Printf("Delete user %v, gitlab id %v", lUser.Email, lUser.GitlabID)
+	log.Printf("Delete user %v", lUser.Email)
 }
 
 func (sh *SystemHook) gitlabUserGroupAdd(b []byte) {
