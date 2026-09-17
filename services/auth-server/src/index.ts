@@ -17,6 +17,9 @@ interface keycloakGrant {
 
 const app = express();
 
+// Automatically decode json.
+app.use(express.json());
+
 // Add custom configured logger (morgan through winston).
 app.use(
   morgan('combined', {

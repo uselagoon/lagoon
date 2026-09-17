@@ -1,8 +1,5 @@
 import R from 'ramda';
 import { Request, Response } from 'express';
-import bodyParser from 'body-parser';
-
-const parseJson = bodyParser.json();
 
 declare type keycloakGrant = {
   access_token: string,
@@ -42,5 +39,5 @@ export const generateRoute = (getUserGrant: (userId: string) => Promise<keycloak
     }
   };
 
-  return [parseJson, route];
+  return [route];
 };

@@ -1,89 +1,75 @@
-import * as R from 'ramda';
-import bodyParser from 'body-parser';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
 import { logger } from '../loggers/logger';
 import { knex, query } from '../util/db';
 import { sqlClientPool } from '../clients/sqlClient';
-import { validateKey } from '../util/func';
 
-const toFingerprint = async (sshKey) => {
-  try {
-    const pubkey = await validateKey(sshKey, "public")
-    if (pubkey['sha256fingerprint']) {
-      return pubkey['sha256fingerprint']
-    } else {
-      throw new Error('not valid key')
-    }
-  } catch (e) {
-    logger.error(`Invalid ssh key: ${sshKey}`);
-  }
-};
+interface KeysRequestBody {
+  fingerprint: string;
+}
 
-const mapFingerprints = async (keys) => {
-  const fingerprintKeyMap = await Promise.all(
-    keys.map(async sshKey => {
-    const fp = await toFingerprint(sshKey)
-    return {fingerprint: fp, key: sshKey}
-  }))
-  return fingerprintKeyMap
-};
-
+/**
+ * Finds an ssh key by fingerprint and returns its public key.
+ *
+ * For use in `ssh` service. Return body must be in format:
+ * keyType keyValue
+ */
 const keysRoute = async (
-  { body: { fingerprint }, legacyCredentials }: RequestWithAuthData,
+  { body: { fingerprint }, legacyCredentials }: RequestWithAuthData<KeysRequestBody>,
   res: Response,
 ) => {
-  if (!legacyCredentials || legacyCredentials.role !== 'admin') {
-    throw new Error('Unauthorized');
+  if (legacyCredentials?.role !== 'admin') {
+    return res.status(401).send('Unauthorized legacy token');
   }
 
   if (!fingerprint) {
     return res.status(500).send('Missing parameter "fingerprint"');
   }
 
-  logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
+  const key = await getKeyByFingerprint(fingerprint);
 
-  const rows = await query(
-    sqlClientPool,
-    knex('ssh_key AS sk')
-      .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
-      .where("key_fingerprint","=", fingerprint)
-      .toString(),
-  );
-  const keys = R.map(R.prop('sshKey'), rows);
-
-  const fingerprintKeyMap = await mapFingerprints(keys)
-  const found = await fingerprintKeyMap.filter(el => {if (el.fingerprint === fingerprint) { return el.key }})[0];
-
-  if (!found) {
-    logger.debug(`Unknown fingerprint: ${fingerprint}`);
-    // drop out
-    res.send();
-  } else {
-    // update key used timestamp
-    const foundkey = await query(
-      sqlClientPool,
-      knex('ssh_key')
-        .select('id')
-        .where('key_fingerprint', fingerprint)
-        .toString(),
-    );
-    // check if a key is found
-    if (foundkey.length > 0) {
-      var date = new Date();
-      const convertDateFormat = R.init;
-      var lastUsed = convertDateFormat(date.toISOString());
-      await query(
-        sqlClientPool,
-        knex('ssh_key')
-          .where('id', foundkey[0].id)
-          .update({lastUsed: lastUsed})
-          .toString(),
-      );
-    }
-    // return key
-    res.send(found.key);
+  if (!key) {
+    logger.info(`/keys: no user with key fingerprint: ${fingerprint}`);
+    return res.send();
   }
+
+  logger.debug(`/keys: returning key with fingerprint: ${fingerprint}`);
+
+  res.send(`${key.keyType} ${key.keyValue}`);
 };
 
-export default [bodyParser.json(), keysRoute];
+interface SshKey {
+  keyType: String;
+  keyValue: String;
+}
+
+// Return an ssh key, if attached to user, and update its `last_used` time.
+const getKeyByFingerprint = async (fingerprint: string): Promise<SshKey | null> => {
+  const conn = await sqlClientPool.getConnection();
+
+  const rows = await query(conn,
+    knex('ssh_key')
+      .join('user_ssh_key', 'ssh_key.id', '=', 'user_ssh_key.skid')
+      .select('key_type', 'key_value')
+      .where('key_fingerprint', fingerprint)
+      .whereNotNull('usid')
+      .toString(),
+  ) as SshKey[];
+
+  if (rows.length != 1) {
+    await conn.end();
+    return null;
+  }
+
+  await query(conn,
+    knex('ssh_key')
+      .where('key_fingerprint', fingerprint)
+      .update({lastUsed: knex.fn.now()})
+      .toString(),
+  );
+
+  await conn.end();
+  return rows[0];
+}
+
+export default [keysRoute];

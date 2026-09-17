@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { Request, Response, NextFunction } from 'express';
 import { decode } from 'jsonwebtoken';
 import {
+  LegacyToken,
   isLegacyToken,
   isKeycloakToken,
   getGrantForKeycloakToken,
@@ -10,10 +11,10 @@ import {
 import { userActivityLogger } from './loggers/userActivityLogger';
 const { getClientIp } = require('@supercharge/request-ip');
 
-export type RequestWithAuthData = Request & {
-  legacyCredentials: any;
+export type RequestWithAuthData<ReqBody = any> = Request<{}, any, ReqBody> & {
+  legacyCredentials?: LegacyToken;
   authToken: string;
-  kauth: any;
+  kauth?: any;
   ipAddress?: any;
 };
 
