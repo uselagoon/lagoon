@@ -24,7 +24,7 @@
   "dependencies": {
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
-    "axios": "^1.12.0",
+    "axios": "^1.18.0",
     "jsonwebtoken": "^8.0.1",
     "lokka": "^1.7.0",
     "node-fetch": "^3.3.2",
