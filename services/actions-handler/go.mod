@@ -21,7 +21,7 @@ require (
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+	github.com/rabbitmq/amqp091-go v1.13.0 // indirect
 )
 
 // go get github.com/uselagoon/machinery@main for now until project cloning and v0.0.37 of machinery is ready for release
