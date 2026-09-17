@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
 	"github.com/uselagoon/machinery/api/schema"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type ProjectCreate struct {
@@ -68,9 +70,10 @@ type ProjectDestroy struct {
 func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 	var w ProjectCreate
 	_ = json.Unmarshal(b, &w)
+	ctx := context.Background()
 	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
 	if err != nil {
-		log.Println("Could not get project, reason:", err)
+		log.Printf("Could not get project info from Gitlab for project id %d, reason: %v", w.ProjectID, err)
 		return
 	}
 	lc, err := lagoon.GetClient(sh.LagoonAPI)
@@ -83,25 +86,210 @@ func (sh *SystemHook) gitlabProjectCreate(b []byte) {
 		Name:                  glProject.Path,
 		GitURL:                glProject.SSHURLToRepo,
 		ProductionEnvironment: "main",
-		Openshift:             1,
+		Openshift:             sh.GitlabAPI.DefaultDeployTargetID,
 	}
 	json.Unmarshal(data, agi)
 	project := schema.Project{}
-	err = lc.AddProject(context.Background(), agi, &project)
+	err = lc.AddProject(ctx, agi, &project)
 	if err != nil {
-		log.Println("Could not add project, reason:", err)
+		log.Printf("Could not add project %s, reason: %v", glProject.Path, err)
 		return
 	}
+
+	// get the project key to add to the gitlab repository
+	projectKey := schema.Project{}
+	err = lc.ProjectKeyByName(ctx, project.Name, false, &projectKey)
+	if err != nil {
+		log.Printf("Could not get project %s public key, reason: %v", glProject.Path, err)
+	} else {
+		keyTitle := "Lagoon Project Key"
+		canPush := false
+		// add the project key to the gitlab repository
+		sh.client.DeployKeys.AddDeployKey(w.ProjectID, &gitlab.AddDeployKeyOptions{
+			Title:   &keyTitle,
+			Key:     &projectKey.PublicKey,
+			CanPush: &canPush,
+		})
+		log.Printf("Added project %s public key as deploy key on gitlab project", glProject.Path)
+	}
+	gtpi := &schema.ProjectGroupsInput{
+		Project: schema.ProjectInput{
+			Name: project.Name,
+		},
+		Groups: []schema.GroupInput{
+			{
+				Name: sanitizeGroupName(glProject.Namespace.FullPath),
+			},
+		},
+	}
+	// add the group to the project
+	projectwGroup := schema.Project{}
+	if err := lc.AddGroupsToProject(ctx, gtpi, &projectwGroup); err != nil {
+		log.Printf("Could not add group %s to project %s, reason: %v", sanitizeGroupName(glProject.Namespace.FullPath), glProject.Path, err)
+		return
+	}
+
 	log.Printf("Created project %v", project.Name)
 }
 
 func (sh *SystemHook) gitlabProjectUpdate(b []byte) {
 	var w ProjectRenameTransfer
 	_ = json.Unmarshal(b, &w)
-	log.Println(w)
+
+	glProject, _, err := sh.client.Projects.GetProject(w.ProjectID, nil)
+	if err != nil {
+		log.Printf("Could not get project info from Gitlab for project id %d, reason: %v", w.ProjectID, err)
+		return
+	}
+
+	// check project topics against excluded topics
+	if hasExcludedTopic(glProject.Topics, sh.GitlabAPI.ExcludeProjectUpdateTopics) {
+		log.Printf("Ignoring project update for project %s as has topic in exclusion list", glProject.Path)
+		return
+	}
+
+	lc, err := lagoon.GetClient(sh.LagoonAPI)
+	if err != nil {
+		log.Println("Could not create client, reason:", err)
+		return
+	}
+
+	ctx := context.Background()
+	projectName := glProject.Path
+	gitURL := glProject.SSHURLToRepo
+
+	if glProject.Namespace.Kind != "group" {
+		if err := lc.DeleteProject(ctx, projectName, nil); err != nil {
+			log.Println("Could not delete project, reason:", err)
+			return
+		}
+		log.Printf("Deleted project %v: not in group namespace anymore", projectName)
+		return
+	}
+
+	project := schema.Project{}
+	err = lc.ProjectByName(ctx, projectName, &project)
+	if err != nil {
+		// project doesn't exist, or failed to get, so create it
+
+		productionEnvironment := "master"
+
+		agi := &schema.AddProjectInput{
+			Name:                  projectName,
+			GitURL:                gitURL,
+			ProductionEnvironment: productionEnvironment,
+			// TODO: figure out openshift id
+			Openshift: sh.GitlabAPI.DefaultDeployTargetID,
+		}
+		addedProject := schema.Project{}
+		if err := lc.AddProject(ctx, agi, &addedProject); err != nil {
+			log.Printf("Could not add project %s, reason: %v", projectName, err)
+			return
+		}
+		gtpi := &schema.ProjectGroupsInput{
+			Project: schema.ProjectInput{
+				Name: projectName,
+			},
+			Groups: []schema.GroupInput{
+				{
+					Name: sanitizeGroupName(glProject.Namespace.FullPath),
+				},
+			},
+		}
+		if err := lc.AddGroupsToProject(ctx, gtpi, &addedProject); err != nil {
+			log.Printf("Could not add group %s to project %s, reason: %v", sanitizeGroupName(glProject.Namespace.FullPath), glProject.Path, err)
+			return
+		}
+
+		log.Printf("Added project %v: transfer to group namespace", projectName)
+		return
+	} else {
+		// update the project
+		upi := schema.UpdateProjectPatchInput{
+			GitURL: &gitURL,
+		}
+		err = lc.UpdateProject(ctx, uint(project.ID), upi, &project)
+		if err != nil {
+			log.Printf("Could not update project %s, reason: %v", projectName, err)
+			return
+		}
+	}
+
+	// handle group transfer, move project from old group to new group.
+	if w.EventName == "project_transfer" && w.PathWithNamespace != w.OldPathWithNamespace {
+		oldNamespace := strings.TrimSuffix(w.OldPathWithNamespace, "/"+projectName)
+		oldGroupName := sanitizeGroupName(oldNamespace)
+		newGroupName := sanitizeGroupName(glProject.Namespace.FullPath)
+
+		rgfp := &schema.ProjectGroupsInput{
+			Project: schema.ProjectInput{
+				Name: projectName,
+			},
+			Groups: []schema.GroupInput{
+				{
+					Name: oldGroupName,
+				},
+			},
+		}
+		if err := lc.RemoveGroupsFromProject(ctx, rgfp, &project); err != nil {
+			log.Printf("Could not remove group %s from project %s, reason: %v", oldGroupName, projectName, err)
+		}
+
+		agtp := &schema.ProjectGroupsInput{
+			Project: schema.ProjectInput{
+				Name: projectName,
+			},
+			Groups: []schema.GroupInput{
+				{
+					Name: newGroupName,
+				},
+			},
+		}
+		if err := lc.AddGroupsToProject(ctx, agtp, &project); err != nil {
+			log.Printf("Could not add group %s to project %s, reason: %v", newGroupName, projectName, err)
+		}
+	}
+	log.Printf("Updated project %v", projectName)
 }
+
 func (sh *SystemHook) gitlabProjectDelete(b []byte) {
 	var w ProjectDestroy
 	_ = json.Unmarshal(b, &w)
-	log.Println(w)
+
+	lc, err := lagoon.GetClient(sh.LagoonAPI)
+	if err != nil {
+		log.Println("Could not create client, reason:", err)
+		return
+	}
+
+	ctx := context.Background()
+	projectName := w.Path
+	groupName := sanitizeGroupName(strings.TrimSuffix(w.PathWithNamespace, "/"+projectName))
+
+	groupProjects := []schema.Group{}
+	if err := lc.GroupProjects(ctx, groupName, &groupProjects); err != nil {
+		log.Printf("Could not get group %s projects, reason: %v", groupName, err)
+		return
+	}
+
+	projectExists := false
+	for _, group := range groupProjects {
+		for _, p := range group.Projects {
+			if p.Name == projectName {
+				projectExists = true
+				break
+			}
+		}
+	}
+
+	if projectExists {
+		if err := lc.DeleteProject(ctx, projectName, nil); err != nil {
+			log.Printf("Could not delete project %s, reason: %v", projectName, err)
+			return
+		}
+		log.Printf("Deleted project %v", projectName)
+		return
+	}
+
+	log.Printf("Project %s not a member of group %s", projectName, groupName)
 }

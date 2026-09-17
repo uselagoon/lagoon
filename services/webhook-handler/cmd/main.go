@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	mq "github.com/cheshir/go-mq/v2"
@@ -36,6 +37,7 @@ var (
 	jwtAudience           string
 	jwtSubject            string
 	jwtIssuer             string
+	defaultDeployTarget   int
 	debug                 bool
 )
 
@@ -76,6 +78,9 @@ func main() {
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "webhook-handler",
 		"The jwt audience.")
 
+	flag.IntVar(&defaultDeployTarget, "default-deploy-target", 1,
+		"The ID of the deploytarget to use when creating projects from gitlab systemhooks.")
+
 	flag.BoolVar(&debug, "debug", false,
 		"Flag to enable debug logging.")
 
@@ -96,6 +101,11 @@ func main() {
 	gitlabSystemHookToken = variables.GetEnv("GITLAB_SYSTEM_HOOK_TOKEN", "")
 	gitlabAPIToken = variables.GetEnv("GITLAB_API_TOKEN", "")
 	gitlabAPIHost = variables.GetEnv("GITLAB_API_HOST", "")
+	defaultGitlabProjectUpdateExclusions := []string{"lagoon-ignore"}
+	// support for additional optional topics
+	excludeGitlabProjectUpdateTopicVar := variables.GetEnv("GITLAB_EXCLUDE_UPDATE_TOPICS", "")
+	excludeGitlabProjectUpdateTopics := append(defaultGitlabProjectUpdateExclusions, strings.Split(excludeGitlabProjectUpdateTopicVar, ",")...)
+	defaultDeployTargetID := variables.GetEnvInt("DEFAULT_DEPLOYTARGET_ID", defaultDeployTarget)
 
 	// lagoon
 	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
@@ -183,9 +193,11 @@ func main() {
 	srv := server.Server{
 		Messaging: msg,
 		GitlabAPI: syshook.GitlabAPI{
-			GitlabAPIHost:         gitlabAPIHost,
-			GitlabAPIToken:        gitlabAPIToken,
-			GitlabSystemHookToken: gitlabSystemHookToken,
+			GitlabAPIHost:              gitlabAPIHost,
+			GitlabAPIToken:             gitlabAPIToken,
+			GitlabSystemHookToken:      gitlabSystemHookToken,
+			ExcludeProjectUpdateTopics: excludeGitlabProjectUpdateTopics,
+			DefaultDeployTargetID:      uint(defaultDeployTargetID),
 		},
 		LagoonAPI: lagoon.LagoonAPI{
 			Endpoint:        lagoonAPIHost,

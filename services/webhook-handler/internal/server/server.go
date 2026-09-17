@@ -119,7 +119,7 @@ func (s *Server) handleWebhookPost(w http.ResponseWriter, r *http.Request) {
 				respondWithError(w, http.StatusBadRequest, "gitlab system hook secret verification failed")
 				return
 			}
-			sh, err := syshook.New(s.GitlabAPI.GitlabAPIHost, s.GitlabAPI.GitlabAPIToken, s.LagoonAPI, s.Messaging)
+			sh, err := syshook.New(s.GitlabAPI, s.LagoonAPI, s.Messaging)
 			if err != nil {
 				respondWithError(w, http.StatusBadRequest, err.Error())
 				return
