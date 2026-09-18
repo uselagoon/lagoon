@@ -22,7 +22,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "https://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_content: "Hello World!"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -31,7 +31,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/seed"
+    url: "https://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}/seed"
     expected_content: "done"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -81,7 +81,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "https://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_content: "Hello World!"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -91,7 +91,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/files"
+    url: "https://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}/files"
     expected_content: "file"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -100,7 +100,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mysql"
+    url: "https://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}/mysql"
     expected_content: "mysql data"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -109,7 +109,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres"
+    url: "https://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}/postgres"
     expected_content: "postgres data"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-content.yaml
@@ -156,7 +156,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "https://server.{{ destProject | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml
@@ -174,7 +174,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    url: "https://server.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_returncode: "{{ del_status_code }}"
   tasks:
   - ansible.builtin.include_tasks: ../../checks/check-url-returncode.yaml

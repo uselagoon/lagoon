@@ -31,7 +31,7 @@
     git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
     branch: ingress-annotations
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    check_url: "https://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
 - ansible.builtin.import_playbook: features/short-router-url.yaml
   vars:
