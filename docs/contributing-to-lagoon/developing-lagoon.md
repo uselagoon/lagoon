@@ -96,6 +96,40 @@ At the end of the process, the command will provide some useful information that
 !!! warning
     This can take some time to complete as it will install a lot of components necessary to make Lagoon work. This includes things like ingress-nginx, harbor, and all the additional services to make exploring Lagoon easy.
 
+At this point, it is helpful to configure the Lagoon CLI to work with the local lagoon.
+First however, you must add your ssh public key to a user. 
+If you set up a seed user in earlier steps, then you can use that one.
+Visit the user's settings page in the UI, most likely located at [https://lagoon-ui.${LAGOON_IP}.nip.io/settings](https://lagoon-ui.${LAGOON_IP}.nip.io/settings), where LAGOON_IP is the IP address of the k3d cluster.
+Next, you should install and configure the Lagoon CLI - the instructions for which are located [here](/installing-lagoon/lagoon-cli/).
+However, in this case the correct command can be found using `make k3d/get-lagoon-cli-details`, which will return something like:
+
+```bash title="Add local-stack lagoon to Lagoon CLI"
+lagoon config add \
+    --lagoon local-k3d \
+    --graphql http://lagoon-api.${LAGOON_IP}.nip.io/graphql \
+    --token TOKEN \
+    --hostname lagoon-token.${LAGOON_SSH_IP}.nip.io \
+    --port 2223
+```
+
+In order for Lagoon to deploy a project, it needs a "deploy target" to be set.
+The organizations created via the `make k3d/seed-data` make target will already have this configured for you, but not organizations created via the `LAGOON_SEED_ORGANIZATION` environment variable.
+To add a deploy target to an organization, you will first need to get the ID of preconfigured Lagoon Remote with:
+
+```bash
+lagoon list deploytargets
+```
+
+It will most likely report an available deploy target with name `ci-local-control-k8s` and ID 2001.
+You must then add this deploy target as an _organizational_ deploy target as follows:
+
+```
+lagoon add organization-deploytarget -O ORG_NAME -D DEPLOY_TARGET_ID
+```
+
+Here `ORG_NAME` is the organization you wish to receive the target; `LAGOON_SEED_ORGANIZATION` if you wish to use the seeded organization.
+
+
 ### Local development certificates
 
 The local stack deploys with a locally generated CA certificate. This certificate is used by the local stack to provision certificates for services deployed in the local stack.
