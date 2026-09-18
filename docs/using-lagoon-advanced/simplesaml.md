@@ -2,7 +2,7 @@
 
 ## SimpleSAMLphp
 
-This is an example of how to add SimpleSAMLphp to your project and then modify configuration to serve it via NGINX.
+This is an example of how to add SimpleSAMLphp to your project and then modify the configuration to serve it via NGINX.
 
 ### Requirements
 
@@ -14,9 +14,9 @@ composer req simplesamlphp/simplesamlphp
 
 ### Modify configuration for SimpleSAMLphp
 
-Copy `authsources.php` and `config.php` from `vendor/simplesamlphp/simplesamlphp/config-templates` to somewhere outside vendor directory, such as `conf/simplesamlphp`. You also need `saml20-idp-remote.php` from `vendor/simplesamlphp/simplesamlphp/metadata-templates`.
+Copy `authsources.php.dist` and `config.php.dist` from `vendor/simplesamlphp/simplesamlphp/config` to somewhere outside the vendor directory, such as `conf/simplesamlphp`, dropping the `.dist` suffix from the filenames. You also need `saml20-idp-remote.php.dist` from `vendor/simplesamlphp/simplesamlphp/metadata`.
 
-In `config.php` set following values for Lagoon:
+In `config.php` set the following values for Lagoon:
 
 Base URL path where SimpleSAMLphp is accessed:
 
@@ -24,26 +24,33 @@ Base URL path where SimpleSAMLphp is accessed:
   'baseurlpath' => 'https://YOUR_DOMAIN.TLD/simplesaml/',
 ```
 
-Store sessions to database:
+Store sessions to the database:
 
 ```php title="config.php"
   'store.type'                    => 'sql',
-
   'store.sql.dsn'                 => vsprintf('mysql:host=%s;port=%s;dbname=%s', [
     getenv('MARIADB_HOST'),
     getenv('MARIADB_PORT'),
     getenv('MARIADB_DATABASE'),
   ]),
+  'store.sql.username'            => getenv('MARIADB_USERNAME'),
+  'store.sql.password'            => getenv('MARIADB_PASSWORD'),
+```
+
+Set the secret salt, which SimpleSAMLphp requires you to change from its default value. `MARIADB_HOST` is a UUID that is unique to each environment, which makes it a convenient source for this value:
+
+```php title="config.php"
+  'secretsalt' => getenv('MARIADB_HOST'),
 ```
 
 Alter other settings to your liking:
 
 * Check the paths for logs and certs.
-* Secure SimpleSAMLphp dashboard.
-* Set up level of logging.
+* Secure the SimpleSAMLphp dashboard by changing `auth.adminpassword` from its default of `123`. Run `vendor/simplesamlphp/simplesamlphp/bin/pwgen.php` to generate a hashed value to use here.
+* Set up the level of logging.
 * Set `technicalcontact` and `timezone`.
 
-Add authsources \(IdPs\) to `authsources.php`, see example:
+Add authsources (IdPs) to `authsources.php`, see example:
 
 ```php title="authsources.php"
   'default-sp' => [
@@ -127,7 +134,7 @@ Create file  `lagoon/nginx/location_prepend_simplesamlphp.conf`:
 
 ```bash title="location_prepend_simplesamlphp.conf"
 location ^~ /simplesaml {
-    alias /app/vendor/simplesamlphp/simplesamlphp/www;
+    alias /app/vendor/simplesamlphp/simplesamlphp/public;
 
     location ~ ^(?<prefix>/simplesaml)(?<phpfile>.+?\.php)(?<pathinfo>/.*)?$ {
         include          fastcgi_params;
@@ -142,7 +149,7 @@ location ^~ /simplesaml {
 
 This will route `/simplesaml` URLs to SimpleSAMLphp in vendor.
 
-### Add additional NGINX conf to NGINX image
+### Add additional NGINX conf to the NGINX image
 
 Modify `nginx.dockerfile` and add `location_prepend_simplesamlphp.conf` to the image:
 
