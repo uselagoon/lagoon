@@ -223,11 +223,8 @@ export const Sql = {
       .toString(),
   deleteServiceContainersByEnvironmentId: (eid: number) =>
     knex('environment_service_container')
-      .whereIn('service_id', function() {
-        this.select('id')
-            .from('environment_service')
-            .where('environment', eid);
-      })
+      .join('environment_service', 'environment_service_container.service_id', 'environment_service.id')
+      .where('environment_service.environment', eid)
       .delete()
       .toString(),
   // add a new service container
