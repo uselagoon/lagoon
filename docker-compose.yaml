@@ -203,7 +203,7 @@ services:
     environment:
       - CLEAR_API_DATA=false
   local-minio:
-    image: minio/minio
+    image: docker.io/cloudpirates/image-minio
     entrypoint: sh
     command: -c 'mkdir -p /export/restores  && mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && minio server /export --console-address ":9001" '
     ports:
