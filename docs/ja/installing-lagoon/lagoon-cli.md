@@ -2,7 +2,11 @@
 
 1. あなたのオペレーティングシステムに対応するインストール方法については、[https://github.com/uselagoon/lagoon-cli#install](https://github.com/uselagoon/lagoon-cli#install)をご覧ください。macOSとLinuxでは、Homebrewを使用することができます。
   1. `brew tap uselagoon/lagoon-cli`
-  2. `brew install lagoon`
+  2. `brew trust uselagoon/lagoon-cli`
+  3. `brew install lagoon`
+
+    !!! Info
+        Homebrew 6.0.0以降では、サードパーティのtapからformulaをインストールする前に、明示的にtapを信頼する必要があります。それ以前のバージョンのHomebrewを使用している場合は、`brew trust`の手順を省略できます。
 2. CLIはLagoonとどのように通信するかを知る必要があるため、以下のコマンドを実行します:
 
     ```bash title="Lagoon config"
