@@ -539,6 +539,14 @@ ifeq ($(INSTALL_DBAAS_PROVIDERS), false)
 	INSTALL_MONGODB_PROVIDER = false
 endif
 
+# mongo currently doesn't work on arm based systems, so just disable the provider entirely for now
+ifeq ($(ARCH), darwin)
+	INSTALL_MONGODB_PROVIDER = false
+endif
+ifeq ($(MACHINE), arm64)
+	INSTALL_MONGODB_PROVIDER = false
+endif
+
 INSTALL_UNAUTHENTICATED_REGISTRY = false
 # harbor currently doesn't work on arm based systems, so install an unauthenticated registry instead
 ifeq ($(ARCH), darwin)
