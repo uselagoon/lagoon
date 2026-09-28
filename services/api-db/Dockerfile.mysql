@@ -7,8 +7,11 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 
+RUN /bin/fix-permissions /var/log/
+
 # replace the generate-env script with our password, since generate-env only adds a domain which isnt valid in this image
 COPY password-entrypoint.bash /lagoon/entrypoints/55-generate-env.sh
+COPY slow-query-stdout-mysql-entrypoint.bash /lagoon/entrypoints/101-slow-query-stdout.sh
 
 USER mysql
 
