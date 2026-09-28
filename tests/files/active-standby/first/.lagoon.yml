@@ -8,9 +8,7 @@ production_routes:
     routes:
       - nginx:
         - active-moving-route.com:
-            tls-acme: false
   standby:
     routes:
       - nginx:
         - standby-moving-route.com:
-            tls-acme: false
