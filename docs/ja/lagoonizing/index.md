@@ -429,42 +429,6 @@ environments:
       mariadb: mariadb-galera
 ```
 
-#### `environments.[name].templates`
-
-Lagoonビルドプロセスは、`docker-compose.yml`ファイルの`lagoon.template`ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します([docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳しく読むことができます)。
-
-特定の環境でのみテンプレートをオーバーライドしたい場合:
-
-##### `service-name: template-file`
-
-- `service-name`は、`docker-compose.yml`からオーバーライドしたいサービスの名前です。
-- `template-file`は、この環境でこのサービスに使用するテンプレートのパスと名前です。
-
-```yaml title=".lagoon.yml 例"
-environments:
-  main:
-    templates:
-      mariadb: mariadb.main.deployment.yml
-```
-
-#### `environments.[name].rollouts`
-
-Lagoonビルドプロセスは、`docker-compose.yml`ファイルの`lagoon.rollout`ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します([docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳しく読むことができます)。
-
-すべての環境に対してではなく、ひとつの環境に対してだけタイプをオーバーライドしたい場合もあります。
-
-##### `service-name: rollout-type`
-
-- `service-name`は上書きしたい`docker-compose.yml`のサービス名です。
-- `rollout-type`はロールアウトのタイプです。可能な値については[docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)を参照してください。
-
-```yaml title=".lagoon.yml 例"
-environments:
-  main:
-    rollouts:
-      mariadb: statefulset
-```
-
 #### Cronジョブ - `environments.[name].cronjobs`
 
 通常、全ての環境で同じCronジョブを実行することは望ましくありません。そのため、各環境で実行したいジョブを明示的に定義する必要があります。例として、1時間に1回実行するdrush cronジョブを作成します。
