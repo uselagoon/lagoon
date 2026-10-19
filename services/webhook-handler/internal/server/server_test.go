@@ -452,6 +452,15 @@ func TestWebhookEvents(t *testing.T) {
 			wantResponse: "bitbucket/push.result.json",
 		},
 		{
+			name:         "bitbucket-push-create-environment-ssh-host",
+			description:  "should find a project registered with the ssh.bitbucket.org host from a bitbucket.org webhook",
+			gitType:      "bitbucket",
+			event:        "repo:push",
+			webhook:      "bitbucket/push.ssh",
+			wantCode:     200,
+			wantResponse: "bitbucket/push.ssh.result.json",
+		},
+		{
 			name:         "bitbucket-push-existing-environment",
 			gitType:      "bitbucket",
 			event:        "repo:push",

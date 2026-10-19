@@ -51,12 +51,20 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/allProjects.5.json")
 				case variables["gitUrl"].(string) == "git@bitbucket.org:aio-test/test.git":
 					a, _ = f.ReadFile("testdata/allProjects.6.json")
+
+				// project registered with the ssh.bitbucket.org host
+				case variables["gitUrl"].(string) == "git@ssh.bitbucket.org:aio-test/test4.git":
+					a, _ = f.ReadFile("testdata/allProjects.280.bitbucket.ssh.json")
 				}
 			}
 			if strings.Contains(request, "addOrUpdateEnvironment") {
 				switch {
 				case variables["name"].(string) == "test-branch":
-					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.1.json")
+					if project, ok := variables["project"].(float64); ok && project == 280 {
+						a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.280.test-branch.json")
+					} else {
+						a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.1.json")
+					}
 				case variables["name"].(string) == "dev":
 					a, _ = f.ReadFile("testdata/addOrUpdateEnvironment.2.json")
 				case variables["name"].(string) == "pr-2":
@@ -91,6 +99,8 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/addDeployment.7.json")
 				case variables["environment"].(float64) == 17:
 					a, _ = f.ReadFile("testdata/addDeployment.8.json")
+				case variables["environment"].(float64) == 19:
+					a, _ = f.ReadFile("testdata/addDeployment.280.test-branch.19.json")
 				}
 			}
 			if strings.Contains(request, "projectByName") {
@@ -100,6 +110,8 @@ func graphql(w http.ResponseWriter, r *http.Request) {
 					a, _ = f.ReadFile("testdata/projectByName.1.json")
 				case variables["name"].(string) == "demo-project2":
 					a, _ = f.ReadFile("testdata/projectByName.2.json")
+				case variables["name"].(string) == "demo-project3":
+					a, _ = f.ReadFile("testdata/projectByName.280.json")
 				}
 			}
 			if strings.Contains(request, "environmentById") {

@@ -1,0 +1,8 @@
+{
+  "response": [
+    {
+      "project": "demo-project3",
+      "response": "{\"metadata\":{\"name\":\"lagoon-build-Oow7ie\",\"namespace\":\"lagoon\"},\"spec\":{\"build\":{\"type\":\"branch\",\"priority\":5},\"project\":{\"id\":280,\"name\":\"demo-project3\",\"environment\":\"test-branch\",\"environmentId\":19,\"uiLink\":\"https://ui.example.com/projects/demo-project3/demo-project3-test-branch/deployments/lagoon-build-Oow7ie\",\"gitUrl\":\"git@ssh.bitbucket.org:aio-test/test4.git\",\"routerPattern\":\"${project}.${environment}.example.com\",\"environmentType\":\"development\",\"productionEnvironment\":\"main\",\"standbyEnvironment\":\"\",\"deployTarget\":\"ci-local-control-k8s\",\"projectSecret\":\"9ab2c8b527bfd0444a805fdb4ea1c23065a6599f57423dc4abd969d1cc3eaf3c\",\"key\":\"LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KU05JUEtFWQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K\",\"monitoring\":{},\"variables\":{\"environment\":\"W3sic2NvcGUiOiJpbnRlcm5hbF9zeXN0ZW0iLCJuYW1lIjoiTEFHT09OX1NZU1RFTV9DT1JFX1ZFUlNJT04iLCJ2YWx1ZSI6InVua25vd24ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUk9VVEVSX1BBVFRFUk4iLCJ2YWx1ZSI6IiR7cHJvamVjdH0uJHtlbnZpcm9ubWVudH0uZXhhbXBsZS5jb20ifSx7InNjb3BlIjoiaW50ZXJuYWxfc3lzdGVtIiwibmFtZSI6IkxBR09PTl9TWVNURU1fUFJPSkVDVF9TSEFSRURfQlVDS0VUIiwidmFsdWUiOiJjaS1sb2NhbC1jb250cm9sLWs4cyJ9LHsic2NvcGUiOiJidWlsZCIsIm5hbWUiOiJMQUdPT05fQlVJTERfUFJJT1JJVFkiLCJ2YWx1ZSI6IjUifSx7InNjb3BlIjoicnVudGltZSIsIm5hbWUiOiJTU01UUF9NQUlMSFVCIiwidmFsdWUiOiJteG91dC5sYWdvb24uc3ZjOjI1In1d\"},\"environmentIdling\":1,\"projectIdling\":1,\"storageCalculator\":1},\"branch\":{\"name\":\"test-branch\"},\"pullrequest\":{},\"promote\":{},\"gitReference\":\"7c880ead8710260c8ab9ed8e220a47a41447bb21\"},\"status\":{}}"
+    }
+  ]
+}
