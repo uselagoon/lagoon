@@ -337,46 +337,6 @@ environments:
       mariadb: mariadb-single
 ```
 
-### `environments.[name].templates`
-
-Lagoonのビルドプロセスは、`docker-compose.yml`ファイルから`lagoon.template`ラベルを調べて、サービスがカスタムテンプレートファイルを必要とするかどうかを確認します([`docker-compose.yml`](docker-compose-yml.md)のドキュメンテーションで詳しく読むことができます)。
-
-場合によっては、**テンプレート**をすべての環境ではなく、特定の環境だけで上書きしたい場合があります:
-
-`service-name: template-file`
-
-* `service-name`は、`docker-compose.yml`から上書きしたいサービスの名前です。
-* `template-file`は、この環境でこのサービスに使用するテンプレートのパスと名前です。
-
-#### テンプレート上書きの例 { #example-template-override }
-
-```yaml title=".lagoon.yml"
-environments:
-  main:
-    templates:
-      mariadb: mariadb.main.deployment.yml
-```
-
-### `environments.[name].rollouts` { #environments-name-rollouts }
-
-Lagoonのビルドプロセス `lagoon.rollout`ラベルを`docker-compose.yml`ファイルから調べて、サービスが特別なロールアウトタイプを必要とするかどうかを確認します(`docker-compose.yml`の[ドキュメンテーション](docker-compose-yml.md#custom-rollout-monitor-types)で詳しく読むことができます)。
-
-場合によっては、特に環境のテンプレートタイプを上書きした場合には、単一の環境だけで**ロールアウトタイプ**を上書きしたいことがあります。
-
-`service-name: rollout-type`
-
-* `service-name`は、上書きしたい`docker-compose.yml`のサービスの名前です。
-* `rollout-type`は、ロールアウトのタイプです。可能な値については、`docker-compose.yml`の[ドキュメンテーション](docker-compose-yml.md#custom-rollout-monitor-types)を参照してください。
-
-#### カスタムロールアウトタイプの例 { #custom-rollout-type-example }
-
-```yaml title=".lagoon.yml"
-environments:
-  main:
-    rollouts:
-      mariadb: statefulset
-```
-
 ### `environments.[name].autogenerateRoutes`
 
 ルートの自動生成が無効になっている場合でも、環境ごとに自動生成ルートを設定することができます。
@@ -626,10 +586,6 @@ environments:
         - www.example.ch
     types:
       mariadb: mariadb
-    templates:
-      mariadb: mariadb.main.deployment.yml
-    rollouts:
-      mariadb: statefulset
     cronjobs:
       - name: drush cron
         schedule: "M * * * *" # This will run the cron once per hour.
@@ -658,7 +614,10 @@ environments:
     `None` オプションは `Redirect` と同等です。
 
 * `environments.[name].monitoring_urls`
+* `environments.[name].rollouts`
 * `environments.[name].routes.[service].[route].hsts`
 * `environments.[name].routes.[service].[route].insecure`
 
     `None` オプションは `Redirect` と同等です。
+
+* `environments.[name].templates`
