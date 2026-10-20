@@ -131,8 +131,8 @@ JWT = $(realpath ./local-dev/jwt)
 K3D = $(realpath ./local-dev/k3d)
 
 # which database vendor type to use, can be mariadb (default) or mysql
-DATABASE_VENDOR = mariadb
-# DATABASE_VENDOR = mysql
+DATABASE_VENDOR ?= mariadb
+# DATABASE_VENDOR ?= mysql
 DATABASE_DOCKERFILE = Dockerfile
 ifeq ($(DATABASE_VENDOR), mysql)
 DATABASE_DOCKERFILE = Dockerfile.mysql
@@ -484,10 +484,10 @@ TASK_IMAGES = task-activestandby task-projectclone
 # rather than the bleeding edge from CHARTS_TREEISH
 # these will not build or use built images from this repository, just what the charts provide
 # this can be used to install a known version and then revert to test upgrading from a stable version
-INSTALL_STABLE_CORE = false
-INSTALL_STABLE_REMOTE = false
-INSTALL_STABLE_BUILDDEPLOY = false
-INSTALL_STABLE_LAGOON = false
+INSTALL_STABLE_CORE ?= false
+INSTALL_STABLE_REMOTE ?= false
+INSTALL_STABLE_BUILDDEPLOY ?= false
+INSTALL_STABLE_LAGOON ?= false
 ifeq ($(INSTALL_STABLE_LAGOON), true)
 	INSTALL_STABLE_CORE = true
 	INSTALL_STABLE_REMOTE = true
@@ -505,34 +505,34 @@ STABLE_STABLE_BUILDDEPLOY_CHART_VERSION =
 # a new `make k3d/generate-ca` exists to facilitate the creation of a CA certificate to be used for generating ingress certificates
 # once created, the certificate will exist in `local-dev/certificates` and can be installed in your browsers trusted authorities if you wish
 # or used with curl `--cacert/--capath` for example
-LAGOON_CORE_USE_HTTPS = true
+LAGOON_CORE_USE_HTTPS ?= true
 
 # install mailpit for lagoon local development
-INSTALL_MAILPIT = true
+INSTALL_MAILPIT ?= true
 
 # install prometheus for logoon local development
-INSTALL_PROMETHEUS = true
+INSTALL_PROMETHEUS ?= true
 
 # install aergia in local development
-INSTALL_AERGIA = true
+INSTALL_AERGIA ?= true
 
 # enable insights in local development
-ENABLE_INSIGHTS = false
+ENABLE_INSIGHTS ?= false
 
 # optionally install k8up for lagoon local development testing
-INSTALL_K8UP = false
+INSTALL_K8UP ?= false
 # this has multiple options available, will default to v2
 # set to v1 to install only k8upv1
 # set to v1,v2 to install both k8upv1 and k8upv2
-INSTALL_K8UP_VERSIONS = v2
-REMOTE_CONTROLLER_K8UP_VERSION = v2
+INSTALL_K8UP_VERSIONS ?= v2
+REMOTE_CONTROLLER_K8UP_VERSION ?= v2
 
 # the following can be used to selectively leave out the installation of certain
 # dbaas provider types
-INSTALL_MARIADB_PROVIDER =
-INSTALL_POSTGRES_PROVIDER =
-INSTALL_MONGODB_PROVIDER =
-INSTALL_DBAAS_PROVIDERS = true
+INSTALL_MARIADB_PROVIDER ?=
+INSTALL_POSTGRES_PROVIDER ?=
+INSTALL_MONGODB_PROVIDER ?=
+INSTALL_DBAAS_PROVIDERS ?= true
 ifeq ($(INSTALL_DBAAS_PROVIDERS), false)
 	INSTALL_MARIADB_PROVIDER = false
 	INSTALL_POSTGRES_PROVIDER = false
@@ -547,7 +547,7 @@ ifeq ($(MACHINE), arm64)
 	INSTALL_MONGODB_PROVIDER = false
 endif
 
-INSTALL_UNAUTHENTICATED_REGISTRY = false
+INSTALL_UNAUTHENTICATED_REGISTRY ?= false
 # harbor currently doesn't work on arm based systems, so install an unauthenticated registry instead
 ifeq ($(ARCH), darwin)
 	INSTALL_UNAUTHENTICATED_REGISTRY = true
@@ -897,7 +897,7 @@ k3d/stable-install-lagoon:
 
 # k3d/local-stack will deploy and seed a lagoon-core with a lagoon-remote and all basic services to get you going
 # and will provide some initial seed data for a user to jump right in and start using lagoon
-INSTALL_SEED_DATA = true
+INSTALL_SEED_DATA ?= true
 .PHONY: k3d/local-stack
 k3d/local-stack: k3d/setup
 	$(MAKE) k3d/install-lagoon SKIP_DETAILS=true
@@ -1126,7 +1126,7 @@ k3d/port-forwards:
 
 # k3d/retest re-runs tests in the local cluster. It preserves the last build
 # lagoon core & remote setup, reducing rebuild time.
-USE_STABLE_TESTS = false
+USE_STABLE_TESTS ?= false
 
 .PHONY: k3d/retest
 k3d/retest:
