@@ -38,7 +38,7 @@
         allowPullrequests: true
     ```
 
-* `insecure`: HTTP接続を設定します。デフォルトは`Allow`です。
+* `insecure`: HTTP接続を設定します。デフォルトは`Redirect`です。
   * `Allow`: ルートはHTTPとHTTPSの両方に応答します。
   * `Redirect`: ルートは任意のHTTPリクエストをHTTPSにリダイレクトします。
 
@@ -235,7 +235,7 @@ Drupal & Drush 9: マスター環境からデータベースとファイルを�
     `tls-acme: true`から`tls-acme: false`に切り替えると、このルートに対して以前に生成された証明書がすべて削除されます。これは、外部のCDNを使用していて証明書のピン留めを行っている場合、予期しない挙動を引き起こす可能性があります。
 
 * `tls-acme`:Let's Encryptを通じた自動TLS証明書生成を設定します。デフォルトは`true`で、自動証明書を無効にするには`false`に設定します。
-* `insecure`:HTTP接続を設定します。デフォルトは`Allow`です。
+* `insecure`:HTTP接続を設定します。デフォルトは`Redirect`です。
   * `Allow`:ルートはHTTPとHTTPSに応答します。
   * `Redirect`:ルートはすべてのHTTPリクエストをHTTPSにリダイレクトします。
 * `hstsEnabled`: `Strict-Transport-Security`ヘッダーを追加します。デフォルトは
