@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/uselagoon/lagoon/internal/lagoon"
@@ -69,13 +70,75 @@ type LagoonLog struct {
 	Level    string `json:"level"`
 }
 
+// bitbucketCloudSSHPrefixes pairs the legacy bitbucket cloud ssh prefixes with their ssh.bitbucket.org equivalents.
+// bitbucket cloud is moving its ssh endpoint, but webhook payloads only contain the non ssh domain,
+// so a project may be registered with either host.
+// related change in bitbucket https://community.atlassian.com/forums/discussion/3234032/upcoming-change-to-bitbucket-cloud-ssh-access-move-from-bitbucket-org-to-ssh-bitbucket-org
+var bitbucketCloudSSHPrefixes = [][2]string{
+	{"git@bitbucket.org:", "git@ssh.bitbucket.org:"},
+	{"ssh://git@bitbucket.org", "ssh://git@ssh.bitbucket.org"},
+}
+
+// hostPrefixEndCheck reports whether the prefix ends a complete hostname, so that unrelated hosts
+// such as bitbucket.org.example.com are not matched.
+func hostPrefixEndCheck(prefix, rest string) bool {
+	if strings.HasSuffix(prefix, ":") {
+		return true
+	}
+	return rest == "" || rest[0] == '/' || rest[0] == ':'
+}
+
+// bitbucketSSHURLVariants returns the given git url, plus the equivalent url on the other bitbucket cloud ssh host if there is one.
+// since lagoon uses the giturl to do git pulls, the giturl must work there.
+// secondary to that, the giturl is used to match project, if the webhook payload does not contain the `ssh.` prefixed version of the domain
+// then we need to do this variant check to extract the correct domain to match against
+func bitbucketSSHURLVariants(gitURL string) []string {
+	for _, prefixes := range bitbucketCloudSSHPrefixes {
+		if rest, ok := strings.CutPrefix(gitURL, prefixes[0]); ok && hostPrefixEndCheck(prefixes[0], rest) {
+			return []string{gitURL, prefixes[1] + rest}
+		}
+		if rest, ok := strings.CutPrefix(gitURL, prefixes[1]); ok && hostPrefixEndCheck(prefixes[1], rest) {
+			return []string{gitURL, prefixes[0] + rest}
+		}
+	}
+	return []string{gitURL}
+}
+
+// lookupProjects queries the api for the given git url. For bitbucket webhooks only, it also queries the
+// alternate bitbucket cloud ssh host and merges the results (de-duplicated by project id), as projects
+// sharing a repo (polysites) may be registered under either host. Other git types make a single call.
+func lookupProjects(gitType, gitURL string, query func(string) (*[]schema.Project, error)) ([]schema.Project, error) {
+	candidates := []string{gitURL}
+	if gitType == "bitbucket" {
+		candidates = bitbucketSSHURLVariants(gitURL)
+	}
+	var projects []schema.Project
+	seen := map[uint]struct{}{}
+	for _, candidate := range candidates {
+		found, err := query(candidate)
+		if err != nil {
+			return nil, err
+		}
+		if found == nil {
+			continue
+		}
+		for _, project := range *found {
+			if _, ok := seen[project.ID]; !ok {
+				seen[project.ID] = struct{}{}
+				projects = append(projects, project)
+			}
+		}
+	}
+	return projects, nil
+}
+
 func (e *Events) findProjectsByGitURL(gitType, event, uuid, gitURL string) ([]schema.Project, string, string, error) {
-	projects, err := e.LagoonAPI.AllProjectByGitURL(gitURL)
+	projects, err := lookupProjects(gitType, gitURL, e.LagoonAPI.AllProjectByGitURL)
 	if err != nil {
 		return nil, "", "", err
 	}
 	resultProjects := []schema.Project{}
-	for _, project := range *projects {
+	for _, project := range projects {
 		if project.DeploymentsDisabled == nil || *project.DeploymentsDisabled != 1 {
 			resultProjects = append(resultProjects, project)
 		}
