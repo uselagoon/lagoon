@@ -45,7 +45,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/asdf"
+    url: "https://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}/asdf"
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/asdf$"
   tasks:
