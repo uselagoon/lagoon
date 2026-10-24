@@ -1088,6 +1088,10 @@ const typeDefs = gql`
     source: String
     backupId: String
     created: String
+    """
+    This is the size of the data that was processed by the backup. It is the size of the data in the snapshot before being compressed to download.
+    """
+    kibProcessed: Float
     deleted: String @deprecated(reason: "This will be removed in a future release.")
     restore: Restore
   }
@@ -2193,6 +2197,7 @@ const typeDefs = gql`
     source: String!
     backupId: String!
     created: String!
+    kibProcessed: Float
   }
 
   input DeleteBackupInput {

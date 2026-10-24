@@ -232,7 +232,7 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
 
 export const addBackup: ResolverFn = async (
   root,
-  { input: { id, environment: environmentId, source, backupId, created } },
+  { input: { id, environment: environmentId, source, backupId, created, kibProcessed } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
@@ -251,7 +251,8 @@ export const addBackup: ResolverFn = async (
         environment: environmentId,
         source,
         backupId,
-        created
+        created,
+        kibProcessed
       })
     ));
   } catch(error) {
@@ -296,6 +297,7 @@ export const addBackup: ResolverFn = async (
       source,
       backupId,
       created,
+      kibProcessed,
       ...auditLog,
     }
   });

@@ -24,13 +24,15 @@ export const Sql = {
     environment,
     source,
     backupId,
-    created
+    created,
+    kibProcessed
   }: {
     id: number;
     environment: number;
     source: string;
     backupId: string;
     created: string;
+    kibProcessed?: number;
   }) =>
     knex('environment_backup')
       .insert({
@@ -38,7 +40,8 @@ export const Sql = {
         environment,
         source,
         backup_id: backupId,
-        created
+        created,
+        kib_processed: kibProcessed
       })
       .toString(),
   deleteBackup: (backupId: string) =>

@@ -150,15 +150,37 @@ func (b *BackupHandler) processBackups(ctx context.Context, backupData Backups, 
 					continue
 				}
 				l := lclient.New(b.Endpoint.Endpoint, b.Endpoint.JWTSubject, b.Endpoint.Version, &token, false)
-				backup, err := lagoon.AddBackup(ctx, environment.ID, getSnapshotSource(snapshotData), snapshotData.ID, snapshotData.Time.Format("2006-01-02 15:04:05"), l)
-				if err != nil {
+				raw := `mutation addBackup($input: AddBackupInput!) {
+	addBackup(input: $input) {
+		id
+		backupId
+	}
+}`
+				input := map[string]interface{}{
+					"environment": environment.ID,
+					"source":      getSnapshotSource(snapshotData),
+					"backupId":    snapshotData.ID,
+					"created":     snapshotData.Time.Format("2006-01-02 15:04:05"),
+				}
+				if snapshotData.Summary != nil {
+					input["kibProcessed"] = bytesToKiB(snapshotData.Summary.TotalBytesProcessed)
+				}
+				variables := map[string]interface{}{
+					"input": input,
+				}
+				if _, err := l.ProcessRaw(ctx, raw, variables); err != nil {
 					log.Printf("unable to add backup %s from webhook, error is: %v", snapshotData.ID, err)
 				} else {
-					log.Printf("added backup %s for %s", backup.BackupID, environment.OpenshiftProjectName)
+					log.Printf("added backup %s for %s", snapshotData.ID, environment.OpenshiftProjectName)
 				}
 			}
 		}
 	}
+}
+
+// api uses kib for most other size values, payload uses bytes. convert bytes to kib
+func bytesToKiB(b uint64) float64 {
+	return float64(b) / 1024
 }
 
 func removeSnapshot(snapshots []Snapshot, s int) []Snapshot {
