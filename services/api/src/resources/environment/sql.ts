@@ -281,6 +281,7 @@ export const Sql = {
       .select('kib_used')
       .where('environment', '=', id)
       .andWhere('persistent_storage_claim', '=', name)
+      .orderBy('updated', 'desc')
       .limit(1)
       .toString(),
   updateEnvironmentService: ({ id, patch }: { id: number, patch: any }) => {
