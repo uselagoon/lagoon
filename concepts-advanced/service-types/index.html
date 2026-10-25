@@ -5938,8 +5938,8 @@
 </table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When defining an nginx-php, or nginx-php-persistent service type, the order that the services are defined matters.
-The php service should be defined <em>after</em> the nginx service</p>
+<p>The services in <code>docker-compose.yml</code> must list <code>nginx</code> before <code>php</code>.</p>
+<p>Additional volumes must be labeled on the <code>nginx</code> service and they will be attached to both <code>nginx</code> and <code>php</code> containers.</p>
 </div>
 <h2 id="nginx-php-persistent"><code>nginx-php-persistent</code><a class="headerlink" href="#nginx-php-persistent" title="Permanent link">#</a></h2>
 <p>Like <code>nginx-php.</code> Will generate persistent storage, defines mount location via <code>lagoon.persistent</code>.</p>
@@ -5965,8 +5965,8 @@ The php service should be defined <em>after</em> the nginx service</p>
 </table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When defining an nginx-php, or nginx-php-persistent service type, the order that the services are defined matters.
-The php service should be defined <em>after</em> the nginx service</p>
+<p>The services in <code>docker-compose.yml</code> must list <code>nginx</code> before <code>php</code>.</p>
+<p>Additional volumes must be labeled on the <code>nginx</code> service and they will be attached to both <code>nginx</code> and <code>php</code> containers.</p>
 </div>
 <h2 id="node"><code>node</code><a class="headerlink" href="#node" title="Permanent link">#</a></h2>
 <p>Node.js container. No persistent storage.</p>
