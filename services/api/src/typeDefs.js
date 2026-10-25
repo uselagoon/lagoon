@@ -3061,6 +3061,10 @@ const typeDefs = gql`
     or from an organization itself
     """
     source: String
+    """
+    links are all the scopes (global, organization, project) this retention policy is currently linked to
+    """
+    links: [RetentionPolicyLink]
   }
 
   """
@@ -3078,6 +3082,19 @@ const typeDefs = gql`
     or from an organization itself
     """
     source: String
+    """
+    links are all the scopes (global, organization, project) this retention policy is currently linked to
+    """
+    links: [RetentionPolicyLink]
+  }
+
+  """
+  RetentionPolicyLink describes a scope that a retention policy is linked to
+  """
+  type RetentionPolicyLink {
+    scope: RetentionPolicyScope
+    scopeId: Int
+    scopeName: String
   }
 
   union RetentionPolicy = HarborRetentionPolicy | HistoryRetentionPolicy
