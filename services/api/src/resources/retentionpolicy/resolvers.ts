@@ -497,3 +497,26 @@ export const getRetentionPoliciesByOrganizationId: ResolverFn = async (
   rows = await Helpers(sqlClientPool).getRetentionPoliciesByScopeWithTypeAndLink(args.type, "organization", oid);
   return rows;
 };
+
+export const getRetentionPolicyLinks: ResolverFn = async (
+  { id },
+  _args,
+  { sqlClientPool, hasPermission }
+) => {
+  // restrict viewing links to view all retention policies
+  await hasPermission('retention_policy', 'viewAll');
+  const links = await query(sqlClientPool, Sql.selectRetentionPolicyLinksByPolicyID(id));
+  const result = [];
+  for (const link of links) {
+    let scopeName = null;
+    if (link.scope === 'organization') {
+      const org = await organizationHelpers(sqlClientPool).getOrganizationById(link.id);
+      scopeName = org ? org.name : null;
+    } else if (link.scope === 'project') {
+      const project = await projectHelpers(sqlClientPool).getProjectById(link.id);
+      scopeName = project ? project.name : null;
+    }
+    result.push({ scope: link.scope, scopeId: link.id, scopeName });
+  }
+  return result;
+};

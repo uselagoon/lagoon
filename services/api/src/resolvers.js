@@ -347,6 +347,7 @@ const {
   getRetentionPoliciesByProjectId,
   getRetentionPoliciesByOrganizationId,
   listAllRetentionPolicies,
+  getRetentionPolicyLinks,
   addHarborRetentionPolicyLink,
   addHistoryRetentionPolicyLink,
   removeHarborRetentionPolicyLink,
@@ -784,6 +785,12 @@ async function getResolvers() {
           return null;
       }
     }
+  },
+  HarborRetentionPolicy: {
+    links: getRetentionPolicyLinks,
+  },
+  HistoryRetentionPolicy: {
+    links: getRetentionPolicyLinks,
   },
   AdvancedTaskDefinition: {
     __resolveType (obj) {
