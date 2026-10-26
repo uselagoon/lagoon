@@ -197,20 +197,6 @@ php:
 
 Lagoonはどのサービスが`nginx`、`php`であるかを認識するために、`lagoon.deployment.servicetype: nginx`および`lagoon.deployment.servicetype: php`と定義します。
 
-## Helmテンプレート (Kubernetesのみ) { #helm-templates-kubernetes-only }
-
-LagoonはKubernetesでのテンプレート作成に[Helm](https://helm.sh/)を使用します。これを行うために、一連の[チャート](https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts)が`build-deploy-tool`イメージに含まれています。
-
-## カスタムロールアウトモニタータイプ { #custom-rollout-monitor-types }
-
-デフォルトでは、LagoonはカスタムテンプレートからのサービスがKubernetesまたはOpenshift内の[`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are)オブジェクトを介してロールアウトされることを期待しています。それに基づいてロールアウトを監視します。場合によっては、カスタムデプロイメントで定義されたサービスが異なる監視方法を必要とすることがあります。これは`lagoon.rollout`を通じて定義することができます:
-
-* `deploymentconfig` - これがデフォルトです。サービスのテンプレートの中の[`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deployment)オブジェクトを期待します。 
-* `daemonset` - サービスのテンプレート内の[`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)オブジェクトを期待します。
-* `false` - どのロールアウトも監視せず、テンプレートが適用され、エラーを投げない場合にのみ満足します。
-
-また、特定の環境のみにロールアウトを上書きすることもできます。これは[`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts)で行います。
-
 ## Docker Compose v2互換性 { #docker-compose-v2-compatibility }
 
 !!! Bug "バグ"
@@ -279,3 +265,10 @@ Lagoonの初期リリースでは、ボリュームとユーザーコードを�
     << : [*default-volumes, *default-user]
 ...
 ```
+
+## 非推奨 { #deprecated }
+
+これらの設定は非推奨となり、あなたの `docker-compose.yml` から削除するべきです。
+
+* `services.[name].labels.lagoon.rollout`
+* `services.[name].labels.lagoon.template`

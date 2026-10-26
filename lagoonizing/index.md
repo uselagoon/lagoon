@@ -422,42 +422,6 @@ environments:
       mariadb: mariadb-galera
 ```
 
-#### `environments.[name].templates`
-
-The Lagoon build process checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file (read more about them in [the documentation of docker-compose.yml](../concepts-basics/docker-compose-yml.md)).
-
-Sometimes you might want to override the template just for a single environment, and not for all of them:
-
-##### `service-name: template-file`
-
-- `service-name` is the name of the service from `docker-compose.yml` you would like to override.
-- `template-file` is the path and name of the template to use for this service in this environment.
-
-```yaml title=".lagoon.yml example"
-environments:
-  main:
-    templates:
-      mariadb: mariadb.main.deployment.yml
-```
-
-#### `environments.[name].rollouts`
-
-The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type (read more about them in [the documentation of docker-compose.yml](../concepts-basics/docker-compose-yml.md)).
-
-Sometimes you might want to override the rollout type just for a single environment, especially if you also overwrote the template type for the environment:
-
-##### `service-name: rollout-type`
-
-- `service-name` is the name of the service from `docker-compose.yml` you would like to override.
-- `rollout-type` is the type of rollout. See [the documentation of docker-compose.yml](../concepts-basics/docker-compose-yml.md) for possible values.
-
-```yaml title=".lagoon.yml example"
-environments:
-  main:
-    rollouts:
-      mariadb: statefulset
-```
-
 #### Cron jobs - `environments.[name].cronjobs`
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment. In our example, we’re creating a drush cron job that will run once per hour.

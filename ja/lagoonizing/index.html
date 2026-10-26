@@ -1309,54 +1309,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#environmentsnametemplates" class="md-nav__link">
-    <span class="md-ellipsis">
-      environments.[name].templates
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="environments.[name].templates">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#service-name-template-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      service-name: template-file
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#environmentsnamerollouts" class="md-nav__link">
-    <span class="md-ellipsis">
-      environments.[name].rollouts
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="environments.[name].rollouts">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#service-name-rollout-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      service-name: rollout-type
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cron-environmentsnamecronjobs" class="md-nav__link">
     <span class="md-ellipsis">
       Cronジョブ - environments.[name].cronjobs
@@ -5749,54 +5701,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#environmentsnametemplates" class="md-nav__link">
-    <span class="md-ellipsis">
-      environments.[name].templates
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="environments.[name].templates">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#service-name-template-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      service-name: template-file
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#environmentsnamerollouts" class="md-nav__link">
-    <span class="md-ellipsis">
-      environments.[name].rollouts
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="environments.[name].rollouts">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#service-name-rollout-type" class="md-nav__link">
-    <span class="md-ellipsis">
-      service-name: rollout-type
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cron-environmentsnamecronjobs" class="md-nav__link">
     <span class="md-ellipsis">
       Cronジョブ - environments.[name].cronjobs
@@ -6278,32 +6182,6 @@
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">types</span><span class="p">:</span>
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb-galera</span>
 </span></code></pre></div>
-<h4 id="environmentsnametemplates"><code>environments.[name].templates</code><a class="headerlink" href="#environmentsnametemplates" title="Permanent link">#</a></h4>
-<p>Lagoonビルドプロセスは、<code>docker-compose.yml</code>ファイルの<code>lagoon.template</code>ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します(<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>で詳しく読むことができます)。</p>
-<p>特定の環境でのみテンプレートをオーバーライドしたい場合:</p>
-<h5 id="service-name-template-file"><code>service-name: template-file</code><a class="headerlink" href="#service-name-template-file" title="Permanent link">#</a></h5>
-<ul>
-<li><code>service-name</code>は、<code>docker-compose.yml</code>からオーバーライドしたいサービスの名前です。</li>
-<li><code>template-file</code>は、この環境でこのサービスに使用するテンプレートのパスと名前です。</li>
-</ul>
-<div class="language-yaml highlight"><span class="filename">.lagoon.yml 例</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">environments</span><span class="p">:</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">templates</span><span class="p">:</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mariadb.main.deployment.yml</span>
-</span></code></pre></div>
-<h4 id="environmentsnamerollouts"><code>environments.[name].rollouts</code><a class="headerlink" href="#environmentsnamerollouts" title="Permanent link">#</a></h4>
-<p>Lagoonビルドプロセスは、<code>docker-compose.yml</code>ファイルの<code>lagoon.rollout</code>ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します(<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>で詳しく読むことができます)。</p>
-<p>すべての環境に対してではなく、ひとつの環境に対してだけタイプをオーバーライドしたい場合もあります。</p>
-<h5 id="service-name-rollout-type"><code>service-name: rollout-type</code><a class="headerlink" href="#service-name-rollout-type" title="Permanent link">#</a></h5>
-<ul>
-<li><code>service-name</code>は上書きしたい<code>docker-compose.yml</code>のサービス名です。</li>
-<li><code>rollout-type</code>はロールアウトのタイプです。可能な値については<a href="../concepts-basics/docker-compose-yml/">docker-compose.ymlのドキュメンテーション</a>を参照してください。</li>
-</ul>
-<div class="language-yaml highlight"><span class="filename">.lagoon.yml 例</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">environments</span><span class="p">:</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">main</span><span class="p">:</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">rollouts</span><span class="p">:</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="nt">mariadb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">statefulset</span>
-</span></code></pre></div>
 <h4 id="cron-environmentsnamecronjobs">Cronジョブ - <code>environments.[name].cronjobs</code><a class="headerlink" href="#cron-environmentsnamecronjobs" title="Permanent link">#</a></h4>
 <p>通常、全ての環境で同じCronジョブを実行することは望ましくありません。そのため、各環境で実行したいジョブを明示的に定義する必要があります。例として、1時間に1回実行するdrush cronジョブを作成します。</p>
 <p><code>name</code></p>
@@ -6330,14 +6208,14 @@
 <h3 id="_10">設定ファイル<a class="headerlink" href="#_10" title="Permanent link">#</a></h3>
 <p>次のステップは設定ファイルの更新です。Lagoonは環境変数を使用する環境固有の設定ファイルを使用します。これにより、機密情報がこれらのファイルに保存されることはなく、すべて安全にコミットできます。<a href="https://github.com/uselagoon/lagoon-examples">リポジトリ</a>に様々なプロジェクト例があります。新規に始める場合は、これらの使用をお勧めします。そうでない場合は、類似のものを選んで関連する設定ファイルをコピーしてください。環境変数の使用方法については、<a href="../concepts-advanced/environment-variables/">環境変数のドキュメント</a>をご覧ください。</p>
 <p>リポジトリから設定ファイルをコピーし、サイトで使用していないサービスの設定を削除してください（例：すべてのサイトがSolrやRedisを使用しているわけではありません）。特定の環境タイプ（開発環境でのキャッシュ無効化など）の設定をオーバーライドする必要がある場合、追加の設定ファイルを設定できます（例示リポジトリにすでにいくつか用意されています）。ファイルは以下の順序で読み込まれます：</p>
-<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="x"> all.settings.php</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="x"> all.services.yml</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="x"> production.settings.php</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="x"> production.services.yml</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="x"> development.settings.php</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="x"> development.services.yml</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="x"> settings.local.php</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="x"> services.local.yml</span>
+<div class="language-php highlight"><span class="filename">settings.php</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="x"> all.settings.php</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="x"> all.services.yml</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="x"> production.settings.php</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="x"> production.services.yml</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="x"> development.settings.php</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="x"> development.services.yml</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="x"> settings.local.php</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="x"> services.local.yml</span>
 </span></code></pre></div>
 <h3 id="gitignore"><code>.gitignore</code>の設定を更新する<a class="headerlink" href="#gitignore" title="Permanent link">#</a></h3>
 <p><code>.gitignore</code>が設定ファイルのコミットを許可するようにすることを確認してください。Drupalはデフォルトで<code>sites/*/settings*.php</code>と<code>sites/*/services*.yml</code>を<code>.gitignore</code>に含めています。Lagoonでは機密情報をGitリポジトリに保存しないので、これらを削除できます。</p>
@@ -6345,41 +6223,41 @@
 <p>残念ながら、Drupalコミュニティはウェブルートフォルダ名を標準化していません。プロジェクトによってはDrupalを<code>/web</code>内に、他は<code>/docroot</code>や他の場所に配置しています。Lagoon Drupal設定ファイルは、Drupalが<code>/web</code>内にあることを前提としています。もしあなたのDrupalインストールが異なる場合は、ファイルを適宜調整してください。</p>
 <h3 id="_11">イメージのビルドする<a class="headerlink" href="#_11" title="Permanent link">#</a></h3>
 <p>まず、定義されたイメージをビルドする必要があります:</p>
-<div class="language-bash highlight"><span class="filename">build your images</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker-compose<span class="w"> </span>build
+<div class="language-bash highlight"><span class="filename">build your images</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>docker-compose<span class="w"> </span>build
 </span></code></pre></div>
 <p>これには数分かかる場合があり、長いレスポンスが返ってきます。<a href="https://gist.github.com/AlannaBurke/1bdad6aab977b0994c245834e61b6b50">このようなものになるはずです</a>。</p>
 <p>これにより、docker-composeは<code>docker-compose.yml</code>内で<code>build:</code>定義があるすべてのコンテナのDockerイメージをビルドします。通常、Drupalの場合、これには<code>cli</code>、<code>nginx</code>、<code>php</code>が含まれます。特定のビルドコマンド（<code>composer install</code>など）を実行したり、特定の環境変数（<code>WEBROOT</code>など）をイメージに注入したりするために行います。</p>
 <p>通常、 Drupalのコードを編集するたびにビルドする必要はありません(コードはホストからコンテナにマウントされます)、しかし再ビルドは問題ありません。さらに、Lagoonはデプロイ中に全く同じDockerイメージをビルドするので、<code>docker-compose build</code> を再度実行するだけで、ビルドがデプロイ中にも機能することを確認できます。</p>
 <h3 id="_12">コンテナの起動<a class="headerlink" href="#_12" title="Permanent link">#</a></h3>
 <p>イメージがビルドされたので、コンテナを起動できます:</p>
-<div class="language-bash highlight"><span class="filename">start the containers</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+<div class="language-bash highlight"><span class="filename">start the containers</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d
 </span></code></pre></div>
 <p>次のような応答が表示されます:</p>
-<div class="language-bash highlight"><span class="filename">containers started</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Recreating<span class="w"> </span>lagoon-test_cli_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Starting<span class="w"> </span>lagoon-test_redis_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>Starting<span class="w"> </span>lagoon-test_solr_1<span class="w">    </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>Starting<span class="w"> </span>lagoon-test_mariadb_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>Recreating<span class="w"> </span>lagoon-test_php_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>Recreating<span class="w"> </span>lagoon-test_nginx_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>Recreating<span class="w"> </span>lagoon-test_varnish_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+<div class="language-bash highlight"><span class="filename">containers started</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Recreating<span class="w"> </span>lagoon-test_cli_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Starting<span class="w"> </span>lagoon-test_redis_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Starting<span class="w"> </span>lagoon-test_solr_1<span class="w">    </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>Starting<span class="w"> </span>lagoon-test_mariadb_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>Recreating<span class="w"> </span>lagoon-test_php_1<span class="w">   </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>Recreating<span class="w"> </span>lagoon-test_nginx_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Recreating<span class="w"> </span>lagoon-test_varnish_1<span class="w"> </span>...<span class="w"> </span><span class="k">done</span>
 </span></code></pre></div>
 <p>これによりすべてのコンテナが起動します。コマンドが完了した後、<code>docker compose ps</code>で確認して、すべて完全に起動し、クラッシュしていないことを確認できます。その応答は次のようになるはずです:</p>
-<div class="language-bash highlight"><span class="filename">view running containers</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>ps
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Name<span class="w">                       </span>Command<span class="w">               </span>State<span class="w">            </span>Ports
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>----------------------------------------------------------------------------------------
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>lagoon-test_cli_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">9000</span>/tcp
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>lagoon-test_mariadb_1<span class="w">   </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">0</span>.0.0.0:32768-&gt;3306/tcp
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>lagoon-test_nginx_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">8080</span>/tcp
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>lagoon-test_php_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">9000</span>/tcp
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>lagoon-test_redis_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">6379</span>/tcp
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>lagoon-test_solr_1<span class="w">      </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">0</span>.0.0.0:32769-&gt;8983/tcp
+<div class="language-bash highlight"><span class="filename">view running containers</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>➜<span class="w">  </span>lagoon-test<span class="w"> </span>git:<span class="o">(</span>main<span class="o">)</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>ps
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>Name<span class="w">                       </span>Command<span class="w">               </span>State<span class="w">            </span>Ports
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>----------------------------------------------------------------------------------------
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>lagoon-test_cli_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">9000</span>/tcp
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>lagoon-test_mariadb_1<span class="w">   </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">0</span>.0.0.0:32768-&gt;3306/tcp
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>lagoon-test_nginx_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">8080</span>/tcp
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>lagoon-test_php_1<span class="w">       </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">9000</span>/tcp
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>lagoon-test_redis_1<span class="w">     </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">6379</span>/tcp
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>lagoon-test_solr_1<span class="w">      </span>/sbin/tini<span class="w"> </span>--<span class="w"> </span>/lagoon/entr<span class="w"> </span>...<span class="w">   </span>Up<span class="w">      </span><span class="m">0</span>.0.0.0:32769-&gt;8983/tcp
 </span></code></pre></div>
 <p>問題がある場合は、 <code>docker-compose logs -f [servicename]</code>を使用してログを確認します。</p>
 <h3 id="composer-installcomposer"><code>composer install</code>の再実行（Composerプロジェクトのみ）<a class="headerlink" href="#composer-installcomposer" title="Permanent link">#</a></h3>
 <p>Drupal 8以降のプロジェクトを実行している場合、Composerを使用しているはずです。全ての依存関係をダウンロードしてインストールする必要があります。cliコンテナに接続し、<code>composer install</code>を実行します：</p>
-<div class="language-bash highlight"><span class="filename">re-run composer install</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>composer<span class="w"> </span>install
+<div class="language-bash highlight"><span class="filename">re-run composer install</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>composer<span class="w"> </span>install
 </span></code></pre></div>
 <p>これは奇妙に聞こえるかもしれません。ビルド段階ですでに<code>composer install</code>が実行されているからです。再度実行する理由は以下の通りです：</p>
 <ul>
@@ -6390,59 +6268,59 @@
 <p>500または同様のエラーが発生した場合は、Composerで全てが正しく読み込まれていることを確認してください。</p>
 <h3 id="drupal_1">ステータスの確認とDrupalのインストール<a class="headerlink" href="#drupal_1" title="Permanent link">#</a></h3>
 <p>最後にDrupalをインストールする時が来ましたが、その前に全てが正常に動作していることを確認しましょう。そのためにDrushを使用することをお勧めします。<code>drush status</code>を実行します：</p>
-<div class="language-bash highlight"><span class="filename">run drush status</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
+<div class="language-bash highlight"><span class="filename">run drush status</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker-compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
 </span></code></pre></div>
 <p>上記のコマンドは、以下のような結果を返すはずです:</p>
-<div class="language-bash highlight"><span class="filename">drush status results</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="o">[</span>notice<span class="o">]</span><span class="w"> </span>Missing<span class="w"> </span>database<span class="w"> </span>table:<span class="w"> </span>key_value
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Drupal<span class="w"> </span>version<span class="w">       </span>:<span class="w">  </span><span class="m">8</span>.6.1
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>Site<span class="w"> </span>URI<span class="w">             </span>:<span class="w">  </span>http://drupal.docker.amazee.io
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Database<span class="w"> </span>driver<span class="w">      </span>:<span class="w">  </span>mysql
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>Database<span class="w"> </span>hostname<span class="w">    </span>:<span class="w">  </span>mariadb
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>Database<span class="w"> </span>port<span class="w">        </span>:<span class="w">  </span><span class="m">3306</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>Database<span class="w"> </span>username<span class="w">    </span>:<span class="w">  </span>drupal
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>Database<span class="w"> </span>name<span class="w">        </span>:<span class="w">  </span>drupal
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>PHP<span class="w"> </span>binary<span class="w">           </span>:<span class="w">  </span>/usr/local/bin/php
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>PHP<span class="w"> </span>config<span class="w">           </span>:<span class="w">  </span>/usr/local/etc/php/php.ini
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>PHP<span class="w"> </span>OS<span class="w">               </span>:<span class="w">  </span>Linux
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>Drush<span class="w"> </span>script<span class="w">         </span>:<span class="w">  </span>/app/vendor/drush/drush/drush
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>Drush<span class="w"> </span>version<span class="w">        </span>:<span class="w">  </span><span class="m">9</span>.4.0
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>Drush<span class="w"> </span>temp<span class="w">           </span>:<span class="w">  </span>/tmp
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>Drush<span class="w"> </span>configs<span class="w">        </span>:<span class="w">  </span>/home/.drush/drush.yml
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">                        </span>/app/vendor/drush/drush/drush.yml
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>Drupal<span class="w"> </span>root<span class="w">          </span>:<span class="w">  </span>/app/web
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>Site<span class="w"> </span>path<span class="w">            </span>:<span class="w">  </span>sites/default
+<div class="language-bash highlight"><span class="filename">drush status results</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>status
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="o">[</span>notice<span class="o">]</span><span class="w"> </span>Missing<span class="w"> </span>database<span class="w"> </span>table:<span class="w"> </span>key_value
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Drupal<span class="w"> </span>version<span class="w">       </span>:<span class="w">  </span><span class="m">8</span>.6.1
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>Site<span class="w"> </span>URI<span class="w">             </span>:<span class="w">  </span>http://drupal.docker.amazee.io
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>Database<span class="w"> </span>driver<span class="w">      </span>:<span class="w">  </span>mysql
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>Database<span class="w"> </span>hostname<span class="w">    </span>:<span class="w">  </span>mariadb
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>Database<span class="w"> </span>port<span class="w">        </span>:<span class="w">  </span><span class="m">3306</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>Database<span class="w"> </span>username<span class="w">    </span>:<span class="w">  </span>drupal
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>Database<span class="w"> </span>name<span class="w">        </span>:<span class="w">  </span>drupal
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>PHP<span class="w"> </span>binary<span class="w">           </span>:<span class="w">  </span>/usr/local/bin/php
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>PHP<span class="w"> </span>config<span class="w">           </span>:<span class="w">  </span>/usr/local/etc/php/php.ini
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>PHP<span class="w"> </span>OS<span class="w">               </span>:<span class="w">  </span>Linux
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>Drush<span class="w"> </span>script<span class="w">         </span>:<span class="w">  </span>/app/vendor/drush/drush/drush
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>Drush<span class="w"> </span>version<span class="w">        </span>:<span class="w">  </span><span class="m">9</span>.4.0
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>Drush<span class="w"> </span>temp<span class="w">           </span>:<span class="w">  </span>/tmp
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>Drush<span class="w"> </span>configs<span class="w">        </span>:<span class="w">  </span>/home/.drush/drush.yml
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">                        </span>/app/vendor/drush/drush/drush.yml
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>Drupal<span class="w"> </span>root<span class="w">          </span>:<span class="w">  </span>/app/web
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>Site<span class="w"> </span>path<span class="w">            </span>:<span class="w">  </span>sites/default
 </span></code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">情報</p>
 <p>次のステップに進む前に、公開鍵についてpygmyに伝える必要があるかもしれません。<code>Permission denied (publickey)</code>というエラーが表示された場合は、こちらのドキュメンテーションを確認してください:<a href="https://pygmystack.github.io/pygmy/usage/#adding-ssh-keys">pygmy - sshキーの追加</a>。</p>
 </div>
 <p>これでDrupalをインストールする時が来ました（代わりに既存のSQLファイルをインポートしたい場合は、次のステップに進んでください。ただし、最初はクリーンなDrupalをインストールして、全てが動作することを確認することをお勧めします）。</p>
-<p><div class="language-bash highlight"><span class="filename">drush siの実行</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
+<p><div class="language-bash highlight"><span class="filename">drush siの実行</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
 </span></code></pre></div>
 これにより、次のような出力が表示されるはずです:</p>
-<div class="language-bash highlight"><span class="filename">drush siの結果</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>You<span class="w"> </span>are<span class="w"> </span>about<span class="w"> </span>to<span class="w"> </span>DROP<span class="w"> </span>all<span class="w"> </span>tables<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span><span class="s1">&#39;drupal&#39;</span><span class="w"> </span>database.<span class="w"> </span>Do<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span><span class="k">continue</span>?<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>Starting<span class="w"> </span>Drupal<span class="w"> </span>installation.<span class="w"> </span>This<span class="w"> </span>takes<span class="w"> </span>a<span class="w"> </span><span class="k">while</span>.<span class="w"> </span>Consider<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>--notify<span class="w"> </span>global<span class="w"> </span>option.
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>Installation<span class="w"> </span>complete.<span class="w">  </span>User<span class="w"> </span>name:<span class="w"> </span>admin<span class="w">  </span>User<span class="w"> </span>password:<span class="w"> </span>arbZJekcqh
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>Congratulations,<span class="w"> </span>you<span class="w"> </span>installed<span class="w"> </span>Drupal!
+<div class="language-bash highlight"><span class="filename">drush siの結果</span><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>site-install
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>You<span class="w"> </span>are<span class="w"> </span>about<span class="w"> </span>to<span class="w"> </span>DROP<span class="w"> </span>all<span class="w"> </span>tables<span class="w"> </span><span class="k">in</span><span class="w"> </span>your<span class="w"> </span><span class="s1">&#39;drupal&#39;</span><span class="w"> </span>database.<span class="w"> </span>Do<span class="w"> </span>you<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span><span class="k">continue</span>?<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>Starting<span class="w"> </span>Drupal<span class="w"> </span>installation.<span class="w"> </span>This<span class="w"> </span>takes<span class="w"> </span>a<span class="w"> </span><span class="k">while</span>.<span class="w"> </span>Consider<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>--notify<span class="w"> </span>global<span class="w"> </span>option.
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>Installation<span class="w"> </span>complete.<span class="w">  </span>User<span class="w"> </span>name:<span class="w"> </span>admin<span class="w">  </span>User<span class="w"> </span>password:<span class="w"> </span>arbZJekcqh
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>Congratulations,<span class="w"> </span>you<span class="w"> </span>installed<span class="w"> </span>Drupal!
 </span></code></pre></div>
 <p>これで<code>LAGOON_ROUTE</code>で定義されたURLにアクセスすると、新しくクリーンにインストールされたDrupalが表示されるはずです - おめでとうございます！</p>
 <h3 id="_13">既存のデータベースダンプのインポート<a class="headerlink" href="#_13" title="Permanent link">#</a></h3>
 <p>既存のDrupalサイトがある場合、そのデータベースをローカルサイトにインポートしたいでしょう。データベースダンプを作成する方法は多数ありますが、現在のホスティングプロバイダにDrushがインストールされている場合は、以下のように使用できます：</p>
-<div class="language-bash highlight"><span class="filename">drush sql-dump</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="o">[</span>your-existing-site<span class="o">]</span>$<span class="w"> </span>drush<span class="w"> </span>sql-dump<span class="w"> </span>--result-file<span class="o">=</span>dump.sql
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>Database<span class="w"> </span>dump<span class="w"> </span>saved<span class="w"> </span>to<span class="w"> </span>dump.sql<span class="w">                         </span><span class="o">[</span>success<span class="o">]</span>
+<div class="language-bash highlight"><span class="filename">drush sql-dump</span><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="o">[</span>your-existing-site<span class="o">]</span>$<span class="w"> </span>drush<span class="w"> </span>sql-dump<span class="w"> </span>--result-file<span class="o">=</span>dump.sql
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Database<span class="w"> </span>dump<span class="w"> </span>saved<span class="w"> </span>to<span class="w"> </span>dump.sql<span class="w">                         </span><span class="o">[</span>success<span class="o">]</span>
 </span></code></pre></div>
 <p>これで、データベース全体を含むdump.sqlファイルができました。このファイルをローカルのGitリポジトリにコピーし、CLIに接続すると、そこにファイルが表示されるはずです：</p>
-<p><div class="language-bash highlight"><span class="filename">dump file</span><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="o">[</span>drupal-example<span class="o">]</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>dump.sql
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>-rw-r--r--<span class="w">    </span><span class="m">1</span><span class="w"> </span>root<span class="w">     </span>root<span class="w">          </span><span class="m">5281</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">19</span><span class="w"> </span><span class="m">12</span>:46<span class="w"> </span>dump.sql
+<p><div class="language-bash highlight"><span class="filename">dump file</span><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="o">[</span>drupal-example<span class="o">]</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>cli<span class="w"> </span>bash
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>dump.sql
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>-rw-r--r--<span class="w">    </span><span class="m">1</span><span class="w"> </span>root<span class="w">     </span>root<span class="w">          </span><span class="m">5281</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">19</span><span class="w"> </span><span class="m">12</span>:46<span class="w"> </span>dump.sql
 </span></code></pre></div>
 これで、現在のデータベースを削除した後にダンプをインポートできます（まだcliに接続したままです）：</p>
-<div class="language-bash highlight"><span class="filename">dump existing db and import dump file</span><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-drop
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>Do<span class="w"> </span>you<span class="w"> </span>really<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span>drop<span class="w"> </span>all<span class="w"> </span>tables<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>database<span class="w"> </span>drupal?<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-cli<span class="w"> </span>&lt;<span class="w"> </span>dump.sql
+<div class="language-bash highlight"><span class="filename">dump existing db and import dump file</span><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-drop
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>Do<span class="w"> </span>you<span class="w"> </span>really<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span>drop<span class="w"> </span>all<span class="w"> </span>tables<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>database<span class="w"> </span>drupal?<span class="w"> </span><span class="o">(</span>y/n<span class="o">)</span>:<span class="w"> </span>y
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="o">[</span>drupal-example<span class="o">]</span>cli-drupal:/app$<span class="w"> </span>drush<span class="w"> </span>sql-cli<span class="w"> </span>&lt;<span class="w"> </span>dump.sql
 </span></code></pre></div>
 <h3 id="drupal_2">Drupalファイルディレクトリ<a class="headerlink" href="#drupal_2" title="Permanent link">#</a></h3>
 <p>Drupalサイトにはファイルディレクトリも含まれます。既存のサイトからファイルを移行するには、正しいフォルダ（おそらく<code>web/sites/default/files</code>、<code>sites/default/files</code>、または類似のもの）にファイルを追加するだけです。ウェブルートとして設定したものを覚えておいてください - プロジェクトによって異なる場合があります。</p>

@@ -2948,20 +2948,6 @@ php:
 
 Lagoonはどのサービスが`nginx`、`php`であるかを認識するために、`lagoon.deployment.servicetype: nginx`および`lagoon.deployment.servicetype: php`と定義します。
 
-## Helmテンプレート (Kubernetesのみ) { #helm-templates-kubernetes-only }
-
-LagoonはKubernetesでのテンプレート作成に[Helm](https://helm.sh/)を使用します。これを行うために、一連の[チャート](https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts)が`build-deploy-tool`イメージに含まれています。
-
-## カスタムロールアウトモニタータイプ { #custom-rollout-monitor-types }
-
-デフォルトでは、LagoonはカスタムテンプレートからのサービスがKubernetesまたはOpenshift内の[`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are)オブジェクトを介してロールアウトされることを期待しています。それに基づいてロールアウトを監視します。場合によっては、カスタムデプロイメントで定義されたサービスが異なる監視方法を必要とすることがあります。これは`lagoon.rollout`を通じて定義することができます:
-
-* `deploymentconfig` - これがデフォルトです。サービスのテンプレートの中の[`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deployment)オブジェクトを期待します。 
-* `daemonset` - サービスのテンプレート内の[`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)オブジェクトを期待します。
-* `false` - どのロールアウトも監視せず、テンプレートが適用され、エラーを投げない場合にのみ満足します。
-
-また、特定の環境のみにロールアウトを上書きすることもできます。これは[`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts)で行います。
-
 ## Docker Compose v2互換性 { #docker-compose-v2-compatibility }
 
 !!! Bug "バグ"
@@ -3030,6 +3016,13 @@ Lagoonの初期リリースでは、ボリュームとユーザーコードを�
     << : [*default-volumes, *default-user]
 ...
 ```
+
+## 非推奨 { #deprecated }
+
+これらの設定は非推奨となり、あなたの `docker-compose.yml` から削除するべきです。
+
+* `services.[name].labels.lagoon.rollout`
+* `services.[name].labels.lagoon.template`
 
 ### Lagoon Yml
 
@@ -3372,46 +3365,6 @@ environments:
       mariadb: mariadb-single
 ```
 
-### `environments.[name].templates`
-
-Lagoonのビルドプロセスは、`docker-compose.yml`ファイルから`lagoon.template`ラベルを調べて、サービスがカスタムテンプレートファイルを必要とするかどうかを確認します([`docker-compose.yml`](docker-compose-yml.md)のドキュメンテーションで詳しく読むことができます)。
-
-場合によっては、**テンプレート**をすべての環境ではなく、特定の環境だけで上書きしたい場合があります:
-
-`service-name: template-file`
-
-* `service-name`は、`docker-compose.yml`から上書きしたいサービスの名前です。
-* `template-file`は、この環境でこのサービスに使用するテンプレートのパスと名前です。
-
-#### テンプレート上書きの例 { #example-template-override }
-
-```yaml title=".lagoon.yml"
-environments:
-  main:
-    templates:
-      mariadb: mariadb.main.deployment.yml
-```
-
-### `environments.[name].rollouts` { #environments-name-rollouts }
-
-Lagoonのビルドプロセス `lagoon.rollout`ラベルを`docker-compose.yml`ファイルから調べて、サービスが特別なロールアウトタイプを必要とするかどうかを確認します(`docker-compose.yml`の[ドキュメンテーション](docker-compose-yml.md#custom-rollout-monitor-types)で詳しく読むことができます)。
-
-場合によっては、特に環境のテンプレートタイプを上書きした場合には、単一の環境だけで**ロールアウトタイプ**を上書きしたいことがあります。
-
-`service-name: rollout-type`
-
-* `service-name`は、上書きしたい`docker-compose.yml`のサービスの名前です。
-* `rollout-type`は、ロールアウトのタイプです。可能な値については、`docker-compose.yml`の[ドキュメンテーション](docker-compose-yml.md#custom-rollout-monitor-types)を参照してください。
-
-#### カスタムロールアウトタイプの例 { #custom-rollout-type-example }
-
-```yaml title=".lagoon.yml"
-environments:
-  main:
-    rollouts:
-      mariadb: statefulset
-```
-
 ### `environments.[name].autogenerateRoutes`
 
 ルートの自動生成が無効になっている場合でも、環境ごとに自動生成ルートを設定することができます。
@@ -3661,10 +3614,6 @@ environments:
         - www.example.ch
     types:
       mariadb: mariadb
-    templates:
-      mariadb: mariadb.main.deployment.yml
-    rollouts:
-      mariadb: statefulset
     cronjobs:
       - name: drush cron
         schedule: "M * * * *" # This will run the cron once per hour.
@@ -3693,10 +3642,13 @@ environments:
     `None` オプションは `Redirect` と同等です。
 
 * `environments.[name].monitoring_urls`
+* `environments.[name].rollouts`
 * `environments.[name].routes.[service].[route].hsts`
 * `environments.[name].routes.[service].[route].insecure`
 
     `None` オプションは `Redirect` と同等です。
+
+* `environments.[name].templates`
 
 ### Deploy Targets
 
@@ -8196,42 +8148,6 @@ environments:
   main:
     types:
       mariadb: mariadb-galera
-```
-
-#### `environments.[name].templates`
-
-Lagoonビルドプロセスは、`docker-compose.yml`ファイルの`lagoon.template`ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します([docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳しく読むことができます)。
-
-特定の環境でのみテンプレートをオーバーライドしたい場合:
-
-##### `service-name: template-file`
-
-- `service-name`は、`docker-compose.yml`からオーバーライドしたいサービスの名前です。
-- `template-file`は、この環境でこのサービスに使用するテンプレートのパスと名前です。
-
-```yaml title=".lagoon.yml 例"
-environments:
-  main:
-    templates:
-      mariadb: mariadb.main.deployment.yml
-```
-
-#### `environments.[name].rollouts`
-
-Lagoonビルドプロセスは、`docker-compose.yml`ファイルの`lagoon.rollout`ラベルをチェックして、サービスにカスタムテンプレートファイルが必要かどうかを確認します([docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)で詳しく読むことができます)。
-
-すべての環境に対してではなく、ひとつの環境に対してだけタイプをオーバーライドしたい場合もあります。
-
-##### `service-name: rollout-type`
-
-- `service-name`は上書きしたい`docker-compose.yml`のサービス名です。
-- `rollout-type`はロールアウトのタイプです。可能な値については[docker-compose.ymlのドキュメンテーション](../concepts-basics/docker-compose-yml.md)を参照してください。
-
-```yaml title=".lagoon.yml 例"
-environments:
-  main:
-    rollouts:
-      mariadb: statefulset
 ```
 
 #### Cronジョブ - `environments.[name].cronjobs`

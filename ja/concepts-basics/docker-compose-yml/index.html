@@ -583,24 +583,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#helm-templates-kubernetes-only" class="md-nav__link">
-    <span class="md-ellipsis">
-      Helmテンプレート (Kubernetesのみ)
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-rollout-monitor-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      カスタムロールアウトモニタータイプ
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose-v2-compatibility" class="md-nav__link">
     <span class="md-ellipsis">
       Docker Compose v2互換性
@@ -648,6 +630,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      非推奨
+    </span>
+  </a>
   
 </li>
       
@@ -5246,24 +5237,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#helm-templates-kubernetes-only" class="md-nav__link">
-    <span class="md-ellipsis">
-      Helmテンプレート (Kubernetesのみ)
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-rollout-monitor-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      カスタムロールアウトモニタータイプ
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#docker-compose-v2-compatibility" class="md-nav__link">
     <span class="md-ellipsis">
       Docker Compose v2互換性
@@ -5311,6 +5284,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      非推奨
+    </span>
+  </a>
   
 </li>
       
@@ -5508,16 +5490,6 @@
 </span></code></pre></div>
 <p>上記の例では、サービス名は<code>nginx</code>と<code>php</code>です(好きな名前をつけることができます)。<code>lagoon.name</code>はLagoonにどのサービスを一緒のポッドにすべきを伝えます - 同じ名前のサービスはすべて一緒のポッドで動作します。</p>
 <p>Lagoonはどのサービスが<code>nginx</code>、<code>php</code>であるかを認識するために、<code>lagoon.deployment.servicetype: nginx</code>および<code>lagoon.deployment.servicetype: php</code>と定義します。</p>
-<h2 id="helm-templates-kubernetes-only">Helmテンプレート (Kubernetesのみ)<a class="headerlink" href="#helm-templates-kubernetes-only" title="Permanent link">#</a></h2>
-<p>LagoonはKubernetesでのテンプレート作成に<a href="https://helm.sh/">Helm</a>を使用します。これを行うために、一連の<a href="https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts">チャート</a>が<code>build-deploy-tool</code>イメージに含まれています。</p>
-<h2 id="custom-rollout-monitor-types">カスタムロールアウトモニタータイプ<a class="headerlink" href="#custom-rollout-monitor-types" title="Permanent link">#</a></h2>
-<p>デフォルトでは、LagoonはカスタムテンプレートからのサービスがKubernetesまたはOpenshift内の<a href="https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are"><code>DeploymentConfig</code></a>オブジェクトを介してロールアウトされることを期待しています。それに基づいてロールアウトを監視します。場合によっては、カスタムデプロイメントで定義されたサービスが異なる監視方法を必要とすることがあります。これは<code>lagoon.rollout</code>を通じて定義することができます:</p>
-<ul>
-<li><code>deploymentconfig</code> - これがデフォルトです。サービスのテンプレートの中の<a href="https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deployment"><code>DeploymentConfig</code></a>オブジェクトを期待します。 </li>
-<li><code>daemonset</code> - サービスのテンプレート内の<a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/"><code>Daemonset</code></a>オブジェクトを期待します。</li>
-<li><code>false</code> - どのロールアウトも監視せず、テンプレートが適用され、エラーを投げない場合にのみ満足します。</li>
-</ul>
-<p>また、特定の環境のみにロールアウトを上書きすることもできます。これは<a href="../lagoon-yml/#environments-name-rollouts"><code>.lagoon.yml</code></a>で行います。</p>
 <h2 id="docker-compose-v2-compatibility">Docker Compose v2互換性<a class="headerlink" href="#docker-compose-v2-compatibility" title="Permanent link">#</a></h2>
 <div class="admonition bug">
 <p class="admonition-title">バグ</p>
@@ -5566,6 +5538,12 @@
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="nt">&lt;&lt; </span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">*default-volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">*default-user</span><span class="p p-Indicator">]</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nn">...</span>
 </span></code></pre></div>
+<h2 id="deprecated">非推奨<a class="headerlink" href="#deprecated" title="Permanent link">#</a></h2>
+<p>これらの設定は非推奨となり、あなたの <code>docker-compose.yml</code> から削除するべきです。</p>
+<ul>
+<li><code>services.[name].labels.lagoon.rollout</code></li>
+<li><code>services.[name].labels.lagoon.template</code></li>
+</ul>
 
 
 
