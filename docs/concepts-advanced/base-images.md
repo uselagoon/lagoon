@@ -131,7 +131,7 @@ There are several steps to the build process. Most of these are shared among the
 
 There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc. images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
 
-The images that your project's base images are built on are the managed images maintained by the Lagoon team. We release updates to these underlying images on a monthly (or more fequent) basus. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the upstream images.
+The images that your project's base images are built on are the managed images maintained by the Lagoon team. We release updates to these underlying images on a monthly (or more fequent) basis. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the upstream images.
 
 In this section we will demonstrate the process of updating and tagging a new release of the Drupal 8 base image. We will add a new module \([ClamAV](https://www.drupal.org/project/clamav)\) to the base. We’re demonstrating on Drupal because it has the most complex setup of the base images. The steps that are common to every base image are noted below.
 
