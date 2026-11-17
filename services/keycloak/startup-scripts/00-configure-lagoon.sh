@@ -152,6 +152,13 @@ function configure_admin_api_client {
   admin_api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH)
   if [ "$admin_api_client_id" != "[ ]" ]; then
       echo "Client admin-api is already created, skipping basic setup"
+      # keep the client secret in sync with KEYCLOAK_ADMIN_API_CLIENT_SECRET so it can be rotated by changing the env var and restarting
+      ADMIN_API_CLIENT_ID=$(echo "$admin_api_client_id" | jq -r '.[0]["id"]')
+      current_secret=$(/opt/keycloak/bin/kcadm.sh get clients/$ADMIN_API_CLIENT_ID/client-secret --config $CONFIG_PATH -r master | jq -r '.value')
+      if [ "$current_secret" != "$KEYCLOAK_ADMIN_API_CLIENT_SECRET" ]; then
+        echo "Updating admin-api client secret"
+        /opt/keycloak/bin/kcadm.sh update clients/$ADMIN_API_CLIENT_ID --config $CONFIG_PATH -r master -s secret="${KEYCLOAK_ADMIN_API_CLIENT_SECRET}"
+      fi
       return 0
   fi
   echo Creating client admin-api
@@ -443,9 +450,8 @@ function configure_keycloak {
     # attempt to log in with the admin-api client service account
     # this can fail the first time as the admin-api client might not exist because it is called by 'configure_admin_api_client'
     # it will then fall back to using the username and password to authenticate against keycloak
-    # this has the same downside as the username/password problem in that if the user password or the admin-api client secret are ever rotated
-    # then they will need to be changed in keycloak at the same time that the changes are applied when rotating them via lagoon if they are being changed
-    # otherwise there is currently no way to change these without knowing the previous password or client secret
+    # to rotate the admin-api client secret, change KEYCLOAK_ADMIN_API_CLIENT_SECRET (on keycloak and the api) and restart keycloak
+    # the login below falls back to the admin username and password, and 'configure_admin_api_client' then syncs the new secret into keycloak
     if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
     then
       if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
