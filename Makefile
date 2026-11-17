@@ -82,8 +82,21 @@ BETA_UI_IMAGE_TAG = main
 
 # OVERRIDE_REMOTE_CONTROLLER_IMAGETAG and OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY
 # set this to a particular remote-controller image if required, defaults to nothing to consume what the chart provides
-OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=pr-361
-OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=uselagoon/remote-controller
+OVERRIDE_REMOTE_CONTROLLER_IMAGETAG=metrics
+OVERRIDE_REMOTE_CONTROLLER_IMAGE_REPOSITORY=shreddedbacon/remote-controller
+
+# Overrides the image tag for uselagoon/docker-host-operator whose default is
+# the lagoon-remote chart value dockerHostOperator.image.tag.
+OVERRIDE_DOCKER_HOST_OPERATOR_IMAGETAG =
+# Overrides the image repository for the docker-host-operator whose default
+# is uselagoon/docker-host-operator.
+OVERRIDE_DOCKER_HOST_OPERATOR_IMAGE_REPOSITORY =
+# Overrides the image tag for uselagoon/docker-host.
+OVERRIDE_DOCKER_HOST_IMAGETAG =
+# Overrides the image repository for the docker-host whose default is
+# uselagoon/docker-host.
+OVERRIDE_DOCKER_HOST_IMAGE_REPOSITORY =
+
 
 # LAGOON_SYNC_GIT_BRANCH is used to tell the `task-projectclone` image which version of lagoon-sync to consume
 LAGOON_SYNC_GIT_BRANCH = v0.10.0
@@ -475,7 +488,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = lagoon-docker-host-operator
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby task-projectclone
@@ -849,6 +862,10 @@ endif
 		HELM=$(HELM) KUBECTL=$(KUBECTL) JQ=$(JQ) \
 		UI_IMAGE_REPO=$(UI_IMAGE_REPO) UI_IMAGE_TAG=$(UI_IMAGE_TAG) \
 		BETA_UI_IMAGE_REPO=$(BETA_UI_IMAGE_REPO) BETA_UI_IMAGE_TAG=$(BETA_UI_IMAGE_TAG) \
+		OVERRIDE_DOCKER_HOST_OPERATOR_IMAGETAG=$(OVERRIDE_DOCKER_HOST_OPERATOR_IMAGETAG) \
+		OVERRIDE_DOCKER_HOST_OPERATOR_IMAGE_REPOSITORY=$(OVERRIDE_DOCKER_HOST_OPERATOR_IMAGE_REPOSITORY) \
+		OVERRIDE_DOCKER_HOST_IMAGETAG=$(OVERRIDE_DOCKER_HOST_IMAGETAG) \
+		OVERRIDE_DOCKER_HOST_IMAGE_REPOSITORY=$(OVERRIDE_DOCKER_HOST_IMAGE_REPOSITORY) \
 		LAGOON_CORE_USE_HTTPS=$(LAGOON_CORE_USE_HTTPS) \
 		SSHPORTALAPI_IMAGE_REPO=$(SSHPORTALAPI_IMAGE_REPO) SSHPORTALAPI_IMAGE_TAG=$(SSHPORTALAPI_IMAGE_TAG) \
 		SSHTOKEN_IMAGE_REPO=$(SSHTOKEN_IMAGE_REPO) SSHTOKEN_IMAGE_TAG=$(SSHTOKEN_IMAGE_TAG) \
