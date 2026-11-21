@@ -19,6 +19,7 @@ shopt -s failglob
 # it is also possible to expose the admin console on a different hostname using the `--hostname-admin` flag, which could support in the future with a different
 # variable than `KEYCLOAK_FRONTEND_URL` perhaps `KEYCLOAK_ADMIN_URL`
 /opt/keycloak/bin/kc.sh "$@" --features="scripts,token-exchange:v1,admin-fine-grained-authz:v1,quick-theme" \
+    --import-realm \
     --proxy-headers xforwarded \
     --http-enabled true \
     --http-relative-path ${KC_HTTP_RELATIVE_PATH:-/auth} \
