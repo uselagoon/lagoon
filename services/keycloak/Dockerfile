@@ -77,6 +77,7 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_SERVICE_API_CLIENT_SECRET=d3724d52-34d1-4967-a802-4d178678564b \
     KEYCLOAK_LAGOON_UI_OIDC_CLIENT_SECRET=20580a56-6fbc-11ef-9a5b-3b4da292aa54 \
     KEYCLOAK_ADMIN_API_CLIENT_SECRET=bb86d344-a52d-11ef-b872-4f4337ee24f0 \
+    KEYCLOAK_LAGOON_ADMIN_API_CLIENT_SECRET=3c1f6a0e-7b2d-4e5a-9c84-2f0d1b6e8a47 \
     LAGOON_DB_VENDOR=${DATABASE_VENDOR} \
     LAGOON_DB_DATABASE=infrastructure \
     LAGOON_DB_USER=api \
@@ -85,6 +86,8 @@ ENV TMPDIR=/tmp \
     LAGOON_DB_PORT=3306 \
     JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true" \
     KC_SPI_LOGIN_PROTOCOL__OPENID_CONNECT__ALLOW_TOKEN_INTROSPECTION_WITHOUT_AUDIENCE_CHECK=true
+
+COPY lagoon-realm-base-import.json /opt/keycloak/data/import/lagoon-realm-base-import.json
 
 VOLUME /opt/keycloak/data
 
@@ -100,7 +103,6 @@ COPY themes/lagoon-v2 /opt/keycloak/themes/lagoon-v2
 COPY --from=commons /tmp/lagoon-scripts.jar /opt/keycloak/providers/lagoon-scripts.jar
 COPY --from=builder /target/custom-protocol-mapper-1.1.1.jar /opt/keycloak/providers/custom-protocol-mapper-1.1.1.jar
 
-COPY lagoon-realm-base-import.json /lagoon/seed/lagoon-realm-base-import.json
 
 RUN /opt/keycloak/bin/kc.sh build
 

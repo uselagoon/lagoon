@@ -31,7 +31,7 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
 
   const tokenProviderClient = new KeycloakAdminClient({
     baseUrl: `${config.origin}/auth`,
-    realmName: 'master', // auth against the `master` realm
+    realmName: config.realm, // auth against the lagoon realm only
   });
 
   /**
@@ -55,7 +55,7 @@ export const getKeycloakAdminClient = async (): Promise<KeycloakAdminClient> => 
         grantType: 'client_credentials',
         clientId: 'admin-api',
         clientSecret: getConfigFromEnv(
-          'KEYCLOAK_ADMIN_API_CLIENT_SECRET',
+          'KEYCLOAK_LAGOON_ADMIN_API_CLIENT_SECRET',
           '<secret not set>'
         ),
       });

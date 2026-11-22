@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib/keycloak-api.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/admin-api-roles.sh"
+
 #####################
 # Utility Functions #
 #####################
@@ -20,34 +23,30 @@ function is_keycloak_running {
 function sync_client_secrets {
   echo Syncing client secrets
 
-  AUTH_SERVER_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/keycloak/bin/kcadm.sh update clients/$AUTH_SERVER_CLIENT_ID -s secret=$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-
-  API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/keycloak/bin/kcadm.sh update clients/$API_CLIENT_ID -s secret=$KEYCLOAK_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-
-  SERVICE_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-
-  LAGOON_UI_OIDC_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=lagoon-ui-oidc --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  /opt/keycloak/bin/kcadm.sh update clients/$LAGOON_UI_OIDC_CLIENT_ID -s secret=$KEYCLOAK_LAGOON_UI_OIDC_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+  kc_update_client ${KEYCLOAK_REALM:-master} auth-server '.secret = $secret' --arg secret "$KEYCLOAK_AUTH_SERVER_CLIENT_SECRET"
+  kc_update_client ${KEYCLOAK_REALM:-master} api '.secret = $secret' --arg secret "$KEYCLOAK_API_CLIENT_SECRET"
+  kc_update_client ${KEYCLOAK_REALM:-master} service-api '.secret = $secret' --arg secret "$KEYCLOAK_SERVICE_API_CLIENT_SECRET"
+  kc_update_client ${KEYCLOAK_REALM:-master} lagoon-ui-oidc '.secret = $secret' --arg secret "$KEYCLOAK_LAGOON_UI_OIDC_CLIENT_SECRET"
+  kc_update_client lagoon admin-api '.secret = $secret' --arg secret "$KEYCLOAK_LAGOON_ADMIN_API_CLIENT_SECRET"
+  kc_update_client master admin-api '.secret = $secret' --arg secret "$KEYCLOAK_ADMIN_API_CLIENT_SECRET"
+  if [ "$KC_USE_PREVIOUS_SECRET" == "true" ]; then
+    # the new secret is now in place, stop using the previous one
+    KC_USE_PREVIOUS_SECRET=false
+    KC_TOKEN=""
+  fi
 
   if [ "$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" ]; then
-    LAGOON_OPENSEARCH_SYNC_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r "${KEYCLOAK_REALM:-master}" clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH" | jq -r '.[0]["id"]')
-    /opt/keycloak/bin/kcadm.sh update "clients/$LAGOON_OPENSEARCH_SYNC_CLIENT_ID" -s "secret=$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+    kc_update_client ${KEYCLOAK_REALM:-master} lagoon-opensearch-sync '.secret = $secret' --arg secret "$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET"
   fi
 }
 
 
-function import_lagoon_realm {
-  # handle importing a realm from a snapshot of a raw install
-    if /opt/keycloak/bin/kcadm.sh get realms/$KEYCLOAK_REALM --config $CONFIG_PATH > /dev/null; then
-        echo "Realm $KEYCLOAK_REALM is already created, skipping initial setup"
-        return 0
-    fi
-    echo Importing realm
-    /opt/keycloak/bin/kcadm.sh create realms --config $CONFIG_PATH -f /lagoon/seed/lagoon-realm-base-import.json
-    echo realm import complete
+function wait_for_lagoon_realm {
+  # the lagoon realm is imported by keycloak itself on startup (--import-realm), wait for it to be available
+  until kc_api GET realms/$KEYCLOAK_REALM > /dev/null 2>&1; do
+    echo "Realm $KEYCLOAK_REALM not available yet, waiting 2 seconds"
+    sleep 2
+  done
 }
 
 function configure_lagoon_realm {
@@ -135,32 +134,41 @@ function configure_lagoon_redirect_uris {
   #
   if [ "$KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS" != "" ]; then
     echo "Updating lagoon-ui redirect URIs"
-    redirect_uris=$(echo $KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS | tr "," "\n")
-    update_redirect_uri="["
-    for addr in $redirect_uris;do
-        update_redirect_uri+="\"$addr\","
-    done
-    update_redirect_uri=$(echo $update_redirect_uri | sed 's/,*$//g')]
-    LAGOON_UI_CLIENT_ID=$( /opt/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
-     /opt/keycloak/bin/kcadm.sh update clients/${LAGOON_UI_CLIENT_ID} -s redirectUris=$update_redirect_uri --config "$CONFIG_PATH" -r ${KEYCLOAK_REALM:-master}
+    kc_update_client lagoon lagoon-ui '.redirectUris = ($uris | split(","))' --arg uris "$KEYCLOAK_LAGOON_UI_CLIENT_REDIRECT_URIS"
   fi
 }
 
 function configure_admin_api_client {
-  # this client is used by the lagoon api to perform actions against keycloak without needing to use the username and password
+  # this client is used to configure keycloak without needing to use the username and password
   # this allows for configuring the username and password of the admin account with 2fa if required
-  admin_api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH)
-  if [ "$admin_api_client_id" != "[ ]" ]; then
-      echo "Client admin-api is already created, skipping basic setup"
-      return 0
+  # it lives in the master realm and is NOT used by the lagoon api
+  # it is scoped to managing the lagoon realm, and users and clients in the master realm (to set the admin email and sync its own secret), it does not have the master realm admin role
+  #
+  # once scoped, the service account can no longer see clients in the master realm and a lookup returns an empty list
+  # so if the login used the admin-api client then it must already exist and must not be created again
+  if [ "$ADMIN_API_LOGIN" != "true" ]; then
+    local admin_api_client_id=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH)
+    if [ "$admin_api_client_id" == "[ ]" ]; then
+      echo Creating client admin-api in the master realm
+      echo '{"clientId": "admin-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'${KEYCLOAK_ADMIN_API_CLIENT_SECRET}'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r master -f -
+    fi
   fi
-  echo Creating client admin-api
-  echo '{"clientId": "admin-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'${KEYCLOAK_ADMIN_API_CLIENT_SECRET}'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r master -f -
-  ADMIN_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r master clients?clientId=admin-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  echo Enable fine grained permissions
-  /opt/keycloak/bin/kcadm.sh update clients/$ADMIN_API_CLIENT_ID/management/permissions --config $CONFIG_PATH -r master -s enabled=true
 
-	/opt/keycloak/bin/kcadm.sh add-roles -r master --uusername service-account-admin-api --rolename admin --config $CONFIG_PATH
+  configure_admin_api_client_roles
+}
+
+function configure_lagoon_realm_admin_api_client {
+  # this client lives in the lagoon realm and is used by the lagoon api to manage users and groups in that realm only
+  # it has no access to the master realm, and only has the realm-management roles the api needs (not realm-admin)
+  local lagoon_admin_api=$(/opt/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=admin-api --config $CONFIG_PATH)
+  if [ "$lagoon_admin_api" == "[ ]" ]; then
+    echo Creating client admin-api in the lagoon realm
+    echo '{"clientId": "admin-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'${KEYCLOAK_LAGOON_ADMIN_API_CLIENT_SECRET}'"}' | /opt/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r lagoon -f -
+  else
+    echo "Client admin-api is already created in the lagoon realm, ensuring service account roles"
+  fi
+
+  /opt/keycloak/bin/kcadm.sh add-roles -r lagoon --uusername service-account-admin-api --cclientid realm-management --rolename view-realm --rolename view-clients --rolename view-users --rolename query-users --rolename query-groups --rolename manage-users --config $CONFIG_PATH
 }
 
 ##############
@@ -440,13 +448,13 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    # attempt to log in with the admin-api client service account
+    # attempt to log in with the master realm admin-api client service account
     # this can fail the first time as the admin-api client might not exist because it is called by 'configure_admin_api_client'
     # it will then fall back to using the username and password to authenticate against keycloak
     # this has the same downside as the username/password problem in that if the user password or the admin-api client secret are ever rotated
     # then they will need to be changed in keycloak at the same time that the changes are applied when rotating them via lagoon if they are being changed
     # otherwise there is currently no way to change these without knowing the previous password or client secret
-    if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --realm master --client admin-api --secret ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
+    if ! login_admin_api_client
     then
       if ! /opt/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://localhost:8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
       then
@@ -457,13 +465,14 @@ function configure_keycloak {
     fi
 
     # Sets the order of migrations, add new ones at the end.
-    import_lagoon_realm
+    wait_for_lagoon_realm
     configure_lagoon_realm
+    configure_admin_api_client
+    configure_lagoon_realm_admin_api_client
     configure_admin_email
     configure_smtp_settings
     configure_realm_settings
     configure_lagoon_redirect_uris
-    configure_admin_api_client
 
     check_migrations_version
     migrate_to_custom_group_mapper
