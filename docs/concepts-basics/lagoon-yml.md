@@ -57,7 +57,7 @@ routes](#environment-routes) are defined per environment.
       allowPullrequests: true
   ```
 
-* `insecure`: Configures HTTP connections. Default is `Allow`.
+* `insecure`: Configures HTTP connections. Default is `Redirect`.
   * `Allow`: Route will respond to HTTP and HTTPS.
   * `Redirect`: Route will redirect any HTTP request to HTTPS.
 
@@ -455,7 +455,7 @@ environments:
 
 * `tls-acme`: Configures automatic TLS certificate generation via Let's Encrypt.
   Default is `true`, set to `false` to disable automatic certificates.
-* `insecure`: Configures HTTP connections. Default is `Allow`.
+* `insecure`: Configures HTTP connections. Default is `Redirect`.
   * `Allow`: Route will respond to HTTP and HTTPS.
   * `Redirect`: Route will redirect any HTTP request to HTTPS.
 * `hstsEnabled`: Adds the `Strict-Transport-Security` header. Default is
