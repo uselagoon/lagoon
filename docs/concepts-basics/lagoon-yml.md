@@ -787,7 +787,7 @@ container-registries:
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
 
-```yaml title=".docker-compose.yml"
+```yaml title="docker-compose.yml"
 services:
   mariadb:
     build:
