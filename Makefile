@@ -138,6 +138,11 @@ ifeq ($(DATABASE_VENDOR), mysql)
 DATABASE_DOCKERFILE = Dockerfile.mysql
 endif
 
+# when using the `configure-homeidp` option locally, you can enforce mfa or not
+KEYCLOAK_ENFORCE_MFA ?= true
+KEYCLOAK_MFA_USE_REALM_ROLE ?= false
+KEYCLOAK_USE_HOMEIDP ?= true
+
 #######
 ####### Functions
 #######
@@ -315,6 +320,11 @@ wait-for-keycloak:
 compose/example-sso:
 	@docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/seed-example-sso.sh keycloak:/tmp/seed-example-sso.sh \
 	&& docker compose -p $(CI_BUILD_TAG) exec -it keycloak bash '/tmp/seed-example-sso.sh'
+
+.PHONY: compose/configure-homeidp
+compose/configure-homeidp:
+       @docker compose -p $(CI_BUILD_TAG) cp ./local-dev/k3d-seed-data/configure-homeidp.sh keycloak:/tmp/configure-homeidp.sh \
+       && docker compose -p $(CI_BUILD_TAG) exec -it -e ENFORCE_MFA="$(KEYCLOAK_ENFORCE_MFA)" -e MFA_USE_REALM_ROLE="$(KEYCLOAK_MFA_USE_REALM_ROLE)" -e USE_HOMEIDP="$(KEYCLOAK_USE_HOMEIDP)" keycloak bash '/tmp/configure-homeidp.sh'
 
 .PHONY: compose/configure-webauthn
 compose/configure-webauthn:
@@ -1115,6 +1125,14 @@ k3d/configure-webauthn:
 	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
 	cat ./local-dev/k3d-seed-data/configure-webauthn.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/configure-webauthn.sh" \
 	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- bash '/tmp/configure-webauthn.sh'
+
+
+.PHONY: k3d/configure-homeidp
+k3d/configure-homeidp:
+	@export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" && \
+	cat ./local-dev/k3d-seed-data/configure-homeidp.sh | $(KUBECTL) -n lagoon-core  exec -i $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- sh -c "cat > /tmp/configure-homeidp.sh" \
+	&& $(KUBECTL) -n lagoon-core exec -it $$($(KUBECTL) -n lagoon-core get pods -l app.kubernetes.io/component=lagoon-core-keycloak -o json | $(JQ) -r '.items[0].metadata.name') -- \
+	env ENFORCE_MFA="$(KEYCLOAK_ENFORCE_MFA)" MFA_USE_REALM_ROLE="$(KEYCLOAK_MFA_USE_REALM_ROLE)" USE_HOMEIDP="$(KEYCLOAK_USE_HOMEIDP)" bash '/tmp/configure-homeidp.sh'
 
 # Use k3d/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
 # log in the foreground, so perform this command in a separate window/terminal.
