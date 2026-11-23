@@ -83,8 +83,14 @@ ENV TMPDIR=/tmp \
     LAGOON_DB_PASSWORD=api \
     LAGOON_DB_HOST=api-db \
     LAGOON_DB_PORT=3306 \
-    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true" \
-    KC_SPI_LOGIN_PROTOCOL__OPENID_CONNECT__ALLOW_TOKEN_INTROSPECTION_WITHOUT_AUDIENCE_CHECK=true
+    JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
+
+# these can be removed in a next release, as they are required to allow the migrations to support their removal
+ENV KC_SPI_LOGIN_PROTOCOL__OPENID_CONNECT__ALLOW_TOKEN_INTROSPECTION_WITHOUT_AUDIENCE_CHECK=true \
+    KC_SPI_ADMIN__AUDIENCE_CHECK_ENABLED=false
+
+# this can be removed once fullscopeallowed is addressed in a follow up, it just prevents spamming of this warning
+ENV KC_LOG_LEVEL="INFO,org.keycloak.protocol.oidc.endpoints.TokenEndpoint.full-scope-allowed:error"
 
 VOLUME /opt/keycloak/data
 

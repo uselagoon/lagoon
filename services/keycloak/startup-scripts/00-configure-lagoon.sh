@@ -430,6 +430,46 @@ EOF
 # Initialization #
 ##################
 
+function add_api_audience_scope {
+  local kcadm=/opt/keycloak/bin/kcadm.sh
+  local realm=${KEYCLOAK_REALM:-master}
+  local scope_id=$($kcadm get -r $realm client-scopes --config $CONFIG_PATH | jq -r '.[] | select(.name=="lagoon-api-audience") | .id')
+  if [ -z "$scope_id" ]; then
+    echo "Creating lagoon-api-audience client scope"
+    $kcadm create client-scopes -r $realm --config $CONFIG_PATH -f - <<EOF
+{"name":"lagoon-api-audience","description":"Adds the api client to the token audience so the api can introspect the token","protocol":"openid-connect","attributes":{"include.in.token.scope":"false","display.on.consent.screen":"false"}}
+EOF
+    scope_id=$($kcadm get -r $realm client-scopes --config $CONFIG_PATH | jq -r '.[] | select(.name=="lagoon-api-audience") | .id')
+    $kcadm create client-scopes/$scope_id/protocol-mappers/models -r $realm --config $CONFIG_PATH -f - <<EOF
+{"name":"api audience","protocol":"openid-connect","protocolMapper":"oidc-audience-mapper","consentRequired":false,"config":{"included.client.audience":"api","id.token.claim":"false","access.token.claim":"true","introspection.token.claim":"true","lightweight.claim":"false"}}
+EOF
+  fi
+  for client in api auth-server lagoon-ui lagoon-cli lagoon-ui-oidc service-api lagoon-opensearch-sync lagoon-opendistro-security; do
+    local client_uuid=$($kcadm get -r $realm clients?clientId=$client --config $CONFIG_PATH | jq -r '.[0].id // empty')
+    if [ -n "$client_uuid" ]; then
+      $kcadm update clients/$client_uuid/default-client-scopes/$scope_id -r $realm --config $CONFIG_PATH
+    fi
+  done
+}
+
+# Keycloak 26.8.2+ requires the kc-admin-api scope on tokens used against the Admin REST API
+function add_admin_api_scope {
+  local kcadm=/opt/keycloak/bin/kcadm.sh
+  local realm=$1
+  shift
+  local scope_id=$($kcadm get -r $realm client-scopes --config $CONFIG_PATH | jq -r '.[] | select(.name=="kc-admin-api") | .id')
+  if [ -z "$scope_id" ]; then
+    echo "client scope kc-admin-api not found in realm $realm, skipping"
+    return 0
+  fi
+  for client in "$@"; do
+    local client_uuid=$($kcadm get -r $realm clients?clientId=$client --config $CONFIG_PATH | jq -r '.[0].id // empty')
+    if [ -n "$client_uuid" ]; then
+      $kcadm update clients/$client_uuid/default-client-scopes/$scope_id -r $realm --config $CONFIG_PATH
+    fi
+  done
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -456,6 +496,9 @@ function configure_keycloak {
       fi
     fi
 
+    # must run before any admin api calls made with the admin-api service account
+    add_admin_api_scope master admin-api
+
     # Sets the order of migrations, add new ones at the end.
     import_lagoon_realm
     configure_lagoon_realm
@@ -464,6 +507,8 @@ function configure_keycloak {
     configure_realm_settings
     configure_lagoon_redirect_uris
     configure_admin_api_client
+    add_admin_api_scope master admin-api
+    add_admin_api_scope lagoon api auth-server service-api lagoon-ui-oidc
 
     check_migrations_version
     migrate_to_custom_group_mapper
@@ -472,6 +517,7 @@ function configure_keycloak {
     environment_service_idling_state_permissions
     add_org_keys
     add_project_clone_permissions
+    add_api_audience_scope
 
     # always run last
     sync_client_secrets

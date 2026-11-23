@@ -772,6 +772,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3417,6 +3418,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3510,6 +3512,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3588,6 +3591,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3671,6 +3675,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3754,6 +3759,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -3809,6 +3815,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -4374,6 +4381,7 @@
         }
       ],
       "defaultClientScopes": [
+        "lagoon-api-audience",
         "web-origins",
         "roles",
         "profile",
@@ -4388,6 +4396,30 @@
     }
   ],
   "clientScopes": [
+    {
+      "name": "lagoon-api-audience",
+      "description": "Adds the api client to the token audience so the api can introspect the token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "api audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    },
     {
       "name": "email",
       "description": "OpenID Connect built-in scope: email",
