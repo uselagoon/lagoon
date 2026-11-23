@@ -44,6 +44,9 @@ You can install the following package https://github.com/chipmk/docker-mac-net-c
 
 ```
 # Install via Homebrew
+# Homebrew 6.0.0 and later requires third-party taps to be trusted before installing
+$ brew tap chipmk/tap
+$ brew trust chipmk/tap
 $ brew install chipmk/tap/docker-mac-net-connect
 # Run the service and register it to launch at boot
 $ sudo brew services start chipmk/tap/docker-mac-net-connect
