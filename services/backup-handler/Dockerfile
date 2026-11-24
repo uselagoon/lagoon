@@ -1,17 +1,18 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM --platform=linux/amd64 golang:1.25-alpine3.22 AS builder
+FROM --platform=linux/amd64 golang:1.26-alpine3.22 AS builder
 
-# bring in all the packages
-COPY . /go/src/github.com/uselagoon/lagoon/services/backup-handler/
-WORKDIR /go/src/github.com/uselagoon/lagoon/services/backup-handler/
+WORKDIR /workspace
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY services/backup-handler services/backup-handler
 
 # compile
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o backup-handler .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -o backup-handler ./services/backup-handler
 
 # put the binary into container
 # use the commons image to get entrypoints
@@ -23,7 +24,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 WORKDIR /app/
 
 # bring the backup-handler binary from the builder
-COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/backup-handler/backup-handler .
+COPY --from=builder /workspace/backup-handler .
 
 ENV LAGOON=backup-handler
 # set defaults

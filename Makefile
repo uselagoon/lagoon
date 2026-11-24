@@ -760,9 +760,10 @@ endif
 
 # run go tests
 
-GO_SERVICES = services/backup-handler services/api-sidecar-handler services/logs2notifications services/webhook-handler services/actions-handler taskimages/activestandby taskimages/projectclone
+GO_SERVICES = taskimages/activestandby taskimages/projectclone
 .PHONY: go/test
 go/test: local-dev/go
+	$(GO) fmt ./... && $(GO) vet ./... && $(GO) mod tidy && $(GO) clean -testcache && $(GO) test -v ./...
 	for service in $(GO_SERVICES); do \
 		echo "test $$service" \
 		&& cd "$$service" \

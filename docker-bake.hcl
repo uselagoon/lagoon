@@ -193,7 +193,8 @@ target "api-redis" {
 
 target "actions-handler" {
   inherits = ["default"]
-  context = "services/actions-handler"
+  context = "."
+  dockerfile = "services/actions-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/actions-handler - the actions-handler service for Lagoon"
   }
@@ -214,7 +215,8 @@ target "auth-server" {
 
 target "backup-handler" {
   inherits = ["default"]
-  context = "services/backup-handler"
+  context = "."
+  dockerfile = "services/backup-handler/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/backup-handler - the backup-handler service for Lagoon"
   }
@@ -261,7 +263,8 @@ target "keycloak-db" {
 
 target "logs2notifications" {
   inherits = ["default"]
-  context = "services/logs2notifications"
+  context = "."
+  dockerfile = "services/logs2notifications/Dockerfile"
   labels = {
     "org.opencontainers.image.title": "lagoon-core/logs2notifications - the logs2notifications service for Lagoon"
   }
