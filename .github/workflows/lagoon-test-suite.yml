@@ -102,6 +102,22 @@ jobs:
           sudo cp local-dev/certificates/rootCA.pem /etc/docker/certs.d/registry.172.18.0.240.nip.io/ca.crt
           ./local-dev/k3d cluster delete --all
 
+      - name: Diagnose registry CA trust
+        run: |
+          docker network create k3d || true
+          SUBNET=$(docker network inspect k3d -f '{{(index .IPAM.Config 0).Subnet}}')
+          echo "k3d subnet: $SUBNET"
+          REGISTRY_HOST="registry.$(echo "${SUBNET%/*}" | awk -F. '{print $1"."$2"."$3".240"}').nip.io"
+          echo "expected registry host: $REGISTRY_HOST"
+          echo "certs.d entries:"
+          ls -la /etc/docker/certs.d/
+          if [ ! -f "/etc/docker/certs.d/$REGISTRY_HOST/ca.crt" ]; then
+            echo "::warning::no certs.d/ca.crt for $REGISTRY_HOST (hardcoded path does not match)"
+          fi
+          echo "system CA bundle contains lagoon CA:"
+          openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout | grep -c "lagoon.test" || true
+          echo "docker daemon started: $(systemctl show docker -p ActiveEnterTimestamp --value 2>/dev/null)"
+
       - name: Setup stable cluster
         run: |
           make k3d/stable-local-stack \
