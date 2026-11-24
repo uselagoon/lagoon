@@ -237,6 +237,7 @@ jobs:
     name: Build (${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
     needs: [check-skip]
+    if: needs.check-skip.outputs.skip == 'false'
     permissions:
       contents: read
       packages: write
@@ -247,9 +248,6 @@ jobs:
           - platform: linux/amd64
             platform_safe: linux-amd64
             runner: ubuntu-latest
-          # - platform: linux/arm64
-          #   platform_safe: linux-arm64
-          #   runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout
@@ -280,9 +278,59 @@ jobs:
             LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }} \
             DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
 
+  build-arm:
+    name: Build (${{ matrix.platform }}, qemu)
+    runs-on: ${{ matrix.runner }}
+    needs: [check-skip, test-suite, go-test]
+    if: needs.check-skip.outputs.skip == 'false'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/arm64
+            platform_safe: linux-arm64
+            runner: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          name: lagoon
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and populate cache
+        env:
+          LAGOON_VERSION: pr-${{ github.event.pull_request.number }}
+          CACHE_TAG: ${{ needs.check-skip.outputs.cache_tag }}
+          CACHE_TAG_PUSH: ${{ needs.check-skip.outputs.cache_tag }}
+        run: |
+          make -j$(getconf _NPROCESSORS_ONLN) -O build PLATFORM_ARCH=${{ matrix.platform }} \
+            CI_BUILD_TAG=lagoon \
+            LAGOON_VERSION=${{ github.ref_name == 'main' && 'main' || format('pr-{0}', github.event.pull_request.number) }} \
+            DOCKER_BUILD_CACHE='--set "*.output=type=cacheonly"'
+
   publish-uselagoon:
     name: Publish to uselagoon (ghcr.io)
-    needs: [check-skip, build]
+    needs: [check-skip, build, build-arm]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -335,7 +383,7 @@ jobs:
 
   cleanup-cache:
     name: Cleanup GHCR
-    needs: [check-skip, build, publish-uselagoon]
+    needs: [check-skip, build, build-arm, publish-uselagoon]
     runs-on: ubuntu-latest
     if: always()
     permissions:
@@ -371,7 +419,7 @@ jobs:
 
   deploy-to-test:
     name: Deploy to test environment (no-op)
-    needs: [check-skip, build, publish-uselagoon, test-suite, go-test]
+    needs: [check-skip, build, build-arm, publish-uselagoon, test-suite, go-test]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
