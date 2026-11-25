@@ -28,6 +28,7 @@ function sync_client_secrets {
 
   SERVICE_API_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   /opt/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+  /opt/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uusername service-account-service-api --cclientid realm-management --rolename view-realm
 
   LAGOON_UI_OIDC_CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=lagoon-ui-oidc --config $CONFIG_PATH | jq -r '.[0]["id"]')
   /opt/keycloak/bin/kcadm.sh update clients/$LAGOON_UI_OIDC_CLIENT_ID -s secret=$KEYCLOAK_LAGOON_UI_OIDC_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}

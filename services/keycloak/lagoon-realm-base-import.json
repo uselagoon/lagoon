@@ -546,7 +546,8 @@
       "clientRoles": {
         "realm-management": [
           "query-groups",
-          "view-users"
+          "view-users",
+          "view-realm"
         ]
       },
       "notBefore": 0,
