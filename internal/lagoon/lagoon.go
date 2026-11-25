@@ -1,14 +1,14 @@
 package lagoon
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"strconv"
-	"time"
 
 	"github.com/uselagoon/machinery/api/schema"
 	"github.com/uselagoon/machinery/utils/namespace"
@@ -295,8 +295,24 @@ func projectSecret(name, seed string) string {
 	return hex.EncodeToString(hashInBytes)
 }
 
+const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+func randomSuffix(n int) string {
+	b := make([]byte, n)
+	max := big.NewInt(int64(len(alphabet)))
+	for i := range b {
+		v, err := rand.Int(rand.Reader, max)
+		if err != nil {
+			panic(err)
+		}
+		b[i] = alphabet[v.Int64()]
+	}
+	return string(b)
+}
+
 func GenerateBuildName() string {
-	return fmt.Sprintf("lagoon-build-%s", strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63(), 36)[7:])
+	// can generate 1.7 × 10²⁰ possible names with 13 characters
+	return "lagoon-build-" + randomSuffix(13)
 }
 
 func RemoveToBytes(payload *RemoveData) []byte {
