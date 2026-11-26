@@ -59,7 +59,7 @@ $ sudo brew services stop chipmk/tap/docker-mac-net-connect
 ```
 
 !!! Note
-    Docker Desktop's Resource Saver pauses the Docker VM once no containers have run for a while (5 minutes by default). When the VM wakes, the tunnel doesn't recover: the cluster's addresses stop answering and image pushes to the local registry time out. Turn Resource Saver off, or increase its timeout, in Docker Desktop under Settings > Resources > Advanced. If the tunnel has already stopped working, restart it with `sudo brew services restart chipmk/tap/docker-mac-net-connect`.
+    Docker Desktop's Resource Saver stops the Docker VM when no containers have run for a while (5 minutes by default). When the VM starts again, docker-mac-net-connect may not set its tunnel back up, as reported in [chipmk/docker-mac-net-connect#36](https://github.com/chipmk/docker-mac-net-connect/issues/36). If the cluster's addresses stop answering or image pushes to the local registry time out, restart the tunnel with `sudo brew services restart chipmk/tap/docker-mac-net-connect`. Turning Resource Saver off, or increasing its timeout, in Docker Desktop under Settings > Resources > Advanced avoids it.
 
 ## Build Lagoon Locally
 
