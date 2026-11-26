@@ -707,14 +707,14 @@ file="/tmp/`+"${FILENAME}"+`"
 DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+')
 if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]
 then
-  if drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip
+  if drush sql-dump --extra-dump="--disable-ssl --no-tablespaces" --result-file=$file --gzip
   then
     echo "drush sql-dump complete"
   else
     exit $?
   fi
 else if
-  drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip
+  drush sql-dump --extra="--disable-ssl --no-tablespaces" --result-file=$file --gzip
   then
     echo "drush sql-dump complete"
   else
