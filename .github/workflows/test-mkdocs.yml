@@ -34,9 +34,6 @@ jobs:
           mkdocs build -s
       -
         name: Check docs build ok with amazee.io mkdocs image
-        # squidfunk/mkdocs-material stopped bundling mkdocs-redirects in 9.8.0, and the amazee.io image
-        # doesn't install it, so add it until the image does (keep in step with docs/serve in the Makefile).
         run: |
           docker run --rm ghcr.io/amazeeio/mkdocs-material -V
-          docker run --rm -v ${PWD}:/docs --entrypoint sh ghcr.io/amazeeio/mkdocs-material \
-            -c 'pip install -q mkdocs-redirects==1.2.2 && mkdocs build -s'
+          docker run --rm -p 8000:8000 -v ${PWD}:/docs ghcr.io/amazeeio/mkdocs-material build -s

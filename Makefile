@@ -1235,7 +1235,6 @@ k3d/clean-k3dconfigs:
 .PHONY: k3d/clean-all
 k3d/clean-all: k3d/clean k3d/clean-k3dconfigs k3d/clean-charts
 
-# the image no longer bundles mkdocs-redirects (dropped in squidfunk/mkdocs-material 9.8.0), so install it first
 .PHONY: docs/serve
 docs/serve:
 	@echo "Starting container to serve documentation"
@@ -1244,7 +1243,7 @@ docs/serve:
 		-p 127.0.0.1:$(MKDOCS_SERVE_PORT):$(MKDOCS_SERVE_PORT) \
 		-v ${PWD}:/docs \
 		--entrypoint sh $(MKDOCS_IMAGE) \
-		-c 'pip install -q mkdocs-redirects==1.2.2 && mkdocs serve --livereload --dirtyreload --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
+		-c 'mkdocs serve --livereload --dirtyreload --dev-addr=0.0.0.0:$(MKDOCS_SERVE_PORT) -f mkdocs.yml'
 
 # k3d/generate-user-keys will generate seed user ssh keys that can be used for local testing
 SEED_USERS = guest reporter developer maintainer owner orguser orgviewer orgadmin orgowner platformorgowner platformviewer platformowner
