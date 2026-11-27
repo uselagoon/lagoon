@@ -3,7 +3,14 @@
 Development of Lagoon locally can now be performed on a local Kubernetes cluster, or via Docker Compose \(as a fallback\).
 
 !!! Note
-    The full Lagoon stack relies on a range of upstream projects which are currently incompatible with ARM-based architectures, such as the the M1/M2 Apple Silicon-based machines. For this reason, running or developing `lagoon-core` or `lagoon-remote` locally on these architectures is not currently supported. See https://github.com/uselagoon/lagoon/issues/3189 for more information.
+    The full Lagoon stack runs on ARM-based machines, such as Apple Silicon Macs, with a few differences from an amd64 machine:
+
+    * Harbor has no arm64 images, so the local stack installs an unauthenticated registry instead, and Harbor integrations can't be tested. See [Harbor or unauthenticated registry](#harbor-or-unauthenticated-registry).
+    * The MongoDB DBaaS provider isn't installed on macOS or arm64. The MariaDB and PostgreSQL providers are.
+    * On macOS, the cluster's addresses are only reachable through a tunnel into the Docker VM. See [MacOS Docker Networking](#macos-docker-networking).
+    * Production clusters usually run on amd64, so some behaviour can differ from what you see locally.
+
+    See https://github.com/uselagoon/lagoon/issues/3189 for the background.
 
 ## Required command line tools
 
@@ -50,6 +57,9 @@ $ sudo brew services start chipmk/tap/docker-mac-net-connect
 # Stop the service
 $ sudo brew services stop chipmk/tap/docker-mac-net-connect
 ```
+
+!!! Note
+    Docker Desktop's Resource Saver stops the Docker VM when no containers have run for a while (5 minutes by default). When the VM starts again, docker-mac-net-connect may not set its tunnel back up, as reported in [chipmk/docker-mac-net-connect#36](https://github.com/chipmk/docker-mac-net-connect/issues/36). If the cluster's addresses stop answering or image pushes to the local registry time out, restart the tunnel with `sudo brew services restart chipmk/tap/docker-mac-net-connect`. Turning Resource Saver off, or increasing its timeout, in Docker Desktop under Settings > Resources > Advanced avoids it.
 
 ## Build Lagoon Locally
 
