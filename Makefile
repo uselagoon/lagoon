@@ -475,7 +475,7 @@ STERN_VERSION = v2.6.1
 CHART_TESTING_VERSION = v3.11.0
 K3D_IMAGE = docker.io/rancher/k3s:v1.31.1-k3s1
 TESTS = [nginx,api,api-routes,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,services-2]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = chart-version-bumps
 CHARTS_REPOSITORY = https://github.com/uselagoon/lagoon-charts.git
 #CHARTS_REPOSITORY = ../lagoon-charts
 TASK_IMAGES = task-activestandby task-projectclone
@@ -1024,6 +1024,8 @@ k3d/get-lagoon-details:
 	echo "Keycloak admin URL: $$( [ $(LAGOON_CORE_USE_HTTPS) = true ] && echo https || echo http )://lagoon-keycloak.$$IP.nip.io/auth"; \
 	echo "Keycloak admin password: $$( $(KUBECTL) get secret -n lagoon-core lagoon-core-keycloak -o json | $(JQ) -r '.data.KEYCLOAK_ADMIN_PASSWORD | @base64d')"; \
 	echo "MailPit (email catching service): http://mailpit.$$IP.nip.io"; \
+	[ $(INSTALL_PROMETHEUS) ] && echo "Grafana URL: $$( [ $(LAGOON_CORE_USE_HTTPS) = true ] && echo https || echo http )://grafana.$$IP.nip.io/auth"; \
+	[ $(INSTALL_PROMETHEUS) ] && echo "Grafana admin password: $$( $(KUBECTL) get secret -n kube-prometheus kube-prometheus-grafana -o json | $(JQ) -r '.data."admin-password" | @base64d')"; \
 	echo ""
 
 ifeq ($(LAGOON_CORE_USE_HTTPS),true)
