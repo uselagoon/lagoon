@@ -46,9 +46,9 @@ variables](../concepts-advanced/environment-variables.md).
 
 | Environment Variable | Default     |                                        Description                                         |
 | :------------------- | :---------- | :----------------------------------------------------------------------------------------- |
-| DATABASES            | -1          | Default number of databases created at startup.                                            |
+| DATABASES            | 1           | Default number of databases created at startup.                                            |
 | LOGLEVEL             | notice      | Define the level of logs.                                                                  |
-| MAXMEMORY            | 100mb       | Maximum amount of memory.                                                                  |
+| MAXMEMORY            | 400mb       | Maximum amount of memory.                                                                  |
 | MAXMEMORYPOLICY      | allkeys-lru | The policy to use when evicting keys if Valkey reaches its maximum memory usage.            |
 | VALKEY_FLAVOR        | ephemeral   | The Valkey configuration flavor to load. Can be `ephemeral` or `persistent`. |
 | VALKEY_PASSWORD      | disabled    | Enables [authentication feature](https://valkey.io/topics/security#authentication-feature). |
